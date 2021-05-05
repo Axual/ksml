@@ -1,37 +1,23 @@
-## Welcome to GitHub Pages
+# KSML Documentation
 
-You can use the [editor on GitHub](https://github.com/Axual/ksml/edit/main/docs/index.md) to maintain and preview the content for your website in Markdown files.
+Welcome to the KSML documentation, Use the menu on the left to navigate through the various sections
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+## Introduction
+KSML allows anyone to specify a powerful Kafka Streams application in just a few lines of YAML and Python snippets.
 
-### Markdown
+TIP: You can find the source code of the client in the https://gitlab.com/axual-public/ksml[KSML]
+repository.
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+## Prerequisites
+- Java 11 is the minimum Java version supported
+- Maven 3 - To build the project
 
-```markdown
-Syntax highlighted code block
+## Contents
 
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/Axual/ksml/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+1. [Data Types](types.md)
+2. [Exceptions](exceptions.md)
+3. [Functions](functions.md)
+4. [Operations](operations.md)
+5. [Pipelines](pipelines.md)
+6. [Stream Types](streams.md)
+7. [Release Notes](release-notes.md)
