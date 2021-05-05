@@ -5,9 +5,6 @@ Welcome to the KSML documentation, Use the menu on the left to navigate through 
 ## Introduction
 KSML allows anyone to specify a powerful Kafka Streams application in just a few lines of YAML and Python snippets.
 
-TIP: You can find the source code of the client in the https://gitlab.com/axual-public/ksml[KSML]
-repository.
-
 ## Prerequisites
 - Java 11 is the minimum Java version supported
 - Maven 3 - To build the project

@@ -10,7 +10,7 @@ This exception is thrown when a defined function is called with a variable of in
 
 ## KSMLApplyException
 
-This exception is thrown if an xref:ksml/operations.adoc[`Operation`] can not be performed on the input stream.
+This exception is thrown if an [Operation](operations.md) can not be performed on the input stream.
 
 ## KSMLExecutionException
 

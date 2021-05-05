@@ -260,15 +260,15 @@ to: output_stream
 
 ### map
 
-This is an alias for xref:transformkeyvalue[`transformKeyValue`].
+This is an alias for [transformKeyValue](#transformkeyvalue).
 
 ### mapKey
 
-This is an alias for xref:transformkey[`transformKey`].
+This is an alias for [transformKey](#transformkey).
 
 ### mapValues
 
-This is an alias for xref:transformvalue[`transformValue`].
+This is an alias for [transformValue](#transformvalue).
 
 ### merge
 
@@ -343,7 +343,7 @@ to: output_stream
 [SessionWindowedKStream::reduce]: https://kafka.apache.org/27/javadoc/org/apache/kafka/streams/kstream/SessionWindowedKStream.html#reduce-org.apache.kafka.streams.kstream.Reducer-org.apache.kafka.streams.kstream.Named-org.apache.kafka.streams.kstream.Materialized-
 [TimeWindowedKStreamObject:reduce]: https://kafka.apache.org/27/javadoc/org/apache/kafka/streams/kstream/TimeWindowedKStream.html#reduce-org.apache.kafka.streams.kstream.Reducer-org.apache.kafka.streams.kstream.Named-org.apache.kafka.streams.kstream.Materialized-
 
-Combine the values of records in this stream by the grouped key. Records with null key or value are ignored. Combining implies that the type of the aggregate result is the same as the type of the input value, similar to xref:aggregate[aggregate](Initializer, Aggregator).
+Combine the values of records in this stream by the grouped key. Records with null key or value are ignored. Combining implies that the type of the aggregate result is the same as the type of the input value, similar to [aggregate(Initializer, Aggregator)](#aggregate).
 
 |Stream Type |Returns |Parameter |Value Type| Description
 |:---|:---|:---|:---|:---
@@ -395,7 +395,7 @@ to: output_stream
 
 ### selectKey
 
-This is an alias for xref:transformKey[`transformKey`].
+This is an alias for [transformKey](#transformkey).
 
 ### suppress
 
@@ -663,7 +663,7 @@ to: my_target_topic
 
 [KStream::toExtractor]: https://kafka.apache.org/27/javadoc/org/apache/kafka/streams/kstream/KStream.html#to-org.apache.kafka.streams.processor.TopicNameExtractor-org.apache.kafka.streams.kstream.Produced-
 
-Messages are passed onto a user function, which returns the name of the topic that message needs to be sent to. This operation acts as a Sink and is always the last operation in a xref:pipeline[`pipeline`].
+Messages are passed onto a user function, which returns the name of the topic that message needs to be sent to. This operation acts as a Sink and is always the last operation in a [pipeline](pipelines.md).
 
 |Applies to|Value Type| Description
 |:---|:---|:---
