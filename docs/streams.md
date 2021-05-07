@@ -24,8 +24,7 @@ Example:
 
 ```yaml
 streams:
-  my_first_stream:
-    topic: some_kafka_topic
+  - topic: some_kafka_topic
     keyType: string
     valueType: string
 ```
@@ -36,8 +35,7 @@ Example:
 
 ```yaml
 tables:
-  my_first_stream:
-    topic: some_kafka_compaction_topic
+  - topic: some_kafka_compaction_topic
     keyType: string
     valueType: string
 ```
@@ -48,8 +46,7 @@ Example:
 
 ```yaml
 globalTables:
-  my_first_global_table:
-    topic: some_kafka_compaction_topic
+  - topic: some_kafka_compaction_topic
     keyType: string
     valueType: string
 ```
