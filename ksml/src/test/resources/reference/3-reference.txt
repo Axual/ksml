@@ -1,0 +1,17 @@
+Topologies:
+   Sub-topology: 0
+    Source: KSTREAM-SOURCE-0000000000 (topics: [ksml_sensordata_avro])
+      --> KSTREAM-PEEK-0000000002
+    Processor: KSTREAM-PEEK-0000000002 (stores: [])
+      --> KSTREAM-FILTER-0000000003
+      <-- KSTREAM-SOURCE-0000000000
+    Processor: KSTREAM-FILTER-0000000003 (stores: [])
+      --> KSTREAM-SINK-0000000004
+      <-- KSTREAM-PEEK-0000000002
+    Sink: KSTREAM-SINK-0000000004 (topic: ksml_sensordata_filtered)
+      <-- KSTREAM-FILTER-0000000003
+
+  Sub-topology: 1
+    Source: KSTREAM-SOURCE-0000000001 (topics: [ksml_sensordata_filtered])
+      --> none
+

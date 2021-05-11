@@ -1,0 +1,8 @@
+Topologies:
+   Sub-topology: 0
+    Source: KSTREAM-SOURCE-0000000000 (topics: [ksml_sensordata_avro])
+      --> KSTREAM-FOREACH-0000000001
+    Processor: KSTREAM-FOREACH-0000000001 (stores: [])
+      --> none
+      <-- KSTREAM-SOURCE-0000000000
+

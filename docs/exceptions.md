@@ -1,10 +1,13 @@
+[<< Back to index](index.md)
+
 # Exceptions
 
 ### Table of Contents
 1. [KSMLApplyException](#ksmlapplyexception)
-2. [KSMLExecutionException](#ksmlexecutionexception)
-3. [KSMLParseException](#ksmlparseexception)
-4. [KSMLTypeException](#ksmltypeexception)
+1. [KSMLExecutionException](#ksmlexecutionexception)
+1. [KSMLParseException](#ksmlparseexception)
+1. [KSMLTopologyException](#ksmltopologyexception)
+1. [KSMLTypeException](#ksmltypeexception)
 
 This exception is thrown when a defined function is called with a variable of incorrect type.
 
@@ -19,6 +22,10 @@ This exception is thrown if there is an error detected during topology execution
 ## KSMLParseException
 
 This exception is thrown if there is an error during the parsing of the KSML definition.
+
+## KSMLTopologyException
+
+This exception is thrown if there is an error detected during topology generation.
 
 ## KSMLTypeException
 

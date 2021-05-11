@@ -1,0 +1,20 @@
+ksml:
+  workingDirectory: ../examples
+  definitions:
+    - 1-demo-inspect.yaml
+
+backend:
+  type: axual
+  config:
+    tenant: tenant
+    environment: environment
+    endpoint: https://discoveryapi.url:port
+    applicationId: io.ksml.example.producer
+    applicationVersion: 0.0.1
+    sslConfig:
+      enableHostnameVerification: false
+      keystoreLocation: /path/to/keystore.jks
+      keystorePassword: password
+      keyPassword: password
+      truststoreLocation: /path/to/truststore.jks
+      truststorePassword: password

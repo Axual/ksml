@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <Target>System.out</Target>
+        <filter.filter1>org.apache.log4j.varia.LevelRangeFilter</filter.filter1>
+        <filter.filter1.levelMin>TRACE</filter.filter1.levelMin>
+        <filter.filter1.levelMax>INFO</filter.filter1.levelMax>
+        <encoder>
+            <pattern>%date{"yyyy-MM-dd'T'HH:mm:ss,SSSXXX", UTC} [system] [%t] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>TRACE</level>
+        </filter>
+    </appender>
+    <appender name="stderr" class="ch.qos.logback.core.ConsoleAppender">
+        <Target>System.err</Target>
+        <encoder>
+            <pattern>%date{"yyyy-MM-dd'T'HH:mm:ss,SSSXXX", UTC} [system] [%t] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>WARN</level>
+        </filter>
+    </appender>
+    <logger name="io.axual" level="WARN"/>
+    <logger name="io.axual.common" level="WARN"/>
+    <logger name="org.apache.kafka" level="WARN"/>
+    <logger name="org.apache.kafka.clients.consumer.ConsumerConfig" level="ERROR"/>
+    <logger name="org.apache.kafka.clients.producer.ProducerConfig" level="ERROR"/>
+    <logger name="org.apache.kafka.clients.admin.AdminClientConfig" level="ERROR"/>
+    <logger name="org.apache.kafka.streams.StreamsConfig" level="ERROR"/>
+    <logger name="io.confluent" level="WARN"/>
+    <logger name="io.axual.ksml" level="INFO"/>
+    <logger name="io.axual.client" level="WARN"/>
+    <root level="INFO">
+        <appender-ref ref="stdout"/>
+        <appender-ref ref="stderr"/>
+    </root>
+</configuration>

@@ -1,0 +1,35 @@
+Topologies:
+   Sub-topology: 0
+    Source: KSTREAM-SOURCE-0000000000 (topics: [ksml_sensordata_blue])
+      --> none
+
+  Sub-topology: 1
+    Source: KSTREAM-SOURCE-0000000001 (topics: [ksml_sensordata_red])
+      --> none
+
+  Sub-topology: 2
+    Source: KSTREAM-SOURCE-0000000002 (topics: [ksml_sensordata_avro])
+      --> KSTREAM-PEEK-0000000003
+    Processor: KSTREAM-PEEK-0000000003 (stores: [])
+      --> KSTREAM-BRANCH-0000000004
+      <-- KSTREAM-SOURCE-0000000002
+    Processor: KSTREAM-BRANCH-0000000004 (stores: [])
+      --> KSTREAM-BRANCHCHILD-0000000005, KSTREAM-BRANCHCHILD-0000000006, KSTREAM-BRANCHCHILD-0000000007
+      <-- KSTREAM-PEEK-0000000003
+    Processor: KSTREAM-BRANCHCHILD-0000000005 (stores: [])
+      --> KSTREAM-SINK-0000000008
+      <-- KSTREAM-BRANCH-0000000004
+    Processor: KSTREAM-BRANCHCHILD-0000000006 (stores: [])
+      --> KSTREAM-SINK-0000000009
+      <-- KSTREAM-BRANCH-0000000004
+    Processor: KSTREAM-BRANCHCHILD-0000000007 (stores: [])
+      --> KSTREAM-FOREACH-0000000010
+      <-- KSTREAM-BRANCH-0000000004
+    Processor: KSTREAM-FOREACH-0000000010 (stores: [])
+      --> none
+      <-- KSTREAM-BRANCHCHILD-0000000007
+    Sink: KSTREAM-SINK-0000000008 (topic: ksml_sensordata_blue)
+      <-- KSTREAM-BRANCHCHILD-0000000005
+    Sink: KSTREAM-SINK-0000000009 (topic: ksml_sensordata_red)
+      <-- KSTREAM-BRANCHCHILD-0000000006
+

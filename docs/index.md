@@ -11,10 +11,15 @@ KSML allows anyone to specify a powerful Kafka Streams application in just a few
 
 ## Contents
 
+1. [Introduction](introduction.md)
+1. [Stream Types](streams.md)
+1. [Functions](functions.md)
+1. [Pipelines](pipelines.md)
+1. [Operations](operations.md)
 1. [Data Types](types.md)
-2. [Exceptions](exceptions.md)
-3. [Functions](functions.md)
-4. [Operations](operations.md)
-5. [Pipelines](pipelines.md)
-6. [Stream Types](streams.md)
-7. [Release Notes](release-notes.md)
+1. [Exceptions](exceptions.md)
+1. [Runners](runners.md)
+
+[Getting Started](getting-started.md)
+
+[Release Notes](release-notes.md)

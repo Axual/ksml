@@ -1,0 +1,26 @@
+streams:
+  - topic: ksml_sensordata_avro
+    keyType: string
+    valueType: string
+  - topic: ksml_sensordata_filtered
+    keyType: string
+    valueType: string
+
+functions:
+  print_message:
+    type: forEach
+    code: "print('key='+(key if isinstance(key,str) else str(key))+', value='+(value if isinstance(value,str) else str(value)))"
+
+  filter_message:
+    type: predicate
+    expression: value['color'] == 'blue'
+
+pipelines:
+  main:
+    from: ksml_sensordata_avro
+    via:
+      - type: peek
+        forEach: print_message
+      - type: filter
+        predicate: filter_message
+    to: ksml_sensordata_filtered

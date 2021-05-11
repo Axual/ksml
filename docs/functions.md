@@ -1,3 +1,5 @@
+[<< Back to index](index.md)
+
 # Functions
 
 ### Table of Contents

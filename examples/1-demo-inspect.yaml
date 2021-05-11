@@ -1,0 +1,14 @@
+streams:
+  - topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+
+functions:
+  print_message:
+    type: forEach
+    code: "print('key='+(key if isinstance(key,str) else str(key))+', value='+(value if isinstance(value,str) else str(value)))"
+
+pipelines:
+  main:
+    from: ksml_sensordata_avro
+    forEach: print_message

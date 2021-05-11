@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.axual.ksml</groupId>
+    <artifactId>ksml-parent</artifactId>
+    <version>0.0.1</version>
+    <packaging>pom</packaging>
+
+    <licenses>
+        <license>
+            <name>Apache 2.0</name>
+            <url>http://www.apache.org/licenses/license-2.0.txt</url>
+            <distribution>repo</distribution>
+            <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
+
+    <organization>
+        <name>Axual B.V.</name>
+        <url>https://axual.com/</url>
+    </organization>
+
+    <description>
+        KSML allows low-code developers to specify a Kafka Streams topology using YAML and Python
+        snippets.
+    </description>
+
+    <url>https://axual.com/</url>
+
+    <inceptionYear>2021</inceptionYear>
+
+    <developers>
+        <developer>
+            <name>Team Axual</name>
+            <email>info@axual.com</email>
+            <organization>Axual B.V.</organization>
+            <organizationUrl>https://axual.com</organizationUrl>
+        </developer>
+    </developers>
+
+
+    <repositories>
+        <repository>
+            <id>Confluent</id>
+            <url>https://packages.confluent.io/maven/</url>
+        </repository>
+    </repositories>
+
+    <modules>
+        <module>ksml</module>
+        <module>ksml-axual</module>
+        <module>ksml-example-producer</module>
+        <module>ksml-runner</module>
+        <module>ksml-runner-axual</module>
+    </modules>
+
+    <properties>
+        <apache.avro.version>1.9.2</apache.avro.version>
+        <axual.version>5.7.0</axual.version>
+        <commons.logging.version>1.1</commons.logging.version>
+        <hamcrest.version>2.1</hamcrest.version>
+        <jackson.version>2.11.1</jackson.version>
+        <java.source.version>11</java.source.version>
+        <java.target.version>11</java.target.version>
+        <jupiter.version>5.7.1</jupiter.version>
+        <jython.version>2.7.2</jython.version>
+        <kafka.streams.version>2.7.0</kafka.streams.version>
+        <lombok.version>1.18.18</lombok.version>
+        <maven.compiler.version>3.8.1</maven.compiler.version>
+        <maven.exec.version>3.0.0</maven.exec.version>
+        <maven.jar.version>3.2.0</maven.jar.version>
+        <maven.surefire.version>2.22.2</maven.surefire.version>
+        <maven.failsafe.version>2.22.2</maven.failsafe.version>
+        <maven.install.version>3.0.0-M1</maven.install.version>
+        <maven.license.plugin.version>1.9</maven.license.plugin.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <slf4j.version>1.7.30</slf4j.version>
+
+        <!-- license properties -->
+        <license.licensename>apache_v2</license.licensename>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- project dependencies -->
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml-axual</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml-runner</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.avro</groupId>
+                <artifactId>avro</artifactId>
+                <version>${apache.avro.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka-streams</artifactId>
+                <version>${kafka.streams.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.client</groupId>
+                <artifactId>axual-client-proxy</artifactId>
+                <version>${axual.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.streams</groupId>
+                <artifactId>axual-streams</artifactId>
+                <version>${axual.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-log4j12</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging-api</artifactId>
+                <version>${commons.logging.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-yaml</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.python</groupId>
+                <artifactId>jython-slim</artifactId>
+                <version>${jython.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-api</artifactId>
+                <version>${jupiter.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-engine</artifactId>
+                <version>${jupiter.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-params</artifactId>
+                <version>${jupiter.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest-library</artifactId>
+                <version>${hamcrest.version}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven.compiler.version}</version>
+                    <configuration>
+                        <source>${java.source.version}</source>
+                        <target>${java.target.version}</target>
+                        <compilerArgs>
+                            <arg>-Xlint:none</arg>
+                        </compilerArgs>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven.surefire.version}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>${maven.failsafe.version}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>${maven.install.version}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.avro</groupId>
+                    <artifactId>avro-maven-plugin</artifactId>
+                    <version>${apache.avro.version}</version>
+                    <executions>
+                        <execution>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>schema</goal>
+                            </goals>
+                            <configuration>
+                                <sourceDirectory>${project.basedir}/src/main/schemas
+                                </sourceDirectory>
+                                <outputDirectory>${project.build.directory}/generated-sources/avro
+                                </outputDirectory>
+                                <stringType>charsequence</stringType>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${maven.jar.version}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>${maven.exec.version}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>java</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <!-- license plugin -->
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <version>${maven.license.plugin.version}</version>
+                    <configuration>
+                        <licenseName>${license.licensename}</licenseName>
+                        <verbose>false</verbose>
+                        <processStartTag>
+                            ========================LICENSE_START=================================
+                        </processStartTag>
+                        <processEndTag>
+                            =========================LICENSE_END==================================
+                        </processEndTag>
+                        <includes>
+                            <includes>**/*.java</includes>
+                        </includes>
+                        <skipUpdateLicense>false</skipUpdateLicense>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>add-third-party-license</id>
+                            <goals>
+                                <goal>add-third-party</goal>
+                            </goals>
+                            <phase>generate-resources</phase>
+                            <configuration>
+                                <excludedScopes>system,test</excludedScopes>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>verify-license-headers</id>
+                            <goals>
+                                <goal>check-file-header</goal>
+                            </goals>
+                            <phase>process-sources</phase>
+                        </execution>
+                        <execution>
+                            <id>generate-license-headers</id>
+                            <goals>
+                                <goal>update-file-header</goal>
+                            </goals>
+                            <phase>process-sources</phase>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                </configuration>
+            </plugin>
+        </plugins>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>true</filtering>
+            </testResource>
+        </testResources>
+    </build>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <!--suppress UnresolvedMavenProperty -->
+            <url>${axual.maven.repository.url.snapshots}</url>
+        </snapshotRepository>
+        <repository>
+            <id>releases</id>
+            <!--suppress UnresolvedMavenProperty -->
+            <url>${axual.maven.repository.url.releases}</url>
+        </repository>
+    </distributionManagement>
+</project>

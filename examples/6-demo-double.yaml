@@ -1,0 +1,40 @@
+streams:
+  - topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+  - topic: ksml_sensordata_sensor0
+    keyType: string
+    valueType: avro:SensorData
+  - topic: ksml_sensordata_sensor1
+    keyType: string
+    valueType: avro:SensorData
+  - topic: ksml_sensordata_sensor2
+    keyType: string
+    valueType: avro:SensorData
+
+functions:
+  print_message:
+    type: forEach
+    code: "print('key='+(key if isinstance(key,str) else str(key))+', value='+(value if isinstance(value,str) else str(value)))"
+
+  doubleEveryRecord:
+    type: transformKeyValueToKeyValueList
+    expression: "[(key+'-1','Completely new value'),(key+'-2','Also a new value')]"
+    resultType: "[(string,string)]"
+
+pipelines:
+  main:
+    from: ksml_sensordata_avro
+    via:
+      - type: peek
+        forEach: print_message
+      - type: transformKeyValueToKeyValueList
+        mapper: doubleEveryRecord
+    toExtractor:
+      code: |
+        if key == 'sensor1':
+          return 'ksml_sensordata_sensor1'
+        elif key == 'sensor2':
+          return 'ksml_sensordata_sensor2'
+        else:
+          return 'ksml_sensordata_sensor0'

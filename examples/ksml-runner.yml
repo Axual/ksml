@@ -1,0 +1,13 @@
+ksml:
+  workingDirectory: /ksml
+  definitions:
+  - 1-demo-inspect.yaml
+
+backend:
+  type: kafka
+  config:
+    bootstrapUrl: broker:9093
+    applicationId: io.ksml.example.processor
+    schemaRegistryUrl: http://schema_registry:8081
+    streamsConfig:
+      acks: all
