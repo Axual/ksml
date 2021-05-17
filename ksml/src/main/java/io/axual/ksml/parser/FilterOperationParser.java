@@ -21,7 +21,6 @@ package io.axual.ksml.parser;
  */
 
 
-
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.operation.FilterOperation;
 import io.axual.ksml.user.UserFunction;
@@ -29,8 +28,11 @@ import io.axual.ksml.user.UserFunction;
 import static io.axual.ksml.dsl.KSMLDSL.FILTER_PREDICATE_ATTRIBUTE;
 
 public class FilterOperationParser extends ContextAwareParser<FilterOperation> {
-    protected FilterOperationParser(ParseContext context) {
+    private final String name;
+
+    protected FilterOperationParser(String name, ParseContext context) {
         super(context);
+        this.name = name;
     }
 
     @Override
@@ -38,7 +40,9 @@ public class FilterOperationParser extends ContextAwareParser<FilterOperation> {
         if (node == null) return null;
         UserFunction predicate = parseFunction(node, FILTER_PREDICATE_ATTRIBUTE, new PredicateDefinitionParser());
         if (predicate != null) {
-            return new FilterOperation(predicate);
+            return new FilterOperation(
+                    name,
+                    predicate);
         }
         throw new KSMLParseException(node, "Predicate not specified or function unknown");
     }

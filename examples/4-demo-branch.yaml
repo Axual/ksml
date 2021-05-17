@@ -1,11 +1,14 @@
 streams:
   - topic: ksml_sensordata_avro
+    name: sensor_source
     keyType: string
     valueType: avro:SensorData
   - topic: ksml_sensordata_blue
+    name: sensor_blue
     keyType: string
     valueType: avro:SensorData
   - topic: ksml_sensordata_red
+    name: sensor_red
     keyType: string
     valueType: avro:SensorData
 
@@ -19,6 +22,7 @@ pipelines:
     from: ksml_sensordata_avro
     via:
       - type: peek
+        name: peek_and_print
         forEach: print_message
     branch:
       - if:

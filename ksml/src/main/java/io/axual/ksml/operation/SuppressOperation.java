@@ -30,12 +30,13 @@ import io.axual.ksml.stream.StreamWrapper;
 public class SuppressOperation extends BaseOperation {
     private final Suppressed<? super Object> suppressed;
 
-    public SuppressOperation(Suppressed<? super Object> suppressed) {
+    public SuppressOperation(String name, Suppressed<? super Object> suppressed) {
+        super(name);
         this.suppressed = suppressed;
     }
 
     @Override
     public StreamWrapper apply(KTableWrapper input) {
-        return new KTableWrapper(input.table.suppress(suppressed), input.keyType, input.valueType);
+        return new KTableWrapper(input.table.suppress(suppressed.withName(name)), input.keyType, input.valueType);
     }
 }

@@ -21,7 +21,6 @@ package io.axual.ksml.operation;
  */
 
 
-
 import org.apache.kafka.streams.kstream.SessionWindows;
 import org.apache.kafka.streams.kstream.SlidingWindows;
 import org.apache.kafka.streams.kstream.TimeWindows;
@@ -37,19 +36,22 @@ public class WindowedByOperation extends BaseOperation {
     private final SlidingWindows slidingWindows;
     private final TimeWindows timeWindows;
 
-    public WindowedByOperation(SessionWindows sessionWindows) {
+    public WindowedByOperation(String name, SessionWindows sessionWindows) {
+        super(name);
         this.sessionWindows = sessionWindows;
         this.slidingWindows = null;
         this.timeWindows = null;
     }
 
-    public WindowedByOperation(SlidingWindows slidingWindows) {
+    public WindowedByOperation(String name, SlidingWindows slidingWindows) {
+        super(name);
         this.sessionWindows = null;
         this.slidingWindows = slidingWindows;
         this.timeWindows = null;
     }
 
-    public WindowedByOperation(TimeWindows timeWindows) {
+    public WindowedByOperation(String name, TimeWindows timeWindows) {
+        super(name);
         this.sessionWindows = null;
         this.slidingWindows = null;
         this.timeWindows = timeWindows;
@@ -66,6 +68,6 @@ public class WindowedByOperation extends BaseOperation {
         if (timeWindows != null) {
             return new TimeWindowedKStreamWrapper(input.groupedStream.windowedBy(timeWindows), input.keyType, input.valueType);
         }
-        throw new KSMLApplyException("Error applying WINDOW BY to " + input);
+        throw new KSMLApplyException("Operation " + name + ". Error applying WINDOW BY to " + input);
     }
 }

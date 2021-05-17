@@ -21,10 +21,15 @@ package io.axual.ksml.operation;
  */
 
 
-
 import io.axual.ksml.parser.StreamOperation;
 
 public class BaseOperation implements StreamOperation {
+    protected final String name;
+
+    public BaseOperation(String name) {
+        this.name = name;
+    }
+
 
     @Override
     public String toString() {
@@ -32,6 +37,6 @@ public class BaseOperation implements StreamOperation {
         if (operation.toLowerCase().endsWith("operation")) {
             operation = operation.substring(0, operation.length() - 9);
         }
-        return operation;
+        return (name == null ? "Unnamed" : name) + " operation " + operation;
     }
 }

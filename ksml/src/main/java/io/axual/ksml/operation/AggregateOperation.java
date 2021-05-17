@@ -21,8 +21,9 @@ package io.axual.ksml.operation;
  */
 
 
-
 import org.apache.kafka.streams.kstream.KTable;
+import org.apache.kafka.streams.kstream.Materialized;
+import org.apache.kafka.streams.kstream.Named;
 
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
@@ -44,7 +45,8 @@ public class AggregateOperation extends BaseOperation {
     private final UserFunction adder;
     private final UserFunction subtractor;
 
-    public AggregateOperation(UserFunction initializer, UserFunction aggregator, UserFunction merger, UserFunction adder, UserFunction subtractor) {
+    public AggregateOperation(String name, UserFunction initializer, UserFunction aggregator, UserFunction merger, UserFunction adder, UserFunction subtractor) {
+        super(name);
         this.initializer = initializer;
         this.aggregator = aggregator;
         this.merger = merger;
@@ -56,7 +58,9 @@ public class AggregateOperation extends BaseOperation {
     public StreamWrapper apply(KGroupedStreamWrapper input) {
         return new KTableWrapper(input.groupedStream.aggregate(
                 new UserInitializer(initializer),
-                new UserAggregator(aggregator)),
+                new UserAggregator(aggregator),
+                Named.as(name),
+                Materialized.as(name)),
                 input.keyType,
                 input.valueType);
     }
@@ -66,7 +70,9 @@ public class AggregateOperation extends BaseOperation {
         return new KTableWrapper(input.groupedTable.aggregate(
                 new UserInitializer(initializer),
                 new UserAggregator(adder),
-                new UserAggregator(subtractor)),
+                new UserAggregator(subtractor),
+                Named.as(name),
+                Materialized.as(name)),
                 input.keyType,
                 input.valueType);
     }
@@ -77,7 +83,9 @@ public class AggregateOperation extends BaseOperation {
                 (KTable) input.sessionWindowedKStream.aggregate(
                         new UserInitializer(initializer),
                         new UserAggregator(aggregator),
-                        new UserMerger(merger)),
+                        new UserMerger(merger),
+                        Named.as(name),
+                        Materialized.as(name)),
                 StreamDataType.of(new WindowType(input.keyType.type), true),
                 input.valueType);
     }
@@ -87,7 +95,9 @@ public class AggregateOperation extends BaseOperation {
         return new KTableWrapper(
                 (KTable) input.timeWindowedKStream.aggregate(
                         new UserInitializer(initializer),
-                        new UserAggregator(aggregator)),
+                        new UserAggregator(aggregator),
+                        Named.as(name),
+                        Materialized.as(name)),
                 StreamDataType.of(new WindowType(input.keyType.type), true),
                 input.valueType);
     }

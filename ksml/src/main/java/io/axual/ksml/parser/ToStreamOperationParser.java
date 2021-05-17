@@ -25,13 +25,16 @@ package io.axual.ksml.parser;
 import io.axual.ksml.operation.ToStreamOperation;
 
 public class ToStreamOperationParser extends ContextAwareParser<ToStreamOperation> {
-    protected ToStreamOperationParser(ParseContext context) {
+    private final String name;
+
+    protected ToStreamOperationParser(String name, ParseContext context) {
         super(context);
+        this.name = name;
     }
 
     @Override
     public ToStreamOperation parse(YamlNode node) {
         if (node == null) return null;
-        return new ToStreamOperation();
+        return new ToStreamOperation(name);
     }
 }

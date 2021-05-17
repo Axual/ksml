@@ -22,15 +22,21 @@ package io.axual.ksml.operation;
 
 
 
+import org.apache.kafka.streams.kstream.Named;
+
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 
 public class ToStreamOperation extends BaseOperation {
+    public ToStreamOperation(String name) {
+        super(name);
+    }
+
     @Override
     public StreamWrapper apply(KTableWrapper input) {
         return new KStreamWrapper(
-                input.table.toStream(),
+                input.table.toStream(Named.as(name)),
                 input.keyType,
                 input.valueType);
     }

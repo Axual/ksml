@@ -24,6 +24,8 @@ package io.axual.ksml.operation;
 
 import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.Joined;
+import org.apache.kafka.streams.kstream.Materialized;
+import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.StreamJoined;
 
 import java.time.Duration;
@@ -44,21 +46,24 @@ public class JoinOperation extends BaseOperation {
     private final UserFunction valueJoiner;
     private final JoinWindows joinWindows;
 
-    public JoinOperation(KStreamWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
+    public JoinOperation(String name, KStreamWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
+        super(name);
         this.joinStream = joinStream;
         this.keyValueMapper = null;
         this.valueJoiner = valueJoiner;
         this.joinWindows = JoinWindows.of(joinWindowDuration);
     }
 
-    public JoinOperation(KTableWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
+    public JoinOperation(String name, KTableWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
+        super(name);
         this.joinStream = joinStream;
         this.keyValueMapper = null;
         this.valueJoiner = valueJoiner;
         this.joinWindows = JoinWindows.of(joinWindowDuration);
     }
 
-    public JoinOperation(GlobalKTableWrapper joinStream, UserFunction keyValueMapper, UserFunction valueJoiner) {
+    public JoinOperation(String name, GlobalKTableWrapper joinStream, UserFunction keyValueMapper, UserFunction valueJoiner) {
+        super(name);
         this.joinStream = joinStream;
         this.keyValueMapper = keyValueMapper;
         this.valueJoiner = valueJoiner;
@@ -75,7 +80,7 @@ public class JoinOperation extends BaseOperation {
                             ((KStreamWrapper) joinStream).stream,
                             new UserValueJoiner(valueJoiner),
                             joinWindows,
-                            StreamJoined.with(input.keyType.serde, input.valueType.serde, resultValueType.serde)),
+                            StreamJoined.with(input.keyType.serde, input.valueType.serde, resultValueType.serde).withName(name)),
                     input.keyType,
                     resultValueType);
         }
@@ -84,7 +89,7 @@ public class JoinOperation extends BaseOperation {
                     input.stream.join(
                             ((KTableWrapper) joinStream).table,
                             new UserValueJoiner(valueJoiner),
-                            Joined.with(input.keyType.serde, input.valueType.serde, resultValueType.serde)),
+                            Joined.with(input.keyType.serde, input.valueType.serde, resultValueType.serde, name)),
                     input.keyType,
                     resultValueType);
         }
@@ -93,7 +98,8 @@ public class JoinOperation extends BaseOperation {
                     input.stream.join(
                             ((GlobalKTableWrapper) joinStream).globalTable,
                             new UserKeyTransformer(keyValueMapper),
-                            new UserValueJoiner(valueJoiner)),
+                            new UserValueJoiner(valueJoiner),
+                            Named.as(name)),
                     input.keyType,
                     resultValueType);
         }
@@ -108,7 +114,10 @@ public class JoinOperation extends BaseOperation {
             return new KTableWrapper(
                     input.table.join(
                             ((KTableWrapper) joinStream).table,
-                            new UserValueJoiner(valueJoiner)),
+                            new UserValueJoiner(valueJoiner),
+                            Named.as(name),
+                            Materialized.as(name)
+                    ),
                     input.keyType,
                     resultValueType);
         }

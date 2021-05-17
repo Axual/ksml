@@ -23,6 +23,7 @@ package io.axual.ksml.operation;
 
 
 import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.Predicate;
 
 import java.util.List;
@@ -36,7 +37,8 @@ import io.axual.ksml.user.UserPredicate;
 public class BranchOperation extends BaseOperation {
     private final List<BranchDefinition> branches;
 
-    public BranchOperation(List<BranchDefinition> branches) {
+    public BranchOperation(String name, List<BranchDefinition> branches) {
+        super(name);
         this.branches = branches;
     }
 
@@ -51,7 +53,7 @@ public class BranchOperation extends BaseOperation {
 
         // Pass the predicates to KStream and get resulting KStream branches back
         @SuppressWarnings("unchecked")
-        KStream<Object, Object>[] resultStreams = input.stream.branch(predicates);
+        KStream<Object, Object>[] resultStreams = input.stream.branch(Named.as(name), predicates);
 
         // For every branch, generate a separate pipeline
         for (int index = 0; index < resultStreams.length; index++) {

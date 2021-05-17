@@ -23,6 +23,8 @@ package io.axual.ksml.operation;
 
 
 import org.apache.kafka.streams.kstream.JoinWindows;
+import org.apache.kafka.streams.kstream.Materialized;
+import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.StreamJoined;
 
 import java.time.Duration;
@@ -41,7 +43,8 @@ public class OuterJoinOperation extends BaseOperation {
     private final UserFunction valueJoiner;
     private final JoinWindows joinWindows;
 
-    public OuterJoinOperation(KStreamWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
+    public OuterJoinOperation(String name, KStreamWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
+        super(name);
         this.joinStream = joinStream;
         this.valueJoiner = valueJoiner;
         this.joinWindows = JoinWindows.of(joinWindowDuration);
@@ -57,7 +60,7 @@ public class OuterJoinOperation extends BaseOperation {
                             ((KStreamWrapper) joinStream).stream,
                             new UserValueJoiner(valueJoiner),
                             joinWindows,
-                            StreamJoined.with(input.keyType.serde, input.valueType.serde, resultValueType.serde)),
+                            StreamJoined.with(input.keyType.serde, input.valueType.serde, resultValueType.serde).withName(name)),
                     input.keyType,
                     resultValueType);
         }
@@ -72,7 +75,9 @@ public class OuterJoinOperation extends BaseOperation {
             return new KTableWrapper(
                     input.table.outerJoin(
                             ((KTableWrapper) joinStream).table,
-                            new UserValueJoiner(valueJoiner)),
+                            new UserValueJoiner(valueJoiner),
+                            Named.as(name),
+                            Materialized.as(name)),
                     input.keyType,
                     resultValueType);
         }

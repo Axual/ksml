@@ -32,19 +32,16 @@ import io.axual.ksml.user.UserKeyTransformer;
 
 public class TransformKeyOperation extends BaseOperation {
     private final UserFunction transformer;
-    private final String name;
 
-    public TransformKeyOperation(UserFunction transformer, String name) {
+    public TransformKeyOperation(String name, UserFunction transformer) {
+        super(name);
         this.transformer = transformer;
-        this.name = name;
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
         return new KStreamWrapper(
-                name != null && !name.isEmpty()
-                        ? input.stream.selectKey(new UserKeyTransformer(transformer), Named.as(name))
-                        : input.stream.selectKey(new UserKeyTransformer(transformer)),
+                input.stream.selectKey(new UserKeyTransformer(transformer), Named.as(name)),
                 StreamDataType.of(transformer.resultType, true),
                 input.valueType);
     }

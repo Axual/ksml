@@ -21,22 +21,23 @@ package io.axual.ksml.parser;
  */
 
 
-
 import io.axual.ksml.operation.RepartitionOperation;
 
-import static io.axual.ksml.dsl.KSMLDSL.REPARTITION_NAME_ATTRIBUTE;
 import static io.axual.ksml.dsl.KSMLDSL.REPARTITION_PARTITIONER_ATTRIBUTE;
 
 public class RepartitionOperationParser extends ContextAwareParser<RepartitionOperation> {
-    protected RepartitionOperationParser(ParseContext context) {
+    private final String name;
+
+    protected RepartitionOperationParser(String name, ParseContext context) {
         super(context);
+        this.name = name;
     }
 
     @Override
     public RepartitionOperation parse(YamlNode node) {
         if (node == null) return null;
         return new RepartitionOperation(
-                parseText(node, REPARTITION_NAME_ATTRIBUTE),
+                name,
                 parseFunction(node, REPARTITION_PARTITIONER_ATTRIBUTE, new StreamPartitionerDefinitionParser()));
     }
 }

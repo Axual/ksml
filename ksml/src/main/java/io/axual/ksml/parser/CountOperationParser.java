@@ -21,17 +21,19 @@ package io.axual.ksml.parser;
  */
 
 
-
 import io.axual.ksml.operation.CountOperation;
 
 public class CountOperationParser extends ContextAwareParser<CountOperation> {
-    protected CountOperationParser(ParseContext context) {
+    private final String name;
+
+    protected CountOperationParser(String name, ParseContext context) {
         super(context);
+        this.name = name;
     }
 
     @Override
     public CountOperation parse(YamlNode node) {
         if (node == null) return null;
-        return new CountOperation();
+        return new CountOperation(name);
     }
 }

@@ -21,19 +21,24 @@ package io.axual.ksml.parser;
  */
 
 
-
 import io.axual.ksml.operation.GroupByOperation;
 
 import static io.axual.ksml.dsl.KSMLDSL.GROUPBY_MAPPER_ATTRIBUTE;
 
 public class GroupByOperationParser extends ContextAwareParser<GroupByOperation> {
-    protected GroupByOperationParser(ParseContext context) {
+    private final String name;
+
+    protected GroupByOperationParser(String name, ParseContext context) {
         super(context);
+        this.name = name;
     }
 
     @Override
     public GroupByOperation parse(YamlNode node) {
         if (node == null) return null;
-        return new GroupByOperation(parseFunction(node, GROUPBY_MAPPER_ATTRIBUTE, new KeyValueMapperDefinitionParser()));
+        return new GroupByOperation(
+                name,
+                parseFunction(node, GROUPBY_MAPPER_ATTRIBUTE, new KeyValueMapperDefinitionParser())
+        );
     }
 }

@@ -39,7 +39,8 @@ import io.axual.ksml.user.UserKeyValueTransformer;
 public class GroupByOperation extends BaseOperation {
     private final UserFunction transformer;
 
-    public GroupByOperation(UserFunction transformer) {
+    public GroupByOperation(String name, UserFunction transformer) {
+        super(name);
         this.transformer = transformer;
     }
 
@@ -48,7 +49,7 @@ public class GroupByOperation extends BaseOperation {
         final StreamDataType resultKeyType = StreamDataType.of(transformer.resultType, true);
         return new KGroupedStreamWrapper(
                 input.stream.groupBy(
-                        new UserKeyTransformer(transformer), Grouped.with(resultKeyType.serde, input.valueType.serde)),
+                        new UserKeyTransformer(transformer), Grouped.with(name, resultKeyType.serde, input.valueType.serde)),
                 resultKeyType,
                 input.valueType);
     }
@@ -65,7 +66,7 @@ public class GroupByOperation extends BaseOperation {
         return new KGroupedTableWrapper(
                 input.table.groupBy(
                         new UserKeyValueTransformer(transformer),
-                        Grouped.with(resultKeyType.serde, resultValueType.serde)),
+                        Grouped.with(name, resultKeyType.serde, resultValueType.serde)),
                 resultKeyType,
                 resultValueType);
     }

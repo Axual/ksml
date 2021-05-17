@@ -42,13 +42,15 @@ public class LeftJoinOperation extends BaseOperation {
     private final UserFunction valueJoiner;
     private final Duration joinWindowsDuration;
 
-    public LeftJoinOperation(KStreamWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
+    public LeftJoinOperation(String name, KStreamWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
+        super(name);
         this.joinStream = joinStream;
         this.valueJoiner = valueJoiner;
         this.joinWindowsDuration = joinWindowDuration;
     }
 
-    public LeftJoinOperation(KTableWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
+    public LeftJoinOperation(String name, KTableWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
+        super(name);
         this.joinStream = joinStream;
         this.valueJoiner = valueJoiner;
         this.joinWindowsDuration = joinWindowDuration;
@@ -64,7 +66,7 @@ public class LeftJoinOperation extends BaseOperation {
                             ((KStreamWrapper) joinStream).stream,
                             new UserValueJoiner(valueJoiner),
                             JoinWindows.of(joinWindowsDuration),
-                            StreamJoined.with(input.keyType.serde, input.valueType.serde, resultValueType.serde)),
+                            StreamJoined.with(input.keyType.serde, input.valueType.serde, resultValueType.serde).withName(name)),
                     input.keyType,
                     resultValueType);
         }

@@ -33,19 +33,16 @@ import io.axual.ksml.user.UserKeyValueToKeyValueListTransformer;
 
 public class TransformKeyValueToKeyValueListOperation extends BaseOperation {
     private final UserFunction transformer;
-    private final String name;
 
-    public TransformKeyValueToKeyValueListOperation(UserFunction transformer, String name) {
+    public TransformKeyValueToKeyValueListOperation(String name, UserFunction transformer) {
+        super(name);
         this.transformer = transformer;
-        this.name = name;
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
         return new KStreamWrapper(
-                name != null && !name.isEmpty()
-                        ? input.stream.flatMap(new UserKeyValueToKeyValueListTransformer(transformer), Named.as(name))
-                        : input.stream.flatMap(new UserKeyValueToKeyValueListTransformer(transformer)),
+                input.stream.flatMap(new UserKeyValueToKeyValueListTransformer(transformer), Named.as(name)),
                 StreamDataType.of(((KeyValueListType) transformer.resultType).getKeyType(), true),
                 StreamDataType.of(((KeyValueListType) transformer.resultType).getValueType(), false));
     }

@@ -30,11 +30,10 @@ import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserStreamPartitioner;
 
 public class RepartitionOperation extends BaseOperation {
-    private final String name;
     private final UserFunction partitioner;
 
     public RepartitionOperation(String name, UserFunction partitioner) {
-        this.name = name;
+        super(name);
         this.partitioner = partitioner;
     }
 
