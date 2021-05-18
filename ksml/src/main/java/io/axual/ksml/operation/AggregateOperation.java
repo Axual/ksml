@@ -38,15 +38,15 @@ import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserInitializer;
 import io.axual.ksml.user.UserMerger;
 
-public class AggregateOperation extends BaseOperation {
+public class AggregateOperation extends StoreOperation {
     private final UserFunction initializer;
     private final UserFunction aggregator;
     private final UserFunction merger;
     private final UserFunction adder;
     private final UserFunction subtractor;
 
-    public AggregateOperation(String name, UserFunction initializer, UserFunction aggregator, UserFunction merger, UserFunction adder, UserFunction subtractor) {
-        super(name);
+    public AggregateOperation(String name, String storeName, UserFunction initializer, UserFunction aggregator, UserFunction merger, UserFunction adder, UserFunction subtractor) {
+        super(name, storeName);
         this.initializer = initializer;
         this.aggregator = aggregator;
         this.merger = merger;
@@ -60,7 +60,7 @@ public class AggregateOperation extends BaseOperation {
                 new UserInitializer(initializer),
                 new UserAggregator(aggregator),
                 Named.as(name),
-                Materialized.as(name)),
+                Materialized.as(storeName)),
                 input.keyType,
                 input.valueType);
     }
@@ -72,7 +72,7 @@ public class AggregateOperation extends BaseOperation {
                 new UserAggregator(adder),
                 new UserAggregator(subtractor),
                 Named.as(name),
-                Materialized.as(name)),
+                Materialized.as(storeName)),
                 input.keyType,
                 input.valueType);
     }
@@ -85,7 +85,7 @@ public class AggregateOperation extends BaseOperation {
                         new UserAggregator(aggregator),
                         new UserMerger(merger),
                         Named.as(name),
-                        Materialized.as(name)),
+                        Materialized.as(storeName)),
                 StreamDataType.of(new WindowType(input.keyType.type), true),
                 input.valueType);
     }
@@ -97,7 +97,7 @@ public class AggregateOperation extends BaseOperation {
                         new UserInitializer(initializer),
                         new UserAggregator(aggregator),
                         Named.as(name),
-                        Materialized.as(name)),
+                        Materialized.as(storeName)),
                 StreamDataType.of(new WindowType(input.keyType.type), true),
                 input.valueType);
     }

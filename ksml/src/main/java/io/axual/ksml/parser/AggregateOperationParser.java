@@ -39,6 +39,7 @@ public class AggregateOperationParser extends ContextAwareParser<AggregateOperat
         if (node == null) return null;
         return new AggregateOperation(
                 name,
+                parseText(node, STORE_NAME_ATTRIBUTE),
                 parseFunction(node, AGGREGATE_INITIALIZER_ATTRIBUTE, new InitializerDefinitionParser()),
                 parseFunction(node, AGGREGATE_AGGREGATOR_ATTRIBUTE, new AggregatorDefinitionParser()),
                 parseFunction(node, AGGREGATE_MERGER_ATTRIBUTE, new MergerDefinitionParser()),

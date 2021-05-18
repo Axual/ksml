@@ -28,6 +28,7 @@ import io.axual.ksml.stream.StreamWrapper;
 
 import static io.axual.ksml.dsl.KSMLDSL.JOIN_VALUEJOINER_ATTRIBUTE;
 import static io.axual.ksml.dsl.KSMLDSL.JOIN_WINDOW_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.STORE_NAME_ATTRIBUTE;
 
 public class OuterJoinOperationParser extends ContextAwareParser<OuterJoinOperation> {
     private final String name;
@@ -44,6 +45,7 @@ public class OuterJoinOperationParser extends ContextAwareParser<OuterJoinOperat
         if (joinStream instanceof KStreamWrapper) {
             return new OuterJoinOperation(
                     name,
+                    parseText(node, STORE_NAME_ATTRIBUTE),
                     (KStreamWrapper) joinStream,
                     parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()),
                     parseDuration(node, JOIN_WINDOW_ATTRIBUTE));

@@ -1,10 +1,10 @@
 ksml:
   workingDirectory: ../examples
   definitions:
-#    - 1-demo-inspect.yaml
+    - 1-demo-inspect.yaml
 #    - 2-demo-copy.yaml
 #    - 3-demo-filter.yaml
-    - 4-demo-branch.yaml
+#    - 4-demo-branch.yaml
 #    - 5-demo-dynamicrouting.yaml
 #    - 6-demo-double.yaml
 

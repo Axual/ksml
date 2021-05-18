@@ -23,6 +23,7 @@ package io.axual.ksml.parser;
 
 import io.axual.ksml.operation.TransformValueOperation;
 
+import static io.axual.ksml.dsl.KSMLDSL.STORE_NAME_ATTRIBUTE;
 import static io.axual.ksml.dsl.KSMLDSL.TRANSFORMVALUE_MAPPER_ATTRIBUTE;
 
 public class TransformValueOperationParser extends ContextAwareParser<TransformValueOperation> {
@@ -38,6 +39,7 @@ public class TransformValueOperationParser extends ContextAwareParser<TransformV
         if (node == null) return null;
         return new TransformValueOperation(
                 name,
+                parseText(node, STORE_NAME_ATTRIBUTE),
                 parseFunction(node, TRANSFORMVALUE_MAPPER_ATTRIBUTE, new ValueTransformerDefinitionParser()));
     }
 }

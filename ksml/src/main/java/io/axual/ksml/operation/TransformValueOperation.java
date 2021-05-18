@@ -31,11 +31,11 @@ import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserValueTransformer;
 
-public class TransformValueOperation extends BaseOperation {
+public class TransformValueOperation extends StoreOperation {
     private final UserFunction transformer;
 
-    public TransformValueOperation(String name, UserFunction transformer) {
-        super(name);
+    public TransformValueOperation(String name, String storeName, UserFunction transformer) {
+        super(name, storeName);
         this.transformer = transformer;
     }
 
@@ -51,7 +51,7 @@ public class TransformValueOperation extends BaseOperation {
     public StreamWrapper apply(KTableWrapper input) {
         // TODO: Add materialized parameters
         return new KTableWrapper(
-                input.table.mapValues(new UserValueTransformer(transformer), Named.as(name), Materialized.as(name)),
+                input.table.mapValues(new UserValueTransformer(transformer), Named.as(name), Materialized.as(storeName)),
                 input.keyType,
                 StreamDataType.of(transformer.resultType, false));
     }

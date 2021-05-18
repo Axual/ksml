@@ -40,30 +40,30 @@ import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserKeyTransformer;
 import io.axual.ksml.user.UserValueJoiner;
 
-public class JoinOperation extends BaseOperation {
+public class JoinOperation extends StoreOperation {
     private final StreamWrapper joinStream;
     private final UserFunction keyValueMapper;
     private final UserFunction valueJoiner;
     private final JoinWindows joinWindows;
 
-    public JoinOperation(String name, KStreamWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
-        super(name);
+    public JoinOperation(String name, String storeName, KStreamWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
+        super(name, storeName);
         this.joinStream = joinStream;
         this.keyValueMapper = null;
         this.valueJoiner = valueJoiner;
         this.joinWindows = JoinWindows.of(joinWindowDuration);
     }
 
-    public JoinOperation(String name, KTableWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
-        super(name);
+    public JoinOperation(String name, String storeName, KTableWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
+        super(name, storeName);
         this.joinStream = joinStream;
         this.keyValueMapper = null;
         this.valueJoiner = valueJoiner;
         this.joinWindows = JoinWindows.of(joinWindowDuration);
     }
 
-    public JoinOperation(String name, GlobalKTableWrapper joinStream, UserFunction keyValueMapper, UserFunction valueJoiner) {
-        super(name);
+    public JoinOperation(String name, String storeName, GlobalKTableWrapper joinStream, UserFunction keyValueMapper, UserFunction valueJoiner) {
+        super(name, storeName);
         this.joinStream = joinStream;
         this.keyValueMapper = keyValueMapper;
         this.valueJoiner = valueJoiner;
@@ -80,7 +80,7 @@ public class JoinOperation extends BaseOperation {
                             ((KStreamWrapper) joinStream).stream,
                             new UserValueJoiner(valueJoiner),
                             joinWindows,
-                            StreamJoined.with(input.keyType.serde, input.valueType.serde, resultValueType.serde).withName(name)),
+                            StreamJoined.with(input.keyType.serde, input.valueType.serde, resultValueType.serde).withName(name).withStoreName(storeName)),
                     input.keyType,
                     resultValueType);
         }
@@ -89,7 +89,7 @@ public class JoinOperation extends BaseOperation {
                     input.stream.join(
                             ((KTableWrapper) joinStream).table,
                             new UserValueJoiner(valueJoiner),
-                            Joined.with(input.keyType.serde, input.valueType.serde, resultValueType.serde, name)),
+                            Joined.with(input.keyType.serde, input.valueType.serde, resultValueType.serde, storeName)),
                     input.keyType,
                     resultValueType);
         }

@@ -24,6 +24,7 @@ package io.axual.ksml.parser;
 import io.axual.ksml.operation.GroupByOperation;
 
 import static io.axual.ksml.dsl.KSMLDSL.GROUPBY_MAPPER_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.STORE_NAME_ATTRIBUTE;
 
 public class GroupByOperationParser extends ContextAwareParser<GroupByOperation> {
     private final String name;
@@ -38,6 +39,7 @@ public class GroupByOperationParser extends ContextAwareParser<GroupByOperation>
         if (node == null) return null;
         return new GroupByOperation(
                 name,
+                parseText(node, STORE_NAME_ATTRIBUTE),
                 parseFunction(node, GROUPBY_MAPPER_ATTRIBUTE, new KeyValueMapperDefinitionParser())
         );
     }

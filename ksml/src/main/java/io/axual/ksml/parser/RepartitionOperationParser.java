@@ -24,6 +24,7 @@ package io.axual.ksml.parser;
 import io.axual.ksml.operation.RepartitionOperation;
 
 import static io.axual.ksml.dsl.KSMLDSL.REPARTITION_PARTITIONER_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.STORE_NAME_ATTRIBUTE;
 
 public class RepartitionOperationParser extends ContextAwareParser<RepartitionOperation> {
     private final String name;
@@ -38,6 +39,7 @@ public class RepartitionOperationParser extends ContextAwareParser<RepartitionOp
         if (node == null) return null;
         return new RepartitionOperation(
                 name,
+                parseText(node, STORE_NAME_ATTRIBUTE),
                 parseFunction(node, REPARTITION_PARTITIONER_ATTRIBUTE, new StreamPartitionerDefinitionParser()));
     }
 }

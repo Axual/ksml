@@ -36,13 +36,13 @@ import io.axual.ksml.type.WindowType;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserReducer;
 
-public class ReduceOperation extends BaseOperation {
+public class ReduceOperation extends StoreOperation {
     private final UserFunction reducer;
     private final UserFunction adder;
     private final UserFunction subtractor;
 
-    public ReduceOperation(String name, UserFunction reducer, UserFunction adder, UserFunction subtractor) {
-        super(name);
+    public ReduceOperation(String name, String storeName, UserFunction reducer, UserFunction adder, UserFunction subtractor) {
+        super(name, storeName);
         this.reducer = reducer;
         this.adder = adder;
         this.subtractor = subtractor;
@@ -53,7 +53,7 @@ public class ReduceOperation extends BaseOperation {
         return new KTableWrapper(input.groupedStream.reduce(
                 new UserReducer(reducer),
                 Named.as(name),
-                Materialized.as(name)),
+                Materialized.as(storeName)),
                 input.keyType, input.valueType);
     }
 
@@ -63,7 +63,7 @@ public class ReduceOperation extends BaseOperation {
                 new UserReducer(adder),
                 new UserReducer(subtractor),
                 Named.as(name),
-                Materialized.as(name)),
+                Materialized.as(storeName)),
                 input.keyType, input.valueType);
     }
 
@@ -74,7 +74,7 @@ public class ReduceOperation extends BaseOperation {
                 (KTable) input.sessionWindowedKStream.reduce(
                         new UserReducer(reducer),
                         Named.as(name),
-                        Materialized.as(name)
+                        Materialized.as(storeName)
                 ),
                 StreamDataType.of(new WindowType(input.keyType.type), true),
                 input.valueType);
@@ -86,7 +86,7 @@ public class ReduceOperation extends BaseOperation {
                 (KTable) input.timeWindowedKStream.reduce(
                         new UserReducer(reducer),
                         Named.as(name),
-                        Materialized.as(name)),
+                        Materialized.as(storeName)),
                 StreamDataType.of(new WindowType(input.keyType.type), true),
                 input.valueType);
     }
