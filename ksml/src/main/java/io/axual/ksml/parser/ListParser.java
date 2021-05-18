@@ -27,18 +27,16 @@ import java.util.List;
 
 public class ListParser<V> extends BaseParser<List<V>> {
     private final BaseParser<V> valueParser;
-    private final int listStartIndex;
 
-    public ListParser(BaseParser<V> valueParser, int listStartIndex) {
+    public ListParser(BaseParser<V> valueParser) {
         this.valueParser = valueParser;
-        this.listStartIndex = listStartIndex;
     }
 
     @Override
     public List<V> parse(YamlNode node) {
         List<V> result = new ArrayList<>();
         if (node != null) {
-            for (YamlNode childNode : node.getChildren(listStartIndex)) {
+            for (YamlNode childNode : node.getChildren()) {
                 result.add(valueParser.parse(childNode));
             }
         }
