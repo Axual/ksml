@@ -1,7 +1,7 @@
 ksml:
   workingDirectory: /ksml
   definitions:
-  - 1-demo-inspect.yaml
+  - 4-demo-branch.yaml
 
 backend:
   type: kafka

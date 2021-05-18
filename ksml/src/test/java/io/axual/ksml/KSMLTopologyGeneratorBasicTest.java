@@ -24,7 +24,9 @@ package io.axual.ksml;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyDescription;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.python.util.PythonInterpreter;
 
@@ -64,8 +66,24 @@ public class KSMLTopologyGeneratorBasicTest {
         URI referenceURI = ClassLoader.getSystemResource("reference/" + nr + "-reference.txt").toURI();
         String reference = Files.readString(Paths.get(referenceURI));
 
-        // TODO this will not always work reliably, since the topology string can have direct object reference.
-        // these will be different every time, need a workaround for this. For now visual check will have to do.
-        assertThat(description.toString(), is(reference));
+        assertThat(cleanDescription( description.toString() ), is(reference));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"foo,foo",
+            "foo@2ee39e73,foo",
+            "some text thing@2ee39e73 and some more,some text thing and some more",
+            "some foo@2ee39e73 and some bar@3ab456dc also,some foo and some bar also",
+            "leave short@123 alone,leave short@123 alone"
+    })
+    public void cleanDescriptionTest(String input, String expected) {
+        assertThat(cleanDescription(input), is(expected));
+    }
+
+    /**
+     * Clean a description string by removing all object references ("@abcd1234")
+     */
+    private String cleanDescription(String description) {
+        return description.replaceAll("@\\w{8}", "");
     }
 }
