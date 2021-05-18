@@ -83,7 +83,7 @@ public class YamlNode {
         return new YamlNode(this, node, appendName);
     }
 
-    public List<YamlNode> getChildren(int listStartIndex) {
+    public List<YamlNode> getChildren() {
         List<YamlNode> result = new ArrayList<>();
         Set<JsonNode> seen = new HashSet<>();
         Iterator<Map.Entry<String, JsonNode>> fieldIterator = node.fields();
@@ -102,10 +102,6 @@ public class YamlNode {
             }
         }
         return result;
-    }
-
-    public List<YamlNode> getChildren() {
-        return getChildren(0);
     }
 
     public boolean asBoolean() {

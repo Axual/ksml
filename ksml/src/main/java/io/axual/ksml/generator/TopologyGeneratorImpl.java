@@ -143,13 +143,13 @@ public class TopologyGeneratorImpl implements TopologyGenerator {
 
         // Parse all defined streams
         Map<String, BaseStreamDefinition> streamDefinitions = new HashMap<>();
-        new ListParser<>(new StreamDefinitionParser(), 1)
+        new ListParser<>(new StreamDefinitionParser())
                 .parse(node.get(STREAMS_DEFINITION))
                 .forEach(e -> streamDefinitions.put(e.topic, e));
-        new ListParser<>(new TableDefinitionParser(), 1)
+        new ListParser<>(new TableDefinitionParser())
                 .parse(node.get(TABLES_DEFINITION))
                 .forEach(e -> streamDefinitions.put(e.topic, e));
-        new ListParser<>(new GlobalTableDefinitionParser(), 1)
+        new ListParser<>(new GlobalTableDefinitionParser())
                 .parse(node.get(GLOBALTABLES_DEFINITION))
                 .forEach(e -> streamDefinitions.put(e.topic, e));
 

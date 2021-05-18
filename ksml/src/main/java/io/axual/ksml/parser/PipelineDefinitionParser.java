@@ -41,7 +41,7 @@ public class PipelineDefinitionParser extends ContextAwareParser<PipelineDefinit
         if (node == null) return null;
         return new PipelineDefinition(
                 parseSource ? parseStreamDefinition(node, PIPELINE_FROM_ATTRIBUTE) : null,
-                new ListParser<>(new PipelineOperationParser(context), 1).parse(node.get(PIPELINE_VIA_ATTRIBUTE, "step")),
+                new ListParser<>(new PipelineOperationParser(context)).parse(node.get(PIPELINE_VIA_ATTRIBUTE, "step")),
                 parseSink ? new PipelineSinkParser(context).parse(node) : null);
     }
 }
