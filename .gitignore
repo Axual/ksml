@@ -3,3 +3,8 @@ target/
 *.iml
 .DS_Store
 *.jks
+
+**/.project
+**/.classpath
+**/.settings
+**/.factorypath
