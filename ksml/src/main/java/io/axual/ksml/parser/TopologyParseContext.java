@@ -64,7 +64,7 @@ public class TopologyParseContext implements ParseContext {
         this.serdeGenerator = serdeGenerator;
         this.streamDefinitions = streamDefinitions;
         this.functionDefinitions = functionDefinitions;
-        streamDefinitions.forEach((name, def) -> streams.put(def.topic, createStream(def)));
+        streamDefinitions.forEach((name, def) -> streams.put(def.name, createStream(def)));
     }
 
     private StreamWrapper createStream(BaseStreamDefinition definition) {
@@ -99,10 +99,10 @@ public class TopologyParseContext implements ParseContext {
 
     @Override
     public <T extends BaseStreamWrapper> T getStream(BaseStreamDefinition definition, Class<T> resultClass) {
-        StreamWrapper result = streams.get(definition.topic);
+        StreamWrapper result = streams.get(definition.name);
         if (result == null) {
             result = createStream(definition);
-            streams.put(definition.topic, result);
+            streams.put(definition.name, result);
         }
         if (!resultClass.isInstance(result)) {
             throw new KSMLTopologyException("Stream is of incorrect type " + result.getClass().getSimpleName() + " where " + resultClass.getSimpleName() + " expected");

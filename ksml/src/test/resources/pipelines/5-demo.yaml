@@ -23,7 +23,7 @@ functions:
 
 pipelines:
   main:
-    from: ksml_sensordata_avro
+    from: sensor_stream
     via:
       - name: before-peek
         type: peek

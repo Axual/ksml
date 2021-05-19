@@ -1,10 +1,10 @@
 Topologies:
    Sub-topology: 0
-    Source: sensor_blue (topics: [ksml_sensordata_blue])
+    Source: sensor_red (topics: [ksml_sensordata_red])
       --> none
 
   Sub-topology: 1
-    Source: sensor_red (topics: [ksml_sensordata_red])
+    Source: sensor_blue (topics: [ksml_sensordata_blue])
       --> none
 
   Sub-topology: 2

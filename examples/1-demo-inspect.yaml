@@ -11,5 +11,5 @@ functions:
 
 pipelines:
   main:
-    from: ksml_sensordata_avro
+    from: sensor_source
     forEach: print_message

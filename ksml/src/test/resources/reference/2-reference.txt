@@ -4,11 +4,11 @@ Topologies:
       --> none
 
   Sub-topology: 1
-    Source: sensor_stream (topics: [ksml_sensordata_avro])
+    Source: ksml_sensordata_avro (topics: [ksml_sensordata_avro])
       --> peek_001
     Processor: peek_001 (stores: [])
       --> to_001
-      <-- sensor_stream
+      <-- ksml_sensordata_avro
     Sink: to_001 (topic: ksml_sensordata_copy)
       <-- peek_001
 

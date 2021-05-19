@@ -15,9 +15,9 @@ functions:
 
 pipelines:
   main:
-    from: ksml_sensordata_avro
+    from: sensor_source
     via:
       - type: peek
         name: peek_and_print
         forEach: print_message
-    to: ksml_sensordata_copy
+    to: sensor_copy

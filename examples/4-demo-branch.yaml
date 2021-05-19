@@ -15,11 +15,11 @@ streams:
 functions:
   print_message:
     type: forEach
-    code: "print('key='+(key if isinstance(key,str) else str(key))+', value='+(value if isinstance(value,str) else str(value)))"
+    code: "print('SOURCE key='+(key if isinstance(key,str) else str(key))+', value='+(value if isinstance(value,str) else str(value)))"
 
 pipelines:
   main:
-    from: ksml_sensordata_avro
+    from: sensor_source
     via:
       - type: peek
         name: peek_and_print
@@ -34,3 +34,14 @@ pipelines:
       - forEach:
           code: |
             print('Unknown color sensor: '+str(value))
+  red_flow:
+    from: sensor_red
+    forEach:
+      type: forEach
+      code: "print('RED key='+(key if isinstance(key,str) else str(key))+', value='+(value if isinstance(value,str) else str(value)))"
+  blue_flow:
+    from: sensor_blue
+    forEach:
+      type: forEach
+      code: "print('BLUE key='+(key if isinstance(key,str) else str(key))+', value='+(value if isinstance(value,str) else str(value)))"
+

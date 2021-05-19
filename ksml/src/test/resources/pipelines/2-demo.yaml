@@ -1,6 +1,6 @@
+# Stream with no name will use topic as name
 streams:
-  - name: sensor_stream
-    topic: ksml_sensordata_avro 
+  - topic: ksml_sensordata_avro 
     keyType: string
     valueType: string
   - name: sensor_copy

@@ -36,7 +36,7 @@ public class BaseStreamDefinition {
     }
 
     public BaseStreamDefinition(String name, String topic, DataType keyType, DataType valueType) {
-        this.name = name;
+        this.name = name == null ? topic : name;
         this.topic = topic;
         this.keyType = keyType;
         this.valueType = valueType;
