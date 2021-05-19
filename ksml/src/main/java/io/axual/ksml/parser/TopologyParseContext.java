@@ -62,32 +62,7 @@ public class TopologyParseContext implements ParseContext {
         this.serdeGenerator = serdeGenerator;
         this.streamDefinitions = streamDefinitions;
         this.functionDefinitions = functionDefinitions;
-        streamDefinitions.forEach((name, def) -> streams.put(def.topic, createStream(def)));
-    }
-
-    private StreamWrapper createStream(BaseStreamDefinition definition) {
-        Serde<Object> keySerde = serdeGenerator.getSerdeForType(definition.keyType, true);
-        Serde<Object> valueSerde = serdeGenerator.getSerdeForType(definition.valueType, false);
-
-        if (definition instanceof StreamDefinition) {
-            return new KStreamWrapper(
-                    builder.stream(definition.topic, Consumed.with(keySerde, valueSerde)),
-                    new StreamDataType(definition.keyType, keySerde),
-                    new StreamDataType(definition.valueType, valueSerde));
-        }
-        if (definition instanceof TableDefinition) {
-            return new KTableWrapper(
-                    builder.table(definition.topic, Consumed.with(keySerde, valueSerde)),
-                    new StreamDataType(definition.keyType, keySerde),
-                    new StreamDataType(definition.valueType, valueSerde));
-        }
-        if (definition instanceof GlobalTableDefinition) {
-            return new GlobalKTableWrapper(
-                    builder.globalTable(definition.topic, Consumed.with(keySerde, valueSerde)),
-                    new StreamDataType(definition.keyType, keySerde),
-                    new StreamDataType(definition.valueType, valueSerde));
-        }
-        throw new KSMLApplyException("Unknown stream type: " + definition.getClass().getSimpleName());
+        streamDefinitions.forEach((name, def) -> streams.put(def.topic, def.addToBuilder(builder, serdeGenerator)));
     }
 
     @Override
@@ -99,7 +74,7 @@ public class TopologyParseContext implements ParseContext {
     public <T extends BaseStreamWrapper> T getStream(BaseStreamDefinition definition, Class<T> resultClass) {
         StreamWrapper result = streams.get(definition.topic);
         if (result == null) {
-            result = createStream(definition);
+            result = definition.addToBuilder(builder, serdeGenerator);
             streams.put(definition.topic, result);
         }
         if (!resultClass.isInstance(result)) {
