@@ -1,35 +1,35 @@
 Topologies:
    Sub-topology: 0
-    Source: KSTREAM-SOURCE-0000000000 (topics: [ksml_sensordata_blue])
+    Source: sensor_blue (topics: [ksml_sensordata_blue])
       --> none
 
   Sub-topology: 1
-    Source: KSTREAM-SOURCE-0000000001 (topics: [ksml_sensordata_red])
+    Source: sensor_red (topics: [ksml_sensordata_red])
       --> none
 
   Sub-topology: 2
-    Source: KSTREAM-SOURCE-0000000002 (topics: [ksml_sensordata_avro])
-      --> KSTREAM-PEEK-0000000003
-    Processor: KSTREAM-PEEK-0000000003 (stores: [])
-      --> KSTREAM-BRANCH-0000000004
-      <-- KSTREAM-SOURCE-0000000002
-    Processor: KSTREAM-BRANCH-0000000004 (stores: [])
-      --> KSTREAM-BRANCHCHILD-0000000005, KSTREAM-BRANCHCHILD-0000000006, KSTREAM-BRANCHCHILD-0000000007
-      <-- KSTREAM-PEEK-0000000003
-    Processor: KSTREAM-BRANCHCHILD-0000000005 (stores: [])
-      --> KSTREAM-SINK-0000000008
-      <-- KSTREAM-BRANCH-0000000004
-    Processor: KSTREAM-BRANCHCHILD-0000000006 (stores: [])
-      --> KSTREAM-SINK-0000000009
-      <-- KSTREAM-BRANCH-0000000004
-    Processor: KSTREAM-BRANCHCHILD-0000000007 (stores: [])
-      --> KSTREAM-FOREACH-0000000010
-      <-- KSTREAM-BRANCH-0000000004
-    Processor: KSTREAM-FOREACH-0000000010 (stores: [])
+    Source: sensor_stream (topics: [ksml_sensordata_avro])
+      --> before-peek
+    Processor: before-peek (stores: [])
+      --> branch_001
+      <-- sensor_stream
+    Processor: branch_001 (stores: [])
+      --> branch_001-predicate-0, branch_001-predicate-1, branch_001-predicate-2
+      <-- before-peek
+    Processor: branch_001-predicate-0 (stores: [])
+      --> to_001
+      <-- branch_001
+    Processor: branch_001-predicate-1 (stores: [])
+      --> to_002
+      <-- branch_001
+    Processor: branch_001-predicate-2 (stores: [])
+      --> for_each_001
+      <-- branch_001
+    Processor: for_each_001 (stores: [])
       --> none
-      <-- KSTREAM-BRANCHCHILD-0000000007
-    Sink: KSTREAM-SINK-0000000008 (topic: ksml_sensordata_blue)
-      <-- KSTREAM-BRANCHCHILD-0000000005
-    Sink: KSTREAM-SINK-0000000009 (topic: ksml_sensordata_red)
-      <-- KSTREAM-BRANCHCHILD-0000000006
+      <-- branch_001-predicate-2
+    Sink: to_001 (topic: ksml_sensordata_blue)
+      <-- branch_001-predicate-0
+    Sink: to_002 (topic: ksml_sensordata_red)
+      <-- branch_001-predicate-1
 

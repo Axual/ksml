@@ -1,22 +1,22 @@
 Topologies:
    Sub-topology: 0
-    Source: KSTREAM-SOURCE-0000000000 (topics: [ksml_sensordata_sensor0])
+    Source: sensor_0 (topics: [ksml_sensordata_sensor0])
       --> none
 
   Sub-topology: 1
-    Source: KSTREAM-SOURCE-0000000001 (topics: [ksml_sensordata_avro])
-      --> KSTREAM-PEEK-0000000004
-    Processor: KSTREAM-PEEK-0000000004 (stores: [])
-      --> KSTREAM-SINK-0000000005
-      <-- KSTREAM-SOURCE-0000000001
-    Sink: KSTREAM-SINK-0000000005 (extractor class: io.axual.ksml.user.UserTopicNameExtractor)
-      <-- KSTREAM-PEEK-0000000004
+    Source: sensor_stream (topics: [ksml_sensordata_avro])
+      --> before-peek
+    Processor: before-peek (stores: [])
+      --> to_name_extract_001
+      <-- sensor_stream
+    Sink: to_name_extract_001 (extractor class: io.axual.ksml.user.UserTopicNameExtractor)
+      <-- before-peek
 
   Sub-topology: 2
-    Source: KSTREAM-SOURCE-0000000002 (topics: [ksml_sensordata_sensor2])
+    Source: sensor_2 (topics: [ksml_sensordata_sensor2])
       --> none
 
   Sub-topology: 3
-    Source: KSTREAM-SOURCE-0000000003 (topics: [ksml_sensordata_sensor1])
+    Source: sensor_1 (topics: [ksml_sensordata_sensor1])
       --> none
 

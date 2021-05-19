@@ -83,6 +83,6 @@ public class KSMLTopologyGeneratorBasicTest {
      * Clean a description string by removing all object references ("@abcd1234")
      */
     private String cleanDescription(String description) {
-        return description.replaceAll("@\\w{8}", "");
+        return description.replaceAll("@[a-fA-F-0-9]*", "");
     }
 }

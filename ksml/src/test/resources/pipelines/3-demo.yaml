@@ -1,8 +1,10 @@
 streams:
-  - topic: ksml_sensordata_avro
+  - name: sensor_stream
+    topic: ksml_sensordata_avro
     keyType: string
     valueType: string
-  - topic: ksml_sensordata_filtered
+  - name: sensor_filtered
+    topic: ksml_sensordata_filtered
     keyType: string
     valueType: string
 
@@ -19,8 +21,10 @@ pipelines:
   main:
     from: ksml_sensordata_avro
     via:
-      - type: peek
+      - name: before-peek
+        type: peek
         forEach: print_message
-      - type: filter
+      - name: message-filter
+        type: filter
         predicate: filter_message
     to: ksml_sensordata_filtered
