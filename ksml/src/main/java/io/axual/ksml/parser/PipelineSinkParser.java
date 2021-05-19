@@ -37,7 +37,7 @@ public class PipelineSinkParser extends ContextAwareParser<StreamOperation> {
     public StreamOperation parse(YamlNode node) {
         if (node == null) return null;
         if (node.get(PIPELINE_BRANCH_ATTRIBUTE) != null) {
-            return new BranchOperation(determineName( "branch"), new ListParser<>(new BranchDefinitionParser(context), 1).parse(node.get(PIPELINE_BRANCH_ATTRIBUTE)));
+            return new BranchOperation(determineName( "branch"), new ListParser<>(new BranchDefinitionParser(context)).parse(node.get(PIPELINE_BRANCH_ATTRIBUTE)));
         }
         if (node.get(PIPELINE_FOREACH_ATTRIBUTE) != null) {
             return new ForEachOperation(determineName( "for_each"), parseFunction(node, PIPELINE_FOREACH_ATTRIBUTE, new ForEachActionParser()));

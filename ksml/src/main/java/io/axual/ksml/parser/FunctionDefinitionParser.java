@@ -32,7 +32,7 @@ public class FunctionDefinitionParser extends BaseParser<FunctionDefinition> {
     public FunctionDefinition parse(YamlNode node) {
         if (node == null) return null;
         return FunctionDefinition.as(
-                new ListParser<>(new ParameterDefinitionParser(), 1).parse(node.get(FUNCTION_PARAMETERS_ATTRIBUTE)).toArray(new ParameterDefinition[0]),
+                new ListParser<>(new ParameterDefinitionParser()).parse(node.get(FUNCTION_PARAMETERS_ATTRIBUTE)).toArray(new ParameterDefinition[0]),
                 TypeParser.parse(parseText(node, FUNCTION_RESULTTYPE_ATTRIBUTE)),
                 parseText(node, FUNCTION_EXPRESSION_ATTRIBUTE),
                 parseMultilineText(node, FUNCTION_CODE_ATTRIBUTE),

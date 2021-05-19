@@ -9,7 +9,7 @@ Topologies:
     Processor: KSTREAM-PEEK-0000000004 (stores: [])
       --> KSTREAM-SINK-0000000005
       <-- KSTREAM-SOURCE-0000000001
-    Sink: KSTREAM-SINK-0000000005 (extractor class: io.axual.ksml.user.UserTopicNameExtractor@2ee39e73)
+    Sink: KSTREAM-SINK-0000000005 (extractor class: io.axual.ksml.user.UserTopicNameExtractor)
       <-- KSTREAM-PEEK-0000000004
 
   Sub-topology: 2
