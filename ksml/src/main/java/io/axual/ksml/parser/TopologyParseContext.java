@@ -64,7 +64,7 @@ public class TopologyParseContext implements ParseContext {
         this.serdeGenerator = serdeGenerator;
         this.streamDefinitions = streamDefinitions;
         this.functionDefinitions = functionDefinitions;
-        streamDefinitions.forEach((name, def) -> streams.put(def.name, createStream(def)));
+        streamDefinitions.forEach((name, def) -> streams.put(def.name, def.addToBuilder(builder, serdeGenerator)));
     }
 
     private StreamWrapper createStream(BaseStreamDefinition definition) {
@@ -101,7 +101,7 @@ public class TopologyParseContext implements ParseContext {
     public <T extends BaseStreamWrapper> T getStream(BaseStreamDefinition definition, Class<T> resultClass) {
         StreamWrapper result = streams.get(definition.name);
         if (result == null) {
-            result = createStream(definition);
+            result = definition.addToBuilder(builder, serdeGenerator);
             streams.put(definition.name, result);
         }
         if (!resultClass.isInstance(result)) {

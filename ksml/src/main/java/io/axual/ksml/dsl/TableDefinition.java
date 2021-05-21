@@ -21,9 +21,28 @@ package io.axual.ksml.dsl;
  */
 
 
+import io.axual.ksml.generator.SerdeGenerator;
+import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.stream.GlobalKTableWrapper;
+import io.axual.ksml.stream.KTableWrapper;
+import io.axual.ksml.stream.StreamWrapper;
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.kstream.Consumed;
 
 public class TableDefinition extends BaseStreamDefinition {
     public TableDefinition(String name, String topic, String keyType, String valueType) {
         super(name, topic, keyType, valueType);
     }
+
+    @Override
+    public StreamWrapper addToBuilder(StreamsBuilder builder, SerdeGenerator serdeGenerator) {
+        Serde<Object> keySerde = serdeGenerator.getSerdeForType(this.keyType, true);
+        Serde<Object> valueSerde = serdeGenerator.getSerdeForType(this.valueType, false);
+        return new KTableWrapper(
+                builder.table(this.topic, Consumed.with(keySerde, valueSerde)),
+                new StreamDataType(this.keyType, keySerde),
+                new StreamDataType(this.valueType, valueSerde));
+    }
+
 }

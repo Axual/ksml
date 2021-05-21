@@ -22,10 +22,13 @@ package io.axual.ksml.dsl;
 
 
 
+import io.axual.ksml.generator.SerdeGenerator;
 import io.axual.ksml.parser.TypeParser;
+import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.type.DataType;
+import org.apache.kafka.streams.StreamsBuilder;
 
-public class BaseStreamDefinition {
+public abstract class BaseStreamDefinition {
     public final String name;
     public final String topic;
     public final DataType keyType;
@@ -41,4 +44,11 @@ public class BaseStreamDefinition {
         this.keyType = keyType;
         this.valueType = valueType;
     }
+
+    /**
+     * Add definitions for this stream definition to the provided builder, and returns a wrapped stream.
+     * @param builder the StreamsBuilder to add the stream to.
+     * @param serdeGenerator serde generator for the key and value types.
+     */
+    public abstract StreamWrapper addToBuilder(StreamsBuilder builder, SerdeGenerator serdeGenerator);
 }
