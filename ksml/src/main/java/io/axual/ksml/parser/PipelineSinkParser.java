@@ -21,16 +21,12 @@ package io.axual.ksml.parser;
  */
 
 
-
 import io.axual.ksml.operation.BranchOperation;
 import io.axual.ksml.operation.ForEachOperation;
 import io.axual.ksml.operation.ToOperation;
 import io.axual.ksml.operation.ToTopicNameExtractorOperation;
 
-import static io.axual.ksml.dsl.KSMLDSL.PIPELINE_BRANCH_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.PIPELINE_FOREACH_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.PIPELINE_TOTOPICNAMEEXTRACTOR_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.PIPELINE_TO_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class PipelineSinkParser extends ContextAwareParser<StreamOperation> {
     protected PipelineSinkParser(ParseContext context) {
@@ -41,16 +37,16 @@ public class PipelineSinkParser extends ContextAwareParser<StreamOperation> {
     public StreamOperation parse(YamlNode node) {
         if (node == null) return null;
         if (node.get(PIPELINE_BRANCH_ATTRIBUTE) != null) {
-            return new BranchOperation(new ListParser<>(new BranchDefinitionParser(context)).parse(node.get(PIPELINE_BRANCH_ATTRIBUTE)));
+            return new BranchOperation(determineName( "branch"), new ListParser<>(new BranchDefinitionParser(context)).parse(node.get(PIPELINE_BRANCH_ATTRIBUTE)));
         }
         if (node.get(PIPELINE_FOREACH_ATTRIBUTE) != null) {
-            return new ForEachOperation(parseFunction(node, PIPELINE_FOREACH_ATTRIBUTE, new ForEachActionParser()));
+            return new ForEachOperation(determineName( "for_each"), parseFunction(node, PIPELINE_FOREACH_ATTRIBUTE, new ForEachActionParser()));
         }
         if (node.get(PIPELINE_TOTOPICNAMEEXTRACTOR_ATTRIBUTE) != null) {
-            return new ToTopicNameExtractorOperation(parseFunction(node, PIPELINE_TOTOPICNAMEEXTRACTOR_ATTRIBUTE, new TopicNameExtractorDefinitionParser()));
+            return new ToTopicNameExtractorOperation(determineName("to_name_extract"), parseFunction(node, PIPELINE_TOTOPICNAMEEXTRACTOR_ATTRIBUTE, new TopicNameExtractorDefinitionParser()));
         }
         if (node.get(PIPELINE_TO_ATTRIBUTE) != null) {
-            return new ToOperation(parseText(node, PIPELINE_TO_ATTRIBUTE));
+            return new ToOperation(determineName("to"), parseText(node, PIPELINE_TO_ATTRIBUTE));
         }
         return null;
     }

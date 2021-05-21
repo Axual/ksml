@@ -30,8 +30,8 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 
 public class GlobalTableDefinition extends BaseStreamDefinition {
-    public GlobalTableDefinition(String topic, String keyType, String valueType) {
-        super(topic, keyType, valueType);
+    public GlobalTableDefinition(String name, String topic, String keyType, String valueType) {
+        super(name, topic, keyType, valueType);
     }
 
     @Override

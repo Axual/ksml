@@ -1,11 +1,14 @@
 streams:
-  - topic: ksml_sensordata_avro
+  - name: sensor_stream
+    topic: ksml_sensordata_avro
     keyType: string
     valueType: string
-  - topic: ksml_sensordata_blue
+  - name: sensor_blue
+    topic: ksml_sensordata_blue
     keyType: string
     valueType: string
-  - topic: ksml_sensordata_red
+  - name: sensor_red
+    topic: ksml_sensordata_red
     keyType: string
     valueType: string
 
@@ -16,9 +19,10 @@ functions:
 
 pipelines:
   main:
-    from: ksml_sensordata_avro
+    from: sensor_stream
     via:
-      - type: peek
+      - name: before-peek
+        type: peek
         forEach: print_message
     branch:
       - if:

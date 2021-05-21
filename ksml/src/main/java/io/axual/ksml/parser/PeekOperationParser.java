@@ -21,19 +21,23 @@ package io.axual.ksml.parser;
  */
 
 
-
 import io.axual.ksml.operation.PeekOperation;
 
 import static io.axual.ksml.dsl.KSMLDSL.PEEK_FOREACH_ATTRIBUTE;
 
 public class PeekOperationParser extends ContextAwareParser<PeekOperation> {
-    protected PeekOperationParser(ParseContext context) {
+    private final String name;
+
+    protected PeekOperationParser(String name, ParseContext context) {
         super(context);
+        this.name = name;
     }
 
     @Override
     public PeekOperation parse(YamlNode node) {
         if (node == null) return null;
-        return new PeekOperation(parseFunction(node, PEEK_FOREACH_ATTRIBUTE, new ForEachActionParser()));
+        return new PeekOperation(
+                name,
+                parseFunction(node, PEEK_FOREACH_ATTRIBUTE, new ForEachActionParser()));
     }
 }

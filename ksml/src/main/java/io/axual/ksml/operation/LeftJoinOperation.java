@@ -24,6 +24,8 @@ package io.axual.ksml.operation;
 
 import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.Joined;
+import org.apache.kafka.streams.kstream.Materialized;
+import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.StreamJoined;
 
 import java.time.Duration;
@@ -37,18 +39,20 @@ import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserValueJoiner;
 
-public class LeftJoinOperation extends BaseOperation {
+public class LeftJoinOperation extends StoreOperation {
     private final BaseStreamWrapper joinStream;
     private final UserFunction valueJoiner;
     private final Duration joinWindowsDuration;
 
-    public LeftJoinOperation(KStreamWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
+    public LeftJoinOperation(String name, String storeName, KStreamWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
+        super(name, storeName);
         this.joinStream = joinStream;
         this.valueJoiner = valueJoiner;
         this.joinWindowsDuration = joinWindowDuration;
     }
 
-    public LeftJoinOperation(KTableWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
+    public LeftJoinOperation(String name, String storeName, KTableWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
+        super(name, storeName);
         this.joinStream = joinStream;
         this.valueJoiner = valueJoiner;
         this.joinWindowsDuration = joinWindowDuration;
@@ -64,7 +68,7 @@ public class LeftJoinOperation extends BaseOperation {
                             ((KStreamWrapper) joinStream).stream,
                             new UserValueJoiner(valueJoiner),
                             JoinWindows.of(joinWindowsDuration),
-                            StreamJoined.with(input.keyType.serde, input.valueType.serde, resultValueType.serde)),
+                            StreamJoined.with(input.keyType.serde, input.valueType.serde, resultValueType.serde).withName(storeName).withStoreName(storeName)),
                     input.keyType,
                     resultValueType);
         }
@@ -73,7 +77,7 @@ public class LeftJoinOperation extends BaseOperation {
                     input.stream.leftJoin(
                             ((KTableWrapper) joinStream).table,
                             new UserValueJoiner(valueJoiner),
-                            Joined.with(input.keyType.serde, input.valueType.serde, resultValueType.serde)),
+                            Joined.with(input.keyType.serde, input.valueType.serde, resultValueType.serde, storeName)),
                     input.keyType,
                     resultValueType);
         }
@@ -88,7 +92,9 @@ public class LeftJoinOperation extends BaseOperation {
             return new KTableWrapper(
                     input.table.leftJoin(
                             ((KTableWrapper) joinStream).table,
-                            new UserValueJoiner(valueJoiner)),
+                            new UserValueJoiner(valueJoiner),
+                            Named.as(name),
+                            Materialized.as(storeName)),
                     input.keyType,
                     resultValueType);
         }

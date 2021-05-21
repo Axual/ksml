@@ -31,8 +31,8 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 
 public class TableDefinition extends BaseStreamDefinition {
-    public TableDefinition(String topic, String keyType, String valueType) {
-        super(topic, keyType, valueType);
+    public TableDefinition(String name, String topic, String keyType, String valueType) {
+        super(name, topic, keyType, valueType);
     }
 
     @Override

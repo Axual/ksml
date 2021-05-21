@@ -22,6 +22,8 @@ package io.axual.ksml.parser;
 
 
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import io.axual.ksml.dsl.BaseStreamDefinition;
 import io.axual.ksml.dsl.FunctionDefinition;
 import io.axual.ksml.exception.KSMLParseException;
@@ -67,4 +69,16 @@ public abstract class ContextAwareParser<T> extends BaseParser<T> {
         BaseStreamDefinition definition = new BaseStreamDefinitionParser(context).parse(parent);
         return definition != null ? context.getStream(definition) : null;
     }
+
+    protected String determineName(String name, String type) {
+        if (name == null || name.trim().isEmpty()) {
+            return determineName(type);
+        }
+        return name.trim();
+    }
+    
+    protected String determineName(String type) {
+        return String.format("%s_%03d", type, context.getTypeInstanceCounters().computeIfAbsent(type, t -> new AtomicInteger(1)).getAndIncrement());
+    }
+
 }

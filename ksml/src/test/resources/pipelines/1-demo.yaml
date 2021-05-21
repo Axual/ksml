@@ -1,5 +1,6 @@
 streams:
-  - topic: ksml_sensordata_avro
+  - name: sensor_stream
+    topic: ksml_sensordata_avro
     keyType: string
     valueType: string
 
@@ -10,5 +11,5 @@ functions:
 
 pipelines:
   main:
-    from: ksml_sensordata_avro
+    from: sensor_stream
     forEach: print_message

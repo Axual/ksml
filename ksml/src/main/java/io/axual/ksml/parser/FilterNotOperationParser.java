@@ -21,19 +21,24 @@ package io.axual.ksml.parser;
  */
 
 
-
 import io.axual.ksml.operation.FilterNotOperation;
 
 import static io.axual.ksml.dsl.KSMLDSL.FILTERNOT_PREDICATE_ATTRIBUTE;
 
 public class FilterNotOperationParser extends ContextAwareParser<FilterNotOperation> {
-    protected FilterNotOperationParser(ParseContext context) {
+    private final String name;
+
+    protected FilterNotOperationParser(String name, ParseContext context) {
         super(context);
+        this.name = name;
     }
 
     @Override
     public FilterNotOperation parse(YamlNode node) {
         if (node == null) return null;
-        return new FilterNotOperation(parseFunction(node, FILTERNOT_PREDICATE_ATTRIBUTE, new PredicateDefinitionParser()));
+        return new FilterNotOperation(
+                name,
+                parseFunction(node, FILTERNOT_PREDICATE_ATTRIBUTE, new PredicateDefinitionParser())
+        );
     }
 }

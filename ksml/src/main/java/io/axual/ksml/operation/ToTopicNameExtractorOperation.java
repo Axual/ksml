@@ -32,13 +32,14 @@ import io.axual.ksml.user.UserTopicNameExtractor;
 public class ToTopicNameExtractorOperation extends BaseOperation {
     private final UserFunction topicNameExtractor;
 
-    public ToTopicNameExtractorOperation(UserFunction topicNameExtractor) {
+    public ToTopicNameExtractorOperation(String name, UserFunction topicNameExtractor) {
+        super(name);
         this.topicNameExtractor = topicNameExtractor;
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        input.stream.to(new UserTopicNameExtractor(topicNameExtractor), Produced.with(input.keyType.serde, input.valueType.serde));
+        input.stream.to(new UserTopicNameExtractor(topicNameExtractor), Produced.with(input.keyType.serde, input.valueType.serde).withName(name));
         return null;
     }
 }

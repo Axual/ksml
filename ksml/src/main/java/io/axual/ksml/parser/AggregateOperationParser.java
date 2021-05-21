@@ -24,22 +24,22 @@ package io.axual.ksml.parser;
 
 import io.axual.ksml.operation.AggregateOperation;
 
-import static io.axual.ksml.dsl.KSMLDSL.AGGREGATE_ADDER_ATTRIBTUE;
-import static io.axual.ksml.dsl.KSMLDSL.AGGREGATE_AGGREGATOR_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.AGGREGATE_INITIALIZER_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.AGGREGATE_MERGER_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.AGGREGATE_SUBTRACTOR_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class AggregateOperationParser extends ContextAwareParser<AggregateOperation> {
+    private final String name;
 
-    protected AggregateOperationParser(ParseContext context) {
+    protected AggregateOperationParser(String name, ParseContext context) {
         super(context);
+        this.name = name;
     }
 
     @Override
     public AggregateOperation parse(YamlNode node) {
         if (node == null) return null;
         return new AggregateOperation(
+                name,
+                parseText(node, STORE_NAME_ATTRIBUTE),
                 parseFunction(node, AGGREGATE_INITIALIZER_ATTRIBUTE, new InitializerDefinitionParser()),
                 parseFunction(node, AGGREGATE_AGGREGATOR_ATTRIBUTE, new AggregatorDefinitionParser()),
                 parseFunction(node, AGGREGATE_MERGER_ATTRIBUTE, new MergerDefinitionParser()),

@@ -30,6 +30,7 @@ import org.python.util.PythonInterpreter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.axual.ksml.dsl.BaseStreamDefinition;
 import io.axual.ksml.dsl.FunctionDefinition;
@@ -55,6 +56,7 @@ public class TopologyParseContext implements ParseContext {
     private final Map<String, BaseStreamDefinition> streamDefinitions;
     private final Map<String, FunctionDefinition> functionDefinitions;
     private final Map<String, StreamWrapper> streams = new HashMap<>();
+    private final Map<String, AtomicInteger> typeInstanceCounters = new HashMap<>();
 
     public TopologyParseContext(StreamsBuilder builder, PythonInterpreter interpreter, SerdeGenerator serdeGenerator, Map<String, BaseStreamDefinition> streamDefinitions, Map<String, FunctionDefinition> functionDefinitions) {
         this.builder = builder;
@@ -62,7 +64,32 @@ public class TopologyParseContext implements ParseContext {
         this.serdeGenerator = serdeGenerator;
         this.streamDefinitions = streamDefinitions;
         this.functionDefinitions = functionDefinitions;
-        streamDefinitions.forEach((name, def) -> streams.put(def.topic, def.addToBuilder(builder, serdeGenerator)));
+        streamDefinitions.forEach((name, def) -> streams.put(def.name, def.addToBuilder(builder, serdeGenerator)));
+    }
+
+    private StreamWrapper createStream(BaseStreamDefinition definition) {
+        Serde<Object> keySerde = serdeGenerator.getSerdeForType(definition.keyType, true);
+        Serde<Object> valueSerde = serdeGenerator.getSerdeForType(definition.valueType, false);
+
+        if (definition instanceof StreamDefinition) {
+            return new KStreamWrapper(
+                    builder.stream(definition.topic, Consumed.with(keySerde, valueSerde).withName(definition.name)),
+                    new StreamDataType(definition.keyType, keySerde),
+                    new StreamDataType(definition.valueType, valueSerde));
+        }
+        if (definition instanceof TableDefinition) {
+            return new KTableWrapper(
+                    builder.table(definition.topic, Consumed.with(keySerde, valueSerde).withName(definition.name)),
+                    new StreamDataType(definition.keyType, keySerde),
+                    new StreamDataType(definition.valueType, valueSerde));
+        }
+        if (definition instanceof GlobalTableDefinition) {
+            return new GlobalKTableWrapper(
+                    builder.globalTable(definition.topic, Consumed.with(keySerde, valueSerde).withName(definition.name)),
+                    new StreamDataType(definition.keyType, keySerde),
+                    new StreamDataType(definition.valueType, valueSerde));
+        }
+        throw new KSMLApplyException("Unknown stream type: " + definition.getClass().getSimpleName());
     }
 
     @Override
@@ -72,10 +99,10 @@ public class TopologyParseContext implements ParseContext {
 
     @Override
     public <T extends BaseStreamWrapper> T getStream(BaseStreamDefinition definition, Class<T> resultClass) {
-        StreamWrapper result = streams.get(definition.topic);
+        StreamWrapper result = streams.get(definition.name);
         if (result == null) {
             result = definition.addToBuilder(builder, serdeGenerator);
-            streams.put(definition.topic, result);
+            streams.put(definition.name, result);
         }
         if (!resultClass.isInstance(result)) {
             throw new KSMLTopologyException("Stream is of incorrect type " + result.getClass().getSimpleName() + " where " + resultClass.getSimpleName() + " expected");
@@ -97,6 +124,11 @@ public class TopologyParseContext implements ParseContext {
     public UserFunction getFunction(FunctionDefinition definition, String name) {
         final PythonInterpreter functionInterpreter = interpreter != null ? interpreter : new PythonInterpreter();
         return new PythonFunction(functionInterpreter, name, definition);
+    }
+
+    @Override
+    public Map<String, AtomicInteger> getTypeInstanceCounters() {
+        return typeInstanceCounters;
     }
 
     public Topology build() {

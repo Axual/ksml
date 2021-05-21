@@ -23,6 +23,8 @@ package io.axual.ksml.operation;
 
 
 import org.apache.kafka.streams.kstream.KTable;
+import org.apache.kafka.streams.kstream.Materialized;
+import org.apache.kafka.streams.kstream.Named;
 
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
@@ -34,11 +36,15 @@ import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
 import io.axual.ksml.type.SimpleType;
 import io.axual.ksml.type.WindowType;
 
-public class CountOperation extends BaseOperation {
+public class CountOperation extends StoreOperation {
+    public CountOperation(String name, String storeName) {
+        super(name, storeName);
+    }
+
     @Override
     public StreamWrapper apply(KGroupedStreamWrapper input) {
         return new KTableWrapper(
-                (KTable) input.groupedStream.count(),
+                (KTable) input.groupedStream.count(Named.as(name), Materialized.as(storeName)),
                 input.keyType,
                 StreamDataType.of(SimpleType.LONG, false));
     }
@@ -46,7 +52,7 @@ public class CountOperation extends BaseOperation {
     @Override
     public StreamWrapper apply(KGroupedTableWrapper input) {
         return new KTableWrapper(
-                (KTable) input.groupedTable.count(),
+                (KTable) input.groupedTable.count(Named.as(name), Materialized.as(storeName)),
                 input.keyType,
                 StreamDataType.of(SimpleType.LONG, false));
     }
@@ -54,7 +60,7 @@ public class CountOperation extends BaseOperation {
     @Override
     public StreamWrapper apply(SessionWindowedKStreamWrapper input) {
         return new KTableWrapper(
-                (KTable) input.sessionWindowedKStream.count(),
+                (KTable) input.sessionWindowedKStream.count(Named.as(name), Materialized.as(storeName)),
                 StreamDataType.of(new WindowType(input.keyType.type), true),
                 StreamDataType.of(SimpleType.LONG, false));
     }
@@ -62,7 +68,7 @@ public class CountOperation extends BaseOperation {
     @Override
     public StreamWrapper apply(TimeWindowedKStreamWrapper input) {
         return new KTableWrapper(
-                (KTable) input.timeWindowedKStream.count(),
+                (KTable) input.timeWindowedKStream.count(Named.as(name), Materialized.as(storeName)),
                 StreamDataType.of(new WindowType(input.keyType.type), true),
                 StreamDataType.of(SimpleType.LONG, false));
     }

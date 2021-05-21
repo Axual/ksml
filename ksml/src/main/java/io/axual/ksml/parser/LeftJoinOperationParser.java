@@ -21,7 +21,6 @@ package io.axual.ksml.parser;
  */
 
 
-
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.operation.LeftJoinOperation;
 import io.axual.ksml.stream.KStreamWrapper;
@@ -30,10 +29,14 @@ import io.axual.ksml.stream.StreamWrapper;
 
 import static io.axual.ksml.dsl.KSMLDSL.JOIN_VALUEJOINER_ATTRIBUTE;
 import static io.axual.ksml.dsl.KSMLDSL.JOIN_WINDOW_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.STORE_NAME_ATTRIBUTE;
 
 public class LeftJoinOperationParser extends ContextAwareParser<LeftJoinOperation> {
-    public LeftJoinOperationParser(ParseContext context) {
+    private final String name;
+
+    public LeftJoinOperationParser(String name, ParseContext context) {
         super(context);
+        this.name = name;
     }
 
     @Override
@@ -42,12 +45,16 @@ public class LeftJoinOperationParser extends ContextAwareParser<LeftJoinOperatio
         StreamWrapper joinStream = parseStream(node);
         if (joinStream instanceof KStreamWrapper) {
             return new LeftJoinOperation(
+                    name,
+                    parseText(node, STORE_NAME_ATTRIBUTE),
                     (KStreamWrapper) joinStream,
                     parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()),
                     parseDuration(node, JOIN_WINDOW_ATTRIBUTE));
         }
         if (joinStream instanceof KTableWrapper) {
             return new LeftJoinOperation(
+                    name,
+                    parseText(node, STORE_NAME_ATTRIBUTE),
                     (KTableWrapper) joinStream,
                     parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()),
                     parseDuration(node, JOIN_WINDOW_ATTRIBUTE));

@@ -21,22 +21,23 @@ package io.axual.ksml.parser;
  */
 
 
-
 import io.axual.ksml.operation.TransformKeyOperation;
 
 import static io.axual.ksml.dsl.KSMLDSL.TRANSFORMKEY_MAPPER_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.TRANSFORMKEY_NAME_ATTRIBUTE;
 
 public class TransformKeyOperationParser extends ContextAwareParser<TransformKeyOperation> {
-    protected TransformKeyOperationParser(ParseContext context) {
+    private final String name;
+
+    protected TransformKeyOperationParser(String name, ParseContext context) {
         super(context);
+        this.name = name;
     }
 
     @Override
     public TransformKeyOperation parse(YamlNode node) {
         if (node == null) return null;
         return new TransformKeyOperation(
-                parseFunction(node, TRANSFORMKEY_MAPPER_ATTRIBUTE, new KeyTransformerDefinitionParser()),
-                parseText(node, TRANSFORMKEY_NAME_ATTRIBUTE));
+                name,
+                parseFunction(node, TRANSFORMKEY_MAPPER_ATTRIBUTE, new KeyTransformerDefinitionParser()));
     }
 }
