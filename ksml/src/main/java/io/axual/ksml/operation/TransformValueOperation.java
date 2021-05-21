@@ -21,7 +21,7 @@ package io.axual.ksml.operation;
  */
 
 
-
+import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Named;
 
 import io.axual.ksml.generator.StreamDataType;
@@ -31,21 +31,18 @@ import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserValueTransformer;
 
-public class TransformValueOperation extends BaseOperation {
+public class TransformValueOperation extends StoreOperation {
     private final UserFunction transformer;
-    private final String name;
 
-    public TransformValueOperation(UserFunction transformer, String name) {
+    public TransformValueOperation(String name, String storeName, UserFunction transformer) {
+        super(name, storeName);
         this.transformer = transformer;
-        this.name = name;
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
         return new KStreamWrapper(
-                name != null && !name.isEmpty()
-                        ? input.stream.mapValues(new UserValueTransformer(transformer), Named.as(name))
-                        : input.stream.mapValues(new UserValueTransformer(transformer)),
+                input.stream.mapValues(new UserValueTransformer(transformer), Named.as(name)),
                 input.keyType,
                 StreamDataType.of(transformer.resultType, false));
     }
@@ -54,9 +51,7 @@ public class TransformValueOperation extends BaseOperation {
     public StreamWrapper apply(KTableWrapper input) {
         // TODO: Add materialized parameters
         return new KTableWrapper(
-                name != null && !name.isEmpty()
-                        ? input.table.mapValues(new UserValueTransformer(transformer), Named.as(name))
-                        : input.table.mapValues(new UserValueTransformer(transformer)),
+                input.table.mapValues(new UserValueTransformer(transformer), Named.as(name), Materialized.as(storeName)),
                 input.keyType,
                 StreamDataType.of(transformer.resultType, false));
     }

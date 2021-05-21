@@ -24,6 +24,8 @@ package io.axual.ksml.parser;
 
 import java.util.Map;
 
+import io.axual.ksml.exception.KSMLParseException;
+
 public class InlineOrReferenceParser<T, F extends T> extends BaseParser<T> {
     private final Map<String, T> library;
     private final BaseParser<F> inlineParser;
@@ -39,7 +41,11 @@ public class InlineOrReferenceParser<T, F extends T> extends BaseParser<T> {
     public T parse(YamlNode node) {
         if (node == null) return null;
         if (node.childIsText(childName)) {
-            return library.get(parseText(node, childName));
+            String resourceToFind = parseText(node, childName);
+            if(library.containsKey(resourceToFind)) {
+                return library.get(parseText(node, childName));
+            }
+            throw new KSMLParseException("Could not find resource with name " +resourceToFind);
         }
         return inlineParser.parse(node.get(childName));
     }

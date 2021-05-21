@@ -22,6 +22,8 @@ package io.axual.ksml.operation;
 
 
 
+import org.apache.kafka.streams.kstream.Named;
+
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserForeachAction;
@@ -30,13 +32,14 @@ import io.axual.ksml.user.UserFunction;
 public class ForEachOperation extends BaseOperation {
     private final UserFunction forEachAction;
 
-    public ForEachOperation(UserFunction forEachAction) {
+    public ForEachOperation(String name, UserFunction forEachAction) {
+        super(name);
         this.forEachAction = forEachAction;
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        input.stream.foreach(new UserForeachAction(forEachAction));
+        input.stream.foreach(new UserForeachAction(forEachAction), Named.as(name));
         return null;
     }
 }

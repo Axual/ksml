@@ -26,15 +26,17 @@ import io.axual.ksml.parser.TypeParser;
 import io.axual.ksml.type.DataType;
 
 public class BaseStreamDefinition {
+    public final String name;
     public final String topic;
     public final DataType keyType;
     public final DataType valueType;
 
-    public BaseStreamDefinition(String topic, String keyType, String valueType) {
-        this(topic, TypeParser.parse(keyType), TypeParser.parse(valueType));
+    public BaseStreamDefinition(String name, String topic, String keyType, String valueType) {
+        this(name, topic, TypeParser.parse(keyType), TypeParser.parse(valueType));
     }
 
-    public BaseStreamDefinition(String topic, DataType keyType, DataType valueType) {
+    public BaseStreamDefinition(String name, String topic, DataType keyType, DataType valueType) {
+        this.name = name == null ? topic : name;
         this.topic = topic;
         this.keyType = keyType;
         this.valueType = valueType;

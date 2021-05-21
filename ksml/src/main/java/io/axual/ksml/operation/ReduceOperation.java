@@ -21,8 +21,9 @@ package io.axual.ksml.operation;
  */
 
 
-
 import org.apache.kafka.streams.kstream.KTable;
+import org.apache.kafka.streams.kstream.Materialized;
+import org.apache.kafka.streams.kstream.Named;
 
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
@@ -35,12 +36,13 @@ import io.axual.ksml.type.WindowType;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserReducer;
 
-public class ReduceOperation extends BaseOperation {
+public class ReduceOperation extends StoreOperation {
     private final UserFunction reducer;
     private final UserFunction adder;
     private final UserFunction subtractor;
 
-    public ReduceOperation(UserFunction reducer, UserFunction adder, UserFunction subtractor) {
+    public ReduceOperation(String name, String storeName, UserFunction reducer, UserFunction adder, UserFunction subtractor) {
+        super(name, storeName);
         this.reducer = reducer;
         this.adder = adder;
         this.subtractor = subtractor;
@@ -48,19 +50,32 @@ public class ReduceOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KGroupedStreamWrapper input) {
-        return new KTableWrapper(input.groupedStream.reduce(new UserReducer(reducer)), input.keyType, input.valueType);
+        return new KTableWrapper(input.groupedStream.reduce(
+                new UserReducer(reducer),
+                Named.as(name),
+                Materialized.as(storeName)),
+                input.keyType, input.valueType);
     }
 
     @Override
     public StreamWrapper apply(KGroupedTableWrapper input) {
-        return new KTableWrapper(input.groupedTable.reduce(new UserReducer(adder), new UserReducer(subtractor)), input.keyType, input.valueType);
+        return new KTableWrapper(input.groupedTable.reduce(
+                new UserReducer(adder),
+                new UserReducer(subtractor),
+                Named.as(name),
+                Materialized.as(storeName)),
+                input.keyType, input.valueType);
     }
 
     @Override
     public StreamWrapper apply(SessionWindowedKStreamWrapper input) {
 
         return new KTableWrapper(
-                (KTable) input.sessionWindowedKStream.reduce(new UserReducer(reducer)),
+                (KTable) input.sessionWindowedKStream.reduce(
+                        new UserReducer(reducer),
+                        Named.as(name),
+                        Materialized.as(storeName)
+                ),
                 StreamDataType.of(new WindowType(input.keyType.type), true),
                 input.valueType);
     }
@@ -68,7 +83,10 @@ public class ReduceOperation extends BaseOperation {
     @Override
     public StreamWrapper apply(TimeWindowedKStreamWrapper input) {
         return new KTableWrapper(
-                (KTable) input.timeWindowedKStream.reduce(new UserReducer(reducer)),
+                (KTable) input.timeWindowedKStream.reduce(
+                        new UserReducer(reducer),
+                        Named.as(name),
+                        Materialized.as(storeName)),
                 StreamDataType.of(new WindowType(input.keyType.type), true),
                 input.valueType);
     }

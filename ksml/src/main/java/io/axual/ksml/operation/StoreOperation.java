@@ -1,4 +1,4 @@
-package io.axual.ksml.parser;
+package io.axual.ksml.operation;
 
 /*-
  * ========================LICENSE_START=================================
@@ -21,22 +21,11 @@ package io.axual.ksml.parser;
  */
 
 
-import io.axual.ksml.operation.CountOperation;
+public class StoreOperation extends BaseOperation {
+    protected final String storeName;
 
-import static io.axual.ksml.dsl.KSMLDSL.STORE_NAME_ATTRIBUTE;
-
-public class CountOperationParser extends ContextAwareParser<CountOperation> {
-    private final String name;
-
-    protected CountOperationParser(String name, ParseContext context) {
-        super(context);
-        this.name = name;
-    }
-
-    @Override
-    public CountOperation parse(YamlNode node) {
-        if (node == null) return null;
-        return new CountOperation(name,
-                parseText(node, STORE_NAME_ATTRIBUTE));
+    public StoreOperation(String name, String storeName) {
+        super(name);
+        this.storeName = storeName == null ? name : storeName;
     }
 }

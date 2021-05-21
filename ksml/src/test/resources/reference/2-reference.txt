@@ -1,14 +1,14 @@
 Topologies:
    Sub-topology: 0
-    Source: KSTREAM-SOURCE-0000000000 (topics: [ksml_sensordata_copy])
+    Source: sensor_copy (topics: [ksml_sensordata_copy])
       --> none
 
   Sub-topology: 1
-    Source: KSTREAM-SOURCE-0000000001 (topics: [ksml_sensordata_avro])
-      --> KSTREAM-PEEK-0000000002
-    Processor: KSTREAM-PEEK-0000000002 (stores: [])
-      --> KSTREAM-SINK-0000000003
-      <-- KSTREAM-SOURCE-0000000001
-    Sink: KSTREAM-SINK-0000000003 (topic: ksml_sensordata_copy)
-      <-- KSTREAM-PEEK-0000000002
+    Source: ksml_sensordata_avro (topics: [ksml_sensordata_avro])
+      --> peek_001
+    Processor: peek_001 (stores: [])
+      --> to_001
+      <-- ksml_sensordata_avro
+    Sink: to_001 (topic: ksml_sensordata_copy)
+      <-- peek_001
 

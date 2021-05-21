@@ -39,6 +39,8 @@ public class KSMLDSL {
     public static final String FUNCTION_EXPRESSION_ATTRIBUTE = "expression";
     public static final String FILTER_PREDICATE_ATTRIBUTE = "predicate";
     public static final String FILTERNOT_PREDICATE_ATTRIBUTE = "predicate";
+    public static final String STORE_NAME_ATTRIBUTE = "storeName";
+    public static final String NAME_ATTRIBUTE = "name";
     public static final String TOPIC_ATTRIBUTE = "topic";
     public static final String KEYTYPE_ATTRIBUTE = "keyType";
     public static final String VALUETYPE_ATTRIBUTE = "valueType";

@@ -22,6 +22,8 @@ package io.axual.ksml.operation;
 
 
 
+import org.apache.kafka.streams.kstream.Named;
+
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
@@ -31,17 +33,18 @@ import io.axual.ksml.user.UserPredicate;
 public class FilterNotOperation extends BaseOperation {
     private final UserFunction predicate;
 
-    public FilterNotOperation(UserFunction predicate) {
+    public FilterNotOperation(String name, UserFunction predicate) {
+        super(name);
         this.predicate = predicate;
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        return new KStreamWrapper(input.stream.filterNot(new UserPredicate(predicate)), input.keyType, input.valueType);
+        return new KStreamWrapper(input.stream.filterNot(new UserPredicate(predicate), Named.as(name)), input.keyType, input.valueType);
     }
 
     @Override
     public StreamWrapper apply(KTableWrapper input) {
-        return new KTableWrapper(input.table.filterNot(new UserPredicate(predicate)), input.keyType, input.valueType);
+        return new KTableWrapper(input.table.filterNot(new UserPredicate(predicate), Named.as(name)), input.keyType, input.valueType);
     }
 }

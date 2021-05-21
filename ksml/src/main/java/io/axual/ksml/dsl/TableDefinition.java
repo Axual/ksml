@@ -23,7 +23,7 @@ package io.axual.ksml.dsl;
 
 
 public class TableDefinition extends BaseStreamDefinition {
-    public TableDefinition(String topic, String keyType, String valueType) {
-        super(topic, keyType, valueType);
+    public TableDefinition(String name, String topic, String keyType, String valueType) {
+        super(name, topic, keyType, valueType);
     }
 }

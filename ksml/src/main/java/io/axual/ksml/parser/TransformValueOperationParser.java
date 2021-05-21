@@ -21,22 +21,25 @@ package io.axual.ksml.parser;
  */
 
 
-
 import io.axual.ksml.operation.TransformValueOperation;
 
+import static io.axual.ksml.dsl.KSMLDSL.STORE_NAME_ATTRIBUTE;
 import static io.axual.ksml.dsl.KSMLDSL.TRANSFORMVALUE_MAPPER_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.TRANSFORMVALUE_NAME_ATTRIBUTE;
 
 public class TransformValueOperationParser extends ContextAwareParser<TransformValueOperation> {
-    protected TransformValueOperationParser(ParseContext context) {
+    private final String name;
+
+    protected TransformValueOperationParser(String name, ParseContext context) {
         super(context);
+        this.name = name;
     }
 
     @Override
     public TransformValueOperation parse(YamlNode node) {
         if (node == null) return null;
         return new TransformValueOperation(
-                parseFunction(node, TRANSFORMVALUE_MAPPER_ATTRIBUTE, new ValueTransformerDefinitionParser()),
-                parseText(node, TRANSFORMVALUE_NAME_ATTRIBUTE));
+                name,
+                parseText(node, STORE_NAME_ATTRIBUTE),
+                parseFunction(node, TRANSFORMVALUE_MAPPER_ATTRIBUTE, new ValueTransformerDefinitionParser()));
     }
 }

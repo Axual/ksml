@@ -21,24 +21,19 @@ package io.axual.ksml.parser;
  */
 
 
-
 import org.apache.kafka.streams.kstream.Suppressed;
 
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.operation.SuppressOperation;
 
-import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_BUFFERFULLSTRATEGY;
-import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_BUFFERFULLSTRATEGY_EMIT;
-import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_BUFFER_MAXBYTES;
-import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_BUFFER_MAXRECORDS;
-import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_DURATION_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_UNTILTIMELIMIT;
-import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_UNTILWINDOWCLOSE;
-import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_UNTIL_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class SuppressOperationParser extends ContextAwareParser<SuppressOperation> {
-    protected SuppressOperationParser(ParseContext context) {
+    private final String name;
+
+    protected SuppressOperationParser(String name, ParseContext context) {
         super(context);
+        this.name = name;
     }
 
     @Override
@@ -48,12 +43,12 @@ public class SuppressOperationParser extends ContextAwareParser<SuppressOperatio
         if (suppressedType != null) {
             switch (suppressedType) {
                 case SUPPRESS_UNTILTIMELIMIT:
-                    return new SuppressOperation(Suppressed.untilTimeLimit(
+                    return new SuppressOperation(name, Suppressed.untilTimeLimit(
                             parseDuration(node, SUPPRESS_DURATION_ATTRIBUTE),
                             parseBufferConfig(node)));
                 case SUPPRESS_UNTILWINDOWCLOSE:
                     Suppressed.StrictBufferConfig suppressedBufferConfig = parseStrictBufferConfig(node);
-                    return new SuppressOperation((Suppressed) Suppressed.untilWindowCloses(suppressedBufferConfig));
+                    return new SuppressOperation(name, (Suppressed) Suppressed.untilWindowCloses(suppressedBufferConfig));
                 default:
                     throw new KSMLParseException(node, "Unknown Suppressed type for suppress operation: " + suppressedType);
             }

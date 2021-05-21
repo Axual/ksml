@@ -21,7 +21,6 @@ package io.axual.ksml.parser;
  */
 
 
-
 import org.apache.kafka.streams.kstream.SessionWindows;
 import org.apache.kafka.streams.kstream.SlidingWindows;
 import org.apache.kafka.streams.kstream.TimeWindows;
@@ -29,18 +28,14 @@ import org.apache.kafka.streams.kstream.TimeWindows;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.operation.WindowedByOperation;
 
-import static io.axual.ksml.dsl.KSMLDSL.WINDOWEDBY_WINDOWTYPE_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.WINDOWEDBY_WINDOWTYPE_SESSION;
-import static io.axual.ksml.dsl.KSMLDSL.WINDOWEDBY_WINDOWTYPE_SESSION_INACTIVITYGAP;
-import static io.axual.ksml.dsl.KSMLDSL.WINDOWEDBY_WINDOWTYPE_SLIDING;
-import static io.axual.ksml.dsl.KSMLDSL.WINDOWEDBY_WINDOWTYPE_SLIDING_GRACE;
-import static io.axual.ksml.dsl.KSMLDSL.WINDOWEDBY_WINDOWTYPE_SLIDING_TIMEDIFFERENCE;
-import static io.axual.ksml.dsl.KSMLDSL.WINDOWEDBY_WINDOWTYPE_TIME;
-import static io.axual.ksml.dsl.KSMLDSL.WINDOWEDBY_WINDOWTYPE_TIME_DURATION;
+import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class WindowedByOperationParser extends ContextAwareParser<WindowedByOperation> {
-    protected WindowedByOperationParser(ParseContext context) {
+    private final String name;
+
+    protected WindowedByOperationParser(String name, ParseContext context) {
         super(context);
+        this.name = name;
     }
 
     @Override
@@ -50,13 +45,13 @@ public class WindowedByOperationParser extends ContextAwareParser<WindowedByOper
         if (windowType != null) {
             switch (windowType) {
                 case WINDOWEDBY_WINDOWTYPE_SESSION:
-                    return new WindowedByOperation(SessionWindows.with(parseDuration(node, WINDOWEDBY_WINDOWTYPE_SESSION_INACTIVITYGAP)));
+                    return new WindowedByOperation(name, SessionWindows.with(parseDuration(node, WINDOWEDBY_WINDOWTYPE_SESSION_INACTIVITYGAP)));
                 case WINDOWEDBY_WINDOWTYPE_SLIDING:
-                    return new WindowedByOperation(SlidingWindows.withTimeDifferenceAndGrace(
+                    return new WindowedByOperation(name, SlidingWindows.withTimeDifferenceAndGrace(
                             parseDuration(node, WINDOWEDBY_WINDOWTYPE_SLIDING_TIMEDIFFERENCE),
                             parseDuration(node, WINDOWEDBY_WINDOWTYPE_SLIDING_GRACE)));
                 case WINDOWEDBY_WINDOWTYPE_TIME:
-                    return new WindowedByOperation(TimeWindows.of(parseDuration(node, WINDOWEDBY_WINDOWTYPE_TIME_DURATION)));
+                    return new WindowedByOperation(name, TimeWindows.of(parseDuration(node, WINDOWEDBY_WINDOWTYPE_TIME_DURATION)));
                 default:
                     throw new KSMLParseException(node, "Unknown WindowType for windowedBy operation: " + windowType);
             }

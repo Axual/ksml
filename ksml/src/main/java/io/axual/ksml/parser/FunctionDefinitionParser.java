@@ -25,11 +25,7 @@ package io.axual.ksml.parser;
 import io.axual.ksml.dsl.FunctionDefinition;
 import io.axual.ksml.dsl.ParameterDefinition;
 
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_CODE_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_EXPRESSION_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_GLOBALCODE_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_PARAMETERS_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_RESULTTYPE_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class FunctionDefinitionParser extends BaseParser<FunctionDefinition> {
     @Override

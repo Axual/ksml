@@ -21,7 +21,6 @@ package io.axual.ksml.operation;
  */
 
 
-
 import org.apache.kafka.streams.kstream.Produced;
 
 import io.axual.ksml.stream.KStreamWrapper;
@@ -30,13 +29,14 @@ import io.axual.ksml.stream.StreamWrapper;
 public class ToOperation extends BaseOperation {
     private final String to;
 
-    public ToOperation(String to) {
+    public ToOperation(String name, String to) {
+        super(name);
         this.to = to;
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        input.stream.to(to, Produced.with(input.keyType.serde, input.valueType.serde));
+        input.stream.to(to, Produced.with(input.keyType.serde, input.valueType.serde).withName(name));
         return null;
     }
 }

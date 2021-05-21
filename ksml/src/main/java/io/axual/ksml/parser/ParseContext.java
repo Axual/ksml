@@ -23,6 +23,7 @@ package io.axual.ksml.parser;
 
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.axual.ksml.dsl.BaseStreamDefinition;
 import io.axual.ksml.dsl.FunctionDefinition;
@@ -40,4 +41,6 @@ public interface ParseContext {
     Map<String, FunctionDefinition> getFunctions();
 
     UserFunction getFunction(FunctionDefinition definition, String name);
+
+    Map<String, AtomicInteger> getTypeInstanceCounters();
 }
