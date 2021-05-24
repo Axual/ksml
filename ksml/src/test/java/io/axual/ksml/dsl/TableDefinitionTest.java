@@ -52,7 +52,7 @@ public class TableDefinitionTest {
     @Test
     public void testTableDefinition() {
         // given a TableDefinition
-        var tableDefinition = new TableDefinition("topic", "string", "string");
+        var tableDefinition = new TableDefinition("name","topic", "string", "string");
 
         // when it adds itself to Builder
         var streamWrapper = tableDefinition.addToBuilder(builder, serdeGenerator);
