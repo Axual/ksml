@@ -40,7 +40,7 @@ public class TableDefinition extends BaseStreamDefinition {
         Serde<Object> keySerde = serdeGenerator.getSerdeForType(this.keyType, true);
         Serde<Object> valueSerde = serdeGenerator.getSerdeForType(this.valueType, false);
         return new KTableWrapper(
-                builder.table(this.topic, Consumed.with(keySerde, valueSerde)),
+                builder.table(this.topic, Consumed.with(keySerde, valueSerde).withName(this.name)),
                 new StreamDataType(this.keyType, keySerde),
                 new StreamDataType(this.valueType, valueSerde));
     }

@@ -67,31 +67,6 @@ public class TopologyParseContext implements ParseContext {
         streamDefinitions.forEach((name, def) -> streams.put(def.name, def.addToBuilder(builder, serdeGenerator)));
     }
 
-    private StreamWrapper createStream(BaseStreamDefinition definition) {
-        Serde<Object> keySerde = serdeGenerator.getSerdeForType(definition.keyType, true);
-        Serde<Object> valueSerde = serdeGenerator.getSerdeForType(definition.valueType, false);
-
-        if (definition instanceof StreamDefinition) {
-            return new KStreamWrapper(
-                    builder.stream(definition.topic, Consumed.with(keySerde, valueSerde).withName(definition.name)),
-                    new StreamDataType(definition.keyType, keySerde),
-                    new StreamDataType(definition.valueType, valueSerde));
-        }
-        if (definition instanceof TableDefinition) {
-            return new KTableWrapper(
-                    builder.table(definition.topic, Consumed.with(keySerde, valueSerde).withName(definition.name)),
-                    new StreamDataType(definition.keyType, keySerde),
-                    new StreamDataType(definition.valueType, valueSerde));
-        }
-        if (definition instanceof GlobalTableDefinition) {
-            return new GlobalKTableWrapper(
-                    builder.globalTable(definition.topic, Consumed.with(keySerde, valueSerde).withName(definition.name)),
-                    new StreamDataType(definition.keyType, keySerde),
-                    new StreamDataType(definition.valueType, valueSerde));
-        }
-        throw new KSMLApplyException("Unknown stream type: " + definition.getClass().getSimpleName());
-    }
-
     @Override
     public Map<String, BaseStreamDefinition> getStreams() {
         return streamDefinitions;

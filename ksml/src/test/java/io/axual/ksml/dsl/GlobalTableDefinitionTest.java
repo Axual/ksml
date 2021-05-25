@@ -52,7 +52,7 @@ public class GlobalTableDefinitionTest {
     @Test
     public void testGlobalTableDefinition() {
         // given a TableDefinition
-        var tableDefinition = new GlobalTableDefinition("topic", "string", "string");
+        var tableDefinition = new GlobalTableDefinition("name", "topic", "string", "string");
 
         // when it adds itself to Builder
         var streamWrapper = tableDefinition.addToBuilder(builder, serdeGenerator);

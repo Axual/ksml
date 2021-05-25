@@ -52,7 +52,7 @@ public class StreamDefinitionTest {
     @Test
     public void testStreamDefinition() {
         // given a TableDefinition
-        var streamDefinition = new StreamDefinition("topic", "string", "string");
+        var streamDefinition = new StreamDefinition("name", "topic", "string", "string");
 
         // when it adds itself to Builder
         var streamWrapper = streamDefinition.addToBuilder(builder, serdeGenerator);

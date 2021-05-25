@@ -40,7 +40,7 @@ public class StreamDefinition extends BaseStreamDefinition {
         Serde<Object> keySerde = serdeGenerator.getSerdeForType(this.keyType, true);
         Serde<Object> valueSerde = serdeGenerator.getSerdeForType(this.valueType, false);
         return new KStreamWrapper(
-                builder.stream(this.topic, Consumed.with(keySerde, valueSerde)),
+                builder.stream(this.topic, Consumed.with(keySerde, valueSerde).withName(this.name)),
                 new StreamDataType(this.keyType, keySerde),
                 new StreamDataType(this.valueType, valueSerde));
     }
