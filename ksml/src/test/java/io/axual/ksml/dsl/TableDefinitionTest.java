@@ -29,6 +29,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.generator.SerdeGenerator;
 import io.axual.ksml.parser.TypeParser;
 import io.axual.ksml.stream.KTableWrapper;

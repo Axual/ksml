@@ -22,30 +22,20 @@ package io.axual.ksml.parser;
 
 
 
-import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
-import org.apache.kafka.streams.kstream.Consumed;
 import org.python.util.PythonInterpreter;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.axual.ksml.dsl.BaseStreamDefinition;
-import io.axual.ksml.dsl.FunctionDefinition;
-import io.axual.ksml.dsl.GlobalTableDefinition;
-import io.axual.ksml.dsl.StreamDefinition;
-import io.axual.ksml.dsl.TableDefinition;
-import io.axual.ksml.exception.KSMLApplyException;
+import io.axual.ksml.definition.BaseStreamDefinition;
+import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.generator.SerdeGenerator;
-import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.python.PythonFunction;
 import io.axual.ksml.stream.BaseStreamWrapper;
-import io.axual.ksml.stream.GlobalKTableWrapper;
-import io.axual.ksml.stream.KStreamWrapper;
-import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
 

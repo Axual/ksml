@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import io.axual.ksml.dsl.ParameterDefinition;
+import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.exception.KSMLTypeException;
 import io.axual.ksml.type.DataType;

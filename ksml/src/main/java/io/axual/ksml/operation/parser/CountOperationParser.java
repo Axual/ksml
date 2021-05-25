@@ -1,4 +1,4 @@
-package io.axual.ksml.parser;
+package io.axual.ksml.operation.parser;
 
 /*-
  * ========================LICENSE_START=================================
@@ -21,26 +21,25 @@ package io.axual.ksml.parser;
  */
 
 
+import io.axual.ksml.operation.CountOperation;
+import io.axual.ksml.parser.ContextAwareParser;
+import io.axual.ksml.parser.ParseContext;
+import io.axual.ksml.parser.YamlNode;
 
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import static io.axual.ksml.dsl.KSMLDSL.STORE_NAME_ATTRIBUTE;
 
-import io.axual.ksml.definition.BaseStreamDefinition;
-import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.stream.BaseStreamWrapper;
-import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.UserFunction;
+public class CountOperationParser extends ContextAwareParser<CountOperation> {
+    private final String name;
 
-public interface ParseContext {
-    Map<String, BaseStreamDefinition> getStreams();
+    protected CountOperationParser(String name, ParseContext context) {
+        super(context);
+        this.name = name;
+    }
 
-    <T extends BaseStreamWrapper> T getStream(BaseStreamDefinition definition, Class<T> resultClass);
-
-    StreamWrapper getStream(BaseStreamDefinition definition);
-
-    Map<String, FunctionDefinition> getFunctions();
-
-    UserFunction getFunction(FunctionDefinition definition, String name);
-
-    Map<String, AtomicInteger> getTypeInstanceCounters();
+    @Override
+    public CountOperation parse(YamlNode node) {
+        if (node == null) return null;
+        return new CountOperation(name,
+                parseText(node, STORE_NAME_ATTRIBUTE));
+    }
 }

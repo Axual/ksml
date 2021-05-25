@@ -24,8 +24,9 @@ package io.axual.ksml.parser;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.axual.ksml.dsl.BaseStreamDefinition;
-import io.axual.ksml.dsl.FunctionDefinition;
+import io.axual.ksml.definition.BaseStreamDefinition;
+import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.definition.parser.BaseStreamDefinitionParser;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;

@@ -1,4 +1,4 @@
-package io.axual.ksml.parser;
+package io.axual.ksml.operation.parser;
 
 /*-
  * ========================LICENSE_START=================================
@@ -22,25 +22,22 @@ package io.axual.ksml.parser;
 
 
 
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import io.axual.ksml.operation.ToStreamOperation;
+import io.axual.ksml.parser.ContextAwareParser;
+import io.axual.ksml.parser.ParseContext;
+import io.axual.ksml.parser.YamlNode;
 
-import io.axual.ksml.definition.BaseStreamDefinition;
-import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.stream.BaseStreamWrapper;
-import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.UserFunction;
+public class ToStreamOperationParser extends ContextAwareParser<ToStreamOperation> {
+    private final String name;
 
-public interface ParseContext {
-    Map<String, BaseStreamDefinition> getStreams();
+    protected ToStreamOperationParser(String name, ParseContext context) {
+        super(context);
+        this.name = name;
+    }
 
-    <T extends BaseStreamWrapper> T getStream(BaseStreamDefinition definition, Class<T> resultClass);
-
-    StreamWrapper getStream(BaseStreamDefinition definition);
-
-    Map<String, FunctionDefinition> getFunctions();
-
-    UserFunction getFunction(FunctionDefinition definition, String name);
-
-    Map<String, AtomicInteger> getTypeInstanceCounters();
+    @Override
+    public ToStreamOperation parse(YamlNode node) {
+        if (node == null) return null;
+        return new ToStreamOperation(name);
+    }
 }

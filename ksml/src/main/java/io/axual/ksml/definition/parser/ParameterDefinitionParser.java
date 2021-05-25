@@ -1,4 +1,4 @@
-package io.axual.ksml.parser;
+package io.axual.ksml.definition.parser;
 
 /*-
  * ========================LICENSE_START=================================
@@ -22,25 +22,20 @@ package io.axual.ksml.parser;
 
 
 
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import io.axual.ksml.definition.ParameterDefinition;
+import io.axual.ksml.parser.BaseParser;
+import io.axual.ksml.parser.TypeParser;
+import io.axual.ksml.parser.YamlNode;
 
-import io.axual.ksml.definition.BaseStreamDefinition;
-import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.stream.BaseStreamWrapper;
-import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.UserFunction;
+import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_PARAMETER_NAME;
+import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_PARAMETER_TYPE;
 
-public interface ParseContext {
-    Map<String, BaseStreamDefinition> getStreams();
-
-    <T extends BaseStreamWrapper> T getStream(BaseStreamDefinition definition, Class<T> resultClass);
-
-    StreamWrapper getStream(BaseStreamDefinition definition);
-
-    Map<String, FunctionDefinition> getFunctions();
-
-    UserFunction getFunction(FunctionDefinition definition, String name);
-
-    Map<String, AtomicInteger> getTypeInstanceCounters();
+public class ParameterDefinitionParser extends BaseParser<ParameterDefinition> {
+    @Override
+    public ParameterDefinition parse(YamlNode node) {
+        if (node == null) return null;
+        return new ParameterDefinition(
+                parseText(node, FUNCTION_PARAMETER_NAME),
+                TypeParser.parse(parseText(node, FUNCTION_PARAMETER_TYPE)));
+    }
 }

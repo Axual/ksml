@@ -1,4 +1,4 @@
-package io.axual.ksml.parser;
+package io.axual.ksml.definition;
 
 /*-
  * ========================LICENSE_START=================================
@@ -22,25 +22,11 @@ package io.axual.ksml.parser;
 
 
 
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import io.axual.ksml.definition.BaseStreamDefinition;
-import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.stream.BaseStreamWrapper;
-import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
+import lombok.AllArgsConstructor;
 
-public interface ParseContext {
-    Map<String, BaseStreamDefinition> getStreams();
-
-    <T extends BaseStreamWrapper> T getStream(BaseStreamDefinition definition, Class<T> resultClass);
-
-    StreamWrapper getStream(BaseStreamDefinition definition);
-
-    Map<String, FunctionDefinition> getFunctions();
-
-    UserFunction getFunction(FunctionDefinition definition, String name);
-
-    Map<String, AtomicInteger> getTypeInstanceCounters();
+@AllArgsConstructor
+public class BranchDefinition {
+    public final UserFunction predicate;
+    public final PipelineDefinition pipeline;
 }

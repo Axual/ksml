@@ -45,7 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.axual.ksml.dsl.FunctionDefinition;
+import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.type.Tuple;
 import io.axual.ksml.user.UserFunction;

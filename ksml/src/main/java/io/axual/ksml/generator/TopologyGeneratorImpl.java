@@ -45,19 +45,19 @@ import java.util.Map;
 
 import io.axual.ksml.KSMLConfig;
 import io.axual.ksml.TopologyGenerator;
-import io.axual.ksml.dsl.BaseStreamDefinition;
-import io.axual.ksml.dsl.FunctionDefinition;
-import io.axual.ksml.dsl.PipelineDefinition;
+import io.axual.ksml.definition.BaseStreamDefinition;
+import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.definition.PipelineDefinition;
 import io.axual.ksml.exception.KSMLParseException;
-import io.axual.ksml.parser.GlobalTableDefinitionParser;
+import io.axual.ksml.definition.parser.GlobalTableDefinitionParser;
 import io.axual.ksml.parser.ListParser;
 import io.axual.ksml.parser.MapParser;
-import io.axual.ksml.parser.PipelineDefinitionParser;
-import io.axual.ksml.parser.StreamDefinitionParser;
+import io.axual.ksml.definition.parser.PipelineDefinitionParser;
+import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.parser.StreamOperation;
-import io.axual.ksml.parser.TableDefinitionParser;
+import io.axual.ksml.definition.parser.TableDefinitionParser;
 import io.axual.ksml.parser.TopologyParseContext;
-import io.axual.ksml.parser.TypedFunctionDefinitionParser;
+import io.axual.ksml.definition.parser.TypedFunctionDefinitionParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.stream.StreamWrapper;
 

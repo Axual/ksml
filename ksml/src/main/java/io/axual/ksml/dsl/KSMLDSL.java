@@ -83,7 +83,6 @@ public class KSMLDSL {
     public static final String OPERATION_TO_TYPE = "to";
     public static final String OPERATION_TOSTREAM_TYPE = "toStream";
     public static final String OPERATION_WINDOWEDBY_TYPE = "windowedBy";
-    public static final String REPARTITION_NAME_ATTRIBUTE = "name";
     public static final String REPARTITION_PARTITIONER_ATTRIBUTE = "partitioner";
     public static final String SUPPRESS_UNTIL_ATTRIBUTE = "until";
     public static final String SUPPRESS_UNTILTIMELIMIT = "timeLimit";
@@ -95,15 +94,10 @@ public class KSMLDSL {
     public static final String SUPPRESS_BUFFERFULLSTRATEGY_EMIT = "emitEarlyWhenFull";
     public static final String SUPPRESS_BUFFERFULLSTRATEGY_SHUTDOWN = "shutdownWhenFull";
     public static final String TRANSFORMKEY_MAPPER_ATTRIBUTE = "mapper";
-    public static final String TRANSFORMKEY_NAME_ATTRIBUTE = "name";
     public static final String TRANSFORMKEYVALUE_MAPPER_ATTRIBUTE = "mapper";
-    public static final String TRANSFORMKEYVALUE_NAME_ATTRIBUTE = "name";
     public static final String TRANSFORMKEYVALUETOKEYVALUELIST_MAPPER_ATTRIBUTE = "mapper";
-    public static final String TRANSFORMKEYVALUETOKEYVALUELIST_NAME_ATTRIBUTE = "name";
     public static final String TRANSFORMKEYVALUETOVALUELIST_MAPPER_ATTRIBUTE = "mapper";
-    public static final String TRANSFORMKEYVALUETOVALUELIST_NAME_ATTRIBUTE = "name";
     public static final String TRANSFORMVALUE_MAPPER_ATTRIBUTE = "mapper";
-    public static final String TRANSFORMVALUE_NAME_ATTRIBUTE = "name";
     public static final String FUNCTION_PARAMETER_NAME = "name";
     public static final String FUNCTION_PARAMETER_TYPE = "type";
     public static final String FUNCTION_TYPE = "type";
