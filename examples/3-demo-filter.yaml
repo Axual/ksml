@@ -1,10 +1,10 @@
 streams:
-  - topic: ksml_sensordata_avro
-    name: sensor_source
+  sensor_source:
+    topic: ksml_sensordata_avro
     keyType: string
     valueType: avro:SensorData
-  - topic: ksml_sensordata_filtered
-    name: sensor_filtered
+  sensor_filtered:
+    topic: ksml_sensordata_filtered
     keyType: string
     valueType: avro:SensorData
 

@@ -23,18 +23,24 @@ package io.axual.ksml.operation.parser;
 
 import io.axual.ksml.definition.parser.BranchDefinitionParser;
 import io.axual.ksml.definition.parser.ForEachActionDefinitionParser;
+import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.definition.parser.TopicNameExtractorDefinitionParser;
+import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.operation.BranchOperation;
 import io.axual.ksml.operation.ForEachOperation;
 import io.axual.ksml.operation.ToOperation;
 import io.axual.ksml.operation.ToTopicNameExtractorOperation;
 import io.axual.ksml.parser.ContextAwareParser;
+import io.axual.ksml.parser.InlineOrReferenceParser;
 import io.axual.ksml.parser.ListParser;
 import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.StreamOperation;
 import io.axual.ksml.parser.YamlNode;
 
-import static io.axual.ksml.dsl.KSMLDSL.*;
+import static io.axual.ksml.dsl.KSMLDSL.PIPELINE_BRANCH_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.PIPELINE_FOREACH_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.PIPELINE_TOTOPICNAMEEXTRACTOR_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.PIPELINE_TO_ATTRIBUTE;
 
 public class PipelineSinkOperationParser extends ContextAwareParser<StreamOperation> {
     public PipelineSinkOperationParser(ParseContext context) {
@@ -45,16 +51,20 @@ public class PipelineSinkOperationParser extends ContextAwareParser<StreamOperat
     public StreamOperation parse(YamlNode node) {
         if (node == null) return null;
         if (node.get(PIPELINE_BRANCH_ATTRIBUTE) != null) {
-            return new BranchOperation(determineName( "branch"), new ListParser<>(new BranchDefinitionParser(context)).parse(node.get(PIPELINE_BRANCH_ATTRIBUTE)));
+            return new BranchOperation(determineName("branch"), new ListParser<>(new BranchDefinitionParser(context)).parse(node.get(PIPELINE_BRANCH_ATTRIBUTE)));
         }
         if (node.get(PIPELINE_FOREACH_ATTRIBUTE) != null) {
-            return new ForEachOperation(determineName( "for_each"), parseFunction(node, PIPELINE_FOREACH_ATTRIBUTE, new ForEachActionDefinitionParser()));
+            return new ForEachOperation(determineName("for_each"), parseFunction(node, PIPELINE_FOREACH_ATTRIBUTE, new ForEachActionDefinitionParser()));
         }
         if (node.get(PIPELINE_TOTOPICNAMEEXTRACTOR_ATTRIBUTE) != null) {
             return new ToTopicNameExtractorOperation(determineName("to_name_extract"), parseFunction(node, PIPELINE_TOTOPICNAMEEXTRACTOR_ATTRIBUTE, new TopicNameExtractorDefinitionParser()));
         }
         if (node.get(PIPELINE_TO_ATTRIBUTE) != null) {
-            return new ToOperation(determineName("to"), parseText(node, PIPELINE_TO_ATTRIBUTE));
+            final var def = new InlineOrReferenceParser<>(context.getStreamDefinitions(), new StreamDefinitionParser(), PIPELINE_TO_ATTRIBUTE).parse(node);
+            if (def != null) {
+                return new ToOperation(determineName("to"), def);
+            }
+            throw new KSMLParseException("Target stream not found or not specified");
         }
         return null;
     }

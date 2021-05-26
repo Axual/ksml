@@ -23,20 +23,31 @@ package io.axual.ksml.operation;
 
 import org.apache.kafka.streams.kstream.Produced;
 
+import io.axual.ksml.definition.BaseStreamDefinition;
+import io.axual.ksml.exception.KSMLApplyException;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 
 public class ToOperation extends BaseOperation {
-    private final String to;
+    private final BaseStreamDefinition target;
 
-    public ToOperation(String name, String to) {
+    public ToOperation(String name, BaseStreamDefinition target) {
         super(name);
-        this.to = to;
+        this.target = target;
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        input.stream.to(to, Produced.with(input.keyType.serde, input.valueType.serde).withName(name));
+        // Perform a type check to see if the key/value data types received matches the stream definition's types
+        if (!target.keyType.isAssignableFrom(input.keyType.type) || !target.valueType.isAssignableFrom(input.valueType.type)) {
+            throw new KSMLApplyException("Incompatible key/value types: " +
+                    "topic=" + target.topic +
+                    ", keyType=" + input.keyType +
+                    ", valueType=" + input.valueType +
+                    ", expected keyType=" + target.keyType +
+                    ", expected valueType=" + target.valueType);
+        }
+        input.stream.to(target.topic, Produced.with(input.keyType.serde, input.valueType.serde).withName(name));
         return null;
     }
 }

@@ -37,7 +37,7 @@ public class MapParser<V> extends BaseParser<Map<String, V>> {
         Map<String, V> result = new HashMap<>();
         if (node != null) {
             for (YamlNode child : node.getChildren()) {
-                result.put(child.getName(), (valueParser.parse(child)));
+                result.put(child.getName(), valueParser.parse(child));
             }
         }
         return result;

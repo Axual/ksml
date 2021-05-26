@@ -46,7 +46,7 @@ public class PipelineDefinitionParser extends ContextAwareParser<PipelineDefinit
     public PipelineDefinition parse(YamlNode node, boolean parseSource, boolean parseSink) {
         if (node == null) return null;
         return new PipelineDefinition(
-                parseSource ? parseStreamDefinition(node, PIPELINE_FROM_ATTRIBUTE) : null,
+                parseSource ? parseBaseStreamDefinition(node, PIPELINE_FROM_ATTRIBUTE) : null,
                 new ListParser<>(new PipelineOperationParser(context)).parse(node.get(PIPELINE_VIA_ATTRIBUTE, "step")),
                 parseSink ? new PipelineSinkOperationParser(context).parse(node) : null);
     }

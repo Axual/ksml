@@ -53,10 +53,10 @@ public class StreamDefinitionTest {
     @Test
     public void testStreamDefinition() {
         // given a TableDefinition
-        var streamDefinition = new StreamDefinition("name", "topic", "string", "string");
+        var streamDefinition = new StreamDefinition("topic", "string", "string");
 
         // when it adds itself to Builder
-        var streamWrapper = streamDefinition.addToBuilder(builder, serdeGenerator);
+        var streamWrapper = streamDefinition.addToBuilder(builder, "name", serdeGenerator);
 
         // it adds a ktable to the builder with key and value type, and returns a KTableWrapper instance
         final var stringType = TypeParser.parse("string");

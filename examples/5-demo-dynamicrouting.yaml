@@ -1,18 +1,18 @@
 streams:
-  - topic: ksml_sensordata_avro
-    name: sensor_source
+  sensor_source:
+    topic: ksml_sensordata_avro
     keyType: string
     valueType: avro:SensorData
-  - topic: ksml_sensordata_sensor0
-    name: sensor_0
+  sensor_0:
+    topic: ksml_sensordata_sensor0
     keyType: string
     valueType: avro:SensorData
-  - topic: ksml_sensordata_sensor1
-    name: sensor_1
+  sensor_1:
+    topic: ksml_sensordata_sensor1
     keyType: string
     valueType: avro:SensorData
-  - topic: ksml_sensordata_sensor2
-    name: sensor_2
+  sensor_2:
+    topic: ksml_sensordata_sensor2
     keyType: string
     valueType: avro:SensorData
 
@@ -31,8 +31,8 @@ pipelines:
     toExtractor:
       code: |
         if key == 'sensor1':
-          return 'ksml_sensordata_sensor1'
+          return 'sensor_1'
         elif key == 'sensor2':
-          return 'ksml_sensordata_sensor2'
+          return 'sensor_2'
         else:
           return 'ksml_sensordata_sensor0'

@@ -1,13 +1,13 @@
 streams:
-  - name: sensor_stream
+  sensor_stream:
     topic: ksml_sensordata_avro
     keyType: string
     valueType: string
-  - name: sensor_blue
+  sensor_blue:
     topic: ksml_sensordata_blue
     keyType: string
     valueType: string
-  - name: sensor_red
+  sensor_red:
     topic: ksml_sensordata_red
     keyType: string
     valueType: string
@@ -27,10 +27,10 @@ pipelines:
     branch:
       - if:
           expression: value['color'] == 'blue'
-        to: ksml_sensordata_blue
+        to: sensor_blue
       - if:
           expression: value['color'] == 'red'
-        to: ksml_sensordata_red
+        to: sensor_red
       - forEach:
           code: |
             print('Unknown color sensor: '+str(value))

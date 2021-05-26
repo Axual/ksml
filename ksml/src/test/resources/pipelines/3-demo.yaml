@@ -1,9 +1,9 @@
 streams:
-  - name: sensor_stream
+  sensor_stream:
     topic: ksml_sensordata_avro
     keyType: string
     valueType: string
-  - name: sensor_filtered
+  sensor_filtered:
     topic: ksml_sensordata_filtered
     keyType: string
     valueType: string
@@ -27,4 +27,4 @@ pipelines:
       - name: message-filter
         type: filter
         predicate: filter_message
-    to: ksml_sensordata_filtered
+    to: sensor_filtered

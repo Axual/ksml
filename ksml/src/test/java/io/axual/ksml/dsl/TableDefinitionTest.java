@@ -53,10 +53,10 @@ public class TableDefinitionTest {
     @Test
     public void testTableDefinition() {
         // given a TableDefinition
-        var tableDefinition = new TableDefinition("name","topic", "string", "string");
+        var tableDefinition = new TableDefinition("topic", "string", "string");
 
         // when it adds itself to Builder
-        var streamWrapper = tableDefinition.addToBuilder(builder, serdeGenerator);
+        var streamWrapper = tableDefinition.addToBuilder(builder, "name", serdeGenerator);
 
         // it adds a ktable to the builder with key and value type, and returns a KTableWrapper instance
         final var stringType = TypeParser.parse("string");

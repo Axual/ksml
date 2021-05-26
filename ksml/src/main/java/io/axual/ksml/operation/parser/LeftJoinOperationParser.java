@@ -46,7 +46,7 @@ public class LeftJoinOperationParser extends ContextAwareParser<LeftJoinOperatio
     @Override
     public LeftJoinOperation parse(YamlNode node) {
         if (node == null) return null;
-        StreamWrapper joinStream = parseStream(node);
+        StreamWrapper joinStream = parseAndGetStreamWrapper(node);
         if (joinStream instanceof KStreamWrapper) {
             return new LeftJoinOperation(
                     name,

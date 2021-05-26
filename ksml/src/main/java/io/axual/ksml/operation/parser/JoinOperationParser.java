@@ -49,7 +49,7 @@ public class JoinOperationParser extends ContextAwareParser<JoinOperation> {
     @Override
     public JoinOperation parse(YamlNode node) {
         if (node == null) return null;
-        StreamWrapper joinStream = parseStream(node);
+        StreamWrapper joinStream = parseAndGetStreamWrapper(node);
         if (joinStream instanceof KStreamWrapper) {
             return new JoinOperation(
                     name,

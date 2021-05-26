@@ -1,10 +1,12 @@
+# This example shows how to read from a simple stream and copy every message to a target topic.
+
 streams:
-  - topic: ksml_sensordata_avro
-    name: sensor_source
+  sensor_source:
+    topic: ksml_sensordata_avro
     keyType: string
     valueType: avro:SensorData
-  - topic: ksml_sensordata_copy
-    name: sensor_copy
+  sensor_copy:
+    topic: ksml_sensordata_copy
     keyType: string
     valueType: avro:SensorData
 
@@ -14,6 +16,7 @@ functions:
     code: "print('key='+(key if isinstance(key,str) else str(key))+', value='+(value if isinstance(value,str) else str(value)))"
 
 pipelines:
+  # The main pipeline reads messages, outputs them and saves a copy in a target topic
   main:
     from: sensor_source
     via:
@@ -21,3 +24,9 @@ pipelines:
         name: peek_and_print
         forEach: print_message
     to: sensor_copy
+
+  # The secondary pipeline achieves the same results, but by inlining the target topic definition
+  secondary:
+    from: sensor_source
+    to:
+      topic: ksml_sensordata_copy

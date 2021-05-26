@@ -53,10 +53,10 @@ public class GlobalTableDefinitionTest {
     @Test
     public void testGlobalTableDefinition() {
         // given a TableDefinition
-        var tableDefinition = new GlobalTableDefinition("name", "topic", "string", "string");
+        var tableDefinition = new GlobalTableDefinition("topic", "string", "string");
 
         // when it adds itself to Builder
-        var streamWrapper = tableDefinition.addToBuilder(builder, serdeGenerator);
+        var streamWrapper = tableDefinition.addToBuilder(builder, "name", serdeGenerator);
 
         // it adds a ktable to the builder with key and value type, and returns a KTableWrapper instance
         final var stringType = TypeParser.parse("string");

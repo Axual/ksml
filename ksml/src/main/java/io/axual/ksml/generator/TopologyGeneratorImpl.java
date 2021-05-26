@@ -21,7 +21,6 @@ package io.axual.ksml.generator;
  */
 
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -48,16 +47,15 @@ import io.axual.ksml.TopologyGenerator;
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.PipelineDefinition;
-import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.definition.parser.GlobalTableDefinitionParser;
-import io.axual.ksml.parser.ListParser;
-import io.axual.ksml.parser.MapParser;
 import io.axual.ksml.definition.parser.PipelineDefinitionParser;
 import io.axual.ksml.definition.parser.StreamDefinitionParser;
-import io.axual.ksml.parser.StreamOperation;
 import io.axual.ksml.definition.parser.TableDefinitionParser;
-import io.axual.ksml.parser.TopologyParseContext;
 import io.axual.ksml.definition.parser.TypedFunctionDefinitionParser;
+import io.axual.ksml.exception.KSMLParseException;
+import io.axual.ksml.parser.MapParser;
+import io.axual.ksml.parser.StreamOperation;
+import io.axual.ksml.parser.TopologyParseContext;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.stream.StreamWrapper;
 
@@ -143,15 +141,9 @@ public class TopologyGeneratorImpl implements TopologyGenerator {
 
         // Parse all defined streams
         Map<String, BaseStreamDefinition> streamDefinitions = new HashMap<>();
-        new ListParser<>(new StreamDefinitionParser())
-                .parse(node.get(STREAMS_DEFINITION))
-                .forEach(e -> streamDefinitions.put(e.name, e));
-        new ListParser<>(new TableDefinitionParser())
-                .parse(node.get(TABLES_DEFINITION))
-                .forEach(e -> streamDefinitions.put(e.name, e));
-        new ListParser<>(new GlobalTableDefinitionParser())
-                .parse(node.get(GLOBALTABLES_DEFINITION))
-                .forEach(e -> streamDefinitions.put(e.name, e));
+        new MapParser<>(new StreamDefinitionParser()).parse(node.get(STREAMS_DEFINITION)).forEach(streamDefinitions::putIfAbsent);
+        new MapParser<>(new TableDefinitionParser()).parse(node.get(TABLES_DEFINITION)).forEach(streamDefinitions::putIfAbsent);
+        new MapParser<>(new GlobalTableDefinitionParser()).parse(node.get(GLOBALTABLES_DEFINITION)).forEach(streamDefinitions::putIfAbsent);
 
         // Parse all defined functions
         Map<String, FunctionDefinition> functions = new MapParser<>(new TypedFunctionDefinitionParser())
@@ -163,7 +155,7 @@ public class TopologyGeneratorImpl implements TopologyGenerator {
         final Map<String, PipelineDefinition> pipelineDefinitionMap = mapParser.parse(node.get(PIPELINES_DEFINITION));
         pipelineDefinitionMap.forEach((name, pipeline) -> {
             BaseStreamDefinition definition = pipeline.source;
-            StreamWrapper cursor = context.getStream(definition);
+            StreamWrapper cursor = context.getStreamWrapper(definition);
             LOG.info("Activating Kafka Streams topology:");
             LOG.info("{}", cursor);
             for (StreamOperation operation : pipeline.chain) {

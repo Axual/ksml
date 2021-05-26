@@ -1,5 +1,5 @@
 streams:
-  - name: sensor_stream
+  sensor_stream:
     topic: ksml_sensordata_avro
     keyType: string
     valueType: string

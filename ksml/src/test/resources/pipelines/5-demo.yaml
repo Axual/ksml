@@ -1,17 +1,17 @@
 streams:
-  - name: sensor_stream
+  sensor_stream:
     topic: ksml_sensordata_avro
     keyType: string
     valueType: string
-  - name: sensor_0
+  sensor_0:
     topic: ksml_sensordata_sensor0
     keyType: string
     valueType: string
-  - name: sensor_1
+  sensor_1:
     topic: ksml_sensordata_sensor1
     keyType: string
     valueType: string
-  - name: sensor_2
+  sensor_2:
     topic: ksml_sensordata_sensor2
     keyType: string
     valueType: string

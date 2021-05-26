@@ -42,13 +42,13 @@ public class BaseStreamDefinitionParser extends ContextAwareParser<BaseStreamDef
     public BaseStreamDefinition parse(YamlNode node) {
         if (node == null) return null;
         if (parseText(node, STREAM_DEFINITION) != null) {
-            return new InlineOrReferenceParser<>(context.getStreams(), new StreamDefinitionParser(), STREAM_DEFINITION).parse(node);
+            return new InlineOrReferenceParser<>(context.getStreamDefinitions(), new StreamDefinitionParser(), STREAM_DEFINITION).parse(node);
         }
         if (parseText(node, TABLE_DEFINITION) != null) {
-            return new InlineOrReferenceParser<>(context.getStreams(), new TableDefinitionParser(), TABLE_DEFINITION).parse(node);
+            return new InlineOrReferenceParser<>(context.getStreamDefinitions(), new TableDefinitionParser(), TABLE_DEFINITION).parse(node);
         }
         if (parseText(node, GLOBALTABLE_DEFINITION) != null) {
-            return new InlineOrReferenceParser<>(context.getStreams(), new GlobalTableDefinitionParser(), GLOBALTABLE_DEFINITION).parse(node);
+            return new InlineOrReferenceParser<>(context.getStreamDefinitions(), new GlobalTableDefinitionParser(), GLOBALTABLE_DEFINITION).parse(node);
         }
         throw new KSMLParseException(node, "Stream definition missing");
     }

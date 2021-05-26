@@ -22,11 +22,11 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.definition.BaseStreamDefinition;
+import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.operation.MergeOperation;
 import io.axual.ksml.parser.ContextAwareParser;
 import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.stream.KStreamWrapper;
 
@@ -43,11 +43,11 @@ public class MergeOperationParser extends ContextAwareParser<MergeOperation> {
     @Override
     public MergeOperation parse(YamlNode node) {
         if (node == null) return null;
-        BaseStreamDefinition stream = parseStreamDefinition(node, MERGE_STREAM_ATTRIBUTE, new StreamDefinitionParser());
+        BaseStreamDefinition stream = parseStreamInlineOrReference(node, MERGE_STREAM_ATTRIBUTE, new StreamDefinitionParser());
         if (stream != null) {
             return new MergeOperation(
                     name,
-                    context.getStream(stream, KStreamWrapper.class));
+                    context.getStreamWrapper(stream, KStreamWrapper.class));
         }
         throw new KSMLParseException(node, "Stream not specified");
     }

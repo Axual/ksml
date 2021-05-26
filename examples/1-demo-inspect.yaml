@@ -1,6 +1,8 @@
+# This example shows how to read from a simple stream and output every message on stdout
+
 streams:
-  - topic: ksml_sensordata_avro
-    name: sensor_source
+  sensor_source:
+    topic: ksml_sensordata_avro
     keyType: string
     valueType: avro:SensorData
 

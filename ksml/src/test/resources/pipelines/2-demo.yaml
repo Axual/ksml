@@ -1,9 +1,10 @@
 # Stream with no name will use topic as name
 streams:
-  - topic: ksml_sensordata_avro 
+  sensor_source:
+    topic: ksml_sensordata_avro
     keyType: string
     valueType: string
-  - name: sensor_copy
+  sensor_copy:
     topic: ksml_sensordata_copy
     keyType: string
     valueType: string
@@ -15,8 +16,8 @@ functions:
 
 pipelines:
   main:
-    from: ksml_sensordata_avro
+    from: sensor_source
     via:
       - type: peek
         forEach: print_message
-    to: ksml_sensordata_copy
+    to: sensor_copy

@@ -32,15 +32,15 @@ import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
 
 public interface ParseContext {
-    Map<String, BaseStreamDefinition> getStreams();
+    Map<String, BaseStreamDefinition> getStreamDefinitions();
 
-    <T extends BaseStreamWrapper> T getStream(BaseStreamDefinition definition, Class<T> resultClass);
+    <T extends BaseStreamWrapper> T getStreamWrapper(BaseStreamDefinition definition, Class<T> resultClass);
 
-    StreamWrapper getStream(BaseStreamDefinition definition);
+    StreamWrapper getStreamWrapper(BaseStreamDefinition definition);
 
-    Map<String, FunctionDefinition> getFunctions();
+    Map<String, FunctionDefinition> getFunctionDefinitions();
 
-    UserFunction getFunction(FunctionDefinition definition, String name);
+    UserFunction getUserFunction(FunctionDefinition definition, String name);
 
     Map<String, AtomicInteger> getTypeInstanceCounters();
 }

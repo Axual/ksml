@@ -21,25 +21,26 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.generator.SerdeGenerator;
-import io.axual.ksml.generator.StreamDataType;
-import io.axual.ksml.stream.GlobalKTableWrapper;
-import io.axual.ksml.stream.StreamWrapper;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 
+import io.axual.ksml.generator.SerdeGenerator;
+import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.stream.GlobalKTableWrapper;
+import io.axual.ksml.stream.StreamWrapper;
+
 public class GlobalTableDefinition extends BaseStreamDefinition {
-    public GlobalTableDefinition(String name, String topic, String keyType, String valueType) {
-        super(name, topic, keyType, valueType);
+    public GlobalTableDefinition(String topic, String keyType, String valueType) {
+        super(topic, keyType, valueType);
     }
 
     @Override
-    public StreamWrapper addToBuilder(StreamsBuilder builder, SerdeGenerator serdeGenerator) {
+    public StreamWrapper addToBuilder(StreamsBuilder builder, String name, SerdeGenerator serdeGenerator) {
         Serde<Object> keySerde = serdeGenerator.getSerdeForType(this.keyType, true);
         Serde<Object> valueSerde = serdeGenerator.getSerdeForType(this.valueType, false);
         return new GlobalKTableWrapper(
-                builder.globalTable(this.topic, Consumed.with(keySerde, valueSerde).withName(this.name)),
+                builder.globalTable(this.topic, Consumed.with(keySerde, valueSerde).withName(name)),
                 new StreamDataType(this.keyType, keySerde),
                 new StreamDataType(this.valueType, valueSerde));
     }
