@@ -29,6 +29,9 @@ import java.util.Map;
 import io.axual.ksml.generator.DefaultSerdeGenerator;
 import io.axual.ksml.generator.SerdeGenerator;
 
+/**
+ * Configuration for generating and running KSML definitions.
+ */
 @InterfaceStability.Evolving
 public class KSMLConfig {
     public static final String PYTHON_INTERPRETER_ISOLATION = "python.interpreter.isolation";

@@ -37,6 +37,10 @@ import io.axual.ksml.type.DataType;
 import io.axual.ksml.type.Tuple;
 import io.axual.ksml.util.StringUtil;
 
+/**
+ * Base class for user-defined functions.
+ * Currently there is one subclass {@link io.axual.ksml.python.PythonFunction}, which handles Python based functions.
+ */
 public abstract class UserFunction {
     private static final Logger LOG = LoggerFactory.getLogger(UserFunction.class);
     public final String name;
@@ -84,6 +88,11 @@ public abstract class UserFunction {
         }
     }
 
+    /**
+     * Call the user-defined function and return the result.
+     * @param parameters parameters for the function.
+     * @return the result of the call.
+     */
     public abstract Object call(Object... parameters);
 
     private KSMLTopologyException validateException(Object result, String expectedType) {

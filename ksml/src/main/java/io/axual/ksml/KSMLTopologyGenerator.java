@@ -32,6 +32,10 @@ import java.util.Map;
 import io.axual.ksml.generator.TopologyGeneratorImpl;
 import io.axual.ksml.parser.SchemaLoader;
 
+/**
+ * Generates a Kafka Streams topology based on a KSML config file.
+ * @see KSMLConfig
+ */
 public class KSMLTopologyGenerator implements Configurable, TopologyGenerator {
     private KSMLConfig config = new KSMLConfig(new HashMap<>());
 

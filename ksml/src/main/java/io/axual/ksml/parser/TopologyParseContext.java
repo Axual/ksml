@@ -38,6 +38,9 @@ import io.axual.ksml.stream.BaseStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
 
+/**
+ * Parse context which calls {@link StreamsBuilder} to build up the streams topology and keeps track of the wrapped streams.
+ */
 public class TopologyParseContext implements ParseContext {
     private final StreamsBuilder builder;
     private final PythonInterpreter interpreter;

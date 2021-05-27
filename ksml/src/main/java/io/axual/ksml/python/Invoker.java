@@ -29,7 +29,12 @@ import io.axual.ksml.exception.KSMLApplyException;
 import io.axual.ksml.type.DataType;
 import io.axual.ksml.user.UserFunction;
 
-public class Invoker {
+/**
+ * Base class for stream operations.
+ * Subclasses can implement Kafka Streams operations by subclassing this class and invoking
+ * the {@link UserFunction} contained in it.
+ */
+public abstract class Invoker {
     private static final Logger LOG = LoggerFactory.getLogger(Invoker.class);
     protected final UserFunction function;
 

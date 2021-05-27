@@ -65,6 +65,10 @@ import static io.axual.ksml.dsl.KSMLDSL.PIPELINES_DEFINITION;
 import static io.axual.ksml.dsl.KSMLDSL.STREAMS_DEFINITION;
 import static io.axual.ksml.dsl.KSMLDSL.TABLES_DEFINITION;
 
+/**
+ * Generate a Kafka Streams topology from a KSML configuration, using a Python interpreter.
+ * @see KSMLConfig
+ */
 public class TopologyGeneratorImpl implements TopologyGenerator {
     private static final Logger LOG = LoggerFactory.getLogger(TopologyGeneratorImpl.class);
     private final KSMLConfig config;
