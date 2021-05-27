@@ -31,8 +31,8 @@ pipelines:
     toExtractor:
       code: |
         if key == 'sensor1':
-          return 'sensor_1'
+          return 'ksml_sensordata_sensor1'
         elif key == 'sensor2':
-          return 'sensor_2'
+          return 'ksml_sensordata_sensor2'
         else:
           return 'ksml_sensordata_sensor0'

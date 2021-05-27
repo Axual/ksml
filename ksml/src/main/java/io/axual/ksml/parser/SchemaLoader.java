@@ -21,17 +21,19 @@ package io.axual.ksml.parser;
  */
 
 
-
 import org.apache.avro.Schema;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import io.axual.ksml.exception.KSMLParseException;
 
 public class SchemaLoader {
     private static String schemaDirectory = "";
+    private static final Map<String, Schema> cache = new HashMap<>();
 
     private SchemaLoader() {
     }
@@ -41,11 +43,35 @@ public class SchemaLoader {
     }
 
     public static Schema load(String schemaName) {
-        File schemaFile = new File(schemaDirectory, schemaName + ".avsc");
-        try (FileInputStream schemaStream = new FileInputStream(schemaFile)) {
+        // First lookup the schema from cache
+        if (cache.containsKey(schemaName)) {
+            return cache.get(schemaName);
+        }
+
+        // Load the schema with given (fully qualified) name
+        var result = loadInternal(schemaName);
+        if (result != null) {
+            cache.put(schemaName, result);
+            return result;
+        }
+
+        // If the schema was not found, then strip the top-level package name and try again
+        if (schemaName.contains(".")) {
+            result = load(schemaName.substring(schemaName.indexOf(".") + 1));
+            // Assume a result is returned, otherwise an exception would be thrown
+            cache.put(schemaName, result);
+            return result;
+        }
+
+        throw new KSMLParseException("Could not parse Avro schema: " + schemaName);
+    }
+
+    private static Schema loadInternal(String schemaName) {
+        var schemaFile = new File(schemaDirectory, schemaName + ".avsc");
+        try (var schemaStream = new FileInputStream(schemaFile)) {
             return new Schema.Parser().parse(schemaStream);
         } catch (IOException e) {
-            throw new KSMLParseException("Could not parse Avro Schema from file: " + schemaFile.getAbsolutePath());
+            return null;
         }
     }
 }

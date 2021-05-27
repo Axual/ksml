@@ -21,7 +21,6 @@ package io.axual.ksml.python;
  */
 
 
-
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
@@ -38,7 +37,6 @@ import org.python.core.PyString;
 import org.python.core.PyTuple;
 import org.python.util.PythonInterpreter;
 
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -47,11 +45,13 @@ import java.util.Map;
 
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.parser.SchemaLoader;
 import io.axual.ksml.type.Tuple;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.util.StringUtil;
 
 public class PythonFunction extends UserFunction {
+    private static final String TYPE_FIELD = "@type";
     protected final PythonInterpreter interpreter;
 
     public PythonFunction(PythonInterpreter interpreter, String name, FunctionDefinition definition) {
@@ -85,7 +85,7 @@ public class PythonFunction extends UserFunction {
         }
 
         // Check all parameters and copy them into the interpreter as prefixed globals
-        for (int index = 0; index < parameters.length; index++) {
+        for (var index = 0; index < parameters.length; index++) {
             checkType(this.parameters[index], parameters[index]);
             interpreter.set(name + "_" + this.parameters[index].name, convertTo(parameters[index]));
         }
@@ -119,9 +119,6 @@ public class PythonFunction extends UserFunction {
 
     public PyObject convertTo(Object object) {
         if (object == null) return null;
-        if (object instanceof GenericRecord) {
-            return convertAvroToPython((GenericRecord) object);
-        }
         if (object instanceof Boolean) {
             return new PyBoolean((Boolean) object);
         }
@@ -143,13 +140,16 @@ public class PythonFunction extends UserFunction {
         if (object instanceof String) {
             return new PyString((String) object);
         }
+        if (object instanceof GenericRecord) {
+            return convertAvroToPython((GenericRecord) object);
+        }
         if (object instanceof GenericData.EnumSymbol) {
             return new PyString(object.toString());
         }
         if (object instanceof Tuple) {
-            Tuple tuple = (Tuple) object;
-            PyObject[] elements = new PyObject[tuple.size()];
-            for (int index = 0; index < tuple.size(); index++) {
+            var tuple = (Tuple) object;
+            var elements = new PyObject[tuple.size()];
+            for (var index = 0; index < tuple.size(); index++) {
                 elements[index] = convertTo(tuple.get(index));
             }
             return new PyTuple(elements);
@@ -166,7 +166,7 @@ public class PythonFunction extends UserFunction {
         }
         if (object instanceof IndexedRecord) {
             final IndexedRecord record = (IndexedRecord) object;
-            Schema schema = record.getSchema();
+            var schema = record.getSchema();
             if (schema.getType() == Schema.Type.RECORD) {
                 Map<PyObject, PyObject> convertedValues = new HashMap<>();
                 for (Schema.Field field : schema.getFields()) {
@@ -197,8 +197,8 @@ public class PythonFunction extends UserFunction {
         }
         if (object instanceof PyTuple) {
             PyTuple tuple = (PyTuple) object;
-            Object[] elements = new Object[tuple.size()];
-            for (int index = 0; index < tuple.size(); index++) {
+            var elements = new Object[tuple.size()];
+            for (var index = 0; index < tuple.size(); index++) {
                 elements[index] = convertFrom(tuple.pyget(index));
             }
             return new Tuple(elements);
@@ -218,8 +218,10 @@ public class PythonFunction extends UserFunction {
                     convertedMap.put((String) key, convertFrom(entry.getValue()));
                 }
             }
-            if (convertedMap.containsKey("@type")) {
-                return convertPythonToAvro(convertedMap);
+            if (convertedMap.containsKey(TYPE_FIELD)) {
+                String schemaName = (String) convertedMap.get(TYPE_FIELD);
+                convertedMap.remove(TYPE_FIELD);
+                return convertPythonToAvro(schemaName, convertedMap);
             }
             return convertedMap;
         }
@@ -227,51 +229,16 @@ public class PythonFunction extends UserFunction {
     }
 
     private PyDictionary convertAvroToPython(GenericRecord record) {
-        PyDictionary result = new PyDictionary();
+        var result = new PyDictionary();
         for (Schema.Field field : record.getSchema().getFields()) {
             result.put(new PyString(field.name()), convertTo(record.get(field.name())));
         }
-        result.put(new PyString("@type"), new PyString(record.getSchema().getFullName()));
+        result.put(new PyString(TYPE_FIELD), new PyString(record.getSchema().getFullName()));
         return result;
     }
 
-    private GenericRecord convertPythonToAvro(Map<String, Object> record) {
-        Object className = record.get("@type");
-        if (className instanceof String) {
-            try {
-                Class<?> clazz = getClass().getClassLoader().loadClass((String) className);
-                if (GenericRecord.class.isAssignableFrom(clazz)) {
-                    GenericRecord result = createObject((Class<GenericRecord>) clazz);
-                    for (Schema.Field field : result.getSchema().getFields()) {
-                        result.put(field.name(), checkTypeAndValue(field, record.get(field.name())));
-                    }
-                    return result;
-                }
-            } catch (ClassNotFoundException e) {
-                throw new KSMLTopologyException("Avro class not found: " + className, e);
-            }
-        }
-        throw new KSMLTopologyException("Can not convert record from Python back to Java: field @type not found");
-    }
-
-    private GenericRecord createObject(Class<GenericRecord> clazz) {
-        for (Constructor<?> constructor : clazz.getDeclaredConstructors()) {
-            if (constructor.getParameterCount() == 0) {
-                try {
-                    return (GenericRecord) constructor.newInstance();
-                } catch (Exception e) {
-                    // Eat
-                }
-            }
-        }
-        throw new KSMLTopologyException("No default constructor found for " + clazz.getCanonicalName());
-    }
-
-    private Object checkTypeAndValue(Schema.Field field, Object value) {
-        if (value == null) {
-            if (field.hasDefaultValue()) return field.defaultVal();
-            return null;
-        }
-        return value;
+    private GenericRecord convertPythonToAvro(String schemaName, Map<String, Object> record) {
+        final var schema = SchemaLoader.load(schemaName);
+        return new AvroObject(schema, record);
     }
 }

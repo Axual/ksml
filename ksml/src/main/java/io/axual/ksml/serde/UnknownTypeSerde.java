@@ -21,7 +21,6 @@ package io.axual.ksml.serde;
  */
 
 
-
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
@@ -32,6 +31,10 @@ import io.axual.ksml.type.DataType;
 public class UnknownTypeSerde implements Serde<Object> {
     private final DataType type;
 
+    public UnknownTypeSerde() {
+        this.type = DataType.UNKNOWN;
+    }
+
     public UnknownTypeSerde(DataType type) {
         this.type = type;
     }
@@ -39,14 +42,14 @@ public class UnknownTypeSerde implements Serde<Object> {
     @Override
     public Serializer<Object> serializer() {
         return (topic, object) -> {
-            throw new KSMLApplyException("Can not serialize data type: " + type);
+            throw new KSMLApplyException("Can not serialize data type \"" + type + "\" from topic " + topic);
         };
     }
 
     @Override
     public Deserializer<Object> deserializer() {
         return (topic, bytes) -> {
-            throw new KSMLApplyException("Can not deserialize data type: " + type);
+            throw new KSMLApplyException("Can not deserialize data type \"" + type + "\" from topic " + topic);
         };
     }
 }
