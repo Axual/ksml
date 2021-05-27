@@ -46,7 +46,7 @@ import io.axual.ksml.KSMLTopologyGenerator;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.runner.backend.Backend;
 import io.axual.ksml.runner.config.KSMLSourceConfig;
-import io.axual.serde.avro.SpecificAvroSerde;
+import io.axual.ksml.serde.UnknownTypeSerde;
 import io.axual.streams.proxy.axual.AxualStreams;
 import io.axual.streams.proxy.axual.AxualStreamsConfig;
 import io.axual.streams.proxy.generic.factory.TopologyFactory;
@@ -138,7 +138,7 @@ public class AxualBackend implements Backend {
         ksmlConfigs.put(KSMLConfig.KSML_WORKING_DIRECTORY, ksmlSourceConfig.getWorkingDirectory());
         ksmlConfigs.put(KSMLConfig.KSML_SOURCE, ksmlSourceConfig.getDefinitions());
         ksmlConfigs.put(KSMLConfig.SERDE_GENERATOR, new AxualSerdeGenerator(configs));
-        KSMLTopologyGenerator topologyFactory = new KSMLTopologyGenerator();
+        var topologyFactory = new KSMLTopologyGenerator();
         topologyFactory.configure(ksmlConfigs);
 
         configs.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
@@ -149,8 +149,8 @@ public class AxualBackend implements Backend {
 
         configs.put(WrappedStreamsConfig.TOPOLOGY_FACTORY_CONFIG, (TopologyFactory) topologyFactory::create);
         configs.put(WrappedStreamsConfig.UNCAUGHT_EXCEPTION_HANDLER_FACTORY_CONFIG, (UncaughtExceptionHandlerFactory) streams -> (t, e) -> log.error("Caught serious exception in thread {}!", t.getName(), e));
-        configs.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, SpecificAvroSerde.class.getName());
-        configs.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, SpecificAvroSerde.class.getName());
+        configs.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, UnknownTypeSerde.class.getName());
+        configs.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, UnknownTypeSerde.class.getName());
 
         configs.put(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE);
 
