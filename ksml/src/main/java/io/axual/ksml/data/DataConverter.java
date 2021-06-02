@@ -1,4 +1,4 @@
-package io.axual.ksml.user;
+package io.axual.ksml.data;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,22 +20,31 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
-
-import org.apache.kafka.streams.processor.StreamPartitioner;
-
-import io.axual.ksml.python.Invoker;
+import io.axual.ksml.type.AvroType;
+import io.axual.ksml.type.DataType;
 import io.axual.ksml.type.StandardType;
 
-public class UserStreamPartitioner extends Invoker implements StreamPartitioner<Object, Object> {
+public class DataConverter {
+    public final DataType toType;
+    private final AvroTypeConverter toAvro = new AvroTypeConverter();
+    private final JsonTypeConverter toJson = new JsonTypeConverter();
+    private final NativeTypeConverter toNative = new NativeTypeConverter();
 
-    public UserStreamPartitioner(UserFunction function) {
-        super(function);
-        verifyParameterCount(4);
-        verifyResultType(StandardType.INTEGER);
+    public DataConverter(DataType toType) {
+        this.toType = toType;
     }
 
-    @Override
-    public Integer partition(String topic, Object key, Object value, int numPartitions) {
-        return (Integer) function.call(topic, key, value, numPartitions);
+    public Object convert(Object object) {
+        if (object == null) return null;
+
+        if (toType instanceof AvroType) {
+            return toAvro.convert(object);
+        }
+
+        if (toType == StandardType.JSON) {
+            return toJson.convert(object);
+        }
+
+        return toNative.convert(object);
     }
 }

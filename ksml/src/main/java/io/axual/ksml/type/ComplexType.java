@@ -21,6 +21,7 @@ package io.axual.ksml.type;
  */
 
 
+import java.util.Map;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -33,7 +34,7 @@ public class ComplexType implements DataType {
 
     @Override
     public String toString() {
-        StringBuilder subTypeStr = new StringBuilder();
+        var subTypeStr = new StringBuilder();
         for (DataType subType : subTypes) {
             subTypeStr.append(subTypeStr.length() > 0 ? ", " : "").append(subType);
         }

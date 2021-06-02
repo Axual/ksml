@@ -21,7 +21,6 @@ package io.axual.ksml.generator;
  */
 
 
-
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
@@ -32,14 +31,17 @@ import java.util.Map;
 import java.util.Properties;
 
 import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.serde.JsonSerde;
 import io.axual.ksml.type.AvroType;
 import io.axual.ksml.type.DataType;
 import io.axual.ksml.type.SimpleType;
+import io.axual.ksml.type.StandardType;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 
 public class DefaultSerdeGenerator implements SerdeGenerator {
     private final Map<String, Object> configs;
+    private final Serde<Object> jsonSerde = new JsonSerde();
 
     public DefaultSerdeGenerator(Map<String, Object> configs) {
         this.configs = configs;
@@ -57,6 +59,9 @@ public class DefaultSerdeGenerator implements SerdeGenerator {
             Deserializer<Object> deserializer = new KafkaAvroDeserializer();
             deserializer.configure(configs, isKey);
             return new Serdes.WrapperSerde<>(serializer, deserializer);
+        }
+        if (type == StandardType.JSON) {
+            return jsonSerde;
         }
         if (type instanceof SimpleType) {
             return (Serde<Object>) Serdes.serdeFrom(((SimpleType) type).type);

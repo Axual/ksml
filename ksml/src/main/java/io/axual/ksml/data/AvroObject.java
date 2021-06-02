@@ -1,4 +1,4 @@
-package io.axual.ksml.python;
+package io.axual.ksml.data;
 
 /*-
  * ========================LICENSE_START=================================
@@ -28,16 +28,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AvroObject implements GenericRecord {
+    public static final String AVRO_TYPE_FIELD = "@type";
     private final Schema schema;
     private final Map<String, Object> data = new HashMap<>();
 
-    public AvroObject(Schema schema, Map<String, Object> data) {
+    public AvroObject(Schema schema, Map<String, Object> source) {
         this.schema = schema;
         schema.getFields().forEach(field -> {
             if (field.schema().getType() == Schema.Type.ENUM) {
-                this.data.put(field.name(), new GenericData.EnumSymbol(field.schema(), (String) data.get(field.name())));
+                data.put(field.name(), new GenericData.EnumSymbol(field.schema(), (String) source.get(field.name())));
             } else {
-                this.data.put(field.name(), data.get(field.name()));
+                data.put(field.name(), source.get(field.name()));
             }
         });
     }

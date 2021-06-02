@@ -21,15 +21,34 @@ package io.axual.ksml.exception;
  */
 
 
-
 import io.axual.ksml.type.DataType;
 
 public class KSMLTypeException extends RuntimeException {
+    public KSMLTypeException(DataType type) {
+        this(type.toString());
+    }
+
+    public KSMLTypeException(Class<?> type) {
+        this(type.getSimpleName());
+    }
+
+    private KSMLTypeException(String type) {
+        super("Unknown type: \"" + type + "\"");
+    }
+
     public KSMLTypeException(DataType variableType, DataType valueType) {
-        super("Can not convert object from type [" + valueType.toString() + "] to [" + variableType.toString() + "]");
+        this(valueType.toString(), variableType.toString());
     }
 
     public KSMLTypeException(DataType variableType, Class<?> valueType) {
-        super("Can not convert object from type [" + valueType.getSimpleName() + "] to [" + variableType.toString() + "]");
+        this(valueType.getSimpleName(), variableType.toString());
+    }
+
+    public KSMLTypeException(Class<?> fromType, Class<?> toType) {
+        this(fromType.getSimpleName(), toType.getSimpleName());
+    }
+
+    private KSMLTypeException(String fromType, String toType) {
+        super("Can not convert object from type \"" + fromType + "\" to \"" + toType + "\"");
     }
 }

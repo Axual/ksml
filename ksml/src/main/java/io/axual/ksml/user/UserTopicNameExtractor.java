@@ -21,12 +21,11 @@ package io.axual.ksml.user;
  */
 
 
-
 import org.apache.kafka.streams.processor.RecordContext;
 import org.apache.kafka.streams.processor.TopicNameExtractor;
 
 import io.axual.ksml.python.Invoker;
-import io.axual.ksml.type.SimpleType;
+import io.axual.ksml.type.StandardType;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -34,7 +33,7 @@ public class UserTopicNameExtractor extends Invoker implements TopicNameExtracto
     public UserTopicNameExtractor(UserFunction function) {
         super(function);
         verifyParameterCount(2);
-        verifyResultType(SimpleType.STRING);
+        verifyResultType(StandardType.STRING);
     }
 
     @Override

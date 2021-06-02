@@ -21,15 +21,12 @@ package io.axual.ksml.parser;
  */
 
 
-
-import org.apache.avro.Schema;
-
-import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.exception.KSMLParseException;
+import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.type.AvroType;
 import io.axual.ksml.type.DataType;
 import io.axual.ksml.type.ListType;
-import io.axual.ksml.type.SimpleType;
+import io.axual.ksml.type.StandardType;
 import io.axual.ksml.type.TupleType;
 
 public class TypeParser {
@@ -55,14 +52,14 @@ public class TypeParser {
         String leftTerm = parseLeftMostTerm(type);
         String remainder = type.substring(leftTerm.length()).trim();
         DataType leftTermType = parseType(leftTerm);
-        DataType[] remainderTypes = new DataType[0];
+        var remainderTypes = new DataType[0];
         if (remainder.startsWith(",")) {
             remainderTypes = parseListOfTypes(remainder.substring(1));
         } else if (!remainder.isEmpty()) {
             throw new KSMLParseException("Could not parse type: " + type);
         }
 
-        DataType[] result = new DataType[remainderTypes.length + 1];
+        var result = new DataType[remainderTypes.length + 1];
         result[0] = leftTermType;
         System.arraycopy(remainderTypes, 0, result, 1, remainderTypes.length);
         return result;
@@ -87,8 +84,8 @@ public class TypeParser {
         }
 
         if (type.startsWith("avro:")) {
-            String schemaName = type.substring(5);
-            Schema schema = SchemaLoader.load(schemaName);
+            var schemaName = type.substring(5);
+            var schema = SchemaLoader.load(schemaName);
             if (schema == null) {
                 throw new KSMLParseException("Could not load schema definition: " + schemaName);
             }
@@ -97,23 +94,25 @@ public class TypeParser {
 
         switch (type) {
             case "boolean":
-                return SimpleType.BOOLEAN;
+                return StandardType.BOOLEAN;
             case "double":
-                return SimpleType.DOUBLE;
+                return StandardType.DOUBLE;
             case "float":
-                return SimpleType.FLOAT;
+                return StandardType.FLOAT;
             case "int":
-                return SimpleType.INTEGER;
+                return StandardType.INTEGER;
+            case "json":
+                return StandardType.JSON;
             case "long":
-                return SimpleType.LONG;
+                return StandardType.LONG;
             case "?":
             case "none":
                 return null;
             case "str":
             case "string":
-                return SimpleType.STRING;
+                return StandardType.STRING;
             case "bytes":
-                return SimpleType.BYTES;
+                return StandardType.BYTES;
             default:
                 throw new KSMLTopologyException("Can not derive type: " + type);
         }
@@ -125,8 +124,8 @@ public class TypeParser {
         if (type.startsWith("(")) return parseBracketedExpression(type, "(", ")");
 
         // Scan the literal at the beginning of the string until a non-literal character is found
-        for (int index = 0; index < type.length(); index++) {
-            String ch = type.substring(index, index + 1);
+        for (var index = 0; index < type.length(); index++) {
+            var ch = type.substring(index, index + 1);
             if (!ALLOWED_TYPE_CHARACTERS.contains(ch)) {
                 return type.substring(0, index);
             }
@@ -135,9 +134,9 @@ public class TypeParser {
     }
 
     private static String parseBracketedExpression(String type, String openBracket, String closeBracket) {
-        int openCount = 1;
-        for (int index = 1; index < type.length(); index++) {
-            String ch = type.substring(index, index + 1);
+        var openCount = 1;
+        for (var index = 1; index < type.length(); index++) {
+            var ch = type.substring(index, index + 1);
             if (ch.equals(openBracket)) openCount++;
             if (ch.equals(closeBracket)) openCount--;
             if (openCount == 0) {

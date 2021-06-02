@@ -30,6 +30,8 @@ import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.NAME_ATTRIBUTE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_AGGREGATE_TYPE;
+import static io.axual.ksml.dsl.KSMLDSL.OPERATION_CONVERTKEY_TYPE;
+import static io.axual.ksml.dsl.KSMLDSL.OPERATION_CONVERTVALUE_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_COUNT_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_FILTERNOT_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_FILTER_TYPE;
@@ -69,7 +71,7 @@ public class PipelineOperationParser extends ContextAwareParser<StreamOperation>
             throw new KSMLParseException(node, "Type unspecified");
         }
 
-        final String name = determineName(parseText(node, NAME_ATTRIBUTE),type);
+        final String name = determineName(parseText(node, NAME_ATTRIBUTE), type);
 
         BaseParser<? extends StreamOperation> parser = getParser(type, name);
         if (parser != null) {
@@ -83,6 +85,10 @@ public class PipelineOperationParser extends ContextAwareParser<StreamOperation>
         switch (type) {
             case OPERATION_AGGREGATE_TYPE:
                 return new AggregateOperationParser(name, context);
+            case OPERATION_CONVERTKEY_TYPE:
+                return new ConvertKeyOperationParser(name, context);
+            case OPERATION_CONVERTVALUE_TYPE:
+                return new ConvertValueOperationParser(name, context);
             case OPERATION_COUNT_TYPE:
                 return new CountOperationParser(name, context);
             case OPERATION_FILTER_TYPE:

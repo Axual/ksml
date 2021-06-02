@@ -28,14 +28,6 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public class SimpleType implements DataType {
-    public static final SimpleType BOOLEAN = new SimpleType(Boolean.class);
-    public static final SimpleType BYTES = new SimpleType(byte[].class);
-    public static final SimpleType DOUBLE = new SimpleType(Double.class);
-    public static final SimpleType FLOAT = new SimpleType(Float.class);
-    public static final SimpleType INTEGER = new SimpleType(Integer.class);
-    public static final SimpleType LONG = new SimpleType(Long.class);
-    public static final SimpleType STRING = new SimpleType(String.class);
-
     public final Class<?> type;
 
     @Override

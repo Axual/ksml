@@ -21,8 +21,7 @@ package io.axual.ksml.definition;
  */
 
 
-
-import io.axual.ksml.type.SimpleType;
+import io.axual.ksml.type.StandardType;
 
 import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_PARAMETERS;
 
@@ -30,6 +29,6 @@ public class PredicateDefinition extends FunctionDefinition {
     public PredicateDefinition(FunctionDefinition definition) {
         super(definition
                 .withParameters(getParameters(definition.parameters, KEY_VALUE_PARAMETERS))
-                .withResult(SimpleType.BOOLEAN));
+                .withResult(StandardType.BOOLEAN));
     }
 }

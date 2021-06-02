@@ -21,17 +21,16 @@ package io.axual.ksml.user;
  */
 
 
-
 import org.apache.kafka.streams.kstream.Predicate;
 
 import io.axual.ksml.python.Invoker;
-import io.axual.ksml.type.SimpleType;
+import io.axual.ksml.type.StandardType;
 
 public class UserPredicate extends Invoker implements Predicate<Object, Object> {
     public UserPredicate(UserFunction function) {
         super(function);
         verifyParameterCount(2);
-        verifyResultType(SimpleType.BOOLEAN);
+        verifyResultType(StandardType.BOOLEAN);
     }
 
     public boolean test(Object key, Object value) {

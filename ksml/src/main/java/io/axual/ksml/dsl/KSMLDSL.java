@@ -21,7 +21,6 @@ package io.axual.ksml.dsl;
  */
 
 
-
 public class KSMLDSL {
     private KSMLDSL() {
     }
@@ -32,6 +31,7 @@ public class KSMLDSL {
     public static final String AGGREGATE_ADDER_ATTRIBTUE = "adder";
     public static final String AGGREGATE_SUBTRACTOR_ATTRIBUTE = "subtractor";
     public static final String BRANCH_PREDICATE_ATTRIBUTE = "if";
+    public static final String CONVERT_INTO_ATTRIBUTE = "into";
     public static final String FUNCTION_PARAMETERS_ATTRIBUTE = "parameters";
     public static final String FUNCTION_CODE_ATTRIBUTE = "code";
     public static final String FUNCTION_GLOBALCODE_ATTRIBUTE = "globalCode";
@@ -59,6 +59,8 @@ public class KSMLDSL {
     public static final String REDUCE_SUBTRACTOR_ATTRIBUTE = "subtractor";
     public static final String PIPELINE_OPERATIONTYPE_ATTRIBUTE = "type";
     public static final String OPERATION_AGGREGATE_TYPE = "aggregate";
+    public static final String OPERATION_CONVERTKEY_TYPE = "convertKey";
+    public static final String OPERATION_CONVERTVALUE_TYPE = "convertValue";
     public static final String OPERATION_COUNT_TYPE = "count";
     public static final String OPERATION_FILTER_TYPE = "filter";
     public static final String OPERATION_FILTERNOT_TYPE = "filterNot";
