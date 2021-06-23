@@ -31,7 +31,7 @@ import io.axual.ksml.operation.ForEachOperation;
 import io.axual.ksml.operation.ToOperation;
 import io.axual.ksml.operation.ToTopicNameExtractorOperation;
 import io.axual.ksml.parser.ContextAwareParser;
-import io.axual.ksml.parser.InlineOrReferenceParser;
+import io.axual.ksml.parser.ReferenceOrInlineParser;
 import io.axual.ksml.parser.ListParser;
 import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.StreamOperation;
@@ -60,7 +60,7 @@ public class PipelineSinkOperationParser extends ContextAwareParser<StreamOperat
             return new ToTopicNameExtractorOperation(determineName("to_name_extract"), parseFunction(node, PIPELINE_TOTOPICNAMEEXTRACTOR_ATTRIBUTE, new TopicNameExtractorDefinitionParser()));
         }
         if (node.get(PIPELINE_TO_ATTRIBUTE) != null) {
-            final var def = new InlineOrReferenceParser<>(context.getStreamDefinitions(), new StreamDefinitionParser(), PIPELINE_TO_ATTRIBUTE).parse(node);
+            final var def = new ReferenceOrInlineParser<>("stream", PIPELINE_TO_ATTRIBUTE, context.getStreamDefinitions()::get, new StreamDefinitionParser()).parse(node);
             if (def != null) {
                 return new ToOperation(determineName("to"), def);
             }

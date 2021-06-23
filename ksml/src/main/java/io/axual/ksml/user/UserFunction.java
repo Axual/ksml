@@ -21,7 +21,6 @@ package io.axual.ksml.user;
  */
 
 
-
 import org.apache.kafka.streams.KeyValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +61,7 @@ public abstract class UserFunction {
 
     protected void checkType(Object value, DataType expected) {
         if (expected != null && value != null && !expected.isAssignableFrom(value.getClass())) {
-            throw new KSMLTypeException(expected, value.getClass());
+            throw KSMLTypeException.conversionFailed(expected, value.getClass());
         }
     }
 
@@ -90,6 +89,7 @@ public abstract class UserFunction {
 
     /**
      * Call the user-defined function and return the result.
+     *
      * @param parameters parameters for the function.
      * @return the result of the call.
      */

@@ -21,7 +21,6 @@ package io.axual.ksml.definition;
  */
 
 
-
 import io.axual.ksml.exception.KSMLApplyException;
 import io.axual.ksml.type.DataType;
 

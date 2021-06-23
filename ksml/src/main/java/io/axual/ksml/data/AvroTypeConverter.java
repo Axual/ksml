@@ -33,9 +33,13 @@ import java.util.Map;
 import io.axual.ksml.exception.KSMLTypeException;
 import io.axual.ksml.parser.SchemaLoader;
 
-import static io.axual.ksml.data.AvroObject.AVRO_TYPE_FIELD;
-
 public class AvroTypeConverter implements TypeConverter<GenericRecord> {
+    private final String schemaName;
+
+    public AvroTypeConverter(String schemaName) {
+        this.schemaName = schemaName;
+    }
+
     @Override
     public GenericRecord convert(Object object) {
         if (object == null) return null;
@@ -46,7 +50,7 @@ public class AvroTypeConverter implements TypeConverter<GenericRecord> {
         // Convert from AVRO types
         if (object instanceof GenericRecord) return (GenericRecord) object;
 
-        throw new KSMLTypeException(object.getClass(), Object.class);
+        throw KSMLTypeException.conversionFailed(object.getClass(), GenericRecord.class);
     }
 
     private Object convertInternal(Object object) {
@@ -69,7 +73,7 @@ public class AvroTypeConverter implements TypeConverter<GenericRecord> {
         if (object instanceof GenericRecord) return object;
         if (object instanceof GenericData.EnumSymbol) return object;
 
-        throw new KSMLTypeException(object.getClass(), Object.class);
+        throw KSMLTypeException.conversionFailed(object.getClass(), Object.class);
     }
 
     private String convertFrom(Utf8 object) {
@@ -89,13 +93,7 @@ public class AvroTypeConverter implements TypeConverter<GenericRecord> {
             }
         }
 
-        if (convertedMap.containsKey(AVRO_TYPE_FIELD)) {
-            String schemaName = (String) convertedMap.get(AVRO_TYPE_FIELD);
-            convertedMap.remove(AVRO_TYPE_FIELD);
-            final var schema = SchemaLoader.load(schemaName);
-            return new AvroObject(schema, convertedMap);
-        }
-
-        throw new KSMLTypeException(object.getClass(), GenericRecord.class);
+        final var schema = SchemaLoader.load(schemaName);
+        return new AvroObject(schema, convertedMap);
     }
 }

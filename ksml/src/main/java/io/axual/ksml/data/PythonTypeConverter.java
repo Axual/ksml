@@ -68,7 +68,7 @@ public class PythonTypeConverter implements TypeConverter<PyObject> {
         if (object instanceof GenericData.EnumSymbol)
             return convertToPython((GenericData.EnumSymbol) object);
 
-        throw new KSMLTypeException(object.getClass(), PyObject.class);
+        throw KSMLTypeException.conversionFailed(object.getClass(), PyObject.class);
     }
 
     private PyBoolean convertToPython(Boolean object) {
@@ -129,7 +129,7 @@ public class PythonTypeConverter implements TypeConverter<PyObject> {
             result.put(new PyString(AVRO_TYPE_FIELD), new PyString(object.getSchema().getFullName()));
             return result;
         }
-        throw new KSMLTypeException(GenericRecord.class, PyDictionary.class);
+        throw KSMLTypeException.conversionFailed(GenericRecord.class, PyDictionary.class);
     }
 
     private PyString convertToPython(GenericData.EnumSymbol object) {

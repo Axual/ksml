@@ -44,7 +44,7 @@ public class JsonTypeConverter implements TypeConverter<Object> {
             return convertInternal(object);
         }
 
-        throw new KSMLTypeException(object.getClass(), Object.class);
+        throw KSMLTypeException.conversionFailed(object.getClass(), Object.class);
     }
 
     private Object convertInternal(Object object) {
@@ -68,7 +68,7 @@ public class JsonTypeConverter implements TypeConverter<Object> {
         if (object instanceof GenericData.EnumSymbol)
             return convertFrom((GenericData.EnumSymbol) object);
 
-        throw new KSMLTypeException(object.getClass(), Object.class);
+        throw KSMLTypeException.conversionFailed(object.getClass(), Object.class);
     }
 
     private String convertFrom(Utf8 object) {
@@ -96,7 +96,7 @@ public class JsonTypeConverter implements TypeConverter<Object> {
             }
             return result;
         }
-        throw new KSMLTypeException(GenericRecord.class, Map.class);
+        throw KSMLTypeException.conversionFailed(GenericRecord.class, Map.class);
     }
 
     private Object convertFrom(GenericData.EnumSymbol object) {

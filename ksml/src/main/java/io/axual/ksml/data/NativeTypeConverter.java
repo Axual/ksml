@@ -53,7 +53,7 @@ public class NativeTypeConverter implements TypeConverter<Object> {
         if (object == null) return null;
 
         // Convert from Python types
-        if (object instanceof PyObject) return convertFrom((PyObject)object);
+        if (object instanceof PyObject) return convertFrom((PyObject) object);
 
         // Convert from primitive types
         if (object instanceof Boolean) return object;
@@ -72,7 +72,7 @@ public class NativeTypeConverter implements TypeConverter<Object> {
         if (object instanceof GenericRecord) return object;
         if (object instanceof GenericData.EnumSymbol) return object;
 
-        throw new KSMLTypeException(object.getClass(), Object.class);
+        throw KSMLTypeException.conversionFailed(object.getClass(), Object.class);
     }
 
     private Object convertFrom(PyObject object) {
@@ -85,7 +85,7 @@ public class NativeTypeConverter implements TypeConverter<Object> {
         if (object instanceof PyList) return convertFromPython((PyList) object);
         if (object instanceof PyDictionary) return convertFromPython((PyDictionary) object);
 
-        throw new KSMLTypeException(object.getClass(), Object.class);
+        throw KSMLTypeException.conversionFailed(object.getClass(), Object.class);
     }
 
     private boolean convertFromPython(PyBoolean object) {

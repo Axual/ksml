@@ -27,24 +27,34 @@ import org.apache.avro.generic.GenericRecord;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.axual.ksml.exception.KSMLTypeException;
+
 public class AvroObject implements GenericRecord {
     public static final String AVRO_TYPE_FIELD = "@type";
     private final Schema schema;
     private final Map<String, Object> data = new HashMap<>();
+    private final GenericData validator = GenericData.get();
 
     public AvroObject(Schema schema, Map<String, Object> source) {
         this.schema = schema;
-        schema.getFields().forEach(field -> {
-            if (field.schema().getType() == Schema.Type.ENUM) {
-                data.put(field.name(), new GenericData.EnumSymbol(field.schema(), (String) source.get(field.name())));
-            } else {
-                data.put(field.name(), source.get(field.name()));
-            }
-        });
+        schema.getFields().forEach(field -> put(field.name(), source.get(field.name())));
     }
 
     @Override
     public void put(String key, Object value) {
+        var field = schema.getField(key);
+
+        if (field.schema().getType() == Schema.Type.RECORD && value instanceof Map) {
+            value = new AvroObject(field.schema(), (Map<String, Object>) value);
+        }
+        if (field.schema().getType() == Schema.Type.ENUM) {
+            value = new GenericData.EnumSymbol(field.schema(), (String) value);
+        }
+
+        if (!validator.validate(field.schema(), value)) {
+            throw KSMLTypeException.validationFailed(key, value);
+        }
+
         data.put(key, value);
     }
 
@@ -55,7 +65,7 @@ public class AvroObject implements GenericRecord {
 
     @Override
     public void put(int index, Object value) {
-        data.put(schema.getFields().get(index).name(), value);
+        put(schema.getFields().get(index).name(), value);
     }
 
     @Override

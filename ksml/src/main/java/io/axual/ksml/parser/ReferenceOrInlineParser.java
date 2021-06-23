@@ -21,32 +21,39 @@ package io.axual.ksml.parser;
  */
 
 
-
-import java.util.Map;
+import java.util.function.Function;
 
 import io.axual.ksml.exception.KSMLParseException;
 
-public class InlineOrReferenceParser<T, F extends T> extends BaseParser<T> {
-    private final Map<String, T> library;
-    private final BaseParser<F> inlineParser;
+// Certain KSML resources (like streams, tables and functions) can be referenced from pipelines,
+// or they can be defined inline. This parser distinguishes between the two.
+public class ReferenceOrInlineParser<T, F extends T> extends BaseParser<T> {
+    private final String resourceType;
     private final String childName;
+    private final Function<String, T> lookup;
+    private final BaseParser<F> inlineParser;
 
-    public InlineOrReferenceParser(Map<String, T> library, BaseParser<F> inlineParser, String childName) {
-        this.library = library;
-        this.inlineParser = inlineParser;
+    public ReferenceOrInlineParser(String resourceType, String childName, Function<String, T> lookup, BaseParser<F> inlineParser) {
+        this.resourceType = resourceType;
         this.childName = childName;
+        this.lookup = lookup;
+        this.inlineParser = inlineParser;
     }
 
     @Override
     public T parse(YamlNode node) {
         if (node == null) return null;
+        // Check if the node is a text node --> parse as direct reference
         if (node.childIsText(childName)) {
-            String resourceToFind = parseText(node, childName);
-            if(library.containsKey(resourceToFind)) {
-                return library.get(parseText(node, childName));
+            final var resourceToFind = parseText(node, childName);
+            final var resource = lookup.apply(resourceToFind);
+            if (resource == null) {
+                throw new KSMLParseException("Could not find " + resourceType + " with name " + resourceToFind);
             }
-            throw new KSMLParseException("Could not find resource with name " +resourceToFind);
+            return resource;
         }
+
+        // Parse as inline definition using the supplied inline parser
         return inlineParser.parse(node.get(childName));
     }
 }

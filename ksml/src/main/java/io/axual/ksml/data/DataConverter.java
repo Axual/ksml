@@ -26,7 +26,6 @@ import io.axual.ksml.type.StandardType;
 
 public class DataConverter {
     public final DataType toType;
-    private final AvroTypeConverter toAvro = new AvroTypeConverter();
     private final JsonTypeConverter toJson = new JsonTypeConverter();
     private final NativeTypeConverter toNative = new NativeTypeConverter();
 
@@ -38,6 +37,7 @@ public class DataConverter {
         if (object == null) return null;
 
         if (toType instanceof AvroType) {
+            var toAvro = new AvroTypeConverter(((AvroType)toType).schemaName);
             return toAvro.convert(object);
         }
 

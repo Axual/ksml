@@ -21,7 +21,6 @@ package io.axual.ksml.parser;
  */
 
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 
@@ -104,8 +103,40 @@ public class YamlNode {
         return result;
     }
 
+    public boolean isBoolean() {
+        return node.isBoolean();
+    }
+
     public boolean asBoolean() {
         return node.asBoolean();
+    }
+
+    public boolean isDouble() {
+        return node.isDouble();
+    }
+
+    public double asDouble() {
+        return node.asDouble();
+    }
+
+    public boolean isInt() {
+        return node.isInt();
+    }
+
+    public int asInt() {
+        return node.asInt();
+    }
+
+    public boolean isLong() {
+        return node.isLong();
+    }
+
+    public long asLong() {
+        return node.asLong();
+    }
+
+    public boolean isText() {
+        return node.isTextual();
     }
 
     public String asText() {
