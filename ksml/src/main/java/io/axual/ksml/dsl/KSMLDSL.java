@@ -21,7 +21,6 @@ package io.axual.ksml.dsl;
  */
 
 
-
 public class KSMLDSL {
     private KSMLDSL() {
     }
@@ -32,6 +31,7 @@ public class KSMLDSL {
     public static final String AGGREGATE_ADDER_ATTRIBTUE = "adder";
     public static final String AGGREGATE_SUBTRACTOR_ATTRIBUTE = "subtractor";
     public static final String BRANCH_PREDICATE_ATTRIBUTE = "if";
+    public static final String CONVERT_INTO_ATTRIBUTE = "into";
     public static final String FUNCTION_PARAMETERS_ATTRIBUTE = "parameters";
     public static final String FUNCTION_CODE_ATTRIBUTE = "code";
     public static final String FUNCTION_GLOBALCODE_ATTRIBUTE = "globalCode";
@@ -59,6 +59,8 @@ public class KSMLDSL {
     public static final String REDUCE_SUBTRACTOR_ATTRIBUTE = "subtractor";
     public static final String PIPELINE_OPERATIONTYPE_ATTRIBUTE = "type";
     public static final String OPERATION_AGGREGATE_TYPE = "aggregate";
+    public static final String OPERATION_CONVERTKEY_TYPE = "convertKey";
+    public static final String OPERATION_CONVERTVALUE_TYPE = "convertValue";
     public static final String OPERATION_COUNT_TYPE = "count";
     public static final String OPERATION_FILTER_TYPE = "filter";
     public static final String OPERATION_FILTERNOT_TYPE = "filterNot";
@@ -70,17 +72,19 @@ public class KSMLDSL {
     public static final String OPERATION_JOIN_TYPE = "join";
     public static final String OPERATION_LEFTJOIN_TYPE = "leftJoin";
     public static final String OPERATION_MAPKEY_TYPE = "mapKey";
+    public static final String OPERATION_SELECTKEY_TYPE = "selectKey";
     public static final String OPERATION_TRANSFORMKEY_TYPE = "transformKey";
+    public static final String OPERATION_MAP_TYPE = "map";
     public static final String OPERATION_MAPKEYVALUE_TYPE = "mapKeyValue";
     public static final String OPERATION_TRANSFORMKEYVALUE_TYPE = "transformKeyValue";
     public static final String OPERATION_MAPVALUE_TYPE = "mapValue";
+    public static final String OPERATION_MAPVALUES_TYPE = "mapValues";
     public static final String OPERATION_TRANSFORMVALUE_TYPE = "transformValue";
     public static final String OPERATION_MERGE_TYPE = "merge";
     public static final String OPERATION_OUTERJOIN_TYPE = "outerJoin";
     public static final String OPERATION_PEEK_TYPE = "peek";
     public static final String OPERATION_REDUCE_TYPE = "reduce";
     public static final String OPERATION_REPARTITION_TYPE = "repartition";
-    public static final String OPERATION_TO_TYPE = "to";
     public static final String OPERATION_TOSTREAM_TYPE = "toStream";
     public static final String OPERATION_WINDOWEDBY_TYPE = "windowedBy";
     public static final String REPARTITION_PARTITIONER_ATTRIBUTE = "partitioner";

@@ -20,29 +20,39 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.streams.kstream.KeyValueMapper;
+import org.apache.kafka.streams.kstream.Named;
 
-import org.apache.kafka.streams.kstream.Produced;
-
-import io.axual.ksml.definition.BaseStreamDefinition;
-import io.axual.ksml.exception.KSMLTypeException;
+import io.axual.ksml.data.DataConverter;
+import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
+import io.axual.ksml.type.DataType;
 
-public class ToOperation extends BaseOperation {
-    private final BaseStreamDefinition target;
+public class ConvertKeyOperation extends BaseOperation {
+    private static class KeyConverter extends DataConverter implements KeyValueMapper<Object, Object, Object> {
+        public KeyConverter(DataType toType) {
+            super(toType);
+        }
 
-    public ToOperation(String name, BaseStreamDefinition target) {
+        @Override
+        public Object apply(Object key, Object value) {
+            return convert(key);
+        }
+    }
+
+    private final KeyConverter converter;
+
+    public ConvertKeyOperation(String name, DataType toType) {
         super(name);
-        this.target = target;
+        converter = new KeyConverter(toType);
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        // Perform a type check to see if the key/value data types received matches the stream definition's types
-        if (!target.keyType.isAssignableFrom(input.keyType.type) || !target.valueType.isAssignableFrom(input.valueType.type)) {
-            throw KSMLTypeException.topicTypeMismatch(target.topic, input.keyType, input.valueType, target.keyType, target.valueType);
-        }
-        input.stream.to(target.topic, Produced.with(input.keyType.serde, input.valueType.serde).withName(name));
-        return null;
+        return new KStreamWrapper(
+                input.stream.selectKey(converter, Named.as(name)),
+                StreamDataType.of(converter.toType, true),
+                input.valueType);
     }
 }

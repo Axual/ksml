@@ -9,9 +9,9 @@ package io.axual.ksml.generator;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,7 +19,6 @@ package io.axual.ksml.generator;
  * limitations under the License.
  * =========================LICENSE_END==================================
  */
-
 
 
 import org.apache.kafka.common.serialization.Deserializer;
@@ -32,14 +31,17 @@ import java.util.Map;
 import java.util.Properties;
 
 import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.serde.JsonSerde;
 import io.axual.ksml.type.AvroType;
 import io.axual.ksml.type.DataType;
 import io.axual.ksml.type.SimpleType;
+import io.axual.ksml.type.StandardType;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 
 public class DefaultSerdeGenerator implements SerdeGenerator {
     private final Map<String, Object> configs;
+    private final Serde<Object> jsonSerde = new JsonSerde();
 
     public DefaultSerdeGenerator(Map<String, Object> configs) {
         this.configs = configs;
@@ -58,9 +60,12 @@ public class DefaultSerdeGenerator implements SerdeGenerator {
             deserializer.configure(configs, isKey);
             return new Serdes.WrapperSerde<>(serializer, deserializer);
         }
+        if (type == StandardType.JSON) {
+            return jsonSerde;
+        }
         if (type instanceof SimpleType) {
             return (Serde<Object>) Serdes.serdeFrom(((SimpleType) type).type);
         }
-        throw new KSMLTopologyException("Serde not found");
+        throw new KSMLTopologyException("Serde not found for data type " + type);
     }
 }

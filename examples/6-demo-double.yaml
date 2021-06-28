@@ -30,12 +30,12 @@ pipelines:
   main:
     from: sensor_source
     via:
-      - type: peek
-        name: peek_and_print
-        forEach: print_message
       - type: transformKeyValueToKeyValueList
         name: double_transform
         mapper: doubleEveryRecord
+      - type: peek
+        name: peek_and_print
+        forEach: print_message
     toExtractor:
       code: |
         if key == 'sensor1':

@@ -25,25 +25,22 @@ import org.apache.kafka.common.serialization.Serde;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 import io.axual.ksml.generator.DefaultSerdeGenerator;
 import io.axual.ksml.generator.SerdeGenerator;
+import io.axual.ksml.serde.UnknownTypeSerde;
 import io.axual.ksml.type.AvroType;
 import io.axual.ksml.type.DataType;
+import io.axual.streams.proxy.axual.AxualSerdeConfig;
 
 public class AxualSerdeGenerator implements SerdeGenerator {
     private final Map<String, Object> configs;
     private final DefaultSerdeGenerator defaultSerdeGenerator;
 
     public AxualSerdeGenerator(Map<String, Object> configs) {
-        this.configs = configs;
-        defaultSerdeGenerator = new DefaultSerdeGenerator(configs);
-    }
-
-    public AxualSerdeGenerator(Properties properties) {
-        configs = new HashMap<>();
-        properties.forEach((k, v) -> configs.put((String) k, v));
+        this.configs = new HashMap<>(configs);
+        configs.put(AxualSerdeConfig.BACKING_KEY_SERDE_CONFIG, UnknownTypeSerde.class.getName());
+        configs.put(AxualSerdeConfig.BACKING_VALUE_SERDE_CONFIG, UnknownTypeSerde.class.getName());
         defaultSerdeGenerator = new DefaultSerdeGenerator(configs);
     }
 

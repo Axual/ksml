@@ -9,9 +9,9 @@ package io.axual.ksml.operation;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,16 +21,17 @@ package io.axual.ksml.operation;
  */
 
 
-
 import org.apache.kafka.streams.kstream.Grouped;
 
 import io.axual.ksml.exception.KSMLApplyException;
+import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.KGroupedTableWrapper;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
+import io.axual.ksml.type.DataType;
 import io.axual.ksml.type.KeyValueType;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserKeyTransformer;
@@ -46,6 +47,9 @@ public class GroupByOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
+        if (transformer.resultType == DataType.UNKNOWN) {
+            throw new KSMLExecutionException("groupBy mapper resultType not specified");
+        }
         final StreamDataType resultKeyType = StreamDataType.of(transformer.resultType, true);
         return new KGroupedStreamWrapper(
                 input.stream.groupBy(

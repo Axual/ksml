@@ -30,6 +30,8 @@ import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.NAME_ATTRIBUTE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_AGGREGATE_TYPE;
+import static io.axual.ksml.dsl.KSMLDSL.OPERATION_CONVERTKEY_TYPE;
+import static io.axual.ksml.dsl.KSMLDSL.OPERATION_CONVERTVALUE_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_COUNT_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_FILTERNOT_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_FILTER_TYPE;
@@ -40,6 +42,9 @@ import static io.axual.ksml.dsl.KSMLDSL.OPERATION_JOIN_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_LEFTJOIN_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_MAPKEYVALUE_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_MAPKEY_TYPE;
+import static io.axual.ksml.dsl.KSMLDSL.OPERATION_MAPVALUES_TYPE;
+import static io.axual.ksml.dsl.KSMLDSL.OPERATION_MAP_TYPE;
+import static io.axual.ksml.dsl.KSMLDSL.OPERATION_SELECTKEY_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_MAPVALUE_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_MERGE_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_OUTERJOIN_TYPE;
@@ -69,7 +74,7 @@ public class PipelineOperationParser extends ContextAwareParser<StreamOperation>
             throw new KSMLParseException(node, "Type unspecified");
         }
 
-        final String name = determineName(parseText(node, NAME_ATTRIBUTE),type);
+        final String name = determineName(parseText(node, NAME_ATTRIBUTE), type);
 
         BaseParser<? extends StreamOperation> parser = getParser(type, name);
         if (parser != null) {
@@ -83,6 +88,10 @@ public class PipelineOperationParser extends ContextAwareParser<StreamOperation>
         switch (type) {
             case OPERATION_AGGREGATE_TYPE:
                 return new AggregateOperationParser(name, context);
+            case OPERATION_CONVERTKEY_TYPE:
+                return new ConvertKeyOperationParser(name, context);
+            case OPERATION_CONVERTVALUE_TYPE:
+                return new ConvertValueOperationParser(name, context);
             case OPERATION_COUNT_TYPE:
                 return new CountOperationParser(name, context);
             case OPERATION_FILTER_TYPE:
@@ -102,12 +111,15 @@ public class PipelineOperationParser extends ContextAwareParser<StreamOperation>
             case OPERATION_LEFTJOIN_TYPE:
                 return new LeftJoinOperationParser(name, context);
             case OPERATION_MAPKEY_TYPE:
+            case OPERATION_SELECTKEY_TYPE:
             case OPERATION_TRANSFORMKEY_TYPE:
                 return new TransformKeyOperationParser(name, context);
+            case OPERATION_MAP_TYPE:
             case OPERATION_MAPKEYVALUE_TYPE:
             case OPERATION_TRANSFORMKEYVALUE_TYPE:
                 return new TransformKeyValueOperationParser(name, context);
             case OPERATION_MAPVALUE_TYPE:
+            case OPERATION_MAPVALUES_TYPE:
             case OPERATION_TRANSFORMVALUE_TYPE:
                 return new TransformValueOperationParser(name, context);
             case OPERATION_MERGE_TYPE:

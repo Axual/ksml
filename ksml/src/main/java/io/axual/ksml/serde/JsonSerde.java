@@ -1,4 +1,4 @@
-package io.axual.ksml.user;
+package io.axual.ksml.serde;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,22 +20,21 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serializer;
 
-import org.apache.kafka.streams.processor.StreamPartitioner;
+public class JsonSerde implements Serde<Object> {
+    private final JsonSerializer serializer = new JsonSerializer();
+    private final JsonDeserializer deserializer = new JsonDeserializer();
 
-import io.axual.ksml.python.Invoker;
-import io.axual.ksml.type.StandardType;
-
-public class UserStreamPartitioner extends Invoker implements StreamPartitioner<Object, Object> {
-
-    public UserStreamPartitioner(UserFunction function) {
-        super(function);
-        verifyParameterCount(4);
-        verifyResultType(StandardType.INTEGER);
+    @Override
+    public Serializer<Object> serializer() {
+        return serializer;
     }
 
     @Override
-    public Integer partition(String topic, Object key, Object value, int numPartitions) {
-        return (Integer) function.call(topic, key, value, numPartitions);
+    public Deserializer<Object> deserializer() {
+        return deserializer;
     }
 }

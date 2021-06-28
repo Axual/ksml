@@ -1,4 +1,4 @@
-package io.axual.ksml.user;
+package io.axual.ksml.data;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,22 +20,6 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
-
-import org.apache.kafka.streams.processor.StreamPartitioner;
-
-import io.axual.ksml.python.Invoker;
-import io.axual.ksml.type.StandardType;
-
-public class UserStreamPartitioner extends Invoker implements StreamPartitioner<Object, Object> {
-
-    public UserStreamPartitioner(UserFunction function) {
-        super(function);
-        verifyParameterCount(4);
-        verifyResultType(StandardType.INTEGER);
-    }
-
-    @Override
-    public Integer partition(String topic, Object key, Object value, int numPartitions) {
-        return (Integer) function.call(topic, key, value, numPartitions);
-    }
+public interface TypeConverter<T> {
+    T convert(Object object);
 }

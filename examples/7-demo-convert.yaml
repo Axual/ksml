@@ -1,0 +1,29 @@
+# This example shows how to read from a simple stream, convert to json and output to a target topic.
+
+streams:
+  sensor_source:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+  sensor_copy:
+    topic: ksml_sensordata_json
+    keyType: string
+    valueType: json
+
+functions:
+  print_message:
+    type: forEach
+    code: "print('key='+(key if isinstance(key,str) else str(key))+', value='+(value if isinstance(value,str) else str(value)))"
+
+pipelines:
+  # The main pipeline reads messages, outputs them, converts to json, and saves to a target topic
+  main:
+    from: sensor_source
+    via:
+      - type: convertValue
+        into: json
+        name: convert_value_to_json
+      - type: peek
+        forEach: print_message
+        name: peek_and_print
+    to: sensor_copy

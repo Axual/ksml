@@ -24,6 +24,6 @@ package io.axual.ksml.type;
 
 public class KeyValueMapType extends MapType {
     public KeyValueMapType() {
-        super(SimpleType.STRING, DataType.UNKNOWN);
+        super(StandardType.STRING, DataType.UNKNOWN);
     }
 }

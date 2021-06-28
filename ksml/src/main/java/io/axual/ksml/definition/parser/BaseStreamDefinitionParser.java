@@ -21,11 +21,10 @@ package io.axual.ksml.definition.parser;
  */
 
 
-
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.parser.ContextAwareParser;
-import io.axual.ksml.parser.InlineOrReferenceParser;
+import io.axual.ksml.parser.ReferenceOrInlineParser;
 import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 
@@ -42,13 +41,13 @@ public class BaseStreamDefinitionParser extends ContextAwareParser<BaseStreamDef
     public BaseStreamDefinition parse(YamlNode node) {
         if (node == null) return null;
         if (parseText(node, STREAM_DEFINITION) != null) {
-            return new InlineOrReferenceParser<>(context.getStreamDefinitions(), new StreamDefinitionParser(), STREAM_DEFINITION).parse(node);
+            return new ReferenceOrInlineParser<>("stream", STREAM_DEFINITION, context.getStreamDefinitions()::get, new StreamDefinitionParser()).parse(node);
         }
         if (parseText(node, TABLE_DEFINITION) != null) {
-            return new InlineOrReferenceParser<>(context.getStreamDefinitions(), new TableDefinitionParser(), TABLE_DEFINITION).parse(node);
+            return new ReferenceOrInlineParser<>("table", TABLE_DEFINITION, context.getStreamDefinitions()::get, new TableDefinitionParser()).parse(node);
         }
         if (parseText(node, GLOBALTABLE_DEFINITION) != null) {
-            return new InlineOrReferenceParser<>(context.getStreamDefinitions(), new GlobalTableDefinitionParser(), GLOBALTABLE_DEFINITION).parse(node);
+            return new ReferenceOrInlineParser<>("globalTable", GLOBALTABLE_DEFINITION, context.getStreamDefinitions()::get, new GlobalTableDefinitionParser()).parse(node);
         }
         throw new KSMLParseException(node, "Stream definition missing");
     }

@@ -1,4 +1,4 @@
-package io.axual.ksml.user;
+package io.axual.ksml.serde;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,22 +20,27 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.apache.kafka.streams.processor.StreamPartitioner;
+import org.apache.kafka.common.errors.SerializationException;
+import org.apache.kafka.common.serialization.Deserializer;
 
-import io.axual.ksml.python.Invoker;
-import io.axual.ksml.type.StandardType;
+import java.util.HashMap;
 
-public class UserStreamPartitioner extends Invoker implements StreamPartitioner<Object, Object> {
-
-    public UserStreamPartitioner(UserFunction function) {
-        super(function);
-        verifyParameterCount(4);
-        verifyResultType(StandardType.INTEGER);
-    }
+public class JsonDeserializer implements Deserializer<Object> {
+    private final ObjectMapper mapper = new ObjectMapper();
+    private final TypeReference<HashMap<String, Object>> typeRef = new TypeReference<>() {
+    };
 
     @Override
-    public Integer partition(String topic, Object key, Object value, int numPartitions) {
-        return (Integer) function.call(topic, key, value, numPartitions);
+    public Object deserialize(String s, byte[] data) {
+        if (data == null) return null;
+
+        try {
+            return mapper.readValue(data, typeRef);
+        } catch (Exception e) {
+            throw new SerializationException(e);
+        }
     }
 }

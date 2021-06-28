@@ -1,4 +1,4 @@
-package io.axual.ksml.user;
+package io.axual.ksml.serde;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,22 +20,23 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.apache.kafka.streams.processor.StreamPartitioner;
+import org.apache.kafka.common.serialization.Serializer;
 
-import io.axual.ksml.python.Invoker;
-import io.axual.ksml.type.StandardType;
+import io.axual.ksml.exception.KSMLExecutionException;
 
-public class UserStreamPartitioner extends Invoker implements StreamPartitioner<Object, Object> {
-
-    public UserStreamPartitioner(UserFunction function) {
-        super(function);
-        verifyParameterCount(4);
-        verifyResultType(StandardType.INTEGER);
-    }
+public class JsonSerializer implements Serializer<Object> {
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
-    public Integer partition(String topic, Object key, Object value, int numPartitions) {
-        return (Integer) function.call(topic, key, value, numPartitions);
+    public byte[] serialize(String topic, Object data) {
+        if (data == null) return null;
+
+        try {
+            return mapper.writeValueAsBytes(data);
+        } catch (Exception e) {
+            throw new KSMLExecutionException("Can not serialize object to JSON", e);
+        }
     }
 }

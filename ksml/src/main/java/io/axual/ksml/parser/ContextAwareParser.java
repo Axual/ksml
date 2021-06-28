@@ -21,7 +21,6 @@ package io.axual.ksml.parser;
  */
 
 
-
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.axual.ksml.definition.BaseStreamDefinition;
@@ -43,7 +42,7 @@ public abstract class ContextAwareParser<T> extends BaseParser<T> {
     }
 
     protected <F extends FunctionDefinition> UserFunction parseFunction(YamlNode parent, String childName, BaseParser<F> parser, boolean allowNull) {
-        FunctionDefinition definition = new InlineOrReferenceParser<>(context.getFunctionDefinitions(), parser, childName).parse(parent);
+        FunctionDefinition definition = new ReferenceOrInlineParser<>("function", childName, context.getFunctionDefinitions()::get, parser).parse(parent);
         if (allowNull || definition != null) {
             UserFunction result = definition != null ? context.getUserFunction(definition, parent.appendName(childName).getLongName()) : null;
             if (allowNull || result != null) {
@@ -55,7 +54,7 @@ public abstract class ContextAwareParser<T> extends BaseParser<T> {
     }
 
     protected <S extends BaseStreamDefinition> BaseStreamDefinition parseStreamInlineOrReference(YamlNode parent, String childName, BaseParser<S> parser) {
-        return new InlineOrReferenceParser<>(context.getStreamDefinitions(), parser, childName).parse(parent);
+        return new ReferenceOrInlineParser<>("stream", childName, context.getStreamDefinitions()::get, parser).parse(parent);
     }
 
     protected BaseStreamDefinition parseBaseStreamDefinition(YamlNode parent, String childName) {
@@ -73,9 +72,8 @@ public abstract class ContextAwareParser<T> extends BaseParser<T> {
         }
         return name.trim();
     }
-    
+
     protected String determineName(String type) {
         return String.format("%s_%03d", type, context.getTypeInstanceCounters().computeIfAbsent(type, t -> new AtomicInteger(1)).getAndIncrement());
     }
-
 }

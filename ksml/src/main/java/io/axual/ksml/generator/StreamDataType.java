@@ -21,14 +21,11 @@ package io.axual.ksml.generator;
  */
 
 
-
 import org.apache.kafka.common.serialization.Serde;
 
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.serde.UnknownTypeSerde;
-import io.axual.ksml.type.AvroType;
 import io.axual.ksml.type.DataType;
-import io.axual.ksml.type.SimpleType;
 import io.axual.ksml.type.WindowType;
 import lombok.AllArgsConstructor;
 
@@ -56,18 +53,20 @@ public class StreamDataType {
         if (serdeGenerator == null) {
             throw new KSMLExecutionException("Serde Generator not initialized");
         }
+
         if (type instanceof WindowType) {
             // For WindowTypes return a serde of the value contained within the window
             return new StreamDataType(type, serdeGenerator.getSerdeForType(((WindowType) type).getWindowedType(), isKey));
         }
-        if (type instanceof AvroType) {
-            return new StreamDataType(type, serdeGenerator.getSerdeForType(type, isKey));
+
+        // Get the Serde for the given type
+        Serde<Object> serde = serdeGenerator.getSerdeForType(type, isKey);
+        if (serde == null) {
+            // Return a default serde, which produces exceptions only when (de)serializing
+            serde = new UnknownTypeSerde(type);
         }
-        if (type instanceof SimpleType) {
-            // For simple types return a serde for that particular type
-            return new StreamDataType(type, serdeGenerator.getSerdeForType(type, isKey));
-        }
-        // Return a default serde, which produces exceptions only when (de)serializing
-        return new StreamDataType(type, new UnknownTypeSerde(type));
+
+        // Return the stream data type, which always has
+        return new StreamDataType(type, serde);
     }
 }

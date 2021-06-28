@@ -106,6 +106,40 @@ via:
 to: output_stream
 ```
 
+### convertKey
+
+This built-in operation takes a message and converts the key into a given type.
+
+|Stream Type |Returns |Parameter |Value Type| Description
+|:---|:---|:---|:---|:---
+|KStream`<K,V>`|KStream`<KR,V>`|`into`|string|The type to convert to
+
+Example:
+```yaml
+from: input_stream
+via:
+  - type: convertKey
+    into: string
+to: output_stream
+```
+
+### convertValue
+
+This built-in operation takes a message and converts the value into a given type.
+
+|Stream Type |Returns |Parameter |Value Type| Description
+|:---|:---|:---|:---|:---
+|KStream`<K,V>`|KStream`<KR,V>`|`into`|string|The type to convert to
+
+Example:
+```yaml
+from: input_stream
+via:
+  - type: convertValue
+    into: avro:SensorData
+to: output_stream
+```
+
 ### count
 
 [KGroupedStream::count]: https://kafka.apache.org/27/javadoc/org/apache/kafka/streams/kstream/KGroupedStream.html#count-org.apache.kafka.streams.kstream.Named-org.apache.kafka.streams.kstream.Materialized-

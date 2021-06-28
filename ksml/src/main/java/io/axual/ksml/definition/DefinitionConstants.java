@@ -23,7 +23,7 @@ package io.axual.ksml.definition;
 
 import io.axual.ksml.dsl.FunctionParameters;
 import io.axual.ksml.type.DataType;
-import io.axual.ksml.type.SimpleType;
+import io.axual.ksml.type.StandardType;
 
 public class DefinitionConstants {
     private DefinitionConstants() {
@@ -33,6 +33,6 @@ public class DefinitionConstants {
     protected static final ParameterDefinition[] KEY_AND_TWO_VALUE_PARAMETERS = new ParameterDefinition[]{new ParameterDefinition(FunctionParameters.PARAM_KEY, DataType.UNKNOWN), new ParameterDefinition(FunctionParameters.PARAM_VALUE1, DataType.UNKNOWN), new ParameterDefinition(FunctionParameters.PARAM_VALUE2, DataType.UNKNOWN)};
     protected static final ParameterDefinition[] KEY_VALUE_AGGREGATEDVALUE_PARAMETERS = new ParameterDefinition[]{new ParameterDefinition(FunctionParameters.PARAM_KEY, DataType.UNKNOWN), new ParameterDefinition(FunctionParameters.PARAM_VALUE, DataType.UNKNOWN), new ParameterDefinition(FunctionParameters.PARAM_AGGREGATED_VALUE, DataType.UNKNOWN)};
     protected static final ParameterDefinition[] KEY_VALUE_PARAMETERS = new ParameterDefinition[]{new ParameterDefinition(FunctionParameters.PARAM_KEY, DataType.UNKNOWN), new ParameterDefinition(FunctionParameters.PARAM_VALUE, DataType.UNKNOWN)};
-    protected static final ParameterDefinition[] STREAM_PARTITIONER_PARAMETERS = new ParameterDefinition[]{new ParameterDefinition(FunctionParameters.PARAM_TOPIC, SimpleType.STRING), new ParameterDefinition(FunctionParameters.PARAM_KEY, DataType.UNKNOWN), new ParameterDefinition(FunctionParameters.PARAM_VALUE, DataType.UNKNOWN), new ParameterDefinition(FunctionParameters.PARAM_NUM_PARTITIONS, SimpleType.INTEGER)};
+    protected static final ParameterDefinition[] STREAM_PARTITIONER_PARAMETERS = new ParameterDefinition[]{new ParameterDefinition(FunctionParameters.PARAM_TOPIC, StandardType.STRING), new ParameterDefinition(FunctionParameters.PARAM_KEY, DataType.UNKNOWN), new ParameterDefinition(FunctionParameters.PARAM_VALUE, DataType.UNKNOWN), new ParameterDefinition(FunctionParameters.PARAM_NUM_PARTITIONS, StandardType.INTEGER)};
     protected static final ParameterDefinition[] TWO_VALUE_PARAMETERS = new ParameterDefinition[]{new ParameterDefinition(FunctionParameters.PARAM_VALUE1, DataType.UNKNOWN), new ParameterDefinition(FunctionParameters.PARAM_VALUE2, DataType.UNKNOWN)};
 }

@@ -1,4 +1,4 @@
-package io.axual.ksml.user;
+package io.axual.ksml.type;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,22 +20,19 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Map;
 
-import org.apache.kafka.streams.processor.StreamPartitioner;
+public class StandardType {
+    public static final SimpleType BOOLEAN = new SimpleType(Boolean.class);
+    public static final SimpleType BYTES = new SimpleType(byte[].class);
+    public static final SimpleType DOUBLE = new SimpleType(Double.class);
+    public static final SimpleType FLOAT = new SimpleType(Float.class);
+    public static final SimpleType INTEGER = new SimpleType(Integer.class);
+    public static final SimpleType LONG = new SimpleType(Long.class);
+    public static final SimpleType STRING = new SimpleType(String.class);
 
-import io.axual.ksml.python.Invoker;
-import io.axual.ksml.type.StandardType;
+    public static final ComplexType JSON = new ComplexType(Map.class, new DataType[]{StandardType.STRING, DataType.UNKNOWN});
 
-public class UserStreamPartitioner extends Invoker implements StreamPartitioner<Object, Object> {
-
-    public UserStreamPartitioner(UserFunction function) {
-        super(function);
-        verifyParameterCount(4);
-        verifyResultType(StandardType.INTEGER);
-    }
-
-    @Override
-    public Integer partition(String topic, Object key, Object value, int numPartitions) {
-        return (Integer) function.call(topic, key, value, numPartitions);
+    private StandardType() {
     }
 }
