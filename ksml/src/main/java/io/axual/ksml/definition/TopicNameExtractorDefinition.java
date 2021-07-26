@@ -21,7 +21,7 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.type.StandardType;
+import io.axual.ksml.data.object.DataString;
 
 import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_PARAMETERS;
 
@@ -29,6 +29,6 @@ public class TopicNameExtractorDefinition extends FunctionDefinition {
     public TopicNameExtractorDefinition(FunctionDefinition definition) {
         super(definition
                 .withParameters(getParameters(definition.parameters, KEY_VALUE_PARAMETERS))
-                .withResult(StandardType.STRING));
+                .withResult(DataString.TYPE));
     }
 }

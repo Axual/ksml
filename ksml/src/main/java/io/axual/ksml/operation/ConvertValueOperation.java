@@ -23,30 +23,42 @@ package io.axual.ksml.operation;
 import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.ValueMapper;
 
-import io.axual.ksml.data.DataConverter;
+import io.axual.ksml.data.object.DataRecord;
 import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.stream.KStreamWrapper;
-import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.type.DataType;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.DataTypeAndNotation;
+import io.axual.ksml.data.type.RecordType;
 
 public class ConvertValueOperation extends BaseOperation {
-    private static class ValueConverter extends DataConverter implements ValueMapper<Object, Object> {
+    private final DataTypeAndNotation targetTypeAndNotation;
+
+    private static class ValueConverter implements ValueMapper<Object, Object> {
+        private final RecordType targetRecordType;
+
         public ValueConverter(DataType toType) {
-            super(toType);
+            this.targetRecordType = toType instanceof RecordType ? (RecordType) toType : null;
         }
 
         @Override
         public Object apply(Object value) {
-            return convert(value);
+            if (targetRecordType == null) return value;
+            var result = new DataRecord(targetRecordType.schema());
+            result.putAll((DataRecord) value);
+            return result;
         }
     }
 
     private final ValueConverter converter;
+    private final NotationLibrary notationLibrary;
 
-    public ConvertValueOperation(String name, DataType toType) {
+    public ConvertValueOperation(String name, DataTypeAndNotation targetTypeAndNotation, NotationLibrary notationLibrary) {
         super(name);
-        converter = new ValueConverter(toType);
+        this.targetTypeAndNotation = targetTypeAndNotation;
+        this.notationLibrary = notationLibrary;
+        converter = new ValueConverter(this.targetTypeAndNotation.type);
     }
 
     @Override
@@ -54,14 +66,6 @@ public class ConvertValueOperation extends BaseOperation {
         return new KStreamWrapper(
                 input.stream.mapValues(converter, Named.as(name)),
                 input.keyType,
-                StreamDataType.of(converter.toType, false));
-    }
-
-    @Override
-    public StreamWrapper apply(KTableWrapper input) {
-        return new KTableWrapper(
-                input.table.mapValues(converter, Named.as(name)),
-                input.keyType,
-                StreamDataType.of(converter.toType, false));
+                StreamDataType.of(targetTypeAndNotation.type, notationLibrary.get(targetTypeAndNotation.notation), false));
     }
 }

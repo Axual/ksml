@@ -21,9 +21,9 @@ package io.axual.ksml.user;
  */
 
 
-
 import org.apache.kafka.streams.kstream.Reducer;
 
+import io.axual.ksml.util.DataUtil;
 import io.axual.ksml.python.Invoker;
 
 public class UserReducer extends Invoker implements Reducer<Object> {
@@ -36,6 +36,6 @@ public class UserReducer extends Invoker implements Reducer<Object> {
 
     @Override
     public Object apply(Object value1, Object value2) {
-        return function.call(value1, value2);
+        return function.call(DataUtil.asData(value1), DataUtil.asData(value2));
     }
 }

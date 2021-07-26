@@ -21,7 +21,6 @@ package io.axual.ksml.operation;
  */
 
 
-
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.Predicate;
@@ -46,8 +45,8 @@ public class BranchOperation extends BaseOperation {
     public StreamWrapper apply(KStreamWrapper input) {
         // Prepare the branch predicates to pass into the KStream
         @SuppressWarnings("unchecked")
-        Predicate<Object, Object>[] predicates = new Predicate[branches.size()];
-        for (int index = 0; index < branches.size(); index++) {
+        var predicates = new Predicate[branches.size()];
+        for (var index = 0; index < branches.size(); index++) {
             predicates[index] = getBranchPredicate(branches.get(index));
         }
 
@@ -56,7 +55,7 @@ public class BranchOperation extends BaseOperation {
         KStream<Object, Object>[] resultStreams = input.stream.branch(Named.as(name), predicates);
 
         // For every branch, generate a separate pipeline
-        for (int index = 0; index < resultStreams.length; index++) {
+        for (var index = 0; index < resultStreams.length; index++) {
             StreamWrapper branchCursor = new KStreamWrapper(resultStreams[index], input.keyType, input.valueType);
             for (StreamOperation operation : branches.get(index).pipeline.chain) {
                 branchCursor = branchCursor.apply(operation);

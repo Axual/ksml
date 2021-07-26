@@ -28,7 +28,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
-import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +72,6 @@ import static io.axual.ksml.dsl.KSMLDSL.TABLES_DEFINITION;
 public class TopologyGeneratorImpl implements TopologyGenerator {
     private static final Logger LOG = LoggerFactory.getLogger(TopologyGeneratorImpl.class);
     private final KSMLConfig config;
-    private final PythonInterpreter interpreter;
 
     private class KSMLDefinition {
         public final String source;
@@ -85,9 +83,8 @@ public class TopologyGeneratorImpl implements TopologyGenerator {
         }
     }
 
-    public TopologyGeneratorImpl(KSMLConfig config, PythonInterpreter interpreter) {
+    public TopologyGeneratorImpl(KSMLConfig config) {
         this.config = config;
-        this.interpreter = interpreter;
     }
 
     private List<KSMLDefinition> readKSMLDefinitions() {
@@ -132,16 +129,15 @@ public class TopologyGeneratorImpl implements TopologyGenerator {
 
     @Override
     public Topology create(StreamsBuilder builder) {
-        StreamDataType.setSerdeGenerator(config.serdeGenerator);
         List<KSMLDefinition> definitions = readKSMLDefinitions();
         for (KSMLDefinition definition : definitions) {
-            Topology topology = generate(builder, interpreter, YamlNode.fromRoot(definition.root, "ksml"));
-            LOG.info("Topology: {}", topology != null ? topology.describe() : "null");
+            Topology topology = generate(builder, YamlNode.fromRoot(definition.root, "ksml"));
+            LOG.info("\n{}", topology != null ? topology.describe() : "null");
         }
         return builder.build();
     }
 
-    private Topology generate(StreamsBuilder builder, PythonInterpreter interpreter, YamlNode node) {
+    private Topology generate(StreamsBuilder builder, YamlNode node) {
         if (node == null) return null;
 
         // Parse all defined streams
@@ -155,7 +151,7 @@ public class TopologyGeneratorImpl implements TopologyGenerator {
                 .parse(node.get(FUNCTIONS_DEFINITION));
 
         // Parse all defined pipelines
-        TopologyParseContext context = new TopologyParseContext(builder, interpreter, config.serdeGenerator, streamDefinitions, functions);
+        TopologyParseContext context = new TopologyParseContext(builder, config.notationLibrary, streamDefinitions, functions);
         final MapParser<PipelineDefinition> mapParser = new MapParser<>(new PipelineDefinitionParser(context));
         final Map<String, PipelineDefinition> pipelineDefinitionMap = mapParser.parse(node.get(PIPELINES_DEFINITION));
         pipelineDefinitionMap.forEach((name, pipeline) -> {

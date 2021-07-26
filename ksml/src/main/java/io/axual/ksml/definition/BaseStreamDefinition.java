@@ -23,31 +23,41 @@ package io.axual.ksml.definition;
 
 import org.apache.kafka.streams.StreamsBuilder;
 
-import io.axual.ksml.generator.SerdeGenerator;
+import io.axual.ksml.notation.BinaryNotation;
+import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.parser.TypeParser;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.type.DataType;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.DataTypeAndNotation;
 
 public abstract class BaseStreamDefinition {
     public final String topic;
     public final DataType keyType;
+    public final String keyNotation;
     public final DataType valueType;
+    public final String valueNotation;
 
     public BaseStreamDefinition(String topic, String keyType, String valueType) {
-        this(topic, TypeParser.parse(keyType), TypeParser.parse(valueType));
+        this(topic, TypeParser.parse(keyType, BinaryNotation.NAME), TypeParser.parse(valueType, BinaryNotation.NAME));
     }
 
-    public BaseStreamDefinition(String topic, DataType keyType, DataType valueType) {
+    public BaseStreamDefinition(String topic, DataTypeAndNotation keyType, DataTypeAndNotation valueType) {
+        this(topic, keyType.type, keyType.notation, valueType.type, valueType.notation);
+    }
+
+    public BaseStreamDefinition(String topic, DataType keyType, String keyNotation, DataType valueType, String valueNotation) {
         this.topic = topic;
         this.keyType = keyType;
+        this.keyNotation = keyNotation;
         this.valueType = valueType;
+        this.valueNotation = valueNotation;
     }
 
     /**
      * Add definitions for this stream definition to the provided builder, and returns a wrapped stream.
      *
-     * @param builder        the StreamsBuilder to add the stream to.
-     * @param serdeGenerator serde generator for the key and value types.
+     * @param builder         the StreamsBuilder to add the stream to.
+     * @param notationLibrary notation library  generator for the key and value types.
      */
-    public abstract StreamWrapper addToBuilder(StreamsBuilder builder, String name, SerdeGenerator serdeGenerator);
+    public abstract StreamWrapper addToBuilder(StreamsBuilder builder, String name, NotationLibrary notationLibrary);
 }

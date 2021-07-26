@@ -79,6 +79,8 @@ services:
                        cub kafka-ready -b broker:9093 1 20 && \
                        kafka-topics --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_avro && \
                        kafka-topics --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_copy && \
+                       kafka-topics --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic io.ksml.example.processor-ksml_sensordata_grouped-repartition && \
+                       kafka-topics --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_count && \
                        kafka-topics --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_filtered && \
                        kafka-topics --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_blue && \
                        kafka-topics --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_red && \

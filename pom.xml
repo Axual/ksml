@@ -59,15 +59,15 @@
 
     <properties>
         <apache.avro.version>1.9.2</apache.avro.version>
-        <axual.version>5.7.0</axual.version>
+        <apache.kafka.version>2.7.0</apache.kafka.version>
+        <axual.version>5.7.1</axual.version>
         <commons.logging.version>1.1</commons.logging.version>
+        <graalvm.version>21.1.0</graalvm.version>
         <hamcrest.version>2.1</hamcrest.version>
         <jackson.version>2.11.1</jackson.version>
         <java.source.version>11</java.source.version>
         <java.target.version>11</java.target.version>
         <jupiter.version>5.7.1</jupiter.version>
-        <jython.version>2.7.2</jython.version>
-        <kafka.streams.version>2.7.0</kafka.streams.version>
         <lombok.version>1.18.18</lombok.version>
         <maven.compiler.version>3.8.1</maven.compiler.version>
         <maven.exec.version>3.0.0</maven.exec.version>
@@ -109,6 +109,16 @@
             </dependency>
 
             <dependency>
+                <groupId>org.graalvm.sdk</groupId>
+                <artifactId>graal-sdk</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.truffle</groupId>
+                <artifactId>truffle-api</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.avro</groupId>
                 <artifactId>avro</artifactId>
                 <version>${apache.avro.version}</version>
@@ -116,8 +126,9 @@
             <dependency>
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka-streams</artifactId>
-                <version>${kafka.streams.version}</version>
+                <version>${apache.kafka.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>io.axual.client</groupId>
                 <artifactId>axual-client-proxy</artifactId>
@@ -153,11 +164,6 @@
                 <artifactId>lombok</artifactId>
                 <version>${lombok.version}</version>
                 <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.python</groupId>
-                <artifactId>jython-slim</artifactId>
-                <version>${jython.version}</version>
             </dependency>
 
             <dependency>

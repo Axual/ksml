@@ -44,7 +44,7 @@ public class TransformValueOperation extends StoreOperation {
         return new KStreamWrapper(
                 input.stream.mapValues(new UserValueTransformer(transformer), Named.as(name)),
                 input.keyType,
-                StreamDataType.of(transformer.resultType, false));
+                StreamDataType.of(transformer.resultType, input.valueType.notation, false));
     }
 
     @Override
@@ -53,6 +53,6 @@ public class TransformValueOperation extends StoreOperation {
         return new KTableWrapper(
                 input.table.mapValues(new UserValueTransformer(transformer), Named.as(name), Materialized.as(storeName)),
                 input.keyType,
-                StreamDataType.of(transformer.resultType, false));
+                StreamDataType.of(transformer.resultType, input.valueType.notation, false));
     }
 }

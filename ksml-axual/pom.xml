@@ -12,7 +12,8 @@
 
     <artifactId>ksml-axual</artifactId>
     <name>KSML for Axual</name>
-    <description>Additional components for KSML to enable execution with Axual servuces</description>
+    <description>Additional components for KSML to enable execution with Axual servuces
+    </description>
 
     <dependencies>
         <dependency>

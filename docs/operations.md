@@ -5,8 +5,10 @@
 ### Table of Contents
 
 1. [Introduction](#introduction)
-1. [Transformation Operations](#transform-operations)
+1. [Operations](#transform-operations)
     * [aggregate](#aggregate)
+    * [convertKey](#convertkey)
+    * [convertValue](#convertvalue)
     * [count](#count)
     * [filter](#filter)
     * [filterNot](#filterNot)
@@ -67,6 +69,10 @@ Pipelines in KSML have a beginning, a middle and (optionally) an end. Operations
 
 Transformations are operations that take an input stream and convert it to an output stream. This section lists all supported transformations. Each one states the type of stream it returns.
 
+|Parameter |Value Type| Description
+|:---|:---|:---|
+|`name`|string|The name of the transformation operation.
+
 Note that not all combinations of output/input streams are supported by Kafka Streams. The user that writes the KSML definition needs to make sure that streams that result from one operations can actually serve as input to the next. KSML does type checking and will exit with an error when operations that can not be chained together are listed after another in the KSML definition.
 
 ### aggregate
@@ -78,14 +84,14 @@ Note that not all combinations of output/input streams are supported by Kafka St
 
 This operations aggregates multiple values into a single one by repeatedly calling an aggregator function. It can operate on a range of stream types.
 
-|Stream Type |Returns |Parameter |Value Type| Description
-|:---|:---|:---|:---|:---
-|[KGroupedStream][KGroupedStream::aggregate]`<K,V>`|[KTable]`<K,VR>`|`initializer`|Inline or reference|The [Initializer] function.
-| | |`aggregator`|Inline or reference|The [Aggregator] function.
-|[KGroupedTable][KGroupedTable::aggregate]`<K,V>`|[KTable]`<K,VR>`|`initializer`|Inline or reference|The [Initializer] function.
-| | |`adder`|Inline or reference|The [Reducer] function that adds two values.
-| | |`subtractor`|Inline or reference|The [Reducer] function that subtracts two values.
-|[SessionWindowedKStream][SessionWindowedKStream::aggregate]`<K,V>`|[KTable]`<Windowed<K>,VR>`|`initializer`|Inline or reference|The [Initializer] function.
+|Stream Type |Returns |Parameter |Value Type|Required|Description
+|:---|:---|:---|:---|:---|:---
+|[KGroupedStream][KGroupedStream::aggregate]`<K,V>`|[KTable]`<K,VR>`|`initializer`|Inline or reference|Yes|The [Initializer] function.
+| | |`aggregator`|Inline or reference|Yes|The [Aggregator] function.
+|[KGroupedTable][KGroupedTable::aggregate]`<K,V>`|[KTable]`<K,VR>`|`initializer`|Inline or reference|Yes|The [Initializer] function.
+| | |`adder`|Inline or reference|Yes|The [Reducer] function that adds two values.
+| | |`subtractor`|Inline or reference|Yes|The [Reducer] function that subtracts two values.
+|[SessionWindowedKStream][SessionWindowedKStream::aggregate]`<K,V>`|[KTable]`<Windowed<K>,VR>`|`initializer`|Inline or reference|Yes|The [Initializer] function.
 | | |`aggregator`|Inline or reference|The [Aggregator] function.
 | | |`merger`|Inline or reference|The [Merger] function.
 |[TimeWindowedKStreamObject][TimeWindowedKStreamObject:aggregate]`<K,V>`|[KTable]`<Windowed<K>,VR>`|`initializer`|Inline or reference|The [Initializer] function.

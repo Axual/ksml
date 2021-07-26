@@ -32,7 +32,7 @@ import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.SessionWindowedKStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
-import io.axual.ksml.type.WindowType;
+import io.axual.ksml.data.type.WindowType;
 import io.axual.ksml.user.UserAggregator;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserInitializer;
@@ -86,7 +86,7 @@ public class AggregateOperation extends StoreOperation {
                         new UserMerger(merger),
                         Named.as(name),
                         Materialized.as(storeName)),
-                StreamDataType.of(new WindowType(input.keyType.type), true),
+                StreamDataType.of(new WindowType(input.keyType.type), input.keyType.notation, true),
                 input.valueType);
     }
 
@@ -98,7 +98,7 @@ public class AggregateOperation extends StoreOperation {
                         new UserAggregator(aggregator),
                         Named.as(name),
                         Materialized.as(storeName)),
-                StreamDataType.of(new WindowType(input.keyType.type), true),
+                StreamDataType.of(new WindowType(input.keyType.type), input.keyType.notation, true),
                 input.valueType);
     }
 }

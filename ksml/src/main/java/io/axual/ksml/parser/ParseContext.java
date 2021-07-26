@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.stream.BaseStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
@@ -43,4 +44,6 @@ public interface ParseContext {
     UserFunction getUserFunction(FunctionDefinition definition, String name);
 
     Map<String, AtomicInteger> getTypeInstanceCounters();
+
+    NotationLibrary getNotationLibrary();
 }

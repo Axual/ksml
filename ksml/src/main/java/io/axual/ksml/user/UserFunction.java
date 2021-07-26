@@ -25,15 +25,15 @@ import org.apache.kafka.streams.KeyValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
+import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.exception.KSMLTypeException;
-import io.axual.ksml.type.DataType;
-import io.axual.ksml.type.Tuple;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.util.StringUtil;
 
 /**
@@ -59,13 +59,13 @@ public abstract class UserFunction {
         return name + "(" + StringUtil.join(", ", params) + ")" + (resultType != null ? " ==> " + resultType : "");
     }
 
-    protected void checkType(Object value, DataType expected) {
-        if (expected != null && value != null && !expected.isAssignableFrom(value.getClass())) {
-            throw KSMLTypeException.conversionFailed(expected, value.getClass());
+    protected void checkType(DataObject value, DataType expected) {
+        if (expected != null && value != null && !expected.isAssignableFrom(value.type())) {
+            throw KSMLTypeException.conversionFailed(expected, value.type());
         }
     }
 
-    protected void checkType(ParameterDefinition definition, Object value) {
+    protected void checkType(ParameterDefinition definition, DataObject value) {
         checkType(value, definition.type);
     }
 
@@ -93,52 +93,27 @@ public abstract class UserFunction {
      * @param parameters parameters for the function.
      * @return the result of the call.
      */
-    public abstract Object call(Object... parameters);
+    public abstract DataObject call(DataObject... parameters);
 
     private KSMLTopologyException validateException(Object result, String expectedType) {
         return new KSMLTopologyException("Expected " + expectedType + " from function " + name + " but got: " + (result != null ? result : "null"));
     }
 
-    public KeyValue<Object, Object> convertToKeyValue(Object result, DataType keyType, DataType valueType) {
-        if (result instanceof KeyValue) {
-            KeyValue<?, ?> kv = (KeyValue<?, ?>) result;
-            if (keyType.isAssignableFrom(kv.key) && valueType.isAssignableFrom(kv.value)) {
-                return new KeyValue<>(kv.key, kv.value);
+    public KeyValue<DataObject, DataObject> convertToKeyValue(DataObject result, DataType keyType, DataType valueType) {
+        if (result instanceof DataList) {
+            var list = (DataList) result;
+            if (list.size() == 2 && keyType.isAssignableFrom(list.get(0).type()) && valueType.isAssignableFrom(list.get(1).type())) {
+                return new KeyValue<>(list.get(0), list.get(1));
             }
         }
 
-        if (result instanceof Tuple) {
-            Tuple kv = (Tuple) result;
-            if (kv.size() == 2 && keyType.isAssignableFrom(kv.get(0)) && valueType.isAssignableFrom(kv.get(1))) {
-                return new KeyValue<>(kv.get(0), kv.get(1));
+        if (result instanceof DataTuple) {
+            var tuple = (DataTuple) result;
+            if (tuple.size() == 2 && keyType.isAssignableFrom(tuple.get(0).type()) && valueType.isAssignableFrom(tuple.get(1).type())) {
+                return new KeyValue<>(tuple.get(0), tuple.get(1));
             }
         }
 
         throw validateException(result, "(key,value)");
-    }
-
-    public Iterable<Object> convertToList(Object result, DataType valueType) {
-        if (result instanceof List) {
-            List<?> list = (List<?>) result;
-            List<Object> convertedResult = new ArrayList<>();
-            for (Object element : list) {
-                checkType(element, valueType);
-                convertedResult.add(element);
-            }
-            return convertedResult;
-        }
-        throw validateException(result, "[value1,value2,...]");
-    }
-
-    public Iterable<KeyValue<Object, Object>> convertToKeyValueList(Object result, DataType keyType, DataType valueType) {
-        if (result instanceof List) {
-            List<?> list = (List<?>) result;
-            List<KeyValue<Object, Object>> convertedResult = new ArrayList<>();
-            for (Object element : list) {
-                convertedResult.add(convertToKeyValue(element, keyType, valueType));
-            }
-            return convertedResult;
-        }
-        throw validateException(result, "[(key1,value1),(key2,value2),...]");
     }
 }

@@ -41,6 +41,7 @@ public class ConvertKeyOperationParser extends ContextAwareParser<ConvertKeyOper
         if (node == null) return null;
         return new ConvertKeyOperation(
                 name,
-                TypeParser.parse(parseText(node, CONVERT_INTO_ATTRIBUTE)));
+                TypeParser.parse(parseText(node, CONVERT_INTO_ATTRIBUTE)),
+                context.getNotationLibrary());
     }
 }

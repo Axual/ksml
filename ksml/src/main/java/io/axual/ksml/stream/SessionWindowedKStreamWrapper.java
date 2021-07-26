@@ -21,7 +21,6 @@ package io.axual.ksml.stream;
  */
 
 
-
 import org.apache.kafka.streams.kstream.SessionWindowedKStream;
 
 import io.axual.ksml.generator.StreamDataType;

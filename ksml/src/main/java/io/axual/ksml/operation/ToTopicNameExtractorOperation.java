@@ -39,7 +39,7 @@ public class ToTopicNameExtractorOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        input.stream.to(new UserTopicNameExtractor(topicNameExtractor), Produced.with(input.keyType.serde, input.valueType.serde).withName(name));
+        input.stream.to(new UserTopicNameExtractor(topicNameExtractor), Produced.with(input.keyType.getSerde(), input.valueType.getSerde()).withName(name));
         return null;
     }
 }

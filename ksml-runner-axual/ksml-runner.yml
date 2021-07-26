@@ -1,25 +1,59 @@
 ksml:
   workingDirectory: ../examples
   definitions:
-    - 1-demo-inspect.yaml
+#    - 1-demo-inspect.yaml
 #    - 2-demo-copy.yaml
 #    - 3-demo-filter.yaml
 #    - 4-demo-branch.yaml
 #    - 5-demo-dynamicrouting.yaml
 #    - 6-demo-double.yaml
+#    - 7-demo-convert.yaml
+    - 8-demo-count.yaml
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 backend:
   type: axual
   config:
-    tenant: tenant
-    environment: environment
-    endpoint: https://discoveryapi.url:port
-    applicationId: io.ksml.example.producer
+    tenant: dizzl
+    environment: dev
+    endpoint: https://discoveryapi-dizzlsandbox.cloud.axual.io:28020
+    applicationId: io.axual.ksml.example.processor
     applicationVersion: 0.0.1
     sslConfig:
       enableHostnameVerification: false
-      keystoreLocation: /path/to/keystore.jks
-      keystorePassword: password
-      keyPassword: password
-      truststoreLocation: /path/to/truststore.jks
-      truststorePassword: password
+      keystoreLocation: /Users/dizzl/dev/project/axual/ksml/examples/demo1.app.dizzl.com.keystore.jks
+      keystorePassword: notsecret
+      keyPassword: notsecret
+      truststoreLocation: /Users/dizzl/dev/project/axual/ksml/examples/demo1.app.dizzl.com.truststore.jks
+      truststorePassword: notsecret

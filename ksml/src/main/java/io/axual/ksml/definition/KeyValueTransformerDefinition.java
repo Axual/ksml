@@ -22,7 +22,7 @@ package io.axual.ksml.definition;
 
 
 
-import io.axual.ksml.type.KeyValueType;
+import io.axual.ksml.data.type.KeyValueType;
 
 import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_PARAMETERS;
 

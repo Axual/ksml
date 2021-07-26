@@ -21,9 +21,9 @@ package io.axual.ksml.user;
  */
 
 
-
 import org.apache.kafka.streams.kstream.Merger;
 
+import io.axual.ksml.util.DataUtil;
 import io.axual.ksml.python.Invoker;
 
 public class UserMerger extends Invoker implements Merger<Object, Object> {
@@ -37,6 +37,6 @@ public class UserMerger extends Invoker implements Merger<Object, Object> {
 
     @Override
     public Object apply(Object key, Object value1, Object value2) {
-        return function.call(key, value1, value2);
+        return function.call(DataUtil.asData(key), DataUtil.asData(value1), DataUtil.asData(value2));
     }
 }

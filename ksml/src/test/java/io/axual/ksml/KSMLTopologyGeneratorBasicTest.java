@@ -27,7 +27,6 @@ import org.apache.kafka.streams.TopologyDescription;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.python.util.PythonInterpreter;
 
 import java.net.URI;
 import java.nio.file.Files;
@@ -57,7 +56,7 @@ public class KSMLTopologyGeneratorBasicTest {
         Map<String, Object> configs = new HashMap<>();
         configs.put(KSMLConfig.KSML_SOURCE_TYPE, "content");
         configs.put(KSMLConfig.KSML_SOURCE, pipeDefinition);
-        TopologyGeneratorImpl topologyGenerator = new TopologyGeneratorImpl(new KSMLConfig(configs), new PythonInterpreter());
+        TopologyGeneratorImpl topologyGenerator = new TopologyGeneratorImpl(new KSMLConfig(configs));
         final Topology topology = topologyGenerator.create(new StreamsBuilder());
         final TopologyDescription description = topology.describe();
         System.out.println(description);

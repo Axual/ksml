@@ -21,9 +21,9 @@ package io.axual.ksml.user;
  */
 
 
-
 import org.apache.kafka.streams.kstream.ValueMapperWithKey;
 
+import io.axual.ksml.util.DataUtil;
 import io.axual.ksml.python.Invoker;
 
 public class UserValueTransformer extends Invoker implements ValueMapperWithKey<Object, Object, Object> {
@@ -35,6 +35,6 @@ public class UserValueTransformer extends Invoker implements ValueMapperWithKey<
 
     @Override
     public Object apply(Object key, Object value) {
-        return function.call(key, value);
+        return function.call(DataUtil.asData(key), DataUtil.asData(value));
     }
 }

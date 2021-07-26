@@ -40,7 +40,7 @@ import io.axual.discovery.client.DiscoveryConfig;
 import io.axual.discovery.client.DiscoveryResult;
 import io.axual.discovery.client.exception.DiscoveryClientRegistrationException;
 import io.axual.discovery.client.tools.DiscoveryConfigParserV2;
-import io.axual.ksml.AxualSerdeGenerator;
+import io.axual.ksml.AxualNotationLibrary;
 import io.axual.ksml.KSMLConfig;
 import io.axual.ksml.KSMLTopologyGenerator;
 import io.axual.ksml.exception.KSMLTopologyException;
@@ -133,11 +133,10 @@ public class AxualBackend implements Backend {
 
         // set up a stream topology generator based on the provided KSML definition
         Map<String, Object> ksmlConfigs = new HashMap<>();
-        ksmlConfigs.put(KSMLConfig.PYTHON_INTERPRETER_ISOLATION, "false");
         ksmlConfigs.put(KSMLConfig.KSML_SOURCE_TYPE, "file");
         ksmlConfigs.put(KSMLConfig.KSML_WORKING_DIRECTORY, ksmlSourceConfig.getWorkingDirectory());
         ksmlConfigs.put(KSMLConfig.KSML_SOURCE, ksmlSourceConfig.getDefinitions());
-        ksmlConfigs.put(KSMLConfig.SERDE_GENERATOR, new AxualSerdeGenerator(configs));
+        ksmlConfigs.put(KSMLConfig.NOTATION_LIBRARY, new AxualNotationLibrary(configs));
         var topologyFactory = new KSMLTopologyGenerator();
         topologyFactory.configure(ksmlConfigs);
 
@@ -214,7 +213,7 @@ public class AxualBackend implements Backend {
     }
 
     public void discoveryPropertiesChanged(DiscoveryResult newDiscoveryResult) {
-        clusterSwitchDetected.set(discoveryResult != null && newDiscoveryResult != null && !discoveryResult.equals(newDiscoveryResult));
+//        clusterSwitchDetected.set(discoveryResult != null && newDiscoveryResult != null && !discoveryResult.equals(newDiscoveryResult));
         discoveryResult = newDiscoveryResult;
     }
 }

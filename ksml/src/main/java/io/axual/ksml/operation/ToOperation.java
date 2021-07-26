@@ -42,7 +42,7 @@ public class ToOperation extends BaseOperation {
         if (!target.keyType.isAssignableFrom(input.keyType.type) || !target.valueType.isAssignableFrom(input.valueType.type)) {
             throw KSMLTypeException.topicTypeMismatch(target.topic, input.keyType, input.valueType, target.keyType, target.valueType);
         }
-        input.stream.to(target.topic, Produced.with(input.keyType.serde, input.valueType.serde).withName(name));
+        input.stream.to(target.topic, Produced.with(input.keyType.getSerde(), input.valueType.getSerde()).withName(name));
         return null;
     }
 }

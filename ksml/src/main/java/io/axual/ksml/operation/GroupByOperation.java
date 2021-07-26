@@ -9,9 +9,9 @@ package io.axual.ksml.operation;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,8 +31,8 @@ import io.axual.ksml.stream.KGroupedTableWrapper;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.type.DataType;
-import io.axual.ksml.type.KeyValueType;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.KeyValueType;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserKeyTransformer;
 import io.axual.ksml.user.UserKeyValueTransformer;
@@ -50,10 +50,10 @@ public class GroupByOperation extends StoreOperation {
         if (transformer.resultType == DataType.UNKNOWN) {
             throw new KSMLExecutionException("groupBy mapper resultType not specified");
         }
-        final StreamDataType resultKeyType = StreamDataType.of(transformer.resultType, true);
+        final StreamDataType resultKeyType = StreamDataType.of(transformer.resultType, input.keyType.notation, true);
         return new KGroupedStreamWrapper(
                 input.stream.groupBy(
-                        new UserKeyTransformer(transformer), Grouped.with(storeName, resultKeyType.serde, input.valueType.serde)),
+                        new UserKeyTransformer(transformer), Grouped.with(storeName, resultKeyType.getSerde(), input.valueType.getSerde())),
                 resultKeyType,
                 input.valueType);
     }
@@ -64,13 +64,13 @@ public class GroupByOperation extends StoreOperation {
             throw new KSMLApplyException("Can not apply given transformer to KTable.groupBy operation");
         }
         KeyValueType resultType = (KeyValueType) transformer.resultType;
-        final StreamDataType resultKeyType = StreamDataType.of(resultType.getKeyType(), true);
-        final StreamDataType resultValueType = StreamDataType.of(resultType.getValueType(), false);
+        final StreamDataType resultKeyType = StreamDataType.of(resultType.keyType(), input.keyType.notation, true);
+        final StreamDataType resultValueType = StreamDataType.of(resultType.valueType(), input.valueType.notation, false);
 
         return new KGroupedTableWrapper(
                 input.table.groupBy(
                         new UserKeyValueTransformer(transformer),
-                        Grouped.with(storeName, resultKeyType.serde, resultValueType.serde)),
+                        Grouped.with(storeName, resultKeyType.getSerde(), resultValueType.getSerde())),
                 resultKeyType,
                 resultValueType);
     }

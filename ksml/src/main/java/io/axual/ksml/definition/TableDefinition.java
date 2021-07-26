@@ -21,12 +21,11 @@ package io.axual.ksml.definition;
  */
 
 
-import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 
-import io.axual.ksml.generator.SerdeGenerator;
 import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 
@@ -36,12 +35,14 @@ public class TableDefinition extends BaseStreamDefinition {
     }
 
     @Override
-    public StreamWrapper addToBuilder(StreamsBuilder builder, String name, SerdeGenerator serdeGenerator) {
-        Serde<Object> keySerde = serdeGenerator.getSerdeForType(this.keyType, true);
-        Serde<Object> valueSerde = serdeGenerator.getSerdeForType(this.valueType, false);
+    public StreamWrapper addToBuilder(StreamsBuilder builder, String name, NotationLibrary notationLibrary) {
+        var keyNot = notationLibrary.get(keyNotation);
+        var valueNot = notationLibrary.get(valueNotation);
+        var keySerde = keyNot.getSerde(keyType, true);
+        var valueSerde = valueNot.getSerde(valueType, false);
         return new KTableWrapper(
-                builder.table(this.topic, Consumed.with(keySerde, valueSerde).withName(name)),
-                new StreamDataType(this.keyType, keySerde),
-                new StreamDataType(this.valueType, valueSerde));
+                builder.table(topic, Consumed.with(keySerde, valueSerde).withName(name)),
+                new StreamDataType(keyType, keyNot, true),
+                new StreamDataType(valueType, valueNot, false));
     }
 }

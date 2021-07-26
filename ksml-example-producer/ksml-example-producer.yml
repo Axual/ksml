@@ -1,0 +1,20 @@
+kafka:
+  bootstrapUrl: broker:9093
+  applicationId: io.ksml.example.producer
+  schemaRegistryUrl: http://schema_registry:8081
+  streamsConfig:
+    acks: all
+
+axual:
+  tenant: dizzl
+  environment: dev
+  endpoint: https://discoveryapi-dizzlsandbox.cloud.axual.io:28020
+  applicationId: io.ksml.example.producer
+  applicationVersion: 0.0.1
+  sslConfig:
+    enableHostnameVerification: false
+    keystoreLocation: /Users/dizzl/dev/project/axual/ksml/examples/demo1.app.dizzl.com.keystore.jks
+    keystorePassword: notsecret
+    keyPassword: notsecret
+    truststoreLocation: /Users/dizzl/dev/project/axual/ksml/examples/demo1.app.dizzl.com.truststore.jks
+    truststorePassword: notsecret
