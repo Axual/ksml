@@ -34,7 +34,8 @@ public class NotationLibrary {
         notations.put(BinaryNotation.NAME, new BinaryNotation((Map<String, Object>) configs, notations.get(JsonNotation.NAME)));
     }
 
-    protected void put(String notationName, Notation notation) {
+    // Note: this method is public to facilitate testing
+    public void put(String notationName, Notation notation) {
         notations.put(notationName, notation);
     }
 

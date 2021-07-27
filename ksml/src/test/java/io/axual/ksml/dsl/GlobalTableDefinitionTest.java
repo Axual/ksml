@@ -33,6 +33,7 @@ import java.util.HashMap;
 
 import io.axual.ksml.definition.GlobalTableDefinition;
 import io.axual.ksml.notation.BinaryNotation;
+import io.axual.ksml.notation.Notation;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.parser.TypeParser;
 import io.axual.ksml.stream.GlobalKTableWrapper;
@@ -50,10 +51,15 @@ public class GlobalTableDefinitionTest {
     @Mock
     private StreamsBuilder builder;
 
-    private NotationLibrary notationLibrary = new NotationLibrary(new HashMap<>());
+    private final NotationLibrary notationLibrary = new NotationLibrary(new HashMap<>());
+
+    @Mock
+    Notation mockNotation;
 
     @Test
-    public void testGlobalTableDefinition() {
+    void testGlobalTableDefinition() {
+        notationLibrary.put(BinaryNotation.NAME, mockNotation);
+
         // given a TableDefinition
         var tableDefinition = new GlobalTableDefinition("topic", "string", "string");
 
@@ -62,8 +68,8 @@ public class GlobalTableDefinitionTest {
 
         // it adds a ktable to the builder with key and value type, and returns a KTableWrapper instance
         final var stringType = TypeParser.parse("string");
-        verify(notationLibrary.get(BinaryNotation.NAME)).getSerde(stringType.type, true);
-        verify(notationLibrary.get(BinaryNotation.NAME)).getSerde(stringType.type, false);
+        verify(mockNotation).getSerde(stringType.type, true);
+        verify(mockNotation).getSerde(stringType.type, false);
 
         verify(builder).globalTable(eq("topic"), isA(Consumed.class));
         assertThat(streamWrapper, instanceOf(GlobalKTableWrapper.class));
