@@ -27,7 +27,7 @@ import com.google.auto.service.AutoService;
 import io.axual.ksml.runner.backend.Backend;
 import io.axual.ksml.runner.backend.BackendConfig;
 import io.axual.ksml.runner.backend.BackendProvider;
-import io.axual.ksml.runner.config.KSMLSourceConfig;
+import io.axual.ksml.runner.config.KSMLConfig;
 
 @AutoService(BackendProvider.class)
 public class KafkaBackendProvider implements BackendProvider<KafkaBackendConfig> {
@@ -40,8 +40,8 @@ public class KafkaBackendProvider implements BackendProvider<KafkaBackendConfig>
     }
 
     @Override
-    public Backend create(KSMLSourceConfig ksmlSourceConfig, BackendConfig backendConfig) {
-        return new KafkaBackend(ksmlSourceConfig, (KafkaBackendConfig) backendConfig);
+    public Backend create(KSMLConfig ksmlConfig, BackendConfig backendConfig) {
+        return new KafkaBackend(ksmlConfig, (KafkaBackendConfig) backendConfig);
     }
 
     @Override

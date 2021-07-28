@@ -9,9 +9,9 @@ package io.axual.ksml.data.mapper;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -46,9 +46,11 @@ import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.schema.DataSchema;
 import io.axual.ksml.schema.SchemaLibrary;
+import io.axual.ksml.schema.SchemaUtil;
 
 public class PythonDataMapper implements DataMapper<Value> {
     private static final String RECORD_SCHEMA_FIELD = "@schema";
+    private static final String RECORD_TYPE_FIELD = "@type";
     private final NativeDataMapper nativeDataMapper = new NativeDataMapper();
     private final Context context;
 
@@ -98,15 +100,19 @@ public class PythonDataMapper implements DataMapper<Value> {
             try {
                 HashMap<?, ?> map = object.as(HashMap.class);
                 final DataSchema schema;
-                if (map.containsKey(RECORD_SCHEMA_FIELD)) {
-                    var schemaName = map.get(RECORD_SCHEMA_FIELD).toString();
-                    map.remove(RECORD_SCHEMA_FIELD);
-                    schema = SchemaLibrary.getSchema(schemaName);
+                if (map.containsKey(RECORD_TYPE_FIELD)) {
+                    var typeName = map.get(RECORD_TYPE_FIELD).toString();
+                    schema = SchemaLibrary.getSchema(typeName);
+                } else if (map.containsKey(RECORD_SCHEMA_FIELD)) {
+                    var schemaStr = map.get(RECORD_SCHEMA_FIELD).toString();
+                    schema = SchemaUtil.parse(schemaStr);
                 } else if (expected != null) {
                     schema = ((RecordType) expected).schema();
                 } else {
                     schema = null;
                 }
+                map.remove(RECORD_TYPE_FIELD);
+                map.remove(RECORD_SCHEMA_FIELD);
                 return nativeDataMapper.mapToDataRecord(map, schema);
             } catch (Exception e) {
                 // Ignore all cast exceptions
@@ -153,7 +159,10 @@ public class PythonDataMapper implements DataMapper<Value> {
         }
         if (object.type.schema() != null) {
             if (!first) builder.append(",");
-            builder.append("\"").append(RECORD_SCHEMA_FIELD).append("\":\"").append(object.type.schema().name()).append("\"");
+            builder.append("\"").append(RECORD_TYPE_FIELD).append("\":\"").append(object.type.schema().name()).append("\"");
+            builder.append(",");
+            var schemaString = object.type.schema().toString().replace("\"", "\\\"");
+            builder.append("\"").append(RECORD_SCHEMA_FIELD).append("\":\"").append(schemaString).append("\"");
         }
         return builder.append("}").toString();
     }

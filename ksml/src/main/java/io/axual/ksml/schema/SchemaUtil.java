@@ -1,4 +1,4 @@
-package io.axual.ksml.util;
+package io.axual.ksml.schema;
 
 /*-
  * ========================LICENSE_START=================================
@@ -9,9 +9,9 @@ package io.axual.ksml.util;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,11 +31,10 @@ import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.schema.DataSchema;
 import io.axual.ksml.data.type.DataListType;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.RecordType;
+import io.axual.ksml.exception.KSMLExecutionException;
 
 public class SchemaUtil {
     private SchemaUtil() {
@@ -62,6 +61,11 @@ public class SchemaUtil {
     }
 
     public static DataSchema schemaToDataSchema(Schema schema) {
+        return DataSchema.newBuilder(schema).build();
+    }
+
+    public static DataSchema parse(String schemaStr) {
+        var schema = new Schema.Parser().parse(schemaStr);
         return DataSchema.newBuilder(schema).build();
     }
 }

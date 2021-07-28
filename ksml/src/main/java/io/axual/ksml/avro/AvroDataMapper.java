@@ -29,7 +29,7 @@ import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataRecord;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.mapper.NativeDataMapper;
-import io.axual.ksml.util.SchemaUtil;
+import io.axual.ksml.schema.SchemaUtil;
 
 public class AvroDataMapper extends NativeDataMapper {
     @Override

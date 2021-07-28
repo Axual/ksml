@@ -32,11 +32,10 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import io.axual.ksml.KSMLConfig;
 import io.axual.ksml.KSMLTopologyGenerator;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.runner.backend.Backend;
-import io.axual.ksml.runner.config.KSMLSourceConfig;
+import io.axual.ksml.runner.config.KSMLConfig;
 import lombok.extern.slf4j.Slf4j;
 
 import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
@@ -48,7 +47,7 @@ public class KafkaBackend implements Backend {
     private final AtomicBoolean stopRunning = new AtomicBoolean(false);
 
 
-    public KafkaBackend(KSMLSourceConfig ksmlSourceConfig, KafkaBackendConfig backendConfig) {
+    public KafkaBackend(KSMLConfig ksmlConfig, KafkaBackendConfig backendConfig) {
         log.info("Constructing Kafka Backend");
 
         var streamsProperties = new Properties();
@@ -61,12 +60,17 @@ public class KafkaBackend implements Backend {
         streamsProperties.put(SCHEMA_REGISTRY_URL_CONFIG, backendConfig.getSchemaRegistryUrl());
         streamsProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, backendConfig.getApplicationId());
 
+        streamsProperties.put(StreamsConfig.STATE_DIR_CONFIG, ksmlConfig.getWorkingDirectory());
+        if (ksmlConfig.getApplicationServer() != null) {
+            streamsProperties.put(StreamsConfig.APPLICATION_SERVER_CONFIG, ksmlConfig.getApplicationServer());
+        }
+
         // set up a stream topology generator based on the provided KSML definition
         Map<String, Object> ksmlConfigs = new HashMap<>();
-        ksmlConfigs.put(KSMLConfig.KSML_SOURCE_TYPE, "file");
-        ksmlConfigs.put(KSMLConfig.KSML_WORKING_DIRECTORY, ksmlSourceConfig.getWorkingDirectory());
-        ksmlConfigs.put(KSMLConfig.KSML_SOURCE, ksmlSourceConfig.getDefinitions());
-        ksmlConfigs.put(KSMLConfig.NOTATION_LIBRARY, new NotationLibrary(streamsProperties));
+        ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_SOURCE_TYPE, "file");
+        ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_WORKING_DIRECTORY, ksmlConfig.getWorkingDirectory());
+        ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_SOURCE, ksmlConfig.getDefinitions());
+        ksmlConfigs.put(io.axual.ksml.KSMLConfig.NOTATION_LIBRARY, new NotationLibrary(streamsProperties));
         var topologyFactory = new KSMLTopologyGenerator();
         topologyFactory.configure(ksmlConfigs);
 
@@ -96,7 +100,7 @@ public class KafkaBackend implements Backend {
         kafkaStreams.start();
         Utils.sleep(1000);
         while (!stopRunning.get()) {
-            final State state = getState();
+            final var state = getState();
             if (state == State.STOPPED || state == State.FAILED) {
                 log.info("Streams implementation has stopped, stopping Kafka Backend");
                 break;

@@ -9,9 +9,9 @@ package io.axual.ksml.dsl;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -69,6 +69,7 @@ public class KSMLDSL {
     public static final String OPERATION_FLATMAPVALUES_TYPE = "flatMapValues";
     public static final String OPERATION_TRANSFORMKEYVALUETOVALUELIST_TYPE = "transformKeyValueToValueList";
     public static final String OPERATION_GROUPBY_TYPE = "groupBy";
+    public static final String OPERATION_GROUPBYKEY_TYPE = "groupByKey";
     public static final String OPERATION_JOIN_TYPE = "join";
     public static final String OPERATION_LEFTJOIN_TYPE = "leftJoin";
     public static final String OPERATION_MAPKEY_TYPE = "mapKey";
@@ -85,12 +86,13 @@ public class KSMLDSL {
     public static final String OPERATION_PEEK_TYPE = "peek";
     public static final String OPERATION_REDUCE_TYPE = "reduce";
     public static final String OPERATION_REPARTITION_TYPE = "repartition";
+    public static final String OPERATION_SUPPRESS_TYPE = "suppress";
     public static final String OPERATION_TOSTREAM_TYPE = "toStream";
     public static final String OPERATION_WINDOWEDBY_TYPE = "windowedBy";
     public static final String REPARTITION_PARTITIONER_ATTRIBUTE = "partitioner";
     public static final String SUPPRESS_UNTIL_ATTRIBUTE = "until";
     public static final String SUPPRESS_UNTILTIMELIMIT = "timeLimit";
-    public static final String SUPPRESS_UNTILWINDOWCLOSE = "windowClose";
+    public static final String SUPPRESS_UNTILWINDOWCLOSES = "windowCloses";
     public static final String SUPPRESS_DURATION_ATTRIBUTE = "duration";
     public static final String SUPPRESS_BUFFER_MAXBYTES = "maxBytes";
     public static final String SUPPRESS_BUFFER_MAXRECORDS = "maxRecords";
@@ -124,9 +126,12 @@ public class KSMLDSL {
     public static final String WINDOWEDBY_WINDOWTYPE_SLIDING = "sliding";
     public static final String WINDOWEDBY_WINDOWTYPE_TIME = "time";
     public static final String WINDOWEDBY_WINDOWTYPE_SESSION_INACTIVITYGAP = "inactivityGap";
+    public static final String WINDOWEDBY_WINDOWTYPE_SESSION_GRACE = "grace";
     public static final String WINDOWEDBY_WINDOWTYPE_SLIDING_TIMEDIFFERENCE = "timeDifference";
     public static final String WINDOWEDBY_WINDOWTYPE_SLIDING_GRACE = "grace";
     public static final String WINDOWEDBY_WINDOWTYPE_TIME_DURATION = "duration";
+    public static final String WINDOWEDBY_WINDOWTYPE_TIME_ADVANCEBY = "advanceBy";
+    public static final String WINDOWEDBY_WINDOWTYPE_TIME_GRACE = "grace";
     public static final String PIPELINE_FROM_ATTRIBUTE = "from";
     public static final String PIPELINE_VIA_ATTRIBUTE = "via";
     public static final String STREAM_DEFINITION = "stream";

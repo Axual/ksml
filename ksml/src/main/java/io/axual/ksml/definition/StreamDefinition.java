@@ -36,13 +36,13 @@ public class StreamDefinition extends BaseStreamDefinition {
 
     @Override
     public StreamWrapper addToBuilder(StreamsBuilder builder, String name, NotationLibrary notationLibrary) {
-        var keyNot = notationLibrary.get(keyNotation);
-        var valueNot = notationLibrary.get(valueNotation);
-        var keySerde = keyNot.getSerde(keyType, true);
-        var valueSerde = valueNot.getSerde(valueType, false);
+        var keyNotation = notationLibrary.get(keyNotationStr);
+        var valueNotation = notationLibrary.get(valueNotationStr);
+        var keySerde = keyNotation.getSerde(keyType, true);
+        var valueSerde = valueNotation.getSerde(valueType, false);
         return new KStreamWrapper(
                 builder.stream(topic, Consumed.with(keySerde, valueSerde).withName(name)),
-                new StreamDataType(this.keyType, keyNot, true),
-                new StreamDataType(this.valueType, valueNot, false));
+                new StreamDataType(this.keyType, keyNotation, true),
+                new StreamDataType(this.valueType, valueNotation, false));
     }
 }

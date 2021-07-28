@@ -34,7 +34,7 @@ import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.SessionWindowedKStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
-import io.axual.ksml.data.type.WindowType;
+import io.axual.ksml.data.type.WindowedType;
 
 public class CountOperation extends StoreOperation {
     private final Notation longNotation;
@@ -49,7 +49,7 @@ public class CountOperation extends StoreOperation {
         return new KTableWrapper(
                 (KTable) input.groupedStream.count(Named.as(name), Materialized.as(storeName)),
                 input.keyType,
-                StreamDataType.of(DataLong.TYPE, input.valueType.notation, false));
+                StreamDataType.of(DataLong.TYPE, longNotation, false));
     }
 
     @Override
@@ -57,66 +57,22 @@ public class CountOperation extends StoreOperation {
         return new KTableWrapper(
                 (KTable) input.groupedTable.count(Named.as(name), Materialized.as(storeName)),
                 input.keyType,
-                StreamDataType.of(DataLong.TYPE, input.valueType.notation, false));
+                StreamDataType.of(DataLong.TYPE, longNotation, false));
     }
 
     @Override
     public StreamWrapper apply(SessionWindowedKStreamWrapper input) {
         return new KTableWrapper(
                 (KTable) input.sessionWindowedKStream.count(Named.as(name), Materialized.as(storeName)),
-                StreamDataType.of(new WindowType(input.keyType.type), input.keyType.notation, true),
-                StreamDataType.of(DataLong.TYPE, input.valueType.notation, false));
-
-//        final var sourceKeySerde = input.keyType.notation.getSerde(input.keyType.type, true);
-//
-//        final var countedStream = input.sessionWindowedKStream.count(
-//                Named.as(storeName),
-//                Materialized.<Object, Long, SessionStore<Bytes, byte[]>>as(storeName)
-//                        .withKeySerde(sourceKeySerde)
-//                        .withValueSerde(Serdes.Long())
-//        );
-//
-//        return normalize(input, countedStream);
+                StreamDataType.of(new WindowedType(input.keyType.type), input.keyType.notation, true),
+                StreamDataType.of(DataLong.TYPE, longNotation, false));
     }
 
     @Override
     public StreamWrapper apply(TimeWindowedKStreamWrapper input) {
         return new KTableWrapper(
                 (KTable) input.timeWindowedKStream.count(Named.as(name), Materialized.as(storeName)),
-                StreamDataType.of(new WindowType(input.keyType.type), input.keyType.notation, true),
-                StreamDataType.of(DataLong.TYPE, input.valueType.notation, false));
-
-//        final var sourceKeySerde = input.keyType.notation.getSerde(input.keyType.type, true);
-//
-//        final var countedStream = input.timeWindowedKStream.count(
-//                Named.as(storeName),
-//                Materialized.<DataObject, Long, WindowStore<Bytes, byte[]>>as(storeName)
-//                        .withKeySerde(sourceKeySerde)
-//                        .withValueSerde(Serdes.Long())
-//        );
-//
-//        return normalize(input, countedStream);
+                StreamDataType.of(new WindowedType(input.keyType.type), input.keyType.notation, true),
+                StreamDataType.of(DataLong.TYPE, longNotation, false));
     }
-
-//    private StreamWrapper normalize(StreamWrapper input, KTable<Windowed<DataObject>,Long> countTable) {
-//        final var keyType = new RecordType(SchemaUtils.generateWindowSchema(input.getKeyType().type));
-//        final var valueType = StandardType.LONG;
-//        final var keySerde = input.getKeyType().notation.getSerde(keyType, true);
-//        final var valueSerde = longNotation.getSerde(valueType, false);
-//
-//        final var normalizedStream = countTable.toStream().map(
-//                (key, value) -> new KeyValue<DataObject, DataObject>(SchemaUtils.convertWindow(key), new DataLong(value))
-//        );
-//        final var tableExport = normalizedStream.toTable(
-//                Named.as(storeName + "2"),
-//                Materialized.<DataObject, DataObject, KeyValueStore<Bytes, byte[]>>as(storeName + "2")
-//                        .withKeySerde(keySerde)
-//                        .withValueSerde(valueSerde)
-//        );
-//
-//        return new KTableWrapper(
-//                tableExport,
-//                StreamDataType.of(keyType, input.getKeyType().notation, true),
-//                StreamDataType.of(valueType, longNotation, false));
-//    }
 }

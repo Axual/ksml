@@ -21,9 +21,9 @@ package io.axual.ksml.runner.config;
  */
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
@@ -33,7 +33,9 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Data
-public class KSMLSourceConfig {
+public class KSMLConfig {
+    @JsonProperty("application.server")
+    private String applicationServer;
     private String workingDirectory;
     private List<String> definitions;
 
@@ -41,7 +43,7 @@ public class KSMLSourceConfig {
         if (workingDirectory == null) {
             throw new KSMLRunnerConfigurationException("workingDirectory", workingDirectory);
         }
-        final Path workingDirectoryPath = Paths.get(workingDirectory);
+        final var workingDirectoryPath = Paths.get(workingDirectory);
         if (Files.notExists(workingDirectoryPath) || !Files.isDirectory(workingDirectoryPath)) {
             throw new KSMLRunnerConfigurationException("workingDirectory", workingDirectory, "The provided path does not exists or is not a directory");
         }
@@ -51,7 +53,7 @@ public class KSMLSourceConfig {
         }
 
         for (String definitionFile : definitions) {
-            final Path definitionFilePath = Paths.get(workingDirectory, definitionFile);
+            final var definitionFilePath = Paths.get(workingDirectory, definitionFile);
             if (Files.notExists(definitionFilePath) || !Files.isRegularFile(definitionFilePath)) {
                 throw new KSMLRunnerConfigurationException("definitionFile", definitionFile, "The provided KSML definition file does not exists or is not a regular file");
             }

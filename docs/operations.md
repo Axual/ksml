@@ -443,15 +443,16 @@ This is an alias for [transformKey](#transformkey).
 
 [KTable::suppress]: https://kafka.apache.org/27/javadoc/org/apache/kafka/streams/kstream/KTable.html#suppress-org.apache.kafka.streams.kstream.Suppressed-
 
-Suppress some updates from this changelog stream, determined by the supplied Suppressed configuration.
+Suppress some updates from this changelog stream, determined by the supplied Suppressed configuration. When
+_windowCloses_ is selected and no further restrictions are provided, then this is interpreted as _Suppressed.untilWindowCloses(unbounded())_.
 
 |Stream Type |Returns |Parameter |Value Type| Description
 |:---|:---|:---|:---|:---
-|[KTable][KTable::suppress]`<K,V>`|[KTable]`<K,V>`|`until`|`string`|This value can either be `timeLimit` or `windowClose`.
-| | |`duration`|`string`|The [Duration] to suppress updates (in case of `until`==`timeLimit`)
-| | |`maxBytes`|`int`|The maximum number of bytes to suppress updates (in case of `until`==`timeLimit`)
-| | |`maxRecords`|`int`|The maximum number of records to suppress updates (in case of `until`==`timeLimit`)
-| | |`bufferFullStrategy`|`string`|Can be one of `emitEarlyWhenFull`, `shutdownWhenFull`
+|[KTable][KTable::suppress]`<K,V>`|[KTable]`<K,V>`|`until`|`string`|This value can either be `timeLimit` or `windowCloses`. Note that _timeLimit_ suppression works on any stream, while _windowCloses_ suppression works only on _Windowed_ streams. For the latter, see [windowedBy](#windowedby).
+| | |`duration`|`string`|The [Duration] to suppress updates (only when `until`==`timeLimit`)
+| | |`maxBytes`|`int`|(Optional) The maximum number of bytes to suppress updates
+| | |`maxRecords`|`int`|(Optional) The maximum number of records to suppress updates
+| | |`bufferFullStrategy`|`string`|(Optional) Can be one of `emitEarlyWhenFull`, `shutdownWhenFull`
 
 Example:
 ```yaml
@@ -601,18 +602,22 @@ to: output_stream
 [SessionWindows]: https://kafka.apache.org/27/javadoc/org/apache/kafka/streams/kstream/SessionWindows.html
 [SlidingWindows]: https://kafka.apache.org/27/javadoc/org/apache/kafka/streams/kstream/SlidingWindows.html
 [TimeWindows]: https://kafka.apache.org/27/javadoc/org/apache/kafka/streams/kstream/TimeWindows.html
+[WindowTypes]: https://kafka.apache.org/27/documentation/streams/developer-guide/dsl-api.html#windowing
 
-Create a new windowed KStream instance that can be used to perform windowed aggregations.
+Create a new windowed KStream instance that can be used to perform windowed aggregations. For more details on the different types of windows, please refer to [WindowTypes]|[this page].
 
 |Stream Type |Returns |Parameter |Value Type| Description
 |:---|:---|:---|:---|:---
 |[KGroupedStream][KGroupedStream::windowedBySession]|[SessionWindowedKStream]`<K,V>`|`windowType`|`string`|Fixed value `session`.
 | | |inactivityGap|[Duration]|The inactivity gap parameter for the [SessionWindows] object.
+| | |grace|[Duration]|(Optional) The grace parameter for the [SessionWindows] object.
 |[KGroupedStream][KGroupedStream::windowedBySliding]|[TimeWindowedKStream]`<K,V>`|`windowType`|`string`|Fixed value `sliding`.
 | | |timeDifference|[Duration]|The time difference parameter for the [SlidingWindows] object.
-| | |grace|[Duration]|The grace parameter for the [SlidingWindows] object.
+| | |grace|[Duration]|(Optional) The grace parameter for the [SlidingWindows] object.
 |[KGroupedStream][KGroupedStream::windowedByDuration]|[TimeWindowedKStream]`<K,V>`|`windowType`|`string`|Fixed value `time`.
 | | |duration|[Duration]|The duration parameter for the [TimeWindows] object.
+| | |advanceBy|[Duration]|(Optional) The amount by which each window is advanced. If this value is not specified, then it will be equal to _duration_, which gives tumbling windows. If you make this value smaller than _duration_ you will get hopping windows.
+| | |grace|[Duration]|(Optional) The grace parameter for the [TimeWindows] object.
 
 Example:
 ```yaml
@@ -623,6 +628,8 @@ via:
   - type: windowedBy
     windowType: time
     duration: 1h
+    advanceBy: 15m
+    grace: 5m
   - type: reduce
     reducer: my_reducer_function
   - type: toStream

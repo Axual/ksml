@@ -35,21 +35,23 @@ A string representing a duration in time. It can be defined as follows:
 ###x
 ```
 
-where `#` is a positive number between 0 and 999999 and `x` is a letter from the following table:
+where `#` is a positive number between 0 and 999999 and `x` is an optional letter from the following table:
 
 |Letter|Description|
 |--------|------------|
-|d|Duration in days
-|h|Duration in hours
-|m|Duration in minutes
+|_none_|Duration in milliseconds
 |s|Duration in seconds
+|m|Duration in minutes
+|h|Duration in hours
+|d|Duration in days
 |w|Duration in weeks
 
 Examples:
 
 ```
-8h ==> eight hours
+100 ==> hundred milliseconds
 30s ==> thirty seconds
+8h ==> eight hours
 2w ==> two weeks
 ```
 

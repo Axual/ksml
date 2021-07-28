@@ -8,3 +8,5 @@ target/
 **/.classpath
 **/.settings
 **/.factorypath
+
+examples/io.axual*

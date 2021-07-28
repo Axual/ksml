@@ -22,12 +22,12 @@ package io.axual.ksml.runner.backend;
 
 
 
-import io.axual.ksml.runner.config.KSMLSourceConfig;
+import io.axual.ksml.runner.config.KSMLConfig;
 
 public interface BackendProvider<T extends BackendConfig> {
     String getType();
 
-    Backend create(KSMLSourceConfig ksmlSourceConfig, BackendConfig backendConfig);
+    Backend create(KSMLConfig ksmlConfig, BackendConfig backendConfig);
     
     Class<T> getConfigClass();
 }

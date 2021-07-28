@@ -36,13 +36,13 @@ public class TableDefinition extends BaseStreamDefinition {
 
     @Override
     public StreamWrapper addToBuilder(StreamsBuilder builder, String name, NotationLibrary notationLibrary) {
-        var keyNot = notationLibrary.get(keyNotation);
-        var valueNot = notationLibrary.get(valueNotation);
-        var keySerde = keyNot.getSerde(keyType, true);
-        var valueSerde = valueNot.getSerde(valueType, false);
+        var keyNotation = notationLibrary.get(keyNotationStr);
+        var valueNotation = notationLibrary.get(valueNotationStr);
+        var keySerde = keyNotation.getSerde(keyType, true);
+        var valueSerde = valueNotation.getSerde(valueType, false);
         return new KTableWrapper(
                 builder.table(topic, Consumed.with(keySerde, valueSerde).withName(name)),
-                new StreamDataType(keyType, keyNot, true),
-                new StreamDataType(valueType, valueNot, false));
+                new StreamDataType(keyType, keyNotation, true),
+                new StreamDataType(valueType, valueNotation, false));
     }
 }

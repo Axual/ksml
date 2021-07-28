@@ -27,7 +27,7 @@ import com.google.auto.service.AutoService;
 import io.axual.ksml.runner.backend.Backend;
 import io.axual.ksml.runner.backend.BackendConfig;
 import io.axual.ksml.runner.backend.BackendProvider;
-import io.axual.ksml.runner.config.KSMLSourceConfig;
+import io.axual.ksml.runner.config.KSMLConfig;
 
 @AutoService(BackendProvider.class)
 public class AxualBackendProvider implements BackendProvider<AxualBackendConfig> {
@@ -39,8 +39,8 @@ public class AxualBackendProvider implements BackendProvider<AxualBackendConfig>
     }
 
     @Override
-    public Backend create(KSMLSourceConfig ksmlSourceConfig, BackendConfig backendConfig) {
-        return new AxualBackend(ksmlSourceConfig, (AxualBackendConfig) backendConfig);
+    public Backend create(KSMLConfig ksmlConfig, BackendConfig backendConfig) {
+        return new AxualBackend(ksmlConfig, (AxualBackendConfig) backendConfig);
     }
 
     @Override
