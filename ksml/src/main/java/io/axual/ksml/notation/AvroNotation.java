@@ -63,7 +63,7 @@ public class AvroNotation implements Notation {
     private class AvroSerde implements Serde<Object> {
         private final Serializer<Object> serializer = new KafkaAvroSerializer();
         private final Deserializer<Object> deserializer = new KafkaAvroDeserializer();
-
+        
         private final Serializer<Object> wrapSerializer = new Serializer<>() {
             @Override
             public byte[] serialize(String topic, Object data) {
@@ -78,6 +78,12 @@ public class AvroNotation implements Notation {
                 return mapper.toDataObject(object);
             }
         };
+
+        @Override
+        public void configure(Map<String, ?> configs, boolean isKey) {
+            serializer.configure(configs,isKey);
+            deserializer.configure(configs,isKey);
+        }
 
         @Override
         public Serializer<Object> serializer() {
