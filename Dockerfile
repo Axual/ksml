@@ -7,7 +7,9 @@ RUN mkdir -p "/opt/ksml/libs"  \
 && curl -k -L -o "/tmp/graalvm.tgz" "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-21.2.0/graalvm-ce-java11-linux-amd64-21.2.0.tar.gz" \
 && tar -xzf /tmp/graalvm.tgz -C "/opt" \
 && mv /opt/graalvm* /opt/graalvm \
-&& chown -R 1024:users /opt
+&& chown -R 1024:users /opt \
+&& rm -rf /tmp/graalvm.tgz \
+&& /opt/graalvm/bin/gu -A install python
 
 ADD --chown=1024:users target/libs/ /opt/ksml/libs/
 ADD --chown=1024:users target/ksml-runner*.jar /opt/ksml/ksml.jar
