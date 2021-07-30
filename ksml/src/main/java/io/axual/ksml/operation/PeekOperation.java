@@ -39,6 +39,6 @@ public class PeekOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        return new KStreamWrapper(input.stream.peek(new UserForeachAction(forEach), Named.as(name)), input.keyType, input.valueType);
+        return new KStreamWrapper(input.stream.peek(new UserForeachAction(forEach), Named.as(name)), input.keyType(), input.valueType());
     }
 }

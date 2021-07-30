@@ -23,26 +23,38 @@ package io.axual.ksml.operation;
 
 import org.apache.kafka.streams.kstream.Produced;
 
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.exception.KSMLTypeException;
+import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 
 public class ToOperation extends BaseOperation {
     private final BaseStreamDefinition target;
+    private final NotationLibrary notationLibrary;
 
-    public ToOperation(String name, BaseStreamDefinition target) {
+    public ToOperation(String name, BaseStreamDefinition target, NotationLibrary notationLibrary) {
         super(name);
         this.target = target;
+        this.notationLibrary = notationLibrary;
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
         // Perform a type check to see if the key/value data types received matches the stream definition's types
-        if (!target.keyType.isAssignableFrom(input.keyType.type) || !target.valueType.isAssignableFrom(input.valueType.type)) {
-            throw KSMLTypeException.topicTypeMismatch(target.topic, input.keyType, input.valueType, target.keyType, target.valueType);
+        if (!target.key.type.isAssignableFrom(input.keyType.type) || !target.value.type.isAssignableFrom(input.valueType.type)) {
+            throw KSMLTypeException.topicTypeMismatch(target.topic, input.keyType, input.valueType, target.key.type, target.value.type);
         }
-        input.stream.to(target.topic, Produced.with(input.keyType.serde, input.valueType.serde).withName(name));
+
+        var keySerde = target.key.type != DataType.UNKNOWN
+                ? notationLibrary.get(target.key.notation).getSerde(target.key.type, true)
+                : input.keyType.getSerde();
+        var valueSerde = target.value.type != DataType.UNKNOWN
+                ? notationLibrary.get(target.value.notation).getSerde(target.value.type, false)
+                : input.valueType.getSerde();
+
+        input.stream.to(target.topic, Produced.with(keySerde, valueSerde).withName(name));
         return null;
     }
 }

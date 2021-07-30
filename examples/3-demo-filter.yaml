@@ -15,7 +15,7 @@ functions:
 
   filter_message:
     type: predicate
-    expression: value['color'] == 'blue'
+    expression: value["color"] == 'blue'
 
 pipelines:
   main:

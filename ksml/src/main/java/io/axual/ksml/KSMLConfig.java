@@ -21,38 +21,33 @@ package io.axual.ksml;
  */
 
 
-
 import org.apache.kafka.common.annotation.InterfaceStability;
 
 import java.util.Map;
 
-import io.axual.ksml.generator.DefaultSerdeGenerator;
-import io.axual.ksml.generator.SerdeGenerator;
+import io.axual.ksml.notation.NotationLibrary;
 
 /**
  * Configuration for generating and running KSML definitions.
  */
 @InterfaceStability.Evolving
 public class KSMLConfig {
-    public static final String PYTHON_INTERPRETER_ISOLATION = "python.interpreter.isolation";
     public static final String KSML_SOURCE_TYPE = "ksml.source.type";
     public static final String KSML_SOURCE = "ksml.source";
     public static final String KSML_WORKING_DIRECTORY = "ksml.dir";
-    public static final String SERDE_GENERATOR = "serde.generator";
+    public static final String NOTATION_LIBRARY = "notation.library";
 
-    public final boolean interpreterIsolation;
     public final String sourceType;
     public final String workingDirectory;
     public final Object source;
-    public final SerdeGenerator serdeGenerator;
+    public final NotationLibrary notationLibrary;
 
     public KSMLConfig(Map<String, ?> configs) {
-        interpreterIsolation = Boolean.parseBoolean((String) configs.get(PYTHON_INTERPRETER_ISOLATION));
         sourceType = configs.containsKey(KSML_SOURCE_TYPE) ? (String) configs.get(KSML_SOURCE_TYPE) : "file";
         source = configs.get(KSMLConfig.KSML_SOURCE);
         workingDirectory = (String) configs.get(KSML_WORKING_DIRECTORY);
-        serdeGenerator = configs.containsKey(SERDE_GENERATOR)
-                ? (SerdeGenerator) configs.get(SERDE_GENERATOR)
-                : new DefaultSerdeGenerator((Map<String, Object>) configs);
+        notationLibrary = configs.containsKey(NOTATION_LIBRARY)
+                ? (NotationLibrary) configs.get(NOTATION_LIBRARY)
+                : new NotationLibrary(configs);
     }
 }

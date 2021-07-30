@@ -37,7 +37,7 @@ public class FunctionDefinitionParser extends BaseParser<FunctionDefinition> {
         if (node == null) return null;
         return FunctionDefinition.as(
                 new ListParser<>(new ParameterDefinitionParser()).parse(node.get(FUNCTION_PARAMETERS_ATTRIBUTE)).toArray(new ParameterDefinition[0]),
-                TypeParser.parse(parseText(node, FUNCTION_RESULTTYPE_ATTRIBUTE)),
+                TypeParser.parse(parseText(node, FUNCTION_RESULTTYPE_ATTRIBUTE)).type,
                 parseText(node, FUNCTION_EXPRESSION_ATTRIBUTE),
                 parseMultilineText(node, FUNCTION_CODE_ATTRIBUTE),
                 parseMultilineText(node, FUNCTION_GLOBALCODE_ATTRIBUTE));

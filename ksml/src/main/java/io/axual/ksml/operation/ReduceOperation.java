@@ -32,7 +32,7 @@ import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.SessionWindowedKStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
-import io.axual.ksml.type.WindowType;
+import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserReducer;
 
@@ -54,7 +54,7 @@ public class ReduceOperation extends StoreOperation {
                 new UserReducer(reducer),
                 Named.as(name),
                 Materialized.as(storeName)),
-                input.keyType, input.valueType);
+                input.keyType(), input.valueType());
     }
 
     @Override
@@ -64,7 +64,7 @@ public class ReduceOperation extends StoreOperation {
                 new UserReducer(subtractor),
                 Named.as(name),
                 Materialized.as(storeName)),
-                input.keyType, input.valueType);
+                input.keyType(), input.valueType());
     }
 
     @Override
@@ -76,8 +76,8 @@ public class ReduceOperation extends StoreOperation {
                         Named.as(name),
                         Materialized.as(storeName)
                 ),
-                StreamDataType.of(new WindowType(input.keyType.type), true),
-                input.valueType);
+                StreamDataType.of(new WindowedType(input.keyType.type), input.keyType.notation, true),
+                input.valueType());
     }
 
     @Override
@@ -87,7 +87,7 @@ public class ReduceOperation extends StoreOperation {
                         new UserReducer(reducer),
                         Named.as(name),
                         Materialized.as(storeName)),
-                StreamDataType.of(new WindowType(input.keyType.type), true),
-                input.valueType);
+                StreamDataType.of(new WindowedType(input.keyType.type), input.keyType.notation, true),
+                input.valueType());
     }
 }

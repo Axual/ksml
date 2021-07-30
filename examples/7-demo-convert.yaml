@@ -5,10 +5,6 @@ streams:
     topic: ksml_sensordata_avro
     keyType: string
     valueType: avro:SensorData
-  sensor_copy:
-    topic: ksml_sensordata_json
-    keyType: string
-    valueType: json
 
 functions:
   print_message:
@@ -26,4 +22,5 @@ pipelines:
       - type: peek
         forEach: print_message
         name: peek_and_print
-    to: sensor_copy
+    to:
+      topic: ksml_sensordata_json

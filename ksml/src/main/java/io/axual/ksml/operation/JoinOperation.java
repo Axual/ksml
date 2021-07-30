@@ -21,7 +21,6 @@ package io.axual.ksml.operation;
  */
 
 
-
 import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.Joined;
 import org.apache.kafka.streams.kstream.Materialized;
@@ -72,7 +71,7 @@ public class JoinOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        final StreamDataType resultValueType = StreamDataType.of(valueJoiner.resultType, false);
+        final StreamDataType resultValueType = StreamDataType.of(valueJoiner.resultType, input.valueType.notation, false);
 
         if (joinStream instanceof KStreamWrapper) {
             return new KStreamWrapper(
@@ -80,7 +79,7 @@ public class JoinOperation extends StoreOperation {
                             ((KStreamWrapper) joinStream).stream,
                             new UserValueJoiner(valueJoiner),
                             joinWindows,
-                            StreamJoined.with(input.keyType.serde, input.valueType.serde, resultValueType.serde).withName(name).withStoreName(storeName)),
+                            StreamJoined.with(input.keyType.getSerde(), input.valueType.getSerde(), resultValueType.getSerde()).withName(name).withStoreName(storeName)),
                     input.keyType,
                     resultValueType);
         }
@@ -89,7 +88,7 @@ public class JoinOperation extends StoreOperation {
                     input.stream.join(
                             ((KTableWrapper) joinStream).table,
                             new UserValueJoiner(valueJoiner),
-                            Joined.with(input.keyType.serde, input.valueType.serde, resultValueType.serde, storeName)),
+                            Joined.with(input.keyType.getSerde(), input.valueType.getSerde(), resultValueType.getSerde(), storeName)),
                     input.keyType,
                     resultValueType);
         }
@@ -108,7 +107,7 @@ public class JoinOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KTableWrapper input) {
-        final StreamDataType resultValueType = StreamDataType.of(valueJoiner.resultType, false);
+        final StreamDataType resultValueType = StreamDataType.of(valueJoiner.resultType, input.valueType.notation, false);
 
         if (joinStream instanceof KTableWrapper) {
             return new KTableWrapper(

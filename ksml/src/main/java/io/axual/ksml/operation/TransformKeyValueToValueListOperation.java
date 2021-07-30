@@ -26,7 +26,7 @@ import org.apache.kafka.streams.kstream.Named;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.type.ListType;
+import io.axual.ksml.data.type.DataListType;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserKeyValueToValueListTransformer;
 
@@ -42,7 +42,7 @@ public class TransformKeyValueToValueListOperation extends BaseOperation {
     public StreamWrapper apply(KStreamWrapper input) {
         return new KStreamWrapper(
                 input.stream.flatMapValues(new UserKeyValueToValueListTransformer(transformer), Named.as(name)),
-                input.keyType,
-                StreamDataType.of(((ListType) transformer.resultType).getValueType(), false));
+                input.keyType(),
+                StreamDataType.of(((DataListType) transformer.resultType).valueType(), input.valueType.notation, false));
     }
 }

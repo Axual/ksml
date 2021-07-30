@@ -21,7 +21,6 @@ package io.axual.ksml.operation;
  */
 
 
-
 import org.apache.kafka.streams.kstream.Named;
 
 import io.axual.ksml.generator.StreamDataType;
@@ -42,7 +41,7 @@ public class TransformKeyOperation extends BaseOperation {
     public StreamWrapper apply(KStreamWrapper input) {
         return new KStreamWrapper(
                 input.stream.selectKey(new UserKeyTransformer(transformer), Named.as(name)),
-                StreamDataType.of(transformer.resultType, true),
+                StreamDataType.of(transformer.resultType, input.keyType.notation, true),
                 input.valueType);
     }
 }

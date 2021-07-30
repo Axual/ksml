@@ -21,13 +21,13 @@ package io.axual.ksml.definition.parser;
  */
 
 
-
 import io.axual.ksml.definition.PipelineDefinition;
+import io.axual.ksml.operation.parser.PipelineOperationParser;
+import io.axual.ksml.operation.parser.PipelineSinkOperationParser;
 import io.axual.ksml.parser.ContextAwareParser;
 import io.axual.ksml.parser.ListParser;
 import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.operation.parser.PipelineOperationParser;
-import io.axual.ksml.operation.parser.PipelineSinkOperationParser;
+import io.axual.ksml.parser.ReferenceOrInlineParser;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.PIPELINE_FROM_ATTRIBUTE;
@@ -46,7 +46,9 @@ public class PipelineDefinitionParser extends ContextAwareParser<PipelineDefinit
     public PipelineDefinition parse(YamlNode node, boolean parseSource, boolean parseSink) {
         if (node == null) return null;
         return new PipelineDefinition(
-                parseSource ? parseBaseStreamDefinition(node, PIPELINE_FROM_ATTRIBUTE) : null,
+                parseSource
+                        ? new ReferenceOrInlineParser<>("source", PIPELINE_FROM_ATTRIBUTE, context.getStreamDefinitions()::get, new StreamDefinitionParser()).parse(node)
+                        : null,
                 new ListParser<>(new PipelineOperationParser(context)).parse(node.get(PIPELINE_VIA_ATTRIBUTE, "step")),
                 parseSink ? new PipelineSinkOperationParser(context).parse(node) : null);
     }

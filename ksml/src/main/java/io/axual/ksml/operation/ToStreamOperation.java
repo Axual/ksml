@@ -21,12 +21,12 @@ package io.axual.ksml.operation;
  */
 
 
-
 import org.apache.kafka.streams.kstream.Named;
 
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
+import io.axual.ksml.util.DataUtil;
 
 public class ToStreamOperation extends BaseOperation {
     public ToStreamOperation(String name) {
@@ -36,7 +36,7 @@ public class ToStreamOperation extends BaseOperation {
     @Override
     public StreamWrapper apply(KTableWrapper input) {
         return new KStreamWrapper(
-                input.table.toStream(Named.as(name)),
+                input.table.toStream((key, value) -> DataUtil.asData(key), Named.as(name)),
                 input.keyType,
                 input.valueType);
     }

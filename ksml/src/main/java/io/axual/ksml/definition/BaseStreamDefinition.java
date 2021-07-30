@@ -23,31 +23,26 @@ package io.axual.ksml.definition;
 
 import org.apache.kafka.streams.StreamsBuilder;
 
-import io.axual.ksml.generator.SerdeGenerator;
-import io.axual.ksml.parser.TypeParser;
+import io.axual.ksml.data.type.DataTypeAndNotation;
+import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.type.DataType;
 
 public abstract class BaseStreamDefinition {
     public final String topic;
-    public final DataType keyType;
-    public final DataType valueType;
+    public final DataTypeAndNotation key;
+    public final DataTypeAndNotation value;
 
-    public BaseStreamDefinition(String topic, String keyType, String valueType) {
-        this(topic, TypeParser.parse(keyType), TypeParser.parse(valueType));
-    }
-
-    public BaseStreamDefinition(String topic, DataType keyType, DataType valueType) {
+    public BaseStreamDefinition(String topic, DataTypeAndNotation key, DataTypeAndNotation value) {
         this.topic = topic;
-        this.keyType = keyType;
-        this.valueType = valueType;
+        this.key = key;
+        this.value = value;
     }
 
     /**
      * Add definitions for this stream definition to the provided builder, and returns a wrapped stream.
      *
-     * @param builder        the StreamsBuilder to add the stream to.
-     * @param serdeGenerator serde generator for the key and value types.
+     * @param builder         the StreamsBuilder to add the stream to.
+     * @param notationLibrary notation library  generator for the key and value types.
      */
-    public abstract StreamWrapper addToBuilder(StreamsBuilder builder, String name, SerdeGenerator serdeGenerator);
+    public abstract StreamWrapper addToBuilder(StreamsBuilder builder, String name, NotationLibrary notationLibrary);
 }

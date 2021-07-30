@@ -46,17 +46,25 @@ public class SuppressOperationParser extends ContextAwareParser<SuppressOperatio
         if (suppressedType != null) {
             switch (suppressedType) {
                 case SUPPRESS_UNTILTIMELIMIT:
-                    return new SuppressOperation(name, Suppressed.untilTimeLimit(
-                            parseDuration(node, SUPPRESS_DURATION_ATTRIBUTE),
-                            parseBufferConfig(node)));
-                case SUPPRESS_UNTILWINDOWCLOSE:
-                    Suppressed.StrictBufferConfig suppressedBufferConfig = parseStrictBufferConfig(node);
-                    return new SuppressOperation(name, (Suppressed) Suppressed.untilWindowCloses(suppressedBufferConfig));
+                    return parseSuppressUntilTimeLimit(node);
+                case SUPPRESS_UNTILWINDOWCLOSES:
+                    return parseSuppressUntilWindowClose(node);
                 default:
                     throw new KSMLParseException(node, "Unknown Suppressed type for suppress operation: " + suppressedType);
             }
         }
-        throw new KSMLParseException(node, "WindowType missing for windowedBy operation");
+        throw new KSMLParseException(node, "Mandatory 'until' attribute is missing for Suppress operation");
+    }
+
+    private SuppressOperation parseSuppressUntilTimeLimit(YamlNode node) {
+        var duration = parseDuration(node, SUPPRESS_DURATION_ATTRIBUTE);
+        var bufferConfig = parseBufferConfig(node);
+        return SuppressOperation.create(name, Suppressed.untilTimeLimit(duration, bufferConfig));
+    }
+
+    private SuppressOperation parseSuppressUntilWindowClose(YamlNode node) {
+        var bufferConfig = parseStrictBufferConfig(node);
+        return SuppressOperation.createWindowed(name, Suppressed.untilWindowCloses(bufferConfig));
     }
 
     private Suppressed.EagerBufferConfig parseBufferConfig(YamlNode node) {
@@ -97,6 +105,7 @@ public class SuppressOperationParser extends ContextAwareParser<SuppressOperatio
         if (result == null) {
             return Suppressed.BufferConfig.unbounded();
         }
+
         return result.shutDownWhenFull();
     }
 }

@@ -23,7 +23,6 @@ package io.axual.ksml.parser;
 
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
-import org.python.util.PythonInterpreter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.exception.KSMLTopologyException;
-import io.axual.ksml.generator.SerdeGenerator;
+import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.python.PythonFunction;
 import io.axual.ksml.stream.BaseStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
@@ -43,17 +42,15 @@ import io.axual.ksml.user.UserFunction;
  */
 public class TopologyParseContext implements ParseContext {
     private final StreamsBuilder builder;
-    private final PythonInterpreter interpreter;
-    private final SerdeGenerator serdeGenerator;
+    private final NotationLibrary notationLibrary;
     private final Map<String, BaseStreamDefinition> streamDefinitions;
     private final Map<String, FunctionDefinition> functionDefinitions;
     private final Map<String, StreamWrapper> streamWrappers = new HashMap<>();
     private final Map<String, AtomicInteger> typeInstanceCounters = new HashMap<>();
 
-    public TopologyParseContext(StreamsBuilder builder, PythonInterpreter interpreter, SerdeGenerator serdeGenerator, Map<String, BaseStreamDefinition> streamDefinitions, Map<String, FunctionDefinition> functionDefinitions) {
+    public TopologyParseContext(StreamsBuilder builder, NotationLibrary notationLibrary, Map<String, BaseStreamDefinition> streamDefinitions, Map<String, FunctionDefinition> functionDefinitions) {
         this.builder = builder;
-        this.interpreter = interpreter;
-        this.serdeGenerator = serdeGenerator;
+        this.notationLibrary = notationLibrary;
         this.streamDefinitions = streamDefinitions;
         this.functionDefinitions = functionDefinitions;
 
@@ -62,7 +59,7 @@ public class TopologyParseContext implements ParseContext {
     }
 
     private StreamWrapper buildWrapper(String name, BaseStreamDefinition def) {
-        var wrapper = def.addToBuilder(builder, name, serdeGenerator);
+        var wrapper = def.addToBuilder(builder, name, notationLibrary);
         streamWrappers.put(name, wrapper);
         if (!name.equals(def.topic)) {
             streamWrappers.put(def.topic, wrapper);
@@ -102,13 +99,16 @@ public class TopologyParseContext implements ParseContext {
 
     @Override
     public UserFunction getUserFunction(FunctionDefinition definition, String name) {
-        final PythonInterpreter functionInterpreter = interpreter != null ? interpreter : new PythonInterpreter();
-        return new PythonFunction(functionInterpreter, name, definition);
+        return new PythonFunction(name, definition);
     }
 
     @Override
     public Map<String, AtomicInteger> getTypeInstanceCounters() {
         return typeInstanceCounters;
+    }
+
+    public NotationLibrary getNotationLibrary() {
+        return notationLibrary;
     }
 
     public Topology build() {

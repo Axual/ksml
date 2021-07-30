@@ -21,13 +21,26 @@ package io.axual.ksml.parser;
  */
 
 
+import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.DataByte;
+import io.axual.ksml.data.object.DataBytes;
+import io.axual.ksml.data.object.DataDouble;
+import io.axual.ksml.data.object.DataFloat;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataShort;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.type.DataListType;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.DataTypeAndNotation;
+import io.axual.ksml.data.type.RecordType;
+import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.exception.KSMLTopologyException;
-import io.axual.ksml.type.AvroType;
-import io.axual.ksml.type.DataType;
-import io.axual.ksml.type.ListType;
-import io.axual.ksml.type.StandardType;
-import io.axual.ksml.type.TupleType;
+import io.axual.ksml.notation.AvroNotation;
+import io.axual.ksml.notation.BinaryNotation;
+import io.axual.ksml.notation.JsonNotation;
+import io.axual.ksml.schema.SchemaLibrary;
 
 public class TypeParser {
     private static final String ALLOWED_TYPE_CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_:.?";
@@ -35,84 +48,113 @@ public class TypeParser {
     private TypeParser() {
     }
 
-    public static DataType parse(String type) {
-        DataType[] types = parseListOfTypes(type);
+    public static DataTypeAndNotation parse(String type) {
+        return parse(type, BinaryNotation.NAME);
+    }
+
+    public static DataTypeAndNotation parse(String type, String defaultNotation) {
+        DataTypeAndNotation[] types = parseListOfTypesAndNotation(type, defaultNotation, true);
         if (types.length == 1) {
             return types[0];
         }
         throw new KSMLParseException("Could not parse data type: " + type);
     }
 
-    private static DataType[] parseListOfTypes(String type) {
+    private static DataTypeAndNotation[] parseListOfTypesAndNotation(String type, String defaultNotation, boolean allowOverrideNotation) {
         if (type == null || type.isEmpty()) {
-            return new DataType[]{DataType.UNKNOWN};
+            return new DataTypeAndNotation[]{new DataTypeAndNotation(DataType.UNKNOWN, defaultNotation)};
         }
         type = type.trim();
 
         String leftTerm = parseLeftMostTerm(type);
         String remainder = type.substring(leftTerm.length()).trim();
-        DataType leftTermType = parseType(leftTerm);
-        var remainderTypes = new DataType[0];
+        DataTypeAndNotation leftTermType = parseTypeAndNotation(leftTerm, defaultNotation, allowOverrideNotation);
+        var remainderTypes = new DataTypeAndNotation[0];
         if (remainder.startsWith(",")) {
-            remainderTypes = parseListOfTypes(remainder.substring(1));
+            remainderTypes = parseListOfTypesAndNotation(remainder.substring(1), defaultNotation, false);
         } else if (!remainder.isEmpty()) {
             throw new KSMLParseException("Could not parse type: " + type);
         }
 
-        var result = new DataType[remainderTypes.length + 1];
+        var result = new DataTypeAndNotation[remainderTypes.length + 1];
         result[0] = leftTermType;
         System.arraycopy(remainderTypes, 0, result, 1, remainderTypes.length);
         return result;
     }
 
-    private static DataType parseType(String type) {
-        // This method assumes no compound types are passed in, unless surrounded by brackets
+    private static DataTypeAndNotation parseTypeAndNotation(String type, String defaultNotation, boolean allowOverrideNotation) {
+        String resultNotation = defaultNotation;
+        String typeNotation = defaultNotation;
+
         if (type.startsWith("[")) {
             if (!type.endsWith("]")) {
                 throw new KSMLParseException("Error in type: " + type);
             }
-            DataType valueType = parseType(type.substring(1, type.length() - 1));
-            return new ListType(valueType);
+            DataTypeAndNotation valueType = parseTypeAndNotation(type.substring(1, type.length() - 1), resultNotation, false);
+            return new DataTypeAndNotation(new DataListType(valueType.type), resultNotation);
         }
 
         if (type.startsWith("(")) {
             if (!type.endsWith(")")) {
                 throw new KSMLParseException("Error in type: " + type);
             }
-            DataType[] valueTypes = parseListOfTypes(type.substring(1, type.length() - 1));
-            return new TupleType(valueTypes);
-        }
-
-        if (type.startsWith("avro:")) {
-            var schemaName = type.substring(5);
-            var schema = SchemaLoader.load(schemaName);
-            if (schema == null) {
-                throw new KSMLParseException("Could not load schema definition: " + schemaName);
+            DataTypeAndNotation[] subTypes = parseListOfTypesAndNotation(type.substring(1, type.length() - 1), resultNotation, false);
+            DataType[] valueTypes = new DataType[subTypes.length];
+            for (int index = 0; index < subTypes.length; index++) {
+                valueTypes[index] = subTypes[index].type;
             }
-            return new AvroType(schemaName, schema);
+            return new DataTypeAndNotation(new TupleType(valueTypes), resultNotation);
         }
 
+        if (type.contains(":")) {
+            typeNotation = type.substring(0, type.indexOf(":"));
+            type = type.substring(type.indexOf(":") + 1);
+
+            if (allowOverrideNotation) {
+                resultNotation = typeNotation.toUpperCase();
+            }
+        }
+
+        if (typeNotation.equalsIgnoreCase(AvroNotation.NAME)) {
+            var schema = SchemaLibrary.getSchema(type);
+            if (schema == null) {
+                throw new KSMLParseException("Could not load schema definition: " + type);
+            }
+            return new DataTypeAndNotation(new RecordType(schema), resultNotation);
+        }
+
+        if (typeNotation.equalsIgnoreCase(JsonNotation.NAME) || type.equalsIgnoreCase(JsonNotation.NAME)) {
+            return new DataTypeAndNotation(new RecordType(null), JsonNotation.NAME);
+        }
+
+        return new DataTypeAndNotation(parseType(type, resultNotation), resultNotation);
+    }
+
+    private static DataType parseType(String type, String notation) {
         switch (type) {
             case "boolean":
-                return StandardType.BOOLEAN;
+                return DataBoolean.TYPE;
+            case "byte":
+                return DataByte.TYPE;
+            case "bytes":
+                return DataBytes.TYPE;
+            case "short":
+                return DataShort.TYPE;
             case "double":
-                return StandardType.DOUBLE;
+                return DataDouble.TYPE;
             case "float":
-                return StandardType.FLOAT;
+                return DataFloat.TYPE;
             case "int":
-                return StandardType.INTEGER;
-            case "json":
-                return StandardType.JSON;
+                return DataInteger.TYPE;
             case "long":
-                return StandardType.LONG;
+                return DataLong.TYPE;
             case "?":
+                return DataType.UNKNOWN;
             case "none":
                 return null;
             case "str":
             case "string":
-                return StandardType.STRING;
-            case "bytes":
-                return StandardType.BYTES;
+                return DataString.TYPE;
             default:
                 throw new KSMLTopologyException("Can not derive type: " + type);
         }
@@ -133,7 +175,8 @@ public class TypeParser {
         return type;
     }
 
-    private static String parseBracketedExpression(String type, String openBracket, String closeBracket) {
+    private static String parseBracketedExpression(String type, String openBracket, String
+            closeBracket) {
         var openCount = 1;
         for (var index = 1; index < type.length(); index++) {
             var ch = type.substring(index, index + 1);

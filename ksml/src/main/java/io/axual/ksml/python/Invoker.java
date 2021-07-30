@@ -21,12 +21,11 @@ package io.axual.ksml.python;
  */
 
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.axual.ksml.exception.KSMLApplyException;
-import io.axual.ksml.type.DataType;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.user.UserFunction;
 
 /**

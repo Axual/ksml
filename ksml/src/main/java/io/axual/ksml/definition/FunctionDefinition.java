@@ -22,7 +22,7 @@ package io.axual.ksml.definition;
 
 
 import io.axual.ksml.exception.KSMLApplyException;
-import io.axual.ksml.type.DataType;
+import io.axual.ksml.data.type.DataType;
 
 public class FunctionDefinition {
     public final ParameterDefinition[] parameters;

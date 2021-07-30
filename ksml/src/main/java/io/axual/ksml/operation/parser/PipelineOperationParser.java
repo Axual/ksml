@@ -37,6 +37,7 @@ import static io.axual.ksml.dsl.KSMLDSL.OPERATION_FILTERNOT_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_FILTER_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_FLATMAPVALUES_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_FLATMAP_TYPE;
+import static io.axual.ksml.dsl.KSMLDSL.OPERATION_GROUPBYKEY_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_GROUPBY_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_JOIN_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_LEFTJOIN_TYPE;
@@ -51,6 +52,7 @@ import static io.axual.ksml.dsl.KSMLDSL.OPERATION_OUTERJOIN_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_PEEK_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_REDUCE_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_REPARTITION_TYPE;
+import static io.axual.ksml.dsl.KSMLDSL.OPERATION_SUPPRESS_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_TOSTREAM_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_TRANSFORMKEYVALUETOKEYVALUELIST_TYPE;
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_TRANSFORMKEYVALUETOVALUELIST_TYPE;
@@ -106,6 +108,8 @@ public class PipelineOperationParser extends ContextAwareParser<StreamOperation>
                 return new TransformKeyValueToValueListOperationParser(name, context);
             case OPERATION_GROUPBY_TYPE:
                 return new GroupByOperationParser(name, context);
+            case OPERATION_GROUPBYKEY_TYPE:
+                return new GroupByKeyOperationParser(name, context);
             case OPERATION_JOIN_TYPE:
                 return new JoinOperationParser(name, context);
             case OPERATION_LEFTJOIN_TYPE:
@@ -132,6 +136,8 @@ public class PipelineOperationParser extends ContextAwareParser<StreamOperation>
                 return new ReduceOperationParser(name, context);
             case OPERATION_REPARTITION_TYPE:
                 return new RepartitionOperationParser(name, context);
+            case OPERATION_SUPPRESS_TYPE:
+                return new SuppressOperationParser(name,context);
             case OPERATION_TOSTREAM_TYPE:
                 return new ToStreamOperationParser(name, context);
             case OPERATION_WINDOWEDBY_TYPE:

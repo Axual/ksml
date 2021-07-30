@@ -21,14 +21,13 @@ package io.axual.ksml.stream;
  */
 
 
-
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.parser.StreamOperation;
 
 public interface StreamWrapper {
-    StreamDataType getKeyType();
+    StreamDataType keyType();
 
-    StreamDataType getValueType();
+    StreamDataType valueType();
 
     default StreamWrapper apply(StreamOperation operation) {
         throw new UnsupportedOperationException("Can not apply " + operation.getClass().getSimpleName() + " to " + getClass().getSimpleName());

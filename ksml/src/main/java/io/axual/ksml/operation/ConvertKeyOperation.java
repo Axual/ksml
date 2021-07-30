@@ -23,36 +23,49 @@ package io.axual.ksml.operation;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Named;
 
-import io.axual.ksml.data.DataConverter;
+import io.axual.ksml.data.object.DataRecord;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.RecordType;
 import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.notation.Notation;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.type.DataType;
+import io.axual.ksml.util.DataUtil;
 
 public class ConvertKeyOperation extends BaseOperation {
-    private static class KeyConverter extends DataConverter implements KeyValueMapper<Object, Object, Object> {
+    private static class KeyConverter implements KeyValueMapper<Object, Object, Object> {
+        private final RecordType targetRecordType;
+
         public KeyConverter(DataType toType) {
-            super(toType);
+            this.targetRecordType = toType instanceof RecordType ? (RecordType) toType : null;
         }
 
         @Override
         public Object apply(Object key, Object value) {
-            return convert(key);
+            var keyAsData = DataUtil.asData(key);
+            if (targetRecordType == null) return keyAsData;
+            var result = new DataRecord(targetRecordType.schema());
+            result.putAll((DataRecord) keyAsData);
+            return result;
         }
     }
 
     private final KeyConverter converter;
+    private final DataType targetType;
+    private final Notation targetNotation;
 
-    public ConvertKeyOperation(String name, DataType toType) {
+    public ConvertKeyOperation(String name, DataType targetType, Notation targetNotation) {
         super(name);
-        converter = new KeyConverter(toType);
+        this.targetType = targetType;
+        this.targetNotation=targetNotation;
+        converter = new KeyConverter(this.targetType);
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
         return new KStreamWrapper(
                 input.stream.selectKey(converter, Named.as(name)),
-                StreamDataType.of(converter.toType, true),
+                StreamDataType.of(targetType, targetNotation, true),
                 input.valueType);
     }
 }

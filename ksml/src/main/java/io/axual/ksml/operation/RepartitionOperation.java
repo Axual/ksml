@@ -21,7 +21,6 @@ package io.axual.ksml.operation;
  */
 
 
-
 import org.apache.kafka.streams.kstream.Repartitioned;
 
 import io.axual.ksml.stream.KStreamWrapper;
@@ -39,7 +38,7 @@ public class RepartitionOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        Repartitioned<Object, Object> repartitioned = Repartitioned.with(input.keyType.serde, input.valueType.serde).withName(storeName);
+        Repartitioned<Object, Object> repartitioned = Repartitioned.with(input.keyType.getSerde(), input.valueType.getSerde()).withName(storeName);
         if (partitioner != null) {
             repartitioned = repartitioned.withStreamPartitioner(new UserStreamPartitioner(partitioner));
         }

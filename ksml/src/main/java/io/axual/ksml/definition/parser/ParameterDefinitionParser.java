@@ -36,6 +36,6 @@ public class ParameterDefinitionParser extends BaseParser<ParameterDefinition> {
         if (node == null) return null;
         return new ParameterDefinition(
                 parseText(node, FUNCTION_PARAMETER_NAME),
-                TypeParser.parse(parseText(node, FUNCTION_PARAMETER_TYPE)));
+                TypeParser.parse(parseText(node, FUNCTION_PARAMETER_TYPE)).type);
     }
 }

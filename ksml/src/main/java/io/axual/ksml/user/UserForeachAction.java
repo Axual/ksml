@@ -21,9 +21,9 @@ package io.axual.ksml.user;
  */
 
 
-
 import org.apache.kafka.streams.kstream.ForeachAction;
 
+import io.axual.ksml.util.DataUtil;
 import io.axual.ksml.python.Invoker;
 
 public class UserForeachAction extends Invoker implements ForeachAction<Object, Object> {
@@ -36,6 +36,6 @@ public class UserForeachAction extends Invoker implements ForeachAction<Object, 
 
     @Override
     public void apply(Object key, Object value) {
-        function.call(key, value);
+        function.call(DataUtil.asData(key), DataUtil.asData(value));
     }
 }

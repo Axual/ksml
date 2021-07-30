@@ -21,14 +21,12 @@ package io.axual.ksml.runner;
  */
 
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -42,14 +40,14 @@ public class KSMLRunner {
     private static final String DEFAULT_CONFIG_FILE_SHORT = "ksml-runner.yml";
 
     public static void main(String[] args) {
-        final File configPath = new File(args.length == 0 ? DEFAULT_CONFIG_FILE_SHORT : args[0]);
+        final var configPath = new File(args.length == 0 ? DEFAULT_CONFIG_FILE_SHORT : args[0]);
         if (!configPath.exists()) {
             log.error("Configuration file '{}' not found", configPath);
             System.exit(1);
         }
         Backend backend;
         try {
-            final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+            final var mapper = new ObjectMapper(new YAMLFactory());
             final KSMLRunnerConfig config = mapper.readValue(configPath, KSMLRunnerConfig.class);
             config.validate();
             log.info("Using backed of type {}", config.getBackend().getType());
@@ -62,7 +60,7 @@ public class KSMLRunner {
             return;
         }
 
-        ExecutorService executorService = Executors.newFixedThreadPool(5);
+        var executorService = Executors.newFixedThreadPool(5);
         Future<?> backendFuture = executorService.submit(backend);
 
         try {

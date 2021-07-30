@@ -21,9 +21,9 @@ package io.axual.ksml.parser;
  */
 
 
-
 import java.time.Duration;
 import java.util.function.Function;
+import java.util.function.ToLongFunction;
 
 import io.axual.ksml.exception.KSMLParseException;
 
@@ -40,18 +40,23 @@ public abstract class BaseParser<T> {
         if (durationStr == null) return null;
         durationStr = durationStr.toLowerCase().trim();
         if (durationStr.length() >= 2) {
+            // Prepare a function to extract the number part from a string formatted as "1234x".
+            // This function is only applied if a known unit character is found at the end of
+            // the duration string.
+            ToLongFunction<String> parser = ds -> Long.parseLong(ds.substring(0, ds.length() - 1));
+
             // If the duration ends with a unit string, then use that for the duration basis
             switch (durationStr.charAt(durationStr.length() - 1)) {
                 case 'd':
-                    return Duration.ofDays(Long.parseLong(durationStr.substring(0, durationStr.length() - 1)));
+                    return Duration.ofDays(parser.applyAsLong(durationStr));
                 case 'h':
-                    return Duration.ofHours(Long.parseLong(durationStr.substring(0, durationStr.length() - 1)));
+                    return Duration.ofHours(parser.applyAsLong(durationStr));
                 case 'm':
-                    return Duration.ofMinutes(Long.parseLong(durationStr.substring(0, durationStr.length() - 1)));
+                    return Duration.ofMinutes(parser.applyAsLong(durationStr));
                 case 's':
-                    return Duration.ofSeconds(Long.parseLong(durationStr.substring(0, durationStr.length() - 1)));
+                    return Duration.ofSeconds(parser.applyAsLong(durationStr));
                 case 'w':
-                    return Duration.ofDays(Long.parseLong(durationStr.substring(0, durationStr.length() - 1)) * 7);
+                    return Duration.ofDays(parser.applyAsLong(durationStr) * 7);
                 default:
             }
         }

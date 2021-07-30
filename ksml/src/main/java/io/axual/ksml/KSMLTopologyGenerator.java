@@ -24,16 +24,17 @@ package io.axual.ksml;
 import org.apache.kafka.common.Configurable;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
-import org.python.util.PythonInterpreter;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import io.axual.ksml.generator.TopologyGeneratorImpl;
-import io.axual.ksml.parser.SchemaLoader;
+import io.axual.ksml.avro.AvroSchemaLoader;
+import io.axual.ksml.schema.SchemaLibrary;
 
 /**
  * Generates a Kafka Streams topology based on a KSML config file.
+ *
  * @see KSMLConfig
  */
 public class KSMLTopologyGenerator implements Configurable, TopologyGenerator {
@@ -47,8 +48,9 @@ public class KSMLTopologyGenerator implements Configurable, TopologyGenerator {
 
     @Override
     public Topology create(StreamsBuilder streamsBuilder) {
-        SchemaLoader.setSchemaDirectory(config.workingDirectory);
-        var generator = new TopologyGeneratorImpl(config, config.interpreterIsolation ? null : new PythonInterpreter());
+        var avroSchemaLoader = new AvroSchemaLoader(config.workingDirectory);
+        SchemaLibrary.registerLoader(avroSchemaLoader);
+        var generator = new TopologyGeneratorImpl(config);
         return generator.create(streamsBuilder);
     }
 }

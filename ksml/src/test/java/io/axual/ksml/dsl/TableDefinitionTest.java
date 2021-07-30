@@ -29,8 +29,12 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.HashMap;
+
 import io.axual.ksml.definition.TableDefinition;
-import io.axual.ksml.generator.SerdeGenerator;
+import io.axual.ksml.notation.BinaryNotation;
+import io.axual.ksml.notation.Notation;
+import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.parser.TypeParser;
 import io.axual.ksml.stream.KTableWrapper;
 
@@ -47,24 +51,27 @@ public class TableDefinitionTest {
     @Mock
     private StreamsBuilder builder;
 
+    private final NotationLibrary notationLibrary = new NotationLibrary(new HashMap<>());
+
     @Mock
-    private SerdeGenerator serdeGenerator;
+    Notation mockNotation;
 
     @Test
-    public void testTableDefinition() {
+    void testTableDefinition() {
+        notationLibrary.put(BinaryNotation.NAME, mockNotation);
+
         // given a TableDefinition
         var tableDefinition = new TableDefinition("topic", "string", "string");
 
         // when it adds itself to Builder
-        var streamWrapper = tableDefinition.addToBuilder(builder, "name", serdeGenerator);
+        var streamWrapper = tableDefinition.addToBuilder(builder, "name", notationLibrary);
 
         // it adds a ktable to the builder with key and value type, and returns a KTableWrapper instance
         final var stringType = TypeParser.parse("string");
-        verify(serdeGenerator).getSerdeForType(stringType, true);
-        verify(serdeGenerator).getSerdeForType(stringType, false);
+        verify(mockNotation).getSerde(stringType.type, true);
+        verify(mockNotation).getSerde(stringType.type, false);
 
         verify(builder).table(eq("topic"), isA(Consumed.class));
         assertThat(streamWrapper, instanceOf(KTableWrapper.class));
     }
-
 }

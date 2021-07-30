@@ -21,73 +21,122 @@ package io.axual.ksml.python;
  */
 
 
-import org.python.core.PyObject;
-import org.python.util.PythonInterpreter;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.util.Utf8;
+import org.apache.kafka.connect.data.Struct;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.HostAccess;
+import org.graalvm.polyglot.PolyglotAccess;
+import org.graalvm.polyglot.Source;
+import org.graalvm.polyglot.Value;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
-import io.axual.ksml.data.NativeTypeConverter;
-import io.axual.ksml.data.PythonTypeConverter;
+import io.axual.ksml.data.mapper.PythonDataMapper;
+import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.util.StringUtil;
 
 public class PythonFunction extends UserFunction {
-    protected final PythonInterpreter interpreter;
-    private final NativeTypeConverter toNative = new NativeTypeConverter();
-    private final PythonTypeConverter toPython = new PythonTypeConverter();
+    private static final String PYTHON = "python";
+    protected static final Context context = Context.newBuilder(PYTHON)
+            .allowNativeAccess(true)
+            .allowPolyglotAccess(PolyglotAccess.ALL)
+            .allowHostAccess(HostAccess.ALL)
+            .allowHostClassLookup(name -> name.equals("java.util.ArrayList") || name.equals("java.util.HashMap"))
+            .build();
+    private static final PythonDataMapper mapper = new PythonDataMapper(context);
+    protected final Value function;
 
-    public PythonFunction(PythonInterpreter interpreter, String name, FunctionDefinition definition) {
+    public PythonFunction(String name, FunctionDefinition definition) {
         super(name, definition.parameters, definition.resultType);
-        this.interpreter = interpreter;
-        prepare(definition.globalCode, definition.code, definition.expression);
-    }
 
-    protected void prepare(String[] globalCode, String[] code, String resultExpression) {
         // Prepend two spaces of indentation before the function code
-        String[] functionCode = Arrays.stream(code).map(line -> "  " + line).toArray(String[]::new);
+        String[] functionCode = Arrays.stream(definition.code).map(line -> "  " + line).toArray(String[]::new);
 
         // Prepare a list of parameter names
         String[] params = Arrays.stream(parameters).map(p -> p.name).toArray(String[]::new);
+//        String[] convertToParams = Arrays.stream(params).map(p -> "convert_to(" + p + ")").toArray(String[]::new);
 
         // Prepare the Python code to load
-        String pyCode = StringUtil.join("\n", globalCode) + "\n" +
+        String pyCode = "import polyglot\n" +
+                "import java\n" +
+                "ArrayList = java.type('java.util.ArrayList')\n" +
+                "HashMap = java.type('java.util.HashMap')\n" +
+                StringUtil.join("\n", definition.globalCode) + "\n" +
+                "@polyglot.export_value\n" +
                 "def " + name + "_function(" + StringUtil.join(",", params) + "):\n" +
                 StringUtil.join("\n", functionCode) + "\n" +
-                "  return" + (resultType != null ? " " + resultExpression : "") + "\n";
+                "  return" + (resultType != null ? " " + definition.expression : "") + "\n" +
+                "\n" +
+                "def convert_to(value):\n" +
+                "  print('In convert_to: ')\n" +
+                "  print(value)\n" +
+                "  return value\n" +
+                "\n" +
+                "def convert_from(value):\n" +
+//                "  print('In convert_from: ')\n" +
+//                "  print(value)\n" +
+                "  if isinstance(value, (list, tuple)):\n" +
+//                "    print('Converting list')\n" +
+                "    result = ArrayList()\n" +
+                "    for e in value:\n" +
+                "      result.add(convert_from(e))\n" +
+                "    return result\n" +
+                "  if type(value) is dict:\n" +
+//                "    print('Converting dict')\n" +
+                "    result = HashMap()\n" +
+                "    for k, v in value.items():\n" +
+                "      result.put(convert_from(k),convert_from(v))\n" +
+                "    return result\n" +
+                "  return value\n" +
+                "\n" +
+                "@polyglot.export_value\n" +
+                "def " + name + "_caller(" + StringUtil.join(",", params) + "):\n" +
+                "  return convert_from(" + name + "_function(" + StringUtil.join(",", params) + "))\n";
 
-        // Load the function and its global code
-        interpreter.exec(pyCode);
+        Source script = Source.create(PYTHON, pyCode);
+        context.eval(script);
+        function = context.getPolyglotBindings().getMember(name + "_caller");
     }
 
     @Override
-    public Object call(Object... parameters) {
+    public DataObject call(DataObject... parameters) {
         // Validate that the defined parameter list matches the amount of passed in parameters
         if (this.parameters.length != parameters.length) {
             throw new KSMLTopologyException("Parameter list does not match function spec: expected " + this.parameters.length + ", got " + parameters.length);
         }
 
         // Check all parameters and copy them into the interpreter as prefixed globals
+        Object[] arguments = new Object[parameters.length];
         for (var index = 0; index < parameters.length; index++) {
             checkType(this.parameters[index], parameters[index]);
-            interpreter.set(name + "_" + this.parameters[index].name, toPython.convert(parameters[index]));
+            arguments[index] = mapper.fromDataObject(parameters[index]);
         }
 
         // Create a list of prefixed parameter names to pass to the function
-        String[] params = Arrays.stream(this.parameters).map(p -> name + "_" + p.name).toArray(String[]::new);
+//        String[] params = Arrays.stream(this.parameters).map(p -> name + "_" + p.name).toArray(String[]::new);
 
         try {
             // Call the prepared function
-            PyObject pyResult = interpreter.eval(name + "_" + "function(" + StringUtil.join(",", params) + ")");
+            Value pyResult = function.execute(arguments);
+
+            if (pyResult.canExecute()) {
+                throw new KSMLExecutionException("Python code results in a function instead of a value");
+            }
 
             // Process result
             if (resultType != null) {
-                if (pyResult == null) {
+                if (pyResult.isNull()) {
                     throw new KSMLTopologyException("Illegal return from function: null");
                 }
 
-                Object result = toNative.convert(pyResult);
+                DataObject result = mapper.toDataObject(pyResult, resultType);
                 logCall(parameters, result);
                 checkType(result, resultType);
                 return result;
@@ -99,5 +148,51 @@ public class PythonFunction extends UserFunction {
             logCall(parameters, null);
             throw new KSMLTopologyException("Error while executing function " + name + ": " + e.getMessage());
         }
+    }
+
+    private String mapToString(List<?> list) {
+        StringBuilder result = new StringBuilder("[");
+        boolean first = true;
+        for (Object value : list) {
+            if (!first) result.append(",");
+            appendValue(result, value);
+            first = false;
+        }
+        return result.append("}").toString();
+
+    }
+
+    private String mapToString(Map<?, ?> map) {
+        StringBuilder result = new StringBuilder("{");
+        boolean first = true;
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            if (!first) result.append(",");
+            Object key = entry.getKey();
+            Object value = entry.getValue();
+            result.append("\"").append(key.toString()).append("\":");
+            appendValue(result, value);
+            first = false;
+        }
+        return result.append("}").toString();
+    }
+
+    private String mapToString(Struct struct) {
+        StringBuilder result = new StringBuilder("{");
+        boolean first = true;
+        for (var field : struct.schema().fields()) {
+            if (!first) result.append(",");
+            result.append("\"").append(field.name()).append("\":");
+            appendValue(result, struct.get(field.name()));
+            first = false;
+        }
+        return result.append("}").toString();
+    }
+
+    private void appendValue(StringBuilder builder, Object value) {
+        if (value instanceof String || value instanceof Utf8 || value instanceof GenericData.EnumSymbol)
+            builder.append("\"");
+        builder.append(value.toString());
+        if (value instanceof String || value instanceof Utf8 || value instanceof GenericData.EnumSymbol)
+            builder.append("\"");
     }
 }

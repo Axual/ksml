@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 public class KSMLRunnerConfig {
     private static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-    private KSMLSourceConfig ksml;
+    private KSMLConfig ksml;
     private KSMLRunnerBackendConfig backend;
 
     public void validate() throws KSMLRunnerConfigurationException {

@@ -23,18 +23,30 @@ package io.axual.ksml.generator;
 
 import org.apache.kafka.common.serialization.Serde;
 
-import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.serde.UnknownTypeSerde;
-import io.axual.ksml.type.DataType;
-import io.axual.ksml.type.WindowType;
-import lombok.AllArgsConstructor;
+import io.axual.ksml.data.object.DataRecord;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.WindowedType;
+import io.axual.ksml.notation.Notation;
+import io.axual.ksml.schema.SchemaUtil;
 
-@AllArgsConstructor
 public class StreamDataType {
-    // This static is ugly, but works for now...
-    private static SerdeGenerator serdeGenerator;
     public final DataType type;
-    public final Serde<Object> serde;
+    public final DataType rawType;
+    public final Notation notation;
+    public final boolean isKey;
+
+    public StreamDataType(DataType type, Notation notation, boolean isKey) {
+        this.type = cookType(type);
+        this.rawType = type;
+        this.notation = notation;
+        this.isKey = isKey;
+    }
+
+    private static DataType cookType(DataType type) {
+        return type instanceof WindowedType
+                ? DataRecord.typeOf(SchemaUtil.windowTypeToSchema((WindowedType) type))
+                : type;
+    }
 
     public boolean isAssignableFrom(StreamDataType other) {
         return type.isAssignableFrom(other.type);
@@ -42,31 +54,14 @@ public class StreamDataType {
 
     @Override
     public String toString() {
-        return type + " (" + (serde != null ? "with " + serde.getClass().getSimpleName() : "no serde") + ")";
+        return type + " (" + (notation != null ? "as " + notation.name() : "unknown notation") + ")";
     }
 
-    public static void setSerdeGenerator(SerdeGenerator serdeGenerator) {
-        StreamDataType.serdeGenerator = serdeGenerator;
+    public Serde<Object> getSerde() {
+        return notation.getSerde(type, isKey);
     }
 
-    public static StreamDataType of(DataType type, boolean isKey) {
-        if (serdeGenerator == null) {
-            throw new KSMLExecutionException("Serde Generator not initialized");
-        }
-
-        if (type instanceof WindowType) {
-            // For WindowTypes return a serde of the value contained within the window
-            return new StreamDataType(type, serdeGenerator.getSerdeForType(((WindowType) type).getWindowedType(), isKey));
-        }
-
-        // Get the Serde for the given type
-        Serde<Object> serde = serdeGenerator.getSerdeForType(type, isKey);
-        if (serde == null) {
-            // Return a default serde, which produces exceptions only when (de)serializing
-            serde = new UnknownTypeSerde(type);
-        }
-
-        // Return the stream data type, which always has
-        return new StreamDataType(type, serde);
+    public static StreamDataType of(DataType type, Notation notation, boolean isKey) {
+        return new StreamDataType(type, notation, isKey);
     }
 }

@@ -40,12 +40,11 @@ import io.axual.discovery.client.DiscoveryConfig;
 import io.axual.discovery.client.DiscoveryResult;
 import io.axual.discovery.client.exception.DiscoveryClientRegistrationException;
 import io.axual.discovery.client.tools.DiscoveryConfigParserV2;
-import io.axual.ksml.AxualSerdeGenerator;
-import io.axual.ksml.KSMLConfig;
+import io.axual.ksml.AxualNotationLibrary;
 import io.axual.ksml.KSMLTopologyGenerator;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.runner.backend.Backend;
-import io.axual.ksml.runner.config.KSMLSourceConfig;
+import io.axual.ksml.runner.config.KSMLConfig;
 import io.axual.ksml.serde.UnknownTypeSerde;
 import io.axual.streams.proxy.axual.AxualStreams;
 import io.axual.streams.proxy.axual.AxualStreamsConfig;
@@ -72,14 +71,14 @@ public class AxualBackend implements Backend {
 
     private final DiscoveryConfig discoveryConfig;
     private final ClientConfig clientConfig;
-    private final KSMLSourceConfig ksmlSourceConfig;
+    private final KSMLConfig ksmlConfig;
 
     private AxualStreams axualStreams;
     private DiscoveryResult discoveryResult;
 
-    public AxualBackend(KSMLSourceConfig ksmlSourceConfig, AxualBackendConfig config) {
+    public AxualBackend(KSMLConfig ksmlConfig, AxualBackendConfig config) {
         log.info("Constructing Axual Backend");
-        this.ksmlSourceConfig = ksmlSourceConfig;
+        this.ksmlConfig = ksmlConfig;
 
         clientConfig = ClientConfig.newBuilder()
                 .setTenant(config.getTenant())
@@ -133,11 +132,10 @@ public class AxualBackend implements Backend {
 
         // set up a stream topology generator based on the provided KSML definition
         Map<String, Object> ksmlConfigs = new HashMap<>();
-        ksmlConfigs.put(KSMLConfig.PYTHON_INTERPRETER_ISOLATION, "false");
-        ksmlConfigs.put(KSMLConfig.KSML_SOURCE_TYPE, "file");
-        ksmlConfigs.put(KSMLConfig.KSML_WORKING_DIRECTORY, ksmlSourceConfig.getWorkingDirectory());
-        ksmlConfigs.put(KSMLConfig.KSML_SOURCE, ksmlSourceConfig.getDefinitions());
-        ksmlConfigs.put(KSMLConfig.SERDE_GENERATOR, new AxualSerdeGenerator(configs));
+        ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_SOURCE_TYPE, "file");
+        ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_WORKING_DIRECTORY, ksmlConfig.getWorkingDirectory());
+        ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_SOURCE, ksmlConfig.getDefinitions());
+        ksmlConfigs.put(io.axual.ksml.KSMLConfig.NOTATION_LIBRARY, new AxualNotationLibrary(configs));
         var topologyFactory = new KSMLTopologyGenerator();
         topologyFactory.configure(ksmlConfigs);
 
@@ -146,6 +144,10 @@ public class AxualBackend implements Backend {
         configs.put(ProducerConfig.LINGER_MS_CONFIG, 0);
         configs.put(ProducerConfig.ACKS_CONFIG, "-1");
         configs.put(StreamsConfig.REQUEST_TIMEOUT_MS_CONFIG, 40000);
+        configs.put(StreamsConfig.STATE_DIR_CONFIG, ksmlConfig.getWorkingDirectory());
+        if (ksmlConfig.getApplicationServer() != null) {
+            configs.put(StreamsConfig.APPLICATION_SERVER_CONFIG, ksmlConfig.getApplicationServer());
+        }
 
         configs.put(WrappedStreamsConfig.TOPOLOGY_FACTORY_CONFIG, (TopologyFactory) topologyFactory::create);
         configs.put(WrappedStreamsConfig.UNCAUGHT_EXCEPTION_HANDLER_FACTORY_CONFIG, (UncaughtExceptionHandlerFactory) streams -> (t, e) -> log.error("Caught serious exception in thread {}!", t.getName(), e));
@@ -169,8 +171,8 @@ public class AxualBackend implements Backend {
     }
 
     private boolean waitForDistribution() {
-        final String timeout = stringValue(discoveryResult.getConfigs(), DISTRIBUTOR_TIMEOUT_CONFIG, DEFAULT_DISTRIBUTOR_TIMEOUT);
-        final String distance = stringValue(discoveryResult.getConfigs(), DISTRIBUTOR_DISTANCE_CONFIG, DEFAULT_DISTRIBUTOR_DISTANCE);
+        final var timeout = stringValue(discoveryResult.getConfigs(), DISTRIBUTOR_TIMEOUT_CONFIG, DEFAULT_DISTRIBUTOR_TIMEOUT);
+        final var distance = stringValue(discoveryResult.getConfigs(), DISTRIBUTOR_DISTANCE_CONFIG, DEFAULT_DISTRIBUTOR_DISTANCE);
         try {
             Utils.sleep(Long.parseLong(timeout) * Long.parseLong(distance));
             return true;

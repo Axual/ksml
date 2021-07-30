@@ -21,7 +21,6 @@ package io.axual.ksml.user;
  */
 
 
-
 import org.apache.kafka.streams.kstream.Initializer;
 
 import io.axual.ksml.python.Invoker;

@@ -41,6 +41,7 @@ public class ConvertValueOperationParser extends ContextAwareParser<ConvertValue
         if (node == null) return null;
         return new ConvertValueOperation(
                 name,
-                TypeParser.parse(parseText(node, CONVERT_INTO_ATTRIBUTE)));
+                TypeParser.parse(parseText(node, CONVERT_INTO_ATTRIBUTE)),
+                context.getNotationLibrary());
     }
 }
