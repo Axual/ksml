@@ -24,25 +24,31 @@ package io.axual.ksml.definition;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 
+import io.axual.ksml.data.type.DataTypeAndNotation;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.parser.TypeParser;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 
 public class StreamDefinition extends BaseStreamDefinition {
     public StreamDefinition(String topic, String keyType, String valueType) {
+        this(topic, TypeParser.parse(keyType), TypeParser.parse(valueType));
+    }
+
+    public StreamDefinition(String topic, DataTypeAndNotation keyType, DataTypeAndNotation valueType) {
         super(topic, keyType, valueType);
     }
 
     @Override
     public StreamWrapper addToBuilder(StreamsBuilder builder, String name, NotationLibrary notationLibrary) {
-        var keyNotation = notationLibrary.get(keyNotationStr);
-        var valueNotation = notationLibrary.get(valueNotationStr);
-        var keySerde = keyNotation.getSerde(keyType, true);
-        var valueSerde = valueNotation.getSerde(valueType, false);
+        var kn = notationLibrary.get(key.notation);
+        var vn = notationLibrary.get(value.notation);
+        var keySerde = kn.getSerde(key.type, true);
+        var valueSerde = vn.getSerde(value.type, false);
         return new KStreamWrapper(
                 builder.stream(topic, Consumed.with(keySerde, valueSerde).withName(name)),
-                new StreamDataType(this.keyType, keyNotation, true),
-                new StreamDataType(this.valueType, valueNotation, false));
+                new StreamDataType(key.type, kn, true),
+                new StreamDataType(value.type, vn, false));
     }
 }

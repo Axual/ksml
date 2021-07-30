@@ -42,7 +42,7 @@ public class TransformKeyValueToValueListOperation extends BaseOperation {
     public StreamWrapper apply(KStreamWrapper input) {
         return new KStreamWrapper(
                 input.stream.flatMapValues(new UserKeyValueToValueListTransformer(transformer), Named.as(name)),
-                input.keyType,
+                input.keyType(),
                 StreamDataType.of(((DataListType) transformer.resultType).valueType(), input.valueType.notation, false));
     }
 }

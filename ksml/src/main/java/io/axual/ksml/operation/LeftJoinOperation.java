@@ -67,8 +67,8 @@ public class LeftJoinOperation extends StoreOperation {
                             ((KStreamWrapper) joinStream).stream,
                             new UserValueJoiner(valueJoiner),
                             JoinWindows.of(joinWindowsDuration),
-                            StreamJoined.with(input.keyType.getSerde(), input.valueType.getSerde(), resultValueType.getSerde()).withName(storeName).withStoreName(storeName)),
-                    input.keyType,
+                            StreamJoined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde()).withName(storeName).withStoreName(storeName)),
+                    input.keyType(),
                     resultValueType);
         }
         if (joinStream instanceof KTableWrapper) {
@@ -76,8 +76,8 @@ public class LeftJoinOperation extends StoreOperation {
                     input.stream.leftJoin(
                             ((KTableWrapper) joinStream).table,
                             new UserValueJoiner(valueJoiner),
-                            Joined.with(input.keyType.getSerde(), input.valueType.getSerde(), resultValueType.getSerde(), storeName)),
-                    input.keyType,
+                            Joined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde(), storeName)),
+                    input.keyType(),
                     resultValueType);
         }
         throw new KSMLApplyException("Can not LEFT_JOIN stream with " + joinStream.getClass().getSimpleName());
@@ -94,7 +94,7 @@ public class LeftJoinOperation extends StoreOperation {
                             new UserValueJoiner(valueJoiner),
                             Named.as(name),
                             Materialized.as(storeName)),
-                    input.keyType,
+                    input.keyType(),
                     resultValueType);
         }
         throw new KSMLApplyException("Can not LEFT_JOIN table with " + joinStream.getClass().getSimpleName());

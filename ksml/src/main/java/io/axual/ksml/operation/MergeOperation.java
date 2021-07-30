@@ -38,11 +38,11 @@ public class MergeOperation extends BaseOperation {
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
         // Check if the two streams contain similar key and value types
-        if (input.keyType.isAssignableFrom(mergeStream.keyType) && input.valueType.isAssignableFrom(mergeStream.valueType)) {
+        if (input.keyType().isAssignableFrom(mergeStream.keyType()) && input.valueType().isAssignableFrom(mergeStream.valueType())) {
             return new KStreamWrapper(
                     input.stream.merge(mergeStream.stream, Named.as(name)),
-                    input.keyType,
-                    input.valueType);
+                    input.keyType(),
+                    input.valueType());
         }
         throw new KSMLApplyException("Incompatible stream types: " + input + " and " + mergeStream);
     }

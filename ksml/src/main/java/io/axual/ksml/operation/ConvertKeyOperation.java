@@ -24,17 +24,15 @@ import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Named;
 
 import io.axual.ksml.data.object.DataRecord;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.RecordType;
 import io.axual.ksml.generator.StreamDataType;
-import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.notation.Notation;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.DataTypeAndNotation;
-import io.axual.ksml.data.type.RecordType;
+import io.axual.ksml.util.DataUtil;
 
 public class ConvertKeyOperation extends BaseOperation {
-    private final DataTypeAndNotation targetTypeAndNotation;
-
     private static class KeyConverter implements KeyValueMapper<Object, Object, Object> {
         private final RecordType targetRecordType;
 
@@ -44,28 +42,30 @@ public class ConvertKeyOperation extends BaseOperation {
 
         @Override
         public Object apply(Object key, Object value) {
-            if (targetRecordType == null) return key;
+            var keyAsData = DataUtil.asData(key);
+            if (targetRecordType == null) return keyAsData;
             var result = new DataRecord(targetRecordType.schema());
-            result.putAll((DataRecord) key);
+            result.putAll((DataRecord) keyAsData);
             return result;
         }
     }
 
     private final KeyConverter converter;
-    private final NotationLibrary notationLibrary;
+    private final DataType targetType;
+    private final Notation targetNotation;
 
-    public ConvertKeyOperation(String name, DataTypeAndNotation targetTypeAndNotation, NotationLibrary notationLibrary) {
+    public ConvertKeyOperation(String name, DataType targetType, Notation targetNotation) {
         super(name);
-        this.targetTypeAndNotation = targetTypeAndNotation;
-        this.notationLibrary = notationLibrary;
-        converter = new KeyConverter(this.targetTypeAndNotation.type);
+        this.targetType = targetType;
+        this.targetNotation=targetNotation;
+        converter = new KeyConverter(this.targetType);
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
         return new KStreamWrapper(
                 input.stream.selectKey(converter, Named.as(name)),
-                StreamDataType.of(targetTypeAndNotation.type, notationLibrary.get(targetTypeAndNotation.notation), true),
+                StreamDataType.of(targetType, targetNotation, true),
                 input.valueType);
     }
 }

@@ -21,9 +21,9 @@ package io.axual.ksml.definition.parser;
  */
 
 
-
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.parser.BaseParser;
+import io.axual.ksml.parser.TypeParser;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.KEYTYPE_ATTRIBUTE;
@@ -36,7 +36,7 @@ public class TableDefinitionParser extends BaseParser<TableDefinition> {
         if (node == null) return null;
         return new TableDefinition(
                 parseText(node, TOPIC_ATTRIBUTE),
-                parseText(node, KEYTYPE_ATTRIBUTE),
-                parseText(node, VALUETYPE_ATTRIBUTE));
+                TypeParser.parse(parseText(node, KEYTYPE_ATTRIBUTE)),
+                TypeParser.parse(parseText(node, VALUETYPE_ATTRIBUTE)));
     }
 }

@@ -23,18 +23,29 @@ package io.axual.ksml.generator;
 
 import org.apache.kafka.common.serialization.Serde;
 
+import io.axual.ksml.data.object.DataRecord;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.notation.Notation;
+import io.axual.ksml.schema.SchemaUtil;
 
 public class StreamDataType {
     public final DataType type;
+    public final DataType rawType;
     public final Notation notation;
     public final boolean isKey;
 
     public StreamDataType(DataType type, Notation notation, boolean isKey) {
-        this.type = type;
+        this.type = cookType(type);
+        this.rawType = type;
         this.notation = notation;
         this.isKey = isKey;
+    }
+
+    private static DataType cookType(DataType type) {
+        return type instanceof WindowedType
+                ? DataRecord.typeOf(SchemaUtil.windowTypeToSchema((WindowedType) type))
+                : type;
     }
 
     public boolean isAssignableFrom(StreamDataType other) {
@@ -47,11 +58,7 @@ public class StreamDataType {
     }
 
     public Serde<Object> getSerde() {
-//        if (type instanceof WindowType) {
-//            // For WindowTypes return a serde of the value contained within the window
-//            return new StreamDataType(((WindowType) type).getWindowedType(), notation, isKey).getSerde();
-//        }
-        return notation.getSerde(type,isKey);
+        return notation.getSerde(type, isKey);
     }
 
     public static StreamDataType of(DataType type, Notation notation, boolean isKey) {

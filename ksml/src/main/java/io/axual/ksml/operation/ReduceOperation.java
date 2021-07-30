@@ -54,7 +54,7 @@ public class ReduceOperation extends StoreOperation {
                 new UserReducer(reducer),
                 Named.as(name),
                 Materialized.as(storeName)),
-                input.keyType, input.valueType);
+                input.keyType(), input.valueType());
     }
 
     @Override
@@ -64,7 +64,7 @@ public class ReduceOperation extends StoreOperation {
                 new UserReducer(subtractor),
                 Named.as(name),
                 Materialized.as(storeName)),
-                input.keyType, input.valueType);
+                input.keyType(), input.valueType());
     }
 
     @Override
@@ -77,7 +77,7 @@ public class ReduceOperation extends StoreOperation {
                         Materialized.as(storeName)
                 ),
                 StreamDataType.of(new WindowedType(input.keyType.type), input.keyType.notation, true),
-                input.valueType);
+                input.valueType());
     }
 
     @Override
@@ -88,6 +88,6 @@ public class ReduceOperation extends StoreOperation {
                         Named.as(name),
                         Materialized.as(storeName)),
                 StreamDataType.of(new WindowedType(input.keyType.type), input.keyType.notation, true),
-                input.valueType);
+                input.valueType());
     }
 }

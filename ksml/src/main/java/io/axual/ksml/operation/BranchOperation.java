@@ -56,7 +56,7 @@ public class BranchOperation extends BaseOperation {
 
         // For every branch, generate a separate pipeline
         for (var index = 0; index < resultStreams.length; index++) {
-            StreamWrapper branchCursor = new KStreamWrapper(resultStreams[index], input.keyType, input.valueType);
+            StreamWrapper branchCursor = new KStreamWrapper(resultStreams[index], input.keyType(), input.valueType());
             for (StreamOperation operation : branches.get(index).pipeline.chain) {
                 branchCursor = branchCursor.apply(operation);
             }

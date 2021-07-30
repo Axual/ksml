@@ -5,6 +5,10 @@ streams:
     topic: ksml_sensordata_avro
     keyType: string
     valueType: avro:SensorData
+  sensor_target:
+    topic: ksml_sensordata_count
+    keyType: avro:WindowedString
+    valueType: long
 
 functions:
   print_message:
@@ -26,5 +30,8 @@ pipelines:
       - type: count
         storeName: ownerCount
       - type: toStream
+      - type: convertKey
+        into: avro:WindowedString
       - type: peek
         forEach: print_message
+    to: sensor_target

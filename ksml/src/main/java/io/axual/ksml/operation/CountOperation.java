@@ -48,7 +48,7 @@ public class CountOperation extends StoreOperation {
     public StreamWrapper apply(KGroupedStreamWrapper input) {
         return new KTableWrapper(
                 (KTable) input.groupedStream.count(Named.as(name), Materialized.as(storeName)),
-                input.keyType,
+                input.keyType(),
                 StreamDataType.of(DataLong.TYPE, longNotation, false));
     }
 
@@ -56,7 +56,7 @@ public class CountOperation extends StoreOperation {
     public StreamWrapper apply(KGroupedTableWrapper input) {
         return new KTableWrapper(
                 (KTable) input.groupedTable.count(Named.as(name), Materialized.as(storeName)),
-                input.keyType,
+                input.keyType(),
                 StreamDataType.of(DataLong.TYPE, longNotation, false));
     }
 

@@ -27,13 +27,14 @@ import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataRecord;
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.schema.WindowSchema;
+import io.axual.ksml.data.type.WindowedType;
+import io.axual.ksml.schema.SchemaUtil;
 
-import static io.axual.ksml.schema.WindowSchema.END_FIELD;
-import static io.axual.ksml.schema.WindowSchema.END_TIME_FIELD;
-import static io.axual.ksml.schema.WindowSchema.KEY_FIELD;
-import static io.axual.ksml.schema.WindowSchema.START_FIELD;
-import static io.axual.ksml.schema.WindowSchema.START_TIME_FIELD;
+import static io.axual.ksml.schema.WindowedSchema.END_FIELD;
+import static io.axual.ksml.schema.WindowedSchema.END_TIME_FIELD;
+import static io.axual.ksml.schema.WindowedSchema.KEY_FIELD;
+import static io.axual.ksml.schema.WindowedSchema.START_FIELD;
+import static io.axual.ksml.schema.WindowedSchema.START_TIME_FIELD;
 
 public class DataUtil {
     private static final NativeDataMapper nativeDataMapper = new NativeDataMapper();
@@ -52,15 +53,14 @@ public class DataUtil {
     // DataObject to this method.
     public static DataObject asData(Object object) {
         if (object instanceof DataObject) return (DataObject) object;
-        if (object instanceof Windowed<?> && ((Windowed<?>) object).key() instanceof DataObject)
-            return convertWindow((Windowed<?>) object);
+        if (object instanceof Windowed<?>) return windowAsRecord((Windowed<?>) object);
         return nativeDataMapper.toDataObject(object);
     }
 
     // Convert a Windowed object into a data record with fields that contain the window fields.
-    private static DataRecord convertWindow(Windowed<?> windowedObject) {
+    private static DataRecord windowAsRecord(Windowed<?> windowedObject) {
         var keyAsData = asData(windowedObject.key());
-        var schema = WindowSchema.generateWindowSchema(keyAsData.type());
+        var schema = SchemaUtil.windowTypeToSchema(new WindowedType(keyAsData.type()));
         var result = new DataRecord(schema);
         result.put(START_FIELD, new DataLong(windowedObject.window().start()));
         result.put(END_FIELD, new DataLong(windowedObject.window().start()));
@@ -69,4 +69,5 @@ public class DataUtil {
         result.put(KEY_FIELD, keyAsData);
         return result;
     }
+
 }

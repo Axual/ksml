@@ -9,9 +9,9 @@ package io.axual.ksml.schema;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,9 +24,8 @@ import org.apache.avro.Schema;
 
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.data.type.DataType;
 
-public class WindowSchema {
+public class WindowedSchema {
     private static final String WINDOW_SCHEMA_DOC_PREFIX = "Windowed ";
     private static final String WINDOW_SCHEMA_NAMESPACE = "io.axual.ksml.data";
     public static final String START_FIELD = "start";
@@ -40,18 +39,18 @@ public class WindowSchema {
     public static final String KEY_FIELD = "key";
     private static final String KEY_FIELD_DOC = "Window key";
 
-    private WindowSchema() {
+    private WindowedSchema() {
     }
 
-    public static DataSchema generateWindowSchema(DataType keyType) {
-        var schemaName = new WindowedType(keyType).schemaName();
-        var builder = DataSchema.newBuilder(schemaName, WINDOW_SCHEMA_DOC_PREFIX + keyType.schemaName(), WINDOW_SCHEMA_NAMESPACE);
+    public static Schema generateWindowedSchema(WindowedType windowedType) {
+        var schemaName = windowedType.schemaName();
+        var builder = new SchemaBuilder(schemaName, WINDOW_SCHEMA_DOC_PREFIX + windowedType.keyType().schemaName(), WINDOW_SCHEMA_NAMESPACE);
         builder.addField(START_FIELD, Schema.create(Schema.Type.LONG), START_FIELD_DOC, null);
         builder.addField(END_FIELD, Schema.create(Schema.Type.LONG), END_FIELD_DOC, null);
         builder.addField(START_TIME_FIELD, Schema.create(Schema.Type.STRING), START_TIME_FIELD_DOC, null);
         builder.addField(END_TIME_FIELD, Schema.create(Schema.Type.STRING), END_TIME_FIELD_DOC, null);
 
-        var keySchema = SchemaUtil.dataTypeToSchema(keyType);
+        var keySchema = SchemaUtil.dataTypeToSchema(windowedType.keyType());
         switch (keySchema.getType()) {
             case BOOLEAN:
                 builder.addField(KEY_FIELD, keySchema, KEY_FIELD_DOC, false);

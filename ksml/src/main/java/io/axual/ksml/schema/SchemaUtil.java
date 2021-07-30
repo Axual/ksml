@@ -9,9 +9,9 @@ package io.axual.ksml.schema;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,6 +34,7 @@ import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataListType;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.RecordType;
+import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.exception.KSMLExecutionException;
 
 public class SchemaUtil {
@@ -53,7 +54,12 @@ public class SchemaUtil {
         if (type instanceof DataListType)
             return Schema.createArray(dataTypeToSchema(((DataListType) type).valueType()));
         if (type instanceof RecordType) return (((RecordType) type).schema().schema());
+        if (type instanceof WindowedType) return WindowedSchema.generateWindowedSchema((WindowedType) type);
         throw new KSMLExecutionException("Can not convert data type " + type + " to schema type");
+    }
+
+    public static DataSchema windowTypeToSchema(WindowedType type) {
+        return DataSchema.newBuilder(WindowedSchema.generateWindowedSchema(type)).build();
     }
 
     public static Schema dataSchemaToAvroSchema(DataSchema schema) {

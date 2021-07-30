@@ -22,14 +22,18 @@ package io.axual.ksml.data.object;
 
 import java.util.HashMap;
 
-import io.axual.ksml.schema.DataSchema;
 import io.axual.ksml.data.type.RecordType;
+import io.axual.ksml.schema.DataSchema;
 
 public class DataRecord extends HashMap<String, DataObject> implements DataObject {
     public final RecordType type;
 
     public DataRecord(DataSchema schema) {
-        type = new RecordType(schema);
+        type = typeOf(schema);
+    }
+
+    public static RecordType typeOf(DataSchema schema) {
+        return new RecordType(schema);
     }
 
     @Override

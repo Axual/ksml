@@ -43,7 +43,7 @@ public class TransformValueOperation extends StoreOperation {
     public StreamWrapper apply(KStreamWrapper input) {
         return new KStreamWrapper(
                 input.stream.mapValues(new UserValueTransformer(transformer), Named.as(name)),
-                input.keyType,
+                input.keyType(),
                 StreamDataType.of(transformer.resultType, input.valueType.notation, false));
     }
 
@@ -52,7 +52,7 @@ public class TransformValueOperation extends StoreOperation {
         // TODO: Add materialized parameters
         return new KTableWrapper(
                 input.table.mapValues(new UserValueTransformer(transformer), Named.as(name), Materialized.as(storeName)),
-                input.keyType,
+                input.keyType(),
                 StreamDataType.of(transformer.resultType, input.valueType.notation, false));
     }
 }

@@ -39,12 +39,12 @@ public class BaseStreamWrapper implements StreamWrapper {
     }
 
     @Override
-    public StreamDataType getKeyType() {
+    public StreamDataType keyType() {
         return keyType;
     }
 
     @Override
-    public StreamDataType getValueType() {
+    public StreamDataType valueType() {
         return valueType;
     }
 }

@@ -31,6 +31,7 @@ import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.DataTypeAndNotation;
 import io.axual.ksml.data.type.RecordType;
+import io.axual.ksml.util.DataUtil;
 
 public class ConvertValueOperation extends BaseOperation {
     private final DataTypeAndNotation targetTypeAndNotation;
@@ -44,7 +45,8 @@ public class ConvertValueOperation extends BaseOperation {
 
         @Override
         public Object apply(Object value) {
-            if (targetRecordType == null) return value;
+            var valueAsData = DataUtil.asData(value);
+            if (targetRecordType == null) return valueAsData;
             var result = new DataRecord(targetRecordType.schema());
             result.putAll((DataRecord) value);
             return result;
