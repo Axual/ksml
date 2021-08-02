@@ -10,3 +10,5 @@ target/
 **/.factorypath
 
 examples/io.axual*
+examples/io.ksml*
+examples/untracked
