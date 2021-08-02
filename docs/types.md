@@ -62,13 +62,27 @@ Avro types are supported through the "avro" prefix in types. The notation is ```
 On Kafka topics, Avro types are serialized in binary format. Internally they are represented as records.
 
 Examples
-```aidl
+```
 avro:SensorData
 avro:io.axual.ksml.example.SensorData
 ```
 
 Note: when referencing a schema, please ensure that the respective Avro schema file can be found in the KSML working directory.
 
+### Windowed
+
+Some Kafka Streams operations modify the key type from _K_ to _Windowed\<K>_. KSML generates an AVRO
+schema on-the-fly for any windowed type. These Avro windowed definitions will not be found on disk,
+so during the loading of the KSML definition this may lead to problems. To circumvent, use the
+following notation to refer to a windowed key type:
+```
+avro:windowed(string)
+avro:windowed(SensorData)
+```
+
 ## JSON
 
 JSON is supported through built-in serializers and deserializers. The representation on Kafka will always be ```string```. Internally JSON objects are either records or lists.
+
+For windowed keys, the JSON representation modifies the _Windowed_ type to a plain JSON object,
+containing 4 timestamp fields and a key field with the original key.
