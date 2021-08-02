@@ -86,7 +86,8 @@ services:
                        kafka-topics --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_red && \
                        kafka-topics --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_sensor0 && \
                        kafka-topics --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_sensor1 && \
-                       kafka-topics --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_sensor2'"
+                       kafka-topics --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_sensor2 && \
+                       kafka-topics --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic io.ksml.example.processor-ownerCount-changelog'"
 
   example-producer:
     image: axual/ksml-example-producer:latest

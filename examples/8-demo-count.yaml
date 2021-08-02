@@ -7,7 +7,7 @@ streams:
     valueType: avro:SensorData
   sensor_target:
     topic: ksml_sensordata_count
-    keyType: avro:WindowedString
+    keyType: avro:windowed(string)
     valueType: long
 
 functions:
@@ -31,7 +31,7 @@ pipelines:
         storeName: ownerCount
       - type: toStream
       - type: convertKey
-        into: avro:WindowedString
+        into: avro:windowed(string)
       - type: peek
         forEach: print_message
     to: sensor_target
