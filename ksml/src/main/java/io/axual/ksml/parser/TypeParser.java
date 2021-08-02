@@ -9,9 +9,9 @@ package io.axual.ksml.parser;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,15 +35,19 @@ import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.DataTypeAndNotation;
 import io.axual.ksml.data.type.RecordType;
 import io.axual.ksml.data.type.TupleType;
+import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.notation.AvroNotation;
 import io.axual.ksml.notation.BinaryNotation;
 import io.axual.ksml.notation.JsonNotation;
+import io.axual.ksml.schema.DataSchema;
 import io.axual.ksml.schema.SchemaLibrary;
+import io.axual.ksml.schema.SchemaUtil;
 
 public class TypeParser {
-    private static final String ALLOWED_TYPE_CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_:.?";
+    private static final String ALLOWED_TYPE_CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_:.?()";
+    private static final String WINDOWED_TYPE = "windowed";
 
     private TypeParser() {
     }
@@ -116,21 +120,34 @@ public class TypeParser {
         }
 
         if (typeNotation.equalsIgnoreCase(AvroNotation.NAME)) {
-            var schema = SchemaLibrary.getSchema(type);
-            if (schema == null) {
-                throw new KSMLParseException("Could not load schema definition: " + type);
-            }
-            return new DataTypeAndNotation(new RecordType(schema), resultNotation);
+            var avroType = parseAvroType(type);
+            return new DataTypeAndNotation(avroType, resultNotation);
         }
 
         if (typeNotation.equalsIgnoreCase(JsonNotation.NAME) || type.equalsIgnoreCase(JsonNotation.NAME)) {
             return new DataTypeAndNotation(new RecordType(null), JsonNotation.NAME);
         }
 
-        return new DataTypeAndNotation(parseType(type, resultNotation), resultNotation);
+        return new DataTypeAndNotation(parseType(type), resultNotation);
     }
 
-    private static DataType parseType(String type, String notation) {
+    private static DataType parseAvroType(String type) {
+        final DataSchema schema;
+        if (type.startsWith(WINDOWED_TYPE + "(") && type.endsWith(")")) {
+            type = type.substring(WINDOWED_TYPE.length() + 1, type.length() - 1);
+            schema = SchemaUtil.windowTypeToSchema(new WindowedType(parseType(type)));
+        } else {
+            schema = SchemaLibrary.getSchema(type);
+        }
+
+        if (schema == null) {
+            throw new KSMLParseException("Could not load schema definition: " + type);
+        }
+
+        return new RecordType(schema);
+    }
+
+    private static DataType parseType(String type) {
         switch (type) {
             case "boolean":
                 return DataBoolean.TYPE;

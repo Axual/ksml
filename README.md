@@ -28,6 +28,17 @@ The following example project is also included:
 * [`ksml-example-producer`](ksml-example-producer/)
   example producer, which writes random SensorData messages to a Kafka topic for demo purposes
 
+## Building KSML
+Building and running KSML requires an installation of GraalVM and the corresponding Python module.
+Download GraalVM from [this page](https://www.graalvm.org/downloads/) and install it for your
+platform as explained. Once installed, use the command ```gu install python``` to install the Python
+module. For more information, check out the [Python Reference](https://www.graalvm.org/reference-manual/python/) pages.
+
+Once installed, select GraalVM as your default Java JVM. Then you can build KSML using the normal
+Maven commands:
+
+```mvn clean package```
+
 ## Running KSML
 There are several ways to use KSML:
 * As a Java library: you can include the KSML library in your own application to convert KSML definition files into a Kafka Streams topology.
