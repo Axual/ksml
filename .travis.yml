@@ -18,9 +18,6 @@ install:
   # Install GraalVM python
   - gu install python
 
-  # Check if Native Image was installed properly
-  - native-image --version
-
 script:
   - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
   - mvn test -B
