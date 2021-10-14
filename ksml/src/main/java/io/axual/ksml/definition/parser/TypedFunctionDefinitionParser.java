@@ -41,6 +41,7 @@ import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_PREDICATE;
 import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_REDUCER;
 import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_STREAMPARTITIONER;
 import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_TOPICNAMEEXTRACTOR;
+import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_VALUEJOINER;
 import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_VALUETRANSFORMER;
 
 public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition> {
@@ -71,18 +72,18 @@ public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition
                 return new InitializerDefinitionParser();
             case FUNCTION_TYPE_KEYTRANSFORMER:
                 return new KeyTransformerDefinitionParser();
-            case FUNCTION_TYPE_KEYVALUEMAPPER:
-                return new KeyTransformerDefinitionParser();
             case FUNCTION_TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER:
                 return new KeyValueToKeyValueListTransformerDefinitionParser();
             case FUNCTION_TYPE_KEYVALUETOVALUELISTTRANSFORMER:
                 return new KeyValueToValueListTransformerDefinitionParser();
+            case FUNCTION_TYPE_KEYVALUEMAPPER:
             case FUNCTION_TYPE_KEYVALUETRANSFORMER:
                 return new KeyValueTransformerDefinitionParser();
             case FUNCTION_TYPE_MERGER:
                 return new MergerDefinitionParser();
             case FUNCTION_TYPE_PREDICATE:
                 return new PredicateDefinitionParser();
+            case FUNCTION_TYPE_VALUEJOINER:
             case FUNCTION_TYPE_REDUCER:
                 return new ReducerDefinitionParser();
             case FUNCTION_TYPE_STREAMPARTITIONER:

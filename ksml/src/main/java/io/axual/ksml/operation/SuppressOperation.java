@@ -24,7 +24,7 @@ package io.axual.ksml.operation;
 import org.apache.kafka.streams.kstream.Suppressed;
 import org.apache.kafka.streams.kstream.Windowed;
 
-import io.axual.ksml.data.type.WindowedType;
+import io.axual.ksml.data.type.base.WindowedType;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
@@ -33,18 +33,18 @@ public class SuppressOperation extends BaseOperation {
     private final Suppressed<Windowed> suppressedWindowed;
     private final Suppressed<Object> suppressed;
 
-    private SuppressOperation(String name, Suppressed<Object> suppressed, Suppressed<Windowed> suppressedWindowed) {
-        super(name);
+    private SuppressOperation(OperationConfig config, Suppressed<Object> suppressed, Suppressed<Windowed> suppressedWindowed) {
+        super(config);
         this.suppressed = suppressed != null ? suppressed.withName(name) : null;
         this.suppressedWindowed = suppressedWindowed != null ? suppressedWindowed.withName(name) : null;
     }
 
-    public static SuppressOperation create(String name, Suppressed<Object> suppressed) {
-        return new SuppressOperation(name, suppressed, null);
+    public static SuppressOperation create(OperationConfig config, Suppressed<Object> suppressed) {
+        return new SuppressOperation(config, suppressed, null);
     }
 
-    public static SuppressOperation createWindowed(String name, Suppressed<Windowed> suppressed) {
-        return new SuppressOperation(name, null, suppressed);
+    public static SuppressOperation createWindowed(OperationConfig config, Suppressed<Windowed> suppressed) {
+        return new SuppressOperation(config, null, suppressed);
     }
 
     @Override
@@ -58,10 +58,10 @@ public class SuppressOperation extends BaseOperation {
         // "untilWindowCloses" suppression on the right KTable key type.
 
         // Validate that the key type is windowed
-        if (input.keyType.type instanceof WindowedType) {
+        if (input.keyType.type() instanceof WindowedType) {
             return new KTableWrapper(input.table.suppress((Suppressed) suppressedWindowed), input.keyType, input.valueType);
         }
         // Throw an exception if the stream key type is not Windowed
-        throw new KSMLTopologyException("Can not apply suppress operation to a KTable with key type " + input.keyType.type);
+        throw new KSMLTopologyException("Can not apply suppress operation to a KTable with key type " + input.keyType.type());
     }
 }

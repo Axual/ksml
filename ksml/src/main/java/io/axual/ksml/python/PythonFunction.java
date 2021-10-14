@@ -9,9 +9,9 @@ package io.axual.ksml.python;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,9 +21,6 @@ package io.axual.ksml.python;
  */
 
 
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.util.Utf8;
-import org.apache.kafka.connect.data.Struct;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.PolyglotAccess;
@@ -31,11 +28,9 @@ import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 
 import io.axual.ksml.data.mapper.PythonDataMapper;
-import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.UserObject;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLTopologyException;
@@ -106,7 +101,7 @@ public class PythonFunction extends UserFunction {
     }
 
     @Override
-    public DataObject call(DataObject... parameters) {
+    public UserObject call(UserObject... parameters) {
         // Validate that the defined parameter list matches the amount of passed in parameters
         if (this.parameters.length != parameters.length) {
             throw new KSMLTopologyException("Parameter list does not match function spec: expected " + this.parameters.length + ", got " + parameters.length);
@@ -130,15 +125,17 @@ public class PythonFunction extends UserFunction {
                 throw new KSMLExecutionException("Python code results in a function instead of a value");
             }
 
-            // Process result
+            // Check if the function is supposed to return a result value
             if (resultType != null) {
+                // If a value is expected, but none is returned, then throw exception
                 if (pyResult.isNull()) {
                     throw new KSMLTopologyException("Illegal return from function: null");
                 }
 
-                DataObject result = mapper.toDataObject(pyResult, resultType);
+                // Convert the result object to a DataObject
+                UserObject result = mapper.toDataObject(resultType, pyResult);
                 logCall(parameters, result);
-                checkType(result, resultType);
+                checkType(resultType.type(), result);
                 return result;
             } else {
                 logCall(parameters, null);
@@ -148,51 +145,5 @@ public class PythonFunction extends UserFunction {
             logCall(parameters, null);
             throw new KSMLTopologyException("Error while executing function " + name + ": " + e.getMessage());
         }
-    }
-
-    private String mapToString(List<?> list) {
-        StringBuilder result = new StringBuilder("[");
-        boolean first = true;
-        for (Object value : list) {
-            if (!first) result.append(",");
-            appendValue(result, value);
-            first = false;
-        }
-        return result.append("}").toString();
-
-    }
-
-    private String mapToString(Map<?, ?> map) {
-        StringBuilder result = new StringBuilder("{");
-        boolean first = true;
-        for (Map.Entry<?, ?> entry : map.entrySet()) {
-            if (!first) result.append(",");
-            Object key = entry.getKey();
-            Object value = entry.getValue();
-            result.append("\"").append(key.toString()).append("\":");
-            appendValue(result, value);
-            first = false;
-        }
-        return result.append("}").toString();
-    }
-
-    private String mapToString(Struct struct) {
-        StringBuilder result = new StringBuilder("{");
-        boolean first = true;
-        for (var field : struct.schema().fields()) {
-            if (!first) result.append(",");
-            result.append("\"").append(field.name()).append("\":");
-            appendValue(result, struct.get(field.name()));
-            first = false;
-        }
-        return result.append("}").toString();
-    }
-
-    private void appendValue(StringBuilder builder, Object value) {
-        if (value instanceof String || value instanceof Utf8 || value instanceof GenericData.EnumSymbol)
-            builder.append("\"");
-        builder.append(value.toString());
-        if (value instanceof String || value instanceof Utf8 || value instanceof GenericData.EnumSymbol)
-            builder.append("\"");
     }
 }

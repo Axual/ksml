@@ -51,18 +51,18 @@ public class PipelineSinkOperationParser extends ContextAwareParser<StreamOperat
     public StreamOperation parse(YamlNode node) {
         if (node == null) return null;
         if (node.get(PIPELINE_BRANCH_ATTRIBUTE) != null) {
-            return new BranchOperation(determineName("branch"), new ListParser<>(new BranchDefinitionParser(context)).parse(node.get(PIPELINE_BRANCH_ATTRIBUTE)));
+            return new BranchOperation(operationConfig(determineName("branch")), new ListParser<>(new BranchDefinitionParser(context)).parse(node.get(PIPELINE_BRANCH_ATTRIBUTE)));
         }
         if (node.get(PIPELINE_FOREACH_ATTRIBUTE) != null) {
-            return new ForEachOperation(determineName("for_each"), parseFunction(node, PIPELINE_FOREACH_ATTRIBUTE, new ForEachActionDefinitionParser()));
+            return new ForEachOperation(operationConfig(determineName("for_each")), parseFunction(node, PIPELINE_FOREACH_ATTRIBUTE, new ForEachActionDefinitionParser()));
         }
         if (node.get(PIPELINE_TOTOPICNAMEEXTRACTOR_ATTRIBUTE) != null) {
-            return new ToTopicNameExtractorOperation(determineName("to_name_extract"), parseFunction(node, PIPELINE_TOTOPICNAMEEXTRACTOR_ATTRIBUTE, new TopicNameExtractorDefinitionParser()));
+            return new ToTopicNameExtractorOperation(operationConfig(determineName("to_name_extract")), parseFunction(node, PIPELINE_TOTOPICNAMEEXTRACTOR_ATTRIBUTE, new TopicNameExtractorDefinitionParser()));
         }
         if (node.get(PIPELINE_TO_ATTRIBUTE) != null) {
             final var def = new ReferenceOrInlineParser<>("stream", PIPELINE_TO_ATTRIBUTE, context.getStreamDefinitions()::get, new StreamDefinitionParser()).parse(node);
             if (def != null) {
-                return new ToOperation(determineName("to"), def, context.getNotationLibrary());
+                return new ToOperation(operationConfig(determineName("to")), def, context.getNotationLibrary());
             }
             throw new KSMLParseException("Target stream not found or not specified");
         }

@@ -22,19 +22,19 @@ package io.axual.ksml.schema;
 
 import org.apache.avro.Schema;
 
-import io.axual.ksml.data.object.DataBoolean;
-import io.axual.ksml.data.object.DataByte;
-import io.axual.ksml.data.object.DataBytes;
-import io.axual.ksml.data.object.DataDouble;
-import io.axual.ksml.data.object.DataFloat;
-import io.axual.ksml.data.object.DataInteger;
-import io.axual.ksml.data.object.DataLong;
-import io.axual.ksml.data.object.DataShort;
-import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.type.DataListType;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.RecordType;
-import io.axual.ksml.data.type.WindowedType;
+import io.axual.ksml.data.object.UserBoolean;
+import io.axual.ksml.data.object.UserByte;
+import io.axual.ksml.data.object.UserBytes;
+import io.axual.ksml.data.object.UserDouble;
+import io.axual.ksml.data.object.UserFloat;
+import io.axual.ksml.data.object.UserInteger;
+import io.axual.ksml.data.object.UserLong;
+import io.axual.ksml.data.object.UserShort;
+import io.axual.ksml.data.object.UserString;
+import io.axual.ksml.data.type.user.UserListType;
+import io.axual.ksml.data.type.base.DataType;
+import io.axual.ksml.data.type.user.UserRecordType;
+import io.axual.ksml.data.type.base.WindowedType;
 import io.axual.ksml.exception.KSMLExecutionException;
 
 public class SchemaUtil {
@@ -42,18 +42,18 @@ public class SchemaUtil {
     }
 
     public static Schema dataTypeToSchema(DataType type) {
-        if (type == DataBoolean.TYPE) return Schema.create(Schema.Type.BOOLEAN);
-        if (type == DataByte.TYPE) return Schema.create(Schema.Type.INT);
-        if (type == DataShort.TYPE) return Schema.create(Schema.Type.INT);
-        if (type == DataInteger.TYPE) return Schema.create(Schema.Type.INT);
-        if (type == DataLong.TYPE) return Schema.create(Schema.Type.LONG);
-        if (type == DataFloat.TYPE) return Schema.create(Schema.Type.FLOAT);
-        if (type == DataDouble.TYPE) return Schema.create(Schema.Type.DOUBLE);
-        if (type == DataBytes.TYPE) return Schema.create(Schema.Type.BYTES);
-        if (type == DataString.TYPE) return Schema.create(Schema.Type.STRING);
-        if (type instanceof DataListType)
-            return Schema.createArray(dataTypeToSchema(((DataListType) type).valueType()));
-        if (type instanceof RecordType) return (((RecordType) type).schema().schema());
+        if (type == UserBoolean.TYPE) return Schema.create(Schema.Type.BOOLEAN);
+        if (type == UserByte.TYPE) return Schema.create(Schema.Type.INT);
+        if (type == UserShort.TYPE) return Schema.create(Schema.Type.INT);
+        if (type == UserInteger.TYPE) return Schema.create(Schema.Type.INT);
+        if (type == UserLong.TYPE) return Schema.create(Schema.Type.LONG);
+        if (type == UserFloat.TYPE) return Schema.create(Schema.Type.FLOAT);
+        if (type == UserDouble.TYPE) return Schema.create(Schema.Type.DOUBLE);
+        if (type == UserBytes.TYPE) return Schema.create(Schema.Type.BYTES);
+        if (type == UserString.TYPE) return Schema.create(Schema.Type.STRING);
+        if (type instanceof UserListType)
+            return Schema.createArray(dataTypeToSchema(((UserListType) type).valueType().type()));
+        if (type instanceof UserRecordType) return (((UserRecordType) type).schema().schema());
         if (type instanceof WindowedType) return WindowedSchema.generateWindowedSchema((WindowedType) type);
         throw new KSMLExecutionException("Can not convert data type " + type + " to schema type");
     }

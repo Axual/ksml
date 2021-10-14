@@ -45,7 +45,7 @@ public class FilterOperationParser extends ContextAwareParser<FilterOperation> {
         UserFunction predicate = parseFunction(node, FILTER_PREDICATE_ATTRIBUTE, new PredicateDefinitionParser());
         if (predicate != null) {
             return new FilterOperation(
-                    name,
+                    operationConfig(name),
                     predicate);
         }
         throw new KSMLParseException(node, "Predicate not specified or function unknown");

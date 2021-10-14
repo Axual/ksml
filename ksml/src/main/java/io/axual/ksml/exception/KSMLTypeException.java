@@ -22,7 +22,7 @@ package io.axual.ksml.exception;
 
 
 import io.axual.ksml.generator.StreamDataType;
-import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.base.DataType;
 
 public class KSMLTypeException extends RuntimeException {
     public static KSMLTypeException conversionFailed(DataType variableType, DataType valueType) {

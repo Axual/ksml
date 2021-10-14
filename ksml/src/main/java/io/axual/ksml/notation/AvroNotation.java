@@ -9,9 +9,9 @@ package io.axual.ksml.notation;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,10 +29,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.axual.ksml.avro.AvroDataMapper;
-import io.axual.ksml.util.DataUtil;
+import io.axual.ksml.data.type.user.UserRecordType;
+import io.axual.ksml.data.type.user.UserType;
 import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.RecordType;
+import io.axual.ksml.util.DataUtil;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 
@@ -51,8 +51,8 @@ public class AvroNotation implements Notation {
     }
 
     @Override
-    public Serde<Object> getSerde(DataType type, boolean isKey) {
-        if (type instanceof RecordType) {
+    public Serde<Object> getSerde(UserType type, boolean isKey) {
+        if (type instanceof UserRecordType) {
             var result = new AvroSerde();
             result.configure(configs, isKey);
             return result;
@@ -63,11 +63,11 @@ public class AvroNotation implements Notation {
     private class AvroSerde implements Serde<Object> {
         private final Serializer<Object> serializer = new KafkaAvroSerializer();
         private final Deserializer<Object> deserializer = new KafkaAvroDeserializer();
-        
+
         private final Serializer<Object> wrapSerializer = new Serializer<>() {
             @Override
             public byte[] serialize(String topic, Object data) {
-                return serializer.serialize(topic, mapper.fromDataObject(DataUtil.asData(data)));
+                return serializer.serialize(topic, mapper.fromDataObject(DataUtil.asUserObject(data)));
             }
         };
 
@@ -75,14 +75,14 @@ public class AvroNotation implements Notation {
             @Override
             public Object deserialize(String topic, byte[] data) {
                 GenericRecord object = (GenericRecord) deserializer.deserialize(topic, data);
-                return mapper.toDataObject(object);
+                return mapper.toDataObject(AvroNotation.NAME, object);
             }
         };
 
         @Override
         public void configure(Map<String, ?> configs, boolean isKey) {
-            serializer.configure(configs,isKey);
-            deserializer.configure(configs,isKey);
+            serializer.configure(configs, isKey);
+            deserializer.configure(configs, isKey);
         }
 
         @Override

@@ -25,7 +25,7 @@ import org.apache.kafka.streams.kstream.ValueJoiner;
 
 import io.axual.ksml.util.DataUtil;
 import io.axual.ksml.python.Invoker;
-import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.base.DataType;
 
 public class UserValueJoiner extends Invoker implements ValueJoiner<Object, Object, Object> {
     public UserValueJoiner(UserFunction function) {
@@ -36,6 +36,6 @@ public class UserValueJoiner extends Invoker implements ValueJoiner<Object, Obje
 
     @Override
     public Object apply(Object key, Object value) {
-        return function.call(DataUtil.asData(key), DataUtil.asData(value));
+        return function.call(DataUtil.asUserObject(key), DataUtil.asUserObject(value));
     }
 }

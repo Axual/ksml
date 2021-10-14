@@ -24,7 +24,6 @@ package io.axual.ksml.operation;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Named;
 
-import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
@@ -34,8 +33,8 @@ import io.axual.ksml.user.UserValueTransformer;
 public class TransformValueOperation extends StoreOperation {
     private final UserFunction transformer;
 
-    public TransformValueOperation(String name, String storeName, UserFunction transformer) {
-        super(name, storeName);
+    public TransformValueOperation(StoreOperationConfig config, UserFunction transformer) {
+        super(config);
         this.transformer = transformer;
     }
 
@@ -44,7 +43,7 @@ public class TransformValueOperation extends StoreOperation {
         return new KStreamWrapper(
                 input.stream.mapValues(new UserValueTransformer(transformer), Named.as(name)),
                 input.keyType(),
-                StreamDataType.of(transformer.resultType, input.valueType.notation, false));
+                streamDataTypeOf(transformer.resultType, false));
     }
 
     @Override
@@ -53,6 +52,6 @@ public class TransformValueOperation extends StoreOperation {
         return new KTableWrapper(
                 input.table.mapValues(new UserValueTransformer(transformer), Named.as(name), Materialized.as(storeName)),
                 input.keyType(),
-                StreamDataType.of(transformer.resultType, input.valueType.notation, false));
+                streamDataTypeOf(transformer.resultType, false));
     }
 }

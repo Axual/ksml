@@ -9,9 +9,9 @@ package io.axual.ksml;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,13 +30,13 @@ import java.util.Map;
 
 import io.axual.ksml.avro.AvroDataMapper;
 import io.axual.ksml.data.mapper.DataMapper;
-import io.axual.ksml.util.DataUtil;
+import io.axual.ksml.data.type.user.UserRecordType;
+import io.axual.ksml.data.type.user.UserType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.notation.AvroNotation;
 import io.axual.ksml.notation.Notation;
 import io.axual.ksml.serde.UnknownTypeSerde;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.RecordType;
+import io.axual.ksml.util.DataUtil;
 import io.axual.streams.proxy.axual.AxualSerdeConfig;
 
 public class AxualAvroNotation implements Notation {
@@ -54,9 +54,9 @@ public class AxualAvroNotation implements Notation {
         return AvroNotation.NAME;
     }
 
-    public Serde<Object> getSerde(DataType type, boolean isKey) {
-        if (type instanceof RecordType) {
-            var result = new AvroSerde(configs, (RecordType) type, isKey);
+    public Serde<Object> getSerde(UserType type, boolean isKey) {
+        if (type instanceof UserRecordType) {
+            var result = new AvroSerde(configs, (UserRecordType) type, isKey);
             result.configure(configs, isKey);
             return result;
         }
@@ -67,7 +67,7 @@ public class AxualAvroNotation implements Notation {
         private final Serializer<GenericRecord> serializer;
         private final Deserializer<GenericRecord> deserializer;
 
-        public AvroSerde(Map<String, Object> configs, RecordType type, boolean isKey) {
+        public AvroSerde(Map<String, Object> configs, UserRecordType type, boolean isKey) {
             AxualAvroSerde serde = new AxualAvroSerde(configs, type, isKey);
             serializer = serde.serializer();
             deserializer = serde.deserializer();
@@ -76,7 +76,7 @@ public class AxualAvroNotation implements Notation {
         private final Serializer<Object> wrapSerializer = new Serializer<>() {
             @Override
             public byte[] serialize(String topic, Object data) {
-                var object = mapper.fromDataObject(DataUtil.asData(data));
+                var object = mapper.fromDataObject(DataUtil.asUserObject(data));
                 if (object instanceof GenericRecord) {
                     return serializer.serialize(topic, (GenericRecord) object);
                 }
@@ -88,7 +88,7 @@ public class AxualAvroNotation implements Notation {
             @Override
             public Object deserialize(String topic, byte[] data) {
                 GenericRecord object = deserializer.deserialize(topic, data);
-                return mapper.toDataObject(object);
+                return mapper.toDataObject(AvroNotation.NAME, object);
             }
         };
 

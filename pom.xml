@@ -51,6 +51,7 @@
 
     <modules>
         <module>ksml</module>
+        <module>ksml-query</module>
         <module>ksml-axual</module>
         <module>ksml-example-producer</module>
         <module>ksml-runner</module>
@@ -87,6 +88,7 @@
         <mockito-junit-jupiter.version>2.23.0</mockito-junit-jupiter.version>
         <junit-platform-runner.version>1.2.0</junit-platform-runner.version>
         <junit-vintage-engine.version>5.2.0</junit-vintage-engine.version>
+        <jersey.version>3.0.0</jersey.version>
     </properties>
 
     <dependencyManagement>
@@ -95,6 +97,11 @@
             <dependency>
                 <groupId>io.axual.ksml</groupId>
                 <artifactId>ksml</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml-query</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -127,6 +134,22 @@
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka-streams</artifactId>
                 <version>${apache.kafka.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.glassfish.jersey.containers</groupId>
+                <artifactId>jersey-container-grizzly2-http</artifactId>
+                <version>${jersey.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.core</groupId>
+                <artifactId>jersey-client</artifactId>
+                <version>${jersey.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.media</groupId>
+                <artifactId>jersey-media-moxy</artifactId>
+                <version>${jersey.version}</version>
             </dependency>
 
             <dependency>

@@ -42,8 +42,7 @@ public class TransformValueOperationParser extends ContextAwareParser<TransformV
     public TransformValueOperation parse(YamlNode node) {
         if (node == null) return null;
         return new TransformValueOperation(
-                name,
-                parseText(node, STORE_NAME_ATTRIBUTE),
+                storeOperationConfig(name, parseText(node, STORE_NAME_ATTRIBUTE)),
                 parseFunction(node, TRANSFORMVALUE_MAPPER_ATTRIBUTE, new ValueTransformerDefinitionParser()));
     }
 }

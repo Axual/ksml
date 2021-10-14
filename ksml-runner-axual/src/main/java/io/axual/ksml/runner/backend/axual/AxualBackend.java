@@ -9,9 +9,9 @@ package io.axual.ksml.runner.backend.axual;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -189,30 +189,34 @@ public class AxualBackend implements Backend {
         createStreams();
 
         axualStreams.start();
-        Utils.sleep(1000);
-        while (!stopRunning.get()) {
-            DiscoveryClientRegistry.checkProperties(discoveryConfig);
-            if (clusterSwitchDetected.getAndSet(false)) {
-                log.warn("Cluster switch detected, shutting down runner to reinitialize on new cluster");
-                axualStreams.stop();
-                while (axualStreams.state() != KafkaStreams.State.NOT_RUNNING && axualStreams.state() != KafkaStreams.State.ERROR) {
-                    // Check if runner is stopped
-                    Utils.sleep(50);
-                }
-                if (waitForDistribution()) {
-                    createStreams();
-                    axualStreams.start();
-                    Utils.sleep(1000);
-                }
-            }
+//        try (var restServer = new RestServer(RestServer.DEFAULT_PORT)) {
+//            restServer.start();
+            Utils.sleep(1000);
 
-            final var state = getState();
-            if (state == State.STOPPED || state == State.FAILED) {
-                log.info("Streams implementation has stopped, stopping Axual Backend");
-                break;
+            while (!stopRunning.get()) {
+                DiscoveryClientRegistry.checkProperties(discoveryConfig);
+                if (clusterSwitchDetected.getAndSet(false)) {
+                    log.warn("Cluster switch detected, shutting down runner to reinitialize on new cluster");
+                    axualStreams.stop();
+                    while (axualStreams.state() != KafkaStreams.State.NOT_RUNNING && axualStreams.state() != KafkaStreams.State.ERROR) {
+                        // Check if runner is stopped
+                        Utils.sleep(50);
+                    }
+                    if (waitForDistribution()) {
+                        createStreams();
+                        axualStreams.start();
+                        Utils.sleep(1000);
+                    }
+                }
+
+                final var state = getState();
+                if (state == State.STOPPED || state == State.FAILED) {
+                    log.info("Streams implementation has stopped, stopping Axual Backend");
+                    break;
+                }
+                Utils.sleep(200);
             }
-            Utils.sleep(200);
-        }
+//        }
     }
 
     public void discoveryPropertiesChanged(DiscoveryResult newDiscoveryResult) {

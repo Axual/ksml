@@ -18,11 +18,15 @@
         <maven.compiler.target>11</maven.compiler.target>
         <auto-service.version>1.0</auto-service.version>
     </properties>
-    
+
     <dependencies>
         <dependency>
             <groupId>io.axual.ksml</groupId>
             <artifactId>ksml-axual</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.axual.ksml</groupId>
+            <artifactId>ksml-query</artifactId>
         </dependency>
         <dependency>
             <groupId>io.axual.ksml</groupId>
@@ -44,7 +48,7 @@
             <artifactId>auto-service-annotations</artifactId>
             <version>${auto-service.version}</version>
         </dependency>
-        
+
     </dependencies>
 
     <build>
@@ -115,5 +119,5 @@
             </plugin>
         </plugins>
     </build>
-    
+
 </project>

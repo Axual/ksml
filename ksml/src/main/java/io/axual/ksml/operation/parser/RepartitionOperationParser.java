@@ -42,8 +42,7 @@ public class RepartitionOperationParser extends ContextAwareParser<RepartitionOp
     public RepartitionOperation parse(YamlNode node) {
         if (node == null) return null;
         return new RepartitionOperation(
-                name,
-                parseText(node, STORE_NAME_ATTRIBUTE),
+                storeOperationConfig(name, parseText(node, STORE_NAME_ATTRIBUTE)),
                 parseFunction(node, REPARTITION_PARTITIONER_ATTRIBUTE, new StreamPartitionerDefinitionParser()));
     }
 }

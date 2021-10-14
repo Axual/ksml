@@ -21,7 +21,6 @@ package io.axual.ksml.operation.parser;
  */
 
 
-import io.axual.ksml.notation.BinaryNotation;
 import io.axual.ksml.operation.CountOperation;
 import io.axual.ksml.parser.ContextAwareParser;
 import io.axual.ksml.parser.ParseContext;
@@ -40,8 +39,7 @@ public class CountOperationParser extends ContextAwareParser<CountOperation> {
     @Override
     public CountOperation parse(YamlNode node) {
         if (node == null) return null;
-        return new CountOperation(name,
-                parseText(node, STORE_NAME_ATTRIBUTE),
-                context.getNotationLibrary().get(BinaryNotation.NAME));
+        return new CountOperation(
+                storeOperationConfig(name, parseText(node, STORE_NAME_ATTRIBUTE)));
     }
 }

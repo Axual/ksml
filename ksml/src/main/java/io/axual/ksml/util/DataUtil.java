@@ -9,9 +9,9 @@ package io.axual.ksml.util;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,13 +23,14 @@ package io.axual.ksml.util;
 import org.apache.kafka.streams.kstream.Windowed;
 
 import io.axual.ksml.data.mapper.NativeDataMapper;
-import io.axual.ksml.data.object.DataLong;
-import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataRecord;
-import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.type.WindowedType;
+import io.axual.ksml.data.object.UserLong;
+import io.axual.ksml.data.object.UserObject;
+import io.axual.ksml.data.object.UserRecord;
+import io.axual.ksml.data.object.UserString;
+import io.axual.ksml.data.type.base.WindowedType;
 import io.axual.ksml.schema.SchemaUtil;
 
+import static io.axual.ksml.data.type.user.UserType.DEFAULT_NOTATION;
 import static io.axual.ksml.schema.WindowedSchema.END_FIELD;
 import static io.axual.ksml.schema.WindowedSchema.END_TIME_FIELD;
 import static io.axual.ksml.schema.WindowedSchema.KEY_FIELD;
@@ -51,21 +52,21 @@ public class DataUtil {
     // that any data type injected by Kafka Streams gets modified into a proper DataObject on the
     // fly. When new data types pop up in Kafka Streams' generics, add the conversion to a
     // DataObject to this method.
-    public static DataObject asData(Object object) {
-        if (object instanceof DataObject) return (DataObject) object;
+    public static UserObject asUserObject(Object object) {
+        if (object instanceof UserObject) return (UserObject) object;
         if (object instanceof Windowed<?>) return windowAsRecord((Windowed<?>) object);
-        return nativeDataMapper.toDataObject(object);
+        return nativeDataMapper.toDataObject(DEFAULT_NOTATION, object);
     }
 
     // Convert a Windowed object into a data record with fields that contain the window fields.
-    private static DataRecord windowAsRecord(Windowed<?> windowedObject) {
-        var keyAsData = asData(windowedObject.key());
-        var schema = SchemaUtil.windowTypeToSchema(new WindowedType(keyAsData.type()));
-        var result = new DataRecord(schema);
-        result.put(START_FIELD, new DataLong(windowedObject.window().start()));
-        result.put(END_FIELD, new DataLong(windowedObject.window().start()));
-        result.put(START_TIME_FIELD, new DataString(windowedObject.window().startTime().toString()));
-        result.put(END_TIME_FIELD, new DataString(windowedObject.window().endTime().toString()));
+    private static UserRecord windowAsRecord(Windowed<?> windowedObject) {
+        var keyAsData = asUserObject(windowedObject.key());
+        var schema = SchemaUtil.windowTypeToSchema(new WindowedType(keyAsData.type().type()));
+        var result = new UserRecord(schema);
+        result.put(START_FIELD, new UserLong(windowedObject.window().start()));
+        result.put(END_FIELD, new UserLong(windowedObject.window().start()));
+        result.put(START_TIME_FIELD, new UserString(windowedObject.window().startTime().toString()));
+        result.put(END_TIME_FIELD, new UserString(windowedObject.window().endTime().toString()));
         result.put(KEY_FIELD, keyAsData);
         return result;
     }

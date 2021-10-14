@@ -23,7 +23,7 @@ package io.axual.ksml.user;
 
 import org.apache.kafka.streams.kstream.Predicate;
 
-import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.UserBoolean;
 import io.axual.ksml.util.DataUtil;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;
@@ -32,13 +32,13 @@ public class UserPredicate extends Invoker implements Predicate<Object, Object> 
     public UserPredicate(UserFunction function) {
         super(function);
         verifyParameterCount(2);
-        verifyResultType(DataBoolean.TYPE);
+        verifyResultType(UserBoolean.TYPE);
     }
 
     public boolean test(Object key, Object value) {
-        var result = function.call(DataUtil.asData(key), DataUtil.asData(value));
-        if (result instanceof DataBoolean) {
-            return ((DataBoolean) result).value();
+        var result = function.call(DataUtil.asUserObject(key), DataUtil.asUserObject(value));
+        if (result instanceof UserBoolean) {
+            return ((UserBoolean) result).value();
         }
         throw new KSMLExecutionException("Expected a boolean back from the predicate function: " + function.name);
     }

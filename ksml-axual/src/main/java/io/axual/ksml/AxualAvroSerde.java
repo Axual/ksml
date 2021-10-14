@@ -30,7 +30,7 @@ import java.util.Map;
 import io.axual.client.proxy.generic.registry.ProxyChain;
 import io.axual.client.proxy.resolving.generic.ResolvingProxyConfig;
 import io.axual.common.resolver.TopicPatternResolver;
-import io.axual.ksml.data.type.RecordType;
+import io.axual.ksml.data.type.user.UserRecordType;
 import io.axual.serde.avro.BaseAvroDeserializer;
 import io.axual.serde.avro.GenericAvroDeserializer;
 import io.axual.serde.avro.GenericAvroSerializer;
@@ -39,7 +39,7 @@ import io.axual.streams.proxy.axual.AxualSerde;
 import io.axual.streams.proxy.axual.AxualSerdeConfig;
 
 public class AxualAvroSerde extends AxualSerde<GenericRecord> {
-    private final RecordType type;
+    private final UserRecordType type;
     private static final Serde<GenericRecord> generatingSerde = new Serde<>() {
         @Override
         public Serializer<GenericRecord> serializer() {
@@ -52,12 +52,12 @@ public class AxualAvroSerde extends AxualSerde<GenericRecord> {
         }
     };
 
-    public AxualAvroSerde(Map<String, Object> configs, RecordType type, boolean isKey) {
+    public AxualAvroSerde(Map<String, Object> configs, UserRecordType type, boolean isKey) {
         super(getConfig(configs, type), isKey);
         this.type = type;
     }
 
-    private static Map<String, Object> getConfig(Map<String, Object> configs, RecordType type) {
+    private static Map<String, Object> getConfig(Map<String, Object> configs, UserRecordType type) {
         final ProxyChain chain = StreamRunnerConfig.DEFAULT_PROXY_CHAIN;
         configs.put(AxualSerdeConfig.KEY_SERDE_CHAIN_CONFIG, chain);
         configs.put(AxualSerdeConfig.VALUE_SERDE_CHAIN_CONFIG, chain);
@@ -70,7 +70,7 @@ public class AxualAvroSerde extends AxualSerde<GenericRecord> {
         return configs;
     }
 
-    public RecordType getType() {
+    public UserRecordType getType() {
         return type;
     }
 }

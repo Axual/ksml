@@ -28,15 +28,15 @@ import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 
 public class GroupByKeyOperation extends StoreOperation {
-    public GroupByKeyOperation(String name, String storeName) {
-        super(name, storeName);
+    public GroupByKeyOperation(StoreOperationConfig config) {
+        super(config);
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
         return new KGroupedStreamWrapper(
                 input.stream.groupByKey(
-                        Grouped.with(storeName, input.keyType.getSerde(), input.valueType.getSerde())),
+                        registerGrouped(Grouped.with(storeName, input.keyType.getSerde(), input.valueType.getSerde()))),
                 input.keyType,
                 input.valueType);
     }

@@ -23,7 +23,7 @@ package io.axual.ksml.operation.parser;
 import io.axual.ksml.operation.ConvertValueOperation;
 import io.axual.ksml.parser.ContextAwareParser;
 import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.parser.TypeParser;
+import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.CONVERT_INTO_ATTRIBUTE;
@@ -40,8 +40,7 @@ public class ConvertValueOperationParser extends ContextAwareParser<ConvertValue
     public ConvertValueOperation parse(YamlNode node) {
         if (node == null) return null;
         return new ConvertValueOperation(
-                name,
-                TypeParser.parse(parseText(node, CONVERT_INTO_ATTRIBUTE)),
-                context.getNotationLibrary());
+                operationConfig(name),
+                UserTypeParser.parse(parseText(node, CONVERT_INTO_ATTRIBUTE)));
     }
 }

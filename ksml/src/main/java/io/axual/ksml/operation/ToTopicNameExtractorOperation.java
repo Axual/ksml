@@ -32,8 +32,8 @@ import io.axual.ksml.user.UserTopicNameExtractor;
 public class ToTopicNameExtractorOperation extends BaseOperation {
     private final UserFunction topicNameExtractor;
 
-    public ToTopicNameExtractorOperation(String name, UserFunction topicNameExtractor) {
-        super(name);
+    public ToTopicNameExtractorOperation(OperationConfig config, UserFunction topicNameExtractor) {
+        super(config);
         this.topicNameExtractor = topicNameExtractor;
     }
 

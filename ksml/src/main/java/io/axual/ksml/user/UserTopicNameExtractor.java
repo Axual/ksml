@@ -24,7 +24,7 @@ package io.axual.ksml.user;
 import org.apache.kafka.streams.processor.RecordContext;
 import org.apache.kafka.streams.processor.TopicNameExtractor;
 
-import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.UserString;
 import io.axual.ksml.util.DataUtil;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;
@@ -35,14 +35,14 @@ public class UserTopicNameExtractor extends Invoker implements TopicNameExtracto
     public UserTopicNameExtractor(UserFunction function) {
         super(function);
         verifyParameterCount(2);
-        verifyResultType(DataString.TYPE);
+        verifyResultType(UserString.TYPE);
     }
 
     @Override
     public String extract(Object key, Object value, RecordContext recordContext) {
-        var result = function.call(DataUtil.asData(key), DataUtil.asData(value));
-        if (result instanceof DataString) {
-            return ((DataString) result).value();
+        var result = function.call(DataUtil.asUserObject(key), DataUtil.asUserObject(value));
+        if (result instanceof UserString) {
+            return ((UserString) result).value();
         }
         throw new KSMLExecutionException("Expected string result from function: " + function.name);
     }

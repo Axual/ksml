@@ -120,6 +120,7 @@ public class KSMLDSL {
     public static final String FUNCTION_TYPE_REDUCER = "reducer";
     public static final String FUNCTION_TYPE_STREAMPARTITIONER = "streamPartitioner";
     public static final String FUNCTION_TYPE_TOPICNAMEEXTRACTOR = "topicNameExtractor";
+    public static final String FUNCTION_TYPE_VALUEJOINER = "valueJoiner";
     public static final String FUNCTION_TYPE_VALUETRANSFORMER = "valueTransformer";
     public static final String WINDOWEDBY_WINDOWTYPE_ATTRIBUTE = "windowType";
     public static final String WINDOWEDBY_WINDOWTYPE_SESSION = "session";

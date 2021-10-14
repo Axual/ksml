@@ -9,9 +9,9 @@ package io.axual.ksml.generator;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,45 +23,51 @@ package io.axual.ksml.generator;
 
 import org.apache.kafka.common.serialization.Serde;
 
-import io.axual.ksml.data.object.DataRecord;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.WindowedType;
+import io.axual.ksml.data.object.UserRecord;
+import io.axual.ksml.data.type.base.DataType;
+import io.axual.ksml.data.type.base.WindowedType;
+import io.axual.ksml.data.type.user.UserType;
 import io.axual.ksml.notation.Notation;
 import io.axual.ksml.schema.SchemaUtil;
 
 public class StreamDataType {
-    public final DataType type;
-    public final DataType rawType;
-    public final Notation notation;
-    public final boolean isKey;
+    private final UserType userType;
+    private final Notation notation;
+    private final boolean isKey;
 
-    public StreamDataType(DataType type, Notation notation, boolean isKey) {
-        this.type = cookType(type);
-        this.rawType = type;
+    public StreamDataType(UserType type, Notation notation, boolean isKey) {
+        this.userType = cookType(type);
         this.notation = notation;
         this.isKey = isKey;
     }
 
-    private static DataType cookType(DataType type) {
-        return type instanceof WindowedType
-                ? DataRecord.typeOf(SchemaUtil.windowTypeToSchema((WindowedType) type))
+    private static UserType cookType(UserType type) {
+        // When we get a WindowedType, we automatically convert it into a record type using
+        // fixed fields. This allows for processing downstream, since the WindowType itself
+        // is KafkaStreams internal and thus not usable in user functions.
+        return type.type() instanceof WindowedType
+                ? UserRecord.typeOf(SchemaUtil.windowTypeToSchema((WindowedType) type.type()))
                 : type;
     }
 
+    public DataType type() {
+        return userType.type();
+    }
+
+    public Notation notation() {
+        return notation;
+    }
+
     public boolean isAssignableFrom(StreamDataType other) {
-        return type.isAssignableFrom(other.type);
+        return userType.isAssignableFrom(other.userType);
     }
 
     @Override
     public String toString() {
-        return type + " (" + (notation != null ? "as " + notation.name() : "unknown notation") + ")";
+        return userType.type() + " (" + (userType.notation() != null ? "as " + userType.notation() : "unknown notation") + ")";
     }
 
     public Serde<Object> getSerde() {
-        return notation.getSerde(type, isKey);
-    }
-
-    public static StreamDataType of(DataType type, Notation notation, boolean isKey) {
-        return new StreamDataType(type, notation, isKey);
+        return notation.getSerde(userType, isKey);
     }
 }

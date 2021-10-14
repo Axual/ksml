@@ -36,6 +36,6 @@ public class UserForeachAction extends Invoker implements ForeachAction<Object, 
 
     @Override
     public void apply(Object key, Object value) {
-        function.call(DataUtil.asData(key), DataUtil.asData(value));
+        function.call(DataUtil.asUserObject(key), DataUtil.asUserObject(value));
     }
 }

@@ -22,7 +22,7 @@ package io.axual.ksml.schema;
 
 import org.apache.avro.Schema;
 
-import io.axual.ksml.data.type.WindowedType;
+import io.axual.ksml.data.type.base.WindowedType;
 import io.axual.ksml.exception.KSMLExecutionException;
 
 public class WindowedSchema {

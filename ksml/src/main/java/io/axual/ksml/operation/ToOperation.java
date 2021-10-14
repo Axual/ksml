@@ -23,7 +23,7 @@ package io.axual.ksml.operation;
 
 import org.apache.kafka.streams.kstream.Produced;
 
-import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.base.DataType;
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.exception.KSMLTypeException;
 import io.axual.ksml.notation.NotationLibrary;
@@ -34,8 +34,8 @@ public class ToOperation extends BaseOperation {
     private final BaseStreamDefinition target;
     private final NotationLibrary notationLibrary;
 
-    public ToOperation(String name, BaseStreamDefinition target, NotationLibrary notationLibrary) {
-        super(name);
+    public ToOperation(OperationConfig config, BaseStreamDefinition target, NotationLibrary notationLibrary) {
+        super(config);
         this.target = target;
         this.notationLibrary = notationLibrary;
     }
@@ -43,15 +43,15 @@ public class ToOperation extends BaseOperation {
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
         // Perform a type check to see if the key/value data types received matches the stream definition's types
-        if (!target.key.type.isAssignableFrom(input.keyType.type) || !target.value.type.isAssignableFrom(input.valueType.type)) {
-            throw KSMLTypeException.topicTypeMismatch(target.topic, input.keyType, input.valueType, target.key.type, target.value.type);
+        if (!target.keyType.type().isAssignableFrom(input.keyType.type()) || !target.valueType.type().isAssignableFrom(input.valueType.type())) {
+            throw KSMLTypeException.topicTypeMismatch(target.topic, input.keyType, input.valueType, target.keyType.type(), target.valueType.type());
         }
 
-        var keySerde = target.key.type != DataType.UNKNOWN
-                ? notationLibrary.get(target.key.notation).getSerde(target.key.type, true)
+        var keySerde = target.keyType.type() != DataType.UNKNOWN
+                ? notationLibrary.get(target.keyType.notation()).getSerde(target.keyType, true)
                 : input.keyType.getSerde();
-        var valueSerde = target.value.type != DataType.UNKNOWN
-                ? notationLibrary.get(target.value.notation).getSerde(target.value.type, false)
+        var valueSerde = target.valueType.type() != DataType.UNKNOWN
+                ? notationLibrary.get(target.valueType.notation()).getSerde(target.valueType, false)
                 : input.valueType.getSerde();
 
         input.stream.to(target.topic, Produced.with(keySerde, valueSerde).withName(name));

@@ -30,8 +30,8 @@ import io.axual.ksml.stream.StreamWrapper;
 public class MergeOperation extends BaseOperation {
     private final KStreamWrapper mergeStream;
 
-    public MergeOperation(String name, KStreamWrapper mergeStream) {
-        super(name);
+    public MergeOperation(OperationConfig config, KStreamWrapper mergeStream) {
+        super(config);
         this.mergeStream = mergeStream;
     }
 

@@ -9,9 +9,9 @@ package io.axual.ksml.user;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,9 +24,9 @@ package io.axual.ksml.user;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 
-import io.axual.ksml.util.DataUtil;
+import io.axual.ksml.data.type.user.UserKeyValueType;
 import io.axual.ksml.python.Invoker;
-import io.axual.ksml.data.type.KeyValueMapType;
+import io.axual.ksml.util.DataUtil;
 
 public class UserKeyValueTransformer extends Invoker implements KeyValueMapper<Object, Object, KeyValue<Object, Object>> {
     public UserKeyValueTransformer(UserFunction function) {
@@ -35,8 +35,8 @@ public class UserKeyValueTransformer extends Invoker implements KeyValueMapper<O
 
     @Override
     public KeyValue<Object, Object> apply(Object key, Object value) {
-        return (KeyValue) function.convertToKeyValue(function.call(DataUtil.asData(key), DataUtil.asData(value)),
-                ((KeyValueMapType) function.resultType).keyType(),
-                ((KeyValueMapType) function.resultType).valueType());
+        return (KeyValue) function.convertToKeyValue(function.call(DataUtil.asUserObject(key), DataUtil.asUserObject(value)),
+                ((UserKeyValueType) function.resultType).keyType(),
+                ((UserKeyValueType) function.resultType).valueType());
     }
 }

@@ -41,7 +41,7 @@ public class TransformKeyValueToValueListOperationParser extends ContextAwarePar
     public TransformKeyValueToValueListOperation parse(YamlNode node) {
         if (node == null) return null;
         return new TransformKeyValueToValueListOperation(
-                name,
+                operationConfig(name),
                 parseFunction(node, TRANSFORMKEYVALUETOVALUELIST_MAPPER_ATTRIBUTE, new KeyValueToValueListTransformerDefinitionParser()));
     }
 }

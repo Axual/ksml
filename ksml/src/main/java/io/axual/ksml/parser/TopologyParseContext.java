@@ -23,6 +23,11 @@ package io.axual.ksml.parser;
 
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
+import org.apache.kafka.streams.kstream.Grouped;
+import org.apache.kafka.streams.kstream.Materialized;
+import org.apache.kafka.streams.kstream.internals.GroupedInternal;
+import org.apache.kafka.streams.kstream.internals.MaterializedInternal;
+import org.apache.kafka.streams.processor.StateStore;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,6 +52,8 @@ public class TopologyParseContext implements ParseContext {
     private final Map<String, FunctionDefinition> functionDefinitions;
     private final Map<String, StreamWrapper> streamWrappers = new HashMap<>();
     private final Map<String, AtomicInteger> typeInstanceCounters = new HashMap<>();
+    private final Map<String, GroupedInternal<?, ?>> groupedStores = new HashMap<>();
+    private final Map<String, MaterializedInternal<?, ?, ?>> stateStores = new HashMap<>();
 
     public TopologyParseContext(StreamsBuilder builder, NotationLibrary notationLibrary, Map<String, BaseStreamDefinition> streamDefinitions, Map<String, FunctionDefinition> functionDefinitions) {
         this.builder = builder;
@@ -109,6 +116,16 @@ public class TopologyParseContext implements ParseContext {
 
     public NotationLibrary getNotationLibrary() {
         return notationLibrary;
+    }
+
+    public <K, V> void registerGrouped(Grouped<K, V> grouped) {
+        var copy = new GroupedInternal<>(grouped);
+        groupedStores.put(copy.name(), copy);
+    }
+
+    public <K, V, S extends StateStore> void registerStore(Materialized<K, V, S> materialized) {
+        var copy = new MaterializedInternal<>(materialized);
+        stateStores.put(copy.storeName(), copy);
     }
 
     public Topology build() {

@@ -9,9 +9,9 @@ package io.axual.ksml.notation;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,14 +27,14 @@ import org.apache.kafka.common.serialization.Serializer;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.axual.ksml.util.DataUtil;
 import io.axual.ksml.data.mapper.NativeDataMapper;
+import io.axual.ksml.data.type.user.UserListType;
+import io.axual.ksml.data.type.user.UserRecordType;
+import io.axual.ksml.data.type.user.UserType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.serde.JsonDeserializer;
 import io.axual.ksml.serde.JsonSerializer;
-import io.axual.ksml.data.type.DataListType;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.RecordType;
+import io.axual.ksml.util.DataUtil;
 
 public class JsonNotation implements Notation {
     public static final String NAME = "JSON";
@@ -51,8 +51,8 @@ public class JsonNotation implements Notation {
     }
 
     @Override
-    public Serde<Object> getSerde(DataType type, boolean isKey) {
-        if (type instanceof RecordType || type instanceof DataListType) {
+    public Serde<Object> getSerde(UserType type, boolean isKey) {
+        if (type instanceof UserRecordType || type instanceof UserListType) {
             var result = new JsonSerde();
             result.configure(configs, isKey);
             return result;
@@ -67,7 +67,7 @@ public class JsonNotation implements Notation {
         private final Serializer<Object> wrapSerializer = new Serializer<>() {
             @Override
             public byte[] serialize(String topic, Object data) {
-                return serializer.serialize(topic, mapper.fromDataObject(DataUtil.asData(data)));
+                return serializer.serialize(topic, mapper.fromDataObject(DataUtil.asUserObject(data)));
             }
         };
 
@@ -75,7 +75,7 @@ public class JsonNotation implements Notation {
             @Override
             public Object deserialize(String topic, byte[] data) {
                 Object object = deserializer.deserialize(topic, data);
-                return mapper.toDataObject(object);
+                return mapper.toDataObject(JsonNotation.NAME, object);
             }
         };
 

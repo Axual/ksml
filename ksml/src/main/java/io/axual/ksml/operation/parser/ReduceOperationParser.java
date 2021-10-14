@@ -21,7 +21,6 @@ package io.axual.ksml.operation.parser;
  */
 
 
-
 import io.axual.ksml.operation.ReduceOperation;
 import io.axual.ksml.parser.ContextAwareParser;
 import io.axual.ksml.parser.ParseContext;
@@ -45,8 +44,7 @@ public class ReduceOperationParser extends ContextAwareParser<ReduceOperation> {
     public ReduceOperation parse(YamlNode node) {
         if (node == null) return null;
         return new ReduceOperation(
-                name,
-                parseText(node, STORE_NAME_ATTRIBUTE),
+                storeOperationConfig(name, parseText(node, STORE_NAME_ATTRIBUTE)),
                 parseFunction(node, REDUCE_REDUCER_ATTRIBUTE, new ReducerDefinitionParser()),
                 parseFunction(node, REDUCE_ADDER_ATTRIBUTE, new ReducerDefinitionParser()),
                 parseFunction(node, REDUCE_SUBTRACTOR_ATTRIBUTE, new ReducerDefinitionParser()));
