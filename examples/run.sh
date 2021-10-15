@@ -13,4 +13,4 @@ done
 BASEDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 
-docker run --name ksml-example --rm -ti -v "${BASEDIR}":/ksml -w /ksml --network ksml_example axual/ksml:latest
+docker run --name ksml-example --rm -ti -v "${BASEDIR}":/ksml -w /ksml --network ksml_example axual/ksml:tontest
