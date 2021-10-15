@@ -68,8 +68,8 @@ public class GlobalTableDefinitionTest {
 
         // it adds a ktable to the builder with key and value type, and returns a KTableWrapper instance
         final var stringType = UserTypeParser.parse("string");
-        verify(mockNotation).getSerde(stringType, true);
-        verify(mockNotation).getSerde(stringType, false);
+        verify(mockNotation).getSerde(stringType.type(), true);
+        verify(mockNotation).getSerde(stringType.type(), false);
 
         verify(builder).globalTable(eq("topic"), isA(Consumed.class));
         assertThat(streamWrapper, instanceOf(GlobalKTableWrapper.class));

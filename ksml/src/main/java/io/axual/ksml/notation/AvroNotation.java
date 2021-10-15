@@ -9,9 +9,9 @@ package io.axual.ksml.notation;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,8 +29,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.axual.ksml.avro.AvroDataMapper;
-import io.axual.ksml.data.type.user.UserRecordType;
-import io.axual.ksml.data.type.user.UserType;
+import io.axual.ksml.data.type.base.DataType;
+import io.axual.ksml.data.type.base.MapType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.util.DataUtil;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
@@ -51,8 +51,8 @@ public class AvroNotation implements Notation {
     }
 
     @Override
-    public Serde<Object> getSerde(UserType type, boolean isKey) {
-        if (type instanceof UserRecordType) {
+    public Serde<Object> getSerde(DataType type, boolean isKey) {
+        if (type instanceof MapType) {
             var result = new AvroSerde();
             result.configure(configs, isKey);
             return result;
@@ -60,7 +60,7 @@ public class AvroNotation implements Notation {
         throw new KSMLExecutionException("Avro serde not found for data type " + type);
     }
 
-    private class AvroSerde implements Serde<Object> {
+    private static class AvroSerde implements Serde<Object> {
         private final Serializer<Object> serializer = new KafkaAvroSerializer();
         private final Deserializer<Object> deserializer = new KafkaAvroDeserializer();
 

@@ -48,10 +48,10 @@ public class ToOperation extends BaseOperation {
         }
 
         var keySerde = target.keyType.type() != DataType.UNKNOWN
-                ? notationLibrary.get(target.keyType.notation()).getSerde(target.keyType, true)
+                ? notationLibrary.get(target.keyType.notation()).getSerde(target.keyType.type(), true)
                 : input.keyType.getSerde();
         var valueSerde = target.valueType.type() != DataType.UNKNOWN
-                ? notationLibrary.get(target.valueType.notation()).getSerde(target.valueType, false)
+                ? notationLibrary.get(target.valueType.notation()).getSerde(target.valueType.type(), false)
                 : input.valueType.getSerde();
 
         input.stream.to(target.topic, Produced.with(keySerde, valueSerde).withName(name));

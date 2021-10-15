@@ -30,7 +30,7 @@ import java.util.Map;
 import io.axual.client.proxy.generic.registry.ProxyChain;
 import io.axual.client.proxy.resolving.generic.ResolvingProxyConfig;
 import io.axual.common.resolver.TopicPatternResolver;
-import io.axual.ksml.data.type.user.UserRecordType;
+import io.axual.ksml.schema.DataSchema;
 import io.axual.serde.avro.BaseAvroDeserializer;
 import io.axual.serde.avro.GenericAvroDeserializer;
 import io.axual.serde.avro.GenericAvroSerializer;
@@ -39,7 +39,6 @@ import io.axual.streams.proxy.axual.AxualSerde;
 import io.axual.streams.proxy.axual.AxualSerdeConfig;
 
 public class AxualAvroSerde extends AxualSerde<GenericRecord> {
-    private final UserRecordType type;
     private static final Serde<GenericRecord> generatingSerde = new Serde<>() {
         @Override
         public Serializer<GenericRecord> serializer() {
@@ -52,12 +51,11 @@ public class AxualAvroSerde extends AxualSerde<GenericRecord> {
         }
     };
 
-    public AxualAvroSerde(Map<String, Object> configs, UserRecordType type, boolean isKey) {
-        super(getConfig(configs, type), isKey);
-        this.type = type;
+    public AxualAvroSerde(Map<String, Object> configs, DataSchema schema, boolean isKey) {
+        super(getConfig(configs, schema), isKey);
     }
 
-    private static Map<String, Object> getConfig(Map<String, Object> configs, UserRecordType type) {
+    private static Map<String, Object> getConfig(Map<String, Object> configs, DataSchema schema) {
         final ProxyChain chain = StreamRunnerConfig.DEFAULT_PROXY_CHAIN;
         configs.put(AxualSerdeConfig.KEY_SERDE_CHAIN_CONFIG, chain);
         configs.put(AxualSerdeConfig.VALUE_SERDE_CHAIN_CONFIG, chain);
@@ -65,12 +63,8 @@ public class AxualAvroSerde extends AxualSerde<GenericRecord> {
         configs.put(AxualSerdeConfig.BACKING_VALUE_SERDE_CONFIG, generatingSerde);
         configs.put(ResolvingProxyConfig.TOPIC_RESOLVER_CONFIG, TopicPatternResolver.class.getName());
         configs.put(TopicPatternResolver.TOPIC_PATTERN_CONFIG, "{tenant}-{instance}-{environment}-{topic}");
-        configs.put(BaseAvroDeserializer.SPECIFIC_KEY_SCHEMA_CONFIG, type.schema());
-        configs.put(BaseAvroDeserializer.SPECIFIC_VALUE_SCHEMA_CONFIG, type.schema());
+        configs.put(BaseAvroDeserializer.SPECIFIC_KEY_SCHEMA_CONFIG, schema);
+        configs.put(BaseAvroDeserializer.SPECIFIC_VALUE_SCHEMA_CONFIG, schema);
         return configs;
-    }
-
-    public UserRecordType getType() {
-        return type;
     }
 }

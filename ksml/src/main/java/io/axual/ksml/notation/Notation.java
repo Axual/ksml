@@ -22,10 +22,10 @@ package io.axual.ksml.notation;
 
 import org.apache.kafka.common.serialization.Serde;
 
-import io.axual.ksml.data.type.user.UserType;
+import io.axual.ksml.data.type.base.DataType;
 
 public interface Notation {
     String name();
 
-    Serde<Object> getSerde(UserType type, boolean isKey);
+    Serde<Object> getSerde(DataType type, boolean isKey);
 }
