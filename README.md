@@ -32,6 +32,21 @@ The following example project is also included:
 
 ## Building KSML
 Building and running KSML requires an installation of GraalVM and the corresponding Python module.
+There are two ways to do this:
+1. Use the supplied multistage Docker build file
+2. Install GraalVM locally
+
+See the paragraphs below for details.
+
+#### Using the multistage Docker build
+You can build either the standard KSML runner, or the runner for the Axual platform using one of the following commands:
+
+    docker build -t axual/ksml -f Dockerfile-build-runner . --build-arg runner=ksml-runner
+    docker build -t axual/ksml -f Dockerfile-build-runner . --build-arg runner=ksml-runner-axual
+
+If you do not specify a `--build-arg`, the plain Kafka runner will be built by default.
+
+#### Install GraalVM locally
 Download GraalVM from [this page](https://www.graalvm.org/downloads/) and install it for your
 platform as explained. Once installed, use the command ```gu install python``` to install the Python
 module. For more information, check out the [Python Reference](https://www.graalvm.org/reference-manual/python/) pages.
@@ -41,20 +56,17 @@ Maven commands:
 
 ```mvn clean package```
 
+Then build the runtime container by passing in either `./ksml-runner` or `ksml-runner-axual` as build context:
+
+    docker build -t axual/ksml -f Dockerfile ./ksml-runner
+    docker build -t axual/ksml -f Dockerfile ./ksml-runner-axual
+
 ## Running KSML
-There are several ways to use KSML:
-* As a Java library: you can include the KSML library in your own application to convert KSML definition files into a Kafka Streams topology.
-* As a runnable jar: bundled in the repository is a [KSML runner](docs/runners.md) that allow you to run any KSML definition files from the command line against a Kafka and/or Axual backend.
-* As a Docker container: same as the previous option, but the runnable jar is contained in a Docker image which executes as a standalone executable.
+To run the KSML demo, we provide a Docker compose file which will start Kafka, create the demo topics, and start a container
+with a demo producer. You can then start the runner you generated in the previous step, passing in a KSML configuration of your choice.
+See [Getting started](docs/getting-started.md) or [Runners](docs/runners.md) for details.
 
-For the first and second options you need to have [Java](http://www.oracle.com/technetwork/java/javase/downloads/index.html) and [Maven](https://maven.apache.org/download.cgi) installed.
-
-If you want to run KSML as a Docker container, Docker 19.x is required.
-
-For more information, see the [Runners](docs/runners.md) page.
-
-## Examples
-See [Getting started](docs/getting-started.md) to run a demonstration setup.
+To run the demo, Docker 19.x is required.
 
 ### Contributing ###
 
