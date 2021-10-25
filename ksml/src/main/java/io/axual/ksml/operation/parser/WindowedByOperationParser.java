@@ -76,13 +76,13 @@ public class WindowedByOperationParser extends ContextAwareParser<WindowedByOper
         if (grace != null && grace.toMillis() > 0) {
             sessionWindows = sessionWindows.grace(grace);
         }
-        return new WindowedByOperation(name, sessionWindows);
+        return new WindowedByOperation(operationConfig(name), sessionWindows);
     }
 
     private WindowedByOperation parseSlidingWindows(YamlNode node) {
         var timeDifference = parseDuration(node, WINDOWEDBY_WINDOWTYPE_SLIDING_TIMEDIFFERENCE);
         var grace = parseDuration(node, WINDOWEDBY_WINDOWTYPE_SLIDING_GRACE);
-        return new WindowedByOperation(name, SlidingWindows.withTimeDifferenceAndGrace(timeDifference, grace));
+        return new WindowedByOperation(operationConfig(name), SlidingWindows.withTimeDifferenceAndGrace(timeDifference, grace));
     }
 
     private WindowedByOperation parseTimeWindows(YamlNode node) {
@@ -96,6 +96,6 @@ public class WindowedByOperationParser extends ContextAwareParser<WindowedByOper
         if (grace != null && grace.toMillis() > 0) {
             timeWindows = timeWindows.grace(grace);
         }
-        return new WindowedByOperation(name, timeWindows);
+        return new WindowedByOperation(operationConfig(name), timeWindows);
     }
 }

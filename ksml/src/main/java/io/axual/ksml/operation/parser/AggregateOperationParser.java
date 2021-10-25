@@ -21,7 +21,6 @@ package io.axual.ksml.operation.parser;
  */
 
 
-
 import io.axual.ksml.operation.AggregateOperation;
 import io.axual.ksml.definition.parser.AggregatorDefinitionParser;
 import io.axual.ksml.parser.ContextAwareParser;
@@ -44,12 +43,11 @@ public class AggregateOperationParser extends ContextAwareParser<AggregateOperat
     public AggregateOperation parse(YamlNode node) {
         if (node == null) return null;
         return new AggregateOperation(
-                name,
-                parseText(node, STORE_NAME_ATTRIBUTE),
-                parseFunction(node, AGGREGATE_INITIALIZER_ATTRIBUTE, new InitializerDefinitionParser()),
-                parseFunction(node, AGGREGATE_AGGREGATOR_ATTRIBUTE, new AggregatorDefinitionParser()),
-                parseFunction(node, AGGREGATE_MERGER_ATTRIBUTE, new MergerDefinitionParser()),
-                parseFunction(node, AGGREGATE_ADDER_ATTRIBTUE, new AggregatorDefinitionParser()),
-                parseFunction(node, AGGREGATE_SUBTRACTOR_ATTRIBUTE, new AggregatorDefinitionParser()));
+                storeOperationConfig(name, parseText(node, STORE_NAME_ATTRIBUTE)),
+                parseOptionalFunction(node, AGGREGATE_INITIALIZER_ATTRIBUTE, new InitializerDefinitionParser()),
+                parseOptionalFunction(node, AGGREGATE_AGGREGATOR_ATTRIBUTE, new AggregatorDefinitionParser()),
+                parseOptionalFunction(node, AGGREGATE_MERGER_ATTRIBUTE, new MergerDefinitionParser()),
+                parseOptionalFunction(node, AGGREGATE_ADDER_ATTRIBTUE, new AggregatorDefinitionParser()),
+                parseOptionalFunction(node, AGGREGATE_SUBTRACTOR_ATTRIBUTE, new AggregatorDefinitionParser()));
     }
 }

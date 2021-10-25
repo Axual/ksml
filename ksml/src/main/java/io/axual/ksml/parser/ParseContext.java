@@ -21,6 +21,9 @@ package io.axual.ksml.parser;
  */
 
 
+import org.apache.kafka.streams.kstream.Grouped;
+import org.apache.kafka.streams.kstream.Materialized;
+import org.apache.kafka.streams.processor.StateStore;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -46,4 +49,8 @@ public interface ParseContext {
     Map<String, AtomicInteger> getTypeInstanceCounters();
 
     NotationLibrary getNotationLibrary();
+
+    <K, V> void registerGrouped(Grouped<K, V> grouped);
+
+    <K, V, S extends StateStore> void registerStore(Materialized<K, V, S> materialized);
 }

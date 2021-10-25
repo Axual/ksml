@@ -21,7 +21,8 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.user.UserBoolean;
+import io.axual.ksml.data.type.user.StaticUserType;
 
 import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_PARAMETERS;
 
@@ -29,6 +30,6 @@ public class PredicateDefinition extends FunctionDefinition {
     public PredicateDefinition(FunctionDefinition definition) {
         super(definition
                 .withParameters(getParameters(definition.parameters, KEY_VALUE_PARAMETERS))
-                .withResult(DataBoolean.TYPE));
+                .withResult(new StaticUserType(UserBoolean.TYPE, definition.resultType.notation())));
     }
 }

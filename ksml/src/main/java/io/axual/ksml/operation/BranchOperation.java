@@ -36,8 +36,8 @@ import io.axual.ksml.user.UserPredicate;
 public class BranchOperation extends BaseOperation {
     private final List<BranchDefinition> branches;
 
-    public BranchOperation(String name, List<BranchDefinition> branches) {
-        super(name);
+    public BranchOperation(OperationConfig config, List<BranchDefinition> branches) {
+        super(config);
         this.branches = branches;
     }
 

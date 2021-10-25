@@ -41,7 +41,7 @@ public class TransformKeyValueOperationParser extends ContextAwareParser<Transfo
     public TransformKeyValueOperation parse(YamlNode node) {
         if (node == null) return null;
         return new TransformKeyValueOperation(
-                name,
+                operationConfig(name),
                 parseFunction(node, TRANSFORMKEYVALUE_MAPPER_ATTRIBUTE, new KeyValueTransformerDefinitionParser()));
     }
 }

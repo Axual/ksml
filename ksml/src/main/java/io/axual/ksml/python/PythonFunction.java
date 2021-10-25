@@ -21,9 +21,6 @@ package io.axual.ksml.python;
  */
 
 
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.util.Utf8;
-import org.apache.kafka.connect.data.Struct;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.PolyglotAccess;
@@ -31,11 +28,10 @@ import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 
-import io.axual.ksml.data.mapper.PythonDataMapper;
-import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.mapper.PythonUserObjectMapper;
+import io.axual.ksml.data.object.user.UserObject;
+import io.axual.ksml.data.object.user.UserString;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLTopologyException;
@@ -50,7 +46,7 @@ public class PythonFunction extends UserFunction {
             .allowHostAccess(HostAccess.ALL)
             .allowHostClassLookup(name -> name.equals("java.util.ArrayList") || name.equals("java.util.HashMap"))
             .build();
-    private static final PythonDataMapper mapper = new PythonDataMapper(context);
+    private static final PythonUserObjectMapper mapper = new PythonUserObjectMapper(context);
     protected final Value function;
 
     public PythonFunction(String name, FunctionDefinition definition) {
@@ -106,7 +102,7 @@ public class PythonFunction extends UserFunction {
     }
 
     @Override
-    public DataObject call(DataObject... parameters) {
+    public UserObject call(UserObject... parameters) {
         // Validate that the defined parameter list matches the amount of passed in parameters
         if (this.parameters.length != parameters.length) {
             throw new KSMLTopologyException("Parameter list does not match function spec: expected " + this.parameters.length + ", got " + parameters.length);
@@ -116,7 +112,7 @@ public class PythonFunction extends UserFunction {
         Object[] arguments = new Object[parameters.length];
         for (var index = 0; index < parameters.length; index++) {
             checkType(this.parameters[index], parameters[index]);
-            arguments[index] = mapper.fromDataObject(parameters[index]);
+            arguments[index] = mapper.fromUserObject(parameters[index]);
         }
 
         // Create a list of prefixed parameter names to pass to the function
@@ -130,15 +126,28 @@ public class PythonFunction extends UserFunction {
                 throw new KSMLExecutionException("Python code results in a function instead of a value");
             }
 
-            // Process result
+            // Check if the function is supposed to return a result value
             if (resultType != null) {
+                // The converted result value from Python
+                final UserObject result;
+
+                // If a value is expected, but none is returned, then handle special cases
                 if (pyResult.isNull()) {
-                    throw new KSMLTopologyException("Illegal return from function: null");
+                    // An empty string in YAML (ie. '') is returned as null by the parser, so
+                    // when we expect a string and get null, we convert it to the empty string.
+                    if (resultType.type() == UserString.TYPE) {
+                        // Empty string may be returned as null, so catch and convert here
+                        result = new UserString(resultType.notation(), "");
+                    } else {
+                        throw new KSMLTopologyException("Illegal return from function: null");
+                    }
+                } else {
+                    // Convert the result object to a UserObject
+                    result = mapper.toUserObject(resultType, pyResult);
                 }
 
-                DataObject result = mapper.toDataObject(pyResult, resultType);
                 logCall(parameters, result);
-                checkType(result, resultType);
+                checkType(resultType.type(), result);
                 return result;
             } else {
                 logCall(parameters, null);
@@ -148,51 +157,5 @@ public class PythonFunction extends UserFunction {
             logCall(parameters, null);
             throw new KSMLTopologyException("Error while executing function " + name + ": " + e.getMessage());
         }
-    }
-
-    private String mapToString(List<?> list) {
-        StringBuilder result = new StringBuilder("[");
-        boolean first = true;
-        for (Object value : list) {
-            if (!first) result.append(",");
-            appendValue(result, value);
-            first = false;
-        }
-        return result.append("}").toString();
-
-    }
-
-    private String mapToString(Map<?, ?> map) {
-        StringBuilder result = new StringBuilder("{");
-        boolean first = true;
-        for (Map.Entry<?, ?> entry : map.entrySet()) {
-            if (!first) result.append(",");
-            Object key = entry.getKey();
-            Object value = entry.getValue();
-            result.append("\"").append(key.toString()).append("\":");
-            appendValue(result, value);
-            first = false;
-        }
-        return result.append("}").toString();
-    }
-
-    private String mapToString(Struct struct) {
-        StringBuilder result = new StringBuilder("{");
-        boolean first = true;
-        for (var field : struct.schema().fields()) {
-            if (!first) result.append(",");
-            result.append("\"").append(field.name()).append("\":");
-            appendValue(result, struct.get(field.name()));
-            first = false;
-        }
-        return result.append("}").toString();
-    }
-
-    private void appendValue(StringBuilder builder, Object value) {
-        if (value instanceof String || value instanceof Utf8 || value instanceof GenericData.EnumSymbol)
-            builder.append("\"");
-        builder.append(value.toString());
-        if (value instanceof String || value instanceof Utf8 || value instanceof GenericData.EnumSymbol)
-            builder.append("\"");
     }
 }

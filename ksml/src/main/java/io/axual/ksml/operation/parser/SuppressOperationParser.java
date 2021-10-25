@@ -59,12 +59,12 @@ public class SuppressOperationParser extends ContextAwareParser<SuppressOperatio
     private SuppressOperation parseSuppressUntilTimeLimit(YamlNode node) {
         var duration = parseDuration(node, SUPPRESS_DURATION_ATTRIBUTE);
         var bufferConfig = parseBufferConfig(node);
-        return SuppressOperation.create(name, Suppressed.untilTimeLimit(duration, bufferConfig));
+        return SuppressOperation.create(operationConfig(name), Suppressed.untilTimeLimit(duration, bufferConfig));
     }
 
     private SuppressOperation parseSuppressUntilWindowClose(YamlNode node) {
         var bufferConfig = parseStrictBufferConfig(node);
-        return SuppressOperation.createWindowed(name, Suppressed.untilWindowCloses(bufferConfig));
+        return SuppressOperation.createWindowed(operationConfig(name), Suppressed.untilWindowCloses(bufferConfig));
     }
 
     private Suppressed.EagerBufferConfig parseBufferConfig(YamlNode node) {

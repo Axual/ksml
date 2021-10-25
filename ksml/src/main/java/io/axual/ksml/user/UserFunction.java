@@ -27,13 +27,14 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 
-import io.axual.ksml.data.object.DataList;
-import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataTuple;
+import io.axual.ksml.data.object.user.UserList;
+import io.axual.ksml.data.object.user.UserObject;
+import io.axual.ksml.data.object.user.UserTuple;
+import io.axual.ksml.data.type.user.UserType;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.exception.KSMLTypeException;
-import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.base.DataType;
 import io.axual.ksml.util.StringUtil;
 
 /**
@@ -44,9 +45,9 @@ public abstract class UserFunction {
     private static final Logger LOG = LoggerFactory.getLogger(UserFunction.class);
     public final String name;
     public final ParameterDefinition[] parameters;
-    public final DataType resultType;
+    public final UserType resultType;
 
-    public UserFunction(String name, ParameterDefinition[] parameters, DataType resultType) {
+    public UserFunction(String name, ParameterDefinition[] parameters, UserType resultType) {
         this.name = name;
         this.parameters = parameters;
         this.resultType = resultType;
@@ -59,14 +60,14 @@ public abstract class UserFunction {
         return name + "(" + StringUtil.join(", ", params) + ")" + (resultType != null ? " ==> " + resultType : "");
     }
 
-    protected void checkType(DataObject value, DataType expected) {
-        if (expected != null && value != null && !expected.isAssignableFrom(value.type())) {
-            throw KSMLTypeException.conversionFailed(expected, value.type());
+    protected void checkType(DataType expected, UserObject value) {
+        if (expected != null && value != null && !expected.isAssignableFrom(value.type().type())) {
+            throw KSMLTypeException.conversionFailed(expected, value.type().type());
         }
     }
 
-    protected void checkType(ParameterDefinition definition, DataObject value) {
-        checkType(value, definition.type);
+    protected void checkType(ParameterDefinition definition, UserObject value) {
+        checkType(definition.type, value);
     }
 
     protected void logCall(Object[] parameters, Object result) {
@@ -93,22 +94,22 @@ public abstract class UserFunction {
      * @param parameters parameters for the function.
      * @return the result of the call.
      */
-    public abstract DataObject call(DataObject... parameters);
+    public abstract UserObject call(UserObject... parameters);
 
     private KSMLTopologyException validateException(Object result, String expectedType) {
         return new KSMLTopologyException("Expected " + expectedType + " from function " + name + " but got: " + (result != null ? result : "null"));
     }
 
-    public KeyValue<DataObject, DataObject> convertToKeyValue(DataObject result, DataType keyType, DataType valueType) {
-        if (result instanceof DataList) {
-            var list = (DataList) result;
+    public KeyValue<UserObject, UserObject> convertToKeyValue(UserObject result, UserType keyType, UserType valueType) {
+        if (result instanceof UserList) {
+            var list = (UserList) result;
             if (list.size() == 2 && keyType.isAssignableFrom(list.get(0).type()) && valueType.isAssignableFrom(list.get(1).type())) {
                 return new KeyValue<>(list.get(0), list.get(1));
             }
         }
 
-        if (result instanceof DataTuple) {
-            var tuple = (DataTuple) result;
+        if (result instanceof UserTuple) {
+            var tuple = (UserTuple) result;
             if (tuple.size() == 2 && keyType.isAssignableFrom(tuple.get(0).type()) && valueType.isAssignableFrom(tuple.get(1).type())) {
                 return new KeyValue<>(tuple.get(0), tuple.get(1));
             }

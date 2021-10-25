@@ -42,8 +42,7 @@ public class GroupByOperationParser extends ContextAwareParser<GroupByOperation>
     public GroupByOperation parse(YamlNode node) {
         if (node == null) return null;
         return new GroupByOperation(
-                name,
-                parseText(node, STORE_NAME_ATTRIBUTE),
+                storeOperationConfig(name, parseText(node, STORE_NAME_ATTRIBUTE)),
                 parseFunction(node, GROUPBY_MAPPER_ATTRIBUTE, new KeyValueMapperDefinitionParser())
         );
     }

@@ -27,34 +27,35 @@ import org.apache.kafka.streams.kstream.KeyValueMapper;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.axual.ksml.data.object.DataList;
-import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.util.DataUtil;
+import io.axual.ksml.data.object.user.UserList;
+import io.axual.ksml.data.object.user.UserObject;
+import io.axual.ksml.data.type.base.DataType;
+import io.axual.ksml.data.type.base.KeyValueType;
+import io.axual.ksml.data.type.base.ListType;
+import io.axual.ksml.data.type.user.UserKeyValueListType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;
-import io.axual.ksml.data.type.DataListType;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.KeyValueListType;
-import io.axual.ksml.data.type.KeyValueType;
+import io.axual.ksml.util.DataUtil;
 
 public class UserKeyValueToKeyValueListTransformer extends Invoker implements KeyValueMapper<Object, Object, Iterable<KeyValue<Object, Object>>> {
     public UserKeyValueToKeyValueListTransformer(UserFunction function) {
         super(function);
         verifyParameterCount(2);
-        verifyResultReturned(new DataListType(new KeyValueType(DataType.UNKNOWN, DataType.UNKNOWN)));
+        verifyResultReturned(new ListType(new KeyValueType(DataType.UNKNOWN, DataType.UNKNOWN)));
     }
 
     @Override
     public Iterable<KeyValue<Object, Object>> apply(Object key, Object value) {
-        var result = function.call(DataUtil.asData(key), DataUtil.asData(value));
-        var keyType = ((KeyValueListType) function.resultType).keyValueKeyType();
-        var valueType = ((KeyValueListType) function.resultType).keyValueValueType();
+        var result = function.call(DataUtil.asUserObject(key), DataUtil.asUserObject(value));
+        var keyType = ((UserKeyValueListType) function.resultType).keyValueKeyType();
+        var valueType = ((UserKeyValueListType) function.resultType).keyValueValueType();
 
-        if (result instanceof DataList) {
-            var list = (List<DataObject>) result;
+        if (result instanceof UserList) {
+            var list = (List<UserObject>) result;
             var convertedResult = new ArrayList<KeyValue<Object, Object>>();
-            for (DataObject element : list) {
-                convertedResult.add((KeyValue) function.convertToKeyValue(element, keyType, valueType));
+            for (UserObject element : list) {
+                KeyValue<UserObject, UserObject> convertedKeyValue = function.convertToKeyValue(element, keyType, valueType);
+                convertedResult.add((KeyValue) convertedKeyValue);
             }
             return convertedResult;
         }

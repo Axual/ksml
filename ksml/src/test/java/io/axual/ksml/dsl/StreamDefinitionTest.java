@@ -35,7 +35,7 @@ import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.notation.BinaryNotation;
 import io.axual.ksml.notation.Notation;
 import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.parser.TypeParser;
+import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.stream.KStreamWrapper;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -67,9 +67,9 @@ public class StreamDefinitionTest {
         var streamWrapper = streamDefinition.addToBuilder(builder, "name", notationLibrary);
 
         // it adds a ktable to the builder with key and value type, and returns a KTableWrapper instance
-        final var stringType = TypeParser.parse("string");
-        verify(mockNotation).getSerde(stringType.type, true);
-        verify(mockNotation).getSerde(stringType.type, false);
+        final var stringType = UserTypeParser.parse("string");
+        verify(mockNotation).getSerde(stringType.type(), true);
+        verify(mockNotation).getSerde(stringType.type(), false);
 
         verify(builder).stream(eq("topic"), isA(Consumed.class));
         assertThat(streamWrapper, instanceOf(KStreamWrapper.class));

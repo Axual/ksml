@@ -1,4 +1,5 @@
 ksml:
+  application.server: localhost:8080
   workingDirectory: ../examples
   definitions:
 #    - 1-demo-inspect.yaml
@@ -9,6 +10,8 @@ ksml:
 #    - 6-demo-double.yaml
 #    - 7-demo-convert.yaml
     - 8-demo-count.yaml
+#    - 9-demo-queryabletable.yaml
+#    - untracked/paf-balance.yaml
 
 
 

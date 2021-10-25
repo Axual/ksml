@@ -35,6 +35,6 @@ public class UserAggregator extends Invoker implements Aggregator<Object, Object
 
     @Override
     public Object apply(Object key, Object value, Object aggregatedValue) {
-        return function.call(DataUtil.asData(key), DataUtil.asData(value), DataUtil.asData(aggregatedValue));
+        return function.call(DataUtil.asUserObject(key), DataUtil.asUserObject(value), DataUtil.asUserObject(aggregatedValue));
     }
 }

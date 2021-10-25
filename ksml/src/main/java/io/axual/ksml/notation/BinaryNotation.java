@@ -28,15 +28,15 @@ import org.apache.kafka.common.serialization.Serializer;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.mapper.NativeUserObjectMapper;
+import io.axual.ksml.data.object.user.UserObject;
+import io.axual.ksml.data.type.base.DataType;
+import io.axual.ksml.data.type.base.SimpleType;
 import io.axual.ksml.util.DataUtil;
-import io.axual.ksml.data.mapper.NativeDataMapper;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.SimpleType;
 
 public class BinaryNotation implements Notation {
     public static final String NAME = "BINARY";
-    private static final NativeDataMapper mapper = new NativeDataMapper();
+    private static final NativeUserObjectMapper mapper = new NativeUserObjectMapper();
     private final Map<String, Object> configs = new HashMap<>();
     private final Notation jsonNotation;
 
@@ -53,7 +53,7 @@ public class BinaryNotation implements Notation {
     @Override
     public Serde<Object> getSerde(DataType type, boolean isKey) {
         if (type instanceof SimpleType) {
-            var result = new BinarySerde((Serde<Object>) Serdes.serdeFrom(((SimpleType) type).type));
+            var result = new BinarySerde((Serde<Object>) Serdes.serdeFrom(type.containerClass()));
             result.configure(configs, isKey);
             return result;
         }
@@ -61,7 +61,7 @@ public class BinaryNotation implements Notation {
         return jsonNotation.getSerde(type, isKey);
     }
 
-    private class BinarySerde implements Serde<Object> {
+    private static class BinarySerde implements Serde<Object> {
         private final Serializer<Object> serializer;
         private final Deserializer<Object> deserializer;
 
@@ -73,15 +73,15 @@ public class BinaryNotation implements Notation {
         private final Serializer<Object> wrapSerializer = new Serializer<>() {
             @Override
             public byte[] serialize(String topic, Object data) {
-                return serializer.serialize(topic, mapper.fromDataObject(DataUtil.asData(data)));
+                return serializer.serialize(topic, mapper.fromUserObject(DataUtil.asUserObject(data)));
             }
         };
 
         private final Deserializer<Object> wrapDeserializer = new Deserializer<>() {
             @Override
-            public DataObject deserialize(String topic, byte[] data) {
+            public UserObject deserialize(String topic, byte[] data) {
                 Object object = deserializer.deserialize(topic, data);
-                return mapper.toDataObject(object);
+                return mapper.toUserObject(BinaryNotation.NAME, object);
             }
         };
 

@@ -23,19 +23,19 @@ package io.axual.ksml.definition;
 
 import org.apache.kafka.streams.StreamsBuilder;
 
-import io.axual.ksml.data.type.DataTypeAndNotation;
+import io.axual.ksml.data.type.user.UserType;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.stream.StreamWrapper;
 
 public abstract class BaseStreamDefinition {
     public final String topic;
-    public final DataTypeAndNotation key;
-    public final DataTypeAndNotation value;
+    public final UserType keyType;
+    public final UserType valueType;
 
-    public BaseStreamDefinition(String topic, DataTypeAndNotation key, DataTypeAndNotation value) {
+    public BaseStreamDefinition(String topic, UserType keyType, UserType valueType) {
         this.topic = topic;
-        this.key = key;
-        this.value = value;
+        this.keyType = keyType;
+        this.valueType = valueType;
     }
 
     /**

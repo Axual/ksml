@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import io.axual.ksml.notation.AvroNotation;
+
 // First attempt at providing an internal schema class. The implementation relies heavily on Avro
 // at the moment, which is fine for now, but may change in the future.
 public class DataSchema {
@@ -44,6 +46,10 @@ public class DataSchema {
 
     public String name() {
         return schema.getFullName();
+    }
+
+    public String notation() {
+        return AvroNotation.NAME;
     }
 
     @Override

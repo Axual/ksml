@@ -21,18 +21,23 @@ package io.axual.ksml.operation;
  */
 
 
+import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Named;
+import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.SessionStore;
+import org.apache.kafka.streams.state.WindowStore;
 
-import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.data.type.base.WindowedType;
+import io.axual.ksml.data.type.user.StaticUserType;
+import io.axual.ksml.stream.BaseStreamWrapper;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.KGroupedTableWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.SessionWindowedKStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
-import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.user.UserAggregator;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserInitializer;
@@ -45,8 +50,8 @@ public class AggregateOperation extends StoreOperation {
     private final UserFunction adder;
     private final UserFunction subtractor;
 
-    public AggregateOperation(String name, String storeName, UserFunction initializer, UserFunction aggregator, UserFunction merger, UserFunction adder, UserFunction subtractor) {
-        super(name, storeName);
+    public AggregateOperation(StoreOperationConfig config, UserFunction initializer, UserFunction aggregator, UserFunction merger, UserFunction adder, UserFunction subtractor) {
+        super(config);
         this.initializer = initializer;
         this.aggregator = aggregator;
         this.merger = merger;
@@ -54,51 +59,97 @@ public class AggregateOperation extends StoreOperation {
         this.subtractor = subtractor;
     }
 
+    private void checkAggregationFunction(UserFunction function, BaseStreamWrapper input, String name) {
+        checkAssignable(function.parameters[0].type, input.keyType.type(), "Stream key type incompatible with " + name + "'s first parameter");
+        checkAssignable(function.parameters[1].type, input.valueType.type(), "Stream value type incompatible with " + name + "'s second parameter");
+        checkAssignable(function.parameters[2].type, initializer.resultType.type(), "Initializer result type is incompatible with " + name + "'s third parameter");
+        checkAssignable(function.parameters[2].type, function.resultType.type(), name + " result type is incompatible with its third parameter");
+    }
+
     @Override
     public StreamWrapper apply(KGroupedStreamWrapper input) {
-        return new KTableWrapper(input.groupedStream.aggregate(
-                new UserInitializer(initializer),
-                new UserAggregator(aggregator),
-                Named.as(name),
-                Materialized.as(storeName)),
+        checkNotNull(initializer, "initializer");
+        checkNotNull(aggregator, "aggregator");
+        checkAggregationFunction(aggregator, input, "Aggregator");
+
+        Materialized<Object, Object, KeyValueStore<Bytes, byte[]>> mat = Materialized.as(storeName);
+        mat = mat.withKeySerde(input.keyType.getSerde());
+        mat = mat.withValueSerde(streamDataTypeOf(aggregator.resultType,false).getSerde());
+
+        return new KTableWrapper(
+                input.groupedStream.aggregate(
+                        new UserInitializer(initializer),
+                        new UserAggregator(aggregator),
+                        Named.as(name),
+                        registerStore(mat)),
                 input.keyType,
-                input.valueType);
+                streamDataTypeOf(aggregator.resultType, false));
     }
 
     @Override
     public StreamWrapper apply(KGroupedTableWrapper input) {
-        return new KTableWrapper(input.groupedTable.aggregate(
-                new UserInitializer(initializer),
-                new UserAggregator(adder),
-                new UserAggregator(subtractor),
-                Named.as(name),
-                Materialized.as(storeName)),
+        checkNotNull(initializer, "initializer");
+        checkNotNull(adder, "adder");
+        checkNotNull(subtractor, "subtractor");
+        checkAggregationFunction(adder, input, "Adder");
+        checkAggregationFunction(subtractor, input, "Subtractor");
+
+        Materialized<Object, Object, KeyValueStore<Bytes, byte[]>> mat = Materialized.as(storeName);
+        mat = mat.withKeySerde(input.keyType.getSerde());
+        mat = mat.withValueSerde(streamDataTypeOf(adder.resultType,false).getSerde());
+
+        return new KTableWrapper(
+                input.groupedTable.aggregate(
+                        new UserInitializer(initializer),
+                        new UserAggregator(adder),
+                        new UserAggregator(subtractor),
+                        Named.as(name),
+                        registerStore(mat)),
                 input.keyType,
-                input.valueType);
+                streamDataTypeOf(adder.resultType, false));
     }
 
     @Override
     public StreamWrapper apply(SessionWindowedKStreamWrapper input) {
+        checkNotNull(initializer, "initializer");
+        checkNotNull(aggregator, "aggregator");
+        checkNotNull(merger, "merger");
+        checkAggregationFunction(aggregator, input, "Aggregator");
+        checkAssignable(merger.parameters[0].type, input.keyType.type(), "Stream key type incompatible with Merger's first parameter");
+        checkEqual(aggregator.resultType.type(), merger.parameters[1].type, "Aggregator result type is incompatible with Merger's second parameter");
+
+        Materialized<Object, Object, SessionStore<Bytes, byte[]>> mat = Materialized.as(storeName);
+        mat = mat.withKeySerde(input.keyType.getSerde());
+        mat = mat.withValueSerde(streamDataTypeOf(aggregator.resultType,false).getSerde());
+
         return new KTableWrapper(
                 (KTable) input.sessionWindowedKStream.aggregate(
                         new UserInitializer(initializer),
                         new UserAggregator(aggregator),
                         new UserMerger(merger),
                         Named.as(name),
-                        Materialized.as(storeName)),
-                StreamDataType.of(new WindowedType(input.keyType.type), input.keyType.notation, true),
-                input.valueType);
+                        registerStore(mat)),
+                streamDataTypeOf(new StaticUserType(new WindowedType(input.keyType.type()), input.keyType.notation().name()), true),
+                streamDataTypeOf(aggregator.resultType, false));
     }
 
     @Override
     public StreamWrapper apply(TimeWindowedKStreamWrapper input) {
+        checkNotNull(initializer, "initializer");
+        checkNotNull(aggregator, "aggregator");
+        checkAggregationFunction(aggregator, input, "Aggregator");
+
+        Materialized<Object, Object, WindowStore<Bytes, byte[]>> mat = Materialized.as(storeName);
+        mat = mat.withKeySerde(input.keyType.getSerde());
+        mat = mat.withValueSerde(streamDataTypeOf(aggregator.resultType,false).getSerde());
+
         return new KTableWrapper(
                 (KTable) input.timeWindowedKStream.aggregate(
                         new UserInitializer(initializer),
                         new UserAggregator(aggregator),
                         Named.as(name),
-                        Materialized.as(storeName)),
-                StreamDataType.of(new WindowedType(input.keyType.type), input.keyType.notation, true),
-                input.valueType);
+                        registerStore(mat)),
+                streamDataTypeOf(new StaticUserType(new WindowedType(input.keyType.type()), input.keyType.notation().name()), true),
+                streamDataTypeOf(aggregator.resultType, false));
     }
 }

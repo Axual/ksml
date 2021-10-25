@@ -41,7 +41,7 @@ public class PeekOperationParser extends ContextAwareParser<PeekOperation> {
     public PeekOperation parse(YamlNode node) {
         if (node == null) return null;
         return new PeekOperation(
-                name,
+                operationConfig(name),
                 parseFunction(node, PEEK_FOREACH_ATTRIBUTE, new ForEachActionDefinitionParser()));
     }
 }

@@ -48,8 +48,7 @@ public class OuterJoinOperationParser extends ContextAwareParser<OuterJoinOperat
         StreamWrapper joinStream = parseAndGetStreamWrapper(node);
         if (joinStream instanceof KStreamWrapper) {
             return new OuterJoinOperation(
-                    name,
-                    parseText(node, STORE_NAME_ATTRIBUTE),
+                    storeOperationConfig(name, parseText(node, STORE_NAME_ATTRIBUTE)),
                     (KStreamWrapper) joinStream,
                     parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()),
                     parseDuration(node, JOIN_WINDOW_ATTRIBUTE));

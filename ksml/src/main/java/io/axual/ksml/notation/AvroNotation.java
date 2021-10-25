@@ -29,10 +29,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.axual.ksml.avro.AvroDataMapper;
-import io.axual.ksml.util.DataUtil;
+import io.axual.ksml.data.type.base.DataType;
+import io.axual.ksml.data.type.base.MapType;
 import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.RecordType;
+import io.axual.ksml.util.DataUtil;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 
@@ -52,7 +52,7 @@ public class AvroNotation implements Notation {
 
     @Override
     public Serde<Object> getSerde(DataType type, boolean isKey) {
-        if (type instanceof RecordType) {
+        if (type instanceof MapType) {
             var result = new AvroSerde();
             result.configure(configs, isKey);
             return result;
@@ -60,14 +60,14 @@ public class AvroNotation implements Notation {
         throw new KSMLExecutionException("Avro serde not found for data type " + type);
     }
 
-    private class AvroSerde implements Serde<Object> {
+    private static class AvroSerde implements Serde<Object> {
         private final Serializer<Object> serializer = new KafkaAvroSerializer();
         private final Deserializer<Object> deserializer = new KafkaAvroDeserializer();
-        
+
         private final Serializer<Object> wrapSerializer = new Serializer<>() {
             @Override
             public byte[] serialize(String topic, Object data) {
-                return serializer.serialize(topic, mapper.fromDataObject(DataUtil.asData(data)));
+                return serializer.serialize(topic, mapper.fromUserObject(DataUtil.asUserObject(data)));
             }
         };
 
@@ -75,14 +75,14 @@ public class AvroNotation implements Notation {
             @Override
             public Object deserialize(String topic, byte[] data) {
                 GenericRecord object = (GenericRecord) deserializer.deserialize(topic, data);
-                return mapper.toDataObject(object);
+                return mapper.toUserObject(AvroNotation.NAME, object);
             }
         };
 
         @Override
         public void configure(Map<String, ?> configs, boolean isKey) {
-            serializer.configure(configs,isKey);
-            deserializer.configure(configs,isKey);
+            serializer.configure(configs, isKey);
+            deserializer.configure(configs, isKey);
         }
 
         @Override

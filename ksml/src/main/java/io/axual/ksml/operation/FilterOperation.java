@@ -32,8 +32,8 @@ import io.axual.ksml.user.UserPredicate;
 public class FilterOperation extends BaseOperation {
     private final UserFunction predicate;
 
-    public FilterOperation(String name, UserFunction predicate) {
-        super(name);
+    public FilterOperation(OperationConfig config, UserFunction predicate) {
+        super(config);
         this.predicate = predicate;
     }
 

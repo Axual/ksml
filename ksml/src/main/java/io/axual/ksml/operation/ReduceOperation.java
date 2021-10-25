@@ -21,18 +21,22 @@ package io.axual.ksml.operation;
  */
 
 
+import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Named;
+import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.SessionStore;
+import org.apache.kafka.streams.state.WindowStore;
 
-import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.data.type.base.WindowedType;
+import io.axual.ksml.data.type.user.StaticUserType;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.KGroupedTableWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.SessionWindowedKStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
-import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserReducer;
 
@@ -41,8 +45,8 @@ public class ReduceOperation extends StoreOperation {
     private final UserFunction adder;
     private final UserFunction subtractor;
 
-    public ReduceOperation(String name, String storeName, UserFunction reducer, UserFunction adder, UserFunction subtractor) {
-        super(name, storeName);
+    public ReduceOperation(StoreOperationConfig config, UserFunction reducer, UserFunction adder, UserFunction subtractor) {
+        super(config);
         this.reducer = reducer;
         this.adder = adder;
         this.subtractor = subtractor;
@@ -50,44 +54,62 @@ public class ReduceOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KGroupedStreamWrapper input) {
-        return new KTableWrapper(input.groupedStream.reduce(
-                new UserReducer(reducer),
-                Named.as(name),
-                Materialized.as(storeName)),
-                input.keyType(), input.valueType());
+        Materialized<Object, Object, KeyValueStore<Bytes, byte[]>> mat = Materialized.as(storeName);
+        mat = mat.withKeySerde(input.keyType.getSerde());
+        mat = mat.withValueSerde(input.valueType.getSerde());
+
+        return new KTableWrapper(
+                input.groupedStream.reduce(
+                        new UserReducer(reducer),
+                        Named.as(name),
+                        registerStore(mat)),
+                input.keyType(),
+                input.valueType());
     }
 
     @Override
     public StreamWrapper apply(KGroupedTableWrapper input) {
-        return new KTableWrapper(input.groupedTable.reduce(
-                new UserReducer(adder),
-                new UserReducer(subtractor),
-                Named.as(name),
-                Materialized.as(storeName)),
-                input.keyType(), input.valueType());
+        Materialized<Object, Object, KeyValueStore<Bytes, byte[]>> mat = Materialized.as(storeName);
+        mat = mat.withKeySerde(input.keyType.getSerde());
+        mat = mat.withValueSerde(input.valueType.getSerde());
+
+        return new KTableWrapper(
+                input.groupedTable.reduce(
+                        new UserReducer(adder),
+                        new UserReducer(subtractor),
+                        Named.as(name),
+                        registerStore(mat)),
+                input.keyType(),
+                input.valueType());
     }
 
     @Override
     public StreamWrapper apply(SessionWindowedKStreamWrapper input) {
+        Materialized<Object, Object, SessionStore<Bytes, byte[]>> mat = Materialized.as(storeName);
+        mat = mat.withKeySerde(input.keyType.getSerde());
+        mat = mat.withValueSerde(input.valueType.getSerde());
 
         return new KTableWrapper(
                 (KTable) input.sessionWindowedKStream.reduce(
                         new UserReducer(reducer),
                         Named.as(name),
-                        Materialized.as(storeName)
-                ),
-                StreamDataType.of(new WindowedType(input.keyType.type), input.keyType.notation, true),
+                        registerStore(mat)),
+                streamDataTypeOf(new StaticUserType(new WindowedType(input.keyType.type()), input.keyType.notation().name()), true),
                 input.valueType());
     }
 
     @Override
     public StreamWrapper apply(TimeWindowedKStreamWrapper input) {
+        Materialized<Object, Object, WindowStore<Bytes, byte[]>> mat = Materialized.as(storeName);
+        mat = mat.withKeySerde(input.keyType.getSerde());
+        mat = mat.withValueSerde(input.valueType.getSerde());
+
         return new KTableWrapper(
                 (KTable) input.timeWindowedKStream.reduce(
                         new UserReducer(reducer),
                         Named.as(name),
-                        Materialized.as(storeName)),
-                StreamDataType.of(new WindowedType(input.keyType.type), input.keyType.notation, true),
+                        registerStore(mat)),
+                streamDataTypeOf(new StaticUserType(new WindowedType(input.keyType.type()), input.keyType.notation().name()), true),
                 input.valueType());
     }
 }

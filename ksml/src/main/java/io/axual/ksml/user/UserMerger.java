@@ -37,6 +37,6 @@ public class UserMerger extends Invoker implements Merger<Object, Object> {
 
     @Override
     public Object apply(Object key, Object value1, Object value2) {
-        return function.call(DataUtil.asData(key), DataUtil.asData(value1), DataUtil.asData(value2));
+        return function.call(DataUtil.asUserObject(key), DataUtil.asUserObject(value1), DataUtil.asUserObject(value2));
     }
 }

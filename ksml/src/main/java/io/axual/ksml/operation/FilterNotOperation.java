@@ -21,7 +21,6 @@ package io.axual.ksml.operation;
  */
 
 
-
 import org.apache.kafka.streams.kstream.Named;
 
 import io.axual.ksml.stream.KStreamWrapper;
@@ -33,8 +32,8 @@ import io.axual.ksml.user.UserPredicate;
 public class FilterNotOperation extends BaseOperation {
     private final UserFunction predicate;
 
-    public FilterNotOperation(String name, UserFunction predicate) {
-        super(name);
+    public FilterNotOperation(OperationConfig config, UserFunction predicate) {
+        super(config);
         this.predicate = predicate;
     }
 

@@ -39,9 +39,6 @@ public class GroupByKeyOperationParser extends ContextAwareParser<GroupByKeyOper
     @Override
     public GroupByKeyOperation parse(YamlNode node) {
         if (node == null) return null;
-        return new GroupByKeyOperation(
-                name,
-                parseText(node, STORE_NAME_ATTRIBUTE)
-        );
+        return new GroupByKeyOperation(storeOperationConfig(name, parseText(node, STORE_NAME_ATTRIBUTE)));
     }
 }

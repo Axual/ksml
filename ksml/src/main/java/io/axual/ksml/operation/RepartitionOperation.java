@@ -31,8 +31,8 @@ import io.axual.ksml.user.UserStreamPartitioner;
 public class RepartitionOperation extends StoreOperation {
     private final UserFunction partitioner;
 
-    public RepartitionOperation(String name, String storeName, UserFunction partitioner) {
-        super(name, storeName);
+    public RepartitionOperation(StoreOperationConfig config, UserFunction partitioner) {
+        super(config);
         this.partitioner = partitioner;
     }
 

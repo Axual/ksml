@@ -21,18 +21,18 @@ package io.axual.ksml.definition;
  */
 
 
+import io.axual.ksml.data.type.user.UserType;
 import io.axual.ksml.exception.KSMLApplyException;
-import io.axual.ksml.data.type.DataType;
 
 public class FunctionDefinition {
     public final ParameterDefinition[] parameters;
-    public final DataType resultType;
+    public final UserType resultType;
     public final String expression;
     public final String[] code;
     public final String[] globalCode;
 
-    public static FunctionDefinition as(ParameterDefinition[] parameters, DataType resultType, String expression, String[] code, String[] globalCode) {
-        return new FunctionDefinition(parameters, resultType, expression, code, globalCode);
+    public static FunctionDefinition as(ParameterDefinition[] parameters, UserType result, String expression, String[] code, String[] globalCode) {
+        return new FunctionDefinition(parameters, result, expression, code, globalCode);
     }
 
     public FunctionDefinition withCode(String expression, String[] code, String[] globalCode) {
@@ -43,11 +43,11 @@ public class FunctionDefinition {
         return new FunctionDefinition(parameters, resultType, expression, code, globalCode);
     }
 
-    public FunctionDefinition withResult(DataType resultType) {
-        return new FunctionDefinition(parameters, resultType, resultType != null ? expression : "", code, globalCode);
+    public FunctionDefinition withResult(UserType result) {
+        return new FunctionDefinition(parameters, result, result != null ? expression : "", code, globalCode);
     }
 
-    private FunctionDefinition(ParameterDefinition[] parameters, DataType resultType, String expression, String[] code, String[] globalCode) {
+    private FunctionDefinition(ParameterDefinition[] parameters, UserType resultType, String expression, String[] code, String[] globalCode) {
         this.parameters = parameters;
         this.resultType = resultType;
         this.expression = expression;

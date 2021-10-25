@@ -29,14 +29,14 @@ import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.util.DataUtil;
 
 public class ToStreamOperation extends BaseOperation {
-    public ToStreamOperation(String name) {
-        super(name);
+    public ToStreamOperation(OperationConfig config) {
+        super(config);
     }
 
     @Override
     public StreamWrapper apply(KTableWrapper input) {
         return new KStreamWrapper(
-                input.table.toStream((key, value) -> DataUtil.asData(key), Named.as(name)),
+                input.table.toStream((key, value) -> DataUtil.asUserObject(key), Named.as(name)),
                 input.keyType,
                 input.valueType);
     }

@@ -23,6 +23,8 @@ package io.axual.ksml.operation;
 
 import org.apache.kafka.streams.kstream.Grouped;
 
+import io.axual.ksml.data.type.user.UserKeyValueType;
+import io.axual.ksml.data.type.base.DataType;
 import io.axual.ksml.exception.KSMLApplyException;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.generator.StreamDataType;
@@ -31,8 +33,6 @@ import io.axual.ksml.stream.KGroupedTableWrapper;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.KeyValueType;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserKeyTransformer;
 import io.axual.ksml.user.UserKeyValueTransformer;
@@ -40,8 +40,8 @@ import io.axual.ksml.user.UserKeyValueTransformer;
 public class GroupByOperation extends StoreOperation {
     private final UserFunction transformer;
 
-    public GroupByOperation(String name, String storeName, UserFunction transformer) {
-        super(name, storeName);
+    public GroupByOperation(StoreOperationConfig config, UserFunction transformer) {
+        super(config);
         this.transformer = transformer;
     }
 
@@ -50,27 +50,28 @@ public class GroupByOperation extends StoreOperation {
         if (transformer.resultType == DataType.UNKNOWN) {
             throw new KSMLExecutionException("groupBy mapper resultType not specified");
         }
-        final StreamDataType resultKeyType = StreamDataType.of(transformer.resultType, input.keyType.notation, true);
+        final StreamDataType resultKeyType = streamDataTypeOf(transformer.resultType, true);
         return new KGroupedStreamWrapper(
                 input.stream.groupBy(
-                        new UserKeyTransformer(transformer), Grouped.with(storeName, resultKeyType.getSerde(), input.valueType.getSerde())),
+                        new UserKeyTransformer(transformer),
+                        registerGrouped(Grouped.with(storeName, resultKeyType.getSerde(), input.valueType.getSerde()))),
                 resultKeyType,
                 input.valueType);
     }
 
     @Override
     public StreamWrapper apply(KTableWrapper input) {
-        if (!(transformer.resultType instanceof KeyValueType)) {
+        if (!(transformer.resultType instanceof UserKeyValueType)) {
             throw new KSMLApplyException("Can not apply given transformer to KTable.groupBy operation");
         }
-        KeyValueType resultType = (KeyValueType) transformer.resultType;
-        final StreamDataType resultKeyType = StreamDataType.of(resultType.keyType(), input.keyType.notation, true);
-        final StreamDataType resultValueType = StreamDataType.of(resultType.valueType(), input.valueType.notation, false);
+        UserKeyValueType resultType = (UserKeyValueType) transformer.resultType;
+        final StreamDataType resultKeyType = streamDataTypeOf(resultType.keyType(), true);
+        final StreamDataType resultValueType = streamDataTypeOf(resultType.valueType(), false);
 
         return new KGroupedTableWrapper(
                 input.table.groupBy(
                         new UserKeyValueTransformer(transformer),
-                        Grouped.with(storeName, resultKeyType.getSerde(), resultValueType.getSerde())),
+                        registerGrouped(Grouped.with(storeName, resultKeyType.getSerde(), resultValueType.getSerde()))),
                 resultKeyType,
                 resultValueType);
     }

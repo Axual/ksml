@@ -24,6 +24,11 @@ package io.axual.ksml.operation;
 import org.apache.kafka.streams.errors.TopologyException;
 import org.apache.kafka.streams.kstream.Named;
 
+import io.axual.ksml.data.type.base.DataType;
+import io.axual.ksml.data.type.user.UserType;
+import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.parser.StreamOperation;
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,15 +52,17 @@ public class BaseOperation implements StreamOperation {
     }
 
     protected final String name;
+    private final NotationLibrary notationLibrary;
 
-    public BaseOperation(String name) {
-        var error = NameValidator.validateNameAndReturnError(name);
+    public BaseOperation(OperationConfig config) {
+        var error = NameValidator.validateNameAndReturnError(config.name);
         if (error != null) {
-            log.warn("Ignoring name with error '" + name + "': " + error);
-            this.name = null;
+            log.warn("Ignoring name with error '" + config.name + "': " + error);
+            name = null;
         } else {
-            this.name = name;
+            name = config.name;
         }
+        notationLibrary = config.notationLibrary;
     }
 
     @Override
@@ -65,5 +72,27 @@ public class BaseOperation implements StreamOperation {
             operation = operation.substring(0, operation.length() - 9);
         }
         return (name == null ? "Unnamed" : name) + " operation " + operation;
+    }
+
+    protected void checkNotNull(Object object, String description) {
+        if (object == null) {
+            throw new KSMLTopologyException("Error in topology: " + description + " not defined");
+        }
+    }
+
+    protected void checkAssignable(DataType superType, DataType subType, String message) {
+        if (!superType.isAssignableFrom(subType)) {
+            throw new KSMLTopologyException("Error in topology: " + message + " (" + superType + " <--> " + subType + ")");
+        }
+    }
+
+    protected void checkEqual(DataType type1, DataType type2, String message) {
+        if (!type1.isAssignableFrom(type2) || !type2.isAssignableFrom(type1)) {
+            throw new KSMLTopologyException("Error in topology: " + message + " (" + type1 + " <--> " + type2 + ")");
+        }
+    }
+
+    protected StreamDataType streamDataTypeOf(UserType dataType, boolean isKey) {
+        return new StreamDataType(dataType.type(), notationLibrary.get(dataType.notation()), isKey);
     }
 }

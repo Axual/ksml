@@ -21,11 +21,13 @@ package io.axual.ksml.operation;
  */
 
 
+import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.Joined;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.StreamJoined;
+import org.apache.kafka.streams.state.KeyValueStore;
 
 import java.time.Duration;
 
@@ -45,24 +47,24 @@ public class JoinOperation extends StoreOperation {
     private final UserFunction valueJoiner;
     private final JoinWindows joinWindows;
 
-    public JoinOperation(String name, String storeName, KStreamWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
-        super(name, storeName);
+    public JoinOperation(StoreOperationConfig config, KStreamWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
+        super(config);
         this.joinStream = joinStream;
         this.keyValueMapper = null;
         this.valueJoiner = valueJoiner;
         this.joinWindows = JoinWindows.of(joinWindowDuration);
     }
 
-    public JoinOperation(String name, String storeName, KTableWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
-        super(name, storeName);
+    public JoinOperation(StoreOperationConfig config, KTableWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
+        super(config);
         this.joinStream = joinStream;
         this.keyValueMapper = null;
         this.valueJoiner = valueJoiner;
         this.joinWindows = JoinWindows.of(joinWindowDuration);
     }
 
-    public JoinOperation(String name, String storeName, GlobalKTableWrapper joinStream, UserFunction keyValueMapper, UserFunction valueJoiner) {
-        super(name, storeName);
+    public JoinOperation(StoreOperationConfig config, GlobalKTableWrapper joinStream, UserFunction keyValueMapper, UserFunction valueJoiner) {
+        super(config);
         this.joinStream = joinStream;
         this.keyValueMapper = keyValueMapper;
         this.valueJoiner = valueJoiner;
@@ -71,7 +73,7 @@ public class JoinOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        final StreamDataType resultValueType = StreamDataType.of(valueJoiner.resultType, input.valueType.notation, false);
+        final StreamDataType resultValueType = streamDataTypeOf(valueJoiner.resultType, false);
 
         if (joinStream instanceof KStreamWrapper) {
             return new KStreamWrapper(
@@ -107,7 +109,11 @@ public class JoinOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KTableWrapper input) {
-        final StreamDataType resultValueType = StreamDataType.of(valueJoiner.resultType, input.valueType.notation, false);
+        final StreamDataType resultValueType = streamDataTypeOf(valueJoiner.resultType, false);
+
+        Materialized<Object, Object, KeyValueStore<Bytes, byte[]>> mat = Materialized.as(storeName);
+        mat = mat.withKeySerde(input.keyType.getSerde());
+        mat = mat.withValueSerde(resultValueType.getSerde());
 
         if (joinStream instanceof KTableWrapper) {
             return new KTableWrapper(
@@ -115,8 +121,7 @@ public class JoinOperation extends StoreOperation {
                             ((KTableWrapper) joinStream).table,
                             new UserValueJoiner(valueJoiner),
                             Named.as(name),
-                            Materialized.as(name)
-                    ),
+                            registerStore(mat)),
                     input.keyType,
                     resultValueType);
         }

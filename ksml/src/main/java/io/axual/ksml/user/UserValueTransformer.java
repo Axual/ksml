@@ -35,6 +35,6 @@ public class UserValueTransformer extends Invoker implements ValueMapperWithKey<
 
     @Override
     public Object apply(Object key, Object value) {
-        return function.call(DataUtil.asData(key), DataUtil.asData(value));
+        return function.call(DataUtil.asUserObject(key), DataUtil.asUserObject(value));
     }
 }

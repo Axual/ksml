@@ -36,22 +36,22 @@ public class WindowedByOperation extends BaseOperation {
     private final SlidingWindows slidingWindows;
     private final TimeWindows timeWindows;
 
-    public WindowedByOperation(String name, SessionWindows sessionWindows) {
-        super(name);
+    public WindowedByOperation(OperationConfig config, SessionWindows sessionWindows) {
+        super(config);
         this.sessionWindows = sessionWindows;
         this.slidingWindows = null;
         this.timeWindows = null;
     }
 
-    public WindowedByOperation(String name, SlidingWindows slidingWindows) {
-        super(name);
+    public WindowedByOperation(OperationConfig config, SlidingWindows slidingWindows) {
+        super(config);
         this.sessionWindows = null;
         this.slidingWindows = slidingWindows;
         this.timeWindows = null;
     }
 
-    public WindowedByOperation(String name, TimeWindows timeWindows) {
-        super(name);
+    public WindowedByOperation(OperationConfig config, TimeWindows timeWindows) {
+        super(config);
         this.sessionWindows = null;
         this.slidingWindows = null;
         this.timeWindows = timeWindows;

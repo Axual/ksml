@@ -24,9 +24,9 @@ package io.axual.ksml.user;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 
-import io.axual.ksml.util.DataUtil;
+import io.axual.ksml.data.type.user.UserKeyValueType;
 import io.axual.ksml.python.Invoker;
-import io.axual.ksml.data.type.KeyValueMapType;
+import io.axual.ksml.util.DataUtil;
 
 public class UserKeyValueTransformer extends Invoker implements KeyValueMapper<Object, Object, KeyValue<Object, Object>> {
     public UserKeyValueTransformer(UserFunction function) {
@@ -35,8 +35,8 @@ public class UserKeyValueTransformer extends Invoker implements KeyValueMapper<O
 
     @Override
     public KeyValue<Object, Object> apply(Object key, Object value) {
-        return (KeyValue) function.convertToKeyValue(function.call(DataUtil.asData(key), DataUtil.asData(value)),
-                ((KeyValueMapType) function.resultType).keyType(),
-                ((KeyValueMapType) function.resultType).valueType());
+        return (KeyValue) function.convertToKeyValue(function.call(DataUtil.asUserObject(key), DataUtil.asUserObject(value)),
+                ((UserKeyValueType) function.resultType).keyType(),
+                ((UserKeyValueType) function.resultType).valueType());
     }
 }

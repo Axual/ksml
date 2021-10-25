@@ -46,7 +46,7 @@ public class MergeOperationParser extends ContextAwareParser<MergeOperation> {
         BaseStreamDefinition stream = parseStreamInlineOrReference(node, MERGE_STREAM_ATTRIBUTE, new StreamDefinitionParser());
         if (stream != null) {
             return new MergeOperation(
-                    name,
+                    operationConfig(name),
                     context.getStreamWrapper(stream, KStreamWrapper.class));
         }
         throw new KSMLParseException(node, "Stream not specified");

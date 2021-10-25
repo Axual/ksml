@@ -21,7 +21,6 @@ package io.axual.ksml.definition.parser;
  */
 
 
-
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.KeyValueToKeyValueListTransformerDefinition;
 import io.axual.ksml.exception.KSMLParseException;
@@ -32,7 +31,7 @@ public class KeyValueToKeyValueListTransformerDefinitionParser extends FunctionD
     public KeyValueToKeyValueListTransformerDefinition parse(YamlNode node) {
         if (node == null) return null;
         FunctionDefinition transformer = super.parse(node);
-        if (transformer.resultType!=null) {
+        if (transformer.resultType != null) {
             return new KeyValueToKeyValueListTransformerDefinition(super.parse(node));
         }
         throw new KSMLParseException(node, "Result type not specified");

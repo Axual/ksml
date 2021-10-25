@@ -23,29 +23,38 @@ package io.axual.ksml.generator;
 
 import org.apache.kafka.common.serialization.Serde;
 
-import io.axual.ksml.data.object.DataRecord;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.WindowedType;
+import io.axual.ksml.data.object.user.UserRecord;
+import io.axual.ksml.data.type.base.DataType;
+import io.axual.ksml.data.type.base.WindowedType;
 import io.axual.ksml.notation.Notation;
 import io.axual.ksml.schema.SchemaUtil;
 
 public class StreamDataType {
-    public final DataType type;
-    public final DataType rawType;
-    public final Notation notation;
-    public final boolean isKey;
+    private final DataType type;
+    private final Notation notation;
+    private final boolean isKey;
 
     public StreamDataType(DataType type, Notation notation, boolean isKey) {
         this.type = cookType(type);
-        this.rawType = type;
         this.notation = notation;
         this.isKey = isKey;
     }
 
     private static DataType cookType(DataType type) {
+        // When we get a WindowedType, we automatically convert it into a record type using
+        // fixed fields. This allows for processing downstream, since the WindowType itself
+        // is KafkaStreams internal and thus not usable in user functions.
         return type instanceof WindowedType
-                ? DataRecord.typeOf(SchemaUtil.windowTypeToSchema((WindowedType) type))
+                ? UserRecord.typeOf(SchemaUtil.windowTypeToSchema((WindowedType) type)).type()
                 : type;
+    }
+
+    public DataType type() {
+        return type;
+    }
+
+    public Notation notation() {
+        return notation;
     }
 
     public boolean isAssignableFrom(StreamDataType other) {
@@ -54,14 +63,10 @@ public class StreamDataType {
 
     @Override
     public String toString() {
-        return type + " (" + (notation != null ? "as " + notation.name() : "unknown notation") + ")";
+        return (notation != null ? notation.name() : "unknown notation") + ":" + type.schemaName();
     }
 
     public Serde<Object> getSerde() {
         return notation.getSerde(type, isKey);
-    }
-
-    public static StreamDataType of(DataType type, Notation notation, boolean isKey) {
-        return new StreamDataType(type, notation, isKey);
     }
 }

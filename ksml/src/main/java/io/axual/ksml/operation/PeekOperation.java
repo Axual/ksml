@@ -32,8 +32,8 @@ import io.axual.ksml.user.UserFunction;
 public class PeekOperation extends BaseOperation {
     private final UserFunction forEach;
 
-    public PeekOperation(String name, UserFunction forEach) {
-        super(name);
+    public PeekOperation(OperationConfig config, UserFunction forEach) {
+        super(config);
         this.forEach = forEach;
     }
 

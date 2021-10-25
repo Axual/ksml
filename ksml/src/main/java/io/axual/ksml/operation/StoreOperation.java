@@ -21,16 +21,34 @@ package io.axual.ksml.operation;
  */
 
 
+import org.apache.kafka.streams.kstream.Grouped;
+import org.apache.kafka.streams.kstream.Materialized;
+import org.apache.kafka.streams.processor.StateStore;
+
 public class StoreOperation extends BaseOperation {
     protected final String storeName;
+    protected final StoreOperationConfig.GroupedRegistry groupedRegistry;
+    protected final StoreOperationConfig.StoreRegistry storeRegistry;
 
-    public StoreOperation(String name, String storeName) {
-        super(name);
-        this.storeName = storeName == null ? name : storeName;
+    public StoreOperation(StoreOperationConfig config) {
+        super(config);
+        this.storeName = config.storeName == null ? name : config.storeName;
+        this.groupedRegistry = config.groupedRegistry;
+        this.storeRegistry = config.storeRegistry;
     }
 
     @Override
     public String toString() {
         return super.toString() + " [storeName=\"" + storeName + "\"]";
+    }
+
+    protected <K, V> Grouped<K, V> registerGrouped(Grouped<K, V> grouped) {
+        groupedRegistry.registerGrouped(grouped);
+        return grouped;
+    }
+
+    protected <K, V, S extends StateStore> Materialized<K, V, S> registerStore(Materialized<K, V, S> materialized) {
+        storeRegistry.registerStore(materialized);
+        return materialized;
     }
 }

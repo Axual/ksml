@@ -38,6 +38,6 @@ public class ToStreamOperationParser extends ContextAwareParser<ToStreamOperatio
     @Override
     public ToStreamOperation parse(YamlNode node) {
         if (node == null) return null;
-        return new ToStreamOperation(name);
+        return new ToStreamOperation(operationConfig(name));
     }
 }

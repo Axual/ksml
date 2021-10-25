@@ -52,24 +52,21 @@ public class JoinOperationParser extends ContextAwareParser<JoinOperation> {
         StreamWrapper joinStream = parseAndGetStreamWrapper(node);
         if (joinStream instanceof KStreamWrapper) {
             return new JoinOperation(
-                    name,
-                    parseText(node, STORE_NAME_ATTRIBUTE),
+                    storeOperationConfig(name, parseText(node, STORE_NAME_ATTRIBUTE)),
                     (KStreamWrapper) joinStream,
                     parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()),
                     parseDuration(node, JOIN_WINDOW_ATTRIBUTE));
         }
         if (joinStream instanceof KTableWrapper) {
             return new JoinOperation(
-                    name,
-                    parseText(node, STORE_NAME_ATTRIBUTE),
+                    storeOperationConfig(name, parseText(node, STORE_NAME_ATTRIBUTE)),
                     (KTableWrapper) joinStream,
                     parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()),
                     parseDuration(node, JOIN_WINDOW_ATTRIBUTE));
         }
         if (joinStream instanceof GlobalKTableWrapper) {
             return new JoinOperation(
-                    name,
-                    parseText(node, STORE_NAME_ATTRIBUTE),
+                    storeOperationConfig(name, parseText(node, STORE_NAME_ATTRIBUTE)),
                     (GlobalKTableWrapper) joinStream,
                     parseFunction(node, JOIN_MAPPER_ATTRIBUTE, new KeyTransformerDefinitionParser()),
                     parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()));

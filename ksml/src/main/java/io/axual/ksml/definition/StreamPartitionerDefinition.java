@@ -21,7 +21,8 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.user.UserInteger;
+import io.axual.ksml.data.type.user.StaticUserType;
 
 import static io.axual.ksml.definition.DefinitionConstants.STREAM_PARTITIONER_PARAMETERS;
 
@@ -29,6 +30,6 @@ public class StreamPartitionerDefinition extends FunctionDefinition {
     public StreamPartitionerDefinition(FunctionDefinition definition) {
         super(definition
                 .withParameters(getParameters(definition.parameters, STREAM_PARTITIONER_PARAMETERS))
-                .withResult(DataInteger.TYPE));
+                .withResult(new StaticUserType(UserInteger.TYPE, definition.resultType.notation())));
     }
 }

@@ -29,18 +29,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.axual.ksml.avro.AvroDataMapper;
-import io.axual.ksml.data.mapper.DataMapper;
-import io.axual.ksml.util.DataUtil;
+import io.axual.ksml.data.mapper.UserObjectMapper;
+import io.axual.ksml.data.type.base.DataType;
+import io.axual.ksml.data.type.base.MapType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.notation.AvroNotation;
 import io.axual.ksml.notation.Notation;
+import io.axual.ksml.schema.DataSchema;
 import io.axual.ksml.serde.UnknownTypeSerde;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.RecordType;
+import io.axual.ksml.util.DataUtil;
 import io.axual.streams.proxy.axual.AxualSerdeConfig;
 
 public class AxualAvroNotation implements Notation {
-    private static final DataMapper<Object> mapper = new AvroDataMapper();
+    private static final UserObjectMapper<Object> mapper = new AvroDataMapper();
     private final Map<String, Object> configs = new HashMap<>();
 
     public AxualAvroNotation(Map<String, Object> configs) {
@@ -55,30 +56,27 @@ public class AxualAvroNotation implements Notation {
     }
 
     public Serde<Object> getSerde(DataType type, boolean isKey) {
-        if (type instanceof RecordType) {
-            var result = new AvroSerde(configs, (RecordType) type, isKey);
+        if (type instanceof MapType) {
+            var result = new AvroSerde(configs, ((MapType) type).schema(), isKey);
             result.configure(configs, isKey);
             return result;
         }
         throw new KSMLExecutionException("Serde not found for data type " + type);
     }
 
-    private class AvroSerde implements Serde<Object> {
-        private final Serializer<GenericRecord> serializer;
-        private final Deserializer<GenericRecord> deserializer;
+    private static class AvroSerde implements Serde<Object> {
+        private final Serde<GenericRecord> serde;
 
-        public AvroSerde(Map<String, Object> configs, RecordType type, boolean isKey) {
-            AxualAvroSerde serde = new AxualAvroSerde(configs, type, isKey);
-            serializer = serde.serializer();
-            deserializer = serde.deserializer();
+        public AvroSerde(Map<String, Object> configs, DataSchema schema, boolean isKey) {
+            serde = new AxualAvroSerde(configs, schema, isKey);
         }
 
         private final Serializer<Object> wrapSerializer = new Serializer<>() {
             @Override
             public byte[] serialize(String topic, Object data) {
-                var object = mapper.fromDataObject(DataUtil.asData(data));
+                var object = mapper.fromUserObject(DataUtil.asUserObject(data));
                 if (object instanceof GenericRecord) {
-                    return serializer.serialize(topic, (GenericRecord) object);
+                    return serde.serializer().serialize(topic, (GenericRecord) object);
                 }
                 throw new KSMLExecutionException("Can not serialize using Avro: " + object.getClass().getSimpleName());
             }
@@ -87,8 +85,8 @@ public class AxualAvroNotation implements Notation {
         private final Deserializer<Object> wrapDeserializer = new Deserializer<>() {
             @Override
             public Object deserialize(String topic, byte[] data) {
-                GenericRecord object = deserializer.deserialize(topic, data);
-                return mapper.toDataObject(object);
+                GenericRecord object = serde.deserializer().deserialize(topic, data);
+                return mapper.toUserObject(AvroNotation.NAME, object);
             }
         };
 

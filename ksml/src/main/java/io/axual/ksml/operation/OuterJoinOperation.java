@@ -21,10 +21,12 @@ package io.axual.ksml.operation;
  */
 
 
+import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.StreamJoined;
+import org.apache.kafka.streams.state.KeyValueStore;
 
 import java.time.Duration;
 
@@ -42,8 +44,8 @@ public class OuterJoinOperation extends StoreOperation {
     private final UserFunction valueJoiner;
     private final JoinWindows joinWindows;
 
-    public OuterJoinOperation(String name, String storeName, KStreamWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
-        super(name, storeName);
+    public OuterJoinOperation(StoreOperationConfig config, KStreamWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
+        super(config);
         this.joinStream = joinStream;
         this.valueJoiner = valueJoiner;
         this.joinWindows = JoinWindows.of(joinWindowDuration);
@@ -51,7 +53,7 @@ public class OuterJoinOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        final StreamDataType resultValueType = StreamDataType.of(valueJoiner.resultType, input.valueType.notation, false);
+        final StreamDataType resultValueType = streamDataTypeOf(valueJoiner.resultType, false);
 
         if (joinStream instanceof KStreamWrapper) {
             return new KStreamWrapper(
@@ -68,7 +70,11 @@ public class OuterJoinOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KTableWrapper input) {
-        final StreamDataType resultValueType = StreamDataType.of(valueJoiner.resultType, input.valueType.notation, false);
+        final StreamDataType resultValueType = streamDataTypeOf(valueJoiner.resultType, false);
+
+        Materialized<Object, Object, KeyValueStore<Bytes, byte[]>> mat = Materialized.as(storeName);
+        mat = mat.withKeySerde(input.keyType.getSerde());
+        mat = mat.withValueSerde(resultValueType.getSerde());
 
         if (joinStream instanceof KTableWrapper) {
             return new KTableWrapper(
@@ -76,7 +82,7 @@ public class OuterJoinOperation extends StoreOperation {
                             ((KTableWrapper) joinStream).table,
                             new UserValueJoiner(valueJoiner),
                             Named.as(name),
-                            Materialized.as(storeName)),
+                            registerStore(mat)),
                     input.keyType,
                     resultValueType);
         }

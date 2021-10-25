@@ -41,7 +41,7 @@ public class FilterNotOperationParser extends ContextAwareParser<FilterNotOperat
     public FilterNotOperation parse(YamlNode node) {
         if (node == null) return null;
         return new FilterNotOperation(
-                name,
+                operationConfig(name),
                 parseFunction(node, FILTERNOT_PREDICATE_ATTRIBUTE, new PredicateDefinitionParser())
         );
     }
