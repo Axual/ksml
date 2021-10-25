@@ -24,6 +24,7 @@ package io.axual.ksml;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyDescription;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -39,6 +40,7 @@ import io.axual.ksml.generator.TopologyGeneratorImpl;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.fail;
 
 
 /**
@@ -46,6 +48,14 @@ import static org.hamcrest.Matchers.is;
  * Generate a topolgy and compare with stored string representation. Reference output is in src/test/resources/reference.
  */
 public class KSMLTopologyGeneratorBasicTest {
+
+    @BeforeAll
+    public static void checkGraalVM() {
+        final var vendor = System.getProperty("java.vendor.url");
+        if (vendor.indexOf("graalvm") == -1) {
+            fail("This test needs GraalVM to work");
+        }
+    }
 
     @ParameterizedTest
     @ValueSource(ints = {1, 2, 3, 4, 5})
