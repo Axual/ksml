@@ -51,7 +51,6 @@
 
     <modules>
         <module>ksml</module>
-        <module>ksml-query</module>
         <module>ksml-axual</module>
         <module>ksml-example-producer</module>
         <module>ksml-runner</module>
