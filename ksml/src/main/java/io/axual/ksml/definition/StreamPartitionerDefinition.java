@@ -21,7 +21,7 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.data.object.UserInteger;
+import io.axual.ksml.data.object.user.UserInteger;
 import io.axual.ksml.data.type.user.StaticUserType;
 
 import static io.axual.ksml.definition.DefinitionConstants.STREAM_PARTITIONER_PARAMETERS;

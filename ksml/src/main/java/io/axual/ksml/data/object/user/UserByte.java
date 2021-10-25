@@ -1,4 +1,4 @@
-package io.axual.ksml.data.object;
+package io.axual.ksml.data.object.user;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,24 +20,18 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import java.util.HashMap;
+import io.axual.ksml.data.type.base.SimpleType;
 
-import io.axual.ksml.data.type.user.UserRecordType;
-import io.axual.ksml.schema.DataSchema;
+import static io.axual.ksml.data.type.user.UserType.DEFAULT_NOTATION;
 
-public class UserRecord extends HashMap<String, UserObject> implements UserObject {
-    public final UserRecordType type;
+public class UserByte extends UserPrimitive<Byte> {
+    public static final SimpleType TYPE = new SimpleType(Byte.class);
 
-    public UserRecord(DataSchema schema) {
-        type = typeOf(schema);
+    public UserByte(Byte value) {
+        this(DEFAULT_NOTATION, value);
     }
 
-    public static UserRecordType typeOf(DataSchema schema) {
-        return new UserRecordType(schema);
-    }
-
-    @Override
-    public UserRecordType type() {
-        return type;
+    public UserByte(String notation, Byte value) {
+        super(TYPE, notation, value);
     }
 }

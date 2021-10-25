@@ -27,7 +27,7 @@ import org.apache.kafka.common.serialization.Serializer;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.axual.ksml.data.mapper.NativeDataMapper;
+import io.axual.ksml.data.mapper.NativeUserObjectMapper;
 import io.axual.ksml.data.type.base.DataType;
 import io.axual.ksml.data.type.base.ListType;
 import io.axual.ksml.data.type.base.MapType;
@@ -38,7 +38,7 @@ import io.axual.ksml.util.DataUtil;
 
 public class JsonNotation implements Notation {
     public static final String NAME = "JSON";
-    private static final NativeDataMapper mapper = new NativeDataMapper();
+    private static final NativeUserObjectMapper mapper = new NativeUserObjectMapper();
     private final Map<String, Object> configs = new HashMap<>();
 
     public JsonNotation(Map<String, Object> configs) {
@@ -67,7 +67,7 @@ public class JsonNotation implements Notation {
         private final Serializer<Object> wrapSerializer = new Serializer<>() {
             @Override
             public byte[] serialize(String topic, Object data) {
-                return serializer.serialize(topic, mapper.fromDataObject(DataUtil.asUserObject(data)));
+                return serializer.serialize(topic, mapper.fromUserObject(DataUtil.asUserObject(data)));
             }
         };
 
@@ -75,7 +75,7 @@ public class JsonNotation implements Notation {
             @Override
             public Object deserialize(String topic, byte[] data) {
                 Object object = deserializer.deserialize(topic, data);
-                return mapper.toDataObject(JsonNotation.NAME, object);
+                return mapper.toUserObject(JsonNotation.NAME, object);
             }
         };
 

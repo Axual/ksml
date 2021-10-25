@@ -1,4 +1,4 @@
-package io.axual.ksml.data.object;
+package io.axual.ksml.data.object.base;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,18 +20,36 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.base.SimpleType;
 
-import static io.axual.ksml.data.type.user.UserType.DEFAULT_NOTATION;
+import java.util.List;
+import java.util.Objects;
 
-public class UserLong extends UserPrimitive<Long> {
-    public static final SimpleType TYPE = new SimpleType(Long.class);
+// This class implements a Tuple with any number of elements
+public class Tuple<T> {
+    private final List<T> elements;
 
-    public UserLong(Long value) {
-        this(DEFAULT_NOTATION, value);
+    public Tuple(T... elements) {
+        this.elements = List.of(elements);
     }
 
-    public UserLong(String notation, Long value) {
-        super(TYPE, notation, value);
+    public T get(int index) {
+        return elements.get(index);
+    }
+
+    public int size() {
+        return elements.size();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) return true;
+        if (other == null || getClass() != other.getClass()) return false;
+        Tuple o = (Tuple) other;
+        return elements.equals(o.elements);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(elements);
     }
 }

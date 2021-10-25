@@ -25,18 +25,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.axual.ksml.data.object.UserBoolean;
-import io.axual.ksml.data.object.UserByte;
-import io.axual.ksml.data.object.UserBytes;
-import io.axual.ksml.data.object.UserDouble;
-import io.axual.ksml.data.object.UserFloat;
-import io.axual.ksml.data.object.UserInteger;
-import io.axual.ksml.data.object.UserList;
-import io.axual.ksml.data.object.UserLong;
-import io.axual.ksml.data.object.UserObject;
-import io.axual.ksml.data.object.UserRecord;
-import io.axual.ksml.data.object.UserShort;
-import io.axual.ksml.data.object.UserString;
+import io.axual.ksml.data.object.user.UserBoolean;
+import io.axual.ksml.data.object.user.UserByte;
+import io.axual.ksml.data.object.user.UserBytes;
+import io.axual.ksml.data.object.user.UserDouble;
+import io.axual.ksml.data.object.user.UserFloat;
+import io.axual.ksml.data.object.user.UserInteger;
+import io.axual.ksml.data.object.user.UserList;
+import io.axual.ksml.data.object.user.UserLong;
+import io.axual.ksml.data.object.user.UserObject;
+import io.axual.ksml.data.object.user.UserRecord;
+import io.axual.ksml.data.object.user.UserShort;
+import io.axual.ksml.data.object.user.UserString;
 import io.axual.ksml.data.type.base.DataType;
 import io.axual.ksml.data.type.user.StaticUserType;
 import io.axual.ksml.data.type.user.UserType;
@@ -45,7 +45,7 @@ import io.axual.ksml.schema.DataSchema;
 
 import static io.axual.ksml.data.type.user.UserType.DEFAULT_NOTATION;
 
-public class NativeDataMapper implements DataMapper<Object> {
+public class NativeUserObjectMapper implements UserObjectMapper<Object> {
     public DataType inferType(Object value) {
         if (value instanceof Boolean) return UserBoolean.TYPE;
         if (value instanceof Byte) return UserByte.TYPE;
@@ -60,7 +60,7 @@ public class NativeDataMapper implements DataMapper<Object> {
     }
 
     @Override
-    public UserObject toDataObject(UserType expected, Object value) {
+    public UserObject toUserObject(UserType expected, Object value) {
         final String resultNotation = expected != null ? expected.notation() : DEFAULT_NOTATION;
         if (value instanceof Boolean) return new UserBoolean(resultNotation, (Boolean) value);
         if (value instanceof Byte) return new UserByte(resultNotation, (Byte) value);
@@ -71,29 +71,29 @@ public class NativeDataMapper implements DataMapper<Object> {
         if (value instanceof Double) return new UserDouble(resultNotation, (Double) value);
         if (value instanceof byte[]) return new UserBytes(resultNotation, (byte[]) value);
         if (value instanceof String) return new UserString(resultNotation, (String) value);
-        if (value instanceof List) return listToDataList(resultNotation, (List<?>) value);
-        if (value instanceof Map) return mapToDataRecord(resultNotation, (Map<?, ?>) value, null);
+        if (value instanceof List) return listToUserList(resultNotation, (List<?>) value);
+        if (value instanceof Map) return mapToUserRecord(resultNotation, (Map<?, ?>) value, null);
         throw new KSMLExecutionException("Can not wrap type in DataObject: " + value.getClass().getSimpleName());
     }
 
-    public UserList listToDataList(String notation, List<?> list) {
+    public UserList listToUserList(String notation, List<?> list) {
         UserList result = new UserList(notation, list.isEmpty() ? new StaticUserType(DataType.UNKNOWN, notation) : new StaticUserType(inferType(list.get(0)), notation), list.size());
         for (Object element : list) {
-            result.add(toDataObject(notation, element));
+            result.add(toUserObject(notation, element));
         }
         return result;
     }
 
-    public UserRecord mapToDataRecord(String notation, Map<?, ?> map, DataSchema schema) {
+    public UserRecord mapToUserRecord(String notation, Map<?, ?> map, DataSchema schema) {
         UserRecord result = new UserRecord(schema);
         for (Map.Entry<?, ?> entry : map.entrySet()) {
-            result.put(entry.getKey().toString(), toDataObject(notation, entry.getValue()));
+            result.put(entry.getKey().toString(), toUserObject(notation, entry.getValue()));
         }
         return result;
     }
 
     @Override
-    public Object fromDataObject(UserObject value) {
+    public Object fromUserObject(UserObject value) {
         if (value instanceof UserBoolean) return ((UserBoolean) value).value();
         if (value instanceof UserByte) return ((UserByte) value).value();
         if (value instanceof UserShort) return ((UserShort) value).value();
@@ -103,23 +103,23 @@ public class NativeDataMapper implements DataMapper<Object> {
         if (value instanceof UserDouble) return ((UserDouble) value).value();
         if (value instanceof UserBytes) return ((UserBytes) value).value();
         if (value instanceof UserString) return ((UserString) value).value();
-        if (value instanceof UserList) return dataListToList((UserList) value);
-        if (value instanceof UserRecord) return dataRecordToMap((UserRecord) value);
+        if (value instanceof UserList) return userListToList((UserList) value);
+        if (value instanceof UserRecord) return userRecordToMap((UserRecord) value);
         throw new KSMLExecutionException("Can not unwrap DataObject type: " + value.getClass().getSimpleName());
     }
 
-    public List<Object> dataListToList(UserList value) {
+    public List<Object> userListToList(UserList value) {
         List<Object> result = new ArrayList<>();
         for (UserObject element : value) {
-            result.add(fromDataObject(element));
+            result.add(fromUserObject(element));
         }
         return result;
     }
 
-    public Map<String, Object> dataRecordToMap(UserRecord value) {
+    public Map<String, Object> userRecordToMap(UserRecord value) {
         Map<String, Object> result = new HashMap<>();
         for (Map.Entry<String, UserObject> entry : value.entrySet()) {
-            result.put(entry.getKey(), fromDataObject(entry.getValue()));
+            result.put(entry.getKey(), fromUserObject(entry.getValue()));
         }
         return result;
     }

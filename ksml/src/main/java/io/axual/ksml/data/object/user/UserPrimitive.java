@@ -1,4 +1,4 @@
-package io.axual.ksml.data.object;
+package io.axual.ksml.data.object.user;
 
 /*-
  * ========================LICENSE_START=================================

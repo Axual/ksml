@@ -27,9 +27,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 
-import io.axual.ksml.data.object.UserList;
-import io.axual.ksml.data.object.UserObject;
-import io.axual.ksml.data.object.UserTuple;
+import io.axual.ksml.data.object.user.UserList;
+import io.axual.ksml.data.object.user.UserObject;
+import io.axual.ksml.data.object.user.UserTuple;
 import io.axual.ksml.data.type.user.UserType;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.KSMLTopologyException;

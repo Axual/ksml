@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.axual.ksml.avro.AvroDataMapper;
-import io.axual.ksml.data.mapper.DataMapper;
+import io.axual.ksml.data.mapper.UserObjectMapper;
 import io.axual.ksml.data.type.base.DataType;
 import io.axual.ksml.data.type.base.MapType;
 import io.axual.ksml.exception.KSMLExecutionException;
@@ -41,7 +41,7 @@ import io.axual.ksml.util.DataUtil;
 import io.axual.streams.proxy.axual.AxualSerdeConfig;
 
 public class AxualAvroNotation implements Notation {
-    private static final DataMapper<Object> mapper = new AvroDataMapper();
+    private static final UserObjectMapper<Object> mapper = new AvroDataMapper();
     private final Map<String, Object> configs = new HashMap<>();
 
     public AxualAvroNotation(Map<String, Object> configs) {
@@ -74,7 +74,7 @@ public class AxualAvroNotation implements Notation {
         private final Serializer<Object> wrapSerializer = new Serializer<>() {
             @Override
             public byte[] serialize(String topic, Object data) {
-                var object = mapper.fromDataObject(DataUtil.asUserObject(data));
+                var object = mapper.fromUserObject(DataUtil.asUserObject(data));
                 if (object instanceof GenericRecord) {
                     return serde.serializer().serialize(topic, (GenericRecord) object);
                 }
@@ -86,7 +86,7 @@ public class AxualAvroNotation implements Notation {
             @Override
             public Object deserialize(String topic, byte[] data) {
                 GenericRecord object = serde.deserializer().deserialize(topic, data);
-                return mapper.toDataObject(AvroNotation.NAME, object);
+                return mapper.toUserObject(AvroNotation.NAME, object);
             }
         };
 

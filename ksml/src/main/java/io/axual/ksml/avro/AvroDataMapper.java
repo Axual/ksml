@@ -25,18 +25,18 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.util.Utf8;
 
-import io.axual.ksml.data.mapper.NativeDataMapper;
-import io.axual.ksml.data.object.UserObject;
-import io.axual.ksml.data.object.UserRecord;
-import io.axual.ksml.data.object.UserString;
+import io.axual.ksml.data.mapper.NativeUserObjectMapper;
+import io.axual.ksml.data.object.user.UserObject;
+import io.axual.ksml.data.object.user.UserRecord;
+import io.axual.ksml.data.object.user.UserString;
 import io.axual.ksml.data.type.user.UserType;
 import io.axual.ksml.schema.SchemaUtil;
 
 import static io.axual.ksml.data.type.user.UserType.DEFAULT_NOTATION;
 
-public class AvroDataMapper extends NativeDataMapper {
+public class AvroDataMapper extends NativeUserObjectMapper {
     @Override
-    public UserObject toDataObject(UserType expected, Object value) {
+    public UserObject toUserObject(UserType expected, Object value) {
         final String resultNotation = expected != null ? expected.notation() : DEFAULT_NOTATION;
         if (value instanceof Utf8) return new UserString(resultNotation, ((Utf8) value).toString());
         if (value instanceof GenericData.EnumSymbol) {
@@ -46,20 +46,20 @@ public class AvroDataMapper extends NativeDataMapper {
             GenericRecord record = (GenericRecord) value;
             UserRecord result = new UserRecord(SchemaUtil.schemaToDataSchema(record.getSchema()));
             for (Schema.Field field : record.getSchema().getFields()) {
-                result.put(field.name(), toDataObject(resultNotation, record.get(field.name())));
+                result.put(field.name(), toUserObject(resultNotation, record.get(field.name())));
             }
             return result;
         }
 
-        return super.toDataObject(expected, value);
+        return super.toUserObject(expected, value);
     }
 
     @Override
-    public Object fromDataObject(UserObject value) {
+    public Object fromUserObject(UserObject value) {
         if (value instanceof UserRecord) {
             var rec = (UserRecord) value;
-            return new AvroObject(SchemaUtil.dataSchemaToAvroSchema(rec.type().schema()), dataRecordToMap(rec));
+            return new AvroObject(SchemaUtil.dataSchemaToAvroSchema(rec.type().schema()), userRecordToMap(rec));
         }
-        return super.fromDataObject(value);
+        return super.fromUserObject(value);
     }
 }

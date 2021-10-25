@@ -9,9 +9,9 @@ package io.axual.ksml.generator;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,7 +23,7 @@ package io.axual.ksml.generator;
 
 import org.apache.kafka.common.serialization.Serde;
 
-import io.axual.ksml.data.object.UserRecord;
+import io.axual.ksml.data.object.user.UserRecord;
 import io.axual.ksml.data.type.base.DataType;
 import io.axual.ksml.data.type.base.WindowedType;
 import io.axual.ksml.notation.Notation;
@@ -63,7 +63,7 @@ public class StreamDataType {
 
     @Override
     public String toString() {
-        return type + " (" + (notation != null ? "as " + notation.name() : "unknown notation") + ")";
+        return (notation != null ? notation.name() : "unknown notation") + ":" + type.schemaName();
     }
 
     public Serde<Object> getSerde() {

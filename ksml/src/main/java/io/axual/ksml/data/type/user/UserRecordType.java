@@ -21,7 +21,7 @@ package io.axual.ksml.data.type.user;
  */
 
 
-import io.axual.ksml.data.object.UserString;
+import io.axual.ksml.data.object.user.UserString;
 import io.axual.ksml.data.type.base.DataType;
 import io.axual.ksml.schema.DataSchema;
 

@@ -52,7 +52,7 @@ public class BaseOperation implements StreamOperation {
     }
 
     protected final String name;
-    protected final NotationLibrary notationLibrary;
+    private final NotationLibrary notationLibrary;
 
     public BaseOperation(OperationConfig config) {
         var error = NameValidator.validateNameAndReturnError(config.name);

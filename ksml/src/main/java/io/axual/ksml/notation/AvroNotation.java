@@ -67,7 +67,7 @@ public class AvroNotation implements Notation {
         private final Serializer<Object> wrapSerializer = new Serializer<>() {
             @Override
             public byte[] serialize(String topic, Object data) {
-                return serializer.serialize(topic, mapper.fromDataObject(DataUtil.asUserObject(data)));
+                return serializer.serialize(topic, mapper.fromUserObject(DataUtil.asUserObject(data)));
             }
         };
 
@@ -75,7 +75,7 @@ public class AvroNotation implements Notation {
             @Override
             public Object deserialize(String topic, byte[] data) {
                 GenericRecord object = (GenericRecord) deserializer.deserialize(topic, data);
-                return mapper.toDataObject(AvroNotation.NAME, object);
+                return mapper.toUserObject(AvroNotation.NAME, object);
             }
         };
 

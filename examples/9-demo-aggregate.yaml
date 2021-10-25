@@ -1,0 +1,37 @@
+# This example shows how to read from a simple stream, group by owner, apply windows and count owners per window.
+
+streams:
+  sensor_source:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+  sensor_target:
+    topic: ksml_sensordata_count
+    keyType: avro:windowed(string)
+    valueType: long
+
+functions:
+  print_message:
+    type: forEach
+    code: "print('key='+(key if isinstance(key,str) else str(key))+', value='+(value if isinstance(value,str) else str(value)))"
+
+pipelines:
+  main:
+    from: sensor_source
+    via:
+      - type: groupBy
+        name: ksml_sensordata_grouped
+        mapper:
+          expression: value["owner"]
+          resultType: string
+      - type: windowedBy
+        windowType: time
+        duration: 20s
+      - type: count
+        storeName: ownerCount
+      - type: toStream
+      - type: convertKey
+        into: avro:windowed(string)
+      - type: peek
+        forEach: print_message
+    to: sensor_target

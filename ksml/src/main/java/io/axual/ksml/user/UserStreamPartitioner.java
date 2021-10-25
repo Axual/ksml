@@ -23,8 +23,8 @@ package io.axual.ksml.user;
 
 import org.apache.kafka.streams.processor.StreamPartitioner;
 
-import io.axual.ksml.data.object.UserInteger;
-import io.axual.ksml.data.object.UserString;
+import io.axual.ksml.data.object.user.UserInteger;
+import io.axual.ksml.data.object.user.UserString;
 import io.axual.ksml.util.DataUtil;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;

@@ -23,7 +23,7 @@ package io.axual.ksml.user;
 
 import org.apache.kafka.streams.kstream.Predicate;
 
-import io.axual.ksml.data.object.UserBoolean;
+import io.axual.ksml.data.object.user.UserBoolean;
 import io.axual.ksml.util.DataUtil;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;

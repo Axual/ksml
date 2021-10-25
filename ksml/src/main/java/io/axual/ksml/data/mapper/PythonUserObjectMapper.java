@@ -26,19 +26,19 @@ import org.graalvm.polyglot.Value;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.axual.ksml.data.object.UserBoolean;
-import io.axual.ksml.data.object.UserByte;
-import io.axual.ksml.data.object.UserBytes;
-import io.axual.ksml.data.object.UserDouble;
-import io.axual.ksml.data.object.UserFloat;
-import io.axual.ksml.data.object.UserInteger;
-import io.axual.ksml.data.object.UserList;
-import io.axual.ksml.data.object.UserLong;
-import io.axual.ksml.data.object.UserObject;
-import io.axual.ksml.data.object.UserRecord;
-import io.axual.ksml.data.object.UserShort;
-import io.axual.ksml.data.object.UserString;
-import io.axual.ksml.data.object.UserTuple;
+import io.axual.ksml.data.object.user.UserBoolean;
+import io.axual.ksml.data.object.user.UserByte;
+import io.axual.ksml.data.object.user.UserBytes;
+import io.axual.ksml.data.object.user.UserDouble;
+import io.axual.ksml.data.object.user.UserFloat;
+import io.axual.ksml.data.object.user.UserInteger;
+import io.axual.ksml.data.object.user.UserList;
+import io.axual.ksml.data.object.user.UserLong;
+import io.axual.ksml.data.object.user.UserObject;
+import io.axual.ksml.data.object.user.UserRecord;
+import io.axual.ksml.data.object.user.UserShort;
+import io.axual.ksml.data.object.user.UserString;
+import io.axual.ksml.data.object.user.UserTuple;
 import io.axual.ksml.data.type.user.UserListType;
 import io.axual.ksml.data.type.user.UserRecordType;
 import io.axual.ksml.data.type.user.UserTupleType;
@@ -50,17 +50,17 @@ import io.axual.ksml.schema.SchemaUtil;
 
 import static io.axual.ksml.data.type.user.UserType.DEFAULT_NOTATION;
 
-public class PythonDataMapper implements DataMapper<Value> {
+public class PythonUserObjectMapper implements UserObjectMapper<Value> {
     private static final String RECORD_SCHEMA_FIELD = "@schema";
     private static final String RECORD_TYPE_FIELD = "@type";
-    private final NativeDataMapper nativeDataMapper = new NativeDataMapper();
+    private final NativeUserObjectMapper nativeDataMapper = new NativeUserObjectMapper();
     private final Context context;
 
-    public PythonDataMapper(Context context) {
+    public PythonUserObjectMapper(Context context) {
         this.context = context;
     }
 
-    public UserObject toDataObject(UserType expected, Value object) {
+    public UserObject toUserObject(UserType expected, Value object) {
         final String resultNotation = expected != null ? expected.notation() : DEFAULT_NOTATION;
         if (object.isBoolean() && (expected == null || expected.type() == UserBoolean.TYPE))
             return new UserBoolean(resultNotation, object.asBoolean());
@@ -91,7 +91,7 @@ public class PythonDataMapper implements DataMapper<Value> {
                 var elements = new UserObject[(int) object.getArraySize()];
                 for (var index = 0; index < object.getArraySize(); index++) {
                     var subType = ((UserTupleType) expected).subType(index);
-                    elements[index] = toDataObject(subType, object.getArrayElement(index));
+                    elements[index] = toUserObject(subType, object.getArrayElement(index));
                 }
                 return new UserTuple(resultNotation, elements);
             }
@@ -99,7 +99,7 @@ public class PythonDataMapper implements DataMapper<Value> {
                 var valueType = expected != null ? ((UserListType) expected).valueType() : UserType.UNKNOWN;
                 var result = new UserList(resultNotation, valueType);
                 for (var index = 0; index < object.getArraySize(); index++) {
-                    result.add(toDataObject(valueType, object.getArrayElement(index)));
+                    result.add(toUserObject(valueType, object.getArrayElement(index)));
                 }
                 return result;
             }
@@ -124,7 +124,7 @@ public class PythonDataMapper implements DataMapper<Value> {
                 }
                 map.remove(RECORD_TYPE_FIELD);
                 map.remove(RECORD_SCHEMA_FIELD);
-                return nativeDataMapper.mapToDataRecord(resultNotation, map, schema);
+                return nativeDataMapper.mapToUserRecord(resultNotation, map, schema);
             } catch (Exception e) {
                 // Ignore all cast exceptions
             }
@@ -134,12 +134,12 @@ public class PythonDataMapper implements DataMapper<Value> {
     }
 
     @Override
-    public UserObject toDataObject(String notation, Value object) {
+    public UserObject toUserObject(String notation, Value object) {
         throw new KSMLExecutionException("Use PythonDataMapper::toDataObject(value, expectedType)");
     }
 
     @Override
-    public Value fromDataObject(UserObject object) {
+    public Value fromUserObject(UserObject object) {
         if (object instanceof UserBoolean) return Value.asValue(((UserBoolean) object).value());
         if (object instanceof UserByte) return Value.asValue(((UserByte) object).value());
         if (object instanceof UserShort) return Value.asValue(((UserShort) object).value());
@@ -150,14 +150,14 @@ public class PythonDataMapper implements DataMapper<Value> {
         if (object instanceof UserBytes) return Value.asValue(((UserBytes) object).value());
         if (object instanceof UserString) return Value.asValue(((UserString) object).value());
         if (object instanceof UserList)
-            return Value.asValue(nativeDataMapper.dataListToList((UserList) object));
+            return Value.asValue(nativeDataMapper.userListToList((UserList) object));
         if (object instanceof UserRecord) {
-            return context.eval("python", recordToString((UserRecord) object));
+            return context.eval("python", userRecordToJsonString((UserRecord) object));
         }
         throw new KSMLExecutionException("Can not unwrap DataObject type: " + object.getClass().getSimpleName());
     }
 
-    private String recordToString(UserRecord object) {
+    private String userRecordToJsonString(UserRecord object) {
         var builder = new StringBuilder("{");
         var first = true;
         for (Map.Entry<String, UserObject> entry : object.entrySet()) {

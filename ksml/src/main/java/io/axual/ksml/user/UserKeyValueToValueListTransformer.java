@@ -25,7 +25,7 @@ import org.apache.kafka.streams.kstream.ValueMapperWithKey;
 
 import java.util.List;
 
-import io.axual.ksml.data.object.UserList;
+import io.axual.ksml.data.object.user.UserList;
 import io.axual.ksml.data.type.base.DataType;
 import io.axual.ksml.data.type.base.ListType;
 import io.axual.ksml.exception.KSMLExecutionException;

@@ -1,4 +1,4 @@
-package io.axual.ksml.data.object;
+package io.axual.ksml.data.mapper;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,28 +20,16 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.base.Tuple;
-import io.axual.ksml.data.type.user.UserTupleType;
+import io.axual.ksml.data.object.user.UserObject;
+import io.axual.ksml.data.type.user.StaticUserType;
 import io.axual.ksml.data.type.user.UserType;
 
-public class UserTuple extends Tuple<UserObject> implements UserObject {
-    private final UserType type;
-
-    public UserTuple(String notation, UserObject... elements) {
-        super(elements);
-        this.type = new UserTupleType(notation, convertElements(elements));
+public interface UserObjectMapper<T> {
+    default UserObject toUserObject(String notation, T value) {
+        return toUserObject(new StaticUserType(null, notation), value);
     }
 
-    private static UserType[] convertElements(UserObject... elements) {
-        UserType[] result = new UserType[elements.length];
-        for (int index = 0; index < elements.length; index++) {
-            result[index] = elements[index].type();
-        }
-        return result;
-    }
+    UserObject toUserObject(UserType expected, T value);
 
-    @Override
-    public UserType type() {
-        return type;
-    }
+    T fromUserObject(UserObject object);
 }

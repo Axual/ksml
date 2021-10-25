@@ -21,7 +21,7 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.data.object.UserBoolean;
+import io.axual.ksml.data.object.user.UserBoolean;
 import io.axual.ksml.data.type.user.StaticUserType;
 
 import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_PARAMETERS;

@@ -25,7 +25,7 @@ import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
 
-import io.axual.ksml.data.object.UserObject;
+import io.axual.ksml.data.object.user.UserObject;
 import io.axual.ksml.exception.KSMLApplyException;
 import io.axual.ksml.data.type.base.DataType;
 

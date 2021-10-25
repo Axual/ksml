@@ -21,8 +21,8 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.data.object.UserInteger;
-import io.axual.ksml.data.object.UserString;
+import io.axual.ksml.data.object.user.UserInteger;
+import io.axual.ksml.data.object.user.UserString;
 import io.axual.ksml.data.type.base.DataType;
 import io.axual.ksml.dsl.FunctionParameters;
 

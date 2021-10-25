@@ -28,15 +28,15 @@ import org.apache.kafka.common.serialization.Serializer;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.axual.ksml.data.mapper.NativeDataMapper;
-import io.axual.ksml.data.object.UserObject;
+import io.axual.ksml.data.mapper.NativeUserObjectMapper;
+import io.axual.ksml.data.object.user.UserObject;
 import io.axual.ksml.data.type.base.DataType;
 import io.axual.ksml.data.type.base.SimpleType;
 import io.axual.ksml.util.DataUtil;
 
 public class BinaryNotation implements Notation {
     public static final String NAME = "BINARY";
-    private static final NativeDataMapper mapper = new NativeDataMapper();
+    private static final NativeUserObjectMapper mapper = new NativeUserObjectMapper();
     private final Map<String, Object> configs = new HashMap<>();
     private final Notation jsonNotation;
 
@@ -73,7 +73,7 @@ public class BinaryNotation implements Notation {
         private final Serializer<Object> wrapSerializer = new Serializer<>() {
             @Override
             public byte[] serialize(String topic, Object data) {
-                return serializer.serialize(topic, mapper.fromDataObject(DataUtil.asUserObject(data)));
+                return serializer.serialize(topic, mapper.fromUserObject(DataUtil.asUserObject(data)));
             }
         };
 
@@ -81,7 +81,7 @@ public class BinaryNotation implements Notation {
             @Override
             public UserObject deserialize(String topic, byte[] data) {
                 Object object = deserializer.deserialize(topic, data);
-                return mapper.toDataObject(BinaryNotation.NAME, object);
+                return mapper.toUserObject(BinaryNotation.NAME, object);
             }
         };
 

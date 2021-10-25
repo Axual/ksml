@@ -22,11 +22,11 @@ package io.axual.ksml.util;
 
 import org.apache.kafka.streams.kstream.Windowed;
 
-import io.axual.ksml.data.mapper.NativeDataMapper;
-import io.axual.ksml.data.object.UserLong;
-import io.axual.ksml.data.object.UserObject;
-import io.axual.ksml.data.object.UserRecord;
-import io.axual.ksml.data.object.UserString;
+import io.axual.ksml.data.mapper.NativeUserObjectMapper;
+import io.axual.ksml.data.object.user.UserLong;
+import io.axual.ksml.data.object.user.UserObject;
+import io.axual.ksml.data.object.user.UserRecord;
+import io.axual.ksml.data.object.user.UserString;
 import io.axual.ksml.data.type.base.WindowedType;
 import io.axual.ksml.schema.SchemaUtil;
 
@@ -38,7 +38,7 @@ import static io.axual.ksml.schema.WindowedSchema.START_FIELD;
 import static io.axual.ksml.schema.WindowedSchema.START_TIME_FIELD;
 
 public class DataUtil {
-    private static final NativeDataMapper nativeDataMapper = new NativeDataMapper();
+    private static final NativeUserObjectMapper nativeUserObjectMapper = new NativeUserObjectMapper();
 
     private DataUtil() {
     }
@@ -55,7 +55,7 @@ public class DataUtil {
     public static UserObject asUserObject(Object object) {
         if (object instanceof UserObject) return (UserObject) object;
         if (object instanceof Windowed<?>) return windowAsRecord((Windowed<?>) object);
-        return nativeDataMapper.toDataObject(DEFAULT_NOTATION, object);
+        return nativeUserObjectMapper.toUserObject(DEFAULT_NOTATION, object);
     }
 
     // Convert a Windowed object into a data record with fields that contain the window fields.

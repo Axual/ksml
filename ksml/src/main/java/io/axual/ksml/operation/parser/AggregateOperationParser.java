@@ -48,6 +48,7 @@ public class AggregateOperationParser extends ContextAwareParser<AggregateOperat
                 parseOptionalFunction(node, AGGREGATE_AGGREGATOR_ATTRIBUTE, new AggregatorDefinitionParser()),
                 parseOptionalFunction(node, AGGREGATE_MERGER_ATTRIBUTE, new MergerDefinitionParser()),
                 parseOptionalFunction(node, AGGREGATE_ADDER_ATTRIBTUE, new AggregatorDefinitionParser()),
-                parseOptionalFunction(node, AGGREGATE_SUBTRACTOR_ATTRIBUTE, new AggregatorDefinitionParser()));
+                parseOptionalFunction(node, AGGREGATE_SUBTRACTOR_ATTRIBUTE, new AggregatorDefinitionParser()),
+                context.getNotationLibrary());
     }
 }

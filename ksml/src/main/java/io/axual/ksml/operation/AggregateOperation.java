@@ -9,9 +9,9 @@ package io.axual.ksml.operation;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,9 +21,13 @@ package io.axual.ksml.operation;
  */
 
 
+import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Named;
+import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.SessionStore;
+import org.apache.kafka.streams.state.WindowStore;
 
 import io.axual.ksml.data.type.base.WindowedType;
 import io.axual.ksml.data.type.user.StaticUserType;
@@ -68,12 +72,16 @@ public class AggregateOperation extends StoreOperation {
         checkNotNull(aggregator, "aggregator");
         checkAggregationFunction(aggregator, input, "Aggregator");
 
+        Materialized<Object, Object, KeyValueStore<Bytes, byte[]>> mat = Materialized.as(storeName);
+        mat = mat.withKeySerde(input.keyType.getSerde());
+        mat = mat.withValueSerde(streamDataTypeOf(aggregator.resultType,false).getSerde());
+
         return new KTableWrapper(
                 input.groupedStream.aggregate(
                         new UserInitializer(initializer),
                         new UserAggregator(aggregator),
                         Named.as(name),
-                        registerStore(Materialized.as(storeName))),
+                        registerStore(mat)),
                 input.keyType,
                 streamDataTypeOf(aggregator.resultType, false));
     }
@@ -86,13 +94,17 @@ public class AggregateOperation extends StoreOperation {
         checkAggregationFunction(adder, input, "Adder");
         checkAggregationFunction(subtractor, input, "Subtractor");
 
+        Materialized<Object, Object, KeyValueStore<Bytes, byte[]>> mat = Materialized.as(storeName);
+        mat = mat.withKeySerde(input.keyType.getSerde());
+        mat = mat.withValueSerde(streamDataTypeOf(adder.resultType,false).getSerde());
+
         return new KTableWrapper(
                 input.groupedTable.aggregate(
                         new UserInitializer(initializer),
                         new UserAggregator(adder),
                         new UserAggregator(subtractor),
                         Named.as(name),
-                        registerStore(Materialized.as(storeName))),
+                        registerStore(mat)),
                 input.keyType,
                 streamDataTypeOf(adder.resultType, false));
     }
@@ -106,13 +118,17 @@ public class AggregateOperation extends StoreOperation {
         checkAssignable(merger.parameters[0].type, input.keyType.type(), "Stream key type incompatible with Merger's first parameter");
         checkEqual(aggregator.resultType.type(), merger.parameters[1].type, "Aggregator result type is incompatible with Merger's second parameter");
 
+        Materialized<Object, Object, SessionStore<Bytes, byte[]>> mat = Materialized.as(storeName);
+        mat = mat.withKeySerde(input.keyType.getSerde());
+        mat = mat.withValueSerde(streamDataTypeOf(aggregator.resultType,false).getSerde());
+
         return new KTableWrapper(
                 (KTable) input.sessionWindowedKStream.aggregate(
                         new UserInitializer(initializer),
                         new UserAggregator(aggregator),
                         new UserMerger(merger),
                         Named.as(name),
-                        registerStore(Materialized.as(storeName))),
+                        registerStore(mat)),
                 streamDataTypeOf(new StaticUserType(new WindowedType(input.keyType.type()), input.keyType.notation().name()), true),
                 streamDataTypeOf(aggregator.resultType, false));
     }
@@ -123,12 +139,16 @@ public class AggregateOperation extends StoreOperation {
         checkNotNull(aggregator, "aggregator");
         checkAggregationFunction(aggregator, input, "Aggregator");
 
+        Materialized<Object, Object, WindowStore<Bytes, byte[]>> mat = Materialized.as(storeName);
+        mat = mat.withKeySerde(input.keyType.getSerde());
+        mat = mat.withValueSerde(streamDataTypeOf(aggregator.resultType,false).getSerde());
+
         return new KTableWrapper(
                 (KTable) input.timeWindowedKStream.aggregate(
                         new UserInitializer(initializer),
                         new UserAggregator(aggregator),
                         Named.as(name),
-                        registerStore(Materialized.as(storeName))),
+                        registerStore(mat)),
                 streamDataTypeOf(new StaticUserType(new WindowedType(input.keyType.type()), input.keyType.notation().name()), true),
                 streamDataTypeOf(aggregator.resultType, false));
     }

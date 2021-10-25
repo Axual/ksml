@@ -23,7 +23,7 @@ package io.axual.ksml.operation;
 import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.ValueMapper;
 
-import io.axual.ksml.data.object.UserRecord;
+import io.axual.ksml.data.object.user.UserRecord;
 import io.axual.ksml.data.type.base.DataType;
 import io.axual.ksml.data.type.user.UserRecordType;
 import io.axual.ksml.data.type.user.UserType;

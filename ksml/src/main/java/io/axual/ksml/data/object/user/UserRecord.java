@@ -1,4 +1,4 @@
-package io.axual.ksml.data.mapper;
+package io.axual.ksml.data.object.user;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,16 +20,24 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.object.UserObject;
-import io.axual.ksml.data.type.user.StaticUserType;
-import io.axual.ksml.data.type.user.UserType;
+import java.util.HashMap;
 
-public interface DataMapper<T> {
-    default UserObject toDataObject(String notation, T value) {
-        return toDataObject(new StaticUserType(null, notation), value);
+import io.axual.ksml.data.type.user.UserRecordType;
+import io.axual.ksml.schema.DataSchema;
+
+public class UserRecord extends HashMap<String, UserObject> implements UserObject {
+    public final UserRecordType type;
+
+    public UserRecord(DataSchema schema) {
+        type = typeOf(schema);
     }
 
-    UserObject toDataObject(UserType expected, T value);
+    public static UserRecordType typeOf(DataSchema schema) {
+        return new UserRecordType(schema);
+    }
 
-    T fromDataObject(UserObject object);
+    @Override
+    public UserRecordType type() {
+        return type;
+    }
 }

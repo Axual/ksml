@@ -1,4 +1,4 @@
-package io.axual.ksml.data.type.base;
+package io.axual.ksml.data.object.user;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,36 +20,28 @@ package io.axual.ksml.data.type.base;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.base.Tuple;
+import io.axual.ksml.data.type.user.UserTupleType;
+import io.axual.ksml.data.type.user.UserType;
 
-import java.util.List;
-import java.util.Objects;
+public class UserTuple extends Tuple<UserObject> implements UserObject {
+    private final UserType type;
 
-// This class implements a Tuple with any number of elements
-public class Tuple<T> {
-    private final List<T> elements;
-
-    public Tuple(T... elements) {
-        this.elements = List.of(elements);
+    public UserTuple(String notation, UserObject... elements) {
+        super(elements);
+        this.type = new UserTupleType(notation, convertElements(elements));
     }
 
-    public T get(int index) {
-        return elements.get(index);
-    }
-
-    public int size() {
-        return elements.size();
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (this == other) return true;
-        if (other == null || getClass() != other.getClass()) return false;
-        Tuple o = (Tuple) other;
-        return elements.equals(o.elements);
+    private static UserType[] convertElements(UserObject... elements) {
+        UserType[] result = new UserType[elements.length];
+        for (int index = 0; index < elements.length; index++) {
+            result[index] = elements[index].type();
+        }
+        return result;
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(elements);
+    public UserType type() {
+        return type;
     }
 }

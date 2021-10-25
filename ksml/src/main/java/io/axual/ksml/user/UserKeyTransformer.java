@@ -23,7 +23,7 @@ package io.axual.ksml.user;
 
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 
-import io.axual.ksml.data.object.UserObject;
+import io.axual.ksml.data.object.user.UserObject;
 import io.axual.ksml.util.DataUtil;
 import io.axual.ksml.python.Invoker;
 import io.axual.ksml.data.type.base.DataType;

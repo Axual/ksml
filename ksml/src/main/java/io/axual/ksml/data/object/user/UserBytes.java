@@ -1,4 +1,4 @@
-package io.axual.ksml.data.object;
+package io.axual.ksml.data.object.user;
 
 /*-
  * ========================LICENSE_START=================================
@@ -24,14 +24,14 @@ import io.axual.ksml.data.type.base.SimpleType;
 
 import static io.axual.ksml.data.type.user.UserType.DEFAULT_NOTATION;
 
-public class UserByte extends UserPrimitive<Byte> {
-    public static final SimpleType TYPE = new SimpleType(Byte.class);
+public class UserBytes extends UserPrimitive<byte[]> {
+    public static final SimpleType TYPE = new SimpleType(byte[].class);
 
-    public UserByte(Byte value) {
+    public UserBytes(byte[] value) {
         this(DEFAULT_NOTATION, value);
     }
 
-    public UserByte(String notation, Byte value) {
+    public UserBytes(String notation, byte[] value) {
         super(TYPE, notation, value);
     }
 }

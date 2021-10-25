@@ -29,8 +29,8 @@ import org.graalvm.polyglot.Value;
 
 import java.util.Arrays;
 
-import io.axual.ksml.data.mapper.PythonDataMapper;
-import io.axual.ksml.data.object.UserObject;
+import io.axual.ksml.data.mapper.PythonUserObjectMapper;
+import io.axual.ksml.data.object.user.UserObject;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLTopologyException;
@@ -45,7 +45,7 @@ public class PythonFunction extends UserFunction {
             .allowHostAccess(HostAccess.ALL)
             .allowHostClassLookup(name -> name.equals("java.util.ArrayList") || name.equals("java.util.HashMap"))
             .build();
-    private static final PythonDataMapper mapper = new PythonDataMapper(context);
+    private static final PythonUserObjectMapper mapper = new PythonUserObjectMapper(context);
     protected final Value function;
 
     public PythonFunction(String name, FunctionDefinition definition) {
@@ -111,7 +111,7 @@ public class PythonFunction extends UserFunction {
         Object[] arguments = new Object[parameters.length];
         for (var index = 0; index < parameters.length; index++) {
             checkType(this.parameters[index], parameters[index]);
-            arguments[index] = mapper.fromDataObject(parameters[index]);
+            arguments[index] = mapper.fromUserObject(parameters[index]);
         }
 
         // Create a list of prefixed parameter names to pass to the function
@@ -133,7 +133,7 @@ public class PythonFunction extends UserFunction {
                 }
 
                 // Convert the result object to a DataObject
-                UserObject result = mapper.toDataObject(resultType, pyResult);
+                UserObject result = mapper.toUserObject(resultType, pyResult);
                 logCall(parameters, result);
                 checkType(resultType.type(), result);
                 return result;

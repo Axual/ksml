@@ -22,15 +22,15 @@ package io.axual.ksml.schema;
 
 import org.apache.avro.Schema;
 
-import io.axual.ksml.data.object.UserBoolean;
-import io.axual.ksml.data.object.UserByte;
-import io.axual.ksml.data.object.UserBytes;
-import io.axual.ksml.data.object.UserDouble;
-import io.axual.ksml.data.object.UserFloat;
-import io.axual.ksml.data.object.UserInteger;
-import io.axual.ksml.data.object.UserLong;
-import io.axual.ksml.data.object.UserShort;
-import io.axual.ksml.data.object.UserString;
+import io.axual.ksml.data.object.user.UserBoolean;
+import io.axual.ksml.data.object.user.UserByte;
+import io.axual.ksml.data.object.user.UserBytes;
+import io.axual.ksml.data.object.user.UserDouble;
+import io.axual.ksml.data.object.user.UserFloat;
+import io.axual.ksml.data.object.user.UserInteger;
+import io.axual.ksml.data.object.user.UserLong;
+import io.axual.ksml.data.object.user.UserShort;
+import io.axual.ksml.data.object.user.UserString;
 import io.axual.ksml.data.type.user.UserListType;
 import io.axual.ksml.data.type.base.DataType;
 import io.axual.ksml.data.type.user.UserRecordType;

@@ -27,8 +27,8 @@ import org.apache.kafka.streams.kstream.KeyValueMapper;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.axual.ksml.data.object.UserList;
-import io.axual.ksml.data.object.UserObject;
+import io.axual.ksml.data.object.user.UserList;
+import io.axual.ksml.data.object.user.UserObject;
 import io.axual.ksml.data.type.base.DataType;
 import io.axual.ksml.data.type.base.KeyValueType;
 import io.axual.ksml.data.type.base.ListType;

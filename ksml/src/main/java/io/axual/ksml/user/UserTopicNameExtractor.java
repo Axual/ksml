@@ -24,7 +24,7 @@ package io.axual.ksml.user;
 import org.apache.kafka.streams.processor.RecordContext;
 import org.apache.kafka.streams.processor.TopicNameExtractor;
 
-import io.axual.ksml.data.object.UserString;
+import io.axual.ksml.data.object.user.UserString;
 import io.axual.ksml.util.DataUtil;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;

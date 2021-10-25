@@ -25,7 +25,7 @@ import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Named;
 
-import io.axual.ksml.data.object.UserLong;
+import io.axual.ksml.data.object.user.UserLong;
 import io.axual.ksml.data.type.user.StaticUserType;
 import io.axual.ksml.data.type.user.UserType;
 import io.axual.ksml.data.type.base.WindowedType;

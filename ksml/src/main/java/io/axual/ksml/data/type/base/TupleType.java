@@ -21,6 +21,8 @@ package io.axual.ksml.data.type.base;
  */
 
 
+import io.axual.ksml.data.object.base.Tuple;
+
 public class TupleType extends ComplexType {
     public TupleType(DataType... subTypes) {
         super(Tuple.class, subTypes);
