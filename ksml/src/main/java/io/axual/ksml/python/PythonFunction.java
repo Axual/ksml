@@ -9,9 +9,9 @@ package io.axual.ksml.python;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,6 +31,7 @@ import java.util.Arrays;
 
 import io.axual.ksml.data.mapper.PythonUserObjectMapper;
 import io.axual.ksml.data.object.user.UserObject;
+import io.axual.ksml.data.object.user.UserString;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLTopologyException;
@@ -127,13 +128,24 @@ public class PythonFunction extends UserFunction {
 
             // Check if the function is supposed to return a result value
             if (resultType != null) {
-                // If a value is expected, but none is returned, then throw exception
+                // The converted result value from Python
+                final UserObject result;
+
+                // If a value is expected, but none is returned, then handle special cases
                 if (pyResult.isNull()) {
-                    throw new KSMLTopologyException("Illegal return from function: null");
+                    // An empty string in YAML (ie. '') is returned as null by the parser, so
+                    // when we expect a string and get null, we convert it to the empty string.
+                    if (resultType.type() == UserString.TYPE) {
+                        // Empty string may be returned as null, so catch and convert here
+                        result = new UserString(resultType.notation(), "");
+                    } else {
+                        throw new KSMLTopologyException("Illegal return from function: null");
+                    }
+                } else {
+                    // Convert the result object to a UserObject
+                    result = mapper.toUserObject(resultType, pyResult);
                 }
 
-                // Convert the result object to a DataObject
-                UserObject result = mapper.toUserObject(resultType, pyResult);
                 logCall(parameters, result);
                 checkType(resultType.type(), result);
                 return result;

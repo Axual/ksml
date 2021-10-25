@@ -73,7 +73,7 @@ public class NativeUserObjectMapper implements UserObjectMapper<Object> {
         if (value instanceof String) return new UserString(resultNotation, (String) value);
         if (value instanceof List) return listToUserList(resultNotation, (List<?>) value);
         if (value instanceof Map) return mapToUserRecord(resultNotation, (Map<?, ?>) value, null);
-        throw new KSMLExecutionException("Can not wrap type in DataObject: " + value.getClass().getSimpleName());
+        throw new KSMLExecutionException("Can not wrap type in UserObject: " + value.getClass().getSimpleName());
     }
 
     public UserList listToUserList(String notation, List<?> list) {
@@ -105,7 +105,7 @@ public class NativeUserObjectMapper implements UserObjectMapper<Object> {
         if (value instanceof UserString) return ((UserString) value).value();
         if (value instanceof UserList) return userListToList((UserList) value);
         if (value instanceof UserRecord) return userRecordToMap((UserRecord) value);
-        throw new KSMLExecutionException("Can not unwrap DataObject type: " + value.getClass().getSimpleName());
+        throw new KSMLExecutionException("Can not unwrap UserObject type: " + value.getClass().getSimpleName());
     }
 
     public List<Object> userListToList(UserList value) {

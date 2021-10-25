@@ -43,15 +43,15 @@ public class DataUtil {
     private DataUtil() {
     }
 
-    // KSML uses a generic policy that ALL data in streams is internally represented as DataObjects.
+    // KSML uses a generic policy that ALL data in streams is internally represented as UserObjects.
     // However Kafka Streams also dictates some types of its own, namely classes like Windowed and
     // Long, which are both used in the count() operation. This leads to ClassCastExceptions if we
-    // define our stream types as KStream<DataObject,DataObject>, since Windows and Long cannot be
-    // casted to DataObject. Therefore all formal stream types in the Java code are
-    // KStream<Object,Object> instead of KStream<DataObject,DataObject>. The unify method ensures
-    // that any data type injected by Kafka Streams gets modified into a proper DataObject on the
+    // define our stream types as KStream<UserObject,UserObject>, since Windows and Long cannot be
+    // casted to UserObject. Therefore all formal stream types in the Java code are
+    // KStream<Object,Object> instead of KStream<UserObject,UserObject>. The unify method ensures
+    // that any data type injected by Kafka Streams gets modified into a proper UserObject on the
     // fly. When new data types pop up in Kafka Streams' generics, add the conversion to a
-    // DataObject to this method.
+    // UserObject to this method.
     public static UserObject asUserObject(Object object) {
         if (object instanceof UserObject) return (UserObject) object;
         if (object instanceof Windowed<?>) return windowAsRecord((Windowed<?>) object);

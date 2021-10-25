@@ -130,12 +130,12 @@ public class PythonUserObjectMapper implements UserObjectMapper<Value> {
             }
         }
 
-        throw new KSMLExecutionException("Can not wrap type in DataObject: " + object.getClass().getSimpleName());
+        throw new KSMLExecutionException("Can not wrap type in UserObject: " + object.getClass().getSimpleName());
     }
 
     @Override
     public UserObject toUserObject(String notation, Value object) {
-        throw new KSMLExecutionException("Use PythonDataMapper::toDataObject(value, expectedType)");
+        throw new KSMLExecutionException("Use PythonDataMapper::toUserObject(value, expectedType)");
     }
 
     @Override
@@ -154,7 +154,7 @@ public class PythonUserObjectMapper implements UserObjectMapper<Value> {
         if (object instanceof UserRecord) {
             return context.eval("python", userRecordToJsonString((UserRecord) object));
         }
-        throw new KSMLExecutionException("Can not unwrap DataObject type: " + object.getClass().getSimpleName());
+        throw new KSMLExecutionException("Can not unwrap UserObject type: " + object.getClass().getSimpleName());
     }
 
     private String userRecordToJsonString(UserRecord object) {

@@ -5,10 +5,6 @@ streams:
     topic: ksml_sensordata_avro
     keyType: string
     valueType: avro:SensorData
-  sensor_target:
-    topic: ksml_sensordata_count
-    keyType: avro:windowed(string)
-    valueType: long
 
 functions:
   print_message:
@@ -27,11 +23,16 @@ pipelines:
       - type: windowedBy
         windowType: time
         duration: 20s
-      - type: count
+      - type: aggregate
         storeName: ownerCount
+        initializer:
+          expression: ''
+          resultType: string
+        aggregator:
+          expression: key+','+aggregatedValue
+          resultType: string
       - type: toStream
       - type: convertKey
         into: avro:windowed(string)
       - type: peek
         forEach: print_message
-    to: sensor_target
