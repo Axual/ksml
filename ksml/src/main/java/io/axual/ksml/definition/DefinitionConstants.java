@@ -21,9 +21,12 @@ package io.axual.ksml.definition;
  */
 
 
+import io.axual.ksml.data.object.user.UserBytes;
 import io.axual.ksml.data.object.user.UserInteger;
 import io.axual.ksml.data.object.user.UserString;
 import io.axual.ksml.data.type.base.DataType;
+import io.axual.ksml.data.type.base.ListType;
+import io.axual.ksml.data.type.base.TupleType;
 import io.axual.ksml.dsl.FunctionParameters;
 
 public class DefinitionConstants {
@@ -35,5 +38,6 @@ public class DefinitionConstants {
     protected static final ParameterDefinition[] KEY_VALUE_AGGREGATEDVALUE_PARAMETERS = new ParameterDefinition[]{new ParameterDefinition(FunctionParameters.PARAM_KEY, DataType.UNKNOWN), new ParameterDefinition(FunctionParameters.PARAM_VALUE, DataType.UNKNOWN), new ParameterDefinition(FunctionParameters.PARAM_AGGREGATED_VALUE, DataType.UNKNOWN)};
     protected static final ParameterDefinition[] KEY_VALUE_PARAMETERS = new ParameterDefinition[]{new ParameterDefinition(FunctionParameters.PARAM_KEY, DataType.UNKNOWN), new ParameterDefinition(FunctionParameters.PARAM_VALUE, DataType.UNKNOWN)};
     protected static final ParameterDefinition[] STREAM_PARTITIONER_PARAMETERS = new ParameterDefinition[]{new ParameterDefinition(FunctionParameters.PARAM_TOPIC, UserString.TYPE), new ParameterDefinition(FunctionParameters.PARAM_KEY, DataType.UNKNOWN), new ParameterDefinition(FunctionParameters.PARAM_VALUE, DataType.UNKNOWN), new ParameterDefinition(FunctionParameters.PARAM_NUM_PARTITIONS, UserInteger.TYPE)};
+    protected static final ParameterDefinition[] TOPIC_NAME_EXTRACTOR_PARAMETERS = new ParameterDefinition[]{new ParameterDefinition(FunctionParameters.PARAM_KEY, DataType.UNKNOWN), new ParameterDefinition(FunctionParameters.PARAM_VALUE, DataType.UNKNOWN), new ParameterDefinition(FunctionParameters.PARAM_RECORD_CONTEXT, new ListType(new TupleType(UserString.TYPE, UserBytes.TYPE)))};
     protected static final ParameterDefinition[] TWO_VALUE_PARAMETERS = new ParameterDefinition[]{new ParameterDefinition(FunctionParameters.PARAM_VALUE1, DataType.UNKNOWN), new ParameterDefinition(FunctionParameters.PARAM_VALUE2, DataType.UNKNOWN)};
 }

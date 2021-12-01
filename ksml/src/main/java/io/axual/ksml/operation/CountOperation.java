@@ -22,13 +22,12 @@ package io.axual.ksml.operation;
 
 
 import org.apache.kafka.streams.kstream.KTable;
-import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Named;
 
 import io.axual.ksml.data.object.user.UserLong;
 import io.axual.ksml.data.type.user.StaticUserType;
 import io.axual.ksml.data.type.user.UserType;
-import io.axual.ksml.data.type.base.WindowedType;
+import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.KGroupedTableWrapper;
 import io.axual.ksml.stream.KTableWrapper;
@@ -43,41 +42,49 @@ public class CountOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KGroupedStreamWrapper input) {
+        final StreamDataType resultValueType = streamDataTypeOf(new StaticUserType(UserLong.TYPE, UserType.DEFAULT_NOTATION), false);
+
         return new KTableWrapper(
                 (KTable) input.groupedStream.count(
                         Named.as(name),
-                        registerStore(Materialized.as(storeName))),
+                        registerKeyValueStore(storeName, input.keyType, resultValueType)),
                 input.keyType(),
-                streamDataTypeOf(new StaticUserType(UserLong.TYPE, UserType.DEFAULT_NOTATION), false));
+                resultValueType);
     }
 
     @Override
     public StreamWrapper apply(KGroupedTableWrapper input) {
+        final StreamDataType resultValueType = streamDataTypeOf(new StaticUserType(UserLong.TYPE, UserType.DEFAULT_NOTATION), false);
+
         return new KTableWrapper(
                 (KTable) input.groupedTable.count(
                         Named.as(name),
-                        registerStore(Materialized.as(storeName))),
+                        registerKeyValueStore(storeName, input.keyType, resultValueType)),
                 input.keyType(),
-                streamDataTypeOf(new StaticUserType(UserLong.TYPE, UserType.DEFAULT_NOTATION), false));
+                resultValueType);
     }
 
     @Override
     public StreamWrapper apply(SessionWindowedKStreamWrapper input) {
+        final StreamDataType resultValueType = streamDataTypeOf(new StaticUserType(UserLong.TYPE, UserType.DEFAULT_NOTATION), false);
+
         return new KTableWrapper(
                 (KTable) input.sessionWindowedKStream.count(
                         Named.as(name),
-                        registerStore(Materialized.as(storeName))),
-                streamDataTypeOf(new StaticUserType(new WindowedType(input.keyType.type()), input.keyType.notation().name()), true),
-                streamDataTypeOf(new StaticUserType(UserLong.TYPE, UserType.DEFAULT_NOTATION), false));
+                        registerSessionStore(storeName, input.keyType, resultValueType)),
+                windowedTypeOf(input.keyType),
+                resultValueType);
     }
 
     @Override
     public StreamWrapper apply(TimeWindowedKStreamWrapper input) {
+        StreamDataType resultValueType = streamDataTypeOf(new StaticUserType(UserLong.TYPE, UserType.DEFAULT_NOTATION), false);
+
         return new KTableWrapper(
                 (KTable) input.timeWindowedKStream.count(
                         Named.as(name),
-                        registerStore(Materialized.as(storeName))),
-                streamDataTypeOf(new StaticUserType(new WindowedType(input.keyType.type()), input.keyType.notation().name()), true),
-                streamDataTypeOf(new StaticUserType(UserLong.TYPE, UserType.DEFAULT_NOTATION), false));
+                        registerWindowStore(storeName, input.keyType, resultValueType)),
+                windowedTypeOf(input.keyType),
+                resultValueType);
     }
 }

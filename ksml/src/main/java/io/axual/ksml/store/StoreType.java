@@ -1,4 +1,4 @@
-package io.axual.ksml;
+package io.axual.ksml.store;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,10 +20,8 @@ package io.axual.ksml;
  * =========================LICENSE_END==================================
  */
 
-
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.Topology;
-
-public interface TopologyGenerator {
-    Topology create(StreamsBuilder streamsBuilder);
+public enum StoreType {
+    KEYVALUE_STORE,
+    SESSION_STORE,
+    WINDOW_STORE
 }

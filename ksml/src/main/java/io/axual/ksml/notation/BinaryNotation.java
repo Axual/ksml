@@ -29,7 +29,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.axual.ksml.data.mapper.NativeUserObjectMapper;
-import io.axual.ksml.data.object.user.UserObject;
 import io.axual.ksml.data.type.base.DataType;
 import io.axual.ksml.data.type.base.SimpleType;
 import io.axual.ksml.util.DataUtil;
@@ -73,15 +72,19 @@ public class BinaryNotation implements Notation {
         private final Serializer<Object> wrapSerializer = new Serializer<>() {
             @Override
             public byte[] serialize(String topic, Object data) {
+                // Serialize the raw object by converting from user object if necessary
                 return serializer.serialize(topic, mapper.fromUserObject(DataUtil.asUserObject(data)));
             }
         };
 
         private final Deserializer<Object> wrapDeserializer = new Deserializer<>() {
             @Override
-            public UserObject deserialize(String topic, byte[] data) {
-                Object object = deserializer.deserialize(topic, data);
-                return mapper.toUserObject(BinaryNotation.NAME, object);
+            public Object deserialize(String topic, byte[] data) {
+                // Deserialize the raw object and return as such. If any conversion to a user
+                // object needs to be done, then it's up to the pipeline operations to do so.
+                // This ensures that operations that need the raw type (eg. Count needing Long)
+                // can read back the binary types they expect.
+                return deserializer.deserialize(topic, data);
             }
         };
 

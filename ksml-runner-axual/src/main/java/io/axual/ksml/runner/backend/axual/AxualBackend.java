@@ -23,10 +23,15 @@ package io.axual.ksml.runner.backend.axual;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.utils.Utils;
 import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.KeyQueryMetadata;
+import org.apache.kafka.streams.StoreQueryParameters;
 import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.state.StreamsMetadata;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -43,13 +48,13 @@ import io.axual.discovery.client.tools.DiscoveryConfigParserV2;
 import io.axual.ksml.AxualNotationLibrary;
 import io.axual.ksml.KSMLTopologyGenerator;
 import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.rest.server.StreamsQuerier;
 import io.axual.ksml.runner.backend.Backend;
 import io.axual.ksml.runner.config.KSMLConfig;
 import io.axual.ksml.serde.UnknownTypeSerde;
 import io.axual.streams.proxy.axual.AxualStreams;
 import io.axual.streams.proxy.axual.AxualStreamsConfig;
 import io.axual.streams.proxy.generic.factory.TopologyFactory;
-import io.axual.streams.proxy.generic.factory.UncaughtExceptionHandlerFactory;
 import io.axual.streams.proxy.wrapped.WrappedStreamsConfig;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -115,8 +120,23 @@ public class AxualBackend implements Backend {
     }
 
     @Override
-    public void stop() {
-        close();
+    public StreamsQuerier getQuerier() {
+        return new StreamsQuerier() {
+            @Override
+            public Collection<StreamsMetadata> allMetadataForStore(String storeName) {
+                return axualStreams.allMetadataForStore(storeName);
+            }
+
+            @Override
+            public <K> KeyQueryMetadata queryMetadataForKey(String storeName, K key, Serializer<K> keySerializer) {
+                return axualStreams.queryMetadataForKey(storeName, key, keySerializer);
+            }
+
+            @Override
+            public <T> T store(StoreQueryParameters<T> storeQueryParameters) {
+                return axualStreams.store(storeQueryParameters);
+            }
+        };
     }
 
     @Override
@@ -150,7 +170,7 @@ public class AxualBackend implements Backend {
         }
 
         configs.put(WrappedStreamsConfig.TOPOLOGY_FACTORY_CONFIG, (TopologyFactory) topologyFactory::create);
-        configs.put(WrappedStreamsConfig.UNCAUGHT_EXCEPTION_HANDLER_FACTORY_CONFIG, (UncaughtExceptionHandlerFactory) streams -> (t, e) -> log.error("Caught serious exception in thread {}!", t.getName(), e));
+//        configs.put(WrappedStreamsConfig.UNCAUGHT_EXCEPTION_HANDLER_FACTORY_CONFIG, (UncaughtExceptionHandlerFactory) streams -> (t, e) -> log.error("Caught serious exception in thread {}!", t, e));
         configs.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, UnknownTypeSerde.class.getName());
         configs.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, UnknownTypeSerde.class.getName());
 
@@ -191,31 +211,31 @@ public class AxualBackend implements Backend {
         axualStreams.start();
 //        try (var restServer = new RestServer(RestServer.DEFAULT_PORT)) {
 //            restServer.start();
-            Utils.sleep(1000);
+        Utils.sleep(1000);
 
-            while (!stopRunning.get()) {
-                DiscoveryClientRegistry.checkProperties(discoveryConfig);
-                if (clusterSwitchDetected.getAndSet(false)) {
-                    log.warn("Cluster switch detected, shutting down runner to reinitialize on new cluster");
-                    axualStreams.stop();
-                    while (axualStreams.state() != KafkaStreams.State.NOT_RUNNING && axualStreams.state() != KafkaStreams.State.ERROR) {
-                        // Check if runner is stopped
-                        Utils.sleep(50);
-                    }
-                    if (waitForDistribution()) {
-                        createStreams();
-                        axualStreams.start();
-                        Utils.sleep(1000);
-                    }
+        while (!stopRunning.get()) {
+            DiscoveryClientRegistry.checkProperties(discoveryConfig);
+            if (clusterSwitchDetected.getAndSet(false)) {
+                log.warn("Cluster switch detected, shutting down runner to reinitialize on new cluster");
+                axualStreams.stop();
+                while (axualStreams.state() != KafkaStreams.State.NOT_RUNNING && axualStreams.state() != KafkaStreams.State.ERROR) {
+                    // Check if runner is stopped
+                    Utils.sleep(50);
                 }
-
-                final var state = getState();
-                if (state == State.STOPPED || state == State.FAILED) {
-                    log.info("Streams implementation has stopped, stopping Axual Backend");
-                    break;
+                if (waitForDistribution()) {
+                    createStreams();
+                    axualStreams.start();
+                    Utils.sleep(1000);
                 }
-                Utils.sleep(200);
             }
+
+            final var state = getState();
+            if (state == State.STOPPED || state == State.FAILED) {
+                log.info("Streams implementation has stopped, stopping Axual Backend");
+                break;
+            }
+            Utils.sleep(200);
+        }
 //        }
     }
 

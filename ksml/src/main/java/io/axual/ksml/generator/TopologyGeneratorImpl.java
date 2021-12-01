@@ -42,7 +42,6 @@ import java.util.List;
 import java.util.Map;
 
 import io.axual.ksml.KSMLConfig;
-import io.axual.ksml.TopologyGenerator;
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.PipelineDefinition;
@@ -57,6 +56,8 @@ import io.axual.ksml.parser.StreamOperation;
 import io.axual.ksml.parser.TopologyParseContext;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.stream.StreamWrapper;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import static io.axual.ksml.dsl.KSMLDSL.FUNCTIONS_DEFINITION;
 import static io.axual.ksml.dsl.KSMLDSL.GLOBALTABLES_DEFINITION;
@@ -69,9 +70,16 @@ import static io.axual.ksml.dsl.KSMLDSL.TABLES_DEFINITION;
  *
  * @see KSMLConfig
  */
-public class TopologyGeneratorImpl implements TopologyGenerator {
+public class TopologyGeneratorImpl {
     private static final Logger LOG = LoggerFactory.getLogger(TopologyGeneratorImpl.class);
     private final KSMLConfig config;
+
+    @AllArgsConstructor
+    @Getter
+    public static class Result {
+        private Topology topology;
+        private Map<String, TopologyParseContext.StoreDescriptor> stores;
+    }
 
     private class KSMLDefinition {
         public final String source;
@@ -127,17 +135,23 @@ public class TopologyGeneratorImpl implements TopologyGenerator {
         return new ArrayList<>();
     }
 
-    @Override
-    public Topology create(StreamsBuilder builder) {
+    public Result create(StreamsBuilder builder) {
         List<KSMLDefinition> definitions = readKSMLDefinitions();
+        Map<String, TopologyParseContext.StoreDescriptor> stores = new HashMap<>();
         for (KSMLDefinition definition : definitions) {
-            Topology topology = generate(builder, YamlNode.fromRoot(definition.root, "ksml"));
-            LOG.info("\n{}", topology != null ? topology.describe() : "null");
+            var generatorResult = generate(builder, YamlNode.fromRoot(definition.root, "ksml"));
+            LOG.info("\n{}", generatorResult.getTopology() != null ? generatorResult.getTopology().describe() : "null");
+            if (generatorResult.getStores().size() > 0) {
+                LOG.info("Registered state stores:");
+                for (Map.Entry<String, TopologyParseContext.StoreDescriptor> entry : generatorResult.getStores().entrySet()) {
+                    LOG.info("  {}: key={}, value={}", entry.getKey(), entry.getValue().keyType, entry.getValue().valueType);
+                }
+            }
         }
-        return builder.build();
+        return new Result(builder.build(), stores);
     }
 
-    private Topology generate(StreamsBuilder builder, YamlNode node) {
+    private Result generate(StreamsBuilder builder, YamlNode node) {
         if (node == null) return null;
 
         // Parse all defined streams
@@ -171,6 +185,6 @@ public class TopologyGeneratorImpl implements TopologyGenerator {
         });
 
         // Return the built topology
-        return context.build();
+        return new Result(context.build(), context.stores());
     }
 }

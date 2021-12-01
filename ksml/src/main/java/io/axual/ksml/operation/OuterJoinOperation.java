@@ -21,12 +21,9 @@ package io.axual.ksml.operation;
  */
 
 
-import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.kstream.JoinWindows;
-import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.StreamJoined;
-import org.apache.kafka.streams.state.KeyValueStore;
 
 import java.time.Duration;
 
@@ -72,17 +69,13 @@ public class OuterJoinOperation extends StoreOperation {
     public StreamWrapper apply(KTableWrapper input) {
         final StreamDataType resultValueType = streamDataTypeOf(valueJoiner.resultType, false);
 
-        Materialized<Object, Object, KeyValueStore<Bytes, byte[]>> mat = Materialized.as(storeName);
-        mat = mat.withKeySerde(input.keyType.getSerde());
-        mat = mat.withValueSerde(resultValueType.getSerde());
-
         if (joinStream instanceof KTableWrapper) {
             return new KTableWrapper(
                     input.table.outerJoin(
                             ((KTableWrapper) joinStream).table,
                             new UserValueJoiner(valueJoiner),
                             Named.as(name),
-                            registerStore(mat)),
+                            registerKeyValueStore(storeName, input.keyType, resultValueType)),
                     input.keyType,
                     resultValueType);
         }

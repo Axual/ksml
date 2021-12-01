@@ -45,6 +45,10 @@
             <artifactId>auto-service-annotations</artifactId>
             <version>${auto-service.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.axual.ksml</groupId>
+            <artifactId>ksml-query</artifactId>
+        </dependency>
     </dependencies>
 
     

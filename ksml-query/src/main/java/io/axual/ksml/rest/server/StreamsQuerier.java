@@ -1,8 +1,8 @@
-package io.axual.ksml;
+package io.axual.ksml.rest.server;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Queryable State Store
  * %%
  * Copyright (C) 2021 Axual B.V.
  * %%
@@ -20,10 +20,17 @@ package io.axual.ksml;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.streams.KeyQueryMetadata;
+import org.apache.kafka.streams.StoreQueryParameters;
+import org.apache.kafka.streams.state.StreamsMetadata;
 
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.Topology;
+import java.util.Collection;
 
-public interface TopologyGenerator {
-    Topology create(StreamsBuilder streamsBuilder);
+public interface StreamsQuerier {
+    Collection<StreamsMetadata> allMetadataForStore(String storeName);
+
+    <K> KeyQueryMetadata queryMetadataForKey(String storeName, K key, Serializer<K> keySerializer);
+
+    <T> T store(StoreQueryParameters<T> storeQueryParameters);
 }

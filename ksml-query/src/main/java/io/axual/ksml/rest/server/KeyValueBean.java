@@ -1,8 +1,8 @@
-package io.axual.ksml;
+package io.axual.ksml.rest.server;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Queryable State Store
  * %%
  * Copyright (C) 2021 Axual B.V.
  * %%
@@ -20,10 +20,22 @@ package io.axual.ksml;
  * =========================LICENSE_END==================================
  */
 
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import lombok.Getter;
 
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.Topology;
+//@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
+@Getter
+public class KeyValueBean {
+    private Object key;
+    private Object value;
 
-public interface TopologyGenerator {
-    Topology create(StreamsBuilder streamsBuilder);
+    public KeyValueBean() {
+    }
+
+    public KeyValueBean(Object key, Object value) {
+        this.key = key;
+        this.value = value;
+    }
 }

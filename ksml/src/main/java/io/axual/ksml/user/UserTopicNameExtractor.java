@@ -21,29 +21,59 @@ package io.axual.ksml.user;
  */
 
 
+import org.apache.kafka.common.header.Header;
 import org.apache.kafka.streams.processor.RecordContext;
 import org.apache.kafka.streams.processor.TopicNameExtractor;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import io.axual.ksml.data.object.base.Tuple;
 import io.axual.ksml.data.object.user.UserString;
-import io.axual.ksml.util.DataUtil;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;
+import io.axual.ksml.util.DataUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class UserTopicNameExtractor extends Invoker implements TopicNameExtractor<Object, Object> {
+    private static final String HEADERS = "headers";
+    private static final String OFFSET = "offset";
+    private static final String PARTITION = "partition";
+    private static final String TIMESTAMP = "timestamp";
+    private static final String TOPIC = "topic";
+
     public UserTopicNameExtractor(UserFunction function) {
         super(function);
-        verifyParameterCount(2);
+        verifyParameterCount(3);
         verifyResultType(UserString.TYPE);
     }
 
     @Override
     public String extract(Object key, Object value, RecordContext recordContext) {
-        var result = function.call(DataUtil.asUserObject(key), DataUtil.asUserObject(value));
+        var result = function.call(
+                DataUtil.asUserObject(key),
+                DataUtil.asUserObject(value),
+                DataUtil.asUserObject(convertRecordContext(recordContext)));
         if (result instanceof UserString) {
             return ((UserString) result).value();
         }
         throw new KSMLExecutionException("Expected string result from function: " + function.name);
+    }
+
+    private Map<String, Object> convertRecordContext(RecordContext recordContext) {
+        final var result = new HashMap<String, Object>();
+        result.put(OFFSET, recordContext.offset());
+        result.put(TIMESTAMP, recordContext.timestamp());
+        result.put(TOPIC, recordContext.topic());
+        result.put(PARTITION, recordContext.partition());
+        final var headers = new ArrayList<Tuple<Object>>();
+        for (Header header : recordContext.headers()) {
+            Tuple<Object> h = new Tuple<>(header.key(), header.value());
+            headers.add(h);
+        }
+        result.put(HEADERS, headers);
+        return result;
     }
 }

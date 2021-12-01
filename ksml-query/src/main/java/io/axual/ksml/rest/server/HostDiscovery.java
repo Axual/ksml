@@ -1,8 +1,8 @@
-package io.axual.ksml;
+package io.axual.ksml.rest.server;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Queryable State Store
  * %%
  * Copyright (C) 2021 Axual B.V.
  * %%
@@ -20,10 +20,24 @@ package io.axual.ksml;
  * =========================LICENSE_END==================================
  */
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.Topology;
+@Slf4j
+public class HostDiscovery {
+    private static final String LOCALHOST = "localhost";
 
-public interface TopologyGenerator {
-    Topology create(StreamsBuilder streamsBuilder);
+    private HostDiscovery() {
+    }
+
+    public static String discoverLocal() {
+        return LOCALHOST;
+    }
+
+    public static String discoverDocker() {
+        log.info("Docker based host discovery..");
+        String dockerHostName = System.getenv("HOSTNAME");
+
+        log.info("Docker container host name - " + dockerHostName);
+        return dockerHostName;
+    }
 }

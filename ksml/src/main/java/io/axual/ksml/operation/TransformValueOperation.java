@@ -21,11 +21,9 @@ package io.axual.ksml.operation;
  */
 
 
-import org.apache.kafka.common.utils.Bytes;
-import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Named;
-import org.apache.kafka.streams.state.KeyValueStore;
 
+import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
@@ -50,16 +48,14 @@ public class TransformValueOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KTableWrapper input) {
-        Materialized<Object, Object, KeyValueStore<Bytes, byte[]>> mat = Materialized.as(storeName);
-        mat = mat.withKeySerde(input.keyType.getSerde());
-        mat = mat.withValueSerde(streamDataTypeOf(transformer.resultType, false).getSerde());
+        final StreamDataType resultValueType = streamDataTypeOf(transformer.resultType, false);
 
         return new KTableWrapper(
                 input.table.mapValues(
                         new UserValueTransformer(transformer),
                         Named.as(name),
-                        registerStore(mat)),
+                        registerKeyValueStore(storeName, input.keyType, resultValueType)),
                 input.keyType(),
-                streamDataTypeOf(transformer.resultType, false));
+                resultValueType);
     }
 }

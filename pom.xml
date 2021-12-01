@@ -53,14 +53,15 @@
         <module>ksml</module>
         <module>ksml-axual</module>
         <module>ksml-example-producer</module>
+        <module>ksml-query</module>
         <module>ksml-runner</module>
         <module>ksml-runner-axual</module>
     </modules>
 
     <properties>
         <apache.avro.version>1.9.2</apache.avro.version>
-        <apache.kafka.version>2.7.0</apache.kafka.version>
-        <axual.version>5.7.3</axual.version>
+        <apache.kafka.version>2.8.1</apache.kafka.version>
+        <axual.version>5.8.0-RC1</axual.version>
         <commons.logging.version>1.1</commons.logging.version>
         <graalvm.version>21.1.0</graalvm.version>
         <hamcrest.version>2.1</hamcrest.version>
@@ -87,7 +88,8 @@
         <mockito-junit-jupiter.version>2.23.0</mockito-junit-jupiter.version>
         <junit-platform-runner.version>1.2.0</junit-platform-runner.version>
         <junit-vintage-engine.version>5.2.0</junit-vintage-engine.version>
-        <jersey.version>3.0.0</jersey.version>
+        <jaxb.version>3.0.2</jaxb.version>
+        <jersey.version>3.0.3</jersey.version>
     </properties>
 
     <dependencyManagement>
@@ -136,8 +138,23 @@
             </dependency>
 
             <dependency>
+                <groupId>org.glassfish.jaxb</groupId>
+                <artifactId>jaxb-runtime</artifactId>
+                <version>${jaxb.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.glassfish.jersey.containers</groupId>
                 <artifactId>jersey-container-grizzly2-http</artifactId>
+                <version>${jersey.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.media</groupId>
+                <artifactId>jersey-media-sse</artifactId>
+                <version>${jersey.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.inject</groupId>
+                <artifactId>jersey-hk2</artifactId>
                 <version>${jersey.version}</version>
             </dependency>
             <dependency>
@@ -148,6 +165,16 @@
             <dependency>
                 <groupId>org.glassfish.jersey.media</groupId>
                 <artifactId>jersey-media-moxy</artifactId>
+                <version>${jersey.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.media</groupId>
+                <artifactId>jersey-media-json-jackson</artifactId>
+                <version>${jersey.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.media</groupId>
+                <artifactId>jersey-media-jaxb</artifactId>
                 <version>${jersey.version}</version>
             </dependency>
 

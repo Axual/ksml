@@ -24,10 +24,7 @@ package io.axual.ksml.parser;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Grouped;
-import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.internals.GroupedInternal;
-import org.apache.kafka.streams.kstream.internals.MaterializedInternal;
-import org.apache.kafka.streams.processor.StateStore;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,11 +33,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.python.PythonFunction;
+import io.axual.ksml.store.StoreType;
 import io.axual.ksml.stream.BaseStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
+import lombok.AllArgsConstructor;
 
 /**
  * Parse context which calls {@link StreamsBuilder} to build up the streams topology and keeps track of the wrapped streams.
@@ -53,7 +53,15 @@ public class TopologyParseContext implements ParseContext {
     private final Map<String, StreamWrapper> streamWrappers = new HashMap<>();
     private final Map<String, AtomicInteger> typeInstanceCounters = new HashMap<>();
     private final Map<String, GroupedInternal<?, ?>> groupedStores = new HashMap<>();
-    private final Map<String, MaterializedInternal<?, ?, ?>> stateStores = new HashMap<>();
+    private final Map<String, StoreDescriptor> stateStores = new HashMap<>();
+
+    @AllArgsConstructor
+    public static class StoreDescriptor {
+        public final StoreType type;
+        public final String storeName;
+        public final StreamDataType keyType;
+        public final StreamDataType valueType;
+    }
 
     public TopologyParseContext(StreamsBuilder builder, NotationLibrary notationLibrary, Map<String, BaseStreamDefinition> streamDefinitions, Map<String, FunctionDefinition> functionDefinitions) {
         this.builder = builder;
@@ -123,9 +131,12 @@ public class TopologyParseContext implements ParseContext {
         groupedStores.put(copy.name(), copy);
     }
 
-    public <K, V, S extends StateStore> void registerStore(Materialized<K, V, S> materialized) {
-        var copy = new MaterializedInternal<>(materialized);
-        stateStores.put(copy.storeName(), copy);
+    public void registerStore(StoreType type, String storeName, StreamDataType keyType, StreamDataType valueType) {
+        stateStores.put(storeName, new StoreDescriptor(type, storeName, keyType, valueType));
+    }
+
+    public Map<String, StoreDescriptor> stores() {
+        return stateStores;
     }
 
     public Topology build() {

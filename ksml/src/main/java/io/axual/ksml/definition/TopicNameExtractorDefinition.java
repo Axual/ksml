@@ -24,12 +24,12 @@ package io.axual.ksml.definition;
 import io.axual.ksml.data.object.user.UserString;
 import io.axual.ksml.data.type.user.StaticUserType;
 
-import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_PARAMETERS;
+import static io.axual.ksml.definition.DefinitionConstants.TOPIC_NAME_EXTRACTOR_PARAMETERS;
 
 public class TopicNameExtractorDefinition extends FunctionDefinition {
     public TopicNameExtractorDefinition(FunctionDefinition definition) {
         super(definition
-                .withParameters(getParameters(definition.parameters, KEY_VALUE_PARAMETERS))
+                .withParameters(getParameters(definition.parameters, TOPIC_NAME_EXTRACTOR_PARAMETERS))
                 .withResult(new StaticUserType(UserString.TYPE, definition.resultType.notation())));
     }
 }
