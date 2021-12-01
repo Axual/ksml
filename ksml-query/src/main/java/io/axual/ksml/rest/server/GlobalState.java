@@ -1,8 +1,8 @@
-package io.axual.ksml;
+package io.axual.ksml.rest.server;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Queryable State Store
  * %%
  * Copyright (C) 2021 Axual B.V.
  * %%
@@ -20,10 +20,34 @@ package io.axual.ksml;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.streams.state.HostInfo;
 
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.Topology;
+public class GlobalState {
+    private static GlobalState instance;
+    private StreamsQuerier querier;
+    private HostInfo hostInfo;
 
-public interface TopologyGenerator {
-    Topology create(StreamsBuilder streamsBuilder);
+    private GlobalState() {
+
+    }
+
+    public static GlobalState getInstance() {
+        if (instance == null) {
+            instance = new GlobalState();
+        }
+        return instance;
+    }
+
+    public void set(StreamsQuerier querier, HostInfo hostInfo) {
+        this.querier = querier;
+        this.hostInfo = hostInfo;
+    }
+
+    public StreamsQuerier querier() {
+        return querier;
+    }
+
+    public HostInfo hostInfo() {
+        return hostInfo;
+    }
 }

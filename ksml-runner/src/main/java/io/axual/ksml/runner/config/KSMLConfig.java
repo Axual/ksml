@@ -21,8 +21,6 @@ package io.axual.ksml.runner.config;
  */
 
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -34,10 +32,23 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Data
 public class KSMLConfig {
-    @JsonProperty("application.server")
-    private String applicationServer;
+    private static final String DEFAULT_HOSTNAME = "0.0.0.0";
+    private static final String DEFAULT_PORT = "8080";
+
+    private Boolean applicationServerEnabled;
+    private String applicationServerHost;
+    private String applicationServerPort;
     private String workingDirectory;
     private List<String> definitions;
+
+    public String getApplicationServer() {
+        if (applicationServerEnabled != null && applicationServerEnabled) {
+            return (applicationServerHost != null ? applicationServerHost : DEFAULT_HOSTNAME)
+                    + ":"
+                    + (applicationServerPort != null ? applicationServerPort : DEFAULT_PORT);
+        }
+        return null;
+    }
 
     public void validate() throws KSMLRunnerConfigurationException {
         if (workingDirectory == null) {

@@ -1,8 +1,8 @@
-package io.axual.ksml;
+package io.axual.ksml.rest.data;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Queryable State Store
  * %%
  * Copyright (C) 2021 Axual B.V.
  * %%
@@ -20,10 +20,17 @@ package io.axual.ksml;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.streams.kstream.Windowed;
 
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.Topology;
+import lombok.Data;
 
-public interface TopologyGenerator {
-    Topology create(StreamsBuilder streamsBuilder);
+@Data
+public class WindowedData {
+    private final WindowData window;
+    private final Object key;
+
+    public WindowedData(Windowed<Object> data) {
+        window = new WindowData(data.window().start(), data.window().end());
+        key = data.key();
+    }
 }

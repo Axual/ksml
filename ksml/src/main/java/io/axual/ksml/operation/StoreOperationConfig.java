@@ -21,10 +21,10 @@ package io.axual.ksml.operation;
  */
 
 import org.apache.kafka.streams.kstream.Grouped;
-import org.apache.kafka.streams.kstream.Materialized;
-import org.apache.kafka.streams.processor.StateStore;
 
+import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.store.StoreType;
 
 public class StoreOperationConfig extends OperationConfig {
     public final String storeName;
@@ -36,7 +36,7 @@ public class StoreOperationConfig extends OperationConfig {
     }
 
     public interface StoreRegistry {
-        <K, V, S extends StateStore> void registerStore(Materialized<K, V, S> materialized);
+        void registerStore(StoreType type, String storeName, StreamDataType keyType, StreamDataType valueType);
     }
 
     public StoreOperationConfig(String name, NotationLibrary notationLibrary, String storeName, GroupedRegistry groupedRegistry, StoreRegistry storeRegistry) {

@@ -26,11 +26,11 @@ pipelines:
       - type: aggregate
         storeName: ownerCount
         initializer:
-          expression: ''
-          resultType: string
+          expression: 0
+          resultType: long
         aggregator:
-          expression: key+','+aggregatedValue
-          resultType: string
+          expression: aggregatedValue+1
+          resultType: long
       - type: toStream
       - type: convertKey
         into: avro:windowed(string)

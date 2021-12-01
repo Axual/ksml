@@ -22,15 +22,15 @@ package io.axual.ksml.parser;
 
 
 import org.apache.kafka.streams.kstream.Grouped;
-import org.apache.kafka.streams.kstream.Materialized;
-import org.apache.kafka.streams.processor.StateStore;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.store.StoreType;
 import io.axual.ksml.stream.BaseStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
@@ -52,5 +52,5 @@ public interface ParseContext {
 
     <K, V> void registerGrouped(Grouped<K, V> grouped);
 
-    <K, V, S extends StateStore> void registerStore(Materialized<K, V, S> materialized);
+    void registerStore(StoreType type, String storeName, StreamDataType keyType, StreamDataType valueType);
 }

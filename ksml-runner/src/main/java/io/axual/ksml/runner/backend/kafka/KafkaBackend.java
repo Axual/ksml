@@ -22,11 +22,16 @@ package io.axual.ksml.runner.backend.kafka;
 
 
 import org.apache.kafka.clients.CommonClientConfigs;
+import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.utils.Utils;
 import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.KeyQueryMetadata;
+import org.apache.kafka.streams.StoreQueryParameters;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.state.StreamsMetadata;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -34,6 +39,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.axual.ksml.KSMLTopologyGenerator;
 import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.rest.server.StreamsQuerier;
 import io.axual.ksml.runner.backend.Backend;
 import io.axual.ksml.runner.config.KSMLConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -42,10 +48,8 @@ import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHE
 
 @Slf4j
 public class KafkaBackend implements Backend {
-
     private final KafkaStreams kafkaStreams;
     private final AtomicBoolean stopRunning = new AtomicBoolean(false);
-
 
     public KafkaBackend(KSMLConfig ksmlConfig, KafkaBackendConfig backendConfig) {
         log.info("Constructing Kafka Backend");
@@ -75,7 +79,6 @@ public class KafkaBackend implements Backend {
         topologyFactory.configure(ksmlConfigs);
 
         final var topology = topologyFactory.create(new StreamsBuilder());
-
         kafkaStreams = new KafkaStreams(topology, streamsProperties);
     }
 
@@ -85,8 +88,23 @@ public class KafkaBackend implements Backend {
     }
 
     @Override
-    public void stop() {
-        kafkaStreams.close();
+    public StreamsQuerier getQuerier() {
+        return new StreamsQuerier() {
+            @Override
+            public Collection<StreamsMetadata> allMetadataForStore(String storeName) {
+                return kafkaStreams.allMetadataForStore(storeName);
+            }
+
+            @Override
+            public <K> KeyQueryMetadata queryMetadataForKey(String storeName, K key, Serializer<K> keySerializer) {
+                return kafkaStreams.queryMetadataForKey(storeName, key, keySerializer);
+            }
+
+            @Override
+            public <T> T store(StoreQueryParameters<T> storeQueryParameters) {
+                return kafkaStreams.store(storeQueryParameters);
+            }
+        };
     }
 
     @Override

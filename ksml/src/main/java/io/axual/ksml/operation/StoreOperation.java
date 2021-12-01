@@ -21,9 +21,18 @@ package io.axual.ksml.operation;
  */
 
 
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.kstream.Grouped;
 import org.apache.kafka.streams.kstream.Materialized;
-import org.apache.kafka.streams.processor.StateStore;
+import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.SessionStore;
+import org.apache.kafka.streams.state.WindowStore;
+
+import io.axual.ksml.data.type.base.WindowedType;
+import io.axual.ksml.data.type.user.StaticUserType;
+import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.store.StoreType;
 
 public class StoreOperation extends BaseOperation {
     protected final String storeName;
@@ -47,8 +56,31 @@ public class StoreOperation extends BaseOperation {
         return grouped;
     }
 
-    protected <K, V, S extends StateStore> Materialized<K, V, S> registerStore(Materialized<K, V, S> materialized) {
-        storeRegistry.registerStore(materialized);
-        return materialized;
+    protected <V> Materialized<Object, V, KeyValueStore<Bytes, byte[]>> registerKeyValueStore(String storeName, StreamDataType keyType, StreamDataType valueType) {
+        storeRegistry.registerStore(StoreType.KEYVALUE_STORE, storeName, keyType, valueType);
+        Materialized<Object, V, KeyValueStore<Bytes, byte[]>> mat = Materialized.as(storeName);
+        mat = mat.withKeySerde(keyType.getSerde());
+        mat = mat.withValueSerde((Serde<V>) valueType.getSerde());
+        return mat;
+    }
+
+    protected <V> Materialized<Object, V, SessionStore<Bytes, byte[]>> registerSessionStore(String storeName, StreamDataType keyType, StreamDataType valueType) {
+        storeRegistry.registerStore(StoreType.SESSION_STORE, storeName, keyType, valueType);
+        Materialized<Object, V, SessionStore<Bytes, byte[]>> mat = Materialized.as(storeName);
+        mat = mat.withKeySerde(keyType.getSerde());
+        mat = mat.withValueSerde((Serde<V>) valueType.getSerde());
+        return mat;
+    }
+
+    protected <V> Materialized<Object, V, WindowStore<Bytes, byte[]>> registerWindowStore(String storeName, StreamDataType keyType, StreamDataType valueType) {
+        storeRegistry.registerStore(StoreType.WINDOW_STORE, storeName, keyType, valueType);
+        Materialized<Object, V, WindowStore<Bytes, byte[]>> mat = Materialized.as(storeName);
+        mat = mat.withKeySerde(keyType.getSerde());
+        mat = mat.withValueSerde((Serde<V>) valueType.getSerde());
+        return mat;
+    }
+
+    protected StreamDataType windowedTypeOf(StreamDataType type) {
+        return streamDataTypeOf(new StaticUserType(new WindowedType(type.type()), type.notation().name()), true);
     }
 }

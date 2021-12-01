@@ -27,6 +27,7 @@ public class FunctionParameters {
     public static final String PARAM_AGGREGATED_VALUE = "aggregatedValue";
     public static final String PARAM_KEY = "key";
     public static final String PARAM_NUM_PARTITIONS = "numPartitions";
+    public static final String PARAM_RECORD_CONTEXT = "recordContext";
     public static final String PARAM_TOPIC = "topic";
     public static final String PARAM_VALUE = "value";
     public static final String PARAM_VALUE1 = "value1";

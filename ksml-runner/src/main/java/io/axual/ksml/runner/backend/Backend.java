@@ -21,10 +21,10 @@ package io.axual.ksml.runner.backend;
  */
 
 
-
 import org.apache.kafka.streams.KafkaStreams;
 
 import io.axual.ksml.exception.KSMLExecutionException;
+import io.axual.ksml.rest.server.StreamsQuerier;
 
 public interface Backend extends AutoCloseable, Runnable {
     enum State {
@@ -37,7 +37,7 @@ public interface Backend extends AutoCloseable, Runnable {
 
     State getState();
 
-    void stop();
+    StreamsQuerier getQuerier();
 
     default State convertStreamsState(KafkaStreams.State state) {
         switch (state) {

@@ -22,7 +22,6 @@ package io.axual.ksml;
 
 
 import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyDescription;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -52,7 +51,7 @@ public class KSMLTopologyGeneratorBasicTest {
     @BeforeAll
     public static void checkGraalVM() {
         final var vendor = System.getProperty("java.vendor.url");
-        if (vendor.indexOf("graalvm") == -1) {
+        if (!vendor.contains("graalvm")) {
             fail("This test needs GraalVM to work");
         }
     }
@@ -67,8 +66,8 @@ public class KSMLTopologyGeneratorBasicTest {
         configs.put(KSMLConfig.KSML_SOURCE_TYPE, "content");
         configs.put(KSMLConfig.KSML_SOURCE, pipeDefinition);
         TopologyGeneratorImpl topologyGenerator = new TopologyGeneratorImpl(new KSMLConfig(configs));
-        final Topology topology = topologyGenerator.create(new StreamsBuilder());
-        final TopologyDescription description = topology.describe();
+        final var result = topologyGenerator.create(new StreamsBuilder());
+        final TopologyDescription description = result.getTopology().describe();
         System.out.println(description);
 
         URI referenceURI = ClassLoader.getSystemResource("reference/" + nr + "-reference.txt").toURI();
