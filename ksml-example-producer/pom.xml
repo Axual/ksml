@@ -14,7 +14,7 @@
     <name>KSML Example Producer</name>
 
     <properties>
-        <logback.version>1.2.3</logback.version>
+        <logback.version>1.2.7</logback.version>
     </properties>
 
     <dependencies>
