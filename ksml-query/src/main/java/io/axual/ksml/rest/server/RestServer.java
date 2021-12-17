@@ -46,7 +46,7 @@ public class RestServer implements AutoCloseable {
 
     public String start(StreamsQuerier querier) {
         try {
-            GlobalState.getInstance().set(querier, hostInfo);
+            GlobalState.INSTANCE.set(querier, hostInfo);
             server.start();
             return Utils.getHostIPForDiscovery();
         } catch (IOException e) {
