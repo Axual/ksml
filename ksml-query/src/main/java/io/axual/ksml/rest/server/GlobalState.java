@@ -22,21 +22,12 @@ package io.axual.ksml.rest.server;
 
 import org.apache.kafka.streams.state.HostInfo;
 
-public class GlobalState {
-    private static GlobalState instance;
+public enum GlobalState {
+
+    INSTANCE;
+
     private StreamsQuerier querier;
     private HostInfo hostInfo;
-
-    private GlobalState() {
-
-    }
-
-    public static GlobalState getInstance() {
-        if (instance == null) {
-            instance = new GlobalState();
-        }
-        return instance;
-    }
 
     public void set(StreamsQuerier querier, HostInfo hostInfo) {
         this.querier = querier;

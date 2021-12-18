@@ -32,8 +32,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class StoreResource implements AutoCloseable {
-    protected final StreamsQuerier querier = GlobalState.getInstance().querier();
-    protected final HostInfo thisInstance = GlobalState.getInstance().hostInfo();
+    protected final StreamsQuerier querier = GlobalState.INSTANCE.querier();
+    protected final HostInfo thisInstance = GlobalState.INSTANCE.hostInfo();
     protected final RestClient restClient = new RestClient();
 
     protected <T, K, V> KeyValueBeans getLocalRange(final String storeName,
@@ -41,7 +41,7 @@ public class StoreResource implements AutoCloseable {
                                                     final Function<T, KeyValueIterator<K, V>> rangeFunction) {
         log.info("Querying remote stores....");
         // Get the KeyValue Store
-        final StreamsQuerier querier = GlobalState.getInstance().querier();
+        final StreamsQuerier querier = GlobalState.INSTANCE.querier();
 
         final var store = querier.store(
                 StoreQueryParameters.fromNameAndType(storeName, storeQueryParameters));
