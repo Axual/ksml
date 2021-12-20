@@ -90,6 +90,10 @@
         <junit-vintage-engine.version>5.2.0</junit-vintage-engine.version>
         <jaxb.version>3.0.2</jaxb.version>
         <jersey.version>3.0.3</jersey.version>
+             
+        <sonar.organization>tonvanbart</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+             
     </properties>
 
     <dependencyManagement>
