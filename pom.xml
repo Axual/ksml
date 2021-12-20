@@ -87,6 +87,10 @@
         <mockito-junit-jupiter.version>2.23.0</mockito-junit-jupiter.version>
         <junit-platform-runner.version>1.2.0</junit-platform-runner.version>
         <junit-vintage-engine.version>5.2.0</junit-vintage-engine.version>
+
+        <!-- sonar -->
+        <sonar.organization>tonvanbart</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
     <dependencyManagement>
