@@ -22,6 +22,7 @@ package io.axual.ksml.rest.server;
 
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StoreQueryParameters;
+import org.apache.kafka.streams.kstream.Windowed;
 import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.QueryableStoreType;
@@ -32,6 +33,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class StoreResource implements AutoCloseable {
+    private static final String QUERYING_MESSAGE = "Querying remote stores....";
+    private static final String COMPLETE_STORE_STATE_MESSAGE = "Complete store state {}";
     protected final StreamsQuerier querier = GlobalState.INSTANCE.querier();
     protected final HostInfo thisInstance = GlobalState.INSTANCE.hostInfo();
     protected final RestClient restClient = new RestClient();
@@ -39,10 +42,8 @@ public class StoreResource implements AutoCloseable {
     protected <T, K, V> KeyValueBeans getLocalRange(final String storeName,
                                                     final QueryableStoreType<T> storeQueryParameters,
                                                     final Function<T, KeyValueIterator<K, V>> rangeFunction) {
-        log.info("Querying remote stores....");
+        log.info(QUERYING_MESSAGE);
         // Get the KeyValue Store
-        final StreamsQuerier querier = GlobalState.INSTANCE.querier();
-
         final var store = querier.store(
                 StoreQueryParameters.fromNameAndType(storeName, storeQueryParameters));
         final var result = new KeyValueBeans();
@@ -51,16 +52,38 @@ public class StoreResource implements AutoCloseable {
 
         // Convert the results
         while (range.hasNext()) {
-            final KeyValue<K, V> next = range.next();
-            result.add(new KeyValueBean(next.key, next.value));
+            final KeyValue<K, V> element = range.next();
+            result.add(new KeyValueBean(element.key, element.value));
         }
 
-        log.info("Complete store state {}", result);
+        log.info(COMPLETE_STORE_STATE_MESSAGE, result);
+        return result;
+    }
+
+    protected <T, K, V> WindowedKeyValueBeans getLocalWindowRange(final String storeName,
+                                                                  final QueryableStoreType<T> storeQueryParameters,
+                                                                  final Function<T, KeyValueIterator<K, V>> rangeFunction) {
+        log.info(QUERYING_MESSAGE);
+        // Get the KeyValue Store
+        final var store = querier.store(
+                StoreQueryParameters.fromNameAndType(storeName, storeQueryParameters));
+        final var result = new WindowedKeyValueBeans();
+        // Apply the function, i.e., query the store
+        final var range = rangeFunction.apply(store);
+
+        // Convert the results
+        while (range.hasNext()) {
+            final KeyValue<K, V> element = range.next();
+            Windowed<Object> window = (Windowed<Object>) element.key;
+            result.add(new WindowedKeyValueBean(window.window().start(), window.window().end(), window.key(), element.value));
+        }
+
+        log.info(COMPLETE_STORE_STATE_MESSAGE, result);
         return result;
     }
 
     protected KeyValueBeans getAllRemote(String storeName, String stateSubPath) {
-        log.info("Querying remote stores....");
+        log.info(QUERYING_MESSAGE);
         var result = new KeyValueBeans();
         querier.allMetadataForStore(storeName)
                 .stream()
@@ -73,7 +96,7 @@ public class StoreResource implements AutoCloseable {
                     result.add(remoteResult);
                 });
 
-        log.info("Complete store state {}", result);
+        log.info(COMPLETE_STORE_STATE_MESSAGE, result);
         return result;
     }
 

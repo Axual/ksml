@@ -30,7 +30,6 @@ import java.util.Map;
 
 import io.axual.ksml.avro.AvroSchemaLoader;
 import io.axual.ksml.generator.TopologyGeneratorImpl;
-import io.axual.ksml.parser.TopologyParseContext;
 import io.axual.ksml.schema.SchemaLibrary;
 
 /**
@@ -40,7 +39,6 @@ import io.axual.ksml.schema.SchemaLibrary;
  */
 public class KSMLTopologyGenerator implements Configurable, TopologyGenerator {
     private KSMLConfig config = new KSMLConfig(new HashMap<>());
-    private Map<String, TopologyParseContext.StoreDescriptor> stores = new HashMap<>();
 
     @Override
     public void configure(Map<String, ?> configs) {
@@ -53,8 +51,6 @@ public class KSMLTopologyGenerator implements Configurable, TopologyGenerator {
         var avroSchemaLoader = new AvroSchemaLoader(config.workingDirectory);
         SchemaLibrary.registerLoader(avroSchemaLoader);
         var generator = new TopologyGeneratorImpl(config);
-        var result = generator.create(streamsBuilder);
-        stores = result.getStores();
-        return result.getTopology();
+        return generator.create(streamsBuilder);
     }
 }

@@ -58,7 +58,7 @@ public class KSMLTopologyGeneratorBasicTest {
 
     @ParameterizedTest
     @ValueSource(ints = {1, 2, 3, 4, 5})
-    public void parseAndCheckOuput(int nr) throws Exception {
+    void parseAndCheckOuput(int nr) throws Exception {
         final URI uri = ClassLoader.getSystemResource("pipelines/" + nr + "-demo.yaml").toURI();
         final Path path = Paths.get(uri);
         String pipeDefinition = Files.readString(path);
@@ -66,14 +66,14 @@ public class KSMLTopologyGeneratorBasicTest {
         configs.put(KSMLConfig.KSML_SOURCE_TYPE, "content");
         configs.put(KSMLConfig.KSML_SOURCE, pipeDefinition);
         TopologyGeneratorImpl topologyGenerator = new TopologyGeneratorImpl(new KSMLConfig(configs));
-        final var result = topologyGenerator.create(new StreamsBuilder());
-        final TopologyDescription description = result.getTopology().describe();
+        final var topology = topologyGenerator.create(new StreamsBuilder());
+        final TopologyDescription description = topology.describe();
         System.out.println(description);
 
         URI referenceURI = ClassLoader.getSystemResource("reference/" + nr + "-reference.txt").toURI();
         String reference = Files.readString(Paths.get(referenceURI));
 
-        assertThat(cleanDescription( description.toString() ), is(reference));
+        assertThat(cleanDescription(description.toString()), is(reference));
     }
 
     @ParameterizedTest
@@ -83,7 +83,7 @@ public class KSMLTopologyGeneratorBasicTest {
             "some foo@2ee39e73 and some bar@3ab456dc also,some foo and some bar also",
             "leave short@123 alone,leave short@123 alone"
     })
-    public void cleanDescriptionTest(String input, String expected) {
+    void cleanDescriptionTest(String input, String expected) {
         assertThat(cleanDescription(input), is(expected));
     }
 

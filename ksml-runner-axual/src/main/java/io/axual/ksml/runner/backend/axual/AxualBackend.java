@@ -29,6 +29,7 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.StoreQueryParameters;
 import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
 import org.apache.kafka.streams.state.StreamsMetadata;
 
 import java.util.Collection;
@@ -55,6 +56,7 @@ import io.axual.ksml.serde.UnknownTypeSerde;
 import io.axual.streams.proxy.axual.AxualStreams;
 import io.axual.streams.proxy.axual.AxualStreamsConfig;
 import io.axual.streams.proxy.generic.factory.TopologyFactory;
+import io.axual.streams.proxy.generic.factory.UncaughtExceptionHandlerFactory;
 import io.axual.streams.proxy.wrapped.WrappedStreamsConfig;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -170,7 +172,10 @@ public class AxualBackend implements Backend {
         }
 
         configs.put(WrappedStreamsConfig.TOPOLOGY_FACTORY_CONFIG, (TopologyFactory) topologyFactory::create);
-//        configs.put(WrappedStreamsConfig.UNCAUGHT_EXCEPTION_HANDLER_FACTORY_CONFIG, (UncaughtExceptionHandlerFactory) streams -> (t, e) -> log.error("Caught serious exception in thread {}!", t, e));
+        configs.put(WrappedStreamsConfig.UNCAUGHT_EXCEPTION_HANDLER_FACTORY_CONFIG, (UncaughtExceptionHandlerFactory) streams -> throwable -> {
+            log.error("Caught serious exception in thread!", throwable);
+            return StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_APPLICATION;
+        });
         configs.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, UnknownTypeSerde.class.getName());
         configs.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, UnknownTypeSerde.class.getName());
 
@@ -209,8 +214,6 @@ public class AxualBackend implements Backend {
         createStreams();
 
         axualStreams.start();
-//        try (var restServer = new RestServer(RestServer.DEFAULT_PORT)) {
-//            restServer.start();
         Utils.sleep(1000);
 
         while (!stopRunning.get()) {
@@ -236,7 +239,6 @@ public class AxualBackend implements Backend {
             }
             Utils.sleep(200);
         }
-//        }
     }
 
     public void discoveryPropertiesChanged(DiscoveryResult newDiscoveryResult) {

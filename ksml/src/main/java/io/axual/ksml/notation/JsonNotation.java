@@ -23,22 +23,22 @@ package io.axual.ksml.notation;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import io.axual.ksml.data.mapper.NativeUserObjectMapper;
+import io.axual.ksml.data.mapper.JsonUserObjectMapper;
 import io.axual.ksml.data.type.base.DataType;
 import io.axual.ksml.data.type.base.ListType;
 import io.axual.ksml.data.type.base.MapType;
 import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.serde.JsonDeserializer;
-import io.axual.ksml.serde.JsonSerializer;
 import io.axual.ksml.util.DataUtil;
 
 public class JsonNotation implements Notation {
-    public static final String NAME = "JSON";
-    private static final NativeUserObjectMapper mapper = new NativeUserObjectMapper();
+    public static final String NOTATION_NAME = "JSON";
+    private static final JsonUserObjectMapper jsonMapper = new JsonUserObjectMapper();
     private final Map<String, Object> configs = new HashMap<>();
 
     public JsonNotation(Map<String, Object> configs) {
@@ -47,7 +47,7 @@ public class JsonNotation implements Notation {
 
     @Override
     public String name() {
-        return NAME;
+        return NOTATION_NAME;
     }
 
     @Override
@@ -61,22 +61,17 @@ public class JsonNotation implements Notation {
     }
 
     private static class JsonSerde implements Serde<Object> {
-        private final JsonSerializer serializer = new JsonSerializer();
-        private final JsonDeserializer deserializer = new JsonDeserializer();
+        private final StringSerializer serializer = new StringSerializer();
+        private final StringDeserializer deserializer = new StringDeserializer();
 
-        private final Serializer<Object> wrapSerializer = new Serializer<>() {
-            @Override
-            public byte[] serialize(String topic, Object data) {
-                return serializer.serialize(topic, mapper.fromUserObject(DataUtil.asUserObject(data)));
-            }
+        private final Serializer<Object> wrapSerializer = (topic, data) -> {
+            var json = jsonMapper.fromUserObject(DataUtil.asUserObject(data));
+            return serializer.serialize(topic, json);
         };
 
-        private final Deserializer<Object> wrapDeserializer = new Deserializer<>() {
-            @Override
-            public Object deserialize(String topic, byte[] data) {
-                Object object = deserializer.deserialize(topic, data);
-                return mapper.toUserObject(JsonNotation.NAME, object);
-            }
+        private final Deserializer<Object> wrapDeserializer = (topic, data) -> {
+            String json = deserializer.deserialize(topic, data);
+            return jsonMapper.toUserObject(JsonNotation.NOTATION_NAME, json);
         };
 
         @Override

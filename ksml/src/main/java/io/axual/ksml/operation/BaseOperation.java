@@ -34,6 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class BaseOperation implements StreamOperation {
+    private static final String ERROR_IN_TOPOLOGY = "Error in topology";
+
     private static class NameValidator extends Named {
         // Satisfy compiler with dummy constructor
         private NameValidator() {
@@ -76,19 +78,19 @@ public class BaseOperation implements StreamOperation {
 
     protected void checkNotNull(Object object, String description) {
         if (object == null) {
-            throw new KSMLTopologyException("Error in topology: " + description + " not defined");
+            throw new KSMLTopologyException(ERROR_IN_TOPOLOGY + ": " + description + " not defined");
         }
     }
 
     protected void checkAssignable(DataType superType, DataType subType, String message) {
         if (!superType.isAssignableFrom(subType)) {
-            throw new KSMLTopologyException("Error in topology: " + message + " (" + superType + " <--> " + subType + ")");
+            throw new KSMLTopologyException(ERROR_IN_TOPOLOGY + ": " + message + " (" + superType + " <--> " + subType + ")");
         }
     }
 
     protected void checkEqual(DataType type1, DataType type2, String message) {
         if (!type1.isAssignableFrom(type2) || !type2.isAssignableFrom(type1)) {
-            throw new KSMLTopologyException("Error in topology: " + message + " (" + type1 + " <--> " + type2 + ")");
+            throw new KSMLTopologyException(ERROR_IN_TOPOLOGY + ": " + message + " (" + type1 + " <--> " + type2 + ")");
         }
     }
 

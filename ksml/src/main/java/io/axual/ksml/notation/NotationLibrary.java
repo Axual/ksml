@@ -29,9 +29,9 @@ public class NotationLibrary {
     private final Map<String, Notation> notations = new HashMap<>();
 
     public NotationLibrary(Map<?, ?> configs) {
-        notations.put(AvroNotation.NAME, new AvroNotation((Map<String, Object>) configs));
-        notations.put(JsonNotation.NAME, new JsonNotation((Map<String, Object>) configs));
-        notations.put(BinaryNotation.NAME, new BinaryNotation((Map<String, Object>) configs, notations.get(JsonNotation.NAME)));
+        notations.put(AvroNotation.NOTATION_NAME, new AvroNotation((Map<String, Object>) configs));
+        notations.put(JsonNotation.NOTATION_NAME, new JsonNotation((Map<String, Object>) configs));
+        notations.put(BinaryNotation.NOTATION_NAME, new BinaryNotation((Map<String, Object>) configs, notations.get(JsonNotation.NOTATION_NAME)));
     }
 
     // Note: this method is public to facilitate testing

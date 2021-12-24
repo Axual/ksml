@@ -34,7 +34,7 @@ import io.axual.ksml.data.type.base.SimpleType;
 import io.axual.ksml.util.DataUtil;
 
 public class BinaryNotation implements Notation {
-    public static final String NAME = "BINARY";
+    public static final String NOTATION_NAME = "BINARY";
     private static final NativeUserObjectMapper mapper = new NativeUserObjectMapper();
     private final Map<String, Object> configs = new HashMap<>();
     private final Notation jsonNotation;
@@ -46,7 +46,7 @@ public class BinaryNotation implements Notation {
 
     @Override
     public String name() {
-        return NAME;
+        return NOTATION_NAME;
     }
 
     @Override

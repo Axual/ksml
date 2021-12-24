@@ -98,7 +98,6 @@ public class KSMLExampleProducer {
         } catch (IOException e) {
             log.error("An exception occurred while reading the configuration", e);
             System.exit(2);
-            // Return to uninitialized variable errors, should not be executed because of the exit;
             return;
         }
 
@@ -112,30 +111,33 @@ public class KSMLExampleProducer {
             factory = new KafkaProducerFactory(config.getKafka());
         }
 
-        try (final Producer<String, SensorData> producer = factory.create(getGenericConfigs())) {
-            long index = 0;
-            boolean interrupted = false;
-            while (!interrupted) {
-                log.info("Producing: {}", index);
-                String key = "sensor" + (index % 10);
-                Future<RecordMetadata> future = producer.send(
-                        new ProducerRecord<>(
-                                "ksml_sensordata_avro",
-                                key,
-                                SensorDataGenerator.generateValue(key)));
-                try {
-                    RecordMetadata message = future.get();
-                    log.info("Produced message to topic {} partition {} offset {}", message.topic(), message.partition(), message.offset());
-                    Utils.sleep(500);
-                } catch (InterruptedException | ExecutionException e) {
-                    log.error("Error getting future", e);
-                    interrupted = true;
+        try {
+            try (final Producer<String, SensorData> producer = factory.create(getGenericConfigs())) {
+                long index = 0;
+                boolean interrupted = false;
+                while (!interrupted) {
+                    log.info("Producing: {}", index);
+                    String key = "sensor" + (index % 10);
+                    Future<RecordMetadata> future = producer.send(
+                            new ProducerRecord<>(
+                                    "ksml_sensordata_avro",
+                                    key,
+                                    SensorDataGenerator.generateValue(key)));
+                    try {
+                        RecordMetadata message = future.get();
+                        log.info("Produced message to topic {} partition {} offset {}", message.topic(), message.partition(), message.offset());
+                        Utils.sleep(500);
+                    } catch (InterruptedException | ExecutionException e) {
+                        log.error("Interrupted!", e);
+                        interrupted = true;
+                        Thread.currentThread().interrupt();
+                    }
+
+                    index++;
                 }
-
-                index++;
             }
+        } finally {
+            log.info("Done!");
         }
-
-        log.info("Done!");
     }
 }

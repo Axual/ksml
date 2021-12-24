@@ -20,14 +20,17 @@ package io.axual.ksml.rest.data;
  * =========================LICENSE_END==================================
  */
 
+import com.fasterxml.jackson.annotation.JsonRootName;
+
 import org.apache.kafka.streams.kstream.Windowed;
 
 import lombok.Data;
 
 @Data
+@JsonRootName("key")
 public class WindowedData {
-    private final WindowData window;
-    private final Object key;
+    public final WindowData window;
+    public final Object key;
 
     public WindowedData(Windowed<Object> data) {
         window = new WindowData(data.window().start(), data.window().end());

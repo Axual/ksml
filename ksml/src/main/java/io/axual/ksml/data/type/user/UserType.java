@@ -24,7 +24,7 @@ import io.axual.ksml.data.type.base.DataType;
 import io.axual.ksml.notation.BinaryNotation;
 
 public interface UserType {
-    String DEFAULT_NOTATION = BinaryNotation.NAME;
+    String DEFAULT_NOTATION = BinaryNotation.NOTATION_NAME;
 
     DataType type();
 

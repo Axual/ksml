@@ -33,11 +33,11 @@ public class UserRecordType extends UserMapType {
     }
 
     public UserRecordType(DataSchema schema) {
-        this(schema.notation(), schema);
+        this(schema != null ? schema.notation() : DEFAULT_NOTATION, schema);
     }
 
     private UserRecordType(String notation, DataSchema schema) {
-        super(notation, new StaticUserType(UserString.TYPE, notation), new StaticUserType(DataType.UNKNOWN, notation),schema);
+        super(notation, new StaticUserType(UserString.DATATYPE, notation), new StaticUserType(DataType.UNKNOWN, notation), schema);
         this.schema = schema;
     }
 
@@ -53,5 +53,17 @@ public class UserRecordType extends UserMapType {
     @Override
     public String schemaName() {
         return "Record" + (schema != null ? "Of" + schema.name() : "");
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!super.equals(other)) return false;
+        if (!(other instanceof UserRecordType)) return false;
+        return schema.equals(((UserRecordType) other).schema);
+    }
+
+    @Override
+    public int hashCode() {
+        return schema.hashCode() + 31 * super.hashCode();
     }
 }

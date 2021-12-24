@@ -29,7 +29,7 @@ import io.axual.ksml.data.type.user.UserType;
 import io.axual.ksml.exception.KSMLExecutionException;
 
 public class UserList extends ArrayList<UserObject> implements UserObject {
-    private final UserListType type;
+    private final transient UserListType type;
 
     public UserList(String notation, UserType valueType) {
         type = new UserListType(notation, valueType);
@@ -92,5 +92,17 @@ public class UserList extends ArrayList<UserObject> implements UserObject {
     @Override
     public void replaceAll(UnaryOperator<UserObject> operator) {
         super.replaceAll(element -> checkValueType(operator.apply(element)));
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!super.equals(other)) return false;
+        if (!(other instanceof UserList)) return false;
+        return type.equals(((UserList) other).type);
+    }
+
+    @Override
+    public int hashCode() {
+        return type.hashCode() + super.hashCode() * 31;
     }
 }

@@ -62,7 +62,7 @@ public class ConvertValueOperation extends BaseOperation {
     public StreamWrapper apply(KStreamWrapper input) {
         return new KStreamWrapper(
                 input.stream.mapValues(converter, Named.as(name)),
-                input.keyType,
+                input.keyType(),
                 streamDataTypeOf(targetType, false));
     }
 }

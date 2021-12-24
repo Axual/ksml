@@ -38,4 +38,9 @@ public class StaticUserType implements UserType {
     public String notation() {
         return notation;
     }
+
+    @Override
+    public String toString() {
+        return (!DEFAULT_NOTATION.equals(notation) ? notation + ":" : "") + type;
+    }
 }

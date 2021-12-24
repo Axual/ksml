@@ -46,7 +46,7 @@ import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 @RunWith(JUnitPlatform.class)
-public class GlobalTableDefinitionTest {
+class GlobalTableDefinitionTest {
 
     @Mock
     private StreamsBuilder builder;
@@ -58,7 +58,7 @@ public class GlobalTableDefinitionTest {
 
     @Test
     void testGlobalTableDefinition() {
-        notationLibrary.put(BinaryNotation.NAME, mockNotation);
+        notationLibrary.put(BinaryNotation.NOTATION_NAME, mockNotation);
 
         // given a TableDefinition
         var tableDefinition = new GlobalTableDefinition("topic", "string", "string");

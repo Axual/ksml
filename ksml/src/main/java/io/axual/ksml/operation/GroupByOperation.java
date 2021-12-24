@@ -54,9 +54,9 @@ public class GroupByOperation extends StoreOperation {
         return new KGroupedStreamWrapper(
                 input.stream.groupBy(
                         new UserKeyTransformer(transformer),
-                        registerGrouped(Grouped.with(storeName, resultKeyType.getSerde(), input.valueType.getSerde()))),
+                        registerGrouped(Grouped.with(storeName, resultKeyType.getSerde(), input.valueType().getSerde()))),
                 resultKeyType,
-                input.valueType);
+                input.valueType());
     }
 
     @Override

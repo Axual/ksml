@@ -92,7 +92,7 @@ public class LeftJoinOperation extends StoreOperation {
                             ((KTableWrapper) joinStream).table,
                             new UserValueJoiner(valueJoiner),
                             Named.as(name),
-                            registerKeyValueStore(storeName, input.keyType, resultValueType)),
+                            registerKeyValueStore(storeName, input.keyType(), resultValueType)),
                     input.keyType(),
                     resultValueType);
         }

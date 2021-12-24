@@ -65,6 +65,6 @@ public class ConvertKeyOperation extends BaseOperation {
         return new KStreamWrapper(
                 input.stream.selectKey(converter, Named.as(name)),
                 streamDataTypeOf(targetType, true),
-                input.valueType);
+                input.valueType());
     }
 }

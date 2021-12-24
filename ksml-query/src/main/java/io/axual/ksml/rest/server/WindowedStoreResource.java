@@ -49,16 +49,16 @@ public class WindowedStoreResource extends StoreResource implements AutoCloseabl
     @GET()
     @Path("/{storeName}/all")
     @Produces(MediaType.APPLICATION_JSON)
-    public KeyValueBeans getAll(@PathParam("storeName") final String storeName) {
+    public WindowedKeyValueBeans getAll(@PathParam("storeName") final String storeName) {
         var result = getAllLocal(storeName);
         log.info("Querying remote stores....");
         querier.allMetadataForStore(storeName)
                 .stream()
                 .filter(sm -> !(sm.host().equals(thisInstance.host()) && sm.port() == thisInstance.port())) //only query remote node stores
                 .forEach(remoteInstance -> {
-                    String url = "http://" + remoteInstance.host() + ":" + remoteInstance.port() + "/state/keyvalue/" + storeName + "/local/all";
+                    String url = "http://" + remoteInstance.host() + ":" + remoteInstance.port() + "/state/windowed/" + storeName + "/local/all";
                     log.info("Fetching remote store at {}:{}", remoteInstance.host(), remoteInstance.port());
-                    KeyValueBeans remoteResult = restClient.getRemoteKeyValueBeans(url);
+                    WindowedKeyValueBeans remoteResult = restClient.getRemoteWindowedKeyValueBeans(url);
                     log.info("Data from remote store at {}:{} == {}", remoteInstance.host(), remoteInstance.port(), remoteResult);
                     result.add(remoteResult);
                 });
@@ -77,8 +77,8 @@ public class WindowedStoreResource extends StoreResource implements AutoCloseabl
     @GET()
     @Path("/{storeName}/local/all")
     @Produces(MediaType.APPLICATION_JSON)
-    public KeyValueBeans getAllLocal(@PathParam("storeName") final String storeName) {
-        return getLocalRange(storeName, QueryableStoreTypes.windowStore(), ReadOnlyWindowStore::all);
+    public WindowedKeyValueBeans getAllLocal(@PathParam("storeName") final String storeName) {
+        return getLocalWindowRange(storeName, QueryableStoreTypes.windowStore(), ReadOnlyWindowStore::all);
     }
 
     /**

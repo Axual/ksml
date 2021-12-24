@@ -42,15 +42,15 @@ public class SchemaUtil {
     }
 
     public static Schema dataTypeToSchema(DataType type) {
-        if (type == UserBoolean.TYPE) return Schema.create(Schema.Type.BOOLEAN);
-        if (type == UserByte.TYPE) return Schema.create(Schema.Type.INT);
-        if (type == UserShort.TYPE) return Schema.create(Schema.Type.INT);
-        if (type == UserInteger.TYPE) return Schema.create(Schema.Type.INT);
-        if (type == UserLong.TYPE) return Schema.create(Schema.Type.LONG);
-        if (type == UserFloat.TYPE) return Schema.create(Schema.Type.FLOAT);
-        if (type == UserDouble.TYPE) return Schema.create(Schema.Type.DOUBLE);
-        if (type == UserBytes.TYPE) return Schema.create(Schema.Type.BYTES);
-        if (type == UserString.TYPE) return Schema.create(Schema.Type.STRING);
+        if (type == UserBoolean.DATATYPE) return Schema.create(Schema.Type.BOOLEAN);
+        if (type == UserByte.DATATYPE) return Schema.create(Schema.Type.INT);
+        if (type == UserShort.DATATYPE) return Schema.create(Schema.Type.INT);
+        if (type == UserInteger.DATATYPE) return Schema.create(Schema.Type.INT);
+        if (type == UserLong.DATATYPE) return Schema.create(Schema.Type.LONG);
+        if (type == UserFloat.DATATYPE) return Schema.create(Schema.Type.FLOAT);
+        if (type == UserDouble.DATATYPE) return Schema.create(Schema.Type.DOUBLE);
+        if (type == UserBytes.DATATYPE) return Schema.create(Schema.Type.BYTES);
+        if (type == UserString.DATATYPE) return Schema.create(Schema.Type.STRING);
         if (type instanceof UserListType)
             return Schema.createArray(dataTypeToSchema(((UserListType) type).valueType().type()));
         if (type instanceof UserRecordType) return (((UserRecordType) type).schema().schema());

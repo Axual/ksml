@@ -26,7 +26,7 @@ import io.axual.ksml.data.type.user.UserRecordType;
 import io.axual.ksml.schema.DataSchema;
 
 public class UserRecord extends HashMap<String, UserObject> implements UserObject {
-    public final UserRecordType type;
+    private final transient UserRecordType type;
 
     public UserRecord(DataSchema schema) {
         type = typeOf(schema);
@@ -39,5 +39,18 @@ public class UserRecord extends HashMap<String, UserObject> implements UserObjec
     @Override
     public UserRecordType type() {
         return type;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!super.equals(other)) return false;
+        if (!(other instanceof UserRecord)) return false;
+        return type.equals(((UserRecord) other).type);
+    }
+
+
+    @Override
+    public int hashCode() {
+        return type.hashCode() + super.hashCode() * 31;
     }
 }

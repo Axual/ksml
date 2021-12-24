@@ -52,7 +52,7 @@ public class AxualAvroNotation implements Notation {
 
     @Override
     public String name() {
-        return AvroNotation.NAME;
+        return AvroNotation.NOTATION_NAME;
     }
 
     public Serde<Object> getSerde(DataType type, boolean isKey) {
@@ -86,7 +86,7 @@ public class AxualAvroNotation implements Notation {
             @Override
             public Object deserialize(String topic, byte[] data) {
                 GenericRecord object = serde.deserializer().deserialize(topic, data);
-                return mapper.toUserObject(AvroNotation.NAME, object);
+                return mapper.toUserObject(AvroNotation.NOTATION_NAME, object);
             }
         };
 

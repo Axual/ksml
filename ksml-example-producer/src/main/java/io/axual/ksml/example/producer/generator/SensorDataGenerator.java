@@ -20,10 +20,14 @@ package io.axual.ksml.example.producer.generator;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Random;
+
 import io.axual.ksml.example.SensorData;
 import io.axual.ksml.example.SensorType;
 
 public class SensorDataGenerator {
+    private static final Random rand = new Random();
+
     private SensorDataGenerator() {
     }
 
@@ -39,7 +43,7 @@ public class SensorDataGenerator {
     }
 
     private static int random(int range) {
-        return (int) (Math.random() * range);
+        return rand.nextInt(range);
     }
 
     private static SensorData.Builder generateType(SensorData.Builder builder) {

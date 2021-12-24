@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.axual.ksml.data.object.base.Tuple;
 import io.axual.ksml.data.object.user.UserString;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;
@@ -47,7 +46,7 @@ public class UserTopicNameExtractor extends Invoker implements TopicNameExtracto
     public UserTopicNameExtractor(UserFunction function) {
         super(function);
         verifyParameterCount(3);
-        verifyResultType(UserString.TYPE);
+        verifyResultType(UserString.DATATYPE);
     }
 
     @Override
@@ -68,9 +67,11 @@ public class UserTopicNameExtractor extends Invoker implements TopicNameExtracto
         result.put(TIMESTAMP, recordContext.timestamp());
         result.put(TOPIC, recordContext.topic());
         result.put(PARTITION, recordContext.partition());
-        final var headers = new ArrayList<Tuple<Object>>();
+        final var headers = new ArrayList<Map<String, Object>>();
         for (Header header : recordContext.headers()) {
-            Tuple<Object> h = new Tuple<>(header.key(), header.value());
+            Map<String, Object> h = new HashMap<>();
+            h.put("key", header.key());
+            h.put("value", header.value());
             headers.add(h);
         }
         result.put(HEADERS, headers);

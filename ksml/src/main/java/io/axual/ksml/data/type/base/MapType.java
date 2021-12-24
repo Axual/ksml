@@ -52,4 +52,16 @@ public class MapType extends ComplexType {
         }
         return schemaName("Map", "To");
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!super.equals(other)) return false;
+        if (!(other instanceof MapType)) return false;
+        return schema.equals(((MapType) other).schema);
+    }
+
+    @Override
+    public int hashCode() {
+        return schema.hashCode() + 31 * super.hashCode();
+    }
 }

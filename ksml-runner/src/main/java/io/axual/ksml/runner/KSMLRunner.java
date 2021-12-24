@@ -55,33 +55,45 @@ public class KSMLRunner {
             config.validate();
             log.info("Using backed of type {}", config.getBackend().getType());
             Backend backend = config.getConfiguredBackend();
-            HostInfo hostInfo = new HostInfo(config.getKsml().getApplicationServerHost(), Integer.parseInt(config.getKsml().getApplicationServerPort()));
 
-            try (RestServer restServer = new RestServer(hostInfo)) {
-                restServer.start(backend.getQuerier());
+            if (Boolean.TRUE.equals(config.getKsml().getApplicationServerEnabled())) {
+                // Run with the REST server
+                HostInfo hostInfo = new HostInfo(config.getKsml().getApplicationServerHost(), config.getKsml().getApplicationServerPort());
 
-                var executorService = Executors.newFixedThreadPool(5);
-                Future<?> backendFuture = executorService.submit(backend);
-
-                try {
-                    backendFuture.get();
-                    // Future, check exit state of backend
-                } catch (ExecutionException | InterruptedException e) {
-                    log.error("Caught exception while waiting for finish", e);
-                } finally {
-                    executorService.shutdown();
-                    try {
-                        if (!executorService.awaitTermination(800, TimeUnit.MILLISECONDS)) {
-                            executorService.shutdownNow();
-                        }
-                    } catch (InterruptedException e) {
-                        executorService.shutdownNow();
-                    }
+                try (RestServer restServer = new RestServer(hostInfo)) {
+                    restServer.start(backend.getQuerier());
+                    run(backend);
                 }
+            } else {
+                // Run without the REST server
+                run(backend);
             }
         } catch (IOException e) {
             log.error("An exception occurred while reading the configuration", e);
             System.exit(2);
+        }
+    }
+
+    private static void run(Backend backend) {
+        var executorService = Executors.newFixedThreadPool(5);
+        Future<?> backendFuture = executorService.submit(backend);
+
+        try {
+            backendFuture.get();
+            // Future, check exit state of backend
+        } catch (ExecutionException | InterruptedException e) {
+            log.error("Caught exception while waiting for finish", e);
+            Thread.currentThread().interrupt();
+        } finally {
+            executorService.shutdown();
+            try {
+                if (!executorService.awaitTermination(800, TimeUnit.MILLISECONDS)) {
+                    executorService.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                executorService.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
         }
     }
 }

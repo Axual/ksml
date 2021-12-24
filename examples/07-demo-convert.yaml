@@ -12,7 +12,7 @@ functions:
     code: "print('key='+(key if isinstance(key,str) else str(key))+', value='+(value if isinstance(value,str) else str(value)))"
 
 pipelines:
-  # The main pipeline reads messages, outputs them, converts to json, and saves to a target topic
+  # The main pipeline reads messages, converts to json, outputs them, and saves to a target topic
   main:
     from: sensor_source
     via:
@@ -24,3 +24,11 @@ pipelines:
         name: peek_and_print
     to:
       topic: ksml_sensordata_json
+
+  # The secondary pipeline achieves the same, but by inlining the target topic definition and its data types
+  secondary:
+    from: sensor_source
+    to:
+      topic: ksml_sensordata_json
+      keyType: string
+      valueType: json

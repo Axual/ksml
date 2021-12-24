@@ -24,7 +24,6 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import lombok.Getter;
 
-//@XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @Getter
 public class KeyValueBean {

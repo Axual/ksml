@@ -24,7 +24,6 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import io.axual.ksml.data.object.user.UserBoolean;
 import io.axual.ksml.data.object.user.UserByte;
@@ -53,6 +52,7 @@ import static io.axual.ksml.data.type.user.UserType.DEFAULT_NOTATION;
 public class PythonUserObjectMapper implements UserObjectMapper<Value> {
     private static final String RECORD_SCHEMA_FIELD = "@schema";
     private static final String RECORD_TYPE_FIELD = "@type";
+    private final JsonUserObjectMapper jsonDataMapper = new JsonUserObjectMapper();
     private final NativeUserObjectMapper nativeDataMapper = new NativeUserObjectMapper();
     private final Context context;
 
@@ -62,75 +62,92 @@ public class PythonUserObjectMapper implements UserObjectMapper<Value> {
 
     public UserObject toUserObject(UserType expected, Value object) {
         final String resultNotation = expected != null ? expected.notation() : DEFAULT_NOTATION;
-        if (object.isBoolean() && (expected == null || expected.type() == UserBoolean.TYPE))
+        if (object.isBoolean() && (expected == null || expected.type() == UserBoolean.DATATYPE))
             return new UserBoolean(resultNotation, object.asBoolean());
 
         if (object.isNumber()) {
-            if (expected != null) {
-                if (expected.type() == UserByte.TYPE)
-                    return new UserByte(resultNotation, object.asByte());
-                if (expected.type() == UserShort.TYPE)
-                    return new UserShort(resultNotation, object.asShort());
-                if (expected.type() == UserInteger.TYPE)
-                    return new UserInteger(resultNotation, object.asInt());
-                if (expected.type() == UserLong.TYPE)
-                    return new UserLong(resultNotation, object.asLong());
-                if (expected.type() == UserFloat.TYPE)
-                    return new UserFloat(resultNotation, object.asFloat());
-                if (expected.type() == UserDouble.TYPE)
-                    return new UserDouble(resultNotation, object.asDouble());
-            }
-            // Return a long by default
-            return new UserLong(resultNotation, object.asLong());
+            return toUserNumber(expected, resultNotation, object);
         }
 
         if (object.isString()) return new UserString(resultNotation, object.asString());
 
         if (object.hasArrayElements()) {
-            if (expected instanceof UserTupleType) {
-                var elements = new UserObject[(int) object.getArraySize()];
-                for (var index = 0; index < object.getArraySize(); index++) {
-                    var subType = ((UserTupleType) expected).subType(index);
-                    elements[index] = toUserObject(subType, object.getArrayElement(index));
-                }
-                return new UserTuple(resultNotation, elements);
-            }
-            if (expected == null || expected instanceof UserListType) {
-                var valueType = expected != null ? ((UserListType) expected).valueType() : UserType.UNKNOWN;
-                var result = new UserList(resultNotation, valueType);
-                for (var index = 0; index < object.getArraySize(); index++) {
-                    result.add(toUserObject(valueType, object.getArrayElement(index)));
-                }
-                return result;
-            }
+            var result = toUserArray(expected, resultNotation, object);
+            if (result != null) return result;
         }
 
         if (expected == null || expected instanceof UserRecordType) {
-            // Try to cash the value to a HashMap. If that works, then we received a dict value
-            // back from Python.
-            try {
-                HashMap<?, ?> map = object.as(HashMap.class);
-                final DataSchema schema;
-                if (map.containsKey(RECORD_TYPE_FIELD)) {
-                    var typeName = map.get(RECORD_TYPE_FIELD).toString();
-                    schema = SchemaLibrary.getSchema(typeName);
-                } else if (map.containsKey(RECORD_SCHEMA_FIELD)) {
-                    var schemaStr = map.get(RECORD_SCHEMA_FIELD).toString();
-                    schema = SchemaUtil.parse(schemaStr);
-                } else if (expected != null) {
-                    schema = ((UserRecordType) expected).schema();
-                } else {
-                    schema = null;
-                }
-                map.remove(RECORD_TYPE_FIELD);
-                map.remove(RECORD_SCHEMA_FIELD);
-                return nativeDataMapper.mapToUserRecord(resultNotation, map, schema);
-            } catch (Exception e) {
-                // Ignore all cast exceptions
-            }
+            var result = toUserRecord(expected, resultNotation, object);
+            if (result != null) return result;
         }
 
-        throw new KSMLExecutionException("Can not wrap type in UserObject: " + object.getClass().getSimpleName());
+        throw new KSMLExecutionException("Can not convert type to UserObject: " + object.getClass().getSimpleName());
+    }
+
+    private UserObject toUserNumber(UserType expected, String resultNotation, Value object) {
+        if (expected != null) {
+            if (expected.type() == UserByte.DATATYPE)
+                return new UserByte(resultNotation, object.asByte());
+            if (expected.type() == UserShort.DATATYPE)
+                return new UserShort(resultNotation, object.asShort());
+            if (expected.type() == UserInteger.DATATYPE)
+                return new UserInteger(resultNotation, object.asInt());
+            if (expected.type() == UserLong.DATATYPE)
+                return new UserLong(resultNotation, object.asLong());
+            if (expected.type() == UserFloat.DATATYPE)
+                return new UserFloat(resultNotation, object.asFloat());
+            if (expected.type() == UserDouble.DATATYPE)
+                return new UserDouble(resultNotation, object.asDouble());
+        }
+        // Return a long by default
+        return new UserLong(resultNotation, object.asLong());
+    }
+
+    private UserObject toUserArray(UserType expected, String resultNotation, Value object) {
+        if (expected instanceof UserTupleType) {
+            var elements = new UserObject[(int) object.getArraySize()];
+            for (var index = 0; index < object.getArraySize(); index++) {
+                var subType = ((UserTupleType) expected).subType(index);
+                elements[index] = toUserObject(subType, object.getArrayElement(index));
+            }
+            return new UserTuple(resultNotation, elements);
+        }
+        if (expected == null || expected instanceof UserListType) {
+            var valueType = expected != null ? ((UserListType) expected).valueType() : UserType.UNKNOWN;
+            var result = new UserList(resultNotation, valueType);
+            for (var index = 0; index < object.getArraySize(); index++) {
+                result.add(toUserObject(valueType, object.getArrayElement(index)));
+            }
+            return result;
+        }
+        return null;
+    }
+
+    private UserObject toUserRecord(UserType expected, String resultNotation, Value object) {
+        // Try to cash the value to a HashMap. If that works, then we received a dict value
+        // back from Python.
+        try {
+            HashMap<?, ?> map = object.as(HashMap.class);
+            final DataSchema schema;
+            if (map.containsKey(RECORD_TYPE_FIELD)) {
+                var typeName = map.get(RECORD_TYPE_FIELD).toString();
+                schema = SchemaLibrary.getSchema(typeName);
+            } else if (map.containsKey(RECORD_SCHEMA_FIELD)) {
+                var schemaStr = map.get(RECORD_SCHEMA_FIELD).toString();
+                schema = SchemaUtil.parse(schemaStr);
+            } else if (expected != null) {
+                schema = ((UserRecordType) expected).schema();
+            } else {
+                schema = null;
+            }
+            map.remove(RECORD_TYPE_FIELD);
+            map.remove(RECORD_SCHEMA_FIELD);
+            return nativeDataMapper.mapToUserRecord(resultNotation, map, schema);
+        } catch (Exception e) {
+            // Ignore all cast exceptions
+        }
+
+        return null;
     }
 
     @Override
@@ -152,29 +169,8 @@ public class PythonUserObjectMapper implements UserObjectMapper<Value> {
         if (object instanceof UserList)
             return Value.asValue(nativeDataMapper.userListToList((UserList) object));
         if (object instanceof UserRecord) {
-            return context.eval("python", userRecordToJsonString((UserRecord) object));
+            return context.eval("python", jsonDataMapper.fromUserObject(object));
         }
-        throw new KSMLExecutionException("Can not unwrap UserObject type: " + object.getClass().getSimpleName());
-    }
-
-    private String userRecordToJsonString(UserRecord object) {
-        var builder = new StringBuilder("{");
-        var first = true;
-        for (Map.Entry<String, UserObject> entry : object.entrySet()) {
-            if (!first) builder.append(",");
-            builder.append("\"").append(entry.getKey()).append("\":");
-            if (entry.getValue() instanceof UserString) builder.append("\"");
-            builder.append(entry.getValue().toString());
-            if (entry.getValue() instanceof UserString) builder.append("\"");
-            first = false;
-        }
-        if (object.type.schema() != null) {
-            if (!first) builder.append(",");
-            builder.append("\"").append(RECORD_TYPE_FIELD).append("\":\"").append(object.type.schema().name()).append("\"");
-            builder.append(",");
-            var schemaString = object.type.schema().toString().replace("\"", "\\\"");
-            builder.append("\"").append(RECORD_SCHEMA_FIELD).append("\":\"").append(schemaString).append("\"");
-        }
-        return builder.append("}").toString();
+        throw new KSMLExecutionException("Can not convert UserObject to Python type: " + object.getClass().getSimpleName());
     }
 }

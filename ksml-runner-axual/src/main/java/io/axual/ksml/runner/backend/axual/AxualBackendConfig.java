@@ -26,7 +26,7 @@ import io.axual.ksml.runner.backend.BackendConfig;
 import lombok.Data;
 
 @Data
-public class AxualBackendConfig extends BackendConfig {
+public class AxualBackendConfig implements BackendConfig {
     private String applicationId;
     private String applicationVersion;
     private String endpoint;

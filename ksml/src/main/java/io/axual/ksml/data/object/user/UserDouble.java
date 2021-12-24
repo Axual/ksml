@@ -25,13 +25,13 @@ import io.axual.ksml.data.type.base.SimpleType;
 import static io.axual.ksml.data.type.user.UserType.DEFAULT_NOTATION;
 
 public class UserDouble extends UserPrimitive<Double> {
-    public static final SimpleType TYPE = new SimpleType(Double.class);
+    public static final SimpleType DATATYPE = new SimpleType(Double.class);
 
     public UserDouble(Double value) {
         this(DEFAULT_NOTATION, value);
     }
 
     public UserDouble(String notation, Double value) {
-        super(TYPE, notation, value);
+        super(DATATYPE, notation, value);
     }
 }

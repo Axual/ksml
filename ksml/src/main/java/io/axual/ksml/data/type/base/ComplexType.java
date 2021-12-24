@@ -25,7 +25,7 @@ public abstract class ComplexType implements DataType {
     private final Class<?> containerClass;
     private final DataType[] subTypes;
 
-    public ComplexType(Class<?> containerClass, DataType... subTypes) {
+    ComplexType(Class<?> containerClass, DataType... subTypes) {
         this.containerClass = containerClass;
         this.subTypes = subTypes;
     }

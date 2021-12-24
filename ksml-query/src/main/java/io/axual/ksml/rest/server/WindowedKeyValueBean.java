@@ -1,8 +1,8 @@
-package io.axual.ksml.notation;
+package io.axual.ksml.rest.server;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Queryable State Store
  * %%
  * Copyright (C) 2021 Axual B.V.
  * %%
@@ -20,5 +20,18 @@ package io.axual.ksml.notation;
  * =========================LICENSE_END==================================
  */
 
-public class StringNotation {
+import io.axual.ksml.rest.data.WindowData;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import lombok.Getter;
+
+@XmlAccessorType(XmlAccessType.FIELD)
+@Getter
+public class WindowedKeyValueBean extends KeyValueBean {
+    private final WindowData window;
+
+    public WindowedKeyValueBean(long windowStart, long windowEnd, Object key, Object value) {
+        super(key, value);
+        this.window = new WindowData(windowStart, windowEnd);
+    }
 }

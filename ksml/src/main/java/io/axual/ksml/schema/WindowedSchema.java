@@ -56,7 +56,7 @@ public class WindowedSchema {
                 builder.addField(KEY_FIELD, keySchema, KEY_FIELD_DOC, false);
                 break;
             case INT:
-                builder.addField(KEY_FIELD, keySchema, KEY_FIELD_DOC, (Integer) 0);
+                builder.addField(KEY_FIELD, keySchema, KEY_FIELD_DOC, 0);
                 break;
             case LONG:
                 builder.addField(KEY_FIELD, keySchema, KEY_FIELD_DOC, 0L);

@@ -78,8 +78,8 @@ public class JoinOperation extends StoreOperation {
                             ((KStreamWrapper) joinStream).stream,
                             new UserValueJoiner(valueJoiner),
                             joinWindows,
-                            StreamJoined.with(input.keyType.getSerde(), input.valueType.getSerde(), resultValueType.getSerde()).withName(name).withStoreName(storeName)),
-                    input.keyType,
+                            StreamJoined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde()).withName(name).withStoreName(storeName)),
+                    input.keyType(),
                     resultValueType);
         }
         if (joinStream instanceof KTableWrapper) {
@@ -87,8 +87,8 @@ public class JoinOperation extends StoreOperation {
                     input.stream.join(
                             ((KTableWrapper) joinStream).table,
                             new UserValueJoiner(valueJoiner),
-                            Joined.with(input.keyType.getSerde(), input.valueType.getSerde(), resultValueType.getSerde(), storeName)),
-                    input.keyType,
+                            Joined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde(), storeName)),
+                    input.keyType(),
                     resultValueType);
         }
         if (joinStream instanceof GlobalKTableWrapper) {
@@ -98,7 +98,7 @@ public class JoinOperation extends StoreOperation {
                             new UserKeyTransformer(keyValueMapper),
                             new UserValueJoiner(valueJoiner),
                             Named.as(name)),
-                    input.keyType,
+                    input.keyType(),
                     resultValueType);
         }
         throw new KSMLApplyException("Can not JOIN stream with " + joinStream.getClass().getSimpleName());
@@ -114,8 +114,8 @@ public class JoinOperation extends StoreOperation {
                             ((KTableWrapper) joinStream).table,
                             new UserValueJoiner(valueJoiner),
                             Named.as(name),
-                            registerKeyValueStore(storeName, input.keyType, resultValueType)),
-                    input.keyType,
+                            registerKeyValueStore(storeName, input.keyType(), resultValueType)),
+                    input.keyType(),
                     resultValueType);
         }
         throw new KSMLApplyException("Can not JOIN table with " + joinStream.getClass().getSimpleName());

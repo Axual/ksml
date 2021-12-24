@@ -32,6 +32,7 @@ import io.axual.ksml.data.object.user.UserObject;
 import io.axual.ksml.data.object.user.UserTuple;
 import io.axual.ksml.data.type.user.UserType;
 import io.axual.ksml.definition.ParameterDefinition;
+import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.exception.KSMLTypeException;
 import io.axual.ksml.data.type.base.DataType;
@@ -41,7 +42,7 @@ import io.axual.ksml.util.StringUtil;
  * Base class for user-defined functions.
  * Currently there is one subclass {@link io.axual.ksml.python.PythonFunction}, which handles Python based functions.
  */
-public abstract class UserFunction {
+public class UserFunction {
     private static final Logger LOG = LoggerFactory.getLogger(UserFunction.class);
     public final String name;
     public final ParameterDefinition[] parameters;
@@ -94,7 +95,9 @@ public abstract class UserFunction {
      * @param parameters parameters for the function.
      * @return the result of the call.
      */
-    public abstract UserObject call(UserObject... parameters);
+    public UserObject call(UserObject... parameters) {
+        throw new KSMLExecutionException("Can not call the call() method of a UserFunction directly. Override this class and the call() method.");
+    }
 
     private KSMLTopologyException validateException(Object result, String expectedType) {
         return new KSMLTopologyException("Expected " + expectedType + " from function " + name + " but got: " + (result != null ? result : "null"));

@@ -50,18 +50,18 @@ public class SuppressOperation extends BaseOperation {
     @Override
     public StreamWrapper apply(KTableWrapper input) {
         if (suppressed != null) {
-            return new KTableWrapper(input.table.suppress(suppressed), input.keyType, input.valueType);
+            return new KTableWrapper(input.table.suppress(suppressed), input.keyType(), input.valueType());
         }
 
         // Because of type erasure, we can not rely on Java to perform type checking the key
-        // for us. Therefore we check the type manually to ensure the user is applying the
+        // for us. Therefore, we check the type manually to ensure the user is applying the
         // "untilWindowCloses" suppression on the right KTable key type.
 
         // Validate that the key type is windowed
-        if (input.keyType.type() instanceof WindowedType) {
-            return new KTableWrapper(input.table.suppress((Suppressed) suppressedWindowed), input.keyType, input.valueType);
+        if (input.keyType().type() instanceof WindowedType) {
+            return new KTableWrapper(input.table.suppress((Suppressed) suppressedWindowed), input.keyType(), input.valueType());
         }
         // Throw an exception if the stream key type is not Windowed
-        throw new KSMLTopologyException("Can not apply suppress operation to a KTable with key type " + input.keyType.type());
+        throw new KSMLTopologyException("Can not apply suppress operation to a KTable with key type " + input.keyType().type());
     }
 }

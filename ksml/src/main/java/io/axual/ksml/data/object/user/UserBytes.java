@@ -25,13 +25,13 @@ import io.axual.ksml.data.type.base.SimpleType;
 import static io.axual.ksml.data.type.user.UserType.DEFAULT_NOTATION;
 
 public class UserBytes extends UserPrimitive<byte[]> {
-    public static final SimpleType TYPE = new SimpleType(byte[].class);
+    public static final SimpleType DATATYPE = new SimpleType(byte[].class);
 
     public UserBytes(byte[] value) {
         this(DEFAULT_NOTATION, value);
     }
 
     public UserBytes(String notation, byte[] value) {
-        super(TYPE, notation, value);
+        super(DATATYPE, notation, value);
     }
 }

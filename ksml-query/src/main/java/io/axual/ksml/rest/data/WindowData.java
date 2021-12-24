@@ -20,9 +20,12 @@ package io.axual.ksml.rest.data;
  * =========================LICENSE_END==================================
  */
 
-import lombok.Data;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import lombok.Getter;
 
-@Data
+@XmlAccessorType(XmlAccessType.FIELD)
+@Getter
 public class WindowData {
     private final long start;
     private final long end;

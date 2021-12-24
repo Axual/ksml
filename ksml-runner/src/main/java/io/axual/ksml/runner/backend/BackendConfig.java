@@ -21,16 +21,10 @@ package io.axual.ksml.runner.backend;
  */
 
 
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import io.axual.ksml.runner.exception.KSMLRunnerConfigurationException;
-import lombok.Data;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Data
-public abstract class BackendConfig {
-    public void validate() throws KSMLRunnerConfigurationException {
+public interface BackendConfig {
+    default void validate() throws KSMLRunnerConfigurationException {
         // nothing to validate
     }
 }

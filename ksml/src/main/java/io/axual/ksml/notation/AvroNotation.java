@@ -37,7 +37,7 @@ import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 
 public class AvroNotation implements Notation {
-    public static final String NAME = "AVRO";
+    public static final String NOTATION_NAME = "AVRO";
     private static final AvroDataMapper mapper = new AvroDataMapper();
     private final Map<String, Object> configs = new HashMap<>();
 
@@ -47,7 +47,7 @@ public class AvroNotation implements Notation {
 
     @Override
     public String name() {
-        return NAME;
+        return NOTATION_NAME;
     }
 
     @Override
@@ -75,7 +75,7 @@ public class AvroNotation implements Notation {
             @Override
             public Object deserialize(String topic, byte[] data) {
                 GenericRecord object = (GenericRecord) deserializer.deserialize(topic, data);
-                return mapper.toUserObject(AvroNotation.NAME, object);
+                return mapper.toUserObject(AvroNotation.NOTATION_NAME, object);
             }
         };
 

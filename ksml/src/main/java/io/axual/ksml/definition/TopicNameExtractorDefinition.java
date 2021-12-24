@@ -30,6 +30,6 @@ public class TopicNameExtractorDefinition extends FunctionDefinition {
     public TopicNameExtractorDefinition(FunctionDefinition definition) {
         super(definition
                 .withParameters(getParameters(definition.parameters, TOPIC_NAME_EXTRACTOR_PARAMETERS))
-                .withResult(new StaticUserType(UserString.TYPE, definition.resultType.notation())));
+                .withResult(new StaticUserType(UserString.DATATYPE, definition.resultType.notation())));
     }
 }

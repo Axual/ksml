@@ -35,7 +35,7 @@ import io.axual.ksml.user.UserFunction;
 public abstract class ContextAwareParser<T> extends BaseParser<T> {
     protected final ParseContext context;
 
-    public ContextAwareParser(ParseContext context) {
+    protected ContextAwareParser(ParseContext context) {
         this.context = context;
     }
 

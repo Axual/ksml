@@ -39,11 +39,11 @@ public class FilterOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        return new KStreamWrapper(input.stream.filter(new UserPredicate(predicate), Named.as(name)), input.keyType, input.valueType);
+        return new KStreamWrapper(input.stream.filter(new UserPredicate(predicate), Named.as(name)), input.keyType(), input.valueType());
     }
 
     @Override
     public StreamWrapper apply(KTableWrapper input) {
-        return new KTableWrapper(input.table.filter(new UserPredicate(predicate), Named.as(name)), input.keyType, input.valueType);
+        return new KTableWrapper(input.table.filter(new UserPredicate(predicate), Named.as(name)), input.keyType(), input.valueType());
     }
 }
