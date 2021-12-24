@@ -34,7 +34,7 @@ public class UserStreamPartitioner extends Invoker implements StreamPartitioner<
     public UserStreamPartitioner(UserFunction function) {
         super(function);
         verifyParameterCount(4);
-        verifyResultType(UserInteger.TYPE);
+        verifyResultType(UserInteger.DATATYPE);
     }
 
     @Override

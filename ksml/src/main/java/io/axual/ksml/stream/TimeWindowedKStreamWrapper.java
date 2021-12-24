@@ -34,6 +34,7 @@ public class TimeWindowedKStreamWrapper extends BaseStreamWrapper {
         this.timeWindowedKStream = timeWindowedKStream;
     }
 
+    @Override
     public StreamWrapper apply(StreamOperation operation) {
         return operation.apply(this);
     }

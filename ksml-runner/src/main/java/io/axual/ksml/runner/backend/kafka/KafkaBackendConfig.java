@@ -21,7 +21,6 @@ package io.axual.ksml.runner.backend.kafka;
  */
 
 
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.Map;
@@ -33,7 +32,7 @@ import lombok.ToString;
 @Data
 @ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class KafkaBackendConfig extends BackendConfig {
+public class KafkaBackendConfig implements BackendConfig {
     private String applicationId;
     private String bootstrapUrl;
     private String schemaRegistryUrl;

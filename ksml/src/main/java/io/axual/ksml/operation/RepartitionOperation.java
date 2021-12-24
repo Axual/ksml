@@ -38,13 +38,13 @@ public class RepartitionOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        Repartitioned<Object, Object> repartitioned = Repartitioned.with(input.keyType.getSerde(), input.valueType.getSerde()).withName(storeName);
+        Repartitioned<Object, Object> repartitioned = Repartitioned.with(input.keyType().getSerde(), input.valueType().getSerde()).withName(storeName);
         if (partitioner != null) {
             repartitioned = repartitioned.withStreamPartitioner(new UserStreamPartitioner(partitioner));
         }
         return new KStreamWrapper(
                 input.stream.repartition(repartitioned),
-                input.keyType,
-                input.valueType);
+                input.keyType(),
+                input.valueType());
     }
 }

@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.axual.ksml.data.object.base.Tuple;
 import io.axual.ksml.data.object.user.UserBoolean;
 import io.axual.ksml.data.object.user.UserByte;
 import io.axual.ksml.data.object.user.UserBytes;
@@ -37,6 +38,7 @@ import io.axual.ksml.data.object.user.UserObject;
 import io.axual.ksml.data.object.user.UserRecord;
 import io.axual.ksml.data.object.user.UserShort;
 import io.axual.ksml.data.object.user.UserString;
+import io.axual.ksml.data.object.user.UserTuple;
 import io.axual.ksml.data.type.base.DataType;
 import io.axual.ksml.data.type.user.StaticUserType;
 import io.axual.ksml.data.type.user.UserType;
@@ -47,15 +49,15 @@ import static io.axual.ksml.data.type.user.UserType.DEFAULT_NOTATION;
 
 public class NativeUserObjectMapper implements UserObjectMapper<Object> {
     public DataType inferType(Object value) {
-        if (value instanceof Boolean) return UserBoolean.TYPE;
-        if (value instanceof Byte) return UserByte.TYPE;
-        if (value instanceof Short) return UserShort.TYPE;
-        if (value instanceof Integer) return UserInteger.TYPE;
-        if (value instanceof Long) return UserLong.TYPE;
-        if (value instanceof Float) return UserFloat.TYPE;
-        if (value instanceof Double) return UserDouble.TYPE;
-        if (value instanceof byte[]) return UserBytes.TYPE;
-        if (value instanceof String) return UserString.TYPE;
+        if (value instanceof Boolean) return UserBoolean.DATATYPE;
+        if (value instanceof Byte) return UserByte.DATATYPE;
+        if (value instanceof Short) return UserShort.DATATYPE;
+        if (value instanceof Integer) return UserInteger.DATATYPE;
+        if (value instanceof Long) return UserLong.DATATYPE;
+        if (value instanceof Float) return UserFloat.DATATYPE;
+        if (value instanceof Double) return UserDouble.DATATYPE;
+        if (value instanceof byte[]) return UserBytes.DATATYPE;
+        if (value instanceof String) return UserString.DATATYPE;
         return DataType.UNKNOWN;
     }
 
@@ -73,7 +75,8 @@ public class NativeUserObjectMapper implements UserObjectMapper<Object> {
         if (value instanceof String) return new UserString(resultNotation, (String) value);
         if (value instanceof List) return listToUserList(resultNotation, (List<?>) value);
         if (value instanceof Map) return mapToUserRecord(resultNotation, (Map<?, ?>) value, null);
-        throw new KSMLExecutionException("Can not wrap type in UserObject: " + value.getClass().getSimpleName());
+        if (value instanceof Tuple) return tupleToUserTuple(resultNotation, (Tuple<?>) value);
+        throw new KSMLExecutionException("Can not convert to UserObject: " + value.getClass().getSimpleName());
     }
 
     public UserList listToUserList(String notation, List<?> list) {
@@ -92,6 +95,14 @@ public class NativeUserObjectMapper implements UserObjectMapper<Object> {
         return result;
     }
 
+    public UserTuple tupleToUserTuple(String notation, Tuple<?> tuple) {
+        UserObject[] elements = new UserObject[tuple.size()];
+        for (var index = 0; index < tuple.size(); index++) {
+            elements[index] = toUserObject(notation, tuple.get(index));
+        }
+        return new UserTuple(notation, elements);
+    }
+
     @Override
     public Object fromUserObject(UserObject value) {
         if (value instanceof UserBoolean) return ((UserBoolean) value).value();
@@ -105,7 +116,7 @@ public class NativeUserObjectMapper implements UserObjectMapper<Object> {
         if (value instanceof UserString) return ((UserString) value).value();
         if (value instanceof UserList) return userListToList((UserList) value);
         if (value instanceof UserRecord) return userRecordToMap((UserRecord) value);
-        throw new KSMLExecutionException("Can not unwrap UserObject type: " + value.getClass().getSimpleName());
+        throw new KSMLExecutionException("Can not convert UserObject to type: " + value.getClass().getSimpleName());
     }
 
     public List<Object> userListToList(UserList value) {

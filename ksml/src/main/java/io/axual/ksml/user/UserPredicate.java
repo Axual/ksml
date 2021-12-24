@@ -32,7 +32,7 @@ public class UserPredicate extends Invoker implements Predicate<Object, Object> 
     public UserPredicate(UserFunction function) {
         super(function);
         verifyParameterCount(2);
-        verifyResultType(UserBoolean.TYPE);
+        verifyResultType(UserBoolean.DATATYPE);
     }
 
     public boolean test(Object key, Object value) {

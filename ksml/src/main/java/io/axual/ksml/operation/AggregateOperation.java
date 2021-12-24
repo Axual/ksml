@@ -24,6 +24,8 @@ package io.axual.ksml.operation;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Named;
 
+import java.util.Locale;
+
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.stream.BaseStreamWrapper;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
@@ -38,6 +40,11 @@ import io.axual.ksml.user.UserInitializer;
 import io.axual.ksml.user.UserMerger;
 
 public class AggregateOperation extends StoreOperation {
+    private static final String ADDER_NAME = "Adder";
+    private static final String AGGREGATOR_NAME = "Aggregator";
+    private static final String INITIALIZER_NAME = "Initializer";
+    private static final String MERGER_NAME = "Merger";
+    private static final String SUBTRACTOR_NAME = "Subtractor";
     private final UserFunction initializer;
     private final UserFunction aggregator;
     private final UserFunction merger;
@@ -54,17 +61,17 @@ public class AggregateOperation extends StoreOperation {
     }
 
     private void checkAggregationFunction(UserFunction function, BaseStreamWrapper input, String name) {
-        checkAssignable(function.parameters[0].type, input.keyType.type(), "Stream key type incompatible with " + name + "'s first parameter");
-        checkAssignable(function.parameters[1].type, input.valueType.type(), "Stream value type incompatible with " + name + "'s second parameter");
+        checkAssignable(function.parameters[0].type, input.keyType().type(), "Stream key type incompatible with " + name + "'s first parameter");
+        checkAssignable(function.parameters[1].type, input.valueType().type(), "Stream value type incompatible with " + name + "'s second parameter");
         checkAssignable(function.parameters[2].type, initializer.resultType.type(), "Initializer result type is incompatible with " + name + "'s third parameter");
         checkAssignable(function.parameters[2].type, function.resultType.type(), name + " result type is incompatible with its third parameter");
     }
 
     @Override
     public StreamWrapper apply(KGroupedStreamWrapper input) {
-        checkNotNull(initializer, "initializer");
-        checkNotNull(aggregator, "aggregator");
-        checkAggregationFunction(aggregator, input, "Aggregator");
+        checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
+        checkNotNull(aggregator, AGGREGATOR_NAME.toLowerCase());
+        checkAggregationFunction(aggregator, input, AGGREGATOR_NAME);
 
         final StreamDataType resultValueType = streamDataTypeOf(aggregator.resultType, false);
 
@@ -73,18 +80,18 @@ public class AggregateOperation extends StoreOperation {
                         new UserInitializer(initializer),
                         new UserAggregator(aggregator),
                         Named.as(name),
-                        registerKeyValueStore(storeName, input.keyType, resultValueType)),
-                input.keyType,
+                        registerKeyValueStore(storeName, input.keyType(), resultValueType)),
+                input.keyType(),
                 resultValueType);
     }
 
     @Override
     public StreamWrapper apply(KGroupedTableWrapper input) {
-        checkNotNull(initializer, "initializer");
-        checkNotNull(adder, "adder");
-        checkNotNull(subtractor, "subtractor");
-        checkAggregationFunction(adder, input, "Adder");
-        checkAggregationFunction(subtractor, input, "Subtractor");
+        checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
+        checkNotNull(adder, ADDER_NAME.toLowerCase(Locale.ROOT));
+        checkNotNull(subtractor, SUBTRACTOR_NAME.toLowerCase(Locale.ROOT));
+        checkAggregationFunction(adder, input, ADDER_NAME);
+        checkAggregationFunction(subtractor, input, SUBTRACTOR_NAME);
 
         final StreamDataType resultValueType = streamDataTypeOf(adder.resultType, false);
 
@@ -94,18 +101,18 @@ public class AggregateOperation extends StoreOperation {
                         new UserAggregator(adder),
                         new UserAggregator(subtractor),
                         Named.as(name),
-                        registerKeyValueStore(storeName, input.keyType, resultValueType)),
-                input.keyType,
+                        registerKeyValueStore(storeName, input.keyType(), resultValueType)),
+                input.keyType(),
                 resultValueType);
     }
 
     @Override
     public StreamWrapper apply(SessionWindowedKStreamWrapper input) {
-        checkNotNull(initializer, "initializer");
-        checkNotNull(aggregator, "aggregator");
-        checkNotNull(merger, "merger");
-        checkAggregationFunction(aggregator, input, "Aggregator");
-        checkAssignable(merger.parameters[0].type, input.keyType.type(), "Stream key type incompatible with Merger's first parameter");
+        checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
+        checkNotNull(aggregator, AGGREGATOR_NAME.toLowerCase());
+        checkNotNull(merger, MERGER_NAME.toLowerCase());
+        checkAggregationFunction(aggregator, input, AGGREGATOR_NAME);
+        checkAssignable(merger.parameters[0].type, input.keyType().type(), "Stream key type incompatible with Merger's first parameter");
         checkEqual(aggregator.resultType.type(), merger.parameters[1].type, "Aggregator result type is incompatible with Merger's second parameter");
 
         final StreamDataType resultValueType = streamDataTypeOf(aggregator.resultType, false);
@@ -116,16 +123,16 @@ public class AggregateOperation extends StoreOperation {
                         new UserAggregator(aggregator),
                         new UserMerger(merger),
                         Named.as(name),
-                        registerSessionStore(storeName, input.keyType, resultValueType)),
-                windowedTypeOf(input.keyType),
+                        registerSessionStore(storeName, input.keyType(), resultValueType)),
+                windowedTypeOf(input.keyType()),
                 resultValueType);
     }
 
     @Override
     public StreamWrapper apply(TimeWindowedKStreamWrapper input) {
-        checkNotNull(initializer, "initializer");
-        checkNotNull(aggregator, "aggregator");
-        checkAggregationFunction(aggregator, input, "Aggregator");
+        checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
+        checkNotNull(aggregator, AGGREGATOR_NAME.toLowerCase());
+        checkAggregationFunction(aggregator, input, AGGREGATOR_NAME);
 
         final StreamDataType resultValueType = streamDataTypeOf(aggregator.resultType, false);
 
@@ -134,8 +141,8 @@ public class AggregateOperation extends StoreOperation {
                         new UserInitializer(initializer),
                         new UserAggregator(aggregator),
                         Named.as(name),
-                        registerWindowStore(storeName, input.keyType, resultValueType)),
-                windowedTypeOf(input.keyType),
+                        registerWindowStore(storeName, input.keyType(), resultValueType)),
+                windowedTypeOf(input.keyType()),
                 resultValueType);
     }
 }

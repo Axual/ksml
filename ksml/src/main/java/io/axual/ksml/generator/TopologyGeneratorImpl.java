@@ -116,8 +116,9 @@ public class TopologyGeneratorImpl {
             }
         } catch (IOException e) {
             LOG.error("Can not read YAML!", e);
-            throw new KSMLParseException(null, "Could not read KSML from source: " + e.getMessage());
         }
+
+        return new ArrayList<>();
     }
 
     private List<KSMLDefinition> readYAMLsFromFile(ObjectMapper mapper, String baseDir, Object source) throws IOException {
@@ -135,20 +136,21 @@ public class TopologyGeneratorImpl {
         return new ArrayList<>();
     }
 
-    public Result create(StreamsBuilder builder) {
+    public Topology create(StreamsBuilder builder) {
         List<KSMLDefinition> definitions = readKSMLDefinitions();
-        Map<String, TopologyParseContext.StoreDescriptor> stores = new HashMap<>();
         for (KSMLDefinition definition : definitions) {
             var generatorResult = generate(builder, YamlNode.fromRoot(definition.root, "ksml"));
-            LOG.info("\n{}", generatorResult.getTopology() != null ? generatorResult.getTopology().describe() : "null");
-            if (generatorResult.getStores().size() > 0) {
-                LOG.info("Registered state stores:");
-                for (Map.Entry<String, TopologyParseContext.StoreDescriptor> entry : generatorResult.getStores().entrySet()) {
-                    LOG.info("  {}: key={}, value={}", entry.getKey(), entry.getValue().keyType, entry.getValue().valueType);
+            if (generatorResult != null) {
+                LOG.info("\n{}", generatorResult.getTopology() != null ? generatorResult.getTopology().describe() : "null");
+                if (generatorResult.getStores().size() > 0) {
+                    LOG.info("Registered state stores:");
+                    for (Map.Entry<String, TopologyParseContext.StoreDescriptor> entry : generatorResult.getStores().entrySet()) {
+                        LOG.info("  {}: key={}, value={}", entry.getKey(), entry.getValue().keyType, entry.getValue().valueType);
+                    }
                 }
             }
         }
-        return new Result(builder.build(), stores);
+        return builder.build();
     }
 
     private Result generate(StreamsBuilder builder, YamlNode node) {

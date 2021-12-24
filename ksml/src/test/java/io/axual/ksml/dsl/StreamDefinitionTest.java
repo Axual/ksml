@@ -46,7 +46,7 @@ import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 @RunWith(JUnitPlatform.class)
-public class StreamDefinitionTest {
+class StreamDefinitionTest {
 
     @Mock
     private StreamsBuilder builder;
@@ -58,7 +58,7 @@ public class StreamDefinitionTest {
 
     @Test
     void testStreamDefinition() {
-        notationLibrary.put(BinaryNotation.NAME, mockNotation);
+        notationLibrary.put(BinaryNotation.NOTATION_NAME, mockNotation);
 
         // given a TableDefinition
         var streamDefinition = new StreamDefinition("topic", "string", "string");

@@ -29,7 +29,14 @@ import io.axual.ksml.parser.ContextAwareParser;
 import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 
-import static io.axual.ksml.dsl.KSMLDSL.*;
+import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_BUFFERFULLSTRATEGY;
+import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_BUFFERFULLSTRATEGY_EMIT;
+import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_BUFFER_MAXBYTES;
+import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_BUFFER_MAXRECORDS;
+import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_DURATION_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_UNTILTIMELIMIT;
+import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_UNTILWINDOWCLOSES;
+import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_UNTIL_ATTRIBUTE;
 
 public class SuppressOperationParser extends ContextAwareParser<SuppressOperation> {
     private final String name;

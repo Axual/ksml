@@ -21,8 +21,10 @@ package io.axual.ksml.rest.server;
  */
 
 import java.time.Duration;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
@@ -31,22 +33,22 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public final class Utils {
+    private static Client restClient = null;
+
     private Utils() {
     }
 
-    private static Client REST_CLIENT = null;
-
     private static Client getRESTClient() {
-        if (REST_CLIENT == null) {
-            REST_CLIENT = ClientBuilder.newClient();
+        if (restClient == null) {
+            restClient = ClientBuilder.newClient();
         }
-        return REST_CLIENT;
+        return restClient;
     }
 
     /**
      * Fetch metrics using REST call
      *
-     * @param url     remote metric endpoint URL
+     * @param url      remote metric endpoint URL
      * @param duration duration for which to wait for response before giving up
      * @return the StoreData
      */
@@ -58,10 +60,14 @@ public final class Utils {
                     .get(KeyValueBeans.class);
 
             return storeDataFuture.get(duration.toMillis(), TimeUnit.MILLISECONDS); //blocks until timeout
-        } catch (Exception ex) {
+        } catch (InterruptedException | ExecutionException e) {
+            log.warn("Store data fetch from {} was interrupted", url);
+            Thread.currentThread().interrupt();
+        } catch (TimeoutException e) {
             log.warn("Store data fetch from {} timed out", url);
-            return KeyValueBeans.EMPTY();
         }
+
+        return new KeyValueBeans();
     }
 
     public static KeyValueBeans getRemoteStoreData(String url) {
@@ -71,8 +77,8 @@ public final class Utils {
     }
 
     public static void closeRESTClient() {
-        if (REST_CLIENT != null) {
-            REST_CLIENT.close();
+        if (restClient != null) {
+            restClient.close();
             log.info("REST Client closed");
         }
     }

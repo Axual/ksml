@@ -57,7 +57,6 @@ public class PythonFunction extends UserFunction {
 
         // Prepare a list of parameter names
         String[] params = Arrays.stream(parameters).map(p -> p.name).toArray(String[]::new);
-//        String[] convertToParams = Arrays.stream(params).map(p -> "convert_to(" + p + ")").toArray(String[]::new);
 
         // Prepare the Python code to load
         String pyCode = "import polyglot\n" +
@@ -115,9 +114,6 @@ public class PythonFunction extends UserFunction {
             arguments[index] = mapper.fromUserObject(parameters[index]);
         }
 
-        // Create a list of prefixed parameter names to pass to the function
-//        String[] params = Arrays.stream(this.parameters).map(p -> name + "_" + p.name).toArray(String[]::new);
-
         try {
             // Call the prepared function
             Value pyResult = function.execute(arguments);
@@ -135,7 +131,7 @@ public class PythonFunction extends UserFunction {
                 if (pyResult.isNull()) {
                     // An empty string in YAML (ie. '') is returned as null by the parser, so
                     // when we expect a string and get null, we convert it to the empty string.
-                    if (resultType.type() == UserString.TYPE) {
+                    if (resultType.type() == UserString.DATATYPE) {
                         // Empty string may be returned as null, so catch and convert here
                         result = new UserString(resultType.notation(), "");
                     } else {

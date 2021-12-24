@@ -50,6 +50,7 @@ public interface Backend extends AutoCloseable, Runnable {
                 return State.STOPPING;
             case NOT_RUNNING:
                 return State.STOPPED;
+            case PENDING_ERROR:
             case ERROR:
                 return State.FAILED;
         }

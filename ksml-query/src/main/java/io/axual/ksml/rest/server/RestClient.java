@@ -21,8 +21,10 @@ package io.axual.ksml.rest.server;
  */
 
 import java.time.Duration;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
@@ -31,7 +33,9 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class RestClient implements AutoCloseable {
-    private static Duration DEFAULT_TIMEOUT = Duration.ofSeconds(4);
+    private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(4);
+    private static final String INTERRUPTED_MESSAGE = "Store data fetch from {} was interrupted";
+    private static final String TIMEOUT_MESSAGE = "Store data fetch from {} timed out";
     private Client client = null;
 
     private Client getRESTClient() {
@@ -54,6 +58,16 @@ public class RestClient implements AutoCloseable {
     /**
      * Fetch remote KeyValueBeans using REST call
      *
+     * @param url remote keyvalue endpoint URL
+     * @return the StoreData
+     */
+    public WindowedKeyValueBeans getRemoteWindowedKeyValueBeans(String url) {
+        return getRemoteWindowKeyValueBeans(url, DEFAULT_TIMEOUT);
+    }
+
+    /**
+     * Fetch remote KeyValueBeans using REST call
+     *
      * @param url      remote keyvalue endpoint URL
      * @param duration duration for which to wait for response before giving up
      * @return the StoreData
@@ -65,10 +79,37 @@ public class RestClient implements AutoCloseable {
                     .async() //returns asap
                     .get(KeyValueBeans.class);
             return storeDataFuture.get(duration.toMillis(), TimeUnit.MILLISECONDS); //blocks until timeout
-        } catch (Exception ex) {
-            log.warn("Store data fetch from {} timed out", url);
-            return new KeyValueBeans();
+        } catch (InterruptedException | ExecutionException e) {
+            log.warn(INTERRUPTED_MESSAGE, url);
+            Thread.currentThread().interrupt();
+        } catch (TimeoutException e) {
+            log.warn(TIMEOUT_MESSAGE, url);
         }
+
+        return new KeyValueBeans();
+    }
+
+    /**
+     * Fetch remote KeyValueBeans using REST call
+     *
+     * @param url      remote keyvalue endpoint URL
+     * @param duration duration for which to wait for response before giving up
+     * @return the StoreData
+     */
+    public WindowedKeyValueBeans getRemoteWindowKeyValueBeans(String url, Duration duration) {
+        try {
+            Future<WindowedKeyValueBeans> storeDataFuture = getRESTClient().target(url)
+                    .request(MediaType.APPLICATION_JSON)
+                    .async() //returns asap
+                    .get(WindowedKeyValueBeans.class);
+            return storeDataFuture.get(duration.toMillis(), TimeUnit.MILLISECONDS); //blocks until timeout
+        } catch (InterruptedException | ExecutionException e) {
+            log.warn(INTERRUPTED_MESSAGE, url);
+            Thread.currentThread().interrupt();
+        } catch (TimeoutException e) {
+            log.warn(TIMEOUT_MESSAGE, url);
+        }
+        return new WindowedKeyValueBeans();
     }
 
     /**
@@ -95,10 +136,13 @@ public class RestClient implements AutoCloseable {
                     .async() //returns asap
                     .get(KeyValueBean.class);
             return storeDataFuture.get(duration.toMillis(), TimeUnit.MILLISECONDS); //blocks until timeout
-        } catch (Exception ex) {
-            log.warn("Store data fetch from {} timed out", url);
-            return null;
+        } catch (InterruptedException | ExecutionException e) {
+            log.warn(INTERRUPTED_MESSAGE, url);
+            Thread.currentThread().interrupt();
+        } catch (TimeoutException e) {
+            log.warn(TIMEOUT_MESSAGE, url);
         }
+        return null;
     }
 
     @Override

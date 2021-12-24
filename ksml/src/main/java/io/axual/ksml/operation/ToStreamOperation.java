@@ -37,7 +37,7 @@ public class ToStreamOperation extends BaseOperation {
     public StreamWrapper apply(KTableWrapper input) {
         return new KStreamWrapper(
                 input.table.toStream((key, value) -> DataUtil.asUserObject(key), Named.as(name)),
-                input.keyType,
-                input.valueType);
+                input.keyType(),
+                input.valueType());
     }
 }

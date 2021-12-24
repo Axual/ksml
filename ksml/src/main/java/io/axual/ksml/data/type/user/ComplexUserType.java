@@ -31,7 +31,7 @@ public abstract class ComplexUserType implements UserType {
     private final String notation;
     private final UserType[] subTypes;
 
-    public ComplexUserType(ComplexType type, String notation, UserType... subTypes) {
+    ComplexUserType(ComplexType type, String notation, UserType... subTypes) {
         this.type = type;
         this.notation = notation;
         this.subTypes = subTypes;

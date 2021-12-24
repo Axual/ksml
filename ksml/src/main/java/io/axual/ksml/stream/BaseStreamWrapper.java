@@ -27,8 +27,8 @@ import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class BaseStreamWrapper implements StreamWrapper {
-    public final StreamDataType keyType;
-    public final StreamDataType valueType;
+    private final StreamDataType keyType;
+    private final StreamDataType valueType;
 
     public String toString() {
         String type = getClass().getSimpleName();

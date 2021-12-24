@@ -62,7 +62,7 @@ public class UserPrimitive<T> implements UserObject {
     public boolean equals(Object other) {
         if (this == other) return true;
         if (other == null || other.getClass() != getClass()) return false;
-        UserPrimitive o = (UserPrimitive) other;
+        UserPrimitive<?> o = (UserPrimitive<?>) other;
         if (!type.equals(o.type)) return false;
         if (value == null) return o.value == null;
         return value.equals(o.value);

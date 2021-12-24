@@ -43,10 +43,10 @@ public class AvroDataMapper extends NativeUserObjectMapper {
             return new UserString(resultNotation, value.toString());
         }
         if (value instanceof GenericRecord) {
-            GenericRecord record = (GenericRecord) value;
-            UserRecord result = new UserRecord(SchemaUtil.schemaToDataSchema(record.getSchema()));
-            for (Schema.Field field : record.getSchema().getFields()) {
-                result.put(field.name(), toUserObject(resultNotation, record.get(field.name())));
+            var rec = (GenericRecord) value;
+            UserRecord result = new UserRecord(SchemaUtil.schemaToDataSchema(rec.getSchema()));
+            for (Schema.Field field : rec.getSchema().getFields()) {
+                result.put(field.name(), toUserObject(resultNotation, rec.get(field.name())));
             }
             return result;
         }

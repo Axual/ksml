@@ -43,16 +43,16 @@ public class ToOperation extends BaseOperation {
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
         // Perform a type check to see if the key/value data types received matches the stream definition's types
-        if (!target.keyType.type().isAssignableFrom(input.keyType.type()) || !target.valueType.type().isAssignableFrom(input.valueType.type())) {
-            throw KSMLTypeException.topicTypeMismatch(target.topic, input.keyType, input.valueType, target.keyType.type(), target.valueType.type());
+        if (!target.keyType.type().isAssignableFrom(input.keyType().type()) || !target.valueType.type().isAssignableFrom(input.valueType().type())) {
+            throw KSMLTypeException.topicTypeMismatch(target.topic, input.keyType(), input.valueType(), target.keyType.type(), target.valueType.type());
         }
 
         var keySerde = target.keyType.type() != DataType.UNKNOWN
                 ? notationLibrary.get(target.keyType.notation()).getSerde(target.keyType.type(), true)
-                : input.keyType.getSerde();
+                : input.keyType().getSerde();
         var valueSerde = target.valueType.type() != DataType.UNKNOWN
                 ? notationLibrary.get(target.valueType.notation()).getSerde(target.valueType.type(), false)
-                : input.valueType.getSerde();
+                : input.valueType().getSerde();
 
         input.stream.to(target.topic, Produced.with(keySerde, valueSerde).withName(name));
         return null;

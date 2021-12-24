@@ -44,4 +44,16 @@ public class UserTuple extends Tuple<UserObject> implements UserObject {
     public UserType type() {
         return type;
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!super.equals(other)) return false;
+        if (!(other instanceof UserTuple)) return false;
+        return type.equals(((UserTuple) other).type);
+    }
+
+    @Override
+    public int hashCode() {
+        return type.hashCode() + 31 * super.hashCode();
+    }
 }

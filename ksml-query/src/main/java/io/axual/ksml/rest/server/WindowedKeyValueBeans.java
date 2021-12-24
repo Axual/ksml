@@ -20,12 +20,11 @@ package io.axual.ksml.rest.server;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.streams.kstream.Windowed;
+import org.apache.kafka.streams.kstream.Window;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import io.axual.ksml.rest.data.WindowedData;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
@@ -35,29 +34,24 @@ import jakarta.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class KeyValueBeans {
-    private final List<KeyValueBean> elements = new ArrayList<>();
+public class WindowedKeyValueBeans {
+    private final List<WindowedKeyValueBean> elements = new ArrayList<>();
 
-    public List<KeyValueBean> elements() {
+    public List<WindowedKeyValueBean> elements() {
         return elements;
     }
 
-    public KeyValueBeans add(Object key, Object value) {
-        if (key instanceof Windowed) {
-            Windowed<Object> windowedKey = (Windowed<Object>) key;
-            elements.add(new KeyValueBean(new WindowedData(windowedKey), value));
-        } else {
-            elements.add(new KeyValueBean(key, value));
-        }
+    public WindowedKeyValueBeans add(Window window, Object key, Object value) {
+        elements.add(new WindowedKeyValueBean(window.start(), window.end(), key, value));
         return this;
     }
 
-    public KeyValueBeans add(KeyValueBean element) {
-        elements.add(new KeyValueBean(element.getKey(), element.getValue()));
+    public WindowedKeyValueBeans add(WindowedKeyValueBean element) {
+        elements.add(new WindowedKeyValueBean(element.getWindow().getStart(), element.getWindow().getEnd(), element.getKey(), element.getValue()));
         return this;
     }
 
-    public KeyValueBeans add(KeyValueBeans otherBeans) {
+    public WindowedKeyValueBeans add(WindowedKeyValueBeans otherBeans) {
         elements.addAll(otherBeans.elements);
         return this;
     }

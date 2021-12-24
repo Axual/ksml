@@ -23,10 +23,11 @@ package io.axual.ksml.serde;
 import org.apache.kafka.common.serialization.Serializer;
 
 public class ShortSerializer implements Serializer<Short> {
+    private static final byte[] EMPTY = new byte[0];
+
     @Override
     public byte[] serialize(String topic, Short data) {
-        if (data == null)
-            return null;
+        if (data == null) return EMPTY;
 
         return new byte[]{
                 (byte) (data >>> 8),

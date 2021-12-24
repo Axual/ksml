@@ -58,8 +58,8 @@ public class OuterJoinOperation extends StoreOperation {
                             ((KStreamWrapper) joinStream).stream,
                             new UserValueJoiner(valueJoiner),
                             joinWindows,
-                            StreamJoined.with(input.keyType.getSerde(), input.valueType.getSerde(), resultValueType.getSerde()).withName(name).withStoreName(storeName)),
-                    input.keyType,
+                            StreamJoined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde()).withName(name).withStoreName(storeName)),
+                    input.keyType(),
                     resultValueType);
         }
         throw new KSMLApplyException("Can not OUTER_JOIN stream with " + joinStream.getClass().getSimpleName());
@@ -75,8 +75,8 @@ public class OuterJoinOperation extends StoreOperation {
                             ((KTableWrapper) joinStream).table,
                             new UserValueJoiner(valueJoiner),
                             Named.as(name),
-                            registerKeyValueStore(storeName, input.keyType, resultValueType)),
-                    input.keyType,
+                            registerKeyValueStore(storeName, input.keyType(), resultValueType)),
+                    input.keyType(),
                     resultValueType);
         }
         throw new KSMLApplyException("Can not OUTER_JOIN table with " + joinStream.getClass().getSimpleName());

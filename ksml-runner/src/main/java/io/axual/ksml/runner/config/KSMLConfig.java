@@ -42,12 +42,28 @@ public class KSMLConfig {
     private List<String> definitions;
 
     public String getApplicationServer() {
-        if (applicationServerEnabled != null && applicationServerEnabled) {
-            return (applicationServerHost != null ? applicationServerHost : DEFAULT_HOSTNAME)
-                    + ":"
-                    + (applicationServerPort != null ? applicationServerPort : DEFAULT_PORT);
+        if (getApplicationServerEnabled()) {
+            return getApplicationServerHost() + ":" + getApplicationServerPort();
         }
         return null;
+    }
+
+    public boolean getApplicationServerEnabled() {
+        return applicationServerEnabled != null && applicationServerEnabled;
+    }
+
+    public String getApplicationServerHost() {
+        if (getApplicationServerEnabled()) {
+            return (applicationServerHost != null ? applicationServerHost : DEFAULT_HOSTNAME);
+        }
+        return null;
+    }
+
+    public Integer getApplicationServerPort() {
+        if (getApplicationServerEnabled()) {
+            return (applicationServerPort != null ? Integer.parseInt(applicationServerPort) : Integer.parseInt(DEFAULT_PORT));
+        }
+        return 0;
     }
 
     public void validate() throws KSMLRunnerConfigurationException {

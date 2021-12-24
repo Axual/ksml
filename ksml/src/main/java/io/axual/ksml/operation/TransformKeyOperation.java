@@ -41,6 +41,6 @@ public class TransformKeyOperation extends BaseOperation {
         return new KStreamWrapper(
                 input.stream.selectKey(new UserKeyTransformer(transformer), Named.as(name)),
                 streamDataTypeOf(transformer.resultType, true),
-                input.valueType);
+                input.valueType());
     }
 }

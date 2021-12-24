@@ -29,6 +29,6 @@ import io.axual.ksml.notation.NotationLibrary;
 public class AxualNotationLibrary extends NotationLibrary {
     public AxualNotationLibrary(Map<String, Object> configs) {
         super(configs);
-        put(AvroNotation.NAME, new AxualAvroNotation(configs));
+        put(AvroNotation.NOTATION_NAME, new AxualAvroNotation(configs));
     }
 }

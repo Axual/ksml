@@ -117,12 +117,12 @@ public class UserTypeParser {
             }
         }
 
-        if (typeNotation.equalsIgnoreCase(AvroNotation.NAME)) {
+        if (typeNotation.equalsIgnoreCase(AvroNotation.NOTATION_NAME)) {
             return parseAvroType(type);
         }
 
-        if (typeNotation.equalsIgnoreCase(JsonNotation.NAME) || type.equalsIgnoreCase(JsonNotation.NAME)) {
-            return new UserRecordType(JsonNotation.NAME);
+        if (typeNotation.equalsIgnoreCase(JsonNotation.NOTATION_NAME) || type.equalsIgnoreCase(JsonNotation.NOTATION_NAME)) {
+            return new UserRecordType(JsonNotation.NOTATION_NAME);
         }
 
         return new StaticUserType(parseType(type), resultNotation);
@@ -147,28 +147,28 @@ public class UserTypeParser {
     private static DataType parseType(String type) {
         switch (type) {
             case "boolean":
-                return UserBoolean.TYPE;
+                return UserBoolean.DATATYPE;
             case "byte":
-                return UserByte.TYPE;
+                return UserByte.DATATYPE;
             case "bytes":
-                return UserBytes.TYPE;
+                return UserBytes.DATATYPE;
             case "short":
-                return UserShort.TYPE;
+                return UserShort.DATATYPE;
             case "double":
-                return UserDouble.TYPE;
+                return UserDouble.DATATYPE;
             case "float":
-                return UserFloat.TYPE;
+                return UserFloat.DATATYPE;
             case "int":
-                return UserInteger.TYPE;
+                return UserInteger.DATATYPE;
             case "long":
-                return UserLong.TYPE;
+                return UserLong.DATATYPE;
             case "?":
                 return DataType.UNKNOWN;
             case "none":
                 return null;
             case "str":
             case "string":
-                return UserString.TYPE;
+                return UserString.DATATYPE;
             default:
                 throw new KSMLTopologyException("Can not derive type: " + type);
         }

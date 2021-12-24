@@ -32,7 +32,7 @@ public abstract class BaseStreamDefinition {
     public final UserType keyType;
     public final UserType valueType;
 
-    public BaseStreamDefinition(String topic, UserType keyType, UserType valueType) {
+    BaseStreamDefinition(String topic, UserType keyType, UserType valueType) {
         this.topic = topic;
         this.keyType = keyType;
         this.valueType = valueType;

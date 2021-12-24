@@ -25,13 +25,13 @@ import io.axual.ksml.data.type.base.SimpleType;
 import static io.axual.ksml.data.type.user.UserType.DEFAULT_NOTATION;
 
 public class UserBoolean extends UserPrimitive<Boolean> {
-    public static final SimpleType TYPE = new SimpleType(Boolean.class);
+    public static final SimpleType DATATYPE = new SimpleType(Boolean.class);
 
     public UserBoolean(Boolean value) {
         this(DEFAULT_NOTATION, value);
     }
 
     public UserBoolean(String notation, Boolean value) {
-        super(TYPE, notation, value);
+        super(DATATYPE, notation, value);
     }
 }

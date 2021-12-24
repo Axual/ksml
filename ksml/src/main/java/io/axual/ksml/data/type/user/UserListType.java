@@ -31,6 +31,7 @@ public class UserListType extends ComplexUserType {
         super(new ListType(valueType.type()), notation, valueType);
     }
 
+    @Override
     public String schemaName() {
         return "ListOf" + valueType().schemaName();
     }

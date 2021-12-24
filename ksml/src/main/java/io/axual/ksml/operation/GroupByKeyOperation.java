@@ -36,8 +36,8 @@ public class GroupByKeyOperation extends StoreOperation {
     public StreamWrapper apply(KStreamWrapper input) {
         return new KGroupedStreamWrapper(
                 input.stream.groupByKey(
-                        registerGrouped(Grouped.with(storeName, input.keyType.getSerde(), input.valueType.getSerde()))),
-                input.keyType,
-                input.valueType);
+                        registerGrouped(Grouped.with(storeName, input.keyType().getSerde(), input.valueType().getSerde()))),
+                input.keyType(),
+                input.valueType());
     }
 }

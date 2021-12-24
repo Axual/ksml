@@ -37,7 +37,7 @@ public abstract class Invoker {
     private static final Logger LOG = LoggerFactory.getLogger(Invoker.class);
     protected final UserFunction function;
 
-    public Invoker(UserFunction function) {
+    protected Invoker(UserFunction function) {
         if (function == null) {
             throw new KSMLApplyException("Invoker: function can not be null");
         }

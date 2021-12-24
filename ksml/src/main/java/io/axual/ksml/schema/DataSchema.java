@@ -49,7 +49,7 @@ public class DataSchema {
     }
 
     public String notation() {
-        return AvroNotation.NAME;
+        return AvroNotation.NOTATION_NAME;
     }
 
     @Override
