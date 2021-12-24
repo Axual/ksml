@@ -64,11 +64,10 @@ public class DataUtil {
         var schema = SchemaUtil.windowTypeToSchema(new WindowedType(keyAsData.type().type()));
         var result = new UserRecord(schema);
         result.put(START_FIELD, new UserLong(windowedObject.window().start()));
-        result.put(END_FIELD, new UserLong(windowedObject.window().start()));
+        result.put(END_FIELD, new UserLong(windowedObject.window().end()));
         result.put(START_TIME_FIELD, new UserString(windowedObject.window().startTime().toString()));
         result.put(END_TIME_FIELD, new UserString(windowedObject.window().endTime().toString()));
         result.put(KEY_FIELD, keyAsData);
         return result;
     }
-
 }
