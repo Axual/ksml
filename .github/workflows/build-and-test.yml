@@ -1,6 +1,9 @@
 name: Build and test
 on:
   push:
+    branches:
+      - main
+      - maven-jacoco
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:
