@@ -34,7 +34,7 @@ public class AvroObject implements GenericRecord {
     private final Map<String, Object> data = new HashMap<>();
     private final GenericData validator = GenericData.get();
 
-    public AvroObject(Schema schema, Map<String, Object> source) {
+    public AvroObject(Schema schema, Map<?, ?> source) {
         this.schema = schema;
         schema.getFields().forEach(field -> put(field.name(), source.get(field.name())));
     }
@@ -44,10 +44,10 @@ public class AvroObject implements GenericRecord {
         var field = schema.getField(key);
 
         if (field.schema().getType() == Schema.Type.RECORD && value instanceof Map) {
-            value = new AvroObject(field.schema(), (Map<String, Object>) value);
+            value = new AvroObject(field.schema(), (Map<?, ?>) value);
         }
         if (field.schema().getType() == Schema.Type.ENUM) {
-            value = new GenericData.EnumSymbol(field.schema(), (String) value);
+            value = new GenericData.EnumSymbol(field.schema(), value != null ? value.toString() : null);
         }
 
         if (!validator.validate(field.schema(), value)) {
