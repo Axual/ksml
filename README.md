@@ -1,4 +1,4 @@
-[![Build Status](https://app.travis-ci.com/tonvanbart/ksml.svg?branch=main)](https://app.travis-ci.com/tonvanbart/ksml)
+[![Build and test](https://github.com/tonvanbart/ksml/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/tonvanbart/ksml/actions/workflows/build-and-test.yml)
 
 Axual KSML
 --------
