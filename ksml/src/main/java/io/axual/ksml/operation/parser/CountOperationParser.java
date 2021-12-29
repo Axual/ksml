@@ -22,13 +22,13 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.operation.CountOperation;
-import io.axual.ksml.parser.ContextAwareParser;
 import io.axual.ksml.parser.ParseContext;
+import io.axual.ksml.parser.StoreOperationParser;
 import io.axual.ksml.parser.YamlNode;
 
-import static io.axual.ksml.dsl.KSMLDSL.STORE_NAME_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
 
-public class CountOperationParser extends ContextAwareParser<CountOperation> {
+public class CountOperationParser extends StoreOperationParser<CountOperation> {
     private final String name;
 
     protected CountOperationParser(String name, ParseContext context) {
@@ -39,7 +39,6 @@ public class CountOperationParser extends ContextAwareParser<CountOperation> {
     @Override
     public CountOperation parse(YamlNode node) {
         if (node == null) return null;
-        return new CountOperation(
-                storeOperationConfig(name, parseText(node, STORE_NAME_ATTRIBUTE)));
+        return new CountOperation(storeOperationConfig(name, node, STORE_ATTRIBUTE));
     }
 }

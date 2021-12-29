@@ -1,4 +1,4 @@
-package io.axual.ksml.operation.parser;
+package io.axual.ksml.definition;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,24 +20,13 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import java.time.Duration;
 
+import lombok.AllArgsConstructor;
 
-import io.axual.ksml.operation.ToStreamOperation;
-import io.axual.ksml.parser.OperationParser;
-import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.parser.YamlNode;
-
-public class ToStreamOperationParser extends OperationParser<ToStreamOperation> {
-    private final String name;
-
-    protected ToStreamOperationParser(String name, ParseContext context) {
-        super(context);
-        this.name = name;
-    }
-
-    @Override
-    public ToStreamOperation parse(YamlNode node) {
-        if (node == null) return null;
-        return new ToStreamOperation(operationConfig(name));
-    }
+@AllArgsConstructor
+public class StoreDefinition {
+    public final String name;
+    public final Duration retention;
+    public final Boolean caching;
 }

@@ -1,4 +1,4 @@
-package io.axual.ksml.operation.parser;
+package io.axual.ksml.definition.parser;
 
 /*-
  * ========================LICENSE_START=================================
@@ -21,27 +21,21 @@ package io.axual.ksml.operation.parser;
  */
 
 
-import io.axual.ksml.definition.parser.ForEachActionDefinitionParser;
-import io.axual.ksml.operation.PeekOperation;
-import io.axual.ksml.parser.OperationParser;
-import io.axual.ksml.parser.ParseContext;
+import io.axual.ksml.definition.StoreDefinition;
+import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.YamlNode;
 
-import static io.axual.ksml.dsl.KSMLDSL.PEEK_FOREACH_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.STORE_CACHING_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.STORE_NAME_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.STORE_RETENTION_ATTRIBUTE;
 
-public class PeekOperationParser extends OperationParser<PeekOperation> {
-    private final String name;
-
-    protected PeekOperationParser(String name, ParseContext context) {
-        super(context);
-        this.name = name;
-    }
-
+public class StoreDefinitionParser extends BaseParser<StoreDefinition> {
     @Override
-    public PeekOperation parse(YamlNode node) {
+    public StoreDefinition parse(YamlNode node) {
         if (node == null) return null;
-        return new PeekOperation(
-                operationConfig(name),
-                parseFunction(node, PEEK_FOREACH_ATTRIBUTE, new ForEachActionDefinitionParser()));
+        return new StoreDefinition(
+                parseText(node, STORE_NAME_ATTRIBUTE),
+                parseDuration(node, STORE_RETENTION_ATTRIBUTE),
+                parseBoolean(node, STORE_CACHING_ATTRIBUTE));
     }
 }

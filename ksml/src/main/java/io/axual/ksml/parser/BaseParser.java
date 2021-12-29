@@ -35,6 +35,11 @@ public abstract class BaseParser<T> {
         return child != null ? child.asBoolean() : null;
     }
 
+    protected boolean parseBoolean(YamlNode parent, String childName, boolean defaultValue) {
+        var result = parseBoolean(parent, childName);
+        return result != null ? result : defaultValue;
+    }
+
     protected Duration parseDuration(YamlNode parent, String childName) {
         String durationStr = parseText(parent, childName);
         if (durationStr == null) return null;

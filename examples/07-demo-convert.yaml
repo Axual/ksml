@@ -28,6 +28,10 @@ pipelines:
   # The secondary pipeline achieves the same, but by inlining the target topic definition and its data types
   secondary:
     from: sensor_source
+    via:
+      - type: peek
+        forEach: print_message
+        name: peek_and_print2
     to:
       topic: ksml_sensordata_json
       keyType: string

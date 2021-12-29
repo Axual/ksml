@@ -30,10 +30,10 @@ import io.axual.ksml.operation.BranchOperation;
 import io.axual.ksml.operation.ForEachOperation;
 import io.axual.ksml.operation.ToOperation;
 import io.axual.ksml.operation.ToTopicNameExtractorOperation;
-import io.axual.ksml.parser.ContextAwareParser;
-import io.axual.ksml.parser.ReferenceOrInlineParser;
 import io.axual.ksml.parser.ListParser;
+import io.axual.ksml.parser.OperationParser;
 import io.axual.ksml.parser.ParseContext;
+import io.axual.ksml.parser.ReferenceOrInlineParser;
 import io.axual.ksml.parser.StreamOperation;
 import io.axual.ksml.parser.YamlNode;
 
@@ -42,7 +42,7 @@ import static io.axual.ksml.dsl.KSMLDSL.PIPELINE_FOREACH_ATTRIBUTE;
 import static io.axual.ksml.dsl.KSMLDSL.PIPELINE_TOTOPICNAMEEXTRACTOR_ATTRIBUTE;
 import static io.axual.ksml.dsl.KSMLDSL.PIPELINE_TO_ATTRIBUTE;
 
-public class PipelineSinkOperationParser extends ContextAwareParser<StreamOperation> {
+public class PipelineSinkOperationParser extends OperationParser<StreamOperation> {
     public PipelineSinkOperationParser(ParseContext context) {
         super(context);
     }

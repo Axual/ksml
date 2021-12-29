@@ -45,8 +45,10 @@ import io.axual.ksml.KSMLConfig;
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.PipelineDefinition;
+import io.axual.ksml.definition.StoreDefinition;
 import io.axual.ksml.definition.parser.GlobalTableDefinitionParser;
 import io.axual.ksml.definition.parser.PipelineDefinitionParser;
+import io.axual.ksml.definition.parser.StoreDefinitionParser;
 import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.definition.parser.TableDefinitionParser;
 import io.axual.ksml.definition.parser.TypedFunctionDefinitionParser;
@@ -62,6 +64,7 @@ import lombok.Getter;
 import static io.axual.ksml.dsl.KSMLDSL.FUNCTIONS_DEFINITION;
 import static io.axual.ksml.dsl.KSMLDSL.GLOBALTABLES_DEFINITION;
 import static io.axual.ksml.dsl.KSMLDSL.PIPELINES_DEFINITION;
+import static io.axual.ksml.dsl.KSMLDSL.STORES_DEFINITION;
 import static io.axual.ksml.dsl.KSMLDSL.STREAMS_DEFINITION;
 import static io.axual.ksml.dsl.KSMLDSL.TABLES_DEFINITION;
 
@@ -144,8 +147,8 @@ public class TopologyGeneratorImpl {
                 LOG.info("\n{}", generatorResult.getTopology() != null ? generatorResult.getTopology().describe() : "null");
                 if (generatorResult.getStores().size() > 0) {
                     LOG.info("Registered state stores:");
-                    for (Map.Entry<String, TopologyParseContext.StoreDescriptor> entry : generatorResult.getStores().entrySet()) {
-                        LOG.info("  {}: key={}, value={}", entry.getKey(), entry.getValue().keyType, entry.getValue().valueType);
+                    for (var entry : generatorResult.getStores().entrySet()) {
+                        LOG.info("  {}: retention={}, key={}, value={}, caching={}", entry.getKey(), entry.getValue().storeRetention, entry.getValue().keyType, entry.getValue().valueType, entry.getValue().cachingEnabled);
                     }
                 }
             }
@@ -166,8 +169,11 @@ public class TopologyGeneratorImpl {
         Map<String, FunctionDefinition> functions = new MapParser<>(new TypedFunctionDefinitionParser())
                 .parse(node.get(FUNCTIONS_DEFINITION));
 
+        // Parse all defined stores
+        Map<String, StoreDefinition> stores = new MapParser<>(new StoreDefinitionParser()).parse(node.get(STORES_DEFINITION));
+
         // Parse all defined pipelines
-        TopologyParseContext context = new TopologyParseContext(builder, config.notationLibrary, streamDefinitions, functions);
+        TopologyParseContext context = new TopologyParseContext(builder, config.notationLibrary, streamDefinitions, functions, stores);
         final MapParser<PipelineDefinition> mapParser = new MapParser<>(new PipelineDefinitionParser(context));
         final Map<String, PipelineDefinition> pipelineDefinitionMap = mapParser.parse(node.get(PIPELINES_DEFINITION));
         pipelineDefinitionMap.forEach((name, pipeline) -> {

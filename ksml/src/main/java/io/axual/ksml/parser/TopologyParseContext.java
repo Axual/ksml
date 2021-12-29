@@ -26,12 +26,14 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Grouped;
 import org.apache.kafka.streams.kstream.internals.GroupedInternal;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.definition.StoreDefinition;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.notation.NotationLibrary;
@@ -50,6 +52,7 @@ public class TopologyParseContext implements ParseContext {
     private final NotationLibrary notationLibrary;
     private final Map<String, BaseStreamDefinition> streamDefinitions;
     private final Map<String, FunctionDefinition> functionDefinitions;
+    private final Map<String, StoreDefinition> storeDefinitions;
     private final Map<String, StreamWrapper> streamWrappers = new HashMap<>();
     private final Map<String, AtomicInteger> typeInstanceCounters = new HashMap<>();
     private final Map<String, GroupedInternal<?, ?>> groupedStores = new HashMap<>();
@@ -59,15 +62,18 @@ public class TopologyParseContext implements ParseContext {
     public static class StoreDescriptor {
         public final StoreType type;
         public final String storeName;
+        public final Duration storeRetention;
         public final StreamDataType keyType;
         public final StreamDataType valueType;
+        public final boolean cachingEnabled;
     }
 
-    public TopologyParseContext(StreamsBuilder builder, NotationLibrary notationLibrary, Map<String, BaseStreamDefinition> streamDefinitions, Map<String, FunctionDefinition> functionDefinitions) {
+    public TopologyParseContext(StreamsBuilder builder, NotationLibrary notationLibrary, Map<String, BaseStreamDefinition> streamDefinitions, Map<String, FunctionDefinition> functionDefinitions, Map<String, StoreDefinition> storeDefinitions) {
         this.builder = builder;
         this.notationLibrary = notationLibrary;
         this.streamDefinitions = streamDefinitions;
         this.functionDefinitions = functionDefinitions;
+        this.storeDefinitions = storeDefinitions;
 
         // Generate StreamWrappers for every defined stream
         streamDefinitions.forEach(this::buildWrapper);
@@ -81,6 +87,7 @@ public class TopologyParseContext implements ParseContext {
         }
         return wrapper;
     }
+
 
     @Override
     public Map<String, BaseStreamDefinition> getStreamDefinitions() {
@@ -118,6 +125,11 @@ public class TopologyParseContext implements ParseContext {
     }
 
     @Override
+    public Map<String, StoreDefinition> getStoreDefinitions() {
+        return storeDefinitions;
+    }
+
+    @Override
     public Map<String, AtomicInteger> getTypeInstanceCounters() {
         return typeInstanceCounters;
     }
@@ -131,8 +143,8 @@ public class TopologyParseContext implements ParseContext {
         groupedStores.put(copy.name(), copy);
     }
 
-    public void registerStore(StoreType type, String storeName, StreamDataType keyType, StreamDataType valueType) {
-        stateStores.put(storeName, new StoreDescriptor(type, storeName, keyType, valueType));
+    public void registerStore(StoreType type, String storeName, Duration storeRetention, StreamDataType keyType, StreamDataType valueType, boolean cachingEnabled) {
+        stateStores.put(storeName, new StoreDescriptor(type, storeName, storeRetention, keyType, valueType, cachingEnabled));
     }
 
     public Map<String, StoreDescriptor> stores() {

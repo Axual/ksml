@@ -25,7 +25,7 @@ import org.apache.kafka.streams.kstream.Suppressed;
 
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.operation.SuppressOperation;
-import io.axual.ksml.parser.ContextAwareParser;
+import io.axual.ksml.parser.OperationParser;
 import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 
@@ -38,7 +38,7 @@ import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_UNTILTIMELIMIT;
 import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_UNTILWINDOWCLOSES;
 import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_UNTIL_ATTRIBUTE;
 
-public class SuppressOperationParser extends ContextAwareParser<SuppressOperation> {
+public class SuppressOperationParser extends OperationParser<SuppressOperation> {
     private final String name;
 
     protected SuppressOperationParser(String name, ParseContext context) {

@@ -80,7 +80,7 @@ public class AggregateOperation extends StoreOperation {
                         new UserInitializer(initializer),
                         new UserAggregator(aggregator),
                         Named.as(name),
-                        registerKeyValueStore(storeName, input.keyType(), resultValueType)),
+                        registerKeyValueStore(input.keyType(), resultValueType)),
                 input.keyType(),
                 resultValueType);
     }
@@ -101,7 +101,7 @@ public class AggregateOperation extends StoreOperation {
                         new UserAggregator(adder),
                         new UserAggregator(subtractor),
                         Named.as(name),
-                        registerKeyValueStore(storeName, input.keyType(), resultValueType)),
+                        registerKeyValueStore(input.keyType(), resultValueType)),
                 input.keyType(),
                 resultValueType);
     }
@@ -123,7 +123,7 @@ public class AggregateOperation extends StoreOperation {
                         new UserAggregator(aggregator),
                         new UserMerger(merger),
                         Named.as(name),
-                        registerSessionStore(storeName, input.keyType(), resultValueType)),
+                        registerSessionStore(input.keyType(), resultValueType)),
                 windowedTypeOf(input.keyType()),
                 resultValueType);
     }
@@ -141,7 +141,7 @@ public class AggregateOperation extends StoreOperation {
                         new UserInitializer(initializer),
                         new UserAggregator(aggregator),
                         Named.as(name),
-                        registerWindowStore(storeName, input.keyType(), resultValueType)),
+                        registerWindowStore(input.keyType(), resultValueType)),
                 windowedTypeOf(input.keyType()),
                 resultValueType);
     }

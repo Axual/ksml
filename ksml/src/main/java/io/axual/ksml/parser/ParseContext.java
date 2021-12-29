@@ -23,11 +23,13 @@ package io.axual.ksml.parser;
 
 import org.apache.kafka.streams.kstream.Grouped;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.definition.StoreDefinition;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.store.StoreType;
@@ -46,11 +48,13 @@ public interface ParseContext {
 
     UserFunction getUserFunction(FunctionDefinition definition, String name);
 
+    Map<String, StoreDefinition> getStoreDefinitions();
+
     Map<String, AtomicInteger> getTypeInstanceCounters();
 
     NotationLibrary getNotationLibrary();
 
     <K, V> void registerGrouped(Grouped<K, V> grouped);
 
-    void registerStore(StoreType type, String storeName, StreamDataType keyType, StreamDataType valueType);
+    void registerStore(StoreType type, String storeName, Duration storeRetention, StreamDataType keyType, StreamDataType valueType, boolean cachingEnabled);
 }

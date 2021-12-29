@@ -54,7 +54,7 @@ public class TransformValueOperation extends StoreOperation {
                 input.table.mapValues(
                         new UserValueTransformer(transformer),
                         Named.as(name),
-                        registerKeyValueStore(storeName, input.keyType(), resultValueType)),
+                        registerKeyValueStore(input.keyType(), resultValueType)),
                 input.keyType(),
                 resultValueType);
     }

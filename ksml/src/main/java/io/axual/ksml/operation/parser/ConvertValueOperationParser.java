@@ -21,14 +21,14 @@ package io.axual.ksml.operation.parser;
  */
 
 import io.axual.ksml.operation.ConvertValueOperation;
-import io.axual.ksml.parser.ContextAwareParser;
+import io.axual.ksml.parser.OperationParser;
 import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.CONVERT_INTO_ATTRIBUTE;
 
-public class ConvertValueOperationParser extends ContextAwareParser<ConvertValueOperation> {
+public class ConvertValueOperationParser extends OperationParser<ConvertValueOperation> {
     private final String name;
 
     protected ConvertValueOperationParser(String name, ParseContext context) {

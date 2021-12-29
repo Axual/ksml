@@ -47,7 +47,7 @@ public class CountOperation extends StoreOperation {
         return new KTableWrapper(
                 (KTable) input.groupedStream.count(
                         Named.as(name),
-                        registerKeyValueStore(storeName, input.keyType(), resultValueType)),
+                        registerKeyValueStore(input.keyType(), resultValueType)),
                 input.keyType(),
                 resultValueType);
     }
@@ -59,7 +59,7 @@ public class CountOperation extends StoreOperation {
         return new KTableWrapper(
                 (KTable) input.groupedTable.count(
                         Named.as(name),
-                        registerKeyValueStore(storeName, input.keyType(), resultValueType)),
+                        registerKeyValueStore(input.keyType(), resultValueType)),
                 input.keyType(),
                 resultValueType);
     }
@@ -71,7 +71,7 @@ public class CountOperation extends StoreOperation {
         return new KTableWrapper(
                 (KTable) input.sessionWindowedKStream.count(
                         Named.as(name),
-                        registerSessionStore(storeName, input.keyType(), resultValueType)),
+                        registerSessionStore(input.keyType(), resultValueType)),
                 windowedTypeOf(input.keyType()),
                 resultValueType);
     }
@@ -83,7 +83,7 @@ public class CountOperation extends StoreOperation {
         return new KTableWrapper(
                 (KTable) input.timeWindowedKStream.count(
                         Named.as(name),
-                        registerWindowStore(storeName, input.keyType(), resultValueType)),
+                        registerWindowStore(input.keyType(), resultValueType)),
                 windowedTypeOf(input.keyType()),
                 resultValueType);
     }

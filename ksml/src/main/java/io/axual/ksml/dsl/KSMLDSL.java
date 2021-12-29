@@ -39,7 +39,10 @@ public class KSMLDSL {
     public static final String FUNCTION_EXPRESSION_ATTRIBUTE = "expression";
     public static final String FILTER_PREDICATE_ATTRIBUTE = "predicate";
     public static final String FILTERNOT_PREDICATE_ATTRIBUTE = "predicate";
-    public static final String STORE_NAME_ATTRIBUTE = "storeName";
+    public static final String STORE_ATTRIBUTE = "store";
+    public static final String STORE_NAME_ATTRIBUTE = "name";
+    public static final String STORE_RETENTION_ATTRIBUTE = "retention";
+    public static final String STORE_CACHING_ATTRIBUTE = "caching";
     public static final String NAME_ATTRIBUTE = "name";
     public static final String TOPIC_ATTRIBUTE = "topic";
     public static final String KEYTYPE_ATTRIBUTE = "keyType";
@@ -142,5 +145,6 @@ public class KSMLDSL {
     public static final String GLOBALTABLE_DEFINITION = "globalTable";
     public static final String GLOBALTABLES_DEFINITION = "globalTables";
     public static final String FUNCTIONS_DEFINITION = "functions";
+    public static final String STORES_DEFINITION = "stores";
     public static final String PIPELINES_DEFINITION = "pipelines";
 }

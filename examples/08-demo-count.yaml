@@ -27,8 +27,12 @@ pipelines:
       - type: windowedBy
         windowType: time
         duration: 20s
+        grace: 20s
       - type: count
-        storeName: ownerCount
+        store:
+          name: owner_count
+          retention: 1h
+          caching: false
       - type: toStream
       - type: convertKey
         into: avro:windowed(string)

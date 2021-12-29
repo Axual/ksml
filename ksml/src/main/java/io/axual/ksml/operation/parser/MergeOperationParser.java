@@ -25,14 +25,14 @@ import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.operation.MergeOperation;
-import io.axual.ksml.parser.ContextAwareParser;
+import io.axual.ksml.parser.OperationParser;
 import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.stream.KStreamWrapper;
 
 import static io.axual.ksml.dsl.KSMLDSL.MERGE_STREAM_ATTRIBUTE;
 
-public class MergeOperationParser extends ContextAwareParser<MergeOperation> {
+public class MergeOperationParser extends OperationParser<MergeOperation> {
     private final String name;
 
     protected MergeOperationParser(String name, ParseContext context) {

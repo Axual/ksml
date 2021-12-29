@@ -21,20 +21,20 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.definition.parser.ValueJoinerDefinitionParser;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.operation.OuterJoinOperation;
-import io.axual.ksml.parser.ContextAwareParser;
 import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.definition.parser.ValueJoinerDefinitionParser;
+import io.axual.ksml.parser.StoreOperationParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 
 import static io.axual.ksml.dsl.KSMLDSL.JOIN_VALUEJOINER_ATTRIBUTE;
 import static io.axual.ksml.dsl.KSMLDSL.JOIN_WINDOW_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.STORE_NAME_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
 
-public class OuterJoinOperationParser extends ContextAwareParser<OuterJoinOperation> {
+public class OuterJoinOperationParser extends StoreOperationParser<OuterJoinOperation> {
     private final String name;
 
     public OuterJoinOperationParser(String name, ParseContext context) {
@@ -48,7 +48,7 @@ public class OuterJoinOperationParser extends ContextAwareParser<OuterJoinOperat
         StreamWrapper joinStream = parseAndGetStreamWrapper(node);
         if (joinStream instanceof KStreamWrapper) {
             return new OuterJoinOperation(
-                    storeOperationConfig(name, parseText(node, STORE_NAME_ATTRIBUTE)),
+                    storeOperationConfig(name, node, STORE_ATTRIBUTE),
                     (KStreamWrapper) joinStream,
                     parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()),
                     parseDuration(node, JOIN_WINDOW_ATTRIBUTE));

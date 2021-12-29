@@ -21,16 +21,16 @@ package io.axual.ksml.operation.parser;
  */
 
 
-import io.axual.ksml.operation.RepartitionOperation;
-import io.axual.ksml.parser.ContextAwareParser;
-import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.definition.parser.StreamPartitionerDefinitionParser;
+import io.axual.ksml.operation.RepartitionOperation;
+import io.axual.ksml.parser.ParseContext;
+import io.axual.ksml.parser.StoreOperationParser;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.REPARTITION_PARTITIONER_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.STORE_NAME_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
 
-public class RepartitionOperationParser extends ContextAwareParser<RepartitionOperation> {
+public class RepartitionOperationParser extends StoreOperationParser<RepartitionOperation> {
     private final String name;
 
     protected RepartitionOperationParser(String name, ParseContext context) {
@@ -42,7 +42,7 @@ public class RepartitionOperationParser extends ContextAwareParser<RepartitionOp
     public RepartitionOperation parse(YamlNode node) {
         if (node == null) return null;
         return new RepartitionOperation(
-                storeOperationConfig(name, parseText(node, STORE_NAME_ATTRIBUTE)),
+                storeOperationConfig(name, node, STORE_ATTRIBUTE),
                 parseFunction(node, REPARTITION_PARTITIONER_ATTRIBUTE, new StreamPartitionerDefinitionParser()));
     }
 }

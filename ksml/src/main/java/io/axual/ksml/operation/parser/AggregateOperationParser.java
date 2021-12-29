@@ -21,17 +21,22 @@ package io.axual.ksml.operation.parser;
  */
 
 
-import io.axual.ksml.operation.AggregateOperation;
 import io.axual.ksml.definition.parser.AggregatorDefinitionParser;
-import io.axual.ksml.parser.ContextAwareParser;
 import io.axual.ksml.definition.parser.InitializerDefinitionParser;
 import io.axual.ksml.definition.parser.MergerDefinitionParser;
+import io.axual.ksml.operation.AggregateOperation;
 import io.axual.ksml.parser.ParseContext;
+import io.axual.ksml.parser.StoreOperationParser;
 import io.axual.ksml.parser.YamlNode;
 
-import static io.axual.ksml.dsl.KSMLDSL.*;
+import static io.axual.ksml.dsl.KSMLDSL.AGGREGATE_ADDER_ATTRIBTUE;
+import static io.axual.ksml.dsl.KSMLDSL.AGGREGATE_AGGREGATOR_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.AGGREGATE_INITIALIZER_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.AGGREGATE_MERGER_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.AGGREGATE_SUBTRACTOR_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
 
-public class AggregateOperationParser extends ContextAwareParser<AggregateOperation> {
+public class AggregateOperationParser extends StoreOperationParser<AggregateOperation> {
     private final String name;
 
     protected AggregateOperationParser(String name, ParseContext context) {
@@ -43,7 +48,7 @@ public class AggregateOperationParser extends ContextAwareParser<AggregateOperat
     public AggregateOperation parse(YamlNode node) {
         if (node == null) return null;
         return new AggregateOperation(
-                storeOperationConfig(name, parseText(node, STORE_NAME_ATTRIBUTE)),
+                storeOperationConfig(name, node, STORE_ATTRIBUTE),
                 parseOptionalFunction(node, AGGREGATE_INITIALIZER_ATTRIBUTE, new InitializerDefinitionParser()),
                 parseOptionalFunction(node, AGGREGATE_AGGREGATOR_ATTRIBUTE, new AggregatorDefinitionParser()),
                 parseOptionalFunction(node, AGGREGATE_MERGER_ATTRIBUTE, new MergerDefinitionParser()),
