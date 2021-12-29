@@ -23,13 +23,13 @@ package io.axual.ksml.operation.parser;
 
 import io.axual.ksml.definition.parser.KeyTransformerDefinitionParser;
 import io.axual.ksml.operation.TransformKeyOperation;
-import io.axual.ksml.parser.ContextAwareParser;
+import io.axual.ksml.parser.OperationParser;
 import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.TRANSFORMKEY_MAPPER_ATTRIBUTE;
 
-public class TransformKeyOperationParser extends ContextAwareParser<TransformKeyOperation> {
+public class TransformKeyOperationParser extends OperationParser<TransformKeyOperation> {
     private final String name;
 
     protected TransformKeyOperationParser(String name, ParseContext context) {

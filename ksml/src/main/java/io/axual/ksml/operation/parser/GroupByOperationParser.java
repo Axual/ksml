@@ -21,16 +21,16 @@ package io.axual.ksml.operation.parser;
  */
 
 
-import io.axual.ksml.operation.GroupByOperation;
-import io.axual.ksml.parser.ContextAwareParser;
 import io.axual.ksml.definition.parser.KeyValueMapperDefinitionParser;
+import io.axual.ksml.operation.GroupByOperation;
 import io.axual.ksml.parser.ParseContext;
+import io.axual.ksml.parser.StoreOperationParser;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.GROUPBY_MAPPER_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.STORE_NAME_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
 
-public class GroupByOperationParser extends ContextAwareParser<GroupByOperation> {
+public class GroupByOperationParser extends StoreOperationParser<GroupByOperation> {
     private final String name;
 
     protected GroupByOperationParser(String name, ParseContext context) {
@@ -42,7 +42,7 @@ public class GroupByOperationParser extends ContextAwareParser<GroupByOperation>
     public GroupByOperation parse(YamlNode node) {
         if (node == null) return null;
         return new GroupByOperation(
-                storeOperationConfig(name, parseText(node, STORE_NAME_ATTRIBUTE)),
+                storeOperationConfig(name, node, STORE_ATTRIBUTE),
                 parseFunction(node, GROUPBY_MAPPER_ATTRIBUTE, new KeyValueMapperDefinitionParser())
         );
     }

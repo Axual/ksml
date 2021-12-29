@@ -11,6 +11,12 @@ functions:
     type: forEach
     code: "print('key='+(key if isinstance(key,str) else str(key))+', value='+(value if isinstance(value,str) else str(value)))"
 
+stores:
+  owner_count:
+    name: owner_count
+    retention: 3m
+    caching: false
+
 pipelines:
   main:
     from: sensor_source
@@ -23,8 +29,9 @@ pipelines:
       - type: windowedBy
         windowType: time
         duration: 20s
+        grace: 40s
       - type: aggregate
-        storeName: ownerCount
+        store: owner_count
         initializer:
           expression: 0
           resultType: long
@@ -32,7 +39,5 @@ pipelines:
           expression: aggregatedValue+1
           resultType: long
       - type: toStream
-      - type: convertKey
-        into: avro:windowed(string)
       - type: peek
         forEach: print_message

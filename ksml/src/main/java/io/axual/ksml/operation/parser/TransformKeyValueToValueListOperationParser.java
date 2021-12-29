@@ -23,13 +23,13 @@ package io.axual.ksml.operation.parser;
 
 import io.axual.ksml.definition.parser.KeyValueToValueListTransformerDefinitionParser;
 import io.axual.ksml.operation.TransformKeyValueToValueListOperation;
-import io.axual.ksml.parser.ContextAwareParser;
+import io.axual.ksml.parser.OperationParser;
 import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.TRANSFORMKEYVALUETOVALUELIST_MAPPER_ATTRIBUTE;
 
-public class TransformKeyValueToValueListOperationParser extends ContextAwareParser<TransformKeyValueToValueListOperation> {
+public class TransformKeyValueToValueListOperationParser extends OperationParser<TransformKeyValueToValueListOperation> {
     private final String name;
 
     protected TransformKeyValueToValueListOperationParser(String name, ParseContext context) {

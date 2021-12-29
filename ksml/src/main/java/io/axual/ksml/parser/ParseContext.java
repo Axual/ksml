@@ -9,9 +9,9 @@ package io.axual.ksml.parser;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,11 +23,13 @@ package io.axual.ksml.parser;
 
 import org.apache.kafka.streams.kstream.Grouped;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.definition.StoreDefinition;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.store.StoreType;
@@ -46,11 +48,13 @@ public interface ParseContext {
 
     UserFunction getUserFunction(FunctionDefinition definition, String name);
 
+    Map<String, StoreDefinition> getStoreDefinitions();
+
     Map<String, AtomicInteger> getTypeInstanceCounters();
 
     NotationLibrary getNotationLibrary();
 
     <K, V> void registerGrouped(Grouped<K, V> grouped);
 
-    void registerStore(StoreType type, String storeName, StreamDataType keyType, StreamDataType valueType);
+    void registerStore(StoreType type, String storeName, Duration storeRetention, StreamDataType keyType, StreamDataType valueType, boolean cachingEnabled);
 }

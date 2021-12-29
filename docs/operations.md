@@ -39,6 +39,7 @@
     * [toExtractor](#toextractor)
 
 [Duration]: types.md#duration
+[Store]: stores.md
 [KStream]: https://kafka.apache.org/27/javadoc/org/apache/kafka/streams/kstream/KStream.html
 [KTable]: https://kafka.apache.org/27/javadoc/org/apache/kafka/streams/kstream/KTable.html
 [GlobalKTable]: https://kafka.apache.org/27/javadoc/org/apache/kafka/streams/kstream/GlobalKTable.html
@@ -86,16 +87,20 @@ This operations aggregates multiple values into a single one by repeatedly calli
 
 |Stream Type |Returns |Parameter |Value Type|Required|Description
 |:---|:---|:---|:---|:---|:---
-|[KGroupedStream][KGroupedStream::aggregate]`<K,V>`|[KTable]`<K,VR>`|`initializer`|Inline or reference|Yes|The [Initializer] function.
+|[KGroupedStream][KGroupedStream::aggregate]`<K,V>`|[KTable]`<K,VR>`|`store`|Store configuration|No|The [Store] configuration.
+| | |`initializer`|Inline or reference|Yes|The [Initializer] function.
 | | |`aggregator`|Inline or reference|Yes|The [Aggregator] function.
-|[KGroupedTable][KGroupedTable::aggregate]`<K,V>`|[KTable]`<K,VR>`|`initializer`|Inline or reference|Yes|The [Initializer] function.
+|[KGroupedTable][KGroupedTable::aggregate]`<K,V>`|[KTable]`<K,VR>`|`store`|Store configuration|No|The [Store] configuration.
+| | |`initializer`|Inline or reference|Yes|The [Initializer] function.
 | | |`adder`|Inline or reference|Yes|The [Reducer] function that adds two values.
 | | |`subtractor`|Inline or reference|Yes|The [Reducer] function that subtracts two values.
-|[SessionWindowedKStream][SessionWindowedKStream::aggregate]`<K,V>`|[KTable]`<Windowed<K>,VR>`|`initializer`|Inline or reference|Yes|The [Initializer] function.
-| | |`aggregator`|Inline or reference|The [Aggregator] function.
-| | |`merger`|Inline or reference|The [Merger] function.
-|[TimeWindowedKStreamObject][TimeWindowedKStreamObject:aggregate]`<K,V>`|[KTable]`<Windowed<K>,VR>`|`initializer`|Inline or reference|The [Initializer] function.
-| | |`aggregator`|Inline or reference|The [Aggregator] function.
+|[SessionWindowedKStream][SessionWindowedKStream::aggregate]`<K,V>`|[KTable]`<Windowed<K>,VR>`|`store`|Store configuration|No|The [Store] configuration.
+| | |`initializer`|Inline or reference|Yes|The [Initializer] function.
+| | |`aggregator`|Inline or reference|Yes|The [Aggregator] function.
+| | |`merger`|Inline or reference|Yes|The [Merger] function.
+|[TimeWindowedKStreamObject][TimeWindowedKStreamObject:aggregate]`<K,V>`|[KTable]`<Windowed<K>,VR>`|`store`|Store configuration|No|The [Store] configuration.
+| | |`initializer`|Inline or reference|Yes|The [Initializer] function.
+| | |`aggregator`|Inline or reference|Yes|The [Aggregator] function.
 
 Example:
 ```yaml
@@ -155,12 +160,12 @@ to: output_stream
 
 This operations counts the number of messages and returns a table  multiple values into a single one by repeatedly calling an aggregator function. It can operate on a range of stream types.
 
-|Stream Type |Returns |Parameter |Value Type| Description
-|:---|:---|:---|:---|:---
-|[KGroupedStream][KGroupedStream::count]`<K,V>`|[KTable]`<K,Long>`|_none_
-|[KGroupedTable][KGroupedTable::count]`<K,V>`|[KTable]`<K,Long>`|_none_
-|[SessionWindowedKStream][SessionWindowedKStream::count]`<K,V>`|[KTable]`<Windowed<K>,Long>`|_none_
-|[TimeWindowedKStreamObject][TimeWindowedKStreamObject:count]`<K,V>`|[KTable]`<Windowed<K>,Long>`|_none_
+|Stream Type |Returns |Parameter |Value Type|Required|Description
+|:---|:---|:---|:---|:---|:---
+|[KGroupedStream][KGroupedStream::count]`<K,V>`|[KTable]`<K,Long>`|`store`|Store configuration|No|The [Store] configuration.
+|[KGroupedTable][KGroupedTable::count]`<K,V>`|[KTable]`<K,Long>`|`store`|Store configuration|No|The [Store] configuration.
+|[SessionWindowedKStream][SessionWindowedKStream::count]`<K,V>`|[KTable]`<Windowed<K>,Long>`|`store`|Store configuration|No|The [Store] configuration.
+|[TimeWindowedKStreamObject][TimeWindowedKStreamObject:count]`<K,V>`|[KTable]`<Windowed<K>,Long>`|`store`|Store configuration|No|The [Store] configuration.
 
 Example:
 ```yaml
@@ -180,10 +185,10 @@ to: output_stream
 
 Filter all incoming messages according to some predicate. The predicate function is called for every message. Only when the predicate returns `true`, then the message will be sent to the output stream.
 
-|Stream Type |Returns |Parameter |Value Type| Description
-|:---|:---|:---|:---|:---
-|[KStream][KStream::filter]`<K,V>`|[KStream]`<K,V>`|`predicate`|Inline or reference|The [Predicate] function.
-|[KTable][KTable::filter]`<K,V>`|[KTable]`<K,V>`|`predicate`|Inline or reference|The [Predicate] function.
+|Stream Type |Returns |Parameter |Value Type|Required|Description
+|:---|:---|:---|:---|:---|:---
+|[KStream][KStream::filter]`<K,V>`|[KStream]`<K,V>`|`predicate`|Yes|Inline or reference|The [Predicate] function.
+|[KTable][KTable::filter]`<K,V>`|[KTable]`<K,V>`|`predicate`|Yes|Inline or reference|The [Predicate] function.
 
 Example:
 ```yaml
@@ -208,10 +213,12 @@ This transformation works exactly like [filter](#filter), but negates all predic
 
 Group the records of a stream on a new key that is selected using the provided KeyValueMapper.
 
-|Stream Type |Returns |Parameter |Value Type| Description
-|:---|:---|:---|:---|:---
-|[KStream][KStream::groupBy]`<K,V>`|[KGroupedStream]`<K,V>`|`mapper`|Inline or reference|The [KeyValueMapper] function.
-|[KTable][KTable::groupBy]`<K,V>`|[KGroupedTable]`<K,V>`|`mapper`|Inline or reference|The [KeyValueMapper] function.
+|Stream Type |Returns |Parameter |Value Type|Required|Description
+|:---|:---|:---|:---|:---|:---
+|[KStream][KStream::groupBy]`<K,V>`|[KGroupedStream]`<K,V>`|`store`|Store configuration|No|The [Store] configuration.
+| | |`mapper`|Inline or reference|Yes|The [KeyValueMapper] function.
+|[KTable][KTable::groupBy]`<K,V>`|[KGroupedTable]`<K,V>`|`store`|Store configuration|No|The [Store] configuration.
+| | |`mapper`|Inline or reference|Yes|The [KeyValueMapper] function.
 
 Example:
 ```yaml
@@ -228,6 +235,31 @@ via:
 to: output_stream
 ```
 
+### groupByKey
+
+[KStream::groupByKey]: https://kafka.apache.org/27/javadoc/org/apache/kafka/streams/kstream/KStream.html#groupByKey--
+
+Group the records of a stream on the stream's key.
+
+|Stream Type |Returns |Parameter |Value Type|Required|Description
+|:---|:---|:---|:---|:---|:---
+|[KStream][KStream::groupByKey]`<K,V>`|[KGroupedStream]`<K,V>`|`store`|Store configuration|No|The [Store] configuration.
+| | |`mapper`|Inline or reference|Yes|The [KeyValueMapper] function.
+
+Example:
+```yaml
+from: input_stream
+via:
+  - type: groupByKey
+  - type: aggregate
+    initializer:
+      expression: 0
+    aggregator:
+      expression: value1+value2
+  - type: toStream
+to: output_stream
+```
+
 ### join
 
 [KStream::joinStream]: https://kafka.apache.org/27/javadoc/org/apache/kafka/streams/kstream/KStream.html#join-org.apache.kafka.streams.kstream.KStream-org.apache.kafka.streams.kstream.ValueJoiner-org.apache.kafka.streams.kstream.JoinWindows-org.apache.kafka.streams.kstream.StreamJoined-
@@ -235,26 +267,28 @@ to: output_stream
 [KStream::joinGlobalTable]: https://kafka.apache.org/27/javadoc/org/apache/kafka/streams/kstream/KStream.html#join-org.apache.kafka.streams.kstream.GlobalKTable-org.apache.kafka.streams.kstream.KeyValueMapper-org.apache.kafka.streams.kstream.ValueJoiner-org.apache.kafka.streams.kstream.Named-
 [KTable::joinTable]: https://kafka.apache.org/27/javadoc/org/apache/kafka/streams/kstream/KTable.html#join-org.apache.kafka.streams.kstream.KTable-org.apache.kafka.streams.kstream.ValueJoiner-org.apache.kafka.streams.kstream.Named-org.apache.kafka.streams.kstream.Materialized-
 
-Join records of this stream with another stream's records using windowed inner equi join. The join is computed on the records' key with join attribute thisKStream.key == otherKStream.key. Furthermore, two records are only joined if their timestamps are close to each other as defined by the given JoinWindows, i.e., the window defines an additional join predicate on the record timestamps.
+Join records of this stream with another stream's records using windowed inner equi join. The join is computed on the records' key with join predicate `thisKStream.key == otherKStream.key`. Furthermore, two records are only joined if their timestamps are close to each other as defined by the given JoinWindows, i.e., the window defines an additional join predicate on the record timestamps.
 
-|Stream Type |Returns |Parameter |Value Type| Description
-|:---|:---|:---|:---|:---
-|[KStream][KStream::joinStream]`<K,V>`|[KStream]`<K,V>`|`stream`|`string`|The name of the stream to join with.
-| | |`valueJoiner`|Inline or reference|The [KeyValueMapper] function.
-| | |`duration`|`string`|The [Duration] of the windows to join.
-|[KStream][KStream::joinTable]`<K,V>`|[KStream]`<K,V>`|`table`|`string`|The name of the table to join with.
-| | |`valueJoiner`|Inline or reference|The [KeyValueMapper] function.
-| | |`duration`|`string`|The [Duration] of the windows to join.
-|[KStream][KStream::joinGlobalTable]`<K,V>`|[KStream]`<K,V>`|`globalTable`|`string`|The name of the global table to join with.
-| | |`valueJoiner`|Inline or reference|The [KeyValueMapper] function.
-| | |`duration`|`string`|The [Duration] of the windows to join.
-|[KTable][KTable::joinTable]`<K,V>`|[KTable]`<K,V>`|`table`|`string`|The name of the table to join with.
-| | |`valueJoiner`|Inline or reference|The [KeyValueMapper] function.
+|Stream Type |Returns |Parameter |Value Type|Required|Description
+|:---|:---|:---|:---|:---|:---
+|[KStream][KStream::joinStream]`<K,V>`|[KStream]`<K,V>`|`store`|Store configuration|No|The [Store] configuration.
+| | |`stream`|`string`|Yes|The name of the stream to join with.
+| | |`valueJoiner`|Inline or reference|Yes|The [KeyValueMapper] function.
+| | |`duration`|`string`|Yes|The [Duration] of the windows to join.
+|[KStream][KStream::joinTable]`<K,V>`|[KStream]`<K,V>`|`store`|Store configuration|No|The [Store] configuration.
+| | |`table`|`string`|Yes|The name of the table to join with.
+| | |`valueJoiner`|Inline or reference|Yes|The [KeyValueMapper] function.
+| | |`duration`|`string`|Yes|The [Duration] of the windows to join.
+|[KStream][KStream::joinGlobalTable]`<K,V>`|[KStream]`<K,V>`|`store`|Store configuration|No|The [Store] configuration.
+| | |`globalTable`|`string`|Yes|The name of the global table to join with.
+| | |`valueJoiner`|Inline or reference|Yes|The [KeyValueMapper] function.
+| | |`duration`|`string`|Yes|The [Duration] of the windows to join.
+|[KTable][KTable::joinTable]`<K,V>`|[KTable]`<K,V>`|`store`|Store configuration|No|The [Store] configuration.
+| | |`table`|`string`|Yes|The name of the table to join with.
+| | |`valueJoiner`|Inline or reference|Yes|The [KeyValueMapper] function.
 
 Example:
 ```yaml
-[yaml]
-----
 from: input_stream
 via:
   - type: join
@@ -273,19 +307,23 @@ to: output_stream
 
 Join records of this stream with another stream's records using windowed left equi join. In contrast to inner-join, all records from this stream will produce at least one output record. The join is computed on the records' key with join attribute thisKStream.key == otherKStream.key. Furthermore, two records are only joined if their timestamps are close to each other as defined by the given JoinWindows, i.e., the window defines an additional join predicate on the record timestamps.
 
-|Stream Type |Returns |Parameter |Value Type| Description
-|:---|:---|:---|:---|:---
-|[KStream][KStream::leftJoinStream]`<K,V>`|[KStream]`<K,V>`|`stream`|`string`|The name of the stream to join with.
-| | |`valueJoiner`|Inline or reference|The [KeyValueMapper] function.
-| | |`duration`|`string`|The [Duration] of the windows to join.
-|[KStream][KStream::leftJoinTable]`<K,V>`|[KStream]`<K,V>`|`table`|`string`|The name of the table to join with.
-| | |`valueJoiner`|Inline or reference|The [KeyValueMapper] function.
-| | |`duration`|`string`|The [Duration] of the windows to join.
-|[KStream][KStream::leftJoinGlobalTable]`<K,V>`|[KStream]`<K,V>`|`globalTable`|`string`|The name of the global table to join with.
-| | |`valueJoiner`|Inline or reference|The [KeyValueMapper] function.
-| | |`duration`|`string`|The [Duration] of the windows to join.
-|[KTable][KTable::leftJoinTable]`<K,V>`|[KTable]`<K,V>`|`table`|`string`|The name of the table to join with.
-| | |`valueJoiner`|Inline or reference|The [KeyValueMapper] function.
+|Stream Type |Returns |Parameter |Value Type|Required|Description
+|:---|:---|:---|:---|:---|:---
+|[KStream][KStream::leftJoinStream]`<K,V>`|[KStream]`<K,V>`|`store`|Store configuration|No|The [Store] configuration.
+| | |`stream`|`string`|Yes|The name of the stream to join with.
+| | |`valueJoiner`|Inline or reference|Yes|The [KeyValueMapper] function.
+| | |`duration`|`string`|Yes|The [Duration] of the windows to join.
+|[KStream][KStream::leftJoinTable]`<K,V>`|[KStream]`<K,V>`|`store`|Store configuration|No|The [Store] configuration.
+| | |`table`|`string`|Yes|The name of the table to join with.
+| | |`valueJoiner`|Inline or reference|Yes|The [KeyValueMapper] function.
+| | |`duration`|`string`|Yes|The [Duration] of the windows to join.
+|[KStream][KStream::leftJoinGlobalTable]`<K,V>`|[KStream]`<K,V>`|`store`|Store configuration|No|The [Store] configuration.
+| | |`globalTable`|`string`|Yes|The name of the global table to join with.
+| | |`valueJoiner`|Inline or reference|Yes|The [KeyValueMapper] function.
+| | |`duration`|`string`|Yes|The [Duration] of the windows to join.
+|[KTable][KTable::leftJoinTable]`<K,V>`|[KTable]`<K,V>`|`store`|Store configuration|No|The [Store] configuration.
+| | |`table`|`string`|Yes|The name of the table to join with.
+| | |`valueJoiner`|Inline or reference|Yes|The [KeyValueMapper] function.
 
 Example:
 ```yaml
@@ -338,13 +376,15 @@ to: output_stream
 
 Join records of this stream with another stream's records using windowed outer equi join. In contrast to inner-join or left-join, all records from both streams will produce at least one output record. The join is computed on the records' key with join attribute thisKStream.key == otherKStream.key. Furthermore, two records are only joined if their timestamps are close to each other as defined by the given JoinWindows, i.e., the window defines an additional join predicate on the record timestamps.
 
-|Stream Type |Returns |Parameter |Value Type| Description
-|:---|:---|:---|:---|:---
-|[KStream][KStream::outerJoinStream]`<K,V>`|[KStream]`<K,V>`|`stream`|`string`|The name of the stream to join with.
-| | |`valueJoiner`|Inline or reference|The [KeyValueMapper] function.
-| | |`duration`|`string`|The [Duration] of the windows to join.
-|[KTable][KTable::outerJoinTable]`<K,V>`|[KTable]`<K,V>`|`table`|`string`|The name of the table to join with.
-| | |`valueJoiner`|Inline or reference|The [KeyValueMapper] function.
+|Stream Type |Returns |Parameter |Value Type|Required|Description
+|:---|:---|:---|:---|:---|:---
+|[KStream][KStream::outerJoinStream]`<K,V>`|[KStream]`<K,V>`|`store`|Store configuration|No|The [Store] configuration.
+| | |`stream`|`string`|Yes|The name of the stream to join with.
+| | |`valueJoiner`|Inline or reference|Yes|The [KeyValueMapper] function.
+| | |`duration`|`string`|Yes|The [Duration] of the windows to join.
+|[KTable][KTable::outerJoinTable]`<K,V>`|[KTable]`<K,V>`|`store`|Store configuration|No|The [Store] configuration.
+| | |`table`|`string`|Yes|The name of the table to join with.
+| | |`valueJoiner`|Inline or reference|Yes|The [KeyValueMapper] function.
 
 Example:
 ```yaml
@@ -387,13 +427,17 @@ to: output_stream
 
 Combine the values of records in this stream by the grouped key. Records with null key or value are ignored. Combining implies that the type of the aggregate result is the same as the type of the input value, similar to [aggregate(Initializer, Aggregator)](#aggregate).
 
-|Stream Type |Returns |Parameter |Value Type| Description
-|:---|:---|:---|:---|:---
-|[KGroupedStream][KGroupedStream::reduce]`<K,V>`|[KTable]`<K,VR>`|`reducer`|Inline or reference|The [Reducer] function.
-|[KGroupedTable][KGroupedTable::reduce]`<K,V>`|[KTable]`<K,VR>`|`adder`|Inline or reference|The [Reducer] function that adds two values.
-| | |`subtractor`|Inline or reference|The [Reducer] function that subtracts two values.
-|[SessionWindowedKStream][SessionWindowedKStream::reduce]`<K,V>`|[KTable]`<Windowed<K>,VR>`|`reducer`|Inline or reference|The [Reducer] function.
-|[TimeWindowedKStreamObject][TimeWindowedKStreamObject:reduce]`<K,V>`|[KTable]`<Windowed<K>,VR>`|`initializer`|Inline or reference|The [Reducer] function.
+|Stream Type |Returns |Parameter |Value Type|Required|Description
+|:---|:---|:---|:---|:---|:---
+|[KGroupedStream][KGroupedStream::reduce]`<K,V>`|[KTable]`<K,VR>`|`store`|Store configuration|No|The [Store] configuration.
+| | |`reducer`|Inline or reference|Yes|The [Reducer] function.
+|[KGroupedTable][KGroupedTable::reduce]`<K,V>`|[KTable]`<K,VR>`|`store`|Store configuration|No|The [Store] configuration.
+| | |`adder`|Inline or reference|Yes|The [Reducer] function that adds two values.
+| | |`subtractor`|Inline or reference|Yes|The [Reducer] function that subtracts two values.
+|[SessionWindowedKStream][SessionWindowedKStream::reduce]`<K,V>`|[KTable]`<Windowed<K>,VR>`|`store`|Store configuration|No|The [Store] configuration.
+| | |`reducer`|Inline or reference|Yes|The [Reducer] function.
+|[TimeWindowedKStreamObject][TimeWindowedKStreamObject:reduce]`<K,V>`|[KTable]`<Windowed<K>,VR>`|`store`|Store configuration|No|The [Store] configuration.
+| | |`initializer`|Inline or reference|Yes|The [Reducer] function.
 
 Example:
 ```yaml
@@ -417,10 +461,11 @@ to: output_stream
 Materialize this stream to an auto-generated repartition topic and create a new KStream from the auto-generated topic using key serde, value serde, StreamPartitioner, number of partitions, and topic name part.
 The created topic is considered as an internal topic and is meant to be used only by the current Kafka Streams instance. Similar to auto-repartitioning, the topic will be created with infinite retention time and data will be automatically purged by Kafka Streams. The topic will be named as "${applicationId}-<name>-repartition", where "applicationId" is user-specified in StreamsConfig via parameter APPLICATION_ID_CONFIG, "<name>" is either provided via Repartitioned.as(String) or an internally generated name, and "-repartition" is a fixed suffix.
 
-|Stream Type |Returns |Parameter |Value Type| Description
-|:---|:---|:---|:---|:---
-|[KStream][KStream::repartition]`<K,V>`|[KStream]`<K,V>`|`name`|`string`|The name used as part of repartition topic and processor name.
-| | |`partitioner`|Inline or reference|The [StreamPartitioner] function.
+|Stream Type |Returns |Parameter |Value Type|Required|Description
+|:---|:---|:---|:---|:---|:---
+|[KStream][KStream::repartition]`<K,V>`|[KStream]`<K,V>`|`store`|Store configuration|No|The [Store] configuration.
+| | |`name`|`string`|Yes|The name used as part of repartition topic and processor name.
+| | |`partitioner`|Inline or reference|Yes|The [StreamPartitioner] function.
 
 Example:
 ```yaml
@@ -579,10 +624,11 @@ to: output_stream
 
 This operation takes a message and transforms the value into a new value, which can be potentially of different type.
 
-|Stream Type |Returns |Parameter |Value Type| Description
-|:---|:---|:---|:---|:---
-|[KStream][KStream::transformValue]`<K,V>`|[KStream]`<K,VR>`|`mapper`|Inline or reference|The [KeyValueToKeyValueListTransformer] function.
-| | |`name`|`string`|(Optional) The name of the processor node.
+|Stream Type |Returns |Parameter |Value Type|Required|Description
+|:---|:---|:---|:---|:---|:---
+|[KStream][KStream::transformValue]`<K,V>`|[KStream]`<K,VR>`|`store`|Store configuration|No|The [Store] configuration.
+| | |`mapper`|Inline or reference|Yes|The [KeyValueToKeyValueListTransformer] function.
+| | |`name`|`string`|No|The name of the processor node.
 
 Example:
 ```yaml

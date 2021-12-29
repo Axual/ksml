@@ -23,11 +23,11 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.operation.ToStreamOperation;
-import io.axual.ksml.parser.ContextAwareParser;
+import io.axual.ksml.parser.OperationParser;
 import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 
-public class ToStreamOperationParser extends ContextAwareParser<ToStreamOperation> {
+public class ToStreamOperationParser extends OperationParser<ToStreamOperation> {
     private final String name;
 
     protected ToStreamOperationParser(String name, ParseContext context) {

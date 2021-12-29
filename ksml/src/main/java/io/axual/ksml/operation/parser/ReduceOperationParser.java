@@ -21,18 +21,18 @@ package io.axual.ksml.operation.parser;
  */
 
 
-import io.axual.ksml.operation.ReduceOperation;
-import io.axual.ksml.parser.ContextAwareParser;
-import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.definition.parser.ReducerDefinitionParser;
+import io.axual.ksml.operation.ReduceOperation;
+import io.axual.ksml.parser.ParseContext;
+import io.axual.ksml.parser.StoreOperationParser;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.REDUCE_ADDER_ATTRIBUTE;
 import static io.axual.ksml.dsl.KSMLDSL.REDUCE_REDUCER_ATTRIBUTE;
 import static io.axual.ksml.dsl.KSMLDSL.REDUCE_SUBTRACTOR_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.STORE_NAME_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
 
-public class ReduceOperationParser extends ContextAwareParser<ReduceOperation> {
+public class ReduceOperationParser extends StoreOperationParser<ReduceOperation> {
     private final String name;
 
     protected ReduceOperationParser(String name, ParseContext context) {
@@ -44,7 +44,7 @@ public class ReduceOperationParser extends ContextAwareParser<ReduceOperation> {
     public ReduceOperation parse(YamlNode node) {
         if (node == null) return null;
         return new ReduceOperation(
-                storeOperationConfig(name, parseText(node, STORE_NAME_ATTRIBUTE)),
+                storeOperationConfig(name, node, STORE_ATTRIBUTE),
                 parseFunction(node, REDUCE_REDUCER_ATTRIBUTE, new ReducerDefinitionParser()),
                 parseFunction(node, REDUCE_ADDER_ATTRIBUTE, new ReducerDefinitionParser()),
                 parseFunction(node, REDUCE_SUBTRACTOR_ATTRIBUTE, new ReducerDefinitionParser()));

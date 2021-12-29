@@ -51,7 +51,7 @@ public class ReduceOperation extends StoreOperation {
                 input.groupedStream.reduce(
                         new UserReducer(reducer),
                         Named.as(name),
-                        registerKeyValueStore(storeName, input.keyType(), input.valueType())),
+                        registerKeyValueStore(input.keyType(), input.valueType())),
                 input.keyType(),
                 input.valueType());
     }
@@ -63,7 +63,7 @@ public class ReduceOperation extends StoreOperation {
                         new UserReducer(adder),
                         new UserReducer(subtractor),
                         Named.as(name),
-                        registerKeyValueStore(storeName, input.keyType(), input.valueType())),
+                        registerKeyValueStore(input.keyType(), input.valueType())),
                 input.keyType(),
                 input.valueType());
     }
@@ -74,7 +74,7 @@ public class ReduceOperation extends StoreOperation {
                 (KTable) input.sessionWindowedKStream.reduce(
                         new UserReducer(reducer),
                         Named.as(name),
-                        registerSessionStore(storeName, input.keyType(), input.valueType())),
+                        registerSessionStore(input.keyType(), input.valueType())),
                 windowedTypeOf(input.keyType()),
                 input.valueType());
     }
@@ -85,7 +85,7 @@ public class ReduceOperation extends StoreOperation {
                 (KTable) input.timeWindowedKStream.reduce(
                         new UserReducer(reducer),
                         Named.as(name),
-                        registerWindowStore(storeName, input.keyType(), input.valueType())),
+                        registerWindowStore(input.keyType(), input.valueType())),
                 windowedTypeOf(input.keyType()),
                 input.valueType());
     }

@@ -27,7 +27,7 @@ import org.apache.kafka.streams.kstream.TimeWindows;
 
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.operation.WindowedByOperation;
-import io.axual.ksml.parser.ContextAwareParser;
+import io.axual.ksml.parser.OperationParser;
 import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 
@@ -42,7 +42,7 @@ import static io.axual.ksml.dsl.KSMLDSL.WINDOWEDBY_WINDOWTYPE_TIME_ADVANCEBY;
 import static io.axual.ksml.dsl.KSMLDSL.WINDOWEDBY_WINDOWTYPE_TIME_DURATION;
 import static io.axual.ksml.dsl.KSMLDSL.WINDOWEDBY_WINDOWTYPE_TIME_GRACE;
 
-public class WindowedByOperationParser extends ContextAwareParser<WindowedByOperation> {
+public class WindowedByOperationParser extends OperationParser<WindowedByOperation> {
     private final String name;
 
     protected WindowedByOperationParser(String name, ParseContext context) {

@@ -21,15 +21,15 @@ package io.axual.ksml.operation.parser;
  */
 
 
-import io.axual.ksml.operation.FilterNotOperation;
-import io.axual.ksml.parser.ContextAwareParser;
-import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.definition.parser.PredicateDefinitionParser;
+import io.axual.ksml.operation.FilterNotOperation;
+import io.axual.ksml.parser.OperationParser;
+import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.FILTERNOT_PREDICATE_ATTRIBUTE;
 
-public class FilterNotOperationParser extends ContextAwareParser<FilterNotOperation> {
+public class FilterNotOperationParser extends OperationParser<FilterNotOperation> {
     private final String name;
 
     protected FilterNotOperationParser(String name, ParseContext context) {

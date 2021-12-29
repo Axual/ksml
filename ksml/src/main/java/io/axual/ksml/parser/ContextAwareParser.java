@@ -25,10 +25,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.definition.StoreDefinition;
 import io.axual.ksml.definition.parser.BaseStreamDefinitionParser;
 import io.axual.ksml.exception.KSMLParseException;
-import io.axual.ksml.operation.OperationConfig;
-import io.axual.ksml.operation.StoreOperationConfig;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
 
@@ -82,13 +81,5 @@ public abstract class ContextAwareParser<T> extends BaseParser<T> {
 
     protected String determineName(String type) {
         return String.format("%s_%03d", type, context.getTypeInstanceCounters().computeIfAbsent(type, t -> new AtomicInteger(1)).getAndIncrement());
-    }
-
-    protected OperationConfig operationConfig(String name) {
-        return new OperationConfig(name, context.getNotationLibrary());
-    }
-
-    protected StoreOperationConfig storeOperationConfig(String name, String storeName) {
-        return new StoreOperationConfig(name, context.getNotationLibrary(), storeName, context::registerGrouped, context::registerStore);
     }
 }
