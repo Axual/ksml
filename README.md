@@ -1,4 +1,4 @@
-[![Build and test](https://github.com/tonvanbart/ksml/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/tonvanbart/ksml/actions/workflows/build-and-test.yml)
+[![Build and test](https://github.com/axual/ksml/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/axual/ksml/actions/workflows/build-and-test.yml)
 
 Axual KSML
 --------
