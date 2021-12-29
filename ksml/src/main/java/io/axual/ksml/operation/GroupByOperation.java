@@ -24,7 +24,7 @@ package io.axual.ksml.operation;
 import org.apache.kafka.streams.kstream.Grouped;
 
 import io.axual.ksml.data.type.user.UserKeyValueType;
-import io.axual.ksml.data.type.base.DataType;
+import io.axual.ksml.data.type.user.UserType;
 import io.axual.ksml.exception.KSMLApplyException;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.generator.StreamDataType;
@@ -47,7 +47,7 @@ public class GroupByOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        if (transformer.resultType == DataType.UNKNOWN) {
+        if (transformer.resultType == UserType.UNKNOWN) {
             throw new KSMLExecutionException("groupBy mapper resultType not specified");
         }
         final StreamDataType resultKeyType = streamDataTypeOf(transformer.resultType, true);
