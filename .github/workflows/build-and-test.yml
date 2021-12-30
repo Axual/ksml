@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - main
-      - maven-jacoco
+      - branch-*
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:

@@ -1,7 +1,7 @@
 # --- step 1: build the code on GraalVM
 FROM ghcr.io/graalvm/graalvm-ce:21.2.0 AS builder
 MAINTAINER Axual <maintainer@axual.io>
-RUN curl -O https://dlcdn.apache.org/maven/maven-3/3.8.4/binaries/apache-maven-3.8.4-bin.tar.gz \
+RUN curl -O https://downloads.apache.org/maven/maven-3/3.8.4/binaries/apache-maven-3.8.4-bin.tar.gz \
   && tar xvf apache-maven-3.8.4-bin.tar.gz \
   && gu install python
 ADD . /project_dir
