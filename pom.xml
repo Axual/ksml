@@ -91,7 +91,7 @@
         <license.licensename>apache_v2</license.licensename>
 
         <!-- sonarcloud properties -->
-        <sonar.organization>axual</sonar.organization>
+        <sonar.organization>tonvanbart</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <!-- Sonar for JACOCO-->
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
