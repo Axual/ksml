@@ -93,6 +93,7 @@
         <!-- sonarcloud properties -->
         <sonar.organization>tonvanbart</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+             
         <!-- Sonar for JACOCO-->
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
