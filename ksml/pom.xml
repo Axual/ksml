@@ -16,6 +16,7 @@
 
     <properties>
         <confluent.version>6.0.0</confluent.version>
+        <sonar.coverage.jacoco.xmlReportPaths>../ksml-reporting/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <dependencies>

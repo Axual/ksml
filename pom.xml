@@ -55,6 +55,7 @@
         <module>ksml-query</module>
         <module>ksml-runner</module>
         <module>ksml-runner-axual</module>
+        <module>ksml-reporting</module>
     </modules>
 
     <properties>
@@ -76,6 +77,7 @@
         <maven.failsafe.version>2.22.2</maven.failsafe.version>
         <maven.install.version>3.0.0-M1</maven.install.version>
         <maven.license.plugin.version>1.9</maven.license.plugin.version>
+        <maven.jacoco.plugin.version>0.8.7</maven.jacoco.plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <slf4j.version>1.7.32</slf4j.version>
@@ -86,6 +88,9 @@
         <junit-vintage-engine.version>5.2.0</junit-vintage-engine.version>
         <jaxb.version>3.0.2</jaxb.version>
         <jersey.version>3.0.3</jersey.version>
+        <!-- following properties filled at build time by jacoco -->
+        <surefireArgLine/>
+        <failsafeArgLine/>
 
         <!-- license properties -->
         <license.licensename>apache_v2</license.licensename>
@@ -297,12 +302,18 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven.surefire.version}</version>
+                    <configuration>
+                        <argLine>${surefireArgLine}</argLine>
+                    </configuration>
                 </plugin>
 
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <version>${maven.failsafe.version}</version>
+                    <configuration>
+                        <argLine>${failsafeArgLine}</argLine>
+                    </configuration>
                 </plugin>
 
                 <plugin>
