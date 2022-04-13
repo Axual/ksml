@@ -1,11 +1,11 @@
 # --- step 1: build the code on GraalVM
 FROM ghcr.io/graalvm/graalvm-ce:21.2.0 AS builder
 MAINTAINER Axual <maintainer@axual.io>
-RUN curl -O https://downloads.apache.org/maven/maven-3/3.8.4/binaries/apache-maven-3.8.4-bin.tar.gz \
-  && tar xvf apache-maven-3.8.4-bin.tar.gz \
+RUN curl -O https://archive.apache.org/dist/maven/maven-3/3.8.5/binaries/apache-maven-3.8.5-bin.tar.gz \
+  && tar xvf apache-maven-3.8.5-bin.tar.gz \
   && gu install python
 ADD . /project_dir
-RUN cd project_dir && /apache-maven-3.8.4/bin/mvn clean package
+RUN cd project_dir && /apache-maven-3.8.5/bin/mvn clean package
 
 # --- step 2: build GraalVM image with compiled code
 FROM redhat/ubi8:8.4-206.1626828523
