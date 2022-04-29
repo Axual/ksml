@@ -15,7 +15,7 @@
     <description>The core components for parsing and executing a KSML definition to a Kafka Streams topology</description>
 
     <properties>
-        <confluent.version>6.0.0</confluent.version>
+        <confluent.version>7.1.1</confluent.version>
         <sonar.coverage.jacoco.xmlReportPaths>../ksml-reporting/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 

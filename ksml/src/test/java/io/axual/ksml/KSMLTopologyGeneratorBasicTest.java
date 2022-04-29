@@ -44,7 +44,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Basic "golden master" test for topology generation.
- * Generate a topolgy and compare with stored string representation. Reference output is in src/test/resources/reference.
+ * Generate a topology and compare with stored string representation. Reference output is in src/test/resources/reference.
  */
 public class KSMLTopologyGeneratorBasicTest {
 
@@ -52,7 +52,7 @@ public class KSMLTopologyGeneratorBasicTest {
     public static void checkGraalVM() {
         final var vendor = System.getProperty("java.vendor.url");
         if (!vendor.contains("graalvm")) {
-            fail("This test needs GraalVM to work");
+            fail("This test needs GraalVM to work, found java.vendor.url=" + vendor);
         }
     }
 
