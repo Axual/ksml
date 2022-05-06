@@ -53,12 +53,12 @@ public class KSMLRunner {
             final var mapper = new ObjectMapper(new YAMLFactory());
             final KSMLRunnerConfig config = mapper.readValue(configPath, KSMLRunnerConfig.class);
             config.validate();
-            log.info("Using backed of type {}", config.getBackend().getType());
+            log.info("Using backed of type {}", config.getBackendConfig().getType());
             Backend backend = config.getConfiguredBackend();
 
-            if (Boolean.TRUE.equals(config.getKsml().getApplicationServerEnabled())) {
+            if (Boolean.TRUE.equals(config.getKsmlConfig().getApplicationServerEnabled())) {
                 // Run with the REST server
-                HostInfo hostInfo = new HostInfo(config.getKsml().getApplicationServerHost(), config.getKsml().getApplicationServerPort());
+                HostInfo hostInfo = new HostInfo(config.getKsmlConfig().getApplicationServerHost(), config.getKsmlConfig().getApplicationServerPort());
 
                 try (RestServer restServer = new RestServer(hostInfo)) {
                     restServer.start(backend.getQuerier());

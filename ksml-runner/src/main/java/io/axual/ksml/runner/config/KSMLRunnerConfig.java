@@ -22,6 +22,7 @@ package io.axual.ksml.runner.config;
 
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,21 +41,25 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 public class KSMLRunnerConfig {
     private static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-    private KSMLConfig ksml;
-    private KSMLRunnerBackendConfig backend;
+
+    @JsonProperty("ksml")
+    private KSMLConfig ksmlConfig;
+
+    @JsonProperty("backend")
+    private KSMLRunnerBackendConfig backendConfig;
 
     public void validate() throws KSMLRunnerConfigurationException {
-        if (ksml == null) {
-            throw new KSMLRunnerConfigurationException("ksml", ksml);
+        if (ksmlConfig == null) {
+            throw new KSMLRunnerConfigurationException("ksml", ksmlConfig);
         }
 
-        ksml.validate();
+        ksmlConfig.validate();
 
-        if (backend == null) {
-            throw new KSMLRunnerConfigurationException("backend", backend);
+        if (backendConfig == null) {
+            throw new KSMLRunnerConfigurationException("backend", backendConfig);
         }
 
-        backend.validate();
+        backendConfig.validate();
     }
 
     public Backend getConfiguredBackend() throws JsonProcessingException {
@@ -65,8 +70,8 @@ public class KSMLRunnerConfig {
             loader.forEach(pr -> log.info("Found provider {} for type {}", pr.getClass().getName(), pr.getType()));
         }
 
-        final String type = backend.getType();
-        final JsonNode config = backend.getConfig();
+        final String type = backendConfig.getType();
+        final JsonNode config = backendConfig.getConfig();
 
         BackendProvider<?> provider = loader.stream()
                 .map(ServiceLoader.Provider::get)
@@ -77,6 +82,6 @@ public class KSMLRunnerConfig {
         final BackendConfig backendConfig = mapper.readValue(mapper.writeValueAsString(config), provider.getConfigClass());
         backendConfig.validate();
 
-        return provider.create(ksml, backendConfig);
+        return provider.create(ksmlConfig, backendConfig);
     }
 }
