@@ -109,7 +109,7 @@ public class TopologyGeneratorImpl {
                 case "file":
                     // Parse source from file
                     LOG.info("Reading KSML from source file(s): {}", config.source);
-                    return readYAMLsFromFile(mapper, config.workingDirectory, config.source);
+                    return readYAMLsFromFile(mapper, config.configDirectory, config.source);
                 case "content":
                     // Parse YAML content directly from string
                     LOG.info("Reading KSML from content string: {}", config.source);

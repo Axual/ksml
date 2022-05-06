@@ -101,8 +101,10 @@ public class KSMLConfig {
             throw new KSMLRunnerConfigurationException("definitionFile", definitions, "At least one KSML definition file must be specified");
         }
 
+        log.info("Using configuration directory: {}", getConfigurationDirectory());
+
         for (String definitionFile : definitions) {
-            final var definitionFilePath = Paths.get(workingDirectory, definitionFile);
+            final var definitionFilePath = Paths.get(getConfigurationDirectory(), definitionFile);
             if (Files.notExists(definitionFilePath) || !Files.isRegularFile(definitionFilePath)) {
                 throw new KSMLRunnerConfigurationException("definitionFile", definitionFilePath, "The provided KSML definition file does not exists or is not a regular file");
             }

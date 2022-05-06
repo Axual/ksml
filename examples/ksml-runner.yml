@@ -1,8 +1,8 @@
 ksml:
-  workingDirectory: /ksml
+  workingDirectory: /tmp
   configDirectory: /ksml
   definitions:
-  - 1-demo-inspect.yaml
+  - 01-demo-inspect.yaml
 
 backend:
   type: kafka
