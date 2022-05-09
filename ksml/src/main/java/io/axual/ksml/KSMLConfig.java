@@ -34,11 +34,13 @@ import io.axual.ksml.notation.NotationLibrary;
 public class KSMLConfig {
     public static final String KSML_SOURCE_TYPE = "ksml.source.type";
     public static final String KSML_SOURCE = "ksml.source";
-    public static final String KSML_WORKING_DIRECTORY = "ksml.dir";
+    public static final String KSML_WORKING_DIRECTORY = "ksml.working.dir";
+    public static final String KSML_CONFIG_DIRECTORY = "ksml.config.dir";
     public static final String NOTATION_LIBRARY = "notation.library";
 
     public final String sourceType;
     public final String workingDirectory;
+    public final String configDirectory;
     public final Object source;
     public final NotationLibrary notationLibrary;
 
@@ -46,6 +48,7 @@ public class KSMLConfig {
         sourceType = configs.containsKey(KSML_SOURCE_TYPE) ? (String) configs.get(KSML_SOURCE_TYPE) : "file";
         source = configs.get(KSMLConfig.KSML_SOURCE);
         workingDirectory = (String) configs.get(KSML_WORKING_DIRECTORY);
+        configDirectory = (String) configs.get(KSML_CONFIG_DIRECTORY);
         notationLibrary = configs.containsKey(NOTATION_LIBRARY)
                 ? (NotationLibrary) configs.get(NOTATION_LIBRARY)
                 : new NotationLibrary(configs);
