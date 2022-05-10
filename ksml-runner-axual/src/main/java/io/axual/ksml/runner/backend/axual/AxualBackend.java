@@ -156,6 +156,7 @@ public class AxualBackend implements Backend {
         Map<String, Object> ksmlConfigs = new HashMap<>();
         ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_SOURCE_TYPE, "file");
         ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_WORKING_DIRECTORY, ksmlConfig.getWorkingDirectory());
+        ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_CONFIG_DIRECTORY, ksmlConfig.getConfigurationDirectory());
         ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_SOURCE, ksmlConfig.getDefinitions());
         ksmlConfigs.put(io.axual.ksml.KSMLConfig.NOTATION_LIBRARY, new AxualNotationLibrary(configs));
         var topologyFactory = new KSMLTopologyGenerator();

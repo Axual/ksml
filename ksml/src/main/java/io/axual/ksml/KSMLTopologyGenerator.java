@@ -48,7 +48,8 @@ public class KSMLTopologyGenerator implements Configurable, TopologyGenerator {
 
     @Override
     public Topology create(StreamsBuilder streamsBuilder) {
-        var avroSchemaLoader = new AvroSchemaLoader(config.workingDirectory);
+//        var avroSchemaLoader = new AvroSchemaLoader(config.workingDirectory);
+        var avroSchemaLoader = new AvroSchemaLoader(config.configDirectory);
         SchemaLibrary.registerLoader(avroSchemaLoader);
         var generator = new TopologyGeneratorImpl(config);
         return generator.create(streamsBuilder);

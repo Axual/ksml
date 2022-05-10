@@ -21,6 +21,9 @@ package io.axual.ksml.runner.config;
  */
 
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -39,6 +42,10 @@ public class KSMLConfig {
     private String applicationServerHost;
     private String applicationServerPort;
     private String workingDirectory;
+
+    @JsonProperty("configDirectory")
+    private String configurationDirectory;
+
     private List<String> definitions;
 
     public String getApplicationServer() {
@@ -66,23 +73,40 @@ public class KSMLConfig {
         return 0;
     }
 
+    public String getConfigurationDirectory() {
+        if (configurationDirectory == null) {
+            return workingDirectory;
+        }
+        return configurationDirectory;
+    }
+
     public void validate() throws KSMLRunnerConfigurationException {
         if (workingDirectory == null) {
             throw new KSMLRunnerConfigurationException("workingDirectory", workingDirectory);
         }
+
         final var workingDirectoryPath = Paths.get(workingDirectory);
         if (Files.notExists(workingDirectoryPath) || !Files.isDirectory(workingDirectoryPath)) {
             throw new KSMLRunnerConfigurationException("workingDirectory", workingDirectory, "The provided path does not exists or is not a directory");
+        }
+
+        if (configurationDirectory != null) {
+            final var configPath = Paths.get(configurationDirectory);
+            if (Files.notExists(configPath) || !Files.isDirectory(configPath)) {
+                throw new KSMLRunnerConfigurationException("configurationDirectory", configurationDirectory, "The provided path does not exists or is not a directory");
+            }
         }
 
         if (definitions == null || definitions.isEmpty()) {
             throw new KSMLRunnerConfigurationException("definitionFile", definitions, "At least one KSML definition file must be specified");
         }
 
+        log.info("Using configuration directory: {}", getConfigurationDirectory());
+
         for (String definitionFile : definitions) {
-            final var definitionFilePath = Paths.get(workingDirectory, definitionFile);
+            final var definitionFilePath = Paths.get(getConfigurationDirectory(), definitionFile);
             if (Files.notExists(definitionFilePath) || !Files.isRegularFile(definitionFilePath)) {
-                throw new KSMLRunnerConfigurationException("definitionFile", definitionFile, "The provided KSML definition file does not exists or is not a regular file");
+                throw new KSMLRunnerConfigurationException("definitionFile", definitionFilePath, "The provided KSML definition file does not exists or is not a regular file");
             }
         }
     }
