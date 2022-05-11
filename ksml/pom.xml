@@ -15,7 +15,6 @@
     <description>The core components for parsing and executing a KSML definition to a Kafka Streams topology</description>
 
     <properties>
-        <confluent.version>6.0.0</confluent.version>
         <sonar.coverage.jacoco.xmlReportPaths>../ksml-reporting/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
@@ -52,7 +51,6 @@
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-avro-serializer</artifactId>
-            <version>${confluent.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>

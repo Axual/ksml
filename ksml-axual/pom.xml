@@ -23,6 +23,12 @@
         <dependency>
             <groupId>io.axual.streams</groupId>
             <artifactId>axual-streams</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.kafka</groupId>
+                    <artifactId>connect-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.axual.ksml</groupId>
