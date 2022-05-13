@@ -66,7 +66,7 @@
         <confluent.version>7.1.1</confluent.version>
         <graalvm.version>21.1.0</graalvm.version>
         <hamcrest.version>2.1</hamcrest.version>
-        <jackson.version>2.11.1</jackson.version>
+        <jackson.version>2.12.3</jackson.version>
         <java.source.version>11</java.source.version>
         <java.target.version>11</java.target.version>
         <jupiter.version>5.7.1</jupiter.version>
@@ -435,6 +435,24 @@
                         </execution>
                     </executions>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>3.0.0</version>
+                    <executions>
+                        <execution>
+                            <id>enforce</id>
+                            <configuration>
+                                <rules>
+                                    <dependencyConvergence/>
+                                </rules>
+                            </configuration>
+                            <goals>
+                                <goal>enforce</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
 
             </plugins>
         </pluginManagement>
@@ -454,6 +472,7 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.3.0</version>
             </plugin>
+
         </plugins>
 
         <resources>
