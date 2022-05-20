@@ -21,6 +21,7 @@ RUN mkdir -p "/opt/ksml/libs"  \
   && tar -xzf /tmp/graalvm.tgz -C "/opt" \
   && mv /opt/graalvm* /opt/graalvm \
   && chown -R 1024:users /opt \
+  && chown -R 1024:users /tmp \
   && rm -rf /tmp/graalvm.tgz \
   && /opt/graalvm/bin/gu -A install python
 
