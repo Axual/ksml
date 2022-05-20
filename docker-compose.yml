@@ -48,6 +48,12 @@ services:
       CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
       CONFLUENT_METRICS_ENABLE: 'true'
       CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+    healthcheck:
+      test: kafka-topics --bootstrap-server broker:9093 --list | fgrep -q ksml_sensordata_table
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
 
   schema_registry:
     image: confluentinc/cp-schema-registry:6.0.0
@@ -87,6 +93,7 @@ services:
                        kafka-topics --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_sensor0 && \
                        kafka-topics --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_sensor1 && \
                        kafka-topics --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_sensor2 && \
+                       kafka-topics --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_table && \
                        kafka-topics --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic io.ksml.example.processor-ownerCount-changelog'"
 
   example-producer:
