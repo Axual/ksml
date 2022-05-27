@@ -22,7 +22,7 @@ jobs:
         with:
           file: Dockerfile-build-runner
           push: true
-          tags: axual/ksml-kafka:snapshot
+          tags: ghcr.io/axual/ksml-kafka:snapshot
           build-args: "runner=ksml-runner"
 
       - name: build and push Axual runner
@@ -30,7 +30,7 @@ jobs:
         with:
           file: Dockerfile-build-runner
           push: true
-          tags: axual/ksml-axual:snapshot
+          tags: ghcr.io/axual/ksml-axual:snapshot
           build-args: "runner=ksml-runner-axual"
 
 
