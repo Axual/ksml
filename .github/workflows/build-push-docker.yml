@@ -1,0 +1,38 @@
+name: build and push Docker images
+on:
+  push
+# TO DO: only on PR merge!
+
+jobs:
+  build-push-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: set up Docker buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: login to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: build and push plain Kafka runner
+        uses: docker/build-push-action@v3
+        with:
+          file: Dockerfile-build-runner
+          push: true
+          tags: axual/ksml-kafka:snapshot
+          build-args: "runner=ksml-runner"
+
+      - name: build and push Axual runner
+        uses: docker/build-push-action@v3
+        with:
+          file: Dockerfile-build-runner
+          push: true
+          tags: axual/ksml-axual:snapshot
+          build-args: "runner=ksml-runner-axual"
+
+
+
+
