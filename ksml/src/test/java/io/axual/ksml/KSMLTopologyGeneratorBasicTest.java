@@ -24,6 +24,8 @@ package io.axual.ksml;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TopologyDescription;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -84,13 +86,22 @@ public class KSMLTopologyGeneratorBasicTest {
             "leave short@123 alone,leave short@123 alone"
     })
     void cleanDescriptionTest(String input, String expected) {
+        System.out.println("input='" + input +"',expected='" + expected + "'");
         assertThat(cleanDescription(input), is(expected));
     }
 
+    @Test
+    @DisplayName("cleanDescription also fixes line endings")
+    void cleanDescriptionTestLineEnd() {
+        assertThat(cleanDescription("fix\r\nnewlines"), is("fix\nnewlines"));
+    }
+
     /**
-     * Clean a description string by removing all object references ("@abcd1234")
+     * Clean a description string by removing all object references ("@abcd1234") and fixing Windows line endings.
      */
     private String cleanDescription(String description) {
-        return description.replaceAll("@[a-fA-F-0-9]{5,}", "");
+        return description
+                .replaceAll("@[a-fA-F-0-9]{5,}", "")
+                .replaceAll("\r\n", "\n");
     }
 }
