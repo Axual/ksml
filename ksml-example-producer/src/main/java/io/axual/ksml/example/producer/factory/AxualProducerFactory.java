@@ -73,6 +73,15 @@ public class AxualProducerFactory implements ProducerFactory {
         configs.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, backendConfig.getSslConfig().getTruststorePassword());
         configs.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, "");
         configs.put(SslConfigs.SSL_ENABLED_PROTOCOLS_CONFIG, "TLSv1.3,TLSv1.2,TLSv1.1,TLSv1");
+
+        final String PREFIX = "schema.registry.";
+        configs.put(PREFIX + SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, backendConfig.getSslConfig().getKeystoreLocation());
+        configs.put(PREFIX + SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, backendConfig.getSslConfig().getKeystorePassword());
+        configs.put(PREFIX + SslConfigs.SSL_KEY_PASSWORD_CONFIG, backendConfig.getSslConfig().getKeyPassword());
+        configs.put(PREFIX + SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, backendConfig.getSslConfig().getTruststoreLocation());
+        configs.put(PREFIX + SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, backendConfig.getSslConfig().getTruststorePassword());
+        configs.put(PREFIX + SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, "");
+        configs.put(PREFIX + SslConfigs.SSL_ENABLED_PROTOCOLS_CONFIG, "TLSv1.3,TLSv1.2,TLSv1.1,TLSv1");
         return new AxualProducer<>(configs);
     }
 }

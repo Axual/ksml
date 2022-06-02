@@ -34,6 +34,7 @@ import io.axual.ksml.data.object.user.UserFloat;
 import io.axual.ksml.data.object.user.UserInteger;
 import io.axual.ksml.data.object.user.UserList;
 import io.axual.ksml.data.object.user.UserLong;
+import io.axual.ksml.data.object.user.UserNone;
 import io.axual.ksml.data.object.user.UserObject;
 import io.axual.ksml.data.object.user.UserRecord;
 import io.axual.ksml.data.object.user.UserShort;
@@ -49,6 +50,7 @@ import static io.axual.ksml.data.type.user.UserType.DEFAULT_NOTATION;
 
 public class NativeUserObjectMapper implements UserObjectMapper<Object> {
     public DataType inferType(Object value) {
+        if (value == null) return UserNone.DATATYPE;
         if (value instanceof Boolean) return UserBoolean.DATATYPE;
         if (value instanceof Byte) return UserByte.DATATYPE;
         if (value instanceof Short) return UserShort.DATATYPE;
@@ -64,6 +66,7 @@ public class NativeUserObjectMapper implements UserObjectMapper<Object> {
     @Override
     public UserObject toUserObject(UserType expected, Object value) {
         final String resultNotation = expected != null ? expected.notation() : DEFAULT_NOTATION;
+        if (value == null) return new UserNone(resultNotation);
         if (value instanceof Boolean) return new UserBoolean(resultNotation, (Boolean) value);
         if (value instanceof Byte) return new UserByte(resultNotation, (Byte) value);
         if (value instanceof Short) return new UserShort(resultNotation, (Short) value);
@@ -105,6 +108,7 @@ public class NativeUserObjectMapper implements UserObjectMapper<Object> {
 
     @Override
     public Object fromUserObject(UserObject value) {
+        if (value instanceof UserNone) return ((UserNone) value).value();
         if (value instanceof UserBoolean) return ((UserBoolean) value).value();
         if (value instanceof UserByte) return ((UserByte) value).value();
         if (value instanceof UserShort) return ((UserShort) value).value();

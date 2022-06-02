@@ -21,10 +21,12 @@ package io.axual.ksml;
  */
 
 import org.apache.avro.generic.GenericRecord;
+import org.apache.kafka.common.config.types.Password;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import io.axual.client.proxy.generic.registry.ProxyChain;
@@ -32,22 +34,22 @@ import io.axual.client.proxy.resolving.generic.ResolvingProxyConfig;
 import io.axual.common.resolver.TopicPatternResolver;
 import io.axual.ksml.schema.DataSchema;
 import io.axual.serde.avro.BaseAvroDeserializer;
-import io.axual.serde.avro.GenericAvroDeserializer;
-import io.axual.serde.avro.GenericAvroSerializer;
 import io.axual.streams.config.StreamRunnerConfig;
 import io.axual.streams.proxy.axual.AxualSerde;
 import io.axual.streams.proxy.axual.AxualSerdeConfig;
+import io.confluent.kafka.serializers.KafkaAvroDeserializer;
+import io.confluent.kafka.serializers.KafkaAvroSerializer;
 
 public class AxualAvroSerde extends AxualSerde<GenericRecord> {
-    private static final Serde<GenericRecord> generatingSerde = new Serde<>() {
+    private static final Serde<Object> generatingSerde = new Serde<>() {
         @Override
-        public Serializer<GenericRecord> serializer() {
-            return new GenericAvroSerializer<>();
+        public Serializer<Object> serializer() {
+            return new KafkaAvroSerializer();
         }
 
         @Override
-        public Deserializer<GenericRecord> deserializer() {
-            return new GenericAvroDeserializer<>();
+        public Deserializer<Object> deserializer() {
+            return new KafkaAvroDeserializer();
         }
     };
 
@@ -65,6 +67,18 @@ public class AxualAvroSerde extends AxualSerde<GenericRecord> {
         configs.put(TopicPatternResolver.TOPIC_PATTERN_CONFIG, "{tenant}-{instance}-{environment}-{topic}");
         configs.put(BaseAvroDeserializer.SPECIFIC_KEY_SCHEMA_CONFIG, schema);
         configs.put(BaseAvroDeserializer.SPECIFIC_VALUE_SCHEMA_CONFIG, schema);
+
+        // Copy the SSL configuration so the schema registry also gets it as its config
+        Map<String, Object> copy = new HashMap<>(configs);
+        copy.keySet().stream().filter(k -> k.startsWith("ssl.")).forEach(k -> {
+            final Object value = copy.get(k);
+            // Explode passwords into their string literals
+            if (value instanceof Password) {
+                configs.put("schema.registry." + k, ((Password) value).value());
+            } else {
+                configs.put("schema.registry." + k, value);
+            }
+        });
         return configs;
     }
 }

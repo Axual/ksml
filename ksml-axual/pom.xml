@@ -28,17 +28,15 @@
                     <groupId>org.apache.kafka</groupId>
                     <artifactId>connect-api</artifactId>
                 </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>io.axual.ksml</groupId>
-            <artifactId>ksml</artifactId>
-            <exclusions>
                 <exclusion>
                     <groupId>io.confluent</groupId>
                     <artifactId>kafka-avro-serializer</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.axual.ksml</groupId>
+            <artifactId>ksml</artifactId>
         </dependency>
 
         <dependency>
