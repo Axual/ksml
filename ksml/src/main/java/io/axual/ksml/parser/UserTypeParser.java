@@ -28,6 +28,7 @@ import io.axual.ksml.data.object.user.UserDouble;
 import io.axual.ksml.data.object.user.UserFloat;
 import io.axual.ksml.data.object.user.UserInteger;
 import io.axual.ksml.data.object.user.UserLong;
+import io.axual.ksml.data.object.user.UserNone;
 import io.axual.ksml.data.object.user.UserShort;
 import io.axual.ksml.data.object.user.UserString;
 import io.axual.ksml.data.type.base.DataType;
@@ -165,7 +166,7 @@ public class UserTypeParser {
             case "?":
                 return DataType.UNKNOWN;
             case "none":
-                return null;
+                return UserNone.DATATYPE;
             case "str":
             case "string":
                 return UserString.DATATYPE;

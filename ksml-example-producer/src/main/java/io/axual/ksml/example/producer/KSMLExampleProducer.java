@@ -42,7 +42,7 @@ import io.axual.ksml.example.producer.factory.AxualProducerFactory;
 import io.axual.ksml.example.producer.factory.KafkaProducerFactory;
 import io.axual.ksml.example.producer.factory.ProducerFactory;
 import io.axual.ksml.example.producer.generator.SensorDataGenerator;
-import io.axual.serde.avro.SpecificAvroSerializer;
+import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import lombok.extern.slf4j.Slf4j;
 
 import static org.apache.kafka.clients.producer.ProducerConfig.ACKS_CONFIG;
@@ -65,7 +65,8 @@ public class KSMLExampleProducer {
         configs.put(RECONNECT_BACKOFF_MAX_MS_CONFIG, "1000");
         configs.put(MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, "10");
         configs.put(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        configs.put(VALUE_SERIALIZER_CLASS_CONFIG, SpecificAvroSerializer.class);
+        configs.put(VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class);
+        configs.put("specific.avro.reader", true);
         return configs;
     }
 
@@ -117,12 +118,14 @@ public class KSMLExampleProducer {
                 boolean interrupted = false;
                 while (!interrupted) {
                     log.info("Producing: {}", index);
-                    String key = "sensor" + (index % 10);
+                    String sensorName = "sensor" + (index % 10);
+                    String key = (index % 2) == 0 ? sensorName : null;
                     Future<RecordMetadata> future = producer.send(
                             new ProducerRecord<>(
                                     "ksml_sensordata_avro",
                                     key,
-                                    SensorDataGenerator.generateValue(key)));
+                                    (index % 3) != 0 ? SensorDataGenerator.generateValue(sensorName) : null
+                            ));
                     try {
                         RecordMetadata message = future.get();
                         log.info("Produced message to topic {} partition {} offset {}", message.topic(), message.partition(), message.offset());

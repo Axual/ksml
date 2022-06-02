@@ -22,6 +22,9 @@ package io.axual.ksml.data.type.base;
 
 
 public class SimpleType implements DataType {
+    public static class None {
+    }
+    public static final None NONE = null;
     private final Class<?> containerClass;
 
     public SimpleType(Class<?> containerClass) {
@@ -55,7 +58,7 @@ public class SimpleType implements DataType {
 
     @Override
     public boolean isAssignableFrom(Object value) {
-        return isAssignableFrom(value.getClass());
+        return value == null || isAssignableFrom(value.getClass());
     }
 
     public boolean equals(Object obj) {

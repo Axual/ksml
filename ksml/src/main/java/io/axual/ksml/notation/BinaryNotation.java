@@ -31,6 +31,8 @@ import java.util.Map;
 import io.axual.ksml.data.mapper.NativeUserObjectMapper;
 import io.axual.ksml.data.type.base.DataType;
 import io.axual.ksml.data.type.base.SimpleType;
+import io.axual.ksml.serde.NoneDeserializer;
+import io.axual.ksml.serde.NoneSerializer;
 import io.axual.ksml.util.DataUtil;
 
 public class BinaryNotation implements Notation {
@@ -52,6 +54,11 @@ public class BinaryNotation implements Notation {
     @Override
     public Serde<Object> getSerde(DataType type, boolean isKey) {
         if (type instanceof SimpleType) {
+            if (type.containerClass() == SimpleType.None.class) {
+                var result = new BinarySerde(Serdes.serdeFrom(new NoneSerializer(), new NoneDeserializer()));
+                result.configure(configs, isKey);
+                return result;
+            }
             var result = new BinarySerde((Serde<Object>) Serdes.serdeFrom(type.containerClass()));
             result.configure(configs, isKey);
             return result;

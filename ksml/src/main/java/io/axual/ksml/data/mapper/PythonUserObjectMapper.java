@@ -33,6 +33,7 @@ import io.axual.ksml.data.object.user.UserFloat;
 import io.axual.ksml.data.object.user.UserInteger;
 import io.axual.ksml.data.object.user.UserList;
 import io.axual.ksml.data.object.user.UserLong;
+import io.axual.ksml.data.object.user.UserNone;
 import io.axual.ksml.data.object.user.UserObject;
 import io.axual.ksml.data.object.user.UserRecord;
 import io.axual.ksml.data.object.user.UserShort;
@@ -62,6 +63,7 @@ public class PythonUserObjectMapper implements UserObjectMapper<Value> {
 
     public UserObject toUserObject(UserType expected, Value object) {
         final String resultNotation = expected != null ? expected.notation() : DEFAULT_NOTATION;
+        if (object.isNull()) return new UserNone(resultNotation);
         if (object.isBoolean() && (expected == null || expected.type() == UserBoolean.DATATYPE))
             return new UserBoolean(resultNotation, object.asBoolean());
 
@@ -157,6 +159,7 @@ public class PythonUserObjectMapper implements UserObjectMapper<Value> {
 
     @Override
     public Value fromUserObject(UserObject object) {
+        if (object instanceof UserNone) return Value.asValue(((UserNone) object).value());
         if (object instanceof UserBoolean) return Value.asValue(((UserBoolean) object).value());
         if (object instanceof UserByte) return Value.asValue(((UserByte) object).value());
         if (object instanceof UserShort) return Value.asValue(((UserShort) object).value());
