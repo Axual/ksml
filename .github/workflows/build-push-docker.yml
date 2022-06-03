@@ -1,6 +1,8 @@
 name: build and push Docker images
 on:
   pull_request:
+    branches:
+      - master
     types:
       - closed
 
