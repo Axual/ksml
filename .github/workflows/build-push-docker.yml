@@ -27,18 +27,16 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           file: Dockerfile-build-runner
-          context: .
           build-args: "runner=ksml-runner"
           push: true
           tags: |
-            axual/ksml-kafka:snapshot
-            ghcr.io/axual/ksml-kafka:snapshot
+            axual/ksml:snapshot
+            ghcr.io/axual/ksml:snapshot
 
       - name: build and push Axual runner
         uses: docker/build-push-action@v3
         with:
           file: Dockerfile-build-runner
-          context: .
           build-args: "runner=ksml-runner-axual"
           push: true
           tags: |
