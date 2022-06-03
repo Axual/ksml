@@ -1,10 +1,12 @@
 name: build and push Docker images
 on:
-  push
-# TO DO: only on PR merge!
+  pull_request:
+    types:
+      - closed
 
 jobs:
   build-push-docker:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: set up Docker buildx
