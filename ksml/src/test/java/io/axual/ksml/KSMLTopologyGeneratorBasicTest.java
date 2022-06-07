@@ -23,6 +23,7 @@ package io.axual.ksml;
 
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TopologyDescription;
+import org.graalvm.home.Version;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,9 +53,8 @@ public class KSMLTopologyGeneratorBasicTest {
 
     @BeforeAll
     public static void checkGraalVM() {
-        final var vendor = System.getProperty("java.vendor.url");
-        if (!vendor.contains("graalvm")) {
-            fail("This test needs GraalVM to work, found java.vendor.url=" + vendor);
+        if (!Version.getCurrent().isRelease()) {
+            fail("This test needs GraalVM to work.");
         }
     }
 
