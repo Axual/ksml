@@ -16,14 +16,14 @@ jobs:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: download GraalVM
         run: |
-          download_url="https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-21.3.0/graalvm-ce-java11-linux-amd64-21.3.0.tar.gz"
+          download_url="https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.1.0/graalvm-ce-java17-linux-amd64-22.1.0.tar.gz"
           wget -O $RUNNER_TEMP/graal_package.tar.gz $download_url
       - name: Set up GraalVM
         uses: actions/setup-java@v2
         with:
           distribution: 'jdkfile'
           jdkFile: ${{ runner.temp }}/graal_package.tar.gz
-          java-version: '11'
+          java-version: '17'
           architecture: x64
       - name: install GraalVM Python runtime
         run: |
