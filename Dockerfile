@@ -4,7 +4,7 @@ ENV JAVA_HOME=/opt/graalvm
 ENV PATH=/opt/graalvm/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 RUN mkdir -p "/opt/ksml/libs"  \
-&& curl -k -L -o "/tmp/graalvm.tgz" "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-21.2.0/graalvm-ce-java11-linux-amd64-21.2.0.tar.gz" \
+&& curl -k -L -o "/tmp/graalvm.tgz" "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.1.0/graalvm-ce-java17-linux-amd64-22.1.0.tar.gz" \
 && tar -xzf /tmp/graalvm.tgz -C "/opt" \
 && mv /opt/graalvm* /opt/graalvm \
 && chown -R 1024:users /opt \

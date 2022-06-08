@@ -1,5 +1,5 @@
 # --- step 1: build the code on GraalVM
-FROM ghcr.io/graalvm/graalvm-ce:21.2.0 AS builder
+FROM ghcr.io/graalvm/graalvm-ce:22.1.0 AS builder
 MAINTAINER Axual <maintainer@axual.io>
 RUN curl -O https://archive.apache.org/dist/maven/maven-3/3.8.5/binaries/apache-maven-3.8.5-bin.tar.gz \
   && tar xvf apache-maven-3.8.5-bin.tar.gz \
@@ -17,7 +17,7 @@ ARG runner=ksml-runner
 RUN echo Building runner: $runner
 
 RUN mkdir -p "/opt/ksml/libs"  \
-  && curl -k -L -o "/tmp/graalvm.tgz" "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-21.2.0/graalvm-ce-java11-linux-amd64-21.2.0.tar.gz" \
+  && curl -k -L -o "/tmp/graalvm.tgz" "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.1.0/graalvm-ce-java17-linux-amd64-22.1.0.tar.gz" \
   && tar -xzf /tmp/graalvm.tgz -C "/opt" \
   && mv /opt/graalvm* /opt/graalvm \
   && chown -R 1024:users /opt \
