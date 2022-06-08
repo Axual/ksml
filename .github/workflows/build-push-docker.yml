@@ -2,14 +2,13 @@ name: build and push Docker images
 on:
   pull_request:
     branches:
-      - master
       - main
     types:
       - closed
 
 jobs:
   build-push-docker:
-    if: github.event.pull_request.merged == true
+    if: ${{ github.event.pull_request.merged }}
     runs-on: ubuntu-latest
     steps:
       - name: set up Docker buildx
