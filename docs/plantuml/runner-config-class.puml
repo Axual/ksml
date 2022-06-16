@@ -1,0 +1,33 @@
+@startuml
+
+class KSMLRunner {}
+
+class KSMLRunnerConfig {
+	+ getConfiguredBackend(): Backend
+}
+
+class KSMLRunnerBackendConfig {
+	-config: JSONNode
+	-type: String
+	+validate(): void
+	+getType(): String
+}
+
+interface BackendConfig {
+	+validate(): void
+}
+
+
+KSMLRunnerConfig --> KSMLConfig
+KSMLRunnerConfig --> KSMLRunnerBackendConfig
+KSMLRunnerBackendConfig --> JSONNode
+note bottom of JSONNode: will be stringified and re-parsed as either\nKafkaBackendConfig or AxualBackendConfig\nby KSMLRunnerConfig.getConfiguredBackend()
+JSONNode <. KafkaBackendConfig
+JSONNode <. AxualBackendConfig
+
+BackendConfig <|-- KafkaBackendConfig
+BackendConfig <|-- AxualBackendConfig
+
+KSMLRunner -> KSMLRunnerConfig: creates
+
+@enduml
