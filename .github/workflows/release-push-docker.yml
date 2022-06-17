@@ -37,8 +37,8 @@ jobs:
           build-args: "runner=ksml-runner"
           push: true
           tags: |
-            axual/ksml:$RELEASE_TAG
-            ghcr.io/axual/ksml:$RELEASE_TAG
+            axual/ksml:${{ github.event.release.tag_name }}
+            ghcr.io/axual/ksml:${{ github.event.release.tag_name }}
 
       - name: build and push Axual runner
         uses: docker/build-push-action@v3
@@ -47,8 +47,8 @@ jobs:
           build-args: "runner=ksml-runner-axual"
           push: true
           tags: |
-            axual/ksml-axual:$RELEASE_TAG
-            ghcr.io/axual/ksml-axual:$RELEASE_TAG
+            axual/ksml-axual:${{ github.event.release.tag_name }}
+            ghcr.io/axual/ksml-axual:${{ github.event.release.tag_name }}
 
 
 
