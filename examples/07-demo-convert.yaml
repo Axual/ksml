@@ -9,7 +9,7 @@ streams:
 functions:
   print_message:
     type: forEach
-    code: "print('key='+(key if isinstance(key,str) else str(key))+', value='+(value if isinstance(value,str) else str(value)))"
+    code: "print('key=' + str(key) + ', value=' + str(value))"
 
 pipelines:
   # The main pipeline reads messages, converts to json, outputs them, and saves to a target topic
