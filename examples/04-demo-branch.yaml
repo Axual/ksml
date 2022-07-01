@@ -15,7 +15,7 @@ streams:
 functions:
   print_message:
     type: forEach
-    code: "print('SOURCE key='+(key if isinstance(key,str) else str(key))+', value='+(value if isinstance(value,str) else str(value)))"
+    code: "print('SOURCE key=' + str(key) + ', value=' + str(value))"
 
 pipelines:
   main:
@@ -38,9 +38,9 @@ pipelines:
     from: sensor_red
     forEach:
       type: forEach
-      code: "print('RED key='+(key if isinstance(key,str) else str(key))+', value='+(value if isinstance(value,str) else str(value)))"
+      code: "print('RED key=' + str(key) + ', value=' + str(value))"
   blue_flow:
     from: sensor_blue
     forEach:
       type: forEach
-      code: "print('BLUE key='+(key if isinstance(key,str) else str(key))+', value='+(value if isinstance(value,str) else str(value)))"
+      code: "print('BLUE key=' + str(key) + ', value=' + str(value))"

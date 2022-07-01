@@ -1,16 +1,19 @@
-name: build and push Docker images
+name: build and push release Docker images
 on:
-  pull_request_target:
-    branches:
-      - main
-    types:
-      - closed
+  release:
+    types: [published]
+
+env:
+  RELEASE_TAG: ${{ github.event.release.tag_name }}
 
 jobs:
-  build-push-docker:
-    if: ${{ github.event.pull_request.merged }}
+  release-push-docker:
     runs-on: ubuntu-latest
     steps:
+      - name: print release to be pushed
+        run: |
+          echo "building and tagging release: $RELEASE_TAG"
+
       - name: set up Docker buildx
         uses: docker/setup-buildx-action@v2
 
@@ -34,8 +37,8 @@ jobs:
           build-args: "runner=ksml-runner"
           push: true
           tags: |
-            axual/ksml:snapshot
-            ghcr.io/axual/ksml:snapshot
+            axual/ksml:${{ github.event.release.tag_name }}
+            ghcr.io/axual/ksml:${{ github.event.release.tag_name }}
 
       - name: build and push Axual runner
         uses: docker/build-push-action@v3
@@ -44,8 +47,8 @@ jobs:
           build-args: "runner=ksml-runner-axual"
           push: true
           tags: |
-            axual/ksml-axual:snapshot
-            ghcr.io/axual/ksml-axual:snapshot
+            axual/ksml-axual:${{ github.event.release.tag_name }}
+            ghcr.io/axual/ksml-axual:${{ github.event.release.tag_name }}
 
 
 
