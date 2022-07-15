@@ -76,10 +76,10 @@ public class KafkaBackend implements Backend {
         ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_CONFIG_DIRECTORY, ksmlConfig.getConfigurationDirectory());
         ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_SOURCE, ksmlConfig.getDefinitions());
         ksmlConfigs.put(io.axual.ksml.KSMLConfig.NOTATION_LIBRARY, new NotationLibrary(streamsProperties));
-        var topologyFactory = new KSMLTopologyGenerator();
-        topologyFactory.configure(ksmlConfigs);
+        var topologyGenerator = new KSMLTopologyGenerator();
+        topologyGenerator.configure(ksmlConfigs);
 
-        final var topology = topologyFactory.create(new StreamsBuilder());
+        final var topology = topologyGenerator.create(new StreamsBuilder());
         kafkaStreams = new KafkaStreams(topology, streamsProperties);
     }
 
