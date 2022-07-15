@@ -1,17 +1,32 @@
 @startuml
 
+' see https://plantuml.com/class-diagram
+
+package io.axual.ksml.runner.config {
+
+  class KSMLRunnerConfig {
+  	+ getConfiguredBackend(): Backend
+  }
+
+  class KSMLRunnerBackendConfig {
+  	-config: JSONNode
+  	-type: String
+  	+validate(): void
+  	+getType(): String
+  }
+
+  class KSMLConfig
+
+}
+
+package io.axual.ksml {
+  class "KSMLConfig" as ksmlconfig2
+  note bottom of ksmlconfig2: duplicated name
+}
+
 class KSMLRunner {}
 
-class KSMLRunnerConfig {
-	+ getConfiguredBackend(): Backend
-}
 
-class KSMLRunnerBackendConfig {
-	-config: JSONNode
-	-type: String
-	+validate(): void
-	+getType(): String
-}
 
 interface BackendConfig {
 	+validate(): void
