@@ -49,7 +49,8 @@ import io.axual.ksml.schema.DataSchema;
 import static io.axual.ksml.data.type.user.UserType.DEFAULT_NOTATION;
 
 public class NativeUserObjectMapper implements UserObjectMapper<Object> {
-    public DataType inferType(Object value) {
+
+    private DataType inferType(Object value) {
         if (value == null) return UserNone.DATATYPE;
         if (value instanceof Boolean) return UserBoolean.DATATYPE;
         if (value instanceof Byte) return UserByte.DATATYPE;

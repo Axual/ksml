@@ -1,0 +1,60 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+interface UserObject {
+  +type(): UserType
+}
+
+interface UserType {
+  {static} UNKOWN
+  __
+  {abstract} +type(): DataType
+  {abstract} +notation(): String
+  .. default methods ..
+  +isAssignableFrom(Class): boolean
+  +isAssignableFrom(UserType): boolean
+  +isAssignableFrom(DataType): boolean
+  +isAssignableFrom(Object): boolean
+  +schemaName(): String
+}
+
+interface DataType {
+  {static} UNKNOWN
+  __
+  +containerClass(): Class<?>
+  +schemaName(): String
+  +isAssignableFrom(Class): boolean
+  +isAssignableFrom(DataType): boolean
+  +isAssignableFrom(Object): boolean
+}
+
+UserObject <|- UserList
+UserObject <|- UserTuple
+UserObject <|-- UserPrimitive
+
+UserObject o-- UserType
+UserType o-- DataType
+
+UserType <|-- StaticUserType
+UserType <|-- ComplexUserType
+
+ComplexUserType <|-- UserMapType
+ComplexUserType <|-- UserTupleType
+ComplexUserType <|-- UserListType
+
+UserMapType <|-- UserRecordType
+UserTupleType <|-- UserKeyValueType
+UserListType <|-- UserKeyValueListType
+
+DataType <|-- ComplexType
+DataType <|-- SimpleType
+
+ComplexType <|-- TupleType
+ComplexType <|-- ListType
+ComplexType <|-- MapType
+ComplexType <|-- WindowedType
+
+TupleType <|-- KeyValueType
+
+
+@enduml

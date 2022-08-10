@@ -159,8 +159,8 @@ public class AxualBackend implements Backend {
         ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_CONFIG_DIRECTORY, ksmlConfig.getConfigurationDirectory());
         ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_SOURCE, ksmlConfig.getDefinitions());
         ksmlConfigs.put(io.axual.ksml.KSMLConfig.NOTATION_LIBRARY, new AxualNotationLibrary(configs));
-        var topologyFactory = new KSMLTopologyGenerator();
-        topologyFactory.configure(ksmlConfigs);
+        var topologyGenerator = new KSMLTopologyGenerator();
+        topologyGenerator.configure(ksmlConfigs);
 
         configs.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         configs.put(ProducerConfig.BATCH_SIZE_CONFIG, 262144);
@@ -172,7 +172,7 @@ public class AxualBackend implements Backend {
             configs.put(StreamsConfig.APPLICATION_SERVER_CONFIG, ksmlConfig.getApplicationServer());
         }
 
-        configs.put(WrappedStreamsConfig.TOPOLOGY_FACTORY_CONFIG, (TopologyFactory) topologyFactory::create);
+        configs.put(WrappedStreamsConfig.TOPOLOGY_FACTORY_CONFIG, (TopologyFactory) topologyGenerator::create);
         configs.put(WrappedStreamsConfig.UNCAUGHT_EXCEPTION_HANDLER_FACTORY_CONFIG, (UncaughtExceptionHandlerFactory) streams -> throwable -> {
             log.error("Caught serious exception in thread!", throwable);
             return StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_APPLICATION;
