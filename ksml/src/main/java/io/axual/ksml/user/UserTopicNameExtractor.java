@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.axual.ksml.data.object.user.UserString;
+import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;
 import io.axual.ksml.util.DataUtil;
@@ -46,7 +46,7 @@ public class UserTopicNameExtractor extends Invoker implements TopicNameExtracto
     public UserTopicNameExtractor(UserFunction function) {
         super(function);
         verifyParameterCount(3);
-        verifyResultType(UserString.DATATYPE);
+        verifyResultType(DataString.DATATYPE);
     }
 
     @Override
@@ -55,8 +55,8 @@ public class UserTopicNameExtractor extends Invoker implements TopicNameExtracto
                 DataUtil.asUserObject(key),
                 DataUtil.asUserObject(value),
                 DataUtil.asUserObject(convertRecordContext(recordContext)));
-        if (result instanceof UserString) {
-            return ((UserString) result).value();
+        if (result instanceof DataString) {
+            return ((DataString) result).value();
         }
         throw new KSMLExecutionException("Expected string result from function: " + function.name);
     }

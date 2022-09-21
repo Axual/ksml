@@ -9,9 +9,9 @@ package io.axual.ksml.notation;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,16 +29,16 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.axual.ksml.data.mapper.JsonUserObjectMapper;
-import io.axual.ksml.data.type.base.DataType;
-import io.axual.ksml.data.type.base.ListType;
-import io.axual.ksml.data.type.base.MapType;
+import io.axual.ksml.data.mapper.JsonDataObjectMapper;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.util.DataUtil;
 
 public class JsonNotation implements Notation {
     public static final String NOTATION_NAME = "JSON";
-    private static final JsonUserObjectMapper jsonMapper = new JsonUserObjectMapper();
+    private static final JsonDataObjectMapper jsonMapper = new JsonDataObjectMapper();
     private final Map<String, Object> configs = new HashMap<>();
 
     public JsonNotation(Map<String, Object> configs) {
@@ -65,13 +65,13 @@ public class JsonNotation implements Notation {
         private final StringDeserializer deserializer = new StringDeserializer();
 
         private final Serializer<Object> wrapSerializer = (topic, data) -> {
-            var json = jsonMapper.fromUserObject(DataUtil.asUserObject(data));
+            var json = jsonMapper.fromDataObject(DataUtil.asUserObject(data));
             return serializer.serialize(topic, json);
         };
 
         private final Deserializer<Object> wrapDeserializer = (topic, data) -> {
             String json = deserializer.deserialize(topic, data);
-            return jsonMapper.toUserObject(JsonNotation.NOTATION_NAME, json);
+            return jsonMapper.toDataObject(json);
         };
 
         @Override

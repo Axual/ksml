@@ -22,7 +22,7 @@ package io.axual.ksml.notation;
 
 import org.apache.kafka.common.serialization.Serde;
 
-import io.axual.ksml.data.type.base.DataType;
+import io.axual.ksml.data.type.DataType;
 
 public interface Notation {
     String name();

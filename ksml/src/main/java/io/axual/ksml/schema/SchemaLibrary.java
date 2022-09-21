@@ -9,9 +9,9 @@ package io.axual.ksml.schema;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -57,13 +57,15 @@ public class SchemaLibrary {
     }
 
     public static void registerSchema(DataSchema schema) {
-        if (!schemas.containsKey(schema.name())) {
-            schemas.put(schema.name(), schema);
-            return;
-        }
-        DataSchema existingSchema = schemas.get(schema.name());
-        if (!existingSchema.equals(schema)) {
-            throw new KSMLExecutionException("Encountered two different schema with the same name: " + schema.name());
+        if (schema instanceof NamedSchema ns) {
+            if (!schemas.containsKey(ns.name())) {
+                schemas.put(ns.name(), schema);
+                return;
+            }
+            DataSchema existingSchema = schemas.get(ns.name());
+            if (!existingSchema.equals(schema)) {
+                throw new KSMLExecutionException("Encountered two different schema with the same name: " + ns.name());
+            }
         }
     }
 }

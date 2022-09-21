@@ -21,7 +21,7 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.data.type.user.UserType;
+import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLApplyException;
 
 public class FunctionDefinition {

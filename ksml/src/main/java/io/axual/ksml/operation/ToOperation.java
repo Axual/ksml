@@ -23,7 +23,7 @@ package io.axual.ksml.operation;
 
 import org.apache.kafka.streams.kstream.Produced;
 
-import io.axual.ksml.data.type.base.DataType;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.exception.KSMLTypeException;
 import io.axual.ksml.notation.NotationLibrary;

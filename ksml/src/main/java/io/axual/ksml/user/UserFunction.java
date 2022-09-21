@@ -9,9 +9,9 @@ package io.axual.ksml.user;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,15 +27,15 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 
-import io.axual.ksml.data.object.user.UserList;
-import io.axual.ksml.data.object.user.UserObject;
-import io.axual.ksml.data.object.user.UserTuple;
-import io.axual.ksml.data.type.user.UserType;
+import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataTuple;
+import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.exception.KSMLTypeException;
-import io.axual.ksml.data.type.base.DataType;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.util.StringUtil;
 
 /**
@@ -61,13 +61,13 @@ public class UserFunction {
         return name + "(" + StringUtil.join(", ", params) + ")" + (resultType != null ? " ==> " + resultType : "");
     }
 
-    protected void checkType(DataType expected, UserObject value) {
-        if (expected != null && value != null && !expected.isAssignableFrom(value.type().type())) {
-            throw KSMLTypeException.conversionFailed(expected, value.type().type());
+    protected void checkType(DataType expected, DataObject value) {
+        if (expected != null && value != null && !expected.isAssignableFrom(value.type())) {
+            throw KSMLTypeException.conversionFailed(expected, value.type());
         }
     }
 
-    protected void checkType(ParameterDefinition definition, UserObject value) {
+    protected void checkType(ParameterDefinition definition, DataObject value) {
         checkType(definition.type, value);
     }
 
@@ -95,7 +95,7 @@ public class UserFunction {
      * @param parameters parameters for the function.
      * @return the result of the call.
      */
-    public UserObject call(UserObject... parameters) {
+    public DataObject call(DataObject... parameters) {
         throw new KSMLExecutionException("Can not call the call() method of a UserFunction directly. Override this class and the call() method.");
     }
 
@@ -103,19 +103,19 @@ public class UserFunction {
         return new KSMLTopologyException("Expected " + expectedType + " from function " + name + " but got: " + (result != null ? result : "null"));
     }
 
-    public KeyValue<UserObject, UserObject> convertToKeyValue(UserObject result, UserType keyType, UserType valueType) {
-        if (result instanceof UserList) {
-            var list = (UserList) result;
-            if (list.size() == 2 && keyType.isAssignableFrom(list.get(0).type()) && valueType.isAssignableFrom(list.get(1).type())) {
-                return new KeyValue<>(list.get(0), list.get(1));
-            }
+    public KeyValue<DataObject, DataObject> convertToKeyValue(DataObject result, DataType keyType, DataType valueType) {
+        if (result instanceof DataList list &&
+                list.size() == 2 &&
+                keyType.isAssignableFrom(list.get(0).type()) &&
+                valueType.isAssignableFrom(list.get(1).type())) {
+            return new KeyValue<>(list.get(0), list.get(1));
         }
 
-        if (result instanceof UserTuple) {
-            var tuple = (UserTuple) result;
-            if (tuple.size() == 2 && keyType.isAssignableFrom(tuple.get(0).type()) && valueType.isAssignableFrom(tuple.get(1).type())) {
-                return new KeyValue<>(tuple.get(0), tuple.get(1));
-            }
+        if (result instanceof DataTuple tuple &&
+                tuple.size() == 2 &&
+                keyType.isAssignableFrom(tuple.get(0).type()) &&
+                valueType.isAssignableFrom(tuple.get(1).type())) {
+            return new KeyValue<>(tuple.get(0), tuple.get(1));
         }
 
         throw validateException(result, "(key,value)");

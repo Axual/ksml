@@ -23,7 +23,7 @@ package io.axual.ksml.definition;
 
 import org.apache.kafka.streams.StreamsBuilder;
 
-import io.axual.ksml.data.type.user.UserType;
+import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.stream.StreamWrapper;
 

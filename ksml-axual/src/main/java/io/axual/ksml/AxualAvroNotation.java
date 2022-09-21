@@ -9,9 +9,9 @@ package io.axual.ksml;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,9 +29,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.axual.ksml.avro.AvroDataMapper;
-import io.axual.ksml.data.mapper.UserObjectMapper;
-import io.axual.ksml.data.type.base.DataType;
-import io.axual.ksml.data.type.base.MapType;
+import io.axual.ksml.data.mapper.DataObjectMapper;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.RecordType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.notation.AvroNotation;
 import io.axual.ksml.notation.Notation;
@@ -41,7 +41,7 @@ import io.axual.ksml.util.DataUtil;
 import io.axual.streams.proxy.axual.AxualSerdeConfig;
 
 public class AxualAvroNotation implements Notation {
-    private static final UserObjectMapper<Object> mapper = new AvroDataMapper();
+    private static final DataObjectMapper<Object> mapper = new AvroDataMapper();
     private final Map<String, Object> configs = new HashMap<>();
 
     public AxualAvroNotation(Map<String, Object> configs) {
@@ -56,8 +56,8 @@ public class AxualAvroNotation implements Notation {
     }
 
     public Serde<Object> getSerde(DataType type, boolean isKey) {
-        if (type instanceof MapType) {
-            var result = new AvroSerde(configs, ((MapType) type).schema(), isKey);
+        if (type instanceof RecordType recordType) {
+            var result = new AvroSerde(configs, recordType.schema(), isKey);
             result.configure(configs, isKey);
             return result;
         }
@@ -74,7 +74,7 @@ public class AxualAvroNotation implements Notation {
         private final Serializer<Object> wrapSerializer = new Serializer<>() {
             @Override
             public byte[] serialize(String topic, Object data) {
-                var object = mapper.fromUserObject(DataUtil.asUserObject(data));
+                var object = mapper.fromDataObject(DataUtil.asUserObject(data));
                 if (object instanceof GenericRecord) {
                     return serde.serializer().serialize(topic, (GenericRecord) object);
                 }
@@ -86,7 +86,7 @@ public class AxualAvroNotation implements Notation {
             @Override
             public Object deserialize(String topic, byte[] data) {
                 GenericRecord object = serde.deserializer().deserialize(topic, data);
-                return mapper.toUserObject(AvroNotation.NOTATION_NAME, object);
+                return mapper.toDataObject(object);
             }
         };
 

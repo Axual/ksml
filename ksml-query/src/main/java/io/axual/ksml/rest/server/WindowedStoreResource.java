@@ -26,7 +26,7 @@ import org.apache.kafka.streams.StoreQueryParameters;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyWindowStore;
 
-import io.axual.ksml.data.mapper.NativeUserObjectMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -37,7 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Path("state/windowed")
 public class WindowedStoreResource extends StoreResource implements AutoCloseable {
-    final NativeUserObjectMapper mapper = new NativeUserObjectMapper();
+    final NativeDataObjectMapper mapper = new NativeDataObjectMapper();
 
     /**
      * Get all the key-value pairs available in a store

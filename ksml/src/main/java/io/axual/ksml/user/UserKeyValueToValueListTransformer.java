@@ -25,9 +25,9 @@ import org.apache.kafka.streams.kstream.ValueMapperWithKey;
 
 import java.util.List;
 
-import io.axual.ksml.data.object.user.UserList;
-import io.axual.ksml.data.type.base.DataType;
-import io.axual.ksml.data.type.base.ListType;
+import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;
 import io.axual.ksml.util.DataUtil;
@@ -42,7 +42,7 @@ public class UserKeyValueToValueListTransformer extends Invoker implements Value
     @Override
     public Iterable<Object> apply(Object key, Object value) {
         var result = function.call(DataUtil.asUserObject(key), DataUtil.asUserObject(value));
-        if (result instanceof UserList) {
+        if (result instanceof DataList) {
             return (List<Object>) result;
         }
         throw new KSMLExecutionException("Expected list result from keyValueToKeyValueList transformer: " + function.name);

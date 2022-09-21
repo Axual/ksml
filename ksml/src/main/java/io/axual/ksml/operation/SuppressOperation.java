@@ -24,7 +24,7 @@ package io.axual.ksml.operation;
 import org.apache.kafka.streams.kstream.Suppressed;
 import org.apache.kafka.streams.kstream.Windowed;
 
-import io.axual.ksml.data.type.base.WindowedType;
+import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;

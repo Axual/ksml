@@ -9,9 +9,9 @@ package io.axual.ksml.avro;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -58,7 +58,7 @@ public class AvroSchemaLoader implements SchemaLibrary.Loader {
         var schemaFile = new File(schemaDirectory, schemaName + ".avsc");
         try (var schemaStream = new FileInputStream(schemaFile)) {
             var schema = new Schema.Parser().parse(schemaStream);
-            return DataSchema.newBuilder(schema).build();
+            return new AvroSchema(schema);
         } catch (IOException e) {
             log.warn("Could not find/load Avro schema: " + schemaName);
             return null;

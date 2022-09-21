@@ -9,9 +9,9 @@ package io.axual.ksml.python;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,9 +29,9 @@ import org.graalvm.polyglot.Value;
 
 import java.util.Arrays;
 
-import io.axual.ksml.data.mapper.PythonUserObjectMapper;
-import io.axual.ksml.data.object.user.UserObject;
-import io.axual.ksml.data.object.user.UserString;
+import io.axual.ksml.data.mapper.PythonDataObjectMapper;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLTopologyException;
@@ -46,7 +46,7 @@ public class PythonFunction extends UserFunction {
             .allowHostAccess(HostAccess.ALL)
             .allowHostClassLookup(name -> name.equals("java.util.ArrayList") || name.equals("java.util.HashMap"))
             .build();
-    private static final PythonUserObjectMapper mapper = new PythonUserObjectMapper(context);
+    private static final PythonDataObjectMapper mapper = new PythonDataObjectMapper(context);
     protected final Value function;
 
     public PythonFunction(String name, FunctionDefinition definition) {
@@ -101,7 +101,7 @@ public class PythonFunction extends UserFunction {
     }
 
     @Override
-    public UserObject call(UserObject... parameters) {
+    public DataObject call(DataObject... parameters) {
         // Validate that the defined parameter list matches the amount of passed in parameters
         if (this.parameters.length != parameters.length) {
             throw new KSMLTopologyException("Parameter list does not match function spec: expected " + this.parameters.length + ", got " + parameters.length);
@@ -111,7 +111,7 @@ public class PythonFunction extends UserFunction {
         Object[] arguments = new Object[parameters.length];
         for (var index = 0; index < parameters.length; index++) {
             checkType(this.parameters[index], parameters[index]);
-            arguments[index] = mapper.fromUserObject(parameters[index]);
+            arguments[index] = mapper.fromDataObject(parameters[index]);
         }
 
         try {
@@ -125,21 +125,21 @@ public class PythonFunction extends UserFunction {
             // Check if the function is supposed to return a result value
             if (resultType != null) {
                 // The converted result value from Python
-                final UserObject result;
+                final DataObject result;
 
                 // If a value is expected, but none is returned, then handle special cases
                 if (pyResult.isNull()) {
                     // An empty string in YAML (ie. '') is returned as null by the parser, so
                     // when we expect a string and get null, we convert it to the empty string.
-                    if (resultType.type() == UserString.DATATYPE) {
+                    if (resultType.type() == DataString.DATATYPE) {
                         // Empty string may be returned as null, so catch and convert here
-                        result = new UserString(resultType.notation(), "");
+                        result = new DataString("");
                     } else {
                         throw new KSMLTopologyException("Illegal return from function: null");
                     }
                 } else {
                     // Convert the result object to a UserObject
-                    result = mapper.toUserObject(resultType, pyResult);
+                    result = mapper.toDataObject(resultType.type(), pyResult);
                 }
 
                 logCall(parameters, result);

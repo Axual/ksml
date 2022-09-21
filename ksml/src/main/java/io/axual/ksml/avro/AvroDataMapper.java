@@ -9,9 +9,9 @@ package io.axual.ksml.avro;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,41 +25,36 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.util.Utf8;
 
-import io.axual.ksml.data.mapper.NativeUserObjectMapper;
-import io.axual.ksml.data.object.user.UserObject;
-import io.axual.ksml.data.object.user.UserRecord;
-import io.axual.ksml.data.object.user.UserString;
-import io.axual.ksml.data.type.user.UserType;
-import io.axual.ksml.schema.SchemaUtil;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataRecord;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.type.DataType;
 
-import static io.axual.ksml.data.type.user.UserType.DEFAULT_NOTATION;
-
-public class AvroDataMapper extends NativeUserObjectMapper {
+public class AvroDataMapper extends NativeDataObjectMapper {
     @Override
-    public UserObject toUserObject(UserType expected, Object value) {
-        final String resultNotation = expected != null ? expected.notation() : DEFAULT_NOTATION;
-        if (value instanceof Utf8) return new UserString(resultNotation, ((Utf8) value).toString());
+    public DataObject toDataObject(DataType expected, Object value) {
+        if (value instanceof Utf8 utf8) return new DataString(utf8.toString());
         if (value instanceof GenericData.EnumSymbol) {
-            return new UserString(resultNotation, value.toString());
+            return new DataString(value.toString());
         }
-        if (value instanceof GenericRecord) {
-            var rec = (GenericRecord) value;
-            UserRecord result = new UserRecord(SchemaUtil.schemaToDataSchema(rec.getSchema()));
+        if (value instanceof GenericRecord rec) {
+            DataRecord result = new DataRecord(new AvroSchema(rec.getSchema()));
             for (Schema.Field field : rec.getSchema().getFields()) {
-                result.put(field.name(), toUserObject(resultNotation, rec.get(field.name())));
+                result.put(field.name(), toDataObject(rec.get(field.name())));
             }
             return result;
         }
 
-        return super.toUserObject(expected, value);
+        return super.toDataObject(expected, value);
     }
 
     @Override
-    public Object fromUserObject(UserObject value) {
-        if (value instanceof UserRecord) {
-            var rec = (UserRecord) value;
-            return new AvroObject(SchemaUtil.dataSchemaToAvroSchema(rec.type().schema()), userRecordToMap(rec));
+    public Object fromDataObject(DataObject value) {
+        if (value instanceof DataRecord rec) {
+            var schema = new AvroSchema(rec.type().schema());
+            return new AvroObject(schema, dataRecordToMap(rec));
         }
-        return super.fromUserObject(value);
+        return super.fromDataObject(value);
     }
 }

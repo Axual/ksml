@@ -8,19 +8,19 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.stream.Stream;
 
-import io.axual.ksml.data.object.user.UserBoolean;
-import io.axual.ksml.data.object.user.UserByte;
-import io.axual.ksml.data.object.user.UserBytes;
-import io.axual.ksml.data.object.user.UserDouble;
-import io.axual.ksml.data.object.user.UserFloat;
-import io.axual.ksml.data.object.user.UserInteger;
-import io.axual.ksml.data.object.user.UserLong;
-import io.axual.ksml.data.object.user.UserNone;
-import io.axual.ksml.data.object.user.UserShort;
-import io.axual.ksml.data.object.user.UserString;
-import io.axual.ksml.data.type.base.DataType;
-import io.axual.ksml.data.type.base.SimpleType;
-import io.axual.ksml.data.type.user.UserType;
+import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.DataByte;
+import io.axual.ksml.data.object.DataBytes;
+import io.axual.ksml.data.object.DataDouble;
+import io.axual.ksml.data.object.DataFloat;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataNone;
+import io.axual.ksml.data.object.DataShort;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.SimpleType;
+import io.axual.ksml.data.type.UserType;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -71,17 +71,17 @@ public class UserTypeParserTest {
 
     static Stream<Arguments> typesAndDataTypes() {
         return Stream.of(
-                Arguments.arguments("boolean", UserBoolean.DATATYPE),
-                Arguments.arguments("byte", UserByte.DATATYPE),
-                Arguments.arguments("bytes", UserBytes.DATATYPE),
-                Arguments.arguments("short", UserShort.DATATYPE),
-                Arguments.arguments("double", UserDouble.DATATYPE),
-                Arguments.arguments("float", UserFloat.DATATYPE),
-                Arguments.arguments("int", UserInteger.DATATYPE),
-                Arguments.arguments("long", UserLong.DATATYPE),
-                Arguments.arguments("str", UserString.DATATYPE),
-                Arguments.arguments("string", UserString.DATATYPE),
-                Arguments.arguments("none", UserNone.DATATYPE),
+                Arguments.arguments("boolean", DataBoolean.DATATYPE),
+                Arguments.arguments("byte", DataByte.DATATYPE),
+                Arguments.arguments("bytes", DataBytes.DATATYPE),
+                Arguments.arguments("short", DataShort.DATATYPE),
+                Arguments.arguments("double", DataDouble.DATATYPE),
+                Arguments.arguments("float", DataFloat.DATATYPE),
+                Arguments.arguments("int", DataInteger.DATATYPE),
+                Arguments.arguments("long", DataLong.DATATYPE),
+                Arguments.arguments("str", DataString.DATATYPE),
+                Arguments.arguments("string", DataString.DATATYPE),
+                Arguments.arguments("none", DataNone.DATATYPE),
                 Arguments.arguments("?", DataType.UNKNOWN)
         );
     }

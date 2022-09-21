@@ -1,31 +1,14 @@
 package io.axual.ksml.schema;
 
-/*-
- * ========================LICENSE_START=================================
- * KSML
- * %%
- * Copyright (C) 2021 Axual B.V.
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =========================LICENSE_END==================================
- */
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
-import org.apache.avro.Schema;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.type.WindowedType;
 
-import io.axual.ksml.data.type.base.WindowedType;
-import io.axual.ksml.exception.KSMLExecutionException;
-
-public class WindowedSchema {
+public class WindowedSchema extends RecordSchema {
     private static final String WINDOW_SCHEMA_DOC_PREFIX = "Windowed ";
     private static final String WINDOW_SCHEMA_NAMESPACE = "io.axual.ksml.data";
     public static final String START_FIELD = "start";
@@ -38,44 +21,45 @@ public class WindowedSchema {
     private static final String END_TIME_FIELD_DOC = "End time";
     public static final String KEY_FIELD = "key";
     private static final String KEY_FIELD_DOC = "Window key";
+    private static final DataLong ZERO_LONG = new DataLong(0L);
+    private static final DataString ZERO_STRING = new DataString("Time Zero");
+    private final WindowedType windowedType;
 
-    private WindowedSchema() {
+    public WindowedSchema(WindowedType windowedType) {
+        super(WINDOW_SCHEMA_NAMESPACE,
+                windowedType.schemaName(),
+                WINDOW_SCHEMA_DOC_PREFIX + windowedType.keyType().schemaName(),
+                generateWindowKeySchema(windowedType));
+        this.windowedType = windowedType;
     }
 
-    public static Schema generateWindowedSchema(WindowedType windowedType) {
-        var schemaName = windowedType.schemaName();
-        var builder = new SchemaBuilder(schemaName, WINDOW_SCHEMA_DOC_PREFIX + windowedType.keyType().schemaName(), WINDOW_SCHEMA_NAMESPACE);
-        builder.addField(START_FIELD, Schema.create(Schema.Type.LONG), START_FIELD_DOC, null);
-        builder.addField(END_FIELD, Schema.create(Schema.Type.LONG), END_FIELD_DOC, null);
-        builder.addField(START_TIME_FIELD, Schema.create(Schema.Type.STRING), START_TIME_FIELD_DOC, null);
-        builder.addField(END_TIME_FIELD, Schema.create(Schema.Type.STRING), END_TIME_FIELD_DOC, null);
-
+    private static List<DataField> generateWindowKeySchema(WindowedType windowedType) {
+        var result = new ArrayList<DataField>();
+        result.add(new DataField(START_FIELD, DataSchema.create(Type.LONG), START_FIELD_DOC, ZERO_LONG, DataField.Order.ASCENDING));
+        result.add(new DataField(END_FIELD, DataSchema.create(Type.LONG), END_FIELD_DOC, ZERO_LONG, DataField.Order.ASCENDING));
+        result.add(new DataField(START_TIME_FIELD, DataSchema.create(Type.STRING), START_TIME_FIELD_DOC, ZERO_STRING, DataField.Order.ASCENDING));
+        result.add(new DataField(END_TIME_FIELD, DataSchema.create(Type.STRING), END_TIME_FIELD_DOC, ZERO_STRING, DataField.Order.ASCENDING));
         var keySchema = SchemaUtil.dataTypeToSchema(windowedType.keyType());
-        switch (keySchema.getType()) {
-            case BOOLEAN:
-                builder.addField(KEY_FIELD, keySchema, KEY_FIELD_DOC, false);
-                break;
-            case INT:
-                builder.addField(KEY_FIELD, keySchema, KEY_FIELD_DOC, 0);
-                break;
-            case LONG:
-                builder.addField(KEY_FIELD, keySchema, KEY_FIELD_DOC, 0L);
-                break;
-            case FLOAT:
-                builder.addField(KEY_FIELD, keySchema, KEY_FIELD_DOC, 0.0f);
-                break;
-            case DOUBLE:
-                builder.addField(KEY_FIELD, keySchema, KEY_FIELD_DOC, 0.0d);
-                break;
-            case BYTES:
-            case STRING:
-            case ARRAY:
-            case RECORD:
-                builder.addField(KEY_FIELD, keySchema, KEY_FIELD_DOC, null);
-                break;
-            default:
-                throw new KSMLExecutionException("Can not add field for type " + keySchema.getType());
-        }
-        return builder.build();
+        result.add(new DataField(KEY_FIELD, keySchema, KEY_FIELD_DOC, null, DataField.Order.ASCENDING));
+        return result;
+    }
+
+    public WindowedType windowedType() {
+        return windowedType;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!super.equals(other)) return false;
+        if (this == other) return true;
+        if (other.getClass() != getClass()) return false;
+
+        // Compare all schema relevant fields, note: explicitly do not compare the doc field
+        return Objects.equals(windowedType, ((WindowedSchema) other).windowedType);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), windowedType);
     }
 }

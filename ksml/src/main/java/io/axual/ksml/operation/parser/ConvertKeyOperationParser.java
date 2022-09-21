@@ -9,9 +9,9 @@ package io.axual.ksml.operation.parser;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,7 +20,7 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.user.UserType;
+import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.operation.ConvertKeyOperation;
 import io.axual.ksml.parser.OperationParser;
 import io.axual.ksml.parser.ParseContext;
@@ -41,9 +41,6 @@ public class ConvertKeyOperationParser extends OperationParser<ConvertKeyOperati
     public ConvertKeyOperation parse(YamlNode node) {
         if (node == null) return null;
         UserType target = UserTypeParser.parse(parseText(node, CONVERT_INTO_ATTRIBUTE));
-        return new ConvertKeyOperation(
-                operationConfig(name),
-                target.type(),
-                context.getNotationLibrary().get(target.notation()));
+        return new ConvertKeyOperation(operationConfig(name), target);
     }
 }

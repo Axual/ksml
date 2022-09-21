@@ -9,9 +9,9 @@ package io.axual.ksml.notation;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,16 +28,17 @@ import org.apache.kafka.common.serialization.Serializer;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.axual.ksml.data.mapper.NativeUserObjectMapper;
-import io.axual.ksml.data.type.base.DataType;
-import io.axual.ksml.data.type.base.SimpleType;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.value.None;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.SimpleType;
 import io.axual.ksml.serde.NoneDeserializer;
 import io.axual.ksml.serde.NoneSerializer;
 import io.axual.ksml.util.DataUtil;
 
 public class BinaryNotation implements Notation {
     public static final String NOTATION_NAME = "BINARY";
-    private static final NativeUserObjectMapper mapper = new NativeUserObjectMapper();
+    private static final NativeDataObjectMapper mapper = new NativeDataObjectMapper();
     private final Map<String, Object> configs = new HashMap<>();
     private final Notation jsonNotation;
 
@@ -54,7 +55,7 @@ public class BinaryNotation implements Notation {
     @Override
     public Serde<Object> getSerde(DataType type, boolean isKey) {
         if (type instanceof SimpleType) {
-            if (type.containerClass() == SimpleType.None.class) {
+            if (type.containerClass() == None.class) {
                 var result = new BinarySerde(Serdes.serdeFrom(new NoneSerializer(), new NoneDeserializer()));
                 result.configure(configs, isKey);
                 return result;
@@ -80,7 +81,7 @@ public class BinaryNotation implements Notation {
             @Override
             public byte[] serialize(String topic, Object data) {
                 // Serialize the raw object by converting from user object if necessary
-                return serializer.serialize(topic, mapper.fromUserObject(DataUtil.asUserObject(data)));
+                return serializer.serialize(topic, mapper.fromDataObject(DataUtil.asUserObject(data)));
             }
         };
 

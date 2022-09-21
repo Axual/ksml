@@ -20,7 +20,7 @@ backend:
   config:
     tenant: dizzl
     environment: dev
-    endpoint: https://discoveryapi-dizzlsandbox.cloud.axual.io:28020
+    endpoint: https://discovery-dizzlsandbox.axual.cloud/
     applicationId: io.axual.ksml.example.processor
     applicationVersion: 0.0.1
     sslConfig:
