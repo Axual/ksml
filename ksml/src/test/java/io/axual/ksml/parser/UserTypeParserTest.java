@@ -1,5 +1,25 @@
 package io.axual.ksml.parser;
 
+/*-
+ * ========================LICENSE_START=================================
+ * KSML
+ * %%
+ * Copyright (C) 2021 - 2022 Axual B.V.
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =========================LICENSE_END==================================
+ */
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -15,7 +35,7 @@ import io.axual.ksml.data.object.DataDouble;
 import io.axual.ksml.data.object.DataFloat;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataLong;
-import io.axual.ksml.data.object.DataNone;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
@@ -35,36 +55,36 @@ public class UserTypeParserTest {
         var userType = UserTypeParser.parse(type);
         assertNotNull(userType);
         assertEquals(UserType.DEFAULT_NOTATION, userType.notation(), "notation for " + type + "should default to " + UserType.DEFAULT_NOTATION);
-        final var dataType = userType.type();
+        final var dataType = userType.dataType();
         if (!type.equals("?")) {
             assertTrue(dataType.getClass().isAssignableFrom(SimpleType.class), "DataType is some subclass of SimpleType");
         }
     }
 
     @ParameterizedTest
-    @DisplayName("Test parsing for type String (types 'str' and 'string'")
+    @DisplayName("Test parsing for dataType String (types 'str' and 'string'")
     @ValueSource(strings = {"str", "string"})
     void testParseStringType(String type) {
         final var userType = UserTypeParser.parse(type);
         assertNotNull(userType);
-        final var dataType = userType.type();
+        final var dataType = userType.dataType();
         assertEquals(String.class, dataType.containerClass());
         assertTrue(dataType.isAssignableFrom("some random string"));
         assertTrue(dataType.isAssignableFrom(String.class));
     }
 
     @ParameterizedTest
-    @DisplayName("Test mapping of type names to correct user types class")
+    @DisplayName("Test mapping of dataType names to correct user types class")
     @MethodSource("typesAndDataTypes")
     void testDataTypes(String type, DataType dataType) {
         final var userType = UserTypeParser.parse(type);
         assertNotNull(userType);
 
-        assertEquals(dataType, userType.type(), "DataType for '" + type + "' should be set to " + dataType);
+        assertEquals(dataType, userType.dataType(), "DataType for '" + type + "' should be set to " + dataType);
         if (type.equals("?")) {
-            assertEquals(DataType.UNKNOWN, userType.type(), "datatype for '?' should be UNKNOWN (anonymous subclass)");
+            assertEquals(DataType.UNKNOWN, userType.dataType(), "datatype for '?' should be UNKNOWN (anonymous subclass)");
         } else {
-            assertEquals(SimpleType.class, userType.type().getClass(), "class for " + type + " should be SimpleType");
+            assertEquals(SimpleType.class, userType.dataType().getClass(), "class for " + type + " should be SimpleType");
         }
 
     }
@@ -81,7 +101,7 @@ public class UserTypeParserTest {
                 Arguments.arguments("long", DataLong.DATATYPE),
                 Arguments.arguments("str", DataString.DATATYPE),
                 Arguments.arguments("string", DataString.DATATYPE),
-                Arguments.arguments("none", DataNone.DATATYPE),
+                Arguments.arguments("none", DataNull.DATATYPE),
                 Arguments.arguments("?", DataType.UNKNOWN)
         );
     }

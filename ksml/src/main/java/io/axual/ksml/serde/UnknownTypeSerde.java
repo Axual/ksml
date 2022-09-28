@@ -43,14 +43,14 @@ public class UnknownTypeSerde implements Serde<DataObject> {
     @Override
     public Serializer<DataObject> serializer() {
         return (topic, object) -> {
-            throw new KSMLApplyException("Can not serialize data type \"" + type + "\" from topic " + topic);
+            throw new KSMLApplyException("Can not serialize data dataType \"" + type + "\" from topic " + topic);
         };
     }
 
     @Override
     public Deserializer<DataObject> deserializer() {
         return (topic, bytes) -> {
-            throw new KSMLApplyException("Can not deserialize data type \"" + type + "\" from topic " + topic);
+            throw new KSMLApplyException("Can not deserialize data dataType \"" + type + "\" from topic " + topic);
         };
     }
 }

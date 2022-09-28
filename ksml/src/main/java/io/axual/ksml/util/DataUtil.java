@@ -27,17 +27,19 @@ import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataRecord;
 import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.type.RecordType;
 import io.axual.ksml.data.type.WindowedType;
-import io.axual.ksml.schema.WindowedSchema;
+import io.axual.ksml.schema.mapper.WindowedSchemaMapper;
 
-import static io.axual.ksml.schema.WindowedSchema.END_FIELD;
-import static io.axual.ksml.schema.WindowedSchema.END_TIME_FIELD;
-import static io.axual.ksml.schema.WindowedSchema.KEY_FIELD;
-import static io.axual.ksml.schema.WindowedSchema.START_FIELD;
-import static io.axual.ksml.schema.WindowedSchema.START_TIME_FIELD;
+import static io.axual.ksml.schema.mapper.WindowedSchemaMapper.END_FIELD;
+import static io.axual.ksml.schema.mapper.WindowedSchemaMapper.END_TIME_FIELD;
+import static io.axual.ksml.schema.mapper.WindowedSchemaMapper.KEY_FIELD;
+import static io.axual.ksml.schema.mapper.WindowedSchemaMapper.START_FIELD;
+import static io.axual.ksml.schema.mapper.WindowedSchemaMapper.START_TIME_FIELD;
 
 public class DataUtil {
     private static final NativeDataObjectMapper nativeUserObjectMapper = new NativeDataObjectMapper();
+    private static final WindowedSchemaMapper windowedSchemaMapper = new WindowedSchemaMapper();
 
     private DataUtil() {
     }
@@ -48,25 +50,23 @@ public class DataUtil {
     // define our stream types as KStream<UserObject,UserObject>, since Windows and Long cannot be
     // casted to UserObject. Therefore all formal stream types in the Java code are
     // KStream<Object,Object> instead of KStream<UserObject,UserObject>. The unify method ensures
-    // that any data type injected by Kafka Streams gets modified into a proper UserObject on the
+    // that any data dataType injected by Kafka Streams gets modified into a proper UserObject on the
     // fly. When new data types pop up in Kafka Streams' generics, add the conversion to a
     // UserObject to this method.
     public static DataObject asUserObject(Object object) {
-        if (object instanceof DataObject) return (DataObject) object;
-        if (object instanceof Windowed<?>) return windowAsRecord((Windowed<?>) object);
+        if (object instanceof DataObject dataObject) return dataObject;
+        if (object instanceof Windowed<?> windowedObject) {
+            // Convert a Windowed object into a data record with fields that contain the window fields.
+            var keyAsData = asUserObject(windowedObject.key());
+            var schema = windowedSchemaMapper.toDataSchema(new WindowedType(keyAsData.type()));
+            var result = new DataRecord(new RecordType(schema));
+            result.put(START_FIELD, new DataLong(windowedObject.window().start()));
+            result.put(END_FIELD, new DataLong(windowedObject.window().end()));
+            result.put(START_TIME_FIELD, new DataString(windowedObject.window().startTime().toString()));
+            result.put(END_TIME_FIELD, new DataString(windowedObject.window().endTime().toString()));
+            result.put(KEY_FIELD, keyAsData);
+            return result;
+        }
         return nativeUserObjectMapper.toDataObject(object);
-    }
-
-    // Convert a Windowed object into a data record with fields that contain the window fields.
-    private static DataRecord windowAsRecord(Windowed<?> windowedObject) {
-        var keyAsData = asUserObject(windowedObject.key());
-        var schema = new WindowedSchema(new WindowedType(keyAsData.type()));
-        var result = new DataRecord(schema);
-        result.put(START_FIELD, new DataLong(windowedObject.window().start()));
-        result.put(END_FIELD, new DataLong(windowedObject.window().end()));
-        result.put(START_TIME_FIELD, new DataString(windowedObject.window().startTime().toString()));
-        result.put(END_TIME_FIELD, new DataString(windowedObject.window().endTime().toString()));
-        result.put(KEY_FIELD, keyAsData);
-        return result;
     }
 }

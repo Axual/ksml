@@ -23,14 +23,27 @@ package io.axual.ksml.data.object;
 import java.util.Objects;
 
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.exception.KSMLExecutionException;
 
 public class DataPrimitive<T> implements DataObject {
     private final DataType type;
     private final T value;
 
-    public DataPrimitive(DataType type, T value) {
+    protected DataPrimitive(DataType type) {
+        this(type, null);
+    }
+
+    protected DataPrimitive(DataType type, T value) {
+        checkType(type, value);
         this.type = type;
         this.value = value;
+    }
+
+    private void checkType(DataType type, T value) {
+        if (!type.isAssignableFrom(value)) {
+            var valueStr = value != null ? value.toString() : "null";
+            throw new KSMLExecutionException("Value assigned to " + type + " can not be \"" + valueStr + "\"");
+        }
     }
 
     @Override

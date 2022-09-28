@@ -41,7 +41,7 @@ public class CountOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KGroupedStreamWrapper input) {
-        final StreamDataType resultValueType = streamDataTypeOf(DataLong.DATATYPE, UserType.DEFAULT_NOTATION, false);
+        final StreamDataType resultValueType = streamDataTypeOf(UserType.DEFAULT_NOTATION, DataLong.DATATYPE, null, false);
 
         return new KTableWrapper(
                 (KTable) input.groupedStream.count(
@@ -53,7 +53,7 @@ public class CountOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KGroupedTableWrapper input) {
-        final StreamDataType resultValueType = streamDataTypeOf(DataLong.DATATYPE, UserType.DEFAULT_NOTATION, false);
+        final StreamDataType resultValueType = streamDataTypeOf(UserType.DEFAULT_NOTATION, DataLong.DATATYPE, null, false);
 
         return new KTableWrapper(
                 (KTable) input.groupedTable.count(
@@ -65,7 +65,7 @@ public class CountOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(SessionWindowedKStreamWrapper input) {
-        final StreamDataType resultValueType = streamDataTypeOf(DataLong.DATATYPE, UserType.DEFAULT_NOTATION, false);
+        final StreamDataType resultValueType = streamDataTypeOf(UserType.DEFAULT_NOTATION, DataLong.DATATYPE, null, false);
 
         return new KTableWrapper(
                 (KTable) input.sessionWindowedKStream.count(
@@ -77,7 +77,7 @@ public class CountOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(TimeWindowedKStreamWrapper input) {
-        StreamDataType resultValueType = streamDataTypeOf(DataLong.DATATYPE, UserType.DEFAULT_NOTATION, false);
+        StreamDataType resultValueType = streamDataTypeOf(UserType.DEFAULT_NOTATION, DataLong.DATATYPE, null, false);
 
         return new KTableWrapper(
                 (KTable) input.timeWindowedKStream.count(

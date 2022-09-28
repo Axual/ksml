@@ -39,11 +39,11 @@ public class TransformKeyValueOperation extends BaseOperation {
 
     @Override
     public BaseStreamWrapper apply(KStreamWrapper input) {
-        var resultType = (KeyValueType) transformer.resultType.type();
+        var resultType = (KeyValueType) transformer.resultType.dataType();
         var notation = transformer.resultType.notation();
         return new KStreamWrapper(
                 input.stream.map(new UserKeyValueTransformer(transformer), Named.as(name)),
-                streamDataTypeOf(resultType.keyType(), notation, true),
-                streamDataTypeOf(resultType.valueType(), notation, false));
+                streamDataTypeOf(notation, resultType.keyType(), null, true),
+                streamDataTypeOf(notation, resultType.valueType(), null, false));
     }
 }

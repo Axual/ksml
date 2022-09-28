@@ -34,9 +34,11 @@ import java.time.Duration;
 
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.schema.mapper.WindowedSchemaMapper;
 import io.axual.ksml.store.StoreType;
 
 public class StoreOperation extends BaseOperation {
+    private static final WindowedSchemaMapper mapper = new WindowedSchemaMapper();
     protected final String storeName;
     protected final Duration storeRetention;
     protected final boolean storeCaching;
@@ -90,6 +92,7 @@ public class StoreOperation extends BaseOperation {
     }
 
     protected StreamDataType windowedTypeOf(StreamDataType type) {
-        return streamDataTypeOf(new WindowedType(type.type()), type.notation().name(), true);
+        var windowedType = new WindowedType(type.userType().dataType());
+        return streamDataTypeOf(type.userType().notation(), windowedType, mapper.toDataSchema(windowedType), type.isKey());
     }
 }

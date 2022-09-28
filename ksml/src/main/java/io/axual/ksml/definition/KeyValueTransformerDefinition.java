@@ -30,6 +30,6 @@ public class KeyValueTransformerDefinition extends FunctionDefinition {
     public KeyValueTransformerDefinition(FunctionDefinition definition) {
         super(definition
                 .withParameters(getParameters(definition.parameters, KEY_VALUE_PARAMETERS))
-                .withResult(new UserType(KeyValueType.createFrom(definition.resultType.type()), definition.resultType.notation())));
+                .withResult(new UserType(definition.resultType.notation(), KeyValueType.createFrom(definition.resultType.dataType()), null)));
     }
 }

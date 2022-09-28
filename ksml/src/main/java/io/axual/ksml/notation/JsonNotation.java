@@ -34,6 +34,7 @@ import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.exception.KSMLExecutionException;
+import io.axual.ksml.schema.DataSchema;
 import io.axual.ksml.util.DataUtil;
 
 public class JsonNotation implements Notation {
@@ -51,7 +52,7 @@ public class JsonNotation implements Notation {
     }
 
     @Override
-    public Serde<Object> getSerde(DataType type, boolean isKey) {
+    public Serde<Object> getSerde(DataType type, DataSchema schema, boolean isKey) {
         if (type instanceof MapType || type instanceof ListType) {
             var result = new JsonSerde();
             result.configure(configs, isKey);

@@ -32,6 +32,7 @@ import io.axual.ksml.schema.DataSchema;
 import io.axual.ksml.schema.RecordSchema;
 
 public class AvroObject implements GenericRecord {
+    private static final AvroSchemaMapper schemaMapper = new AvroSchemaMapper();
     private final RecordSchema schema;
     private final Map<String, Object> data = new HashMap<>();
     private final GenericData validator = GenericData.get();
@@ -50,10 +51,11 @@ public class AvroObject implements GenericRecord {
             value = new AvroObject((RecordSchema) field.schema(), (Map<?, ?>) value);
         }
         if (field.schema().type() == DataSchema.Type.ENUM) {
-            value = new GenericData.EnumSymbol(AvroUtil.convertSchemaToAvro(field.schema()), value != null ? value.toString() : null);
+            value = new GenericData.EnumSymbol(schemaMapper.fromDataSchema(field.schema()), value != null ? value.toString() : null);
         }
 
-        if (!validator.validate(AvroUtil.convertSchemaToAvro(field.schema()), value)) {
+        var fieldSchema = schemaMapper.fromDataSchema(field.schema());
+        if (fieldSchema != null && !validator.validate(fieldSchema, value)) {
             throw KSMLTypeException.validationFailed(key, value);
         }
 
@@ -78,7 +80,7 @@ public class AvroObject implements GenericRecord {
     @Override
     public Schema getSchema() {
         if (avroSchema == null) {
-            avroSchema = AvroUtil.convertSchemaToAvro(schema);
+            avroSchema = schemaMapper.fromDataSchema(schema);
         }
         return avroSchema;
     }

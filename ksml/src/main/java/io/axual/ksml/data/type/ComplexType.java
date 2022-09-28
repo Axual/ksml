@@ -9,9 +9,9 @@ package io.axual.ksml.data.type;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,6 +20,9 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+
+import java.util.Arrays;
+import java.util.Objects;
 
 public abstract class ComplexType implements DataType {
     private final Class<?> containerClass;
@@ -36,7 +39,11 @@ public abstract class ComplexType implements DataType {
         for (DataType subType : subTypes) {
             subTypeStr.append(subTypeStr.length() > 0 ? ", " : "").append(subType);
         }
-        return containerClass.getSimpleName() + "<" + subTypeStr + ">";
+        return containerName() + "<" + subTypeStr + ">";
+    }
+
+    public String containerName() {
+        return containerClass.getSimpleName();
     }
 
     public Class<?> containerClass() {
@@ -71,14 +78,13 @@ public abstract class ComplexType implements DataType {
         return builder.toString();
     }
 
-    @Override
-    public boolean isAssignableFrom(Class<?> type) {
+    public final boolean isAssignableFrom(Class<?> type) {
         return this.containerClass.isAssignableFrom(type);
     }
 
     @Override
     public boolean isAssignableFrom(DataType type) {
-        return type instanceof ComplexType && isAssignableFrom((ComplexType) type);
+        return type instanceof ComplexType otherType && isAssignableFrom(otherType);
     }
 
     private boolean isAssignableFrom(ComplexType type) {
@@ -103,11 +109,6 @@ public abstract class ComplexType implements DataType {
     }
 
     public int hashCode() {
-        int result = super.hashCode();
-        result = result * 31 + containerClass.hashCode();
-        for (var subType : subTypes) {
-            result = result * 31 + subType.hashCode();
-        }
-        return result;
+        return Objects.hash(super.hashCode(), containerClass.hashCode(), Arrays.hashCode(subTypes));
     }
 }

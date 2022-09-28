@@ -83,7 +83,7 @@ public class PipelineOperationParser extends ContextAwareParser<StreamOperation>
             return parser.parse(node.appendName(type));
         }
 
-        throw new KSMLParseException(node, "Unknown type \"" + type + "\" in pipeline operation " + name);
+        throw new KSMLParseException(node, "Unknown dataType \"" + type + "\" in pipeline operation " + name);
     }
 
     private BaseParser<? extends StreamOperation> getParser(String type, String name) {

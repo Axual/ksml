@@ -23,7 +23,12 @@ package io.axual.ksml.data.object;
 import io.axual.ksml.data.type.SimpleType;
 
 public class DataBytes extends DataPrimitive<byte[]> {
-    public static final SimpleType DATATYPE = new SimpleType(byte[].class);
+    public static final SimpleType DATATYPE = new SimpleType(byte[].class) {
+        @Override
+        public String containerName() {
+            return "Bytes";
+        }
+    };
 
     public DataBytes(byte[] value) {
         super(DATATYPE, value);

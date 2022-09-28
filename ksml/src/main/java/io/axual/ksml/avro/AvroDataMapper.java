@@ -20,26 +20,30 @@ package io.axual.ksml.avro;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.avro.JsonProperties;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.util.Utf8;
 
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataRecord;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.RecordType;
 
 public class AvroDataMapper extends NativeDataObjectMapper {
     @Override
     public DataObject toDataObject(DataType expected, Object value) {
+        if (value == JsonProperties.NULL_VALUE) return new DataNull();
         if (value instanceof Utf8 utf8) return new DataString(utf8.toString());
         if (value instanceof GenericData.EnumSymbol) {
             return new DataString(value.toString());
         }
         if (value instanceof GenericRecord rec) {
-            DataRecord result = new DataRecord(new AvroSchema(rec.getSchema()));
+            DataRecord result = new DataRecord(new RecordType(new AvroSchemaMapper().toDataSchema(rec.getSchema())));
             for (Schema.Field field : rec.getSchema().getFields()) {
                 result.put(field.name(), toDataObject(rec.get(field.name())));
             }
@@ -52,8 +56,7 @@ public class AvroDataMapper extends NativeDataObjectMapper {
     @Override
     public Object fromDataObject(DataObject value) {
         if (value instanceof DataRecord rec) {
-            var schema = new AvroSchema(rec.type().schema());
-            return new AvroObject(schema, dataRecordToMap(rec));
+            return new AvroObject(rec.type().schema(), dataRecordToMap(rec));
         }
         return super.fromDataObject(value);
     }

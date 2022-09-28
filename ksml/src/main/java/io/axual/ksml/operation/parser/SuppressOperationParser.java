@@ -57,7 +57,7 @@ public class SuppressOperationParser extends OperationParser<SuppressOperation> 
                 case SUPPRESS_UNTILWINDOWCLOSES:
                     return parseSuppressUntilWindowClose(node);
                 default:
-                    throw new KSMLParseException(node, "Unknown Suppressed type for suppress operation: " + suppressedType);
+                    throw new KSMLParseException(node, "Unknown Suppressed dataType for suppress operation: " + suppressedType);
             }
         }
         throw new KSMLParseException(node, "Mandatory 'until' attribute is missing for Suppress operation");

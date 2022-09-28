@@ -62,7 +62,7 @@ public class PipelineSinkOperationParser extends OperationParser<StreamOperation
         if (node.get(PIPELINE_TO_ATTRIBUTE) != null) {
             final var def = new ReferenceOrInlineParser<>("stream", PIPELINE_TO_ATTRIBUTE, context.getStreamDefinitions()::get, new StreamDefinitionParser()).parse(node);
             if (def != null) {
-                return new ToOperation(operationConfig(determineName("to")), def, context.getNotationLibrary());
+                return new ToOperation(operationConfig(determineName("to")), def);
             }
             throw new KSMLParseException("Target stream not found or not specified");
         }

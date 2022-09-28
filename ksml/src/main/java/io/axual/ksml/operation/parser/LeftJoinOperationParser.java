@@ -62,6 +62,6 @@ public class LeftJoinOperationParser extends StoreOperationParser<LeftJoinOperat
                     parseDuration(node, JOIN_WINDOW_ATTRIBUTE));
         }
 
-        throw new KSMLParseException(node, "Incorrect join stream type: " + joinStream.getClass().getSimpleName());
+        throw new KSMLParseException(node, "Incorrect join stream dataType: " + joinStream.getClass().getSimpleName());
     }
 }

@@ -1,14 +1,18 @@
-package io.axual.ksml.schema;
+package io.axual.ksml.schema.mapper;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.WindowedType;
+import io.axual.ksml.exception.KSMLExecutionException;
+import io.axual.ksml.schema.DataField;
+import io.axual.ksml.schema.DataSchema;
+import io.axual.ksml.schema.RecordSchema;
+import io.axual.ksml.schema.SchemaUtil;
 
-public class WindowedSchema extends RecordSchema {
+public class WindowedSchemaMapper implements DataSchemaMapper<WindowedType> {
     private static final String WINDOW_SCHEMA_DOC_PREFIX = "Windowed ";
     private static final String WINDOW_SCHEMA_NAMESPACE = "io.axual.ksml.data";
     public static final String START_FIELD = "start";
@@ -23,43 +27,29 @@ public class WindowedSchema extends RecordSchema {
     private static final String KEY_FIELD_DOC = "Window key";
     private static final DataLong ZERO_LONG = new DataLong(0L);
     private static final DataString ZERO_STRING = new DataString("Time Zero");
-    private final WindowedType windowedType;
 
-    public WindowedSchema(WindowedType windowedType) {
-        super(WINDOW_SCHEMA_NAMESPACE,
+    @Override
+    public RecordSchema toDataSchema(WindowedType windowedType) {
+        return new RecordSchema(
+                WINDOW_SCHEMA_NAMESPACE,
                 windowedType.schemaName(),
                 WINDOW_SCHEMA_DOC_PREFIX + windowedType.keyType().schemaName(),
                 generateWindowKeySchema(windowedType));
-        this.windowedType = windowedType;
+    }
+
+    @Override
+    public WindowedType fromDataSchema(DataSchema object) {
+        throw new KSMLExecutionException("Can not convert a DataSchema to a Windowed dataType");
     }
 
     private static List<DataField> generateWindowKeySchema(WindowedType windowedType) {
         var result = new ArrayList<DataField>();
-        result.add(new DataField(START_FIELD, DataSchema.create(Type.LONG), START_FIELD_DOC, ZERO_LONG, DataField.Order.ASCENDING));
-        result.add(new DataField(END_FIELD, DataSchema.create(Type.LONG), END_FIELD_DOC, ZERO_LONG, DataField.Order.ASCENDING));
-        result.add(new DataField(START_TIME_FIELD, DataSchema.create(Type.STRING), START_TIME_FIELD_DOC, ZERO_STRING, DataField.Order.ASCENDING));
-        result.add(new DataField(END_TIME_FIELD, DataSchema.create(Type.STRING), END_TIME_FIELD_DOC, ZERO_STRING, DataField.Order.ASCENDING));
+        result.add(new DataField(START_FIELD, DataSchema.create(DataSchema.Type.LONG), START_FIELD_DOC, ZERO_LONG, DataField.Order.ASCENDING));
+        result.add(new DataField(END_FIELD, DataSchema.create(DataSchema.Type.LONG), END_FIELD_DOC, ZERO_LONG, DataField.Order.ASCENDING));
+        result.add(new DataField(START_TIME_FIELD, DataSchema.create(DataSchema.Type.STRING), START_TIME_FIELD_DOC, ZERO_STRING, DataField.Order.ASCENDING));
+        result.add(new DataField(END_TIME_FIELD, DataSchema.create(DataSchema.Type.STRING), END_TIME_FIELD_DOC, ZERO_STRING, DataField.Order.ASCENDING));
         var keySchema = SchemaUtil.dataTypeToSchema(windowedType.keyType());
         result.add(new DataField(KEY_FIELD, keySchema, KEY_FIELD_DOC, null, DataField.Order.ASCENDING));
         return result;
-    }
-
-    public WindowedType windowedType() {
-        return windowedType;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (!super.equals(other)) return false;
-        if (this == other) return true;
-        if (other.getClass() != getClass()) return false;
-
-        // Compare all schema relevant fields, note: explicitly do not compare the doc field
-        return Objects.equals(windowedType, ((WindowedSchema) other).windowedType);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), windowedType);
     }
 }

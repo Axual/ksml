@@ -9,9 +9,9 @@ package io.axual.ksml.user;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -57,7 +57,7 @@ public class UserFunction {
 
     @Override
     public String toString() {
-        String[] params = Arrays.stream(parameters).map(p -> p.name + ":" + (p.type != null ? p.type : "?")).toArray(String[]::new);
+        String[] params = Arrays.stream(parameters).map(p -> p.name() + ":" + (p.type() != null ? p.type() : "?")).toArray(String[]::new);
         return name + "(" + StringUtil.join(", ", params) + ")" + (resultType != null ? " ==> " + resultType : "");
     }
 
@@ -68,7 +68,7 @@ public class UserFunction {
     }
 
     protected void checkType(ParameterDefinition definition, DataObject value) {
-        checkType(definition.type, value);
+        checkType(definition.type(), value);
     }
 
     protected void logCall(Object[] parameters, Object result) {
@@ -79,7 +79,7 @@ public class UserFunction {
             for (int index = 0; index < parameters.length; index++) {
                 paramsAndValues.append(paramsAndValues.length() > 0 ? ", " : "");
                 String valueQuote = parameters[index] instanceof String ? "'" : "";
-                paramsAndValues.append(this.parameters[index].name).append("=").append(valueQuote).append(parameters[index] != null ? parameters[index] : "null").append(valueQuote);
+                paramsAndValues.append(this.parameters[index].name()).append("=").append(valueQuote).append(parameters[index] != null ? parameters[index] : "null").append(valueQuote);
             }
             if (result != null) {
                 LOG.debug("User function {}({}) returned {}", name, paramsAndValues, result);

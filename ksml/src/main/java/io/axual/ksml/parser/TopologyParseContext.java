@@ -104,7 +104,7 @@ public class TopologyParseContext implements ParseContext {
             result = buildWrapper(definition.topic, definition);
         }
         if (!resultClass.isInstance(result)) {
-            throw new KSMLTopologyException("Stream is of incorrect type " + result.getClass().getSimpleName() + " where " + resultClass.getSimpleName() + " expected");
+            throw new KSMLTopologyException("Stream is of incorrect dataType " + result.getClass().getSimpleName() + " where " + resultClass.getSimpleName() + " expected");
         }
         return (T) result;
     }

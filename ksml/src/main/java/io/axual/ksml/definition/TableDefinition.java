@@ -9,9 +9,9 @@ package io.axual.ksml.definition;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -42,13 +42,11 @@ public class TableDefinition extends BaseStreamDefinition {
 
     @Override
     public StreamWrapper addToBuilder(StreamsBuilder builder, String name, NotationLibrary notationLibrary) {
-        var kn = notationLibrary.get(keyType.notation());
-        var vn = notationLibrary.get(valueType.notation());
-        var keySerde = kn.getSerde(keyType.type(), true);
-        var valueSerde = vn.getSerde(valueType.type(), false);
+        var streamKey = new StreamDataType(notationLibrary, keyType, true);
+        var streamValue = new StreamDataType(notationLibrary, valueType, false);
         return new KTableWrapper(
-                builder.table(topic, Consumed.with(keySerde, valueSerde).withName(name)),
-                new StreamDataType(keyType.type(), kn, true),
-                new StreamDataType(valueType.type(), vn, false));
+                builder.table(topic, Consumed.with(streamKey.getSerde(), streamValue.getSerde()).withName(name)),
+                streamKey,
+                streamValue);
     }
 }

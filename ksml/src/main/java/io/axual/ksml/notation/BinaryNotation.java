@@ -29,11 +29,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.value.None;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.SimpleType;
-import io.axual.ksml.serde.NoneDeserializer;
-import io.axual.ksml.serde.NoneSerializer;
+import io.axual.ksml.data.value.Null;
+import io.axual.ksml.schema.DataSchema;
+import io.axual.ksml.serde.NullDeserializer;
+import io.axual.ksml.serde.NullSerializer;
 import io.axual.ksml.util.DataUtil;
 
 public class BinaryNotation implements Notation {
@@ -53,10 +54,10 @@ public class BinaryNotation implements Notation {
     }
 
     @Override
-    public Serde<Object> getSerde(DataType type, boolean isKey) {
+    public Serde<Object> getSerde(DataType type, DataSchema schema, boolean isKey) {
         if (type instanceof SimpleType) {
-            if (type.containerClass() == None.class) {
-                var result = new BinarySerde(Serdes.serdeFrom(new NoneSerializer(), new NoneDeserializer()));
+            if (type.containerClass() == Null.class) {
+                var result = new BinarySerde(Serdes.serdeFrom(new NullSerializer(), new NullDeserializer()));
                 result.configure(configs, isKey);
                 return result;
             }
@@ -64,8 +65,8 @@ public class BinaryNotation implements Notation {
             result.configure(configs, isKey);
             return result;
         }
-        // If not a simple type, then rely on JSON encoding
-        return jsonNotation.getSerde(type, isKey);
+        // If not a simple dataType, then rely on JSON encoding
+        return jsonNotation.getSerde(type, schema, isKey);
     }
 
     private static class BinarySerde implements Serde<Object> {

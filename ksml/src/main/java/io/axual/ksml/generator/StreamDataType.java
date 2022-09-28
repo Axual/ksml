@@ -23,39 +23,43 @@ package io.axual.ksml.generator;
 
 import org.apache.kafka.common.serialization.Serde;
 
-import io.axual.ksml.data.object.DataRecord;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.RecordType;
+import io.axual.ksml.data.type.UnionType;
+import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.data.type.WindowedType;
-import io.axual.ksml.notation.Notation;
-import io.axual.ksml.schema.WindowedSchema;
+import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.schema.mapper.WindowedSchemaMapper;
+import io.axual.ksml.serde.UnionSerde;
 
-public record StreamDataType(DataType type,
-                             Notation notation, boolean isKey) {
-    public StreamDataType(DataType type, Notation notation, boolean isKey) {
-        this.type = cookType(type);
-        this.notation = notation;
+public record StreamDataType(NotationLibrary notationLibrary, UserType userType, boolean isKey) {
+    public StreamDataType(NotationLibrary notationLibrary, UserType userType, boolean isKey) {
+        this.notationLibrary = notationLibrary;
+        this.userType = new UserType(userType.notation(), cookType(userType.dataType()), userType.schema());
         this.isKey = isKey;
     }
 
     private static DataType cookType(DataType type) {
-        // When we get a WindowedType, we automatically convert it into a record type using
+        // When we get a WindowedType, we automatically convert it into a record dataType using
         // fixed fields. This allows for processing downstream, since the WindowType itself
         // is KafkaStreams internal and thus not usable in user functions.
-        return type instanceof WindowedType
-                ? new DataRecord(new WindowedSchema((WindowedType) type)).type()
+        return type instanceof WindowedType windowedType
+                ? new RecordType(new WindowedSchemaMapper().toDataSchema(windowedType))
                 : type;
     }
 
     public boolean isAssignableFrom(StreamDataType other) {
-        return type.isAssignableFrom(other.type);
+        return userType.dataType().isAssignableFrom(other.userType.dataType());
     }
 
     @Override
     public String toString() {
-        return (notation != null ? notation.name() : "unknown notation") + ":" + type.schemaName();
+        return (userType.notation() != null ? userType.notation() : "unknown notation") + ":" + userType.dataType().schemaName();
     }
 
     public Serde<Object> getSerde() {
-        return notation.getSerde(type, isKey);
+        if (userType.dataType() instanceof UnionType unionType)
+            return new UnionSerde(notationLibrary, unionType, isKey);
+        return notationLibrary.get(userType.notation()).getSerde(userType.dataType(), userType.schema(), isKey);
     }
 }

@@ -9,9 +9,9 @@ package io.axual.ksml.data.type;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,6 +20,8 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+
+import java.util.Objects;
 
 public class SimpleType implements DataType {
     private final Class<?> containerClass;
@@ -30,6 +32,10 @@ public class SimpleType implements DataType {
 
     @Override
     public String toString() {
+        return containerName();
+    }
+
+    public String containerName() {
         return containerClass.getSimpleName();
     }
 
@@ -38,24 +44,24 @@ public class SimpleType implements DataType {
     }
 
     public String schemaName() {
-        return containerClass.getSimpleName();
-    }
-
-    public boolean isAssignableFrom(Class<?> type) {
-        return this.containerClass.isAssignableFrom(type);
+        return containerName();
     }
 
     @Override
     public boolean isAssignableFrom(DataType other) {
-        if (other instanceof SimpleType) {
-            return isAssignableFrom(((SimpleType) other).containerClass);
+        if (other instanceof SimpleType simpleType) {
+            return isAssignableFrom(simpleType.containerClass);
         }
         return false;
     }
 
     @Override
     public boolean isAssignableFrom(Object value) {
-        return value == null || isAssignableFrom(value.getClass());
+        return containerClass.isAssignableFrom(value.getClass());
+    }
+
+    private boolean isAssignableFrom(Class<?> type) {
+        return containerClass.isAssignableFrom(type);
     }
 
     public boolean equals(Object obj) {
@@ -66,7 +72,6 @@ public class SimpleType implements DataType {
     }
 
     public int hashCode() {
-        int result = super.hashCode();
-        return result * 31 + containerClass.hashCode();
+        return Objects.hash(super.hashCode(), containerClass.hashCode());
     }
 }

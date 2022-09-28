@@ -34,6 +34,6 @@ public class KeyValueToKeyValueListTransformerDefinitionParser extends FunctionD
         if (transformer.resultType != null) {
             return new KeyValueToKeyValueListTransformerDefinition(super.parse(node));
         }
-        throw new KSMLParseException(node, "Result type not specified");
+        throw new KSMLParseException(node, "Result dataType not specified");
     }
 }

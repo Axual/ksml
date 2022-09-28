@@ -30,8 +30,8 @@ public class UserReducer extends Invoker implements Reducer<Object> {
     public UserReducer(UserFunction function) {
         super(function);
         verifyParameterCount(2);
-        verify(function.parameters[0].type.equals(function.parameters[1].type), "Reducer should take two parameters of the same type");
-        verify(function.parameters[0].type.equals(function.resultType), "Reducer should return same type as its parameters");
+        verify(function.parameters[0].type().equals(function.parameters[1].type()), "Reducer should take two parameters of the same dataType");
+        verify(function.parameters[0].type().equals(function.resultType), "Reducer should return same dataType as its parameters");
     }
 
     @Override

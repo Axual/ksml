@@ -9,9 +9,9 @@ package io.axual.ksml.user;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -47,8 +47,8 @@ public class UserKeyValueToKeyValueListTransformer extends Invoker implements Ke
     @Override
     public Iterable<KeyValue<Object, Object>> apply(Object key, Object value) {
         var result = function.call(DataUtil.asUserObject(key), DataUtil.asUserObject(value));
-        var keyType = ((KeyValueListType) function.resultType.type()).keyType();
-        var valueType = ((KeyValueListType) function.resultType.type()).valueType();
+        var keyType = ((KeyValueListType) function.resultType.dataType()).keyType();
+        var valueType = ((KeyValueListType) function.resultType.dataType()).valueType();
 
         if (result instanceof DataList) {
             var list = (List<DataObject>) result;

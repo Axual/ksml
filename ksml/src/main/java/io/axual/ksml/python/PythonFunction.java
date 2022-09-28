@@ -31,8 +31,8 @@ import java.util.Arrays;
 
 import io.axual.ksml.data.mapper.PythonDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.user.UserFunction;
@@ -56,7 +56,7 @@ public class PythonFunction extends UserFunction {
         String[] functionCode = Arrays.stream(definition.code).map(line -> "  " + line).toArray(String[]::new);
 
         // Prepare a list of parameter names
-        String[] params = Arrays.stream(parameters).map(p -> p.name).toArray(String[]::new);
+        String[] params = Arrays.stream(parameters).map(ParameterDefinition::name).toArray(String[]::new);
 
         // Prepare the Python code to load
         String pyCode = "import polyglot\n" +
@@ -108,11 +108,7 @@ public class PythonFunction extends UserFunction {
         }
 
         // Check all parameters and copy them into the interpreter as prefixed globals
-        Object[] arguments = new Object[parameters.length];
-        for (var index = 0; index < parameters.length; index++) {
-            checkType(this.parameters[index], parameters[index]);
-            arguments[index] = mapper.fromDataObject(parameters[index]);
-        }
+        var arguments = convertParameters(parameters);
 
         try {
             // Call the prepared function
@@ -124,26 +120,14 @@ public class PythonFunction extends UserFunction {
 
             // Check if the function is supposed to return a result value
             if (resultType != null) {
-                // The converted result value from Python
-                final DataObject result;
+                DataObject result = convertResult(pyResult);
 
-                // If a value is expected, but none is returned, then handle special cases
-                if (pyResult.isNull()) {
-                    // An empty string in YAML (ie. '') is returned as null by the parser, so
-                    // when we expect a string and get null, we convert it to the empty string.
-                    if (resultType.type() == DataString.DATATYPE) {
-                        // Empty string may be returned as null, so catch and convert here
-                        result = new DataString("");
-                    } else {
-                        throw new KSMLTopologyException("Illegal return from function: null");
-                    }
-                } else {
-                    // Convert the result object to a UserObject
-                    result = mapper.toDataObject(resultType.type(), pyResult);
+                if (result == null) {
+                    throw new KSMLTopologyException("Illegal return from function: " + pyResult);
                 }
 
                 logCall(parameters, result);
-                checkType(resultType.type(), result);
+                checkType(resultType.dataType(), result);
                 return result;
             } else {
                 logCall(parameters, null);
@@ -152,6 +136,25 @@ public class PythonFunction extends UserFunction {
         } catch (Exception e) {
             logCall(parameters, null);
             throw new KSMLTopologyException("Error while executing function " + name + ": " + e.getMessage());
+        }
+    }
+
+    private Object[] convertParameters(DataObject... parameters) {
+        Object[] result = new Object[parameters.length];
+        for (var index = 0; index < parameters.length; index++) {
+            checkType(this.parameters[index], parameters[index]);
+            result[index] = mapper.fromDataObject(parameters[index]);
+        }
+        return result;
+    }
+
+    private DataObject convertResult(Value pyResult) {
+        // The converted result value from Python
+        try {
+            return mapper.toDataObject(resultType.dataType(), pyResult);
+        } catch (KSMLExecutionException e) {
+            // Ignore conversion error here
+            return null;
         }
     }
 }

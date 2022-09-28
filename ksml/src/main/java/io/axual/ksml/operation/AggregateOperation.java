@@ -61,10 +61,10 @@ public class AggregateOperation extends StoreOperation {
     }
 
     private void checkAggregationFunction(UserFunction function, BaseStreamWrapper input, String name) {
-        checkAssignable(function.parameters[0].type, input.keyType().type(), "Stream key type incompatible with " + name + "'s first parameter");
-        checkAssignable(function.parameters[1].type, input.valueType().type(), "Stream value type incompatible with " + name + "'s second parameter");
-        checkAssignable(function.parameters[2].type, initializer.resultType.type(), "Initializer result type is incompatible with " + name + "'s third parameter");
-        checkAssignable(function.parameters[2].type, function.resultType.type(), name + " result type is incompatible with its third parameter");
+        checkAssignable(function.parameters[0].type(), input.keyType().userType().dataType(), "Stream key type incompatible with " + name + "'s first parameter");
+        checkAssignable(function.parameters[1].type(), input.valueType().userType().dataType(), "Stream value type incompatible with " + name + "'s second parameter");
+        checkAssignable(function.parameters[2].type(), initializer.resultType.dataType(), "Initializer result type is incompatible with " + name + "'s third parameter");
+        checkAssignable(function.parameters[2].type(), function.resultType.dataType(), name + " result type is incompatible with its third parameter");
     }
 
     @Override
@@ -112,8 +112,8 @@ public class AggregateOperation extends StoreOperation {
         checkNotNull(aggregator, AGGREGATOR_NAME.toLowerCase());
         checkNotNull(merger, MERGER_NAME.toLowerCase());
         checkAggregationFunction(aggregator, input, AGGREGATOR_NAME);
-        checkAssignable(merger.parameters[0].type, input.keyType().type(), "Stream key type incompatible with Merger's first parameter");
-        checkEqual(aggregator.resultType.type(), merger.parameters[1].type, "Aggregator result type is incompatible with Merger's second parameter");
+        checkAssignable(merger.parameters[0].type(), input.keyType().userType().dataType(), "Stream key type incompatible with Merger's first parameter");
+        checkEqual(aggregator.resultType.dataType(), merger.parameters[1].type(), "Aggregator result type is incompatible with Merger's second parameter");
 
         final StreamDataType resultValueType = streamDataTypeOf(aggregator.resultType, false);
 

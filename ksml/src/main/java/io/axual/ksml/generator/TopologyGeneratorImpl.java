@@ -115,7 +115,7 @@ public class TopologyGeneratorImpl {
                     LOG.info("Reading KSML from content string: {}", config.source);
                     return Collections.singletonList(new KSMLDefinition("content", mapper.readValue((String) config.source, JsonNode.class)));
                 default:
-                    throw new KSMLParseException(null, "Unknown KSML source type: " + config.sourceType);
+                    throw new KSMLParseException(null, "Unknown KSML source dataType: " + config.sourceType);
             }
         } catch (IOException e) {
             LOG.error("Can not read YAML!", e);

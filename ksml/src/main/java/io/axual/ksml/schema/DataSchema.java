@@ -20,35 +20,61 @@ package io.axual.ksml.schema;
  * =========================LICENSE_END==================================
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 import java.util.Objects;
 
 import io.axual.ksml.exception.KSMLExecutionException;
 
 // Generic internal schema class
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = UnionSchema.class, name = "UNION"),
+        @JsonSubTypes.Type(value = RecordSchema.class, name = "RECORD"),
+        @JsonSubTypes.Type(value = MapSchema.class, name = "MAP"),
+        @JsonSubTypes.Type(value = ListSchema.class, name = "LIST"),
+        @JsonSubTypes.Type(value = FixedSchema.class, name = "FIXED"),
+        @JsonSubTypes.Type(value = EnumSchema.class, name = "ENUM"),
+})
 public class DataSchema {
     public enum Type {
+        NULL,
+
         BOOLEAN,
+
         BYTE,
-        BYTES,
         SHORT,
-        DOUBLE,
-        FLOAT,
         INTEGER,
         LONG,
+
+        DOUBLE,
+        FLOAT,
+
+        BYTES,
+        FIXED,
+
         STRING,
-        ARRAY,
+
         ENUM,
+        LIST,
         MAP,
         RECORD,
-        NULLABLE
+
+        UNION,
     }
 
+    @JsonProperty("dataType")
     private final Type type;
 
     public static DataSchema create(Type type) {
         return switch (type) {
-            case BOOLEAN, BYTE, BYTES, SHORT, DOUBLE, FLOAT, INTEGER, LONG, STRING -> new DataSchema(type);
-            default -> throw new KSMLExecutionException("Can not use 'create' to create a schema for type " + type);
+            case NULL, BOOLEAN, BYTE, SHORT, INTEGER, LONG, DOUBLE, FLOAT, BYTES, STRING -> new DataSchema(type);
+            default -> throw new KSMLExecutionException("Can not use 'create' to create a schema for dataType " + type);
         };
     }
 
@@ -67,9 +93,8 @@ public class DataSchema {
 
     @Override
     public boolean equals(Object other) {
-        if (!super.equals(other)) return false;
         if (this == other) return true;
-        if (other.getClass() != getClass()) return false;
+        if (other == null || getClass() != other.getClass()) return false;
 
         // Compare all schema relevant fields
         return Objects.equals(type, ((DataSchema) other).type);

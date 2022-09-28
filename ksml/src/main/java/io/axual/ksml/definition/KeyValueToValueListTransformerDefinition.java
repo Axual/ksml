@@ -30,6 +30,6 @@ public class KeyValueToValueListTransformerDefinition extends FunctionDefinition
     public KeyValueToValueListTransformerDefinition(FunctionDefinition definition) {
         super(definition
                 .withParameters(getParameters(definition.parameters, KEY_VALUE_PARAMETERS))
-                .withResult(new UserType(ListType.createFrom(definition.resultType.type()), definition.resultType.notation())));
+                .withResult(new UserType(definition.resultType.notation(), ListType.createFrom(definition.resultType.dataType()), null)));
     }
 }

@@ -58,7 +58,7 @@ public class AvroSchemaLoader implements SchemaLibrary.Loader {
         var schemaFile = new File(schemaDirectory, schemaName + ".avsc");
         try (var schemaStream = new FileInputStream(schemaFile)) {
             var schema = new Schema.Parser().parse(schemaStream);
-            return new AvroSchema(schema);
+            return new AvroSchemaMapper().toDataSchema(schema);
         } catch (IOException e) {
             log.warn("Could not find/load Avro schema: " + schemaName);
             return null;
