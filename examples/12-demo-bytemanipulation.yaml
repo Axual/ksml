@@ -12,11 +12,11 @@
 streams:
   sensor_source:
     topic: ksml_sensordata_avro
-    keyType: string
+    keyType: nullable(string)
     valueType: nullable(bytes)
   sensor_target:
     topic: ksml_sensordata_manipulated
-    keyType: string
+    keyType: nullable(string)
     valueType: nullable(bytes)
 
 functions:

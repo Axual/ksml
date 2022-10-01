@@ -20,16 +20,11 @@ package io.axual.ksml.schema;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Objects;
 
 public class NamedSchema extends DataSchema {
-    @JsonProperty("namespace")
     private final String namespace;
-    @JsonProperty("name")
     private final String name;
-    @JsonProperty("doc")
     private final String doc;
 
     public NamedSchema(Type type, String namespace, String name, String doc) {

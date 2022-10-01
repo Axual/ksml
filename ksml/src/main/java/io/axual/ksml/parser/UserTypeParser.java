@@ -93,55 +93,57 @@ public class UserTypeParser {
     }
 
     private static UserType parseTypeAndNotation(String type, String defaultNotation, boolean allowOverrideNotation) {
-        String resultNotation = defaultNotation;
-        String typeNotation = defaultNotation;
+        var resultNotation = defaultNotation;
+        var typeNotation = defaultNotation;
 
-        if (type.startsWith("[")) {
-            if (!type.endsWith("]")) {
-                throw new KSMLParseException("Error in dataType: " + type);
-            }
-            UserType valueType = parseTypeAndNotation(type.substring(1, type.length() - 1), resultNotation, false);
-            return new UserType(valueType.notation(), new ListType(valueType.dataType()), null);
-        }
+        var posColon = type.contains(":") ? type.indexOf(":") : type.length();
+        var posOpenRound = type.contains("(") ? type.indexOf("(") : type.length();
+        var posOpenSquare = type.contains("[") ? type.indexOf("[") : type.length();
 
-        if (type.startsWith("(")) {
-            if (!type.endsWith(")")) {
-                throw new KSMLParseException("Error in dataType: " + type);
-            }
-            UserType[] valueTypes = parseListOfTypesAndNotation(type.substring(1, type.length() - 1), resultNotation, false);
-            return new UserType(resultNotation, new TupleType(dataTypesOf(valueTypes)), null);
-        }
-
-        var unbracketedType = type;
-        if (type.contains("(") || type.contains("[")) {
-            var roundBracket = type.indexOf("(");
-            var squareBracket = type.indexOf("[");
-            var firstBracket = Math.min(roundBracket > 0 ? roundBracket : type.length(), squareBracket > 0 ? squareBracket : type.length());
-            unbracketedType = type.substring(0, firstBracket - 1);
-        }
-        if (unbracketedType.contains(":")) {
-            typeNotation = unbracketedType.substring(0, type.indexOf(":"));
-            type = type.substring(unbracketedType.indexOf(":") + 1);
+        // Extract any explicit notation from the type
+        if (posColon < posOpenRound && posColon < posOpenSquare) {
+            typeNotation = type.substring(0, type.indexOf(":"));
+            type = type.substring(type.indexOf(":") + 1);
 
             if (allowOverrideNotation) {
                 resultNotation = typeNotation.toUpperCase();
             }
         }
 
-        // If a dataType is nullable, return a union with [null, dataType] as result
+        // List type
+        if (type.startsWith("[")) {
+            if (!type.endsWith("]")) {
+                throw new KSMLParseException("Error in dataType: " + type);
+            }
+            var valueType = parseTypeAndNotation(type.substring(1, type.length() - 1), resultNotation, false);
+            return new UserType(valueType.notation(), new ListType(valueType.dataType()), null);
+        }
+
+        // Tuple type
+        if (type.startsWith("(")) {
+            if (!type.endsWith(")")) {
+                throw new KSMLParseException("Error in dataType: " + type);
+            }
+            var valueTypes = parseListOfTypesAndNotation(type.substring(1, type.length() - 1), resultNotation, false);
+            return new UserType(resultNotation, new TupleType(dataTypesOf(valueTypes)), null);
+        }
+
+        // nullable(type)
         if (type.startsWith(NULLABLE_TYPE + "(") && type.endsWith(")")) {
             type = type.substring(NULLABLE_TYPE.length() + 1, type.length() - 1);
             var nullType = new UserType(BinaryNotation.NOTATION_NAME, DataNull.DATATYPE, null);
             var subType = parse(type);
-            return new UserType(resultNotation, new UnionType(nullType, subType), new UnionSchema(nullType.schema(), subType.schema()));
+            // With nullable, we always use the notation of the subtype, eg. nullable(json) gives notation JSON for the outer type
+            return new UserType(subType.notation(), new UnionType(nullType, subType), new UnionSchema(nullType.schema(), subType.schema()));
         }
 
-        // If a dataType is windowed, return a WindowedType with the parsed subtype
+        // windowed(type)
         if (type.startsWith(WINDOWED_TYPE + "(") && type.endsWith(")")) {
             type = type.substring(WINDOWED_TYPE.length() + 1, type.length() - 1);
             return new UserType(resultNotation, new WindowedType(parseType(type)), null);
         }
 
+        // AVRO with schema
         if (typeNotation.equalsIgnoreCase(AvroNotation.NOTATION_NAME)) {
             var schema = SchemaLibrary.getSchema(type, false);
             if (!(schema instanceof RecordSchema recordSchema))
@@ -149,7 +151,18 @@ public class UserTypeParser {
             return new UserType(AvroNotation.NOTATION_NAME, new RecordType(recordSchema), schema);
         }
 
-        if (typeNotation.equalsIgnoreCase(JsonNotation.NOTATION_NAME) || type.equalsIgnoreCase(JsonNotation.NOTATION_NAME)) {
+        // AVRO without schema
+        if (type.equalsIgnoreCase(AvroNotation.NOTATION_NAME)) {
+            return new UserType(AvroNotation.NOTATION_NAME, new RecordType(), null);
+        }
+
+        // JSON with schema
+        if (typeNotation.equalsIgnoreCase(JsonNotation.NOTATION_NAME)) {
+            return new UserType(JsonNotation.NOTATION_NAME, new RecordType(), null);
+        }
+
+        // JSON without schema
+        if (type.equalsIgnoreCase(JsonNotation.NOTATION_NAME)) {
             return new UserType(JsonNotation.NOTATION_NAME, new RecordType(), null);
         }
 

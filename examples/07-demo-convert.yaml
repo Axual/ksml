@@ -3,8 +3,8 @@
 streams:
   sensor_source:
     topic: ksml_sensordata_avro
-    keyType: string
-    valueType: avro:SensorData
+    keyType: nullable(string)
+    valueType: nullable(avro:SensorData)
 
 functions:
   print_message:
@@ -17,7 +17,7 @@ pipelines:
     from: sensor_source
     via:
       - type: convertValue
-        into: json
+        into: nullable(json)
         name: convert_value_to_json
       - type: peek
         forEach: print_message
@@ -34,5 +34,5 @@ pipelines:
         name: peek_and_print2
     to:
       topic: ksml_sensordata_json
-      keyType: string
-      valueType: json
+      keyType: nullable(string)
+      valueType: nullable(json)

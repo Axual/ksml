@@ -25,7 +25,7 @@ import io.axual.ksml.data.type.DataType;
 
 public interface DataObjectMapper<T> {
     String RECORD_SCHEMA_FIELD = "@schema";
-    String RECORD_TYPE_FIELD = "@dataType";
+    String RECORD_TYPE_FIELD = "@type";
 
     default DataObject toDataObject(T value) {
         return toDataObject(null, value);

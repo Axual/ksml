@@ -9,9 +9,9 @@ package io.axual.ksml.parser;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -76,6 +76,11 @@ public abstract class BaseParser<T> {
 
     protected String[] parseMultilineText(YamlNode parent, String childName) {
         return parseTextAndTransform(parent, childName, s -> s.split("\\r?\\n"));
+    }
+
+    protected int parseInteger(YamlNode parent, String childName) {
+        YamlNode child = parent.get(childName);
+        return child != null ? child.asInt() : 0;
     }
 
     protected String parseText(YamlNode parent, String childName) {

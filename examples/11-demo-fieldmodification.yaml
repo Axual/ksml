@@ -1,0 +1,47 @@
+# This example shows how to read from an AVRO stream, modify a specific field and output to a target
+# stream. For validation purposes a second pipeline outputs the modified results.
+
+streams:
+  sensor_source:
+    topic: ksml_sensordata_avro
+    keyType: nullable(string)
+    valueType: nullable(avro:SensorData)
+  sensor_target:
+    topic: ksml_sensordata_modified
+    keyType: nullable(string)
+    valueType: nullable(avro:SensorData)
+
+functions:
+  print_input_message:
+    type: forEach
+    code: "print('INPUT key=' + str(key) + ', value=' + str(value))"
+  print_output_message:
+    type: forEach
+    code: "print('OUTPUT key=' + str(key) + ', value=' + str(value))"
+  replace_owner:
+    type: valueTransformer
+    globalCode: |
+      import json
+    code: |
+      if value != None:
+        value["owner"] = "Zack"
+        del value["@type"]
+#        schema = json.loads(value["@schema"])
+#        del schema["fields"][6]
+#        newschema = json.dumps(schema)
+#        value["@schema"] = newschema
+    expression: value
+    resultType: nullable(avro:SensorData)
+
+pipelines:
+  main:
+    from: sensor_source
+    via:
+     - type: peek
+       forEach: print_input_message
+     - type: transformValue
+       mapper: replace_owner
+    to: sensor_target
+  validate:
+    from: sensor_target
+    forEach: print_output_message

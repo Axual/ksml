@@ -20,27 +20,11 @@ package io.axual.ksml.schema;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
 import java.util.Objects;
 
 import io.axual.ksml.exception.KSMLExecutionException;
 
 // Generic internal schema class
-@JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME,
-        include = JsonTypeInfo.As.PROPERTY,
-        property = "type")
-@JsonSubTypes({
-        @JsonSubTypes.Type(value = UnionSchema.class, name = "UNION"),
-        @JsonSubTypes.Type(value = RecordSchema.class, name = "RECORD"),
-        @JsonSubTypes.Type(value = MapSchema.class, name = "MAP"),
-        @JsonSubTypes.Type(value = ListSchema.class, name = "LIST"),
-        @JsonSubTypes.Type(value = FixedSchema.class, name = "FIXED"),
-        @JsonSubTypes.Type(value = EnumSchema.class, name = "ENUM"),
-})
 public class DataSchema {
     public enum Type {
         NULL,
@@ -68,7 +52,6 @@ public class DataSchema {
         UNION,
     }
 
-    @JsonProperty("dataType")
     private final Type type;
 
     public static DataSchema create(Type type) {
@@ -88,7 +71,7 @@ public class DataSchema {
 
     @Override
     public String toString() {
-        return type.toString();
+        return SchemaWriter.writeDataSchemaAsString(this);
     }
 
     @Override

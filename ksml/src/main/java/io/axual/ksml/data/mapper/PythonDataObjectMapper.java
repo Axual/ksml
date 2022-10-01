@@ -152,7 +152,7 @@ public class PythonDataObjectMapper implements DataObjectMapper<Value> {
     }
 
     private DataObject toDataRecord(DataType expected, Value object) {
-        // Try to cash the value to a HashMap. If that works, then we received a dict value
+        // Try to cast the value to a HashMap. If that works, then we received a dict value
         // back from Python.
         try {
             HashMap<?, ?> map = object.as(HashMap.class);

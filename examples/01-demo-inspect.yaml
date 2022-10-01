@@ -3,7 +3,7 @@
 streams:
   sensor_source:
     topic: ksml_sensordata_avro
-    keyType: string
+    keyType: nullable(string)
     valueType: nullable(avro:SensorData)
 
 functions:

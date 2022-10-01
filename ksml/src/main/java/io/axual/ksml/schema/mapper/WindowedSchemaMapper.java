@@ -3,12 +3,11 @@ package io.axual.ksml.schema.mapper;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.axual.ksml.data.object.DataLong;
-import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.schema.DataField;
 import io.axual.ksml.schema.DataSchema;
+import io.axual.ksml.schema.DataValue;
 import io.axual.ksml.schema.RecordSchema;
 import io.axual.ksml.schema.SchemaUtil;
 
@@ -25,8 +24,8 @@ public class WindowedSchemaMapper implements DataSchemaMapper<WindowedType> {
     private static final String END_TIME_FIELD_DOC = "End time";
     public static final String KEY_FIELD = "key";
     private static final String KEY_FIELD_DOC = "Window key";
-    private static final DataLong ZERO_LONG = new DataLong(0L);
-    private static final DataString ZERO_STRING = new DataString("Time Zero");
+    private static final DataValue ZERO_LONG = new DataValue(0L);
+    private static final DataValue ZERO_STRING = new DataValue("Time Zero");
 
     @Override
     public RecordSchema toDataSchema(WindowedType windowedType) {

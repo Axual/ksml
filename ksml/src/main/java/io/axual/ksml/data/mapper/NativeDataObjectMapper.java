@@ -100,7 +100,8 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     private RecordType inferRecordType(Map<?, ?> map, DataSchema expected) {
         var schema = inferRecordSchema(map, expected);
         if (schema instanceof RecordSchema recordSchema) return new RecordType(recordSchema);
-        if (schema != null) throw new KSMLParseException("Map can not be converted to " + schema);
+        if (schema != null)
+            throw new KSMLParseException("Map can not be converted to " + schema);
         return new RecordType();
     }
 
@@ -112,7 +113,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
             return SchemaLibrary.getSchema(typeName);
         } else if (map.containsKey(RECORD_SCHEMA_FIELD)) {
             var schemaStr = map.get(RECORD_SCHEMA_FIELD).toString();
-            return SchemaWriter.readSchema(schemaStr);
+            return SchemaWriter.read(schemaStr);
         }
         return expected;
     }

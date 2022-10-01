@@ -33,4 +33,15 @@ public class DataBytes extends DataPrimitive<byte[]> {
     public DataBytes(byte[] value) {
         super(DATATYPE, value);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder("[");
+        for (int index = 0; index < value().length; index++) {
+            if (index > 0) builder.append(", ");
+            builder.append(String.format("%02X ", value()[index]));
+        }
+        builder.append("]");
+        return builder.toString();
+    }
 }

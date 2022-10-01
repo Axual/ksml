@@ -25,14 +25,10 @@ import org.apache.avro.Schema;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.axual.ksml.data.object.DataList;
-import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataPrimitive;
-import io.axual.ksml.data.object.DataRecord;
-import io.axual.ksml.data.object.DataTuple;
-import io.axual.ksml.exception.KSMLExecutionException;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.schema.DataField;
 import io.axual.ksml.schema.DataSchema;
+import io.axual.ksml.schema.DataValue;
 import io.axual.ksml.schema.EnumSchema;
 import io.axual.ksml.schema.FixedSchema;
 import io.axual.ksml.schema.ListSchema;
@@ -44,7 +40,8 @@ import io.axual.ksml.schema.mapper.DataSchemaMapper;
 // First attempt at providing an internal schema class. The implementation relies heavily on Avro
 // at the moment, which is fine for now, but may change in the future.
 public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
-    private static final AvroDataMapper dataMapper = new AvroDataMapper();
+    private static final AvroDataMapper avroMapper = new AvroDataMapper();
+    private static final NativeDataObjectMapper nativeMapper = new NativeDataObjectMapper();
 
     @Override
     public RecordSchema toDataSchema(Schema schema) {
@@ -98,21 +95,13 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         if (fields == null) return new ArrayList<>();
         List<DataField> result = new ArrayList<>(fields.size());
         for (Schema.Field field : fields) {
-            result.add(new DataField(field.name(), convertToDataSchema(field.schema()), field.doc(), convertValueToNative(field.defaultVal()), convertOrder(field.order())));
+            var defaultValue = convertFromAvroDefault(field);
+            result.add(new DataField(field.name(), convertToDataSchema(field.schema()), field.doc(), defaultValue, convertOrderFromAvro(field.order())));
         }
         return result;
     }
 
-    private Object convertValueToNative(Object value) {
-        DataObject dataValue = dataMapper.toDataObject(value);
-        if (dataValue instanceof DataPrimitive<?> prim) return prim.value();
-        if (dataValue instanceof DataList list) return list;
-        if (dataValue instanceof DataRecord rec) return rec;
-        if (dataValue instanceof DataTuple tuple) return tuple;
-        throw new KSMLExecutionException("Can not convert value from AVRO: " + value);
-    }
-
-    private static DataField.Order convertOrder(Schema.Field.Order order) {
+    private static DataField.Order convertOrderFromAvro(Schema.Field.Order order) {
         return switch (order) {
             case ASCENDING -> DataField.Order.ASCENDING;
             case DESCENDING -> DataField.Order.DESCENDING;
@@ -157,10 +146,23 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     }
 
     private Schema.Field convertToAvro(DataField field) {
-        return new Schema.Field(field.name(), convertToAvro(field.schema()), field.doc(), field.defaultValue(), convertOrder(field.order()));
+        var defaultValue = convertDefaultValue(field.defaultValue());
+        return new Schema.Field(field.name(), convertToAvro(field.schema()), field.doc(), defaultValue, convertOrderToAvro(field.order()));
     }
 
-    private Schema.Field.Order convertOrder(DataField.Order order) {
+    private DataValue convertFromAvroDefault(Schema.Field field) {
+        if (!field.hasDefaultValue()) return null;
+        var value = nativeMapper.fromDataObject(avroMapper.toDataObject(field.defaultVal()));
+        return new DataValue(value);
+    }
+
+    private Object convertDefaultValue(DataValue value) {
+        if (value == null) return null;
+        if (value.value() == null) return Schema.Field.NULL_DEFAULT_VALUE;
+        return value.value();
+    }
+
+    private Schema.Field.Order convertOrderToAvro(DataField.Order order) {
         return switch (order) {
             case ASCENDING -> Schema.Field.Order.ASCENDING;
             case DESCENDING -> Schema.Field.Order.DESCENDING;

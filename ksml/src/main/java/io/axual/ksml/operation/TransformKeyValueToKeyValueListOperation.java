@@ -23,7 +23,9 @@ package io.axual.ksml.operation;
 
 import org.apache.kafka.streams.kstream.Named;
 
-import io.axual.ksml.data.type.KeyValueListType;
+import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.data.type.TupleType;
+import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
@@ -39,11 +41,18 @@ public class TransformKeyValueToKeyValueListOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        var resultType = (KeyValueListType) transformer.resultType.dataType();
-        var notation = transformer.resultType.notation();
-        return new KStreamWrapper(
-                input.stream.flatMap(new UserKeyValueToKeyValueListTransformer(transformer), Named.as(name)),
-                streamDataTypeOf(notation, resultType.keyType(), null, true),
-                streamDataTypeOf(notation, resultType.valueType(), null, false));
+        if (transformer.resultType.dataType() instanceof ListType listType &&
+                listType.valueType() instanceof TupleType tupleType &&
+                tupleType.subTypeCount() == 2) {
+            var resultKeyType = tupleType.subType(0);
+            var resultValueType = tupleType.subType(1);
+
+            var notation = transformer.resultType.notation();
+            return new KStreamWrapper(
+                    input.stream.flatMap(new UserKeyValueToKeyValueListTransformer(transformer), Named.as(name)),
+                    streamDataTypeOf(notation, resultKeyType, null, true),
+                    streamDataTypeOf(notation, resultValueType, null, false));
+        }
+        throw new KSMLExecutionException("ResultType of keyValueToKeyValueListTransformer not correctly specified");
     }
 }

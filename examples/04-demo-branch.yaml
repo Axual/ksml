@@ -1,16 +1,16 @@
 streams:
   sensor_source:
     topic: ksml_sensordata_avro
-    keyType: string
-    valueType: avro:SensorData
+    keyType: nullable(string)
+    valueType: nullable(avro:SensorData)
   sensor_blue:
     topic: ksml_sensordata_blue
-    keyType: string
-    valueType: avro:SensorData
+    keyType: nullable(string)
+    valueType: nullable(avro:SensorData)
   sensor_red:
     topic: ksml_sensordata_red
-    keyType: string
-    valueType: avro:SensorData
+    keyType: nullable(string)
+    valueType: nullable(avro:SensorData)
 
 functions:
   print_message:
@@ -26,10 +26,10 @@ pipelines:
         forEach: print_message
     branch:
       - if:
-          expression: value['color'] == 'blue'
+          expression: value != None and value['color'] == 'blue'
         to: sensor_blue
       - if:
-          expression: value['color'] == 'red'
+          expression: value != None and value['color'] == 'red'
         to: sensor_red
       - forEach:
           code: |

@@ -1,12 +1,12 @@
 streams:
   sensor_source:
     topic: ksml_sensordata_avro
-    keyType: string
-    valueType: avro:SensorData
+    keyType: nullable(string)
+    valueType: nullable(avro:SensorData)
   sensor_filtered:
     topic: ksml_sensordata_filtered
-    keyType: string
-    valueType: avro:SensorData
+    keyType: nullable(string)
+    valueType: nullable(avro:SensorData)
 
 functions:
   print_message:
@@ -15,6 +15,9 @@ functions:
 
   filter_message:
     type: predicate
+    code: |
+      if value == None:
+        return False
     expression: value["color"] == 'blue'
 
 pipelines:

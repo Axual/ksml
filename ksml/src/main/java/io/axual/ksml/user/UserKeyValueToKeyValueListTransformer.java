@@ -9,9 +9,9 @@ package io.axual.ksml.user;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,9 +30,9 @@ import java.util.List;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.KeyValueListType;
 import io.axual.ksml.data.type.KeyValueType;
 import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;
 import io.axual.ksml.util.DataUtil;
@@ -47,17 +47,21 @@ public class UserKeyValueToKeyValueListTransformer extends Invoker implements Ke
     @Override
     public Iterable<KeyValue<Object, Object>> apply(Object key, Object value) {
         var result = function.call(DataUtil.asUserObject(key), DataUtil.asUserObject(value));
-        var keyType = ((KeyValueListType) function.resultType.dataType()).keyType();
-        var valueType = ((KeyValueListType) function.resultType.dataType()).valueType();
+        if (function.resultType.dataType() instanceof ListType listType &&
+                listType.valueType() instanceof TupleType tupleType &&
+                tupleType.subTypeCount() == 2) {
+            var keyType = tupleType.subType(0);
+            var valueType = tupleType.subType(1);
 
-        if (result instanceof DataList) {
-            var list = (List<DataObject>) result;
-            var convertedResult = new ArrayList<KeyValue<Object, Object>>();
-            for (DataObject element : list) {
-                KeyValue<DataObject, DataObject> convertedKeyValue = function.convertToKeyValue(element, keyType, valueType);
-                convertedResult.add((KeyValue) convertedKeyValue);
+            if (result instanceof DataList) {
+                var list = (List<DataObject>) result;
+                var convertedResult = new ArrayList<KeyValue<Object, Object>>();
+                for (DataObject element : list) {
+                    KeyValue<DataObject, DataObject> convertedKeyValue = function.convertToKeyValue(element, keyType, valueType);
+                    convertedResult.add((KeyValue) convertedKeyValue);
+                }
+                return convertedResult;
             }
-            return convertedResult;
         }
 
         throw new KSMLExecutionException("Expected list back from function: " + function.name);
