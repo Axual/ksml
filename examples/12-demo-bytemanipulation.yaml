@@ -23,9 +23,11 @@ functions:
   print_input_message:
     type: forEach
     code: "print('INPUT key=' + str(key) + ', value=' + str(value))"
+
   print_output_message:
     type: forEach
     code: "print('OUTPUT key=' + str(key) + ', value=' + str(value))"
+
   replace_schema_id:
     type: valueTransformer
     globalCode: |
@@ -33,10 +35,10 @@ functions:
     code: |
       if value != None:
         if value[0] == 0 and len(value) >= 5:
-          value[1] = (newSchemaId & 0xFF000000) >> 24
-          value[2] = (newSchemaId & 0xFF0000) >> 16
-          value[3] = (newSchemaId & 0xFF00) >> 8
-          value[4] = newSchemaId & 0xFF
+          value[1] = newSchemaId & 0xff
+          value[2] = (newSchemaId & 0xff00) >> 8
+          value[3] = (newSchemaId & 0xff0000) >> 16
+          value[4] = (newSchemaId & 0xff000000) >> 24
         else:
           print("Value does not contain a schema id: "+str(value))
           value = None

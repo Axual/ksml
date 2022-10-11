@@ -61,10 +61,19 @@ public class RecordType extends MapType {
     }
 
     @Override
+    public boolean isAssignableFrom(DataType type) {
+        if (!super.isAssignableFrom(type)) return false;
+        if (!(type instanceof RecordType recordType)) return false;
+        if (schema == null && recordType.schema==null) return true;
+        if (schema == null || recordType.schema==null) return false;
+        return schema.isAssignableFrom(recordType.schema);
+    }
+
+    @Override
     public boolean equals(Object other) {
         if (!super.equals(other)) return false;
         if (!(other instanceof RecordType otherRecord)) return false;
-        return Objects.equals(name, otherRecord.name);
+        return Objects.equals(name, otherRecord.name) && Objects.equals(schema, otherRecord.schema);
     }
 
     @Override

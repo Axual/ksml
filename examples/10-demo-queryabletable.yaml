@@ -3,14 +3,14 @@
 streams:
   sensor_source:
     topic: ksml_sensordata_avro
-    keyType: string
-    valueType: avro:SensorData
+    keyType: nullable(string)
+    valueType: nullable(avro:SensorData)
 
 tables:
   sensor_target:
     topic: ksml_sensordata_table
     keyType: string
-    valueType: avro:SensorData
+    valueType: nullable(avro:SensorData)
 
 functions:
   print_message:
@@ -21,6 +21,11 @@ pipelines:
   main:
     from: sensor_source
     via:
+      - type: filter
+        predicate:
+          expression: key != None
+      - type: convertKey
+        into: string
       - type: peek
         forEach: print_message
     to: sensor_target

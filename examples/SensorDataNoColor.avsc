@@ -1,0 +1,62 @@
+{
+  "type": "record",
+  "name": "SensorDataNoColor",
+  "namespace": "io.axual.ksml.example",
+  "doc": "",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": ""
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "doc": ""
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "doc": ""
+    },
+    {
+      "name": "type",
+      "type": {
+        "type": "enum",
+        "name": "SensorType",
+        "doc": "",
+        "symbols": [
+          "AREA",
+          "HUMIDITY",
+          "LENGTH",
+          "STATE",
+          "TEMPERATURE"
+        ]
+      },
+      "doc": ""
+    },
+    {
+      "name": "unit",
+      "type": "string",
+      "doc": ""
+    },
+    {
+      "name": "city",
+      "type": [
+        "null",
+        "string"
+      ],
+      "doc": "",
+      "default": null
+    },
+    {
+      "name": "owner",
+      "type": [
+        "null",
+        "string"
+      ],
+      "doc": "",
+      "default": null
+    }
+  ]
+}

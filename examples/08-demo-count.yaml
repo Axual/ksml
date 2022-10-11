@@ -22,7 +22,7 @@ pipelines:
       - type: groupBy
         name: ksml_sensordata_grouped
         mapper:
-          code:
+          code: |
             if value == None:
               return None
           expression: value["owner"]

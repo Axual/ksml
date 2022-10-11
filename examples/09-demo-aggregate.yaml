@@ -3,8 +3,8 @@
 streams:
   sensor_source:
     topic: ksml_sensordata_avro
-    keyType: string
-    valueType: avro:SensorData
+    keyType: nullable(string)
+    valueType: nullable(avro:SensorData)
 
 functions:
   print_message:
@@ -24,8 +24,11 @@ pipelines:
       - type: groupBy
         name: ksml_sensordata_grouped
         mapper:
+          code: |
+            if value == None:
+              return None
           expression: value["owner"]
-          resultType: string
+          resultType: nullable(string)
       - type: windowedBy
         windowType: time
         duration: 20s

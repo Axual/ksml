@@ -15,23 +15,40 @@ functions:
   print_input_message:
     type: forEach
     code: "print('INPUT key=' + str(key) + ', value=' + str(value))"
+
   print_output_message:
     type: forEach
     code: "print('OUTPUT key=' + str(key) + ', value=' + str(value))"
+
+  # This function changes the "owner" field and returns the modified version
   replace_owner:
+    type: valueTransformer
+    code: |
+      if value != None:
+        value["owner"] = "Zack"
+    expression: value
+    resultType: nullable(avro:SensorData)
+
+  # This function removes the "color" field from the schema. It leaves the value field intact, but
+  # since the field is not defined in the schema anymore, it will no longer be written to the output
+  # topic. If you want it deleted explicitly for further pipeline processing, you can uncomment the
+  # last code line below.
+  remove_color:
     type: valueTransformer
     globalCode: |
       import json
     code: |
       if value != None:
-        value["owner"] = "Zack"
-        del value["@type"]
-#        schema = json.loads(value["@schema"])
-#        del schema["fields"][6]
-#        newschema = json.dumps(schema)
-#        value["@schema"] = newschema
+        del value["@type"] # Remove preloaded type information from the value, so KSML does not associate it with an internally cached schema
+        schema = json.loads(value["@schema"])
+        schema["name"] = schema["name"] + "NoColor"
+        for index, field in reversed(list(enumerate(schema["fields"]))):
+          if field["name"] == "color":
+            del schema["fields"][index]
+        value["@schema"] = json.dumps(schema)
+        # del value["color"]
     expression: value
-    resultType: nullable(avro:SensorData)
+    resultType: nullable(avro:SensorDataNoColor)
 
 pipelines:
   main:
@@ -41,6 +58,8 @@ pipelines:
        forEach: print_input_message
      - type: transformValue
        mapper: replace_owner
+     - type: transformValue
+       mapper: remove_color
     to: sensor_target
   validate:
     from: sensor_target

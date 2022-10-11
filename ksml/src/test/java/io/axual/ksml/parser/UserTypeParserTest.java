@@ -55,10 +55,6 @@ public class UserTypeParserTest {
         var userType = UserTypeParser.parse(type);
         assertNotNull(userType);
         assertEquals(UserType.DEFAULT_NOTATION, userType.notation(), "notation for " + type + "should default to " + UserType.DEFAULT_NOTATION);
-        final var dataType = userType.dataType();
-        if (!type.equals("?")) {
-            assertTrue(dataType.getClass().isAssignableFrom(SimpleType.class), "DataType is some subclass of SimpleType");
-        }
     }
 
     @ParameterizedTest
@@ -82,23 +78,22 @@ public class UserTypeParserTest {
 
         assertEquals(dataType, userType.dataType(), "DataType for '" + type + "' should be set to " + dataType);
         if (type.equals("?")) {
-            assertEquals(DataType.UNKNOWN, userType.dataType(), "datatype for '?' should be UNKNOWN (anonymous subclass)");
+            assertEquals(DataType.UNKNOWN, userType.dataType(), "Datatype for '?' should be UNKNOWN (anonymous subclass)");
         } else {
-            assertEquals(SimpleType.class, userType.dataType().getClass(), "class for " + type + " should be SimpleType");
+            assertTrue(SimpleType.class.isAssignableFrom(userType.dataType().getClass()), "Class for " + type + " should be subclass of SimpleType");
         }
-
     }
 
     static Stream<Arguments> typesAndDataTypes() {
         return Stream.of(
                 Arguments.arguments("boolean", DataBoolean.DATATYPE),
                 Arguments.arguments("byte", DataByte.DATATYPE),
-                Arguments.arguments("bytes", DataBytes.DATATYPE),
                 Arguments.arguments("short", DataShort.DATATYPE),
-                Arguments.arguments("double", DataDouble.DATATYPE),
-                Arguments.arguments("float", DataFloat.DATATYPE),
                 Arguments.arguments("int", DataInteger.DATATYPE),
                 Arguments.arguments("long", DataLong.DATATYPE),
+                Arguments.arguments("double", DataDouble.DATATYPE),
+                Arguments.arguments("float", DataFloat.DATATYPE),
+                Arguments.arguments("bytes", DataBytes.DATATYPE),
                 Arguments.arguments("str", DataString.DATATYPE),
                 Arguments.arguments("string", DataString.DATATYPE),
                 Arguments.arguments("none", DataNull.DATATYPE),
