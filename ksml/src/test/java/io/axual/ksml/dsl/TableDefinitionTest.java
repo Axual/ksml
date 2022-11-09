@@ -58,7 +58,7 @@ class TableDefinitionTest {
         notationLibrary.put(BinaryNotation.NOTATION_NAME, mockNotation);
 
         // given a TableDefinition
-        var tableDefinition = new TableDefinition("topic", "string", "string");
+        var tableDefinition = new TableDefinition("topic", "string", "string", false, null);
 
         // when it adds itself to Builder
         var streamWrapper = tableDefinition.addToBuilder(builder, "name", notationLibrary);

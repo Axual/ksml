@@ -44,7 +44,7 @@ public class BaseStreamDefinitionParser extends ContextAwareParser<BaseStreamDef
             return new ReferenceOrInlineParser<>("stream", STREAM_DEFINITION, context.getStreamDefinitions()::get, new StreamDefinitionParser()).parse(node);
         }
         if (parseText(node, TABLE_DEFINITION) != null) {
-            return new ReferenceOrInlineParser<>("table", TABLE_DEFINITION, context.getStreamDefinitions()::get, new TableDefinitionParser()).parse(node);
+            return new ReferenceOrInlineParser<>("table", TABLE_DEFINITION, context.getStreamDefinitions()::get, new TableDefinitionParser(context::registerStore)).parse(node);
         }
         if (parseText(node, GLOBALTABLE_DEFINITION) != null) {
             return new ReferenceOrInlineParser<>("globalTable", GLOBALTABLE_DEFINITION, context.getStreamDefinitions()::get, new GlobalTableDefinitionParser()).parse(node);

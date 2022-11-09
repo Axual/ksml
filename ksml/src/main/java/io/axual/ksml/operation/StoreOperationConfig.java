@@ -20,34 +20,19 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.streams.kstream.Grouped;
-
-import java.time.Duration;
-
-import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.definition.StoreDefinition;
 import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.store.StoreType;
+import io.axual.ksml.store.GroupedRegistry;
+import io.axual.ksml.store.StoreRegistry;
 
 public class StoreOperationConfig extends OperationConfig {
-    public final String storeName;
-    public final Duration storeRetention;
-    public final boolean storeCaching;
+    public final StoreDefinition store;
     public final GroupedRegistry groupedRegistry;
     public final StoreRegistry storeRegistry;
 
-    public interface GroupedRegistry {
-        <K, V> void registerGrouped(Grouped<K, V> grouped);
-    }
-
-    public interface StoreRegistry {
-        void registerStore(StoreType type, String storeName, Duration retention, StreamDataType keyType, StreamDataType valueType, boolean cachingEnabled);
-    }
-
-    public StoreOperationConfig(String name, NotationLibrary notationLibrary, String storeName, Duration retention, boolean caching, GroupedRegistry groupedRegistry, StoreRegistry storeRegistry) {
+    public StoreOperationConfig(String name, NotationLibrary notationLibrary, StoreDefinition store, GroupedRegistry groupedRegistry, StoreRegistry storeRegistry) {
         super(name, notationLibrary);
-        this.storeName = storeName;
-        this.storeRetention = retention;
-        this.storeCaching = caching;
+        this.store = store;
         this.groupedRegistry = groupedRegistry;
         this.storeRegistry = storeRegistry;
     }

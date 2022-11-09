@@ -20,18 +20,25 @@ package io.axual.ksml.rest.data;
  * =========================LICENSE_END==================================
  */
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import lombok.Getter;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @Getter
-public class WindowData {
-    private final long start;
-    private final long end;
+public class KeyValueBean {
+    @JsonUnwrapped
+    private Object key;
+    @JsonUnwrapped
+    private Object value;
 
-    public WindowData(long start, long end) {
-        this.start = start;
-        this.end = end;
+    public KeyValueBean() {
+    }
+
+    public KeyValueBean(Object key, Object value) {
+        this.key = key;
+        this.value = value;
     }
 }

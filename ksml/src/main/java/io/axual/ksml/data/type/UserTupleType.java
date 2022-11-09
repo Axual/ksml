@@ -1,10 +1,10 @@
-package io.axual.ksml.data.object;
+package io.axual.ksml.data.type;
 
 /*-
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 Axual B.V.
+ * Copyright (C) 2021 - 2022 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,31 +20,27 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import java.util.HashMap;
+public class UserTupleType extends TupleType {
+    private final UserType[] userTypes;
 
-import io.axual.ksml.data.type.RecordType;
-
-public class DataRecord extends HashMap<String, DataObject> implements DataObject {
-    private final transient RecordType type;
-
-    public DataRecord(RecordType type) {
-        this.type = type;
+    public UserTupleType(UserType... subTypes) {
+        super(dataTypesOf(subTypes));
+        userTypes = subTypes;
     }
 
-    @Override
-    public RecordType type() {
-        return type;
+    public int getUserTypeCount() {
+        return userTypes.length;
     }
 
-    @Override
-    public boolean equals(Object other) {
-        if (!super.equals(other)) return false;
-        if (!(other instanceof DataRecord)) return false;
-        return type.equals(((DataRecord) other).type);
+    public UserType getUserType(int index) {
+        return userTypes[index];
     }
 
-    @Override
-    public int hashCode() {
-        return type.hashCode() + super.hashCode() * 31;
+    private static DataType[] dataTypesOf(UserType[] userTypes) {
+        var result = new DataType[userTypes.length];
+        for (int index = 0; index < userTypes.length; index++) {
+            result[index] = userTypes[index].dataType();
+        }
+        return result;
     }
 }

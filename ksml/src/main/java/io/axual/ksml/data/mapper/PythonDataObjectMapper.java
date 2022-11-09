@@ -35,14 +35,14 @@ import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataRecord;
+import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.MapType;
-import io.axual.ksml.data.type.RecordType;
+import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.data.type.UserType;
@@ -96,9 +96,9 @@ public class PythonDataObjectMapper implements DataObjectMapper<Value> {
             if (result != null) return result;
         }
 
-        // By default, try to decode a dict as a record
+        // By default, try to decode a dict as a struct
         if (expected == null || expected instanceof MapType) {
-            var result = toDataRecord(expected, object);
+            var result = toDataStruct(expected, object);
             if (result != null) return result;
         }
 
@@ -151,12 +151,12 @@ public class PythonDataObjectMapper implements DataObjectMapper<Value> {
         return null;
     }
 
-    private DataObject toDataRecord(DataType expected, Value object) {
+    private DataObject toDataStruct(DataType expected, Value object) {
         // Try to cast the value to a HashMap. If that works, then we received a dict value
         // back from Python.
         try {
             HashMap<?, ?> map = object.as(HashMap.class);
-            return nativeDataMapper.mapToDataRecord(map, expected instanceof RecordType rec ? rec.schema() : null);
+            return nativeDataMapper.mapToDataStruct(map, expected instanceof StructType rec ? rec.schema() : null);
         } catch (Exception e) {
             // Ignore all cast exceptions
         }
@@ -183,7 +183,7 @@ public class PythonDataObjectMapper implements DataObjectMapper<Value> {
         if (object instanceof DataString val) return Value.asValue(val.value());
         if (object instanceof DataList val)
             return Value.asValue(nativeDataMapper.dataListToList(val));
-        if (object instanceof DataRecord) {
+        if (object instanceof DataStruct) {
             return context.eval("python", jsonDataMapper.fromDataObject(object));
         }
         throw new KSMLExecutionException("Can not convert UserObject to Python dataType: " + object.getClass().getSimpleName());

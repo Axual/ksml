@@ -1,8 +1,8 @@
-package io.axual.ksml.rest.server;
+package io.axual.ksml.data.object;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Queryable State Store
+ * KSML
  * %%
  * Copyright (C) 2021 Axual B.V.
  * %%
@@ -20,21 +20,31 @@ package io.axual.ksml.rest.server;
  * =========================LICENSE_END==================================
  */
 
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
-import lombok.Getter;
+import java.util.HashMap;
 
-@XmlAccessorType(XmlAccessType.FIELD)
-@Getter
-public class KeyValueBean {
-    private Object key;
-    private Object value;
+import io.axual.ksml.data.type.StructType;
 
-    public KeyValueBean() {
+public class DataStruct extends HashMap<String, DataObject> implements DataObject {
+    private final transient StructType type;
+
+    public DataStruct(StructType type) {
+        this.type = type;
     }
 
-    public KeyValueBean(Object key, Object value) {
-        this.key = key;
-        this.value = value;
+    @Override
+    public StructType type() {
+        return type;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!super.equals(other)) return false;
+        if (!(other instanceof DataStruct)) return false;
+        return type.equals(((DataStruct) other).type);
+    }
+
+    @Override
+    public int hashCode() {
+        return type.hashCode() + super.hashCode() * 31;
     }
 }

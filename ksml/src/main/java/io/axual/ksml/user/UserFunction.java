@@ -28,14 +28,15 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 
 import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataTuple;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.exception.KSMLTypeException;
-import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.util.StringUtil;
 
 /**
@@ -62,6 +63,7 @@ public class UserFunction {
     }
 
     protected void checkType(DataType expected, DataObject value) {
+        if (value instanceof DataNull) return;
         if (expected != null && value != null && !expected.isAssignableFrom(value.type())) {
             throw KSMLTypeException.conversionFailed(expected, value.type());
         }

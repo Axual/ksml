@@ -1,10 +1,10 @@
-package io.axual.ksml.schema.parser;
+package io.axual.ksml.rest.data;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Queryable State Store
  * %%
- * Copyright (C) 2021 - 2022 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,26 @@ package io.axual.ksml.schema.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.parser.BaseParser;
-import io.axual.ksml.parser.YamlNode;
-import io.axual.ksml.schema.RecordSchema;
+import org.apache.kafka.streams.kstream.Window;
 
-public class RecordSchemaParser extends BaseParser<RecordSchema> {
-    @Override
-    public RecordSchema parse(YamlNode node) {
-        var namespace = node.get("namespace").asText();
-        var name = node.get("name").asText();
-        var doc = node.get("doc").asText();
-        var fields = new DataFieldsParser().parse(node);
-        return new RecordSchema(namespace, name, doc, fields);
+import java.time.Instant;
+
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import lombok.Getter;
+
+@XmlAccessorType(XmlAccessType.FIELD)
+@Getter
+public class WindowDataBean {
+    private final long start;
+    private final long end;
+    private final Instant startTime;
+    private final Instant endTime;
+
+    public WindowDataBean(Window window) {
+        this.start = window.start();
+        this.end = window.end();
+        this.startTime = window.startTime();
+        this.endTime = window.endTime();
     }
 }

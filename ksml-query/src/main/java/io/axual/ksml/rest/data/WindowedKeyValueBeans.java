@@ -1,4 +1,4 @@
-package io.axual.ksml.rest.server;
+package io.axual.ksml.rest.data;
 
 /*-
  * ========================LICENSE_START=================================
@@ -42,12 +42,12 @@ public class WindowedKeyValueBeans {
     }
 
     public WindowedKeyValueBeans add(Window window, Object key, Object value) {
-        elements.add(new WindowedKeyValueBean(window.start(), window.end(), key, value));
+        elements.add(new WindowedKeyValueBean(window, key, value));
         return this;
     }
 
     public WindowedKeyValueBeans add(WindowedKeyValueBean element) {
-        elements.add(new WindowedKeyValueBean(element.getWindow().getStart(), element.getWindow().getEnd(), element.getKey(), element.getValue()));
+        elements.add(new WindowedKeyValueBean(element.getWindow(), element.getKey(), element.getValue()));
         return this;
     }
 

@@ -47,6 +47,7 @@ public class KSMLDSL {
     public static final String TOPIC_ATTRIBUTE = "topic";
     public static final String KEYTYPE_ATTRIBUTE = "keyType";
     public static final String VALUETYPE_ATTRIBUTE = "valueType";
+    public static final String QUERYABLE_ATTRIBUTE = "queryable";
     public static final String GROUPBY_MAPPER_ATTRIBUTE = "mapper";
     public static final String JOIN_VALUEJOINER_ATTRIBUTE = "valueJoiner";
     public static final String JOIN_MAPPER_ATTRIBUTE = "mapper";

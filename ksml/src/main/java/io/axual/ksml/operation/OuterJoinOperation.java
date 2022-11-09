@@ -58,7 +58,7 @@ public class OuterJoinOperation extends StoreOperation {
                             ((KStreamWrapper) joinStream).stream,
                             new UserValueJoiner(valueJoiner),
                             joinWindows,
-                            StreamJoined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde()).withName(name).withStoreName(storeName)),
+                            StreamJoined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde()).withName(name).withStoreName(store.name)),
                     input.keyType(),
                     resultValueType);
         }

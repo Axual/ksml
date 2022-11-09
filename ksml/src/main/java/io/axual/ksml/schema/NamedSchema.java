@@ -22,12 +22,12 @@ package io.axual.ksml.schema;
 
 import java.util.Objects;
 
-public class NamedSchema extends DataSchema {
+public abstract class NamedSchema extends DataSchema {
     private final String namespace;
     private final String name;
     private final String doc;
 
-    public NamedSchema(Type type, String namespace, String name, String doc) {
+    protected NamedSchema(Type type, String namespace, String name, String doc) {
         super(type);
         this.namespace = namespace;
         if (name == null || name.length() == 0) {

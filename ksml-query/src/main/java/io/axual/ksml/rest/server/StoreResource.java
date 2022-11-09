@@ -29,6 +29,9 @@ import org.apache.kafka.streams.state.QueryableStoreType;
 
 import java.util.function.Function;
 
+import io.axual.ksml.rest.data.KeyValueBeans;
+import io.axual.ksml.rest.data.WindowedKeyValueBean;
+import io.axual.ksml.rest.data.WindowedKeyValueBeans;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -53,7 +56,7 @@ public class StoreResource implements AutoCloseable {
         // Convert the results
         while (range.hasNext()) {
             final KeyValue<K, V> element = range.next();
-            result.add(new KeyValueBean(element.key, element.value));
+            result.add(element.key, element.value);
         }
 
         log.info(COMPLETE_STORE_STATE_MESSAGE, result);
@@ -75,7 +78,7 @@ public class StoreResource implements AutoCloseable {
         while (range.hasNext()) {
             final KeyValue<K, V> element = range.next();
             Windowed<Object> window = (Windowed<Object>) element.key;
-            result.add(new WindowedKeyValueBean(window.window().start(), window.window().end(), window.key(), element.value));
+            result.add(new WindowedKeyValueBean(window.window(), window.key(), element.value));
         }
 
         log.info(COMPLETE_STORE_STATE_MESSAGE, result);

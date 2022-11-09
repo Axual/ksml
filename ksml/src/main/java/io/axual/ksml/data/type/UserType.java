@@ -25,4 +25,5 @@ import io.axual.ksml.schema.DataSchema;
 
 public record UserType(String notation, DataType dataType, DataSchema schema) {
     public static final String DEFAULT_NOTATION = BinaryNotation.NOTATION_NAME;
+    public static final UserType UNKNOWN = new UserType(DEFAULT_NOTATION, DataType.UNKNOWN, null);
 }

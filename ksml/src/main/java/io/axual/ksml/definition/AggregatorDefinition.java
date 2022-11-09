@@ -21,12 +21,13 @@ package io.axual.ksml.definition;
  */
 
 
-
 import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_AGGREGATEDVALUE_PARAMETERS;
 
 public class AggregatorDefinition extends FunctionDefinition {
 
     public AggregatorDefinition(FunctionDefinition definition) {
-        super(definition.withParameters(getParameters(definition.parameters, KEY_VALUE_AGGREGATEDVALUE_PARAMETERS)));
+        super(definition
+                .withParameters(getParameters(definition.parameters, KEY_VALUE_AGGREGATEDVALUE_PARAMETERS))
+                .withAResult());
     }
 }

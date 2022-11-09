@@ -20,6 +20,7 @@ package io.axual.ksml;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.avro.JsonProperties;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
@@ -29,11 +30,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.axual.ksml.avro.AvroDataMapper;
+import io.axual.ksml.avro.AvroNotation;
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.RecordType;
+import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.avro.AvroNotation;
 import io.axual.ksml.notation.Notation;
 import io.axual.ksml.schema.DataSchema;
 import io.axual.ksml.serde.UnknownTypeSerde;
@@ -56,9 +57,9 @@ public class AxualAvroNotation implements Notation {
     }
 
     public Serde<Object> getSerde(DataType type, DataSchema schema, boolean isKey) {
-        if (type instanceof RecordType recordType) {
-            if (schema == null && recordType.schema() != null) {
-                schema = recordType.schema();
+        if (type instanceof StructType structType) {
+            if (schema == null && structType.schema() != null) {
+                schema = structType.schema();
             }
             return new AvroSerde(configs, schema, isKey);
         }
@@ -76,6 +77,9 @@ public class AxualAvroNotation implements Notation {
             @Override
             public byte[] serialize(String topic, Object data) {
                 var object = mapper.fromDataObject(DataUtil.asUserObject(data));
+                if (object == null || object == JsonProperties.NULL_VALUE) {
+                    return serde.serializer().serialize(topic, null);
+                }
                 if (object instanceof GenericRecord genericRecord) {
                     return serde.serializer().serialize(topic, genericRecord);
                 }

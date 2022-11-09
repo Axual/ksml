@@ -1,16 +1,16 @@
 streams:
   sensor_source:
     topic: ksml_sensordata_avro
-    keyType: nullable(string)
-    valueType: nullable(avro:SensorData)
+    keyType: string
+    valueType: avro:SensorData
   sensor_blue:
     topic: ksml_sensordata_blue
-    keyType: nullable(string)
-    valueType: nullable(avro:SensorData)
+    keyType: string
+    valueType: avro:SensorData
   sensor_red:
     topic: ksml_sensordata_red
-    keyType: nullable(string)
-    valueType: nullable(avro:SensorData)
+    keyType: string
+    valueType: avro:SensorData
 
 functions:
   print_message:

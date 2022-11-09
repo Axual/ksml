@@ -25,6 +25,7 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import io.axual.ksml.data.object.DataList;
@@ -52,6 +53,8 @@ public class UserKeyValueToKeyValueListTransformer extends Invoker implements Ke
                 tupleType.subTypeCount() == 2) {
             var keyType = tupleType.subType(0);
             var valueType = tupleType.subType(1);
+
+            if (result == null) return Collections.emptyList();
 
             if (result instanceof DataList) {
                 var list = (List<DataObject>) result;

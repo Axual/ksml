@@ -21,6 +21,7 @@ package io.axual.ksml.parser;
  */
 
 
+import io.axual.ksml.avro.AvroNotation;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.object.DataBytes;
@@ -33,35 +34,38 @@ import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
-import io.axual.ksml.data.type.RecordType;
-import io.axual.ksml.data.type.TupleType;
+import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.UnionType;
+import io.axual.ksml.data.type.UserTupleType;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.exception.KSMLTopologyException;
-import io.axual.ksml.avro.AvroNotation;
-import io.axual.ksml.notation.BinaryNotation;
 import io.axual.ksml.notation.JsonNotation;
-import io.axual.ksml.schema.RecordSchema;
 import io.axual.ksml.schema.SchemaLibrary;
-import io.axual.ksml.schema.UnionSchema;
+import io.axual.ksml.schema.StructSchema;
+
+import static io.axual.ksml.data.type.UserType.UNKNOWN;
 
 public class UserTypeParser {
-    private static final String ALLOWED_TYPE_CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_:.?()";
-    private static final String NULLABLE_TYPE = "nullable";
+    private static final String NOTATION_SEPARATOR = ":";
+    private static final String TYPE_SEPARATOR = ",";
+    private static final String ROUND_BRACKET_OPEN = "(";
+    private static final String ROUND_BRACKET_CLOSE = ")";
+    private static final String SQUARE_BRACKET_OPEN = "[";
+    private static final String SQUARE_BRACKET_CLOSE = "]";
     private static final String WINDOWED_TYPE = "windowed";
-    private static final UserType UNKNOWN = new UserType(UserType.DEFAULT_NOTATION, DataType.UNKNOWN, null);
+    private static final String UNION_TYPE = "union";
+    private static final String UNKNOWN_TYPE = "?";
+    private static final String ALLOWED_TYPE_CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"
+            + NOTATION_SEPARATOR
+            + UNKNOWN_TYPE;
 
     private UserTypeParser() {
     }
 
     public static UserType parse(String type) {
-        return parse(type, UserType.DEFAULT_NOTATION);
-    }
-
-    public static UserType parse(String type, String defaultNotation) {
-        UserType[] types = parseListOfTypesAndNotation(type, defaultNotation, true);
+        UserType[] types = parseListOfTypesAndNotation(type, UserType.DEFAULT_NOTATION, true);
         if (types.length == 1) {
             return types[0];
         }
@@ -80,7 +84,7 @@ public class UserTypeParser {
         String remainder = type.substring(leftTerm.length()).trim();
         UserType leftTermType = parseTypeAndNotation(leftTerm, defaultNotation, allowOverrideNotation);
         var remainderTypes = new UserType[0];
-        if (remainder.startsWith(",")) {
+        if (remainder.startsWith(TYPE_SEPARATOR)) {
             remainderTypes = parseListOfTypesAndNotation(remainder.substring(1), defaultNotation, false);
         } else if (!remainder.isEmpty()) {
             throw new KSMLParseException("Could not parse dataType: " + type);
@@ -96,14 +100,14 @@ public class UserTypeParser {
         var resultNotation = defaultNotation;
         var typeNotation = defaultNotation;
 
-        var posColon = type.contains(":") ? type.indexOf(":") : type.length();
-        var posOpenRound = type.contains("(") ? type.indexOf("(") : type.length();
-        var posOpenSquare = type.contains("[") ? type.indexOf("[") : type.length();
+        var posColon = type.contains(NOTATION_SEPARATOR) ? type.indexOf(NOTATION_SEPARATOR) : type.length();
+        var posOpenRound = type.contains(ROUND_BRACKET_OPEN) ? type.indexOf(ROUND_BRACKET_OPEN) : type.length();
+        var posOpenSquare = type.contains(SQUARE_BRACKET_OPEN) ? type.indexOf(SQUARE_BRACKET_OPEN) : type.length();
 
         // Extract any explicit notation from the type
         if (posColon < posOpenRound && posColon < posOpenSquare) {
-            typeNotation = type.substring(0, type.indexOf(":"));
-            type = type.substring(type.indexOf(":") + 1);
+            typeNotation = type.substring(0, type.indexOf(NOTATION_SEPARATOR));
+            type = type.substring(type.indexOf(NOTATION_SEPARATOR) + 1);
 
             if (allowOverrideNotation) {
                 resultNotation = typeNotation.toUpperCase();
@@ -111,8 +115,8 @@ public class UserTypeParser {
         }
 
         // List type
-        if (type.startsWith("[")) {
-            if (!type.endsWith("]")) {
+        if (type.startsWith(SQUARE_BRACKET_OPEN)) {
+            if (!type.endsWith(SQUARE_BRACKET_CLOSE)) {
                 throw new KSMLParseException("Error in dataType: " + type);
             }
             var valueType = parseTypeAndNotation(type.substring(1, type.length() - 1), resultNotation, false);
@@ -120,61 +124,50 @@ public class UserTypeParser {
         }
 
         // Tuple type
-        if (type.startsWith("(")) {
-            if (!type.endsWith(")")) {
+        if (type.startsWith(ROUND_BRACKET_OPEN)) {
+            if (!type.endsWith(ROUND_BRACKET_CLOSE)) {
                 throw new KSMLParseException("Error in dataType: " + type);
             }
             var valueTypes = parseListOfTypesAndNotation(type.substring(1, type.length() - 1), resultNotation, false);
-            return new UserType(resultNotation, new TupleType(dataTypesOf(valueTypes)), null);
-        }
-
-        // nullable(type)
-        if (type.startsWith(NULLABLE_TYPE + "(") && type.endsWith(")")) {
-            type = type.substring(NULLABLE_TYPE.length() + 1, type.length() - 1);
-            var nullType = new UserType(BinaryNotation.NOTATION_NAME, DataNull.DATATYPE, null);
-            var subType = parse(type);
-            // With nullable, we always use the notation of the subtype, eg. nullable(json) gives notation JSON for the outer type
-            return new UserType(subType.notation(), new UnionType(nullType, subType), new UnionSchema(nullType.schema(), subType.schema()));
+            return new UserType(resultNotation, new UserTupleType(valueTypes), null);
         }
 
         // windowed(type)
-        if (type.startsWith(WINDOWED_TYPE + "(") && type.endsWith(")")) {
+        if (type.startsWith(WINDOWED_TYPE + ROUND_BRACKET_OPEN) && type.endsWith(ROUND_BRACKET_CLOSE)) {
             type = type.substring(WINDOWED_TYPE.length() + 1, type.length() - 1);
             return new UserType(resultNotation, new WindowedType(parseType(type)), null);
+        }
+
+        // union(type1,type2,...)
+        if (type.startsWith(UNION_TYPE + ROUND_BRACKET_OPEN) && type.endsWith(ROUND_BRACKET_CLOSE)) {
+            type = type.substring(UNION_TYPE.length() + 1, type.length() - 1);
+            return new UserType(resultNotation, new UnionType(parseListOfTypesAndNotation(type, resultNotation, true)), null);
         }
 
         // AVRO with schema
         if (typeNotation.equalsIgnoreCase(AvroNotation.NOTATION_NAME)) {
             var schema = SchemaLibrary.getSchema(type, false);
-            if (!(schema instanceof RecordSchema recordSchema))
-                throw new KSMLParseException("Schema definition is not a RECORD: " + type);
-            return new UserType(AvroNotation.NOTATION_NAME, new RecordType(recordSchema), schema);
+            if (!(schema instanceof StructSchema structSchema))
+                throw new KSMLParseException("Schema definition is not a STRUCT: " + type);
+            return new UserType(AvroNotation.NOTATION_NAME, new StructType(structSchema), schema);
         }
 
         // AVRO without schema
         if (type.equalsIgnoreCase(AvroNotation.NOTATION_NAME)) {
-            return new UserType(AvroNotation.NOTATION_NAME, new RecordType(), null);
+            return new UserType(AvroNotation.NOTATION_NAME, new StructType(), null);
         }
 
         // JSON with schema
         if (typeNotation.equalsIgnoreCase(JsonNotation.NOTATION_NAME)) {
-            return new UserType(JsonNotation.NOTATION_NAME, new RecordType(), null);
+            return new UserType(JsonNotation.NOTATION_NAME, new StructType(), null);
         }
 
         // JSON without schema
         if (type.equalsIgnoreCase(JsonNotation.NOTATION_NAME)) {
-            return new UserType(JsonNotation.NOTATION_NAME, new RecordType(), null);
+            return new UserType(JsonNotation.NOTATION_NAME, new StructType(), null);
         }
 
         return new UserType(resultNotation, parseType(type), null);
-    }
-
-    private static DataType[] dataTypesOf(UserType[] userTypes) {
-        var result = new DataType[userTypes.length];
-        for (int index = 0; index < userTypes.length; index++) {
-            result[index] = userTypes[index].dataType();
-        }
-        return result;
     }
 
     private static DataType parseType(String type) {
@@ -188,7 +181,7 @@ public class UserTypeParser {
             case "int" -> DataInteger.DATATYPE;
             case "long" -> DataLong.DATATYPE;
             case "?" -> DataType.UNKNOWN;
-            case "none" -> DataNull.DATATYPE;
+            case "none", "null" -> DataNull.DATATYPE;
             case "str", "string" -> DataString.DATATYPE;
             default -> throw new KSMLTopologyException("Can not derive dataType: " + type);
         };
@@ -196,15 +189,24 @@ public class UserTypeParser {
 
     private static String parseLeftMostTerm(String type) {
         // Check for bracketed expression
-        if (type.startsWith("[")) return parseBracketedExpression(type, "[", "]");
-        if (type.startsWith("(")) return parseBracketedExpression(type, "(", ")");
+        if (type.startsWith(ROUND_BRACKET_OPEN))
+            return parseBracketedExpression(type, ROUND_BRACKET_OPEN, ROUND_BRACKET_CLOSE);
+        if (type.startsWith(SQUARE_BRACKET_OPEN))
+            return parseBracketedExpression(type, SQUARE_BRACKET_OPEN, SQUARE_BRACKET_CLOSE);
 
         // Scan the literal at the beginning of the string until a non-literal character is found
-        for (var index = 0; index < type.length(); index++) {
+        var index = 0;
+        while (index < type.length()) {
             var ch = type.substring(index, index + 1);
-            if (!ALLOWED_TYPE_CHARACTERS.contains(ch)) {
+
+            if (ch.equals(ROUND_BRACKET_OPEN) || ch.equals(SQUARE_BRACKET_OPEN)) {
+                var bracketedTerm = parseLeftMostTerm(type.substring(index));
+                // Skip past the bracketed expression
+                index += bracketedTerm.length() - 1;
+            } else if (!ALLOWED_TYPE_CHARACTERS.contains(ch)) {
                 return type.substring(0, index);
             }
+            index++;
         }
         return type;
     }

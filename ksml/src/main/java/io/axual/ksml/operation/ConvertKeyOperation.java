@@ -23,9 +23,10 @@ package io.axual.ksml.operation;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Named;
 
-import io.axual.ksml.data.object.DataRecord;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.RecordType;
+import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
@@ -36,18 +37,20 @@ public class ConvertKeyOperation extends BaseOperation {
     private final UserType targetType;
 
     private static class KeyConverter implements KeyValueMapper<Object, Object, Object> {
-        private final RecordType targetRecordType;
+        private final StructType targetStructType;
 
         public KeyConverter(DataType toType) {
-            this.targetRecordType = toType instanceof RecordType recordType ? recordType : null;
+            this.targetStructType = toType instanceof StructType structType ? structType : null;
         }
 
         @Override
         public Object apply(Object key, Object value) {
             var keyAsData = DataUtil.asUserObject(key);
-            if (targetRecordType == null) return keyAsData;
-            var result = new DataRecord(targetRecordType);
-            result.putAll((DataRecord) keyAsData);
+            if (keyAsData instanceof DataNull) return keyAsData;
+            if (targetStructType == null) return keyAsData;
+
+            var result = new DataStruct(targetStructType);
+            result.putAll((DataStruct) keyAsData);
             return result;
         }
     }

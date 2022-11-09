@@ -1,20 +1,8 @@
 streams:
   sensor_source:
     topic: ksml_sensordata_avro
-    keyType: nullable(string)
-    valueType: nullable(avro:SensorData)
-  sensor_0:
-    topic: ksml_sensordata_sensor0
-    keyType: nullable(string)
-    valueType: nullable(avro:SensorData)
-  sensor_1:
-    topic: ksml_sensordata_sensor1
-    keyType: nullable(string)
-    valueType: nullable(avro:SensorData)
-  sensor_2:
-    topic: ksml_sensordata_sensor2
-    keyType: nullable(string)
-    valueType: nullable(avro:SensorData)
+    keyType: string
+    valueType: avro:SensorData
 
 functions:
   print_message:
@@ -25,9 +13,9 @@ functions:
     type: keyValueToKeyValueListTransformer
     code: |
       if key == None:
-        key = "dummy"
+        return []
     expression: "[(key+'-1',value),(key+'-2',value)]"
-    resultType: "[(nullable(string),nullable(avro:SensorData))]"
+    resultType: "[(string,avro:SensorData)]"
 
 pipelines:
   main:

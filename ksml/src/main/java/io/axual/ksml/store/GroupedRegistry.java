@@ -1,10 +1,10 @@
-package io.axual.ksml.definition;
+package io.axual.ksml.store;
 
 /*-
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 Axual B.V.
+ * Copyright (C) 2021 - 2022 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,8 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.streams.kstream.Grouped;
 
-
-import static io.axual.ksml.definition.DefinitionConstants.TWO_VALUE_PARAMETERS;
-
-public class ReducerDefinition extends FunctionDefinition {
-
-    public ReducerDefinition(FunctionDefinition definition) {
-        super(definition
-                .withParameters(getParameters(definition.parameters, TWO_VALUE_PARAMETERS))
-                .withAResult());
-    }
+public interface GroupedRegistry {
+    <K, V> void registerGrouped(Grouped<K, V> grouped);
 }

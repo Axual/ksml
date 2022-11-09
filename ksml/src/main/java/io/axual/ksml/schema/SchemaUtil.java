@@ -33,7 +33,7 @@ import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.MapType;
-import io.axual.ksml.data.type.RecordType;
+import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.exception.KSMLExecutionException;
@@ -58,9 +58,9 @@ public class SchemaUtil {
         if (type == DataString.DATATYPE) return DataSchema.create(DataSchema.Type.STRING);
         if (type instanceof ListType listType)
             return new ListSchema(dataTypeToSchema(listType.valueType()));
-        // Check records first, since they are a subclass of maps
-        if (type instanceof RecordType recordType)
-            return new RecordSchema(recordType.schema());
+        // Check structs first, since they are a subclass of maps
+        if (type instanceof StructType structType)
+            return new StructSchema(structType.schema());
         if (type instanceof MapType mapType)
             return new MapSchema(SchemaUtil.dataTypeToSchema(mapType.valueType()));
         if (type instanceof WindowedType windowedType)

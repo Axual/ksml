@@ -46,7 +46,7 @@ public class SchemaWriter {
     public static final String FIXEDSCHEMA_SIZE_FIELD = "size";
     public static final String LISTSCHEMA_VALUES_FIELD = "items";
     public static final String MAPSCHEMA_VALUES_FIELD = "values";
-    public static final String RECORDSCHEMA_FIELDS_FIELD = "fields";
+    public static final String STRUCTSCHEMA_FIELDS_FIELD = "fields";
     public static final String DATAFIELD_NAME_FIELD = "name";
     public static final String DATAFIELD_SCHEMA_FIELD = "type";
     public static final String DATAFIELD_DOC_FIELD = "doc";
@@ -111,9 +111,9 @@ public class SchemaWriter {
         if (schema instanceof FixedSchema fixedSchema) {
             node.put(FIXEDSCHEMA_SIZE_FIELD, fixedSchema.size());
         }
-        if (schema instanceof RecordSchema recordSchema) {
-            var fields = node.putArray(RECORDSCHEMA_FIELDS_FIELD);
-            for (DataField field : recordSchema.fields()) {
+        if (schema instanceof StructSchema structSchema) {
+            var fields = node.putArray(STRUCTSCHEMA_FIELDS_FIELD);
+            for (DataField field : structSchema.fields()) {
                 fields.add(writeField(field));
             }
         }
@@ -122,7 +122,6 @@ public class SchemaWriter {
     private static Object writeDataSchemaBriefly(DataSchema schema) {
         return switch (schema.type()) {
             case NULL, BYTE, SHORT, INTEGER, LONG, DOUBLE, FLOAT, BYTES, STRING -> schema.type().toString().toLowerCase();
-//            case FIXED, ENUM, RECORD -> ((NamedSchema) schema).name();
             default -> writeDataSchemaAsObject(schema);
         };
     }

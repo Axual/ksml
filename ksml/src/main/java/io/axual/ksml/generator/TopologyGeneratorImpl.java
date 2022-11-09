@@ -43,9 +43,7 @@ import java.util.Map;
 
 import io.axual.ksml.KSMLConfig;
 import io.axual.ksml.definition.BaseStreamDefinition;
-import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.PipelineDefinition;
-import io.axual.ksml.definition.StoreDefinition;
 import io.axual.ksml.definition.parser.GlobalTableDefinitionParser;
 import io.axual.ksml.definition.parser.PipelineDefinitionParser;
 import io.axual.ksml.definition.parser.StoreDefinitionParser;
@@ -145,11 +143,33 @@ public class TopologyGeneratorImpl {
             var generatorResult = generate(builder, YamlNode.fromRoot(definition.root, "ksml"));
             if (generatorResult != null) {
                 LOG.info("\n{}", generatorResult.getTopology() != null ? generatorResult.getTopology().describe() : "null");
-                if (generatorResult.getStores().size() > 0) {
-                    LOG.info("Registered state stores:");
+                if (generatorResult.stores.size() > 0) {
+                    StringBuilder storeOutput = new StringBuilder("Registered state stores:\n");
                     for (var entry : generatorResult.getStores().entrySet()) {
-                        LOG.info("  {}: retention={}, key={}, value={}, caching={}", entry.getKey(), entry.getValue().storeRetention, entry.getValue().keyType, entry.getValue().valueType, entry.getValue().cachingEnabled);
+                        storeOutput
+                                .append("  ")
+                                .append(entry.getKey())
+                                .append(" (")
+                                .append(entry.getValue().type)
+                                .append("): key=")
+                                .append(entry.getValue().keyType)
+                                .append(", value=")
+                                .append(entry.getValue().valueType)
+                                .append(", retention=")
+                                .append(entry.getValue().store.retention != null ? entry.getValue().store.retention : "null")
+                                .append(", caching=")
+                                .append(entry.getValue().store.caching != null ? entry.getValue().store.caching : "null")
+                                .append(", url_path=/state/")
+                                .append(switch (entry.getValue().type) {
+                                    case KEYVALUE_STORE -> "keyvalue";
+                                    case SESSION_STORE -> "session";
+                                    case WINDOW_STORE -> "window";
+                                })
+                                .append("/")
+                                .append(entry.getKey())
+                                .append("/");
                     }
+                    LOG.info("\n{}\n", storeOutput);
                 }
             }
         }
@@ -159,21 +179,22 @@ public class TopologyGeneratorImpl {
     private Result generate(StreamsBuilder builder, YamlNode node) {
         if (node == null) return null;
 
+        // Set up the parse context, which will gather toplevel information on the streams topology
+        TopologyParseContext context = new TopologyParseContext(builder, config.notationLibrary);
+
         // Parse all defined streams
         Map<String, BaseStreamDefinition> streamDefinitions = new HashMap<>();
-        new MapParser<>(new StreamDefinitionParser()).parse(node.get(STREAMS_DEFINITION)).forEach(streamDefinitions::putIfAbsent);
-        new MapParser<>(new TableDefinitionParser()).parse(node.get(TABLES_DEFINITION)).forEach(streamDefinitions::putIfAbsent);
-        new MapParser<>(new GlobalTableDefinitionParser()).parse(node.get(GLOBALTABLES_DEFINITION)).forEach(streamDefinitions::putIfAbsent);
+        new MapParser<>(new StreamDefinitionParser()).parse(node.get(STREAMS_DEFINITION)).forEach(context::registerStreamDefinition);
+        new MapParser<>(new TableDefinitionParser(context::registerStore)).parse(node.get(TABLES_DEFINITION)).forEach(context::registerStreamDefinition);
+        new MapParser<>(new GlobalTableDefinitionParser()).parse(node.get(GLOBALTABLES_DEFINITION)).forEach(context::registerStreamDefinition);
 
         // Parse all defined functions
-        Map<String, FunctionDefinition> functions = new MapParser<>(new TypedFunctionDefinitionParser())
-                .parse(node.get(FUNCTIONS_DEFINITION));
+        new MapParser<>(new TypedFunctionDefinitionParser()).parse(node.get(FUNCTIONS_DEFINITION)).forEach(context::registerFunction);
 
         // Parse all defined stores
-        Map<String, StoreDefinition> stores = new MapParser<>(new StoreDefinitionParser()).parse(node.get(STORES_DEFINITION));
+        new MapParser<>(new StoreDefinitionParser()).parse(node.get(STORES_DEFINITION)).forEach(context::registerStore);
 
         // Parse all defined pipelines
-        TopologyParseContext context = new TopologyParseContext(builder, config.notationLibrary, streamDefinitions, functions, stores);
         final MapParser<PipelineDefinition> mapParser = new MapParser<>(new PipelineDefinitionParser(context));
         final Map<String, PipelineDefinition> pipelineDefinitionMap = mapParser.parse(node.get(PIPELINES_DEFINITION));
         pipelineDefinitionMap.forEach((name, pipeline) -> {

@@ -29,10 +29,10 @@ import org.apache.avro.util.Utf8;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataRecord;
+import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.RecordType;
+import io.axual.ksml.data.type.StructType;
 
 public class AvroDataMapper extends NativeDataObjectMapper {
     @Override
@@ -43,7 +43,7 @@ public class AvroDataMapper extends NativeDataObjectMapper {
             return new DataString(value.toString());
         }
         if (value instanceof GenericRecord rec) {
-            DataRecord result = new DataRecord(new RecordType(new AvroSchemaMapper().toDataSchema(rec.getSchema())));
+            DataStruct result = new DataStruct(new StructType(new AvroSchemaMapper().toDataSchema(rec.getSchema())));
             for (Schema.Field field : rec.getSchema().getFields()) {
                 result.put(field.name(), toDataObject(rec.get(field.name())));
             }
@@ -56,8 +56,8 @@ public class AvroDataMapper extends NativeDataObjectMapper {
     @Override
     public Object fromDataObject(DataObject value) {
         if (value instanceof DataNull) return JsonProperties.NULL_VALUE;
-        if (value instanceof DataRecord rec) {
-            return new AvroObject(rec.type().schema(), dataRecordToMap(rec));
+        if (value instanceof DataStruct rec) {
+            return new AvroObject(rec.type().schema(), dataStructToMap(rec));
         }
         return super.fromDataObject(value);
     }

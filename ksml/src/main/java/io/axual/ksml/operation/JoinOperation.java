@@ -78,7 +78,7 @@ public class JoinOperation extends StoreOperation {
                             wrapper.stream,
                             new UserValueJoiner(valueJoiner),
                             joinWindows,
-                            StreamJoined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde()).withName(name).withStoreName(storeName)),
+                            StreamJoined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde()).withName(name).withStoreName(store.name)),
                     input.keyType(),
                     resultValueType);
         }
@@ -87,7 +87,7 @@ public class JoinOperation extends StoreOperation {
                     input.stream.join(
                             wrapper.table,
                             new UserValueJoiner(valueJoiner),
-                            Joined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde(), storeName)),
+                            Joined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde(), store.name)),
                     input.keyType(),
                     resultValueType);
         }

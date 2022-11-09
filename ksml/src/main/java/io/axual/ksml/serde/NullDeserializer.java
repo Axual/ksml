@@ -29,6 +29,6 @@ public class NullDeserializer implements Deserializer<Object> {
     @Override
     public Object deserialize(String s, byte[] bytes) {
         if (bytes == null || bytes.length == 0) return Null.NULL;
-        throw new KSMLExecutionException("Can only deserialze empty byte arrays as DataNull");
+        throw new KSMLExecutionException("Can only deserialize empty byte arrays as DataNull");
     }
 }

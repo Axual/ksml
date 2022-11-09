@@ -29,16 +29,16 @@ import java.util.Map;
 
 import io.axual.ksml.exception.KSMLTypeException;
 import io.axual.ksml.schema.DataSchema;
-import io.axual.ksml.schema.RecordSchema;
+import io.axual.ksml.schema.StructSchema;
 
 public class AvroObject implements GenericRecord {
     private static final AvroSchemaMapper schemaMapper = new AvroSchemaMapper();
-    private final RecordSchema schema;
+    private final StructSchema schema;
     private final Map<String, Object> data = new HashMap<>();
     private final GenericData validator = GenericData.get();
     private Schema avroSchema = null;
 
-    public AvroObject(RecordSchema schema, Map<?, ?> source) {
+    public AvroObject(StructSchema schema, Map<?, ?> source) {
         this.schema = schema;
         schema.fields().forEach(field -> put(field.name(), source.get(field.name())));
     }
@@ -47,8 +47,8 @@ public class AvroObject implements GenericRecord {
     public void put(String key, Object value) {
         var field = schema.field(key);
 
-        if (field.schema().type() == DataSchema.Type.RECORD && value instanceof Map) {
-            value = new AvroObject((RecordSchema) field.schema(), (Map<?, ?>) value);
+        if (field.schema().type() == DataSchema.Type.STRUCT && value instanceof Map) {
+            value = new AvroObject((StructSchema) field.schema(), (Map<?, ?>) value);
         }
         if (field.schema().type() == DataSchema.Type.ENUM) {
             value = new GenericData.EnumSymbol(schemaMapper.fromDataSchema(field.schema()), value != null ? value.toString() : null);

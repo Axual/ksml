@@ -3,14 +3,15 @@
 streams:
   sensor_source:
     topic: ksml_sensordata_avro
-    keyType: nullable(string)
-    valueType: nullable(avro:SensorData)
+    keyType: string
+    valueType: avro:SensorData
 
 tables:
   sensor_target:
     topic: ksml_sensordata_table
     keyType: string
-    valueType: nullable(avro:SensorData)
+    valueType: avro:SensorData
+    queryable: true
 
 functions:
   print_message:

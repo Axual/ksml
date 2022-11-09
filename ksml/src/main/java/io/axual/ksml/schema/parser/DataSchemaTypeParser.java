@@ -55,7 +55,7 @@ public class DataSchemaTypeParser extends BaseParser<DataSchema.Type> {
             case "enum" -> DataSchema.Type.ENUM;
             case "array", "list" -> DataSchema.Type.LIST;
             case "map" -> DataSchema.Type.MAP;
-            case "record" -> DataSchema.Type.RECORD;
+            case "record", "struct" -> DataSchema.Type.STRUCT;
             default -> canNotParse(node);
         };
     }

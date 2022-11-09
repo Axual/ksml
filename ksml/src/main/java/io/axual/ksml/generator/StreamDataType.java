@@ -24,7 +24,7 @@ package io.axual.ksml.generator;
 import org.apache.kafka.common.serialization.Serde;
 
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.RecordType;
+import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.data.type.WindowedType;
@@ -40,11 +40,11 @@ public record StreamDataType(NotationLibrary notationLibrary, UserType userType,
     }
 
     private static DataType cookType(DataType type) {
-        // When we get a WindowedType, we automatically convert it into a record dataType using
+        // When we get a WindowedType, we automatically convert it into a Struct dataType using
         // fixed fields. This allows for processing downstream, since the WindowType itself
         // is KafkaStreams internal and thus not usable in user functions.
         return type instanceof WindowedType windowedType
-                ? new RecordType(new WindowedSchemaMapper().toDataSchema(windowedType))
+                ? new StructType(new WindowedSchemaMapper().toDataSchema(windowedType))
                 : type;
     }
 

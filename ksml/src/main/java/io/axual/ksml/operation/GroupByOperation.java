@@ -54,7 +54,7 @@ public class GroupByOperation extends StoreOperation {
         return new KGroupedStreamWrapper(
                 input.stream.groupBy(
                         new UserKeyTransformer(transformer),
-                        registerGrouped(Grouped.with(storeName, resultKeyType.getSerde(), input.valueType().getSerde()))),
+                        registerGrouped(Grouped.with(store.name, resultKeyType.getSerde(), input.valueType().getSerde()))),
                 resultKeyType,
                 input.valueType());
     }
@@ -70,7 +70,7 @@ public class GroupByOperation extends StoreOperation {
         return new KGroupedTableWrapper(
                 input.table.groupBy(
                         new UserKeyValueTransformer(transformer),
-                        registerGrouped(Grouped.with(storeName, resultKeyType.getSerde(), resultValueType.getSerde()))),
+                        registerGrouped(Grouped.with(store.name, resultKeyType.getSerde(), resultValueType.getSerde()))),
                 resultKeyType,
                 resultValueType);
     }

@@ -22,28 +22,28 @@ package io.axual.ksml.data.type;
 
 import java.util.Objects;
 
-import io.axual.ksml.schema.RecordSchema;
+import io.axual.ksml.schema.StructSchema;
 
-public class RecordType extends MapType {
+public class StructType extends MapType {
     private final String name;
-    private final RecordSchema schema;
+    private final StructSchema schema;
 
-    public RecordType() {
+    public StructType() {
         this((String) null);
     }
 
-    public RecordType(RecordSchema schema) {
+    public StructType(StructSchema schema) {
         this.name = getName(schema.name());
         this.schema = schema;
     }
 
-    public RecordType(String name) {
+    public StructType(String name) {
         this.name = getName(name);
         this.schema = null;
     }
 
     private String getName(String name) {
-        return name != null && name.length() > 0 ? name : "Record";
+        return name != null && name.length() > 0 ? name : "Struct";
     }
 
     @Override
@@ -51,7 +51,7 @@ public class RecordType extends MapType {
         return name;
     }
 
-    public RecordSchema schema() {
+    public StructSchema schema() {
         return schema;
     }
 
@@ -63,17 +63,16 @@ public class RecordType extends MapType {
     @Override
     public boolean isAssignableFrom(DataType type) {
         if (!super.isAssignableFrom(type)) return false;
-        if (!(type instanceof RecordType recordType)) return false;
-        if (schema == null && recordType.schema==null) return true;
-        if (schema == null || recordType.schema==null) return false;
-        return schema.isAssignableFrom(recordType.schema);
+        if (!(type instanceof StructType structType)) return false;
+        if (schema == null) return true;
+        return schema.isAssignableFrom(structType.schema);
     }
 
     @Override
     public boolean equals(Object other) {
         if (!super.equals(other)) return false;
-        if (!(other instanceof RecordType otherRecord)) return false;
-        return Objects.equals(name, otherRecord.name) && Objects.equals(schema, otherRecord.schema);
+        if (!(other instanceof StructType otherStruct)) return false;
+        return Objects.equals(name, otherStruct.name) && Objects.equals(schema, otherStruct.schema);
     }
 
     @Override

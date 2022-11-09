@@ -36,7 +36,7 @@ import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataRecord;
+import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataTuple;
@@ -44,13 +44,13 @@ import io.axual.ksml.data.object.DataUnion;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.EnumType;
 import io.axual.ksml.data.type.ListType;
-import io.axual.ksml.data.type.RecordType;
+import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.value.Tuple;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.schema.DataSchema;
-import io.axual.ksml.schema.RecordSchema;
+import io.axual.ksml.schema.StructSchema;
 import io.axual.ksml.schema.SchemaLibrary;
 import io.axual.ksml.schema.SchemaWriter;
 
@@ -74,7 +74,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
 
         if (value.getClass().isEnum()) return inferEnumType(value);
         if (value instanceof List<?> val) return inferListType(val);
-        if (value instanceof Map<?, ?> val) return new RecordType();
+        if (value instanceof Map<?, ?> val) return new StructType();
         if (value instanceof Tuple<?> val) return inferTupleType(val);
 
         return DataType.UNKNOWN;
@@ -97,22 +97,22 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         return new ListType(inferType(list.get(0)));
     }
 
-    private RecordType inferRecordType(Map<?, ?> map, DataSchema expected) {
-        var schema = inferRecordSchema(map, expected);
-        if (schema instanceof RecordSchema recordSchema) return new RecordType(recordSchema);
+    private StructType inferStructType(Map<?, ?> map, DataSchema expected) {
+        var schema = inferStructSchema(map, expected);
+        if (schema instanceof StructSchema structSchema) return new StructType(structSchema);
         if (schema != null)
             throw new KSMLParseException("Map can not be converted to " + schema);
-        return new RecordType();
+        return new StructType();
     }
 
-    private DataSchema inferRecordSchema(Map<?, ?> map, DataSchema expected) {
-        // Find out the schema of the record by looking at the fields. If there are no fields to
+    private DataSchema inferStructSchema(Map<?, ?> map, DataSchema expected) {
+        // Find out the schema of the struct by looking at the fields. If there are no fields to
         // override the expected schema, then return the expected schema.
-        if (map.containsKey(RECORD_TYPE_FIELD)) {
-            var typeName = map.get(RECORD_TYPE_FIELD).toString();
+        if (map.containsKey(STRUCT_TYPE_FIELD)) {
+            var typeName = map.get(STRUCT_TYPE_FIELD).toString();
             return SchemaLibrary.getSchema(typeName);
-        } else if (map.containsKey(RECORD_SCHEMA_FIELD)) {
-            var schemaStr = map.get(RECORD_SCHEMA_FIELD).toString();
+        } else if (map.containsKey(STRUCT_SCHEMA_FIELD)) {
+            var schemaStr = map.get(STRUCT_SCHEMA_FIELD).toString();
             return SchemaWriter.read(schemaStr);
         }
         return expected;
@@ -140,7 +140,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         if (value instanceof byte[] val) return new DataBytes(val);
         if (value instanceof String val) return new DataString(val);
         if (value instanceof List<?> val) return listToDataList(val);
-        if (value instanceof Map<?, ?> val) return mapToDataRecord(val, null);
+        if (value instanceof Map<?, ?> val) return mapToDataStruct(val, null);
         if (value instanceof Tuple<?> val) return tupleToDataTuple(val);
         throw new KSMLExecutionException("Can not convert to UserObject: " + value.getClass().getSimpleName());
     }
@@ -153,11 +153,11 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         return result;
     }
 
-    public DataObject mapToDataRecord(Map<?, ?> map, DataSchema schema) {
-        RecordType type = inferRecordType(map, schema);
-        map.remove(RECORD_SCHEMA_FIELD);
-        map.remove(RECORD_TYPE_FIELD);
-        DataRecord result = new DataRecord(type);
+    public DataObject mapToDataStruct(Map<?, ?> map, DataSchema schema) {
+        StructType type = inferStructType(map, schema);
+        map.remove(STRUCT_SCHEMA_FIELD);
+        map.remove(STRUCT_TYPE_FIELD);
+        DataStruct result = new DataStruct(type);
         for (Map.Entry<?, ?> entry : map.entrySet()) {
             result.put(entry.getKey().toString(), toDataObject(entry.getValue()));
         }
@@ -192,7 +192,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
 
         if (value instanceof DataEnum val) return val.value();
         if (value instanceof DataList val) return dataListToList(val);
-        if (value instanceof DataRecord val) return dataRecordToMap(val);
+        if (value instanceof DataStruct val) return dataStructToMap(val);
         if (value instanceof DataTuple val) return dataTupleToTuple(val);
 
         if (value instanceof DataUnion val) return val.value();
@@ -208,15 +208,15 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         return result;
     }
 
-    public Map<String, Object> dataRecordToMap(DataRecord value) {
+    public Map<String, Object> dataStructToMap(DataStruct value) {
         Map<String, Object> result = new HashMap<>();
         for (Map.Entry<String, DataObject> entry : value.entrySet()) {
             result.put(entry.getKey(), fromDataObject(entry.getValue()));
         }
         var schema = value.type().schema();
         if (schema != null) {
-            result.put(RECORD_TYPE_FIELD, schema.name());
-            result.put(RECORD_SCHEMA_FIELD, schema.toString());
+            result.put(STRUCT_TYPE_FIELD, schema.name());
+            result.put(STRUCT_SCHEMA_FIELD, schema.toString());
         }
         return result;
     }

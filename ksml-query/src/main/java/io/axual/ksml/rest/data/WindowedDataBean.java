@@ -1,11 +1,8 @@
-/**
- * Classes related to the Python-specific implementation of {@link io.axual.ksml.user.UserFunction}.
- */
-package io.axual.ksml.serde;
+package io.axual.ksml.rest.data;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Queryable State Store
  * %%
  * Copyright (C) 2021 Axual B.V.
  * %%
@@ -22,3 +19,21 @@ package io.axual.ksml.serde;
  * limitations under the License.
  * =========================LICENSE_END==================================
  */
+
+import com.fasterxml.jackson.annotation.JsonRootName;
+
+import org.apache.kafka.streams.kstream.Windowed;
+
+import lombok.Data;
+
+@Data
+@JsonRootName("key")
+public class WindowedDataBean {
+    public final WindowDataBean window;
+    public final Object key;
+
+    public WindowedDataBean(Windowed<Object> data) {
+        window = new WindowDataBean(data.window());
+        key = data.key();
+    }
+}

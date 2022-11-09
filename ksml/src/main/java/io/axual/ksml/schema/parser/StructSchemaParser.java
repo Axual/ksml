@@ -1,10 +1,10 @@
-package io.axual.ksml.rest.data;
+package io.axual.ksml.schema.parser;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Queryable State Store
+ * KSML
  * %%
- * Copyright (C) 2021 Axual B.V.
+ * Copyright (C) 2021 - 2022 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,20 +20,17 @@ package io.axual.ksml.rest.data;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.annotation.JsonRootName;
+import io.axual.ksml.parser.BaseParser;
+import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.schema.StructSchema;
 
-import org.apache.kafka.streams.kstream.Windowed;
-
-import lombok.Data;
-
-@Data
-@JsonRootName("key")
-public class WindowedData {
-    public final WindowData window;
-    public final Object key;
-
-    public WindowedData(Windowed<Object> data) {
-        window = new WindowData(data.window().start(), data.window().end());
-        key = data.key();
+public class StructSchemaParser extends BaseParser<StructSchema> {
+    @Override
+    public StructSchema parse(YamlNode node) {
+        var namespace = node.get("namespace").asText();
+        var name = node.get("name").asText();
+        var doc = node.get("doc").asText();
+        var fields = new DataFieldsParser().parse(node);
+        return new StructSchema(namespace, name, doc, fields);
     }
 }

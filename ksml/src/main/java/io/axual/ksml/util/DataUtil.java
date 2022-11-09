@@ -25,9 +25,9 @@ import org.apache.kafka.streams.kstream.Windowed;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataRecord;
+import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.type.RecordType;
+import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.schema.mapper.WindowedSchemaMapper;
 
@@ -56,10 +56,10 @@ public class DataUtil {
     public static DataObject asUserObject(Object object) {
         if (object instanceof DataObject dataObject) return dataObject;
         if (object instanceof Windowed<?> windowedObject) {
-            // Convert a Windowed object into a data record with fields that contain the window fields.
+            // Convert a Windowed object into a struct with fields that contain the window fields.
             var keyAsData = asUserObject(windowedObject.key());
             var schema = windowedSchemaMapper.toDataSchema(new WindowedType(keyAsData.type()));
-            var result = new DataRecord(new RecordType(schema));
+            var result = new DataStruct(new StructType(schema));
             result.put(START_FIELD, new DataLong(windowedObject.window().start()));
             result.put(END_FIELD, new DataLong(windowedObject.window().end()));
             result.put(START_TIME_FIELD, new DataString(windowedObject.window().startTime().toString()));

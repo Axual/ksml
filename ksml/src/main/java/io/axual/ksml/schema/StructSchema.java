@@ -28,16 +28,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class RecordSchema extends NamedSchema {
+public class StructSchema extends NamedSchema {
     private final List<DataField> fields = new ArrayList<>();
     private final Map<String, DataField> fieldsByName = new HashMap<>();
 
-    public RecordSchema(RecordSchema other) {
+    public StructSchema(StructSchema other) {
         this(other.namespace(), other.name(), other.doc(), other.fields);
     }
 
-    public RecordSchema(String namespace, String name, String doc, List<DataField> fields) {
-        super(Type.RECORD, namespace, name, doc);
+    public StructSchema(String namespace, String name, String doc, List<DataField> fields) {
+        super(Type.STRUCT, namespace, name, doc);
         if (fields != null) {
             this.fields.addAll(fields);
             for (var field : fields) {
@@ -63,14 +63,14 @@ public class RecordSchema extends NamedSchema {
     }
 
     @Override
-    public boolean isAssignableFrom(DataSchema schema) {
-        if (!super.isAssignableFrom(schema)) return false;
-        if (!(schema instanceof RecordSchema recordSchema)) return false;
+    public boolean isAssignableFrom(DataSchema otherSchema) {
+        if (!super.isAssignableFrom(otherSchema)) return false;
+        if (!(otherSchema instanceof StructSchema otherStructSchema)) return false;
         // This schema is assignable from the other schema when all fields without default values
         // are also found in the other schema
         for (var field : fields) {
             // Get the field from the other schema with the same name
-            var otherField = recordSchema.field(field.name());
+            var otherField = otherStructSchema.field(field.name());
             // If the field exists in the other schema, then validate its compatibility
             if (otherField != null && !field.isAssignableFrom(otherField)) return false;
             // If this field has no default value, then the field should exist in the other schema
@@ -86,7 +86,7 @@ public class RecordSchema extends NamedSchema {
         if (!super.equals(other)) return false;
 
         // Compare all schema relevant fields, note: explicitly do not compare the doc field
-        return fields.equals(((RecordSchema) other).fields);
+        return fields.equals(((StructSchema) other).fields);
     }
 
     @Override

@@ -3,12 +3,8 @@
 streams:
   sensor_source:
     topic: ksml_sensordata_avro
-    keyType: nullable(string)
-    valueType: nullable(avro:SensorData)
-  sensor_target:
-    topic: ksml_sensordata_count
-    keyType: nullable(avro:windowed(string))
-    valueType: long
+    keyType: string
+    valueType: avro:SensorData
 
 functions:
   print_message:
@@ -24,9 +20,9 @@ pipelines:
         mapper:
           code: |
             if value == None:
-              return None
+              return "no owner"
           expression: value["owner"]
-          resultType: nullable(string)
+          resultType: string
       - type: windowedBy
         windowType: time
         duration: 20s
@@ -38,7 +34,8 @@ pipelines:
           caching: false
       - type: toStream
       - type: convertKey
-        into: nullable(avro:windowed(string))
+        into: avro:windowed(string)
       - type: peek
         forEach: print_message
-    to: sensor_target
+    to:
+      topic: ksml_sensordata_count

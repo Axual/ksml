@@ -30,6 +30,7 @@ import org.graalvm.polyglot.Value;
 import java.util.Arrays;
 
 import io.axual.ksml.data.mapper.PythonDataObjectMapper;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
@@ -121,17 +122,12 @@ public class PythonFunction extends UserFunction {
             // Check if the function is supposed to return a result value
             if (resultType != null) {
                 DataObject result = convertResult(pyResult);
-
-                if (result == null) {
-                    throw new KSMLTopologyException("Illegal return from function: " + pyResult);
-                }
-
                 logCall(parameters, result);
                 checkType(resultType.dataType(), result);
                 return result;
             } else {
                 logCall(parameters, null);
-                return null;
+                return new DataNull();
             }
         } catch (Exception e) {
             logCall(parameters, null);

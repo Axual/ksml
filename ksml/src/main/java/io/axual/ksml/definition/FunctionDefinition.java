@@ -23,8 +23,10 @@ package io.axual.ksml.definition;
 
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLApplyException;
+import io.axual.ksml.exception.KSMLTopologyException;
 
 public class FunctionDefinition {
+    private static final String DEFINITION_LITERAL = "Definition";
     public final ParameterDefinition[] parameters;
     public final UserType resultType;
     public final String expression;
@@ -43,8 +45,26 @@ public class FunctionDefinition {
         return new FunctionDefinition(parameters, resultType, expression, code, globalCode);
     }
 
-    public FunctionDefinition withResult(UserType result) {
-        return new FunctionDefinition(parameters, result, result != null ? expression : "", code, globalCode);
+    public FunctionDefinition withoutResult() {
+        return withResult(null);
+    }
+
+    public FunctionDefinition withResult(UserType resultType) {
+        return new FunctionDefinition(parameters, resultType, resultType != null ? expression : null, code, globalCode);
+    }
+
+    public FunctionDefinition withAResult() {
+        var type = getClass().getSimpleName();
+        if (DEFINITION_LITERAL.equals(type.substring(type.length() - DEFINITION_LITERAL.length()))) {
+            type = type.substring(0, type.length() - DEFINITION_LITERAL.length());
+        }
+        return withAResult(type);
+    }
+
+    public FunctionDefinition withAResult(String functionType) {
+        if (resultType == null)
+            throw new KSMLTopologyException("Function type requires a result: " + functionType);
+        return this;
     }
 
     private FunctionDefinition(ParameterDefinition[] parameters, UserType resultType, String expression, String[] code, String[] globalCode) {

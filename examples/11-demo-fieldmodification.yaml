@@ -4,12 +4,12 @@
 streams:
   sensor_source:
     topic: ksml_sensordata_avro
-    keyType: nullable(string)
-    valueType: nullable(avro:SensorData)
+    keyType: string
+    valueType: avro:SensorData
   sensor_target:
     topic: ksml_sensordata_modified
-    keyType: nullable(string)
-    valueType: nullable(avro:SensorData)
+    keyType: string
+    valueType: avro:SensorDataNoColor
 
 functions:
   print_input_message:
@@ -27,7 +27,7 @@ functions:
       if value != None:
         value["owner"] = "Zack"
     expression: value
-    resultType: nullable(avro:SensorData)
+    resultType: avro:SensorData
 
   # This function removes the "color" field from the schema. It leaves the value field intact, but
   # since the field is not defined in the schema anymore, it will no longer be written to the output
@@ -46,9 +46,9 @@ functions:
           if field["name"] == "color":
             del schema["fields"][index]
         value["@schema"] = json.dumps(schema)
-        # del value["color"]
+        del value["color"]
     expression: value
-    resultType: nullable(avro:SensorDataNoColor)
+    resultType: avro:SensorDataNoColor
 
 pipelines:
   main:

@@ -1,4 +1,4 @@
-package io.axual.ksml.rest.server;
+package io.axual.ksml.rest.data;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,7 +20,8 @@ package io.axual.ksml.rest.server;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.rest.data.WindowData;
+import org.apache.kafka.streams.kstream.Window;
+
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import lombok.Getter;
@@ -28,10 +29,14 @@ import lombok.Getter;
 @XmlAccessorType(XmlAccessType.FIELD)
 @Getter
 public class WindowedKeyValueBean extends KeyValueBean {
-    private final WindowData window;
+    private final WindowDataBean window;
 
-    public WindowedKeyValueBean(long windowStart, long windowEnd, Object key, Object value) {
+    public WindowedKeyValueBean(Window window, Object key, Object value) {
+        this(new WindowDataBean(window), key, value);
+    }
+
+    public WindowedKeyValueBean(WindowDataBean window, Object key, Object value) {
         super(key, value);
-        this.window = new WindowData(windowStart, windowEnd);
+        this.window = window;
     }
 }

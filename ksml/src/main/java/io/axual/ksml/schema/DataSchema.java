@@ -47,7 +47,7 @@ public class DataSchema {
         ENUM,
         LIST,
         MAP,
-        RECORD,
+        STRUCT,
 
         UNION,
     }

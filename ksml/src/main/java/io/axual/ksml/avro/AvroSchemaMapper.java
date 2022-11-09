@@ -33,7 +33,7 @@ import io.axual.ksml.schema.EnumSchema;
 import io.axual.ksml.schema.FixedSchema;
 import io.axual.ksml.schema.ListSchema;
 import io.axual.ksml.schema.MapSchema;
-import io.axual.ksml.schema.RecordSchema;
+import io.axual.ksml.schema.StructSchema;
 import io.axual.ksml.schema.UnionSchema;
 import io.axual.ksml.schema.mapper.DataSchemaMapper;
 
@@ -44,16 +44,16 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     private static final NativeDataObjectMapper nativeMapper = new NativeDataObjectMapper();
 
     @Override
-    public RecordSchema toDataSchema(Schema schema) {
-        return new RecordSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), convertFieldsToDataSchema(schema.getFields()));
+    public StructSchema toDataSchema(Schema schema) {
+        return new StructSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), convertFieldsToDataSchema(schema.getFields()));
     }
 
     @Override
     public Schema fromDataSchema(DataSchema schema) {
-        if (schema.type() == DataSchema.Type.RECORD) {
-            var recordSchema = (RecordSchema) schema;
-            List<Schema.Field> fields = convertFieldsToAvro(recordSchema.fields());
-            return Schema.createRecord(recordSchema.name(), recordSchema.doc(), recordSchema.namespace(), false, fields);
+        if (schema.type() == DataSchema.Type.STRUCT) {
+            var structSchema = (StructSchema) schema;
+            List<Schema.Field> fields = convertFieldsToAvro(structSchema.fields());
+            return Schema.createRecord(structSchema.name(), structSchema.doc(), structSchema.namespace(), false, fields);
         }
         return null;
     }
@@ -123,7 +123,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             case ENUM -> Schema.createEnum(((EnumSchema) schema).name(), ((EnumSchema) schema).doc(), ((EnumSchema) schema).namespace(), ((EnumSchema) schema).possibleValues(), ((EnumSchema) schema).defaultValue());
             case LIST -> Schema.createArray(convertToAvro(((ListSchema) schema).valueType()));
             case MAP -> Schema.createMap(convertToAvro(((MapSchema) schema).valueSchema()));
-            case RECORD -> Schema.createRecord(((RecordSchema) schema).name(), ((RecordSchema) schema).doc(), ((RecordSchema) schema).namespace(), false, convertFieldsToAvro(((RecordSchema) schema).fields()));
+            case STRUCT -> Schema.createRecord(((StructSchema) schema).name(), ((StructSchema) schema).doc(), ((StructSchema) schema).namespace(), false, convertFieldsToAvro(((StructSchema) schema).fields()));
             case UNION -> Schema.createUnion(convertToAvro(((UnionSchema) schema).possibleSchema()));
         };
     }

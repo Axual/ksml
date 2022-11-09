@@ -37,7 +37,7 @@ public class DataSchemaParser extends BaseParser<DataSchema> {
             case ENUM -> new EnumSchemaParser().parse(parseNode);
             case LIST -> new ListSchemaParser().parse(parseNode);
             case MAP -> new MapSchemaParser().parse(parseNode);
-            case RECORD -> new RecordSchemaParser().parse(parseNode);
+            case STRUCT -> new StructSchemaParser().parse(parseNode);
             case UNION -> new UnionSchemaParser().parse(parseNode);
         };
     }

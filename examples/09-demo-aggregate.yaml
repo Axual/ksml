@@ -3,8 +3,8 @@
 streams:
   sensor_source:
     topic: ksml_sensordata_avro
-    keyType: nullable(string)
-    valueType: nullable(avro:SensorData)
+    keyType: string
+    valueType: avro:SensorData
 
 functions:
   print_message:
@@ -26,9 +26,9 @@ pipelines:
         mapper:
           code: |
             if value == None:
-              return None
+              return "no owner"
           expression: value["owner"]
-          resultType: nullable(string)
+          resultType: string
       - type: windowedBy
         windowType: time
         duration: 20s
