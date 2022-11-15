@@ -1,4 +1,4 @@
-FROM redhat/ubi8:8.4-206.1626828523
+FROM redhat/ubi8:8.6-990
 MAINTAINER Axual <maintainer@axual.io>
 ENV JAVA_HOME=/opt/graalvm
 ENV PATH=/opt/graalvm/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
