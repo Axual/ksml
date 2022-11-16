@@ -163,7 +163,7 @@ public class TopologyGeneratorImpl {
                                 .append(switch (entry.getValue().type) {
                                     case KEYVALUE_STORE -> "keyvalue";
                                     case SESSION_STORE -> "session";
-                                    case WINDOW_STORE -> "window";
+                                    case WINDOW_STORE -> "windowed";
                                 })
                                 .append("/")
                                 .append(entry.getKey())

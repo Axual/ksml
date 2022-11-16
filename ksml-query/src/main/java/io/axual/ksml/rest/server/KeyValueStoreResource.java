@@ -20,14 +20,17 @@ package io.axual.ksml.rest.server;
  * =========================LICENSE_END==================================
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.StoreQueryParameters;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 
+import java.util.List;
+
 import io.axual.ksml.rest.data.KeyValueBean;
-import io.axual.ksml.rest.data.KeyValueBeans;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -38,6 +41,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Path("state/keyvalue")
 public class KeyValueStoreResource extends StoreResource {
+    private final ObjectMapper mapper = new ObjectMapper();
+
     /**
      * Get all the key-value pairs available in a store
      *
@@ -48,9 +53,9 @@ public class KeyValueStoreResource extends StoreResource {
     @GET()
     @Path("/{storeName}/all")
     @Produces(MediaType.APPLICATION_JSON)
-    public KeyValueBeans getAll(@PathParam("storeName") final String storeName) {
+    public List<KeyValueBean> getAll(@PathParam("storeName") final String storeName) {
         var result = getAllLocal(storeName);
-        result.add(getAllRemote(storeName, "keyvalue"));
+        result.addAll(getAllRemote(storeName, "keyvalue"));
         return result;
     }
 
@@ -64,8 +69,8 @@ public class KeyValueStoreResource extends StoreResource {
     @GET()
     @Path("/{storeName}/local/all")
     @Produces(MediaType.APPLICATION_JSON)
-    public KeyValueBeans getAllLocal(@PathParam("storeName") final String storeName) {
-        return getLocalRange(storeName, QueryableStoreTypes.keyValueStore(), ReadOnlyKeyValueStore::all);
+    public List<KeyValueBean> getAllLocal(@PathParam("storeName") final String storeName) {
+        return getLocalRange(storeName, QueryableStoreTypes.keyValueStore(), ReadOnlyKeyValueStore::all).elements();
     }
 
     /**
@@ -88,7 +93,7 @@ public class KeyValueStoreResource extends StoreResource {
         } else {
             log.info("Querying remote store {} for key {}", storeName, key);
             String url = "http://" + metadataForKey.activeHost() + ":" + metadataForKey.activeHost().port() + "/state/keyvalue/" + storeName + "/local/get/" + key;
-            var result = restClient.getRemoteKeyValueBean(url);
+            var result = restClient.getRemoteKeyValueBean(url, KeyValueBean.class);
             log.info("Store data from remote store at {} == {}", url, result);
             return result;
         }

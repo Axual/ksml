@@ -22,14 +22,13 @@ package io.axual.ksml.rest.data;
 
 import org.apache.kafka.streams.kstream.Window;
 
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@XmlAccessorType(XmlAccessType.FIELD)
 @Getter
+@NoArgsConstructor
 public class WindowedKeyValueBean extends KeyValueBean {
-    private final WindowDataBean window;
+    private WindowDataBean window;
 
     public WindowedKeyValueBean(Window window, Object key, Object value) {
         this(new WindowDataBean(window), key, value);

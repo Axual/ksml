@@ -41,7 +41,7 @@ public class UserKeyValueToValueListTransformer extends Invoker implements Value
 
     @Override
     public Iterable<Object> apply(Object key, Object value) {
-        var result = function.call(DataUtil.asUserObject(key), DataUtil.asUserObject(value));
+        var result = function.call(DataUtil.asDataObject(key), DataUtil.asDataObject(value));
         if (result instanceof DataList) {
             return (List<Object>) result;
         }

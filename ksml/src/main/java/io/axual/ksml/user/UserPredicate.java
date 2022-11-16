@@ -36,7 +36,7 @@ public class UserPredicate extends Invoker implements Predicate<Object, Object> 
     }
 
     public boolean test(Object key, Object value) {
-        var result = function.call(DataUtil.asUserObject(key), DataUtil.asUserObject(value));
+        var result = function.call(DataUtil.asDataObject(key), DataUtil.asDataObject(value));
         if (result instanceof DataBoolean) {
             return ((DataBoolean) result).value();
         }

@@ -20,25 +20,19 @@ package io.axual.ksml.rest.data;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.util.DataUtil;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@XmlAccessorType(XmlAccessType.FIELD)
 @Getter
+@NoArgsConstructor
 public class KeyValueBean {
-    @JsonUnwrapped
-    private Object key;
-    @JsonUnwrapped
-    private Object value;
-
-    public KeyValueBean() {
-    }
+    private DataObject key;
+    private DataObject value;
 
     public KeyValueBean(Object key, Object value) {
-        this.key = key;
-        this.value = value;
+        this.key = DataUtil.asDataObject(key);
+        this.value = DataUtil.asDataObject(value);
     }
 }

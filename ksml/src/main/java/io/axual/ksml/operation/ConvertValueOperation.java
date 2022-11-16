@@ -45,7 +45,7 @@ public class ConvertValueOperation extends BaseOperation {
 
         @Override
         public Object apply(Object value) {
-            var valueAsData = DataUtil.asUserObject(value);
+            var valueAsData = DataUtil.asDataObject(value);
             if (valueAsData instanceof DataNull) return valueAsData;
             if (targetStructType == null) return valueAsData;
 

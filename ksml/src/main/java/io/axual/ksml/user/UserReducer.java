@@ -36,6 +36,6 @@ public class UserReducer extends Invoker implements Reducer<Object> {
 
     @Override
     public Object apply(Object value1, Object value2) {
-        return function.call(DataUtil.asUserObject(value1), DataUtil.asUserObject(value2));
+        return function.call(DataUtil.asDataObject(value1), DataUtil.asDataObject(value2));
     }
 }

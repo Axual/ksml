@@ -59,12 +59,10 @@ public class PythonDataObjectMapper implements DataObjectMapper<Value> {
 
     @Override
     public DataObject toDataObject(DataType expected, Value object) {
-        // If we need to apply a union dataType, then check its possible types, else convert by value.
-        if (expected instanceof UnionType unionType) {
+        // If we expect a union dataType, then check its possible types, else convert by value.
+        if (expected instanceof UnionType unionType)
             return unionToDataObject(unionType, object);
-        } else {
-            return valueToDataObject(expected, object);
-        }
+        return valueToDataObject(expected, object);
     }
 
     private DataObject unionToDataObject(UnionType unionType, Value object) {
@@ -166,7 +164,7 @@ public class PythonDataObjectMapper implements DataObjectMapper<Value> {
 
     @Override
     public DataObject toDataObject(Value object) {
-        throw new KSMLExecutionException("Use PythonDataMapper::toUserObject(value, expectedType)");
+        throw new KSMLExecutionException("Use PythonDataMapper::toDataObject(value, expectedType)");
     }
 
     @Override
@@ -186,6 +184,6 @@ public class PythonDataObjectMapper implements DataObjectMapper<Value> {
         if (object instanceof DataStruct) {
             return context.eval("python", jsonDataMapper.fromDataObject(object));
         }
-        throw new KSMLExecutionException("Can not convert UserObject to Python dataType: " + object.getClass().getSimpleName());
+        throw new KSMLExecutionException("Can not convert DataObject to Python dataType: " + object.getClass().getSimpleName());
     }
 }

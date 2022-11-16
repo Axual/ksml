@@ -35,7 +35,7 @@ public class UserKeyValueTransformer extends Invoker implements KeyValueMapper<O
 
     @Override
     public KeyValue<Object, Object> apply(Object key, Object value) {
-        return (KeyValue) function.convertToKeyValue(function.call(DataUtil.asUserObject(key), DataUtil.asUserObject(value)),
+        return (KeyValue) function.convertToKeyValue(function.call(DataUtil.asDataObject(key), DataUtil.asDataObject(value)),
                 ((KeyValueType) function.resultType.dataType()).keyType(),
                 ((KeyValueType) function.resultType.dataType()).valueType());
     }

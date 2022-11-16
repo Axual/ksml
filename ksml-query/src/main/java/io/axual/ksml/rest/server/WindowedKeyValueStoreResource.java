@@ -22,13 +22,18 @@ package io.axual.ksml.rest.server;
 
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KeyQueryMetadata;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StoreQueryParameters;
+import org.apache.kafka.streams.kstream.Windowed;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyWindowStore;
 
+import java.time.Instant;
+import java.util.List;
+
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.rest.data.KeyValueBean;
-import io.axual.ksml.rest.data.WindowedKeyValueBeans;
+import io.axual.ksml.rest.data.WindowedKeyValueBean;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -38,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Path("state/windowed")
-public class WindowedStoreResource extends StoreResource {
+public class WindowedKeyValueStoreResource extends StoreResource {
     final NativeDataObjectMapper mapper = new NativeDataObjectMapper();
 
     /**
@@ -51,7 +56,7 @@ public class WindowedStoreResource extends StoreResource {
     @GET()
     @Path("/{storeName}/all")
     @Produces(MediaType.APPLICATION_JSON)
-    public WindowedKeyValueBeans getAll(@PathParam("storeName") final String storeName) {
+    public List<WindowedKeyValueBean> getAll(@PathParam("storeName") final String storeName) {
         var result = getAllLocal(storeName);
         log.info("Querying remote stores....");
         querier.allMetadataForStore(storeName)
@@ -60,9 +65,9 @@ public class WindowedStoreResource extends StoreResource {
                 .forEach(remoteInstance -> {
                     String url = "http://" + remoteInstance.host() + ":" + remoteInstance.port() + "/state/windowed/" + storeName + "/local/all";
                     log.info("Fetching remote store at {}:{}", remoteInstance.host(), remoteInstance.port());
-                    WindowedKeyValueBeans remoteResult = restClient.getRemoteWindowedKeyValueBeans(url);
+                    List<WindowedKeyValueBean> remoteResult = restClient.getRemoteWindowedKeyValueBeans(url).elements();
                     log.info("Data from remote store at {}:{} == {}", remoteInstance.host(), remoteInstance.port(), remoteResult);
-                    result.add(remoteResult);
+                    result.addAll(remoteResult);
                 });
 
         log.info("Complete store state {}", result);
@@ -79,8 +84,8 @@ public class WindowedStoreResource extends StoreResource {
     @GET()
     @Path("/{storeName}/local/all")
     @Produces(MediaType.APPLICATION_JSON)
-    public WindowedKeyValueBeans getAllLocal(@PathParam("storeName") final String storeName) {
-        return getLocalWindowRange(storeName, QueryableStoreTypes.windowStore(), ReadOnlyWindowStore::all);
+    public List<WindowedKeyValueBean> getAllLocal(@PathParam("storeName") final String storeName) {
+        return getLocalWindowRange(storeName, QueryableStoreTypes.windowStore(), ReadOnlyWindowStore::all).elements();
     }
 
     /**
@@ -91,9 +96,9 @@ public class WindowedStoreResource extends StoreResource {
     @GET
     @Path("/{storeName}/get/{key}/{timestamp}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public KeyValueBean getKey(@PathParam("storeName") final String storeName,
-                               @PathParam("key") final String key,
-                               @PathParam("timestamp") final Long timestamp) {
+    public WindowedKeyValueBean getKey(@PathParam("storeName") final String storeName,
+                                       @PathParam("key") final String key,
+                                       @PathParam("timestamp") final Long timestamp) {
         KeyQueryMetadata metadataForKey = querier.queryMetadataForKey(storeName, key, new StringSerializer());
 
         if (metadataForKey.activeHost().host().equals(thisInstance.host()) && metadataForKey.activeHost().port() == thisInstance.port()) {
@@ -104,7 +109,7 @@ public class WindowedStoreResource extends StoreResource {
         } else {
             log.info("Querying remote store {} for key {}", storeName, key);
             String url = "http://" + metadataForKey.activeHost() + ":" + metadataForKey.activeHost().port() + "/state/keyvalue/" + storeName + "/local/get/" + key;
-            var result = restClient.getRemoteKeyValueBean(url);
+            var result = restClient.getRemoteKeyValueBean(url, WindowedKeyValueBean.class);
             log.info("Store data from remote store at {} == {}", url, result);
             return result;
         }
@@ -118,14 +123,21 @@ public class WindowedStoreResource extends StoreResource {
     @GET
     @Path("/{storeName}/local/get/{key}/{timestamp}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public KeyValueBean getKeyLocal(@PathParam("storeName") final String storeName,
-                                    @PathParam("key") final String key,
-                                    @PathParam("timestamp") final Long timestamp) {
+    public WindowedKeyValueBean getKeyLocal(@PathParam("storeName") final String storeName,
+                                            @PathParam("key") final String key,
+                                            @PathParam("timestamp") final Long timestamp) {
         log.info("Querying local store {} for key {}", storeName, key);
         var stateStore = querier.store(
                 StoreQueryParameters.fromNameAndType(storeName, QueryableStoreTypes.windowStore()));
-        Object value = stateStore.fetch(key, timestamp);
-        log.info("Found value {}", value);
-        return new KeyValueBean(key, value);
+        var iterator = stateStore.fetch(key, key, Instant.ofEpochMilli(timestamp), Instant.ofEpochMilli(timestamp));
+        KeyValue<Windowed<Object>, Object> latest = null;
+        while (iterator.hasNext()) {
+            latest = iterator.next();
+        }
+        var result = latest != null
+                ? new WindowedKeyValueBean(latest.key.window(), latest.key.key(), latest.value)
+                : null;
+        log.info("Found value {}", result);
+        return result;
     }
 }

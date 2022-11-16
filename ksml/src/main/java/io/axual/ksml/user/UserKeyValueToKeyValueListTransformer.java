@@ -47,7 +47,7 @@ public class UserKeyValueToKeyValueListTransformer extends Invoker implements Ke
 
     @Override
     public Iterable<KeyValue<Object, Object>> apply(Object key, Object value) {
-        var result = function.call(DataUtil.asUserObject(key), DataUtil.asUserObject(value));
+        var result = function.call(DataUtil.asDataObject(key), DataUtil.asDataObject(value));
         if (function.resultType.dataType() instanceof ListType listType &&
                 listType.valueType() instanceof TupleType tupleType &&
                 tupleType.subTypeCount() == 2) {

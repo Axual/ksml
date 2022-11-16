@@ -20,24 +20,13 @@ package io.axual.ksml.rest.data;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.streams.kstream.Windowed;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.object.DataObject;
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
-import jakarta.xml.bind.annotation.XmlRootElement;
 
 /**
  * POJO representing store data elements
  */
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
 public class KeyValueBeans {
-    private static final NativeDataObjectMapper mapper = new NativeDataObjectMapper();
     private final List<KeyValueBean> elements = new ArrayList<>();
 
     public List<KeyValueBean> elements() {
@@ -45,31 +34,17 @@ public class KeyValueBeans {
     }
 
     public KeyValueBeans add(Object key, Object value) {
-        elements.add(new KeyValueBean(unwrap(key), unwrap(value)));
-        return this;
+        return add(new KeyValueBean(key, value));
     }
 
     public KeyValueBeans add(KeyValueBean element) {
-        return add(element.getKey(), element.getValue());
-    }
-
-    public KeyValueBeans add(KeyValueBeans otherBeans) {
-        for (var element : otherBeans.elements)
-            add(element.getKey(), element.getValue());
+        elements.add(element);
         return this;
     }
 
-    private Object unwrap(Object someObject) {
-        // If this object is a window, then unwrap its key and return a WindowedData bean
-        if (someObject instanceof Windowed<?> windowedObject)
-            return new WindowedDataBean(new Windowed<>(unwrap(windowedObject.key()), windowedObject.window()));
-
-        // If this object is a DataObject, then unwrap it and return its native value
-        if (someObject instanceof DataObject dataObject)
-            return mapper.fromDataObject(dataObject);
-
-        // The object does not need unwrapping, so return its plain value
-        return someObject;
+    public KeyValueBeans add(KeyValueBeans otherBeans) {
+        elements.addAll(otherBeans.elements);
+        return this;
     }
 
     @Override

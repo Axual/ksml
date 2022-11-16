@@ -66,7 +66,7 @@ public class JsonNotation implements Notation {
         private final StringDeserializer deserializer = new StringDeserializer();
 
         private final Serializer<Object> wrapSerializer = (topic, data) -> {
-            var json = jsonMapper.fromDataObject(DataUtil.asUserObject(data));
+            var json = jsonMapper.fromDataObject(DataUtil.asDataObject(data));
             return serializer.serialize(topic, json);
         };
 

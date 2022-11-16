@@ -82,7 +82,7 @@ public class BinaryNotation implements Notation {
             @Override
             public byte[] serialize(String topic, Object data) {
                 // Serialize the raw object by converting from user object if necessary
-                return serializer.serialize(topic, mapper.fromDataObject(DataUtil.asUserObject(data)));
+                return serializer.serialize(topic, mapper.fromDataObject(DataUtil.asDataObject(data)));
             }
         };
 

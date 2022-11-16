@@ -1,10 +1,10 @@
-package io.axual.ksml.user;
+package io.axual.ksml.serde;
 
 /*-
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 Axual B.V.
+ * Copyright (C) 2021 - 2022 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,21 +20,17 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 
-import org.apache.kafka.streams.kstream.ValueMapperWithKey;
+import java.io.IOException;
 
-import io.axual.ksml.util.DataUtil;
-import io.axual.ksml.python.Invoker;
+import io.axual.ksml.data.object.DataObject;
 
-public class UserValueTransformer extends Invoker implements ValueMapperWithKey<Object, Object, Object> {
-
-    public UserValueTransformer(UserFunction function) {
-        super(function);
-        verifyParameterCount(2);
-    }
-
+public class DataObjectSerializer extends JsonSerializer<DataObject> {
     @Override
-    public Object apply(Object key, Object value) {
-        return function.call(DataUtil.asDataObject(key), DataUtil.asDataObject(value));
+    public void serialize(DataObject dataObject, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+        jsonGenerator.writeObject(dataObject);
     }
 }

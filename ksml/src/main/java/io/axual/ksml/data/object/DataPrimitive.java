@@ -20,6 +20,8 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Objects;
 
 import io.axual.ksml.data.type.DataType;
@@ -27,6 +29,7 @@ import io.axual.ksml.exception.KSMLExecutionException;
 
 public class DataPrimitive<T> implements DataObject {
     private final DataType type;
+    @JsonProperty
     private final T value;
 
     protected DataPrimitive(DataType type) {

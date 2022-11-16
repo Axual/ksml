@@ -22,24 +22,22 @@ package io.axual.ksml.rest.data;
 
 import org.apache.kafka.streams.kstream.Window;
 
-import java.time.Instant;
-
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
 import lombok.Getter;
 
-@XmlAccessorType(XmlAccessType.FIELD)
 @Getter
 public class WindowDataBean {
-    private final long start;
-    private final long end;
-    private final Instant startTime;
-    private final Instant endTime;
+    private long start;
+    private long end;
+    private String startTime;
+    private String endTime;
+
+    public WindowDataBean() {
+    }
 
     public WindowDataBean(Window window) {
         this.start = window.start();
         this.end = window.end();
-        this.startTime = window.startTime();
-        this.endTime = window.endTime();
+        this.startTime = window.startTime().toString();
+        this.endTime = window.endTime().toString();
     }
 }

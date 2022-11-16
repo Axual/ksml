@@ -25,15 +25,9 @@ import org.apache.kafka.streams.kstream.Window;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
-import jakarta.xml.bind.annotation.XmlRootElement;
-
 /**
  * POJO representing store data elements
  */
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
 public class WindowedKeyValueBeans {
     private final List<WindowedKeyValueBean> elements = new ArrayList<>();
 

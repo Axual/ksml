@@ -29,8 +29,11 @@ import lombok.Data;
 @Data
 @JsonRootName("key")
 public class WindowedDataBean {
-    public final WindowDataBean window;
-    public final Object key;
+    public WindowDataBean window;
+    public Object key;
+
+    public WindowedDataBean() {
+    }
 
     public WindowedDataBean(Windowed<Object> data) {
         window = new WindowDataBean(data.window());

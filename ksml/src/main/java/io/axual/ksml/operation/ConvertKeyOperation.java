@@ -45,7 +45,7 @@ public class ConvertKeyOperation extends BaseOperation {
 
         @Override
         public Object apply(Object key, Object value) {
-            var keyAsData = DataUtil.asUserObject(key);
+            var keyAsData = DataUtil.asDataObject(key);
             if (keyAsData instanceof DataNull) return keyAsData;
             if (targetStructType == null) return keyAsData;
 

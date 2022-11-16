@@ -36,9 +36,9 @@ import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.object.DataUnion;
 import io.axual.ksml.data.type.DataType;
@@ -50,9 +50,9 @@ import io.axual.ksml.data.value.Tuple;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.schema.DataSchema;
-import io.axual.ksml.schema.StructSchema;
 import io.axual.ksml.schema.SchemaLibrary;
 import io.axual.ksml.schema.SchemaWriter;
+import io.axual.ksml.schema.StructSchema;
 
 public class NativeDataObjectMapper implements DataObjectMapper<Object> {
 
@@ -142,7 +142,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         if (value instanceof List<?> val) return listToDataList(val);
         if (value instanceof Map<?, ?> val) return mapToDataStruct(val, null);
         if (value instanceof Tuple<?> val) return tupleToDataTuple(val);
-        throw new KSMLExecutionException("Can not convert to UserObject: " + value.getClass().getSimpleName());
+        throw new KSMLExecutionException("Can not convert to DataObject: " + value.getClass().getSimpleName());
     }
 
     public DataList listToDataList(List<?> list) {
@@ -197,7 +197,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
 
         if (value instanceof DataUnion val) return val.value();
 
-        throw new KSMLExecutionException("Can not convert UserObject to native dataType: " + value.getClass().getSimpleName());
+        throw new KSMLExecutionException("Can not convert DataObject to native dataType: " + value.getClass().getSimpleName());
     }
 
     public List<Object> dataListToList(DataList value) {

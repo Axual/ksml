@@ -52,11 +52,11 @@ public class UserTopicNameExtractor extends Invoker implements TopicNameExtracto
     @Override
     public String extract(Object key, Object value, RecordContext recordContext) {
         var result = function.call(
-                DataUtil.asUserObject(key),
-                DataUtil.asUserObject(value),
-                DataUtil.asUserObject(convertRecordContext(recordContext)));
-        if (result instanceof DataString) {
-            return ((DataString) result).value();
+                DataUtil.asDataObject(key),
+                DataUtil.asDataObject(value),
+                DataUtil.asDataObject(convertRecordContext(recordContext)));
+        if (result instanceof DataString dataString) {
+            return dataString.value();
         }
         throw new KSMLExecutionException("Expected string result from function: " + function.name);
     }

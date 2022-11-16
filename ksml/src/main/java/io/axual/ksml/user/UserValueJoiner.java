@@ -36,6 +36,6 @@ public class UserValueJoiner extends Invoker implements ValueJoiner<Object, Obje
 
     @Override
     public Object apply(Object key, Object value) {
-        return function.call(DataUtil.asUserObject(key), DataUtil.asUserObject(value));
+        return function.call(DataUtil.asDataObject(key), DataUtil.asDataObject(value));
     }
 }

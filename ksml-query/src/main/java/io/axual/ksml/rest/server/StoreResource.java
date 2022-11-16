@@ -27,8 +27,10 @@ import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.QueryableStoreType;
 
+import java.util.List;
 import java.util.function.Function;
 
+import io.axual.ksml.rest.data.KeyValueBean;
 import io.axual.ksml.rest.data.KeyValueBeans;
 import io.axual.ksml.rest.data.WindowedKeyValueBean;
 import io.axual.ksml.rest.data.WindowedKeyValueBeans;
@@ -85,7 +87,7 @@ public class StoreResource implements AutoCloseable {
         return result;
     }
 
-    protected KeyValueBeans getAllRemote(String storeName, String stateSubPath) {
+    protected List<KeyValueBean> getAllRemote(String storeName, String stateSubPath) {
         log.info(QUERYING_MESSAGE);
         var result = new KeyValueBeans();
         querier.allMetadataForStore(storeName)
@@ -100,7 +102,7 @@ public class StoreResource implements AutoCloseable {
                 });
 
         log.info(COMPLETE_STORE_STATE_MESSAGE, result);
-        return result;
+        return result.elements();
     }
 
     @Override

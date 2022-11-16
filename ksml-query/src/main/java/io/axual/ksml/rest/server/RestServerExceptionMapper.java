@@ -1,10 +1,10 @@
-package io.axual.ksml.user;
+package io.axual.ksml.rest.server;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Queryable State Store
  * %%
- * Copyright (C) 2021 Axual B.V.
+ * Copyright (C) 2021 - 2022 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,21 +20,19 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.ExceptionMapper;
 
-import org.apache.kafka.streams.kstream.ValueMapperWithKey;
-
-import io.axual.ksml.util.DataUtil;
-import io.axual.ksml.python.Invoker;
-
-public class UserValueTransformer extends Invoker implements ValueMapperWithKey<Object, Object, Object> {
-
-    public UserValueTransformer(UserFunction function) {
-        super(function);
-        verifyParameterCount(2);
-    }
-
+public class RestServerExceptionMapper implements ExceptionMapper<Throwable> {
     @Override
-    public Object apply(Object key, Object value) {
-        return function.call(DataUtil.asDataObject(key), DataUtil.asDataObject(value));
+    public Response toResponse(Throwable throwable) {
+        var message = throwable.getMessage();
+        var status = 500;
+
+        return Response.status(status)
+                .entity(status + ": " + message)
+                .type(MediaType.TEXT_PLAIN)
+                .build();
     }
 }

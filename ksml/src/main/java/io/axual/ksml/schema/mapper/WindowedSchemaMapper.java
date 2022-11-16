@@ -27,9 +27,8 @@ import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.schema.DataField;
 import io.axual.ksml.schema.DataSchema;
-import io.axual.ksml.schema.DataValue;
-import io.axual.ksml.schema.StructSchema;
 import io.axual.ksml.schema.SchemaUtil;
+import io.axual.ksml.schema.StructSchema;
 
 public class WindowedSchemaMapper implements DataSchemaMapper<WindowedType> {
     private static final String WINDOW_SCHEMA_DOC_PREFIX = "Windowed ";
@@ -44,8 +43,6 @@ public class WindowedSchemaMapper implements DataSchemaMapper<WindowedType> {
     private static final String END_TIME_FIELD_DOC = "End time";
     public static final String KEY_FIELD = "key";
     private static final String KEY_FIELD_DOC = "Window key";
-    private static final DataValue ZERO_LONG = new DataValue(0L);
-    private static final DataValue ZERO_STRING = new DataValue("Time Zero");
 
     @Override
     public StructSchema toDataSchema(WindowedType windowedType) {

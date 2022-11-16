@@ -39,7 +39,7 @@ public class UserStreamPartitioner extends Invoker implements StreamPartitioner<
 
     @Override
     public Integer partition(String topic, Object key, Object value, int numPartitions) {
-        var result = function.call(new DataString(topic), DataUtil.asUserObject(key), DataUtil.asUserObject(value), new DataInteger(numPartitions));
+        var result = function.call(new DataString(topic), DataUtil.asDataObject(key), DataUtil.asDataObject(value), new DataInteger(numPartitions));
         if (result instanceof DataInteger) {
             return ((DataInteger) result).value();
         }

@@ -76,7 +76,7 @@ public class AxualAvroNotation implements Notation {
         private final Serializer<Object> wrapSerializer = new Serializer<>() {
             @Override
             public byte[] serialize(String topic, Object data) {
-                var object = mapper.fromDataObject(DataUtil.asUserObject(data));
+                var object = mapper.fromDataObject(DataUtil.asDataObject(data));
                 if (object == null || object == JsonProperties.NULL_VALUE) {
                     return serde.serializer().serialize(topic, null);
                 }
