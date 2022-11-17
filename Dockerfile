@@ -3,12 +3,10 @@ MAINTAINER Axual <maintainer@axual.io>
 ENV JAVA_HOME=/opt/graalvm
 ENV PATH=/opt/graalvm/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
+COPY --from=ghcr.io/graalvm/graalvm-ce:22.3.0 /usr/java/latest/ /opt/graalvm
+
 RUN mkdir -p "/opt/ksml/libs"  \
-&& curl -k -L -o "/tmp/graalvm.tgz" "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.1.0/graalvm-ce-java17-linux-amd64-22.1.0.tar.gz" \
-&& tar -xzf /tmp/graalvm.tgz -C "/opt" \
-&& mv /opt/graalvm* /opt/graalvm \
 && chown -R 1024:users /opt \
-&& rm -rf /tmp/graalvm.tgz \
 && /opt/graalvm/bin/gu -A install python
 
 ADD --chown=1024:users target/libs/ /opt/ksml/libs/

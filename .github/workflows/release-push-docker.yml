@@ -14,6 +14,9 @@ jobs:
         run: |
           echo "building and tagging release: $RELEASE_TAG"
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
       - name: set up Docker buildx
         uses: docker/setup-buildx-action@v2
 
@@ -30,11 +33,24 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: build and push example producer
+        uses: docker/build-push-action@v3
+        with:
+          context: ./ksml-example-producer
+          file: ksml-example-producer/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            axual/ksml-example-producer:${{ github.event.release.tag_name }}
+            ghcr.io/axual/ksml-example-producer:${{ github.event.release.tag_name }}
+            ghcr.io/axual/ksml-example-producer:latest
+
       - name: build and push plain Kafka runner
         uses: docker/build-push-action@v3
         with:
           file: Dockerfile-build-runner
           build-args: "runner=ksml-runner"
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             axual/ksml:${{ github.event.release.tag_name }}
@@ -45,6 +61,7 @@ jobs:
         with:
           file: Dockerfile-build-runner
           build-args: "runner=ksml-runner-axual"
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             axual/ksml-axual:${{ github.event.release.tag_name }}
