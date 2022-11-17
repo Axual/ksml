@@ -36,13 +36,13 @@ jobs:
       - name: build and push example producer
         uses: docker/build-push-action@v3
         with:
-          context: ./ksml-example-producer
-          file: ksml-example-producer/Dockerfile
+          file: Dockerfile-build-example-producer
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             axual/ksml-example-producer:${{ github.event.release.tag_name }}
             ghcr.io/axual/ksml-example-producer:${{ github.event.release.tag_name }}
+            axual/ksml-example-producer:latest
             ghcr.io/axual/ksml-example-producer:latest
 
       - name: build and push plain Kafka runner
@@ -66,7 +66,3 @@ jobs:
           tags: |
             axual/ksml-axual:${{ github.event.release.tag_name }}
             ghcr.io/axual/ksml-axual:${{ github.event.release.tag_name }}
-
-
-
-
