@@ -37,7 +37,6 @@ import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.user.UserFunction;
-import io.axual.ksml.util.StringUtil;
 
 public class PythonFunction extends UserFunction {
     private static final String PYTHON = "python";
@@ -64,10 +63,10 @@ public class PythonFunction extends UserFunction {
                 "import java\n" +
                 "ArrayList = java.type('java.util.ArrayList')\n" +
                 "HashMap = java.type('java.util.HashMap')\n" +
-                StringUtil.join("\n", definition.globalCode) + "\n" +
+                String.join("\n", definition.globalCode) + "\n" +
                 "@polyglot.export_value\n" +
-                "def " + name + "_function(" + StringUtil.join(",", params) + "):\n" +
-                StringUtil.join("\n", functionCode) + "\n" +
+                "def " + name + "_function(" + String.join(",", params) + "):\n" +
+                String.join("\n", functionCode) + "\n" +
                 "  return" + (resultType != null ? " " + definition.expression : "") + "\n" +
                 "\n" +
                 "def convert_to(value):\n" +
@@ -93,8 +92,8 @@ public class PythonFunction extends UserFunction {
                 "  return value\n" +
                 "\n" +
                 "@polyglot.export_value\n" +
-                "def " + name + "_caller(" + StringUtil.join(",", params) + "):\n" +
-                "  return convert_from(" + name + "_function(" + StringUtil.join(",", params) + "))\n";
+                "def " + name + "_caller(" + String.join(",", params) + "):\n" +
+                "  return convert_from(" + name + "_function(" + String.join(",", params) + "))\n";
 
         Source script = Source.create(PYTHON, pyCode);
         context.eval(script);

@@ -20,6 +20,8 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
+import java.util.stream.Collectors;
+
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.object.DataBytes;
@@ -66,15 +68,7 @@ public class UserTypeStringMapper implements StringMapper<UserType> {
     }
 
     private String enumTypeToString(EnumType enumType) {
-        var result = new StringBuilder("enum(");
-        var first = true;
-        for (String symbol : enumType.symbols()) {
-            if (!first) result.append(",");
-            result.append("\"").append(symbol).append("\"");
-            first = false;
-        }
-        result.append(")");
-        return result.toString();
+        return "enum(" + String.join(",", enumType.symbols()) + ")";
     }
 
     private String listTypeToString(ListType listType) {
@@ -87,12 +81,8 @@ public class UserTypeStringMapper implements StringMapper<UserType> {
     }
 
     private String tupleTypeToString(TupleType tupleType) {
-        var builder = new StringBuilder("(");
-        for (int index = 0; index < tupleType.subTypeCount(); index++) {
-            if (index > 0) builder.append(",");
-            builder.append(toString(tupleType.subType(index)));
-        }
-        return builder.append(")").toString();
+        var types = tupleType.subTypes().stream().map(this::toString).collect(Collectors.joining(","));
+        return "(" + types + ")";
     }
 
     @Override

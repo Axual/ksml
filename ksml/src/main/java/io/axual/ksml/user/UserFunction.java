@@ -37,7 +37,6 @@ import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.exception.KSMLTypeException;
-import io.axual.ksml.util.StringUtil;
 
 /**
  * Base class for user-defined functions.
@@ -59,7 +58,7 @@ public class UserFunction {
     @Override
     public String toString() {
         String[] params = Arrays.stream(parameters).map(p -> p.name() + ":" + (p.type() != null ? p.type() : "?")).toArray(String[]::new);
-        return name + "(" + StringUtil.join(", ", params) + ")" + (resultType != null ? " ==> " + resultType : "");
+        return name + "(" + String.join(", ", params) + ")" + (resultType != null ? " ==> " + resultType : "");
     }
 
     protected void checkType(DataType expected, DataObject value) {

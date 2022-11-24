@@ -22,6 +22,7 @@ package io.axual.ksml.data.type;
 
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 public abstract class ComplexType implements DataType {
@@ -56,6 +57,10 @@ public abstract class ComplexType implements DataType {
 
     public DataType subType(int index) {
         return subTypes[index];
+    }
+
+    public List<DataType> subTypes() {
+        return List.of(subTypes);
     }
 
     protected String schemaName(String baseName) {
