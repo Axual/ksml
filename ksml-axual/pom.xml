@@ -30,7 +30,7 @@
                 </exclusion>
                 <exclusion>
                     <groupId>io.confluent</groupId>
-                    <artifactId>kafka-avro-serializer</artifactId>
+                    <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
