@@ -1,4 +1,4 @@
-package io.axual.ksml.data.object;
+package io.axual.ksml.data.mapper;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,21 +20,28 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.EnumType;
 import io.axual.ksml.exception.KSMLExecutionException;
 
-public class DataEnum extends DataPrimitive<String> {
-    public DataEnum(String value, EnumType type) {
-        super(type, value);
-        if (!validateValue(value)) {
-            throw new KSMLExecutionException("Invalid enum value for type " + type.schemaName() + ": " + value);
+public abstract class Mapper<S, T> {
+    public final S to(T value) {
+        try {
+            return mapTo(value);
+        } catch (Exception e) {
+            var valueClass = value != null ? value.getClass().getSimpleName() : "null";
+            throw new KSMLExecutionException("Exception caught in " + getClass().getSimpleName() + ".to(" + valueClass + ")", e);
         }
     }
 
-    private boolean validateValue(String value) {
-        for (String symbol : ((EnumType) type()).symbols()) {
-            if (symbol.equals(value)) return true;
+    public final T from(S value) {
+        try {
+            return mapFrom(value);
+        } catch (Exception e) {
+            var valueClass = value != null ? value.getClass().getSimpleName() : "null";
+            throw new KSMLExecutionException("Exception caught in " + getClass().getSimpleName() + ".from(" + valueClass + ")", e);
         }
-        return false;
     }
+
+    protected abstract S mapTo(T value);
+
+    protected abstract T mapFrom(S value);
 }

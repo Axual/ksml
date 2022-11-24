@@ -56,12 +56,9 @@ public class AxualAvroNotation implements Notation {
         return AvroNotation.NOTATION_NAME;
     }
 
-    public Serde<Object> getSerde(DataType type, DataSchema schema, boolean isKey) {
+    public Serde<Object> getSerde(DataType type, boolean isKey) {
         if (type instanceof StructType structType) {
-            if (schema == null && structType.schema() != null) {
-                schema = structType.schema();
-            }
-            return new AvroSerde(configs, schema, isKey);
+            return new AvroSerde(configs, structType.schema(), isKey);
         }
         throw new KSMLExecutionException("Serde not found for data dataType " + type);
     }

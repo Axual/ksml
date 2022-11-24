@@ -35,8 +35,8 @@ public class GlobalTableDefinitionParser extends BaseParser<GlobalTableDefinitio
     public GlobalTableDefinition parse(YamlNode node) {
         if (node == null) return null;
         return new GlobalTableDefinition(
-                parseText(node, TOPIC_ATTRIBUTE),
-                UserTypeParser.parse(parseText(node, KEYTYPE_ATTRIBUTE)),
-                UserTypeParser.parse(parseText(node, VALUETYPE_ATTRIBUTE)));
+                parseString(node, TOPIC_ATTRIBUTE),
+                UserTypeParser.parse(parseString(node, KEYTYPE_ATTRIBUTE)),
+                UserTypeParser.parse(parseString(node, VALUETYPE_ATTRIBUTE)));
     }
 }

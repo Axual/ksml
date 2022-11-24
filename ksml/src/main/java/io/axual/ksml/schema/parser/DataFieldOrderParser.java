@@ -28,7 +28,7 @@ public class DataFieldOrderParser extends BaseParser<DataField.Order> {
     @Override
     public DataField.Order parse(YamlNode node) {
         if (node == null) return DataField.Order.ASCENDING;
-        var order = node.asText();
+        var order = node.asString();
         if (order != null) order = order.toUpperCase();
         try {
             return DataField.Order.valueOf(order);

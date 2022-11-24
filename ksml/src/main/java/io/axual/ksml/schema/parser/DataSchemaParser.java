@@ -23,12 +23,13 @@ package io.axual.ksml.schema.parser;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.schema.DataSchema;
-import io.axual.ksml.schema.SchemaWriter;
+
+import static io.axual.ksml.data.mapper.DataSchemaConstants.DATASCHEMA_TYPE_FIELD;
 
 public class DataSchemaParser extends BaseParser<DataSchema> {
     @Override
     public DataSchema parse(YamlNode node) {
-        var typeNode = node.isObject() ? node.get(SchemaWriter.DATASCHEMA_TYPE_FIELD) : node;
+        var typeNode = node.isObject() ? node.get(DATASCHEMA_TYPE_FIELD) : node;
         var parseNode = typeNode.isObject() || typeNode.isArray() ? typeNode : node;
         var schemaType = new DataSchemaTypeParser().parse(typeNode);
         return switch (schemaType) {

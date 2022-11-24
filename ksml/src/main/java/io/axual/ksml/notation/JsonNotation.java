@@ -34,12 +34,11 @@ import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.schema.DataSchema;
 import io.axual.ksml.util.DataUtil;
 
 public class JsonNotation implements Notation {
     public static final String NOTATION_NAME = "JSON";
-    private static final JsonDataObjectMapper jsonMapper = new JsonDataObjectMapper();
+    private static final JsonDataObjectMapper jsonDataObjectMapper = new JsonDataObjectMapper();
     private final Map<String, Object> configs = new HashMap<>();
 
     public JsonNotation(Map<String, Object> configs) {
@@ -52,7 +51,7 @@ public class JsonNotation implements Notation {
     }
 
     @Override
-    public Serde<Object> getSerde(DataType type, DataSchema schema, boolean isKey) {
+    public Serde<Object> getSerde(DataType type, boolean isKey) {
         if (type instanceof MapType || type instanceof ListType) {
             var result = new JsonSerde();
             result.configure(configs, isKey);
@@ -66,13 +65,13 @@ public class JsonNotation implements Notation {
         private final StringDeserializer deserializer = new StringDeserializer();
 
         private final Serializer<Object> wrapSerializer = (topic, data) -> {
-            var json = jsonMapper.fromDataObject(DataUtil.asDataObject(data));
+            var json = jsonDataObjectMapper.fromDataObject(DataUtil.asDataObject(data));
             return serializer.serialize(topic, json);
         };
 
         private final Deserializer<Object> wrapDeserializer = (topic, data) -> {
             String json = deserializer.deserialize(topic, data);
-            return jsonMapper.toDataObject(json);
+            return jsonDataObjectMapper.toDataObject(json);
         };
 
         @Override

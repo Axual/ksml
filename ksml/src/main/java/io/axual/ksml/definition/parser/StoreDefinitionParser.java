@@ -34,7 +34,7 @@ public class StoreDefinitionParser extends BaseParser<StoreDefinition> {
     public StoreDefinition parse(YamlNode node) {
         if (node == null) return null;
         return new StoreDefinition(
-                parseText(node, STORE_NAME_ATTRIBUTE),
+                parseString(node, STORE_NAME_ATTRIBUTE),
                 parseDuration(node, STORE_RETENTION_ATTRIBUTE),
                 parseBoolean(node, STORE_CACHING_ATTRIBUTE));
     }

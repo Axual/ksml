@@ -23,11 +23,12 @@ package io.axual.ksml.schema.parser;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.schema.ListSchema;
-import io.axual.ksml.schema.SchemaWriter;
+
+import static io.axual.ksml.data.mapper.DataSchemaConstants.LISTSCHEMA_VALUES_FIELD;
 
 public class ListSchemaParser extends BaseParser<ListSchema> {
     @Override
     public ListSchema parse(YamlNode node) {
-        return new ListSchema(new DataSchemaParser().parse(node.get(SchemaWriter.LISTSCHEMA_VALUES_FIELD)));
+        return new ListSchema(new DataSchemaParser().parse(node.get(LISTSCHEMA_VALUES_FIELD)));
     }
 }

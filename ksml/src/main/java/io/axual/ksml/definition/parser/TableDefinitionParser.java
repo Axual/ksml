@@ -43,9 +43,9 @@ public class TableDefinitionParser extends BaseParser<TableDefinition> {
     public TableDefinition parse(YamlNode node) {
         if (node == null) return null;
         return new TableDefinition(
-                parseText(node, TOPIC_ATTRIBUTE),
-                UserTypeParser.parse(parseText(node, KEYTYPE_ATTRIBUTE)),
-                UserTypeParser.parse(parseText(node, VALUETYPE_ATTRIBUTE)),
+                parseString(node, TOPIC_ATTRIBUTE),
+                UserTypeParser.parse(parseString(node, KEYTYPE_ATTRIBUTE)),
+                UserTypeParser.parse(parseString(node, VALUETYPE_ATTRIBUTE)),
                 parseBoolean(node, QUERYABLE_ATTRIBUTE),
                 storeRegistry);
     }

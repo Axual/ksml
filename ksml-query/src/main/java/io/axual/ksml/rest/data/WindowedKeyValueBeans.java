@@ -41,7 +41,7 @@ public class WindowedKeyValueBeans {
     }
 
     public WindowedKeyValueBeans add(WindowedKeyValueBean element) {
-        elements.add(new WindowedKeyValueBean(element.getWindow(), element.getKey(), element.getValue()));
+        elements.add(new WindowedKeyValueBean(element.window, element.key, element.value));
         return this;
     }
 

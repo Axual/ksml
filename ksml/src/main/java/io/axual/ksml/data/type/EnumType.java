@@ -24,33 +24,31 @@ import java.util.Arrays;
 import java.util.Objects;
 
 public class EnumType extends SimpleType {
-    private final String name;
-    private final String[] possibleValues;
+    private final String[] symbols;
 
-    public EnumType(String name, String... possibleValues) {
+    public EnumType(String... symbols) {
         super(String.class);
-        this.name = name;
-        this.possibleValues = possibleValues;
+        this.symbols = symbols;
     }
 
-    public String[] possibleValues() {
-        return possibleValues;
+    public String[] symbols() {
+        return symbols;
     }
 
     @Override
     public String schemaName() {
-        return name != null && name.length() > 0 ? name : "Enum";
+        return "Enum";
     }
 
     @Override
     public boolean equals(Object other) {
         if (!super.equals(other)) return false;
         if (getClass() != other.getClass()) return false;
-        return Arrays.equals(possibleValues, ((EnumType) other).possibleValues);
+        return Arrays.equals(symbols, ((EnumType) other).symbols);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), Arrays.hashCode(possibleValues));
+        return Objects.hash(super.hashCode(), Arrays.hashCode(symbols));
     }
 }

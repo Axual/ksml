@@ -1,4 +1,4 @@
-package io.axual.ksml.definition;
+package io.axual.ksml.data.mapper;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,16 +20,10 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.schema.DataSchema;
 
-import io.axual.ksml.data.type.KeyValueType;
-import io.axual.ksml.data.type.UserType;
+public interface DataSchemaMapper<T> {
+    DataSchema toDataSchema(T value);
 
-import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_PARAMETERS;
-
-public class KeyValueTransformerDefinition extends FunctionDefinition {
-    public KeyValueTransformerDefinition(FunctionDefinition definition) {
-        super(definition
-                .withParameters(getParameters(definition.parameters, KEY_VALUE_PARAMETERS))
-                .withResult(new UserType(definition.resultType.notation(), KeyValueType.createFrom(definition.resultType.dataType()))));
-    }
+    Object fromDataSchema(DataSchema value);
 }

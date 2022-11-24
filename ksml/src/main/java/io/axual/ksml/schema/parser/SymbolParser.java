@@ -26,6 +26,6 @@ import io.axual.ksml.parser.YamlNode;
 public class SymbolParser extends BaseParser<String> {
     @Override
     public String parse(YamlNode node) {
-        return node.asText();
+        return node.asString();
     }
 }

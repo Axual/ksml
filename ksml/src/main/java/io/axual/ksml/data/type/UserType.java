@@ -21,9 +21,8 @@ package io.axual.ksml.data.type;
  */
 
 import io.axual.ksml.notation.BinaryNotation;
-import io.axual.ksml.schema.DataSchema;
 
-public record UserType(String notation, DataType dataType, DataSchema schema) {
+public record UserType(String notation, DataType dataType) {
     public static final String DEFAULT_NOTATION = BinaryNotation.NOTATION_NAME;
-    public static final UserType UNKNOWN = new UserType(DEFAULT_NOTATION, DataType.UNKNOWN, null);
+    public static final UserType UNKNOWN = new UserType(DEFAULT_NOTATION, DataType.UNKNOWN);
 }

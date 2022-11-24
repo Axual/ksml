@@ -53,7 +53,7 @@ public class WindowedByOperationParser extends OperationParser<WindowedByOperati
     @Override
     public WindowedByOperation parse(YamlNode node) {
         if (node == null) return null;
-        String windowType = parseText(node, WINDOWEDBY_WINDOWTYPE_ATTRIBUTE);
+        String windowType = parseString(node, WINDOWEDBY_WINDOWTYPE_ATTRIBUTE);
         if (windowType != null) {
             switch (windowType) {
                 case WINDOWEDBY_WINDOWTYPE_SESSION:

@@ -32,6 +32,11 @@ public class Tuple<T> {
         this.elements = List.of(elements);
     }
 
+    public List<T> elements() {
+        // Okay to return, since it this is an unmodifiable list
+        return elements;
+    }
+
     public T get(int index) {
         return elements.get(index);
     }

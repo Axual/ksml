@@ -49,7 +49,7 @@ public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition
     public FunctionDefinition parse(YamlNode node) {
         if (node == null) return null;
 
-        final String type = parseText(node, FUNCTION_TYPE);
+        final String type = parseString(node, FUNCTION_TYPE);
         if (type == null) {
             throw new KSMLParseException(node, "Type unspecified");
         }

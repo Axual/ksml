@@ -34,7 +34,7 @@ public class DataValueParser extends BaseParser<DataValue> {
         if (node.isInt()) return new DataValue(node.asInt());
         if (node.isLong()) return new DataValue(node.asLong());
         if (node.isDouble()) return new DataValue(node.asDouble());
-        if (node.isText()) return new DataValue(node.asText());
-        throw new KSMLParseException("Can not parse value type: " + node.asText());
+        if (node.isString()) return new DataValue(node.asString());
+        throw new KSMLParseException("Can not parse value type: " + node.asString());
     }
 }

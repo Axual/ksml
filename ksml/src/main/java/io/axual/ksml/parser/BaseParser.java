@@ -35,13 +35,8 @@ public abstract class BaseParser<T> {
         return child != null ? child.asBoolean() : null;
     }
 
-    protected boolean parseBoolean(YamlNode parent, String childName, boolean defaultValue) {
-        var result = parseBoolean(parent, childName);
-        return result != null ? result : defaultValue;
-    }
-
     protected Duration parseDuration(YamlNode parent, String childName) {
-        String durationStr = parseText(parent, childName);
+        String durationStr = parseString(parent, childName);
         if (durationStr == null) return null;
         durationStr = durationStr.toLowerCase().trim();
         if (durationStr.length() >= 2) {
@@ -83,13 +78,13 @@ public abstract class BaseParser<T> {
         return child != null ? child.asInt() : 0;
     }
 
-    protected String parseText(YamlNode parent, String childName) {
+    protected String parseString(YamlNode parent, String childName) {
         YamlNode child = parent.get(childName);
-        return child != null ? child.asText() : null;
+        return child != null ? child.asString() : null;
     }
 
     protected <S> S parseTextAndTransform(YamlNode parent, String childName, Function<String, S> transform) {
-        String result = parseText(parent, childName);
+        String result = parseString(parent, childName);
         return result != null ? transform.apply(result) : null;
     }
 }

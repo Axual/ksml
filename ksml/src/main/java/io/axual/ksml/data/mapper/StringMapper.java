@@ -1,10 +1,10 @@
-package io.axual.ksml.rest.data;
+package io.axual.ksml.data.mapper;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Queryable State Store
+ * KSML
  * %%
- * Copyright (C) 2021 Axual B.V.
+ * Copyright (C) 2021 - 2022 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,23 +20,8 @@ package io.axual.ksml.rest.data;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.annotation.JsonRootName;
+public interface StringMapper<T> {
+    T fromString(String value);
 
-import org.apache.kafka.streams.kstream.Windowed;
-
-import lombok.Data;
-
-@Data
-@JsonRootName("key")
-public class WindowedDataBean {
-    public WindowDataBean window;
-    public Object key;
-
-    public WindowedDataBean() {
-    }
-
-    public WindowedDataBean(Windowed<Object> data) {
-        window = new WindowDataBean(data.window());
-        key = data.key();
-    }
+    String toString(T value);
 }

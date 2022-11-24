@@ -51,10 +51,10 @@ import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.schema.DataSchema;
 import io.axual.ksml.schema.SchemaLibrary;
-import io.axual.ksml.schema.SchemaWriter;
 import io.axual.ksml.schema.StructSchema;
 
 public class NativeDataObjectMapper implements DataObjectMapper<Object> {
+    private static final NativeDataSchemaMapper SCHEMA_MAPPER = new NativeDataSchemaMapper();
 
     private DataType inferType(Object value) {
         if (value == null) return DataNull.DATATYPE;
@@ -74,7 +74,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
 
         if (value.getClass().isEnum()) return inferEnumType(value);
         if (value instanceof List<?> val) return inferListType(val);
-        if (value instanceof Map<?, ?> val) return new StructType();
+        if (value instanceof Map<?, ?> val) return inferStructType(val);
         if (value instanceof Tuple<?> val) return inferTupleType(val);
 
         return DataType.UNKNOWN;
@@ -82,11 +82,11 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
 
     private EnumType inferEnumType(Object value) {
         var enumConstants = value.getClass().getEnumConstants();
-        var possibleValues = new String[enumConstants.length];
-        for (int index = 0; index < possibleValues.length; index++) {
-            possibleValues[index] = enumConstants[index].toString();
+        var symbols = new String[enumConstants.length];
+        for (int index = 0; index < symbols.length; index++) {
+            symbols[index] = enumConstants[index].toString();
         }
-        return new EnumType(value.getClass().getSimpleName(), possibleValues);
+        return new EnumType(symbols);
     }
 
     private ListType inferListType(List<?> list) {
@@ -95,6 +95,10 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         // is empty, then use dataType UNKNOWN.
         if (list.isEmpty()) return new ListType(DataType.UNKNOWN);
         return new ListType(inferType(list.get(0)));
+    }
+
+    private StructType inferStructType(Map<?, ?> map) {
+        return inferStructType(map, null);
     }
 
     private StructType inferStructType(Map<?, ?> map, DataSchema expected) {
@@ -112,8 +116,8 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
             var typeName = map.get(STRUCT_TYPE_FIELD).toString();
             return SchemaLibrary.getSchema(typeName);
         } else if (map.containsKey(STRUCT_SCHEMA_FIELD)) {
-            var schemaStr = map.get(STRUCT_SCHEMA_FIELD).toString();
-            return SchemaWriter.read(schemaStr);
+            var nativeSchema = map.get(STRUCT_SCHEMA_FIELD);
+            return SCHEMA_MAPPER.toDataSchema(nativeSchema);
         }
         return expected;
     }
@@ -145,7 +149,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         throw new KSMLExecutionException("Can not convert to DataObject: " + value.getClass().getSimpleName());
     }
 
-    public DataList listToDataList(List<?> list) {
+    private DataList listToDataList(List<?> list) {
         DataList result = new DataList(list.isEmpty() ? DataType.UNKNOWN : inferType(list.get(0)), list.size());
         for (Object element : list) {
             result.add(toDataObject(element));
@@ -153,7 +157,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         return result;
     }
 
-    public DataObject mapToDataStruct(Map<?, ?> map, DataSchema schema) {
+    protected DataObject mapToDataStruct(Map<?, ?> map, DataSchema schema) {
         StructType type = inferStructType(map, schema);
         map.remove(STRUCT_SCHEMA_FIELD);
         map.remove(STRUCT_TYPE_FIELD);
@@ -164,7 +168,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         return result;
     }
 
-    public DataTuple tupleToDataTuple(Tuple<?> tuple) {
+    private DataTuple tupleToDataTuple(Tuple<?> tuple) {
         DataObject[] elements = new DataObject[tuple.size()];
         for (var index = 0; index < tuple.size(); index++) {
             elements[index] = toDataObject(tuple.get(index));
@@ -216,7 +220,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         var schema = value.type().schema();
         if (schema != null) {
             result.put(STRUCT_TYPE_FIELD, schema.name());
-            result.put(STRUCT_SCHEMA_FIELD, schema.toString());
+            result.put(STRUCT_SCHEMA_FIELD, SCHEMA_MAPPER.fromDataSchema(schema));
         }
         return result;
     }

@@ -20,18 +20,24 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 
-public interface DataObjectMapper<T> {
-    String STRUCT_SCHEMA_FIELD = "@schema";
-    String STRUCT_TYPE_FIELD = "@type";
+public class JsonNodeDataObjectMapper implements DataObjectMapper<JsonNode> {
+    private static final NativeJsonNodeMapper JSON_NODE_MAPPER = new NativeJsonNodeMapper();
+    private static final NativeDataObjectMapper DATA_OBJECT_MAPPER = new NativeDataObjectMapper();
 
-    default DataObject toDataObject(T value) {
-        return toDataObject(null, value);
+    @Override
+    public DataObject toDataObject(DataType expected, JsonNode value) {
+        var nativeObject = JSON_NODE_MAPPER.fromJsonNode(value);
+        return DATA_OBJECT_MAPPER.toDataObject(nativeObject);
     }
 
-    DataObject toDataObject(DataType expected, T value);
-
-    Object fromDataObject(DataObject value);
+    @Override
+    public Object fromDataObject(DataObject value) {
+        var nativeObject = DATA_OBJECT_MAPPER.fromDataObject(value);
+        return JSON_NODE_MAPPER.toJsonNode(nativeObject);
+    }
 }

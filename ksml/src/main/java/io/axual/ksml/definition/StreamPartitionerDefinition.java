@@ -30,6 +30,6 @@ public class StreamPartitionerDefinition extends FunctionDefinition {
     public StreamPartitionerDefinition(FunctionDefinition definition) {
         super(definition
                 .withParameters(getParameters(definition.parameters, STREAM_PARTITIONER_PARAMETERS))
-                .withResult(new UserType(definition.resultType.notation(), DataInteger.DATATYPE, null)));
+                .withResult(new UserType(definition.resultType.notation(), DataInteger.DATATYPE)));
     }
 }

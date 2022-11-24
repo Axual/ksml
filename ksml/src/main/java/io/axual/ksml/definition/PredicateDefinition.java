@@ -30,6 +30,6 @@ public class PredicateDefinition extends FunctionDefinition {
     public PredicateDefinition(FunctionDefinition definition) {
         super(definition
                 .withParameters(getParameters(definition.parameters, KEY_VALUE_PARAMETERS))
-                .withResult(new UserType(definition.resultType.notation(), DataBoolean.DATATYPE, null)));
+                .withResult(new UserType(definition.resultType.notation(), DataBoolean.DATATYPE)));
     }
 }

@@ -22,13 +22,8 @@ package io.axual.ksml.rest.data;
 
 import org.apache.kafka.streams.kstream.Window;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-@Getter
-@NoArgsConstructor
 public class WindowedKeyValueBean extends KeyValueBean {
-    private WindowDataBean window;
+    public final WindowDataBean window;
 
     public WindowedKeyValueBean(Window window, Object key, Object value) {
         this(new WindowDataBean(window), key, value);

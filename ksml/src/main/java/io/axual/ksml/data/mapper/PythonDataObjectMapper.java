@@ -163,11 +163,6 @@ public class PythonDataObjectMapper implements DataObjectMapper<Value> {
     }
 
     @Override
-    public DataObject toDataObject(Value object) {
-        throw new KSMLExecutionException("Use PythonDataMapper::toDataObject(value, expectedType)");
-    }
-
-    @Override
     public Value fromDataObject(DataObject object) {
         if (object instanceof DataNull) return Value.asValue(null);
         if (object instanceof DataBoolean val) return Value.asValue(val.value());
@@ -182,7 +177,8 @@ public class PythonDataObjectMapper implements DataObjectMapper<Value> {
         if (object instanceof DataList val)
             return Value.asValue(nativeDataMapper.dataListToList(val));
         if (object instanceof DataStruct) {
-            return context.eval("python", jsonDataMapper.fromDataObject(object));
+            var value = jsonDataMapper.fromDataObject(object);
+            return context.eval("python", value);
         }
         throw new KSMLExecutionException("Can not convert DataObject to Python dataType: " + object.getClass().getSimpleName());
     }

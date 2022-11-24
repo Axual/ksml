@@ -1,10 +1,10 @@
-package io.axual.ksml.definition;
+package io.axual.ksml.data.mapper;
 
 /*-
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 Axual B.V.
+ * Copyright (C) 2021 - 2022 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,10 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.parser.YamlNode;
 
-import io.axual.ksml.data.type.KeyValueType;
-import io.axual.ksml.data.type.UserType;
+public interface YamlNodeMapper<T> {
+    YamlNode toYamlNode(T value);
 
-import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_PARAMETERS;
-
-public class KeyValueTransformerDefinition extends FunctionDefinition {
-    public KeyValueTransformerDefinition(FunctionDefinition definition) {
-        super(definition
-                .withParameters(getParameters(definition.parameters, KEY_VALUE_PARAMETERS))
-                .withResult(new UserType(definition.resultType.notation(), KeyValueType.createFrom(definition.resultType.dataType()))));
-    }
+    T fromYamlNode(YamlNode node);
 }

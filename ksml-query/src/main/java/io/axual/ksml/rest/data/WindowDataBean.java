@@ -26,13 +26,10 @@ import lombok.Getter;
 
 @Getter
 public class WindowDataBean {
-    private long start;
-    private long end;
-    private String startTime;
-    private String endTime;
-
-    public WindowDataBean() {
-    }
+    public final long start;
+    public final long end;
+    public final String startTime;
+    public final String endTime;
 
     public WindowDataBean(Window window) {
         this.start = window.start();

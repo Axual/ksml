@@ -23,15 +23,19 @@ package io.axual.ksml.schema.parser;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.schema.FixedSchema;
-import io.axual.ksml.schema.SchemaWriter;
+
+import static io.axual.ksml.data.mapper.DataSchemaConstants.FIXEDSCHEMA_SIZE_FIELD;
+import static io.axual.ksml.data.mapper.DataSchemaConstants.NAMEDSCHEMA_DOC_FIELD;
+import static io.axual.ksml.data.mapper.DataSchemaConstants.NAMEDSCHEMA_NAMESPACE_FIELD;
+import static io.axual.ksml.data.mapper.DataSchemaConstants.NAMEDSCHEMA_NAME_FIELD;
 
 public class FixedSchemaParser extends BaseParser<FixedSchema> {
     @Override
     public FixedSchema parse(YamlNode node) {
         return new FixedSchema(
-                parseText(node,SchemaWriter.NAMEDSCHEMA_NAMESPACE_FIELD),
-                parseText(node,SchemaWriter.NAMEDSCHEMA_NAME_FIELD),
-                parseText(node,SchemaWriter.NAMEDSCHEMA_DOC_FIELD),
-                parseInteger(node,SchemaWriter.FIXEDSCHEMA_SIZE_FIELD));
+                parseString(node, NAMEDSCHEMA_NAMESPACE_FIELD),
+                parseString(node, NAMEDSCHEMA_NAME_FIELD),
+                parseString(node, NAMEDSCHEMA_DOC_FIELD),
+                parseInteger(node, FIXEDSCHEMA_SIZE_FIELD));
     }
 }

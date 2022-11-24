@@ -27,9 +27,9 @@ import io.axual.ksml.schema.StructSchema;
 public class StructSchemaParser extends BaseParser<StructSchema> {
     @Override
     public StructSchema parse(YamlNode node) {
-        var namespace = node.get("namespace").asText();
-        var name = node.get("name").asText();
-        var doc = node.get("doc").asText();
+        var namespace = node.get("namespace").asString();
+        var name = node.get("name").asString();
+        var doc = node.get("doc").asString();
         var fields = new DataFieldsParser().parse(node);
         return new StructSchema(namespace, name, doc, fields);
     }

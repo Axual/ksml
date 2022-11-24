@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.axual.ksml.exception.KSMLExecutionException;
+
 // This class helps to track the location of syntax/parsing errors in the YAML by maintaining a
 // list of direct parents to a certain JsonNode.
 public class YamlNode {
@@ -103,10 +105,6 @@ public class YamlNode {
         return result;
     }
 
-    public boolean isArray() {
-        return node.isArray();
-    }
-
     public boolean isNull() {
         return node.isNull();
     }
@@ -119,12 +117,12 @@ public class YamlNode {
         return node.asBoolean();
     }
 
-    public boolean isDouble() {
-        return node.isDouble();
+    public boolean isShort() {
+        return node.isShort();
     }
 
-    public double asDouble() {
-        return node.asDouble();
+    public short asShort() {
+        return node.numberValue().shortValue();
     }
 
     public boolean isInt() {
@@ -132,7 +130,7 @@ public class YamlNode {
     }
 
     public int asInt() {
-        return node.asInt();
+        return node.intValue();
     }
 
     public boolean isLong() {
@@ -140,19 +138,51 @@ public class YamlNode {
     }
 
     public long asLong() {
-        return node.asLong();
+        return node.longValue();
+    }
+
+    public boolean isDouble() {
+        return node.isDouble();
+    }
+
+    public double asDouble() {
+        return node.doubleValue();
+    }
+
+    public boolean isFloat() {
+        return node.isFloat();
+    }
+
+    public float asFloat() {
+        return node.floatValue();
+    }
+
+    public boolean isBytes() {
+        return node.isBinary();
+    }
+
+    public byte[] asBytes() {
+        try {
+            return node.binaryValue();
+        } catch (Exception e) {
+            throw new KSMLExecutionException("Can not convert node to bytes", e);
+        }
+    }
+
+    public boolean isString() {
+        return node.isTextual();
+    }
+
+    public String asString() {
+        return node.textValue();
+    }
+
+    public boolean isArray() {
+        return node.isArray();
     }
 
     public boolean isObject() {
         return node.isObject();
-    }
-
-    public boolean isText() {
-        return node.isTextual();
-    }
-
-    public String asText() {
-        return node.asText();
     }
 
     public boolean childIsText(String childName) {

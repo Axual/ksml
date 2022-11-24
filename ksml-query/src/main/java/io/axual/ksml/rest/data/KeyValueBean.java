@@ -22,14 +22,10 @@ package io.axual.ksml.rest.data;
 
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.util.DataUtil;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-@Getter
-@NoArgsConstructor
 public class KeyValueBean {
-    private DataObject key;
-    private DataObject value;
+    public final DataObject key;
+    public final DataObject value;
 
     public KeyValueBean(Object key, Object value) {
         this.key = DataUtil.asDataObject(key);

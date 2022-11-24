@@ -20,6 +20,7 @@ package io.axual.ksml.schema;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -33,7 +34,7 @@ public class EnumSchema extends NamedSchema {
 
     public EnumSchema(String namespace, String name, String doc, List<String> possibleValues, String defaultValue) {
         super(Type.ENUM, namespace, name, doc);
-        this.possibleValues = possibleValues;
+        this.possibleValues = Collections.unmodifiableList(possibleValues);
         this.defaultValue = defaultValue;
     }
 

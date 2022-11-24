@@ -32,7 +32,6 @@ import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.SimpleType;
 import io.axual.ksml.data.value.Null;
-import io.axual.ksml.schema.DataSchema;
 import io.axual.ksml.serde.NullDeserializer;
 import io.axual.ksml.serde.NullSerializer;
 import io.axual.ksml.util.DataUtil;
@@ -54,7 +53,7 @@ public class BinaryNotation implements Notation {
     }
 
     @Override
-    public Serde<Object> getSerde(DataType type, DataSchema schema, boolean isKey) {
+    public Serde<Object> getSerde(DataType type, boolean isKey) {
         if (type instanceof SimpleType) {
             if (type.containerClass() == Null.class) {
                 var result = new BinarySerde(Serdes.serdeFrom(new NullSerializer(), new NullDeserializer()));
@@ -66,7 +65,7 @@ public class BinaryNotation implements Notation {
             return result;
         }
         // If not a simple dataType, then rely on JSON encoding
-        return jsonNotation.getSerde(type, schema, isKey);
+        return jsonNotation.getSerde(type, isKey);
     }
 
     private static class BinarySerde implements Serde<Object> {

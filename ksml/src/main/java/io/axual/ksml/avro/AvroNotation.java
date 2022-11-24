@@ -32,7 +32,6 @@ import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.notation.Notation;
-import io.axual.ksml.schema.DataSchema;
 import io.axual.ksml.util.DataUtil;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
@@ -52,7 +51,7 @@ public class AvroNotation implements Notation {
     }
 
     @Override
-    public Serde<Object> getSerde(DataType type, DataSchema schema, boolean isKey) {
+    public Serde<Object> getSerde(DataType type, boolean isKey) {
         if (type instanceof MapType) {
             var result = new AvroSerde();
             result.configure(configs, isKey);

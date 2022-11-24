@@ -34,7 +34,7 @@ public class ParameterDefinitionParser extends BaseParser<ParameterDefinition> {
     public ParameterDefinition parse(YamlNode node) {
         if (node == null) return null;
         return new ParameterDefinition(
-                parseText(node, FUNCTION_PARAMETER_NAME),
-                UserTypeParser.parse(parseText(node, FUNCTION_PARAMETER_TYPE)).dataType());
+                parseString(node, FUNCTION_PARAMETER_NAME),
+                UserTypeParser.parse(parseString(node, FUNCTION_PARAMETER_TYPE)).dataType());
     }
 }

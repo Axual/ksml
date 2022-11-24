@@ -20,8 +20,6 @@ package io.axual.ksml.rest.server;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.StoreQueryParameters;
@@ -41,8 +39,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Path("state/keyvalue")
 public class KeyValueStoreResource extends StoreResource {
-    private final ObjectMapper mapper = new ObjectMapper();
-
     /**
      * Get all the key-value pairs available in a store
      *

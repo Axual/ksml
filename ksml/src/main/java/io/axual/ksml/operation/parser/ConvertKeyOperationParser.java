@@ -40,7 +40,7 @@ public class ConvertKeyOperationParser extends OperationParser<ConvertKeyOperati
     @Override
     public ConvertKeyOperation parse(YamlNode node) {
         if (node == null) return null;
-        UserType target = UserTypeParser.parse(parseText(node, CONVERT_INTO_ATTRIBUTE));
+        UserType target = UserTypeParser.parse(parseString(node, CONVERT_INTO_ATTRIBUTE));
         return new ConvertKeyOperation(operationConfig(name), target);
     }
 }

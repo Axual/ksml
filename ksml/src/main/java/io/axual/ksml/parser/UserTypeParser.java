@@ -33,6 +33,7 @@ import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.EnumType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.UnionType;
@@ -49,17 +50,18 @@ import static io.axual.ksml.data.type.UserType.UNKNOWN;
 
 public class UserTypeParser {
     private static final String NOTATION_SEPARATOR = ":";
+    private static final String DOUBLE_QUOTE = "\"";
     private static final String TYPE_SEPARATOR = ",";
     private static final String ROUND_BRACKET_OPEN = "(";
     private static final String ROUND_BRACKET_CLOSE = ")";
     private static final String SQUARE_BRACKET_OPEN = "[";
     private static final String SQUARE_BRACKET_CLOSE = "]";
-    private static final String WINDOWED_TYPE = "windowed";
+    private static final String ENUM_TYPE = "enum";
     private static final String UNION_TYPE = "union";
+    private static final String WINDOWED_TYPE = "windowed";
     private static final String UNKNOWN_TYPE = "?";
-    private static final String ALLOWED_TYPE_CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"
-            + NOTATION_SEPARATOR
-            + UNKNOWN_TYPE;
+    private static final String ALLOWED_LITERAL_CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
+    private static final String ALLOWED_TYPE_CHARACTERS = ALLOWED_LITERAL_CHARACTERS + NOTATION_SEPARATOR + UNKNOWN_TYPE;
 
     private UserTypeParser() {
     }
@@ -120,7 +122,7 @@ public class UserTypeParser {
                 throw new KSMLParseException("Error in dataType: " + type);
             }
             var valueType = parseTypeAndNotation(type.substring(1, type.length() - 1), resultNotation, false);
-            return new UserType(valueType.notation(), new ListType(valueType.dataType()), null);
+            return new UserType(valueType.notation(), new ListType(valueType.dataType()));
         }
 
         // Tuple type
@@ -129,19 +131,25 @@ public class UserTypeParser {
                 throw new KSMLParseException("Error in dataType: " + type);
             }
             var valueTypes = parseListOfTypesAndNotation(type.substring(1, type.length() - 1), resultNotation, false);
-            return new UserType(resultNotation, new UserTupleType(valueTypes), null);
+            return new UserType(resultNotation, new UserTupleType(valueTypes));
         }
 
-        // windowed(type)
-        if (type.startsWith(WINDOWED_TYPE + ROUND_BRACKET_OPEN) && type.endsWith(ROUND_BRACKET_CLOSE)) {
-            type = type.substring(WINDOWED_TYPE.length() + 1, type.length() - 1);
-            return new UserType(resultNotation, new WindowedType(parseType(type)), null);
+        // enum(literal1,literal2,...)
+        if (type.startsWith(ENUM_TYPE + ROUND_BRACKET_OPEN) && type.endsWith(ROUND_BRACKET_CLOSE)) {
+            var literals = type.substring(ENUM_TYPE.length() + 1, type.length() - 1);
+            return new UserType(resultNotation, new EnumType(parseListOfLiterals(literals)));
         }
 
         // union(type1,type2,...)
         if (type.startsWith(UNION_TYPE + ROUND_BRACKET_OPEN) && type.endsWith(ROUND_BRACKET_CLOSE)) {
             type = type.substring(UNION_TYPE.length() + 1, type.length() - 1);
-            return new UserType(resultNotation, new UnionType(parseListOfTypesAndNotation(type, resultNotation, true)), null);
+            return new UserType(resultNotation, new UnionType(parseListOfTypesAndNotation(type, resultNotation, true)));
+        }
+
+        // windowed(type)
+        if (type.startsWith(WINDOWED_TYPE + ROUND_BRACKET_OPEN) && type.endsWith(ROUND_BRACKET_CLOSE)) {
+            type = type.substring(WINDOWED_TYPE.length() + 1, type.length() - 1);
+            return new UserType(resultNotation, new WindowedType(parseType(type)));
         }
 
         // AVRO with schema
@@ -149,40 +157,55 @@ public class UserTypeParser {
             var schema = SchemaLibrary.getSchema(type, false);
             if (!(schema instanceof StructSchema structSchema))
                 throw new KSMLParseException("Schema definition is not a STRUCT: " + type);
-            return new UserType(AvroNotation.NOTATION_NAME, new StructType(structSchema), schema);
+            return new UserType(AvroNotation.NOTATION_NAME, new StructType(structSchema));
         }
 
         // AVRO without schema
         if (type.equalsIgnoreCase(AvroNotation.NOTATION_NAME)) {
-            return new UserType(AvroNotation.NOTATION_NAME, new StructType(), null);
+            return new UserType(AvroNotation.NOTATION_NAME, new StructType());
         }
 
         // JSON with schema
         if (typeNotation.equalsIgnoreCase(JsonNotation.NOTATION_NAME)) {
-            return new UserType(JsonNotation.NOTATION_NAME, new StructType(), null);
+            return new UserType(JsonNotation.NOTATION_NAME, new StructType());
         }
 
         // JSON without schema
         if (type.equalsIgnoreCase(JsonNotation.NOTATION_NAME)) {
-            return new UserType(JsonNotation.NOTATION_NAME, new StructType(), null);
+            return new UserType(JsonNotation.NOTATION_NAME, new StructType());
         }
 
-        return new UserType(resultNotation, parseType(type), null);
+        return new UserType(resultNotation, parseType(type));
+    }
+
+    private static String[] parseListOfLiterals(String literals) {
+        // Literals are optionally double-quoted
+        var splitLiterals = literals.split(TYPE_SEPARATOR);
+        var result = new String[splitLiterals.length];
+        for (int index = 0; index < splitLiterals.length; index++) {
+            var literal = splitLiterals[index];
+            if (literal.length() > 2 && literal.startsWith(DOUBLE_QUOTE) && literal.endsWith(DOUBLE_QUOTE)) {
+                literal = literal.substring(1, literal.length() - 2);
+            }
+            result[index] = literal;
+        }
+        return result;
     }
 
     private static DataType parseType(String type) {
         return switch (type) {
+            case "null", "none" -> DataNull.DATATYPE;
             case "boolean" -> DataBoolean.DATATYPE;
             case "byte" -> DataByte.DATATYPE;
-            case "bytes" -> DataBytes.DATATYPE;
             case "short" -> DataShort.DATATYPE;
             case "double" -> DataDouble.DATATYPE;
             case "float" -> DataFloat.DATATYPE;
-            case "int" -> DataInteger.DATATYPE;
+            case "int", "integer" -> DataInteger.DATATYPE;
             case "long" -> DataLong.DATATYPE;
-            case "?" -> DataType.UNKNOWN;
-            case "none", "null" -> DataNull.DATATYPE;
-            case "str", "string" -> DataString.DATATYPE;
+            case "bytes" -> DataBytes.DATATYPE;
+            case "string", "str" -> DataString.DATATYPE;
+            case "struct" -> new StructType();
+            case UNKNOWN_TYPE -> DataType.UNKNOWN;
             default -> throw new KSMLTopologyException("Can not derive dataType: " + type);
         };
     }

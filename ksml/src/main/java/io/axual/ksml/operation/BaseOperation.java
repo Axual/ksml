@@ -96,7 +96,7 @@ public class BaseOperation implements StreamOperation {
     }
 
     protected StreamDataType streamDataTypeOf(String notationName, DataType dataType, DataSchema schema, boolean isKey) {
-        return new StreamDataType(notationLibrary, new UserType(notationName, dataType, schema), isKey);
+        return new StreamDataType(notationLibrary, new UserType(notationName, dataType), isKey);
     }
 
     protected StreamDataType streamDataTypeOf(UserType userType, boolean isKey) {

@@ -40,7 +40,7 @@ public class ConvertValueOperationParser extends OperationParser<ConvertValueOpe
     @Override
     public ConvertValueOperation parse(YamlNode node) {
         if (node == null) return null;
-        UserType target = UserTypeParser.parse(parseText(node, CONVERT_INTO_ATTRIBUTE));
+        UserType target = UserTypeParser.parse(parseString(node, CONVERT_INTO_ATTRIBUTE));
         return new ConvertValueOperation(operationConfig(name), target);
     }
 }

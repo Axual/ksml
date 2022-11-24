@@ -1,4 +1,4 @@
-package io.axual.ksml.data.object;
+package io.axual.ksml.util;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,21 +20,31 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.EnumType;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.StringWriter;
+import java.io.Writer;
+
 import io.axual.ksml.exception.KSMLExecutionException;
 
-public class DataEnum extends DataPrimitive<String> {
-    public DataEnum(String value, EnumType type) {
-        super(type, value);
-        if (!validateValue(value)) {
-            throw new KSMLExecutionException("Invalid enum value for type " + type.schemaName() + ": " + value);
-        }
+public class JsonUtil {
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    private JsonUtil() {
     }
 
-    private boolean validateValue(String value) {
-        for (String symbol : ((EnumType) type()).symbols()) {
-            if (symbol.equals(value)) return true;
+    public static String jsonToString(JsonNode node) {
+        JsonFactory jsonFactory = new JsonFactory();
+        Writer writer = new StringWriter();
+        try {
+            JsonGenerator jsonGenerator = jsonFactory.createGenerator(writer);
+            MAPPER.writeTree(jsonGenerator, node);
+        } catch (Exception e) {
+            throw new KSMLExecutionException("Could not write json as string");
         }
-        return false;
+        return writer.toString();
     }
 }

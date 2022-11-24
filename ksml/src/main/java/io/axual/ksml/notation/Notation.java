@@ -23,10 +23,9 @@ package io.axual.ksml.notation;
 import org.apache.kafka.common.serialization.Serde;
 
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.schema.DataSchema;
 
 public interface Notation {
     String name();
 
-    Serde<Object> getSerde(DataType type, DataSchema schema, boolean isKey);
+    Serde<Object> getSerde(DataType type, boolean isKey);
 }

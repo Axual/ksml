@@ -24,18 +24,19 @@ import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.schema.DataSchema;
-import io.axual.ksml.schema.SchemaWriter;
+
+import static io.axual.ksml.data.mapper.DataSchemaConstants.DATASCHEMA_TYPE_FIELD;
 
 public class DataSchemaTypeParser extends BaseParser<DataSchema.Type> {
     @Override
     public DataSchema.Type parse(YamlNode node) {
         if (node.isArray()) return DataSchema.Type.UNION;
         if (node.isObject()) {
-            var subtype = parseText(node, SchemaWriter.DATASCHEMA_TYPE_FIELD);
+            var subtype = parseString(node, DATASCHEMA_TYPE_FIELD);
             return parseType(node, subtype);
         }
-        if (node.isText()) {
-            return parseType(node, node.asText());
+        if (node.isString()) {
+            return parseType(node, node.asString());
         }
         return canNotParse(node);
     }
