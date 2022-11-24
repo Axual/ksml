@@ -21,9 +21,9 @@ package io.axual.ksml.data.mapper;
  */
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
@@ -55,6 +55,7 @@ import io.axual.ksml.schema.StructSchema;
 
 public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     private static final NativeDataSchemaMapper SCHEMA_MAPPER = new NativeDataSchemaMapper();
+    private static final AttributeComparator COMPARATOR = new AttributeComparator();
 
     private DataType inferType(Object value) {
         if (value == null) return DataNull.DATATYPE;
@@ -213,7 +214,9 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     }
 
     public Map<String, Object> dataStructToMap(DataStruct value) {
-        Map<String, Object> result = new HashMap<>();
+        // To make external representations look nice, we return a sorted map. Sorting is done
+        // based on keys, where "normal" keys are always sorted before "meta" keys.
+        Map<String, Object> result = new TreeMap<>(COMPARATOR);
         for (Map.Entry<String, DataObject> entry : value.entrySet()) {
             result.put(entry.getKey(), fromDataObject(entry.getValue()));
         }

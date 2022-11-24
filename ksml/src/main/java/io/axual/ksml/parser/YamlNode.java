@@ -174,7 +174,7 @@ public class YamlNode {
     }
 
     public String asString() {
-        return node.textValue();
+        return node.asText();
     }
 
     public boolean isArray() {
