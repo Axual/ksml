@@ -35,17 +35,15 @@ functions:
   # last code line below.
   remove_color:
     type: valueTransformer
-    globalCode: |
-      import json
     code: |
       if value != None:
         del value["@type"] # Remove preloaded type information from the value, so KSML does not associate it with an internally cached schema
-        schema = json.loads(value["@schema"])
+        schema = value["@schema"]
         schema["name"] = schema["name"] + "NoColor"
         for index, field in reversed(list(enumerate(schema["fields"]))):
           if field["name"] == "color":
             del schema["fields"][index]
-        value["@schema"] = json.dumps(schema)
+        value["@schema"] = schema
         del value["color"]
     expression: value
     resultType: avro:SensorDataNoColor
