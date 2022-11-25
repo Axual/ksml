@@ -58,43 +58,57 @@ public class PythonFunction extends UserFunction {
         // Prepare a list of parameter names
         String[] params = Arrays.stream(parameters).map(ParameterDefinition::name).toArray(String[]::new);
 
-        // Prepare the Python code to load
-        String pyCode = "import polyglot\n" +
-                "import java\n" +
-                "ArrayList = java.type('java.util.ArrayList')\n" +
-                "HashMap = java.type('java.util.HashMap')\n" +
-                String.join("\n", definition.globalCode) + "\n" +
-                "@polyglot.export_value\n" +
-                "def " + name + "_function(" + String.join(",", params) + "):\n" +
+        // prepare globalCode from the function definition
+        final var globalCode = String.join("\n", definition.globalCode) + "\n";
+
+        // prepare function (if any) and expression from the function definition
+        final var functionAndExpression = "def " + name + "_function(" + String.join(",", params) + "):\n" +
                 String.join("\n", functionCode) + "\n" +
                 "  return" + (resultType != null ? " " + definition.expression : "") + "\n" +
-                "\n" +
-                "def convert_to(value):\n" +
-                "  print('In convert_to: ')\n" +
-                "  print(value)\n" +
-                "  return value\n" +
-                "\n" +
-                "def convert_from(value):\n" +
-//                "  print('In convert_from: ')\n" +
-//                "  print(value)\n" +
-                "  if isinstance(value, (list, tuple)):\n" +
-//                "    print('Converting list')\n" +
-                "    result = ArrayList()\n" +
-                "    for e in value:\n" +
-                "      result.add(convert_from(e))\n" +
-                "    return result\n" +
-                "  if type(value) is dict:\n" +
-//                "    print('Converting dict')\n" +
-                "    result = HashMap()\n" +
-                "    for k, v in value.items():\n" +
-                "      result.put(convert_from(k),convert_from(v))\n" +
-                "    return result\n" +
-                "  return value\n" +
-                "\n" +
-                "@polyglot.export_value\n" +
-                "def " + name + "_caller(" + String.join(",", params) + "):\n" +
+                "\n";
+
+        // prepare the actual caller for the code
+        final var pyCallerCode = "def " + name + "_caller(" + String.join(",", params) + "):\n  " +
                 "  return convert_from(" + name + "_function(" + String.join(",", params) + "))\n";
 
+        final var pythonCodeTemplate = """
+                import polyglot
+                import java
+                
+                ArrayList = java.type('java.util.ArrayList')
+                HashMap = java.type('java.util.HashMap')
+                
+                # global Python code goes here (first argument)
+                %1$s
+                
+                # function definition and expression go here (second argument)
+                @polyglot.export_value
+                %2$s
+                
+                def convert_to(value):
+                  print('In convert_to: ')
+                  print(value)
+                  return value
+                  
+                def convert_from(value):
+                  if isinstance(value, (list, tuple)):
+                    result = ArrayList()
+                    for e in value:
+                      result.add(convert_from(e))
+                    return result
+                  if type(value) is dict:
+                    result = HashMap()
+                    for k, v in value.items():
+                      result.put(convert_from(k), convert_from(v))
+                    return result
+                  return value
+                  
+                # caller definition goes here (third argument)
+                @polyglot.export_value
+                %3$s  
+                """;
+
+        final var pyCode = pythonCodeTemplate.formatted(globalCode, functionAndExpression, pyCallerCode);
         Source script = Source.create(PYTHON, pyCode);
         context.eval(script);
         function = context.getPolyglotBindings().getMember(name + "_caller");
