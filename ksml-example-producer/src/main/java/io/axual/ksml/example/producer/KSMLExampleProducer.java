@@ -70,6 +70,27 @@ public class KSMLExampleProducer {
         return configs;
     }
 
+    private static boolean produceMessage(Producer<String, SensorData> producer, long iteration) {
+        log.info("Producing: {}", iteration);
+        String sensorName = "sensor" + (iteration % 10);
+        String key = (iteration % 2) == 0 ? sensorName : null;
+        Future<RecordMetadata> future = producer.send(
+                new ProducerRecord<>(
+                        "ksml_sensordata_avro",
+                        key,
+                        (iteration % 3) != 0 ? SensorDataGenerator.generateValue(sensorName) : null
+                ));
+        try {
+            RecordMetadata message = future.get();
+            log.info("Produced message to topic {} partition {} offset {}", message.topic(), message.partition(), message.offset());
+            return true;
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("Interrupted!", e);
+            Thread.currentThread().interrupt();
+            return false;
+        }
+    }
+
     public static void main(String[] args) {
         var useAxual = false;
         String configFileName = DEFAULT_CONFIG_FILE_SHORT;
@@ -115,27 +136,8 @@ public class KSMLExampleProducer {
         try {
             try (final Producer<String, SensorData> producer = factory.create(getGenericConfigs())) {
                 long index = 0;
-                boolean interrupted = false;
-                while (!interrupted) {
-                    log.info("Producing: {}", index);
-                    String sensorName = "sensor" + (index % 10);
-                    String key = (index % 2) == 0 ? sensorName : null;
-                    Future<RecordMetadata> future = producer.send(
-                            new ProducerRecord<>(
-                                    "ksml_sensordata_avro",
-                                    key,
-                                    (index % 3) != 0 ? SensorDataGenerator.generateValue(sensorName) : null
-                            ));
-                    try {
-                        RecordMetadata message = future.get();
-                        log.info("Produced message to topic {} partition {} offset {}", message.topic(), message.partition(), message.offset());
-                        Utils.sleep(500);
-                    } catch (InterruptedException | ExecutionException e) {
-                        log.error("Interrupted!", e);
-                        interrupted = true;
-                        Thread.currentThread().interrupt();
-                    }
-
+                while (produceMessage(producer, index)) {
+                    Utils.sleep(500);
                     index++;
                 }
             }

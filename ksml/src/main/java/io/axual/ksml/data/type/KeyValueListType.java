@@ -29,7 +29,8 @@ public class KeyValueListType extends ListType {
         return ((KeyValueType) valueType()).keyType();
     }
 
+    @Override
     public DataType valueType() {
-        return ((KeyValueType) valueType()).valueType();
+        return ((KeyValueType) super.valueType()).valueType();
     }
 }

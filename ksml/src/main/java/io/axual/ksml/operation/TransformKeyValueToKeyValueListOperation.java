@@ -52,8 +52,8 @@ public class TransformKeyValueToKeyValueListOperation extends BaseOperation {
 
             return new KStreamWrapper(
                     input.stream.flatMap(new UserKeyValueToKeyValueListTransformer(transformer), Named.as(name)),
-                    streamDataTypeOf(resultKeyNotation, resultKeyType, null, true),
-                    streamDataTypeOf(resultValueNotation, resultValueType, null, false));
+                    streamDataTypeOf(resultKeyNotation, resultKeyType, true),
+                    streamDataTypeOf(resultValueNotation, resultValueType, false));
         }
         throw new KSMLExecutionException("ResultType of keyValueToKeyValueListTransformer not correctly specified");
     }

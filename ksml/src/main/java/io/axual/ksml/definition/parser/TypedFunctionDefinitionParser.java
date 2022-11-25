@@ -21,7 +21,6 @@ package io.axual.ksml.definition.parser;
  */
 
 
-
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.parser.BaseParser;
@@ -63,37 +62,21 @@ public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition
     }
 
     private BaseParser<? extends FunctionDefinition> getParser(String type) {
-        switch (type) {
-            case FUNCTION_TYPE_AGGREGATOR:
-                return new AggregatorDefinitionParser();
-            case FUNCTION_TYPE_FOREACHACTION:
-                return new ForEachActionDefinitionParser();
-            case FUNCTION_TYPE_INITIALIZER:
-                return new InitializerDefinitionParser();
-            case FUNCTION_TYPE_KEYTRANSFORMER:
-                return new KeyTransformerDefinitionParser();
-            case FUNCTION_TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER:
-                return new KeyValueToKeyValueListTransformerDefinitionParser();
-            case FUNCTION_TYPE_KEYVALUETOVALUELISTTRANSFORMER:
-                return new KeyValueToValueListTransformerDefinitionParser();
-            case FUNCTION_TYPE_KEYVALUEMAPPER:
-            case FUNCTION_TYPE_KEYVALUETRANSFORMER:
-                return new KeyValueTransformerDefinitionParser();
-            case FUNCTION_TYPE_MERGER:
-                return new MergerDefinitionParser();
-            case FUNCTION_TYPE_PREDICATE:
-                return new PredicateDefinitionParser();
-            case FUNCTION_TYPE_VALUEJOINER:
-            case FUNCTION_TYPE_REDUCER:
-                return new ReducerDefinitionParser();
-            case FUNCTION_TYPE_STREAMPARTITIONER:
-                return new StreamPartitionerDefinitionParser();
-            case FUNCTION_TYPE_TOPICNAMEEXTRACTOR:
-                return new TopicNameExtractorDefinitionParser();
-            case FUNCTION_TYPE_VALUETRANSFORMER:
-                return new ValueTransformerDefinitionParser();
-            default:
-                return null;
-        }
+        return switch (type) {
+            case FUNCTION_TYPE_AGGREGATOR -> new AggregatorDefinitionParser();
+            case FUNCTION_TYPE_FOREACHACTION -> new ForEachActionDefinitionParser();
+            case FUNCTION_TYPE_INITIALIZER -> new InitializerDefinitionParser();
+            case FUNCTION_TYPE_KEYTRANSFORMER -> new KeyTransformerDefinitionParser();
+            case FUNCTION_TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER -> new KeyValueToKeyValueListTransformerDefinitionParser();
+            case FUNCTION_TYPE_KEYVALUETOVALUELISTTRANSFORMER -> new KeyValueToValueListTransformerDefinitionParser();
+            case FUNCTION_TYPE_KEYVALUEMAPPER, FUNCTION_TYPE_KEYVALUETRANSFORMER -> new KeyValueTransformerDefinitionParser();
+            case FUNCTION_TYPE_MERGER -> new MergerDefinitionParser();
+            case FUNCTION_TYPE_PREDICATE -> new PredicateDefinitionParser();
+            case FUNCTION_TYPE_VALUEJOINER, FUNCTION_TYPE_REDUCER -> new ReducerDefinitionParser();
+            case FUNCTION_TYPE_STREAMPARTITIONER -> new StreamPartitionerDefinitionParser();
+            case FUNCTION_TYPE_TOPICNAMEEXTRACTOR -> new TopicNameExtractorDefinitionParser();
+            case FUNCTION_TYPE_VALUETRANSFORMER -> new ValueTransformerDefinitionParser();
+            default -> null;
+        };
     }
 }

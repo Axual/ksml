@@ -20,6 +20,9 @@ package io.axual.ksml.data.value;
  * =========================LICENSE_END==================================
  */
 
-public interface Null {
-    Null NULL = null;
+public class Null {
+    private Null() {
+    }
+
+    public static final Null NULL = null;
 }

@@ -87,63 +87,31 @@ public class PipelineOperationParser extends ContextAwareParser<StreamOperation>
     }
 
     private BaseParser<? extends StreamOperation> getParser(String type, String name) {
-        switch (type) {
-            case OPERATION_AGGREGATE_TYPE:
-                return new AggregateOperationParser(name, context);
-            case OPERATION_CONVERTKEY_TYPE:
-                return new ConvertKeyOperationParser(name, context);
-            case OPERATION_CONVERTVALUE_TYPE:
-                return new ConvertValueOperationParser(name, context);
-            case OPERATION_COUNT_TYPE:
-                return new CountOperationParser(name, context);
-            case OPERATION_FILTER_TYPE:
-                return new FilterOperationParser(name, context);
-            case OPERATION_FILTERNOT_TYPE:
-                return new FilterNotOperationParser(name, context);
-            case OPERATION_FLATMAP_TYPE:
-            case OPERATION_TRANSFORMKEYVALUETOKEYVALUELIST_TYPE:
-                return new TransformKeyValueToKeyValueListOperationParser(name, context);
-            case OPERATION_FLATMAPVALUES_TYPE:
-            case OPERATION_TRANSFORMKEYVALUETOVALUELIST_TYPE:
-                return new TransformKeyValueToValueListOperationParser(name, context);
-            case OPERATION_GROUPBY_TYPE:
-                return new GroupByOperationParser(name, context);
-            case OPERATION_GROUPBYKEY_TYPE:
-                return new GroupByKeyOperationParser(name, context);
-            case OPERATION_JOIN_TYPE:
-                return new JoinOperationParser(name, context);
-            case OPERATION_LEFTJOIN_TYPE:
-                return new LeftJoinOperationParser(name, context);
-            case OPERATION_MAPKEY_TYPE:
-            case OPERATION_SELECTKEY_TYPE:
-            case OPERATION_TRANSFORMKEY_TYPE:
-                return new TransformKeyOperationParser(name, context);
-            case OPERATION_MAP_TYPE:
-            case OPERATION_MAPKEYVALUE_TYPE:
-            case OPERATION_TRANSFORMKEYVALUE_TYPE:
-                return new TransformKeyValueOperationParser(name, context);
-            case OPERATION_MAPVALUE_TYPE:
-            case OPERATION_MAPVALUES_TYPE:
-            case OPERATION_TRANSFORMVALUE_TYPE:
-                return new TransformValueOperationParser(name, context);
-            case OPERATION_MERGE_TYPE:
-                return new MergeOperationParser(name, context);
-            case OPERATION_OUTERJOIN_TYPE:
-                return new OuterJoinOperationParser(name, context);
-            case OPERATION_PEEK_TYPE:
-                return new PeekOperationParser(name, context);
-            case OPERATION_REDUCE_TYPE:
-                return new ReduceOperationParser(name, context);
-            case OPERATION_REPARTITION_TYPE:
-                return new RepartitionOperationParser(name, context);
-            case OPERATION_SUPPRESS_TYPE:
-                return new SuppressOperationParser(name,context);
-            case OPERATION_TOSTREAM_TYPE:
-                return new ToStreamOperationParser(name, context);
-            case OPERATION_WINDOWEDBY_TYPE:
-                return new WindowedByOperationParser(name, context);
-            default:
-                return null;
-        }
+        return switch (type) {
+            case OPERATION_AGGREGATE_TYPE -> new AggregateOperationParser(name, context);
+            case OPERATION_CONVERTKEY_TYPE -> new ConvertKeyOperationParser(name, context);
+            case OPERATION_CONVERTVALUE_TYPE -> new ConvertValueOperationParser(name, context);
+            case OPERATION_COUNT_TYPE -> new CountOperationParser(name, context);
+            case OPERATION_FILTER_TYPE -> new FilterOperationParser(name, context);
+            case OPERATION_FILTERNOT_TYPE -> new FilterNotOperationParser(name, context);
+            case OPERATION_FLATMAP_TYPE, OPERATION_TRANSFORMKEYVALUETOKEYVALUELIST_TYPE -> new TransformKeyValueToKeyValueListOperationParser(name, context);
+            case OPERATION_FLATMAPVALUES_TYPE, OPERATION_TRANSFORMKEYVALUETOVALUELIST_TYPE -> new TransformKeyValueToValueListOperationParser(name, context);
+            case OPERATION_GROUPBY_TYPE -> new GroupByOperationParser(name, context);
+            case OPERATION_GROUPBYKEY_TYPE -> new GroupByKeyOperationParser(name, context);
+            case OPERATION_JOIN_TYPE -> new JoinOperationParser(name, context);
+            case OPERATION_LEFTJOIN_TYPE -> new LeftJoinOperationParser(name, context);
+            case OPERATION_MAPKEY_TYPE, OPERATION_SELECTKEY_TYPE, OPERATION_TRANSFORMKEY_TYPE -> new TransformKeyOperationParser(name, context);
+            case OPERATION_MAP_TYPE, OPERATION_MAPKEYVALUE_TYPE, OPERATION_TRANSFORMKEYVALUE_TYPE -> new TransformKeyValueOperationParser(name, context);
+            case OPERATION_MAPVALUE_TYPE, OPERATION_MAPVALUES_TYPE, OPERATION_TRANSFORMVALUE_TYPE -> new TransformValueOperationParser(name, context);
+            case OPERATION_MERGE_TYPE -> new MergeOperationParser(name, context);
+            case OPERATION_OUTERJOIN_TYPE -> new OuterJoinOperationParser(name, context);
+            case OPERATION_PEEK_TYPE -> new PeekOperationParser(name, context);
+            case OPERATION_REDUCE_TYPE -> new ReduceOperationParser(name, context);
+            case OPERATION_REPARTITION_TYPE -> new RepartitionOperationParser(name, context);
+            case OPERATION_SUPPRESS_TYPE -> new SuppressOperationParser(name, context);
+            case OPERATION_TOSTREAM_TYPE -> new ToStreamOperationParser(name, context);
+            case OPERATION_WINDOWEDBY_TYPE -> new WindowedByOperationParser(name, context);
+            default -> null;
+        };
     }
 }

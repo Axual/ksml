@@ -88,7 +88,7 @@ public class NativeJsonNodeMapper implements JsonNodeMapper<Object> {
         if (value instanceof byte[] val) return node.add(val);
         if (value instanceof String val) return node.add(val);
         if (value instanceof JsonNode val) return node.add(val);
-        if (value instanceof Tuple val) return node.add(tupleToJsonNode(val));
+        if (value instanceof Tuple<?> val) return node.add(tupleToJsonNode(val));
         throw new KSMLExecutionException("Can not add value to ObjectNode: " + value.getClass().getSimpleName());
     }
 
@@ -103,7 +103,7 @@ public class NativeJsonNodeMapper implements JsonNodeMapper<Object> {
         if (value instanceof byte[] val) return node.put(key, val);
         if (value instanceof String val) return node.put(key, val);
         if (value instanceof JsonNode val) return node.set(key, val);
-        if (value instanceof Tuple val) return node.set(key, tupleToJsonNode(val));
+        if (value instanceof Tuple<?> val) return node.set(key, tupleToJsonNode(val));
         throw new KSMLExecutionException("Can not add value to ObjectNode: " + value.getClass().getSimpleName());
     }
 

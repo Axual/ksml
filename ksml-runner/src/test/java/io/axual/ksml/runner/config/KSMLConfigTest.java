@@ -32,7 +32,7 @@ import io.axual.ksml.runner.exception.KSMLRunnerConfigurationException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class KSMLConfigTest {
+class KSMLConfigTest {
 
     private ObjectMapper objectMapper;
 

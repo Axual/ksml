@@ -20,6 +20,8 @@ package io.axual.ksml.schema;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Objects;
+
 public class FixedSchema extends NamedSchema {
     private final int size;
 
@@ -30,5 +32,16 @@ public class FixedSchema extends NamedSchema {
 
     public int size() {
         return size;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!super.equals(other)) return false;
+        return size == ((FixedSchema) other).size;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), size);
     }
 }

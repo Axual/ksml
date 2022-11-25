@@ -45,17 +45,17 @@ public class OuterJoinOperation extends StoreOperation {
         super(config);
         this.joinStream = joinStream;
         this.valueJoiner = valueJoiner;
-        this.joinWindows = JoinWindows.of(joinWindowDuration);
+        this.joinWindows = JoinWindows.ofTimeDifferenceWithNoGrace(joinWindowDuration);
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
         final StreamDataType resultValueType = streamDataTypeOf(valueJoiner.resultType, false);
 
-        if (joinStream instanceof KStreamWrapper) {
+        if (joinStream instanceof KStreamWrapper kStreamWrapper) {
             return new KStreamWrapper(
                     input.stream.outerJoin(
-                            ((KStreamWrapper) joinStream).stream,
+                            kStreamWrapper.stream,
                             new UserValueJoiner(valueJoiner),
                             joinWindows,
                             StreamJoined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde()).withName(name).withStoreName(store.name)),
@@ -69,10 +69,10 @@ public class OuterJoinOperation extends StoreOperation {
     public StreamWrapper apply(KTableWrapper input) {
         final StreamDataType resultValueType = streamDataTypeOf(valueJoiner.resultType, false);
 
-        if (joinStream instanceof KTableWrapper) {
+        if (joinStream instanceof KTableWrapper kTableWrapper) {
             return new KTableWrapper(
                     input.table.outerJoin(
-                            ((KTableWrapper) joinStream).table,
+                            kTableWrapper.table,
                             new UserValueJoiner(valueJoiner),
                             Named.as(name),
                             registerKeyValueStore(input.keyType(), resultValueType)),
