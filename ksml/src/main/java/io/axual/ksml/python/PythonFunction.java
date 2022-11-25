@@ -58,6 +58,51 @@ public class PythonFunction extends UserFunction {
         // Prepare a list of parameter names
         String[] params = Arrays.stream(parameters).map(p -> p.name).toArray(String[]::new);
 
+        final var globalCode = StringUtil.join("\n", definition.globalCode) + "\n";
+        final var pyFunctionCode = "def " + name + "_function(" + StringUtil.join(",", params) + "):\n" +
+                StringUtil.join("\n", functionCode) + "\n" +
+                "  return" + (resultType != null ? " " + definition.expression : "") + "\n" +
+                "\n";
+        final var fyCallerCode = "def " + name + "_caller(" + StringUtil.join(",", params) + "):\n" +
+                "  return convert_from(" + name + "_function(" + StringUtil.join(",", params) + "))\n";;
+
+        final var pythonCodeTemplate = """
+                import polyglot
+                import java
+                
+                ArrayList = java.type('java.util.ArrayList')
+                HashMap = java.type('java.util.HashMap')
+                
+                # global code goes here
+                %s
+                
+                # function definition goes here
+                @polyglot.export_value
+                %s
+                
+                def convert_to(value):
+                  print('In convert_to: ')
+                  print(value)
+                  return value
+                  
+                def convert_from(value):
+                  if isinstance(value, (list, tuple)):
+                    result = ArrayList()
+                    for e in value:
+                      result.add(convert_from(e))
+                    return result
+                  if type(value) is dict:
+                    result = HashMap()
+                    for k, v in value.items():
+                      result.put(convert_from(k), convert_from(v))
+                    return result
+                  return value
+                  
+                  # caller definition goes here
+                  @polyglot.export_value
+                  %s  
+                """;
+
         // Prepare the Python code to load
         String pyCode = "import polyglot\n" +
                 "import java\n" +

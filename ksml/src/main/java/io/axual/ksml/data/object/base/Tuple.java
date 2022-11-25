@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Objects;
 
 // This class implements a Tuple with any number of elements
-public class Tuple<T> {
+public abstract class Tuple<T> {
     private final List<T> elements;
 
     public Tuple(T... elements) {
