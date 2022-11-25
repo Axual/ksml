@@ -30,7 +30,6 @@ import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.parser.StreamOperation;
-import io.axual.ksml.schema.DataSchema;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -95,7 +94,7 @@ public class BaseOperation implements StreamOperation {
         }
     }
 
-    protected StreamDataType streamDataTypeOf(String notationName, DataType dataType, DataSchema schema, boolean isKey) {
+    protected StreamDataType streamDataTypeOf(String notationName, DataType dataType, boolean isKey) {
         return new StreamDataType(notationLibrary, new UserType(notationName, dataType), isKey);
     }
 

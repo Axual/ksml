@@ -37,8 +37,8 @@ public class UserPredicate extends Invoker implements Predicate<Object, Object> 
 
     public boolean test(Object key, Object value) {
         var result = function.call(DataUtil.asDataObject(key), DataUtil.asDataObject(value));
-        if (result instanceof DataBoolean) {
-            return ((DataBoolean) result).value();
+        if (result instanceof DataBoolean dataBoolean) {
+            return dataBoolean.value();
         }
         throw new KSMLExecutionException("Expected a boolean back from the predicate function: " + function.name);
     }

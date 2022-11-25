@@ -60,20 +60,20 @@ public class LeftJoinOperation extends StoreOperation {
     public StreamWrapper apply(KStreamWrapper input) {
         final StreamDataType resultValueType = streamDataTypeOf(valueJoiner.resultType, false);
 
-        if (joinStream instanceof KStreamWrapper) {
+        if (joinStream instanceof KStreamWrapper kStreamWrapper) {
             return new KStreamWrapper(
                     input.stream.leftJoin(
-                            ((KStreamWrapper) joinStream).stream,
+                            kStreamWrapper.stream,
                             new UserValueJoiner(valueJoiner),
-                            JoinWindows.of(joinWindowsDuration),
+                            JoinWindows.ofTimeDifferenceWithNoGrace(joinWindowsDuration),
                             StreamJoined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde()).withName(store.name).withStoreName(store.name)),
                     input.keyType(),
                     resultValueType);
         }
-        if (joinStream instanceof KTableWrapper) {
+        if (joinStream instanceof KTableWrapper kTableWrapper) {
             return new KStreamWrapper(
                     input.stream.leftJoin(
-                            ((KTableWrapper) joinStream).table,
+                            kTableWrapper.table,
                             new UserValueJoiner(valueJoiner),
                             Joined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde(), store.name)),
                     input.keyType(),
@@ -86,10 +86,10 @@ public class LeftJoinOperation extends StoreOperation {
     public StreamWrapper apply(KTableWrapper input) {
         final StreamDataType resultValueType = streamDataTypeOf(valueJoiner.resultType, false);
 
-        if (joinStream instanceof KTableWrapper) {
+        if (joinStream instanceof KTableWrapper kTableWrapper) {
             return new KTableWrapper(
                     input.table.leftJoin(
-                            ((KTableWrapper) joinStream).table,
+                            kTableWrapper.table,
                             new UserValueJoiner(valueJoiner),
                             Named.as(name),
                             registerKeyValueStore(input.keyType(), resultValueType)),

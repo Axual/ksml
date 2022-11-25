@@ -40,8 +40,8 @@ public class UserStreamPartitioner extends Invoker implements StreamPartitioner<
     @Override
     public Integer partition(String topic, Object key, Object value, int numPartitions) {
         var result = function.call(new DataString(topic), DataUtil.asDataObject(key), DataUtil.asDataObject(value), new DataInteger(numPartitions));
-        if (result instanceof DataInteger) {
-            return ((DataInteger) result).value();
+        if (result instanceof DataInteger dataInteger) {
+            return dataInteger.value();
         }
         throw new KSMLExecutionException("Expected integer result from partitioner function: " + function.name);
     }

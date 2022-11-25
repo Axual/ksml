@@ -38,7 +38,7 @@ import io.axual.serde.avro.BaseAvroDeserializer;
 import io.axual.streams.config.StreamRunnerConfig;
 import io.axual.streams.proxy.axual.AxualSerde;
 import io.axual.streams.proxy.axual.AxualSerdeConfig;
-import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
+import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 
@@ -69,7 +69,7 @@ public class AxualAvroSerde extends AxualSerde<GenericRecord> {
         configs.put(AxualSerdeConfig.BACKING_VALUE_SERDE_CONFIG, generatingSerde);
         configs.put(ResolvingProxyConfig.TOPIC_RESOLVER_CONFIG, TopicPatternResolver.class.getName());
         configs.put(TopicPatternResolver.TOPIC_PATTERN_CONFIG, "{tenant}-{instance}-{environment}-{topic}");
-        configs.put(AbstractKafkaAvroSerDeConfig.AUTO_REGISTER_SCHEMAS, false);
+        configs.put(AbstractKafkaSchemaSerDeConfig.AUTO_REGISTER_SCHEMAS, false);
         if (avroSchema != null && avroSchema.getType() == Schema.Type.RECORD) {
             configs.put(BaseAvroDeserializer.SPECIFIC_KEY_SCHEMA_CONFIG, avroSchema);
             configs.put(BaseAvroDeserializer.SPECIFIC_VALUE_SCHEMA_CONFIG, avroSchema);

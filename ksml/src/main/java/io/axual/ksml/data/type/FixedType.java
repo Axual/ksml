@@ -20,6 +20,8 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Objects;
+
 public class FixedType extends SimpleType {
     private final int size;
 
@@ -30,5 +32,16 @@ public class FixedType extends SimpleType {
 
     public int size() {
         return size;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!super.equals(other)) return false;
+        return size == ((FixedType) other).size;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), size);
     }
 }

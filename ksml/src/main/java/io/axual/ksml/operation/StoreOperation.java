@@ -81,6 +81,6 @@ public class StoreOperation extends BaseOperation {
 
     protected StreamDataType windowedTypeOf(StreamDataType type) {
         var windowedType = new WindowedType(type.userType().dataType());
-        return streamDataTypeOf(type.userType().notation(), windowedType, mapper.toDataSchema(windowedType), type.isKey());
+        return streamDataTypeOf(type.userType().notation(), windowedType, type.isKey());
     }
 }

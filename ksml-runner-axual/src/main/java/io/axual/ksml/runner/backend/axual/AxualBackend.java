@@ -29,8 +29,8 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.StoreQueryParameters;
 import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.StreamsMetadata;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
-import org.apache.kafka.streams.state.StreamsMetadata;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -58,7 +58,7 @@ import io.axual.streams.proxy.axual.AxualStreamsConfig;
 import io.axual.streams.proxy.generic.factory.TopologyFactory;
 import io.axual.streams.proxy.generic.factory.UncaughtExceptionHandlerFactory;
 import io.axual.streams.proxy.wrapped.WrappedStreamsConfig;
-import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
+import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import lombok.extern.slf4j.Slf4j;
 
 import static io.axual.client.proxy.generic.registry.ProxyTypeRegistry.HEADER_PROXY_ID;
@@ -126,7 +126,7 @@ public class AxualBackend implements Backend {
         return new StreamsQuerier() {
             @Override
             public Collection<StreamsMetadata> allMetadataForStore(String storeName) {
-                return axualStreams.allMetadataForStore(storeName);
+                return axualStreams.streamsMetadataForStore(storeName);
             }
 
             @Override
@@ -188,7 +188,7 @@ public class AxualBackend implements Backend {
                 .append(HEADER_PROXY_ID)
                 .build());
 
-        configs.put(AbstractKafkaAvroSerDeConfig.AUTO_REGISTER_SCHEMAS, false);
+        configs.put(AbstractKafkaSchemaSerDeConfig.AUTO_REGISTER_SCHEMAS, false);
 
         log.info("Creating StreamRunnerConfig...");
 

@@ -21,7 +21,7 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.data.type.KeyValueListType;
+import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.UserType;
 
 import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_PARAMETERS;
@@ -30,6 +30,6 @@ public class KeyValueToKeyValueListTransformerDefinition extends FunctionDefinit
     public KeyValueToKeyValueListTransformerDefinition(FunctionDefinition definition) {
         super(definition
                 .withParameters(getParameters(definition.parameters, KEY_VALUE_PARAMETERS))
-                .withResult(new UserType(definition.resultType.notation(), KeyValueListType.createFrom(definition.resultType.dataType()))));
+                .withResult(new UserType(definition.resultType.notation(), ListType.createFrom(definition.resultType.dataType()))));
     }
 }

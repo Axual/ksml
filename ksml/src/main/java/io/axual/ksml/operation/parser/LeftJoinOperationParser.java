@@ -47,17 +47,17 @@ public class LeftJoinOperationParser extends StoreOperationParser<LeftJoinOperat
     public LeftJoinOperation parse(YamlNode node) {
         if (node == null) return null;
         StreamWrapper joinStream = parseAndGetStreamWrapper(node);
-        if (joinStream instanceof KStreamWrapper) {
+        if (joinStream instanceof KStreamWrapper kStreamWrapper) {
             return new LeftJoinOperation(
                     storeOperationConfig(name, node, STORE_ATTRIBUTE),
-                    (KStreamWrapper) joinStream,
+                    kStreamWrapper,
                     parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()),
                     parseDuration(node, JOIN_WINDOW_ATTRIBUTE));
         }
-        if (joinStream instanceof KTableWrapper) {
+        if (joinStream instanceof KTableWrapper kTableWrapper) {
             return new LeftJoinOperation(
                     storeOperationConfig(name, node, STORE_ATTRIBUTE),
-                    (KTableWrapper) joinStream,
+                    kTableWrapper,
                     parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()),
                     parseDuration(node, JOIN_WINDOW_ATTRIBUTE));
         }

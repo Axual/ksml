@@ -23,7 +23,6 @@ package io.axual.ksml.runner.backend;
 
 import org.apache.kafka.streams.KafkaStreams;
 
-import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.rest.server.StreamsQuerier;
 
 public interface Backend extends AutoCloseable, Runnable {
@@ -40,21 +39,12 @@ public interface Backend extends AutoCloseable, Runnable {
     StreamsQuerier getQuerier();
 
     default State convertStreamsState(KafkaStreams.State state) {
-        switch (state) {
-            case CREATED:
-            case REBALANCING:
-                return State.STARTING;
-            case RUNNING:
-                return State.STARTED;
-            case PENDING_SHUTDOWN:
-                return State.STOPPING;
-            case NOT_RUNNING:
-                return State.STOPPED;
-            case PENDING_ERROR:
-            case ERROR:
-                return State.FAILED;
-        }
-        // should be unreachable
-        throw new KSMLExecutionException(String.format("Unknown state %s", state));
+        return switch (state) {
+            case CREATED, REBALANCING -> State.STARTING;
+            case RUNNING -> State.STARTED;
+            case PENDING_SHUTDOWN -> State.STOPPING;
+            case NOT_RUNNING -> State.STOPPED;
+            case PENDING_ERROR, ERROR -> State.FAILED;
+        };
     }
 }

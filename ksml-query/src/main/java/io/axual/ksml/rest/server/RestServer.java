@@ -59,7 +59,6 @@ public class RestServer implements AutoCloseable {
         rc.register(KeyValueStoreResource.class);
         rc.register(WindowedKeyValueStoreResource.class);
         rc.register(RestServerExceptionMapper.class);
-//        rc.register(JacksonFeature.class);
         rc.register(provider);
 
         // create Grizzly instance and add handler

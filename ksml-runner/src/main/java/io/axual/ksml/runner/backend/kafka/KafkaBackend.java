@@ -29,7 +29,7 @@ import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.StoreQueryParameters;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.state.StreamsMetadata;
+import org.apache.kafka.streams.StreamsMetadata;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -93,7 +93,7 @@ public class KafkaBackend implements Backend {
         return new StreamsQuerier() {
             @Override
             public Collection<StreamsMetadata> allMetadataForStore(String storeName) {
-                return kafkaStreams.allMetadataForStore(storeName);
+                return kafkaStreams.streamsMetadataForStore(storeName);
             }
 
             @Override

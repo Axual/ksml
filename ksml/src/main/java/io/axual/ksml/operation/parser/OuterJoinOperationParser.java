@@ -46,10 +46,10 @@ public class OuterJoinOperationParser extends StoreOperationParser<OuterJoinOper
     public OuterJoinOperation parse(YamlNode node) {
         if (node == null) return null;
         StreamWrapper joinStream = parseAndGetStreamWrapper(node);
-        if (joinStream instanceof KStreamWrapper) {
+        if (joinStream instanceof KStreamWrapper kStreamWrapper) {
             return new OuterJoinOperation(
                     storeOperationConfig(name, node, STORE_ATTRIBUTE),
-                    (KStreamWrapper) joinStream,
+                    kStreamWrapper,
                     parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()),
                     parseDuration(node, JOIN_WINDOW_ATTRIBUTE));
         }

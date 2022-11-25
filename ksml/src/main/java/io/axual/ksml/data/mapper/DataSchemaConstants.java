@@ -21,6 +21,9 @@ package io.axual.ksml.data.mapper;
  */
 
 public class DataSchemaConstants {
+    private DataSchemaConstants() {
+    }
+
     public static final String DATASCHEMA_TYPE_FIELD = "type";
     public static final String NAMEDSCHEMA_NAMESPACE_FIELD = "namespace";
     public static final String NAMEDSCHEMA_NAME_FIELD = "name";

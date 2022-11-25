@@ -20,6 +20,9 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Arrays;
+import java.util.Objects;
+
 public class UnionType extends ComplexType {
     private static final String UNION_NAME = "Union";
     private final UserType[] possibleTypes;
@@ -82,5 +85,16 @@ public class UnionType extends ComplexType {
             if (possibleType.dataType().isAssignableFrom(value)) return true;
         }
         return false;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!super.equals(other)) return false;
+        return equalsOtherUnion((UnionType) other);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), Arrays.hashCode(possibleTypes));
     }
 }

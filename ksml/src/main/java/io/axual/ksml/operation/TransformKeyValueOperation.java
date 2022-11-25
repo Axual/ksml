@@ -43,7 +43,7 @@ public class TransformKeyValueOperation extends BaseOperation {
         var notation = transformer.resultType.notation();
         return new KStreamWrapper(
                 input.stream.map(new UserKeyValueTransformer(transformer), Named.as(name)),
-                streamDataTypeOf(notation, resultType.keyType(), null, true),
-                streamDataTypeOf(notation, resultType.valueType(), null, false));
+                streamDataTypeOf(notation, resultType.keyType(), true),
+                streamDataTypeOf(notation, resultType.valueType(), false));
     }
 }

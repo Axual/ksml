@@ -64,8 +64,8 @@ public class GroupByOperation extends StoreOperation {
         if (!(transformer.resultType.dataType() instanceof KeyValueType resultType)) {
             throw new KSMLApplyException("Can not apply given transformer to KTable.groupBy operation");
         }
-        final StreamDataType resultKeyType = streamDataTypeOf(transformer.resultType.notation(), resultType.keyType(), null, true);
-        final StreamDataType resultValueType = streamDataTypeOf(transformer.resultType.notation(), resultType.valueType(), null, false);
+        final StreamDataType resultKeyType = streamDataTypeOf(transformer.resultType.notation(), resultType.keyType(), true);
+        final StreamDataType resultValueType = streamDataTypeOf(transformer.resultType.notation(), resultType.valueType(), false);
 
         return new KGroupedTableWrapper(
                 input.table.groupBy(

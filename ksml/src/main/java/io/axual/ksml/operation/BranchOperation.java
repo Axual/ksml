@@ -26,10 +26,8 @@ import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.Predicate;
 
 import java.util.List;
-import java.util.function.Function;
 
 import io.axual.ksml.definition.BranchDefinition;
-import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.parser.StreamOperation;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
@@ -76,35 +74,4 @@ public class BranchOperation extends BaseOperation {
         }
         return (k, v) -> true;
     }
-
-    private static Function<KStream<Object, Object>, KStream<Object, Object>> getBranchFunction(BranchDefinition definition, StreamDataType keyType, StreamDataType valueType) {
-        return stream -> {
-            StreamWrapper branchCursor = new KStreamWrapper(stream, keyType, valueType);
-            for (StreamOperation operation : definition.pipeline.chain) {
-                branchCursor = branchCursor.apply(operation);
-            }
-            if (definition.pipeline.sink != null) {
-                branchCursor.apply(definition.pipeline.sink);
-            }
-            return null;
-        };
-    }
-
-
-//    @Override
-//    public StreamWrapper apply(KStreamWrapper input) {
-//        // Pass the predicates to KStream and get resulting KStream branches back
-//        BranchedKStream<Object, Object> cursorStream = input.stream.split(Named.as(name));
-//        for (int index = 0; index < branches.size(); index++) {
-//            cursorStream = cursorStream.branch(
-//                    getBranchPredicate(branches.get(index)),
-//                    Branched.withFunction(
-//                            getBranchFunction(
-//                                    branches.get(index),
-//                                    input.keyType(),
-//                                    input.valueType())));
-//        }
-//
-//        return null;
-//    }
 }

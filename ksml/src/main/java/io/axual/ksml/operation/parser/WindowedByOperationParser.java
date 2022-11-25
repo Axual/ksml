@@ -55,16 +55,12 @@ public class WindowedByOperationParser extends OperationParser<WindowedByOperati
         if (node == null) return null;
         String windowType = parseString(node, WINDOWEDBY_WINDOWTYPE_ATTRIBUTE);
         if (windowType != null) {
-            switch (windowType) {
-                case WINDOWEDBY_WINDOWTYPE_SESSION:
-                    return parseSessionWindows(node);
-                case WINDOWEDBY_WINDOWTYPE_SLIDING:
-                    return parseSlidingWindows(node);
-                case WINDOWEDBY_WINDOWTYPE_TIME:
-                    return parseTimeWindows(node);
-                default:
-                    throw new KSMLParseException(node, "Unknown WindowType for windowedBy operation: " + windowType);
-            }
+            return switch (windowType) {
+                case WINDOWEDBY_WINDOWTYPE_SESSION -> parseSessionWindows(node);
+                case WINDOWEDBY_WINDOWTYPE_SLIDING -> parseSlidingWindows(node);
+                case WINDOWEDBY_WINDOWTYPE_TIME -> parseTimeWindows(node);
+                default -> throw new KSMLParseException(node, "Unknown WindowType for windowedBy operation: " + windowType);
+            };
         }
         throw new KSMLParseException(node, "WindowType missing for windowedBy operation");
     }
@@ -72,29 +68,28 @@ public class WindowedByOperationParser extends OperationParser<WindowedByOperati
     private WindowedByOperation parseSessionWindows(YamlNode node) {
         var duration = parseDuration(node, WINDOWEDBY_WINDOWTYPE_SESSION_INACTIVITYGAP);
         var grace = parseDuration(node, WINDOWEDBY_WINDOWTYPE_SESSION_INACTIVITYGAP);
-        var sessionWindows = SessionWindows.with(duration);
-        if (grace != null && grace.toMillis() > 0) {
-            sessionWindows = sessionWindows.grace(grace);
-        }
+        var sessionWindows = (grace != null && grace.toMillis() > 0)
+                ? SessionWindows.ofInactivityGapAndGrace(duration, grace)
+                : SessionWindows.ofInactivityGapWithNoGrace(duration);
         return new WindowedByOperation(operationConfig(name), sessionWindows);
     }
 
     private WindowedByOperation parseSlidingWindows(YamlNode node) {
         var timeDifference = parseDuration(node, WINDOWEDBY_WINDOWTYPE_SLIDING_TIMEDIFFERENCE);
         var grace = parseDuration(node, WINDOWEDBY_WINDOWTYPE_SLIDING_GRACE);
-        return new WindowedByOperation(operationConfig(name), SlidingWindows.withTimeDifferenceAndGrace(timeDifference, grace));
+        return new WindowedByOperation(operationConfig(name), SlidingWindows.ofTimeDifferenceAndGrace(timeDifference, grace));
     }
 
     private WindowedByOperation parseTimeWindows(YamlNode node) {
         var duration = parseDuration(node, WINDOWEDBY_WINDOWTYPE_TIME_DURATION);
         var advanceBy = parseDuration(node, WINDOWEDBY_WINDOWTYPE_TIME_ADVANCEBY);
         var grace = parseDuration(node, WINDOWEDBY_WINDOWTYPE_TIME_GRACE);
-        var timeWindows = TimeWindows.of(duration);
+
+        var timeWindows = (grace != null && grace.toMillis() > 0)
+                ? TimeWindows.ofSizeAndGrace(duration, grace)
+                : TimeWindows.ofSizeWithNoGrace(duration);
         if (advanceBy != null && advanceBy.toMillis() > 0 && advanceBy.toMillis() <= duration.toMillis()) {
             timeWindows = timeWindows.advanceBy(advanceBy);
-        }
-        if (grace != null && grace.toMillis() > 0) {
-            timeWindows = timeWindows.grace(grace);
         }
         return new WindowedByOperation(operationConfig(name), timeWindows);
     }

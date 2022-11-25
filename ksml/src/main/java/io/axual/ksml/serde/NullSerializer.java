@@ -23,8 +23,10 @@ import org.apache.kafka.common.serialization.Serializer;
  */
 
 public class NullSerializer implements Serializer<Object> {
+    private static final byte[] SERIALIZED_NULL = new byte[0];
+
     @Override
     public byte[] serialize(String topic, Object any) {
-        return null;
+        return SERIALIZED_NULL;
     }
 }
