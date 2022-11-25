@@ -23,31 +23,34 @@ package io.axual.ksml.operation;
 import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.ValueMapper;
 
-import io.axual.ksml.data.object.user.UserRecord;
-import io.axual.ksml.data.type.base.DataType;
-import io.axual.ksml.data.type.user.UserRecordType;
-import io.axual.ksml.data.type.user.UserType;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.util.DataUtil;
 
 public class ConvertValueOperation extends BaseOperation {
-    private final UserType targetType;
     private final ValueConverter converter;
+    private final UserType targetType;
 
     private static class ValueConverter implements ValueMapper<Object, Object> {
-        private final UserRecordType targetRecordType;
+        private final StructType targetStructType;
 
         public ValueConverter(DataType toType) {
-            this.targetRecordType = toType instanceof UserRecordType ? (UserRecordType) toType : null;
+            this.targetStructType = toType instanceof StructType structType ? structType : null;
         }
 
         @Override
         public Object apply(Object value) {
-            var valueAsData = DataUtil.asUserObject(value);
-            if (targetRecordType == null) return valueAsData;
-            var result = new UserRecord(targetRecordType.schema());
-            result.putAll((UserRecord) value);
+            var valueAsData = DataUtil.asDataObject(value);
+            if (valueAsData instanceof DataNull) return valueAsData;
+            if (targetStructType == null) return valueAsData;
+
+            var result = new DataStruct(targetStructType);
+            result.putAll((DataStruct) value);
             return result;
         }
     }
@@ -55,7 +58,7 @@ public class ConvertValueOperation extends BaseOperation {
     public ConvertValueOperation(OperationConfig config, UserType targetType) {
         super(config);
         this.targetType = targetType;
-        converter = new ValueConverter(this.targetType.type());
+        converter = new ValueConverter(this.targetType.dataType());
     }
 
     @Override

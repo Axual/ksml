@@ -21,8 +21,8 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.data.object.user.UserString;
-import io.axual.ksml.data.type.user.StaticUserType;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.type.UserType;
 
 import static io.axual.ksml.definition.DefinitionConstants.TOPIC_NAME_EXTRACTOR_PARAMETERS;
 
@@ -30,6 +30,6 @@ public class TopicNameExtractorDefinition extends FunctionDefinition {
     public TopicNameExtractorDefinition(FunctionDefinition definition) {
         super(definition
                 .withParameters(getParameters(definition.parameters, TOPIC_NAME_EXTRACTOR_PARAMETERS))
-                .withResult(new StaticUserType(UserString.DATATYPE, definition.resultType.notation())));
+                .withResult(new UserType(definition.resultType.notation(), DataString.DATATYPE)));
     }
 }

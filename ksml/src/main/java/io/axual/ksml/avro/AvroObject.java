@@ -28,29 +28,34 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.axual.ksml.exception.KSMLTypeException;
+import io.axual.ksml.schema.DataSchema;
+import io.axual.ksml.schema.StructSchema;
 
 public class AvroObject implements GenericRecord {
-    private final Schema schema;
+    private static final AvroSchemaMapper schemaMapper = new AvroSchemaMapper();
+    private final StructSchema schema;
     private final Map<String, Object> data = new HashMap<>();
     private final GenericData validator = GenericData.get();
+    private Schema avroSchema = null;
 
-    public AvroObject(Schema schema, Map<?, ?> source) {
+    public AvroObject(StructSchema schema, Map<?, ?> source) {
         this.schema = schema;
-        schema.getFields().forEach(field -> put(field.name(), source.get(field.name())));
+        schema.fields().forEach(field -> put(field.name(), source.get(field.name())));
     }
 
     @Override
     public void put(String key, Object value) {
-        var field = schema.getField(key);
+        var field = schema.field(key);
 
-        if (field.schema().getType() == Schema.Type.RECORD && value instanceof Map) {
-            value = new AvroObject(field.schema(), (Map<?, ?>) value);
+        if (field.schema().type() == DataSchema.Type.STRUCT && value instanceof Map) {
+            value = new AvroObject((StructSchema) field.schema(), (Map<?, ?>) value);
         }
-        if (field.schema().getType() == Schema.Type.ENUM) {
-            value = new GenericData.EnumSymbol(field.schema(), value != null ? value.toString() : null);
+        if (field.schema().type() == DataSchema.Type.ENUM) {
+            value = new GenericData.EnumSymbol(schemaMapper.fromDataSchema(field.schema()), value != null ? value.toString() : null);
         }
 
-        if (!validator.validate(field.schema(), value)) {
+        var fieldSchema = schemaMapper.fromDataSchema(field.schema());
+        if (fieldSchema != null && !validator.validate(fieldSchema, value)) {
             throw KSMLTypeException.validationFailed(key, value);
         }
 
@@ -64,16 +69,19 @@ public class AvroObject implements GenericRecord {
 
     @Override
     public void put(int index, Object value) {
-        put(schema.getFields().get(index).name(), value);
+        put(schema.fields().get(index).name(), value);
     }
 
     @Override
     public Object get(int index) {
-        return data.get(schema.getFields().get(index).name());
+        return data.get(schema.fields().get(index).name());
     }
 
     @Override
     public Schema getSchema() {
-        return schema;
+        if (avroSchema == null) {
+            avroSchema = schemaMapper.fromDataSchema(schema);
+        }
+        return avroSchema;
     }
 }

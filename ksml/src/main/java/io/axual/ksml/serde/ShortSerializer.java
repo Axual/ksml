@@ -28,9 +28,6 @@ public class ShortSerializer implements Serializer<Short> {
     @Override
     public byte[] serialize(String topic, Short data) {
         if (data == null) return EMPTY;
-
-        return new byte[]{
-                (byte) (data >>> 8),
-                data.byteValue()};
+        return new byte[]{(byte) (data >>> 8), data.byteValue()};
     }
 }

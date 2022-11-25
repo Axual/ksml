@@ -20,58 +20,58 @@ package io.axual.ksml.schema;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.avro.Schema;
-
-import io.axual.ksml.data.object.user.UserBoolean;
-import io.axual.ksml.data.object.user.UserByte;
-import io.axual.ksml.data.object.user.UserBytes;
-import io.axual.ksml.data.object.user.UserDouble;
-import io.axual.ksml.data.object.user.UserFloat;
-import io.axual.ksml.data.object.user.UserInteger;
-import io.axual.ksml.data.object.user.UserLong;
-import io.axual.ksml.data.object.user.UserShort;
-import io.axual.ksml.data.object.user.UserString;
-import io.axual.ksml.data.type.user.UserListType;
-import io.axual.ksml.data.type.base.DataType;
-import io.axual.ksml.data.type.user.UserRecordType;
-import io.axual.ksml.data.type.base.WindowedType;
+import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.DataByte;
+import io.axual.ksml.data.object.DataBytes;
+import io.axual.ksml.data.object.DataDouble;
+import io.axual.ksml.data.object.DataFloat;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataShort;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.data.type.MapType;
+import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.type.UnionType;
+import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.exception.KSMLExecutionException;
+import io.axual.ksml.schema.mapper.WindowedSchemaMapper;
 
 public class SchemaUtil {
+    private static final WindowedSchemaMapper mapper = new WindowedSchemaMapper();
+
     private SchemaUtil() {
     }
 
-    public static Schema dataTypeToSchema(DataType type) {
-        if (type == UserBoolean.DATATYPE) return Schema.create(Schema.Type.BOOLEAN);
-        if (type == UserByte.DATATYPE) return Schema.create(Schema.Type.INT);
-        if (type == UserShort.DATATYPE) return Schema.create(Schema.Type.INT);
-        if (type == UserInteger.DATATYPE) return Schema.create(Schema.Type.INT);
-        if (type == UserLong.DATATYPE) return Schema.create(Schema.Type.LONG);
-        if (type == UserFloat.DATATYPE) return Schema.create(Schema.Type.FLOAT);
-        if (type == UserDouble.DATATYPE) return Schema.create(Schema.Type.DOUBLE);
-        if (type == UserBytes.DATATYPE) return Schema.create(Schema.Type.BYTES);
-        if (type == UserString.DATATYPE) return Schema.create(Schema.Type.STRING);
-        if (type instanceof UserListType)
-            return Schema.createArray(dataTypeToSchema(((UserListType) type).valueType().type()));
-        if (type instanceof UserRecordType) return (((UserRecordType) type).schema().schema());
-        if (type instanceof WindowedType) return WindowedSchema.generateWindowedSchema((WindowedType) type);
-        throw new KSMLExecutionException("Can not convert data type " + type + " to schema type");
-    }
-
-    public static DataSchema windowTypeToSchema(WindowedType type) {
-        return DataSchema.newBuilder(WindowedSchema.generateWindowedSchema(type)).build();
-    }
-
-    public static Schema dataSchemaToAvroSchema(DataSchema schema) {
-        return schema.schema();
-    }
-
-    public static DataSchema schemaToDataSchema(Schema schema) {
-        return DataSchema.newBuilder(schema).build();
-    }
-
-    public static DataSchema parse(String schemaStr) {
-        var schema = new Schema.Parser().parse(schemaStr);
-        return DataSchema.newBuilder(schema).build();
+    public static DataSchema dataTypeToSchema(DataType type) {
+        if (type == DataNull.DATATYPE) return DataSchema.create(DataSchema.Type.NULL);
+        if (type == DataBoolean.DATATYPE) return DataSchema.create(DataSchema.Type.BOOLEAN);
+        if (type == DataByte.DATATYPE) return DataSchema.create(DataSchema.Type.BYTE);
+        if (type == DataShort.DATATYPE) return DataSchema.create(DataSchema.Type.SHORT);
+        if (type == DataInteger.DATATYPE) return DataSchema.create(DataSchema.Type.INTEGER);
+        if (type == DataLong.DATATYPE) return DataSchema.create(DataSchema.Type.LONG);
+        if (type == DataFloat.DATATYPE) return DataSchema.create(DataSchema.Type.FLOAT);
+        if (type == DataDouble.DATATYPE) return DataSchema.create(DataSchema.Type.DOUBLE);
+        if (type == DataBytes.DATATYPE) return DataSchema.create(DataSchema.Type.BYTES);
+        if (type == DataString.DATATYPE) return DataSchema.create(DataSchema.Type.STRING);
+        if (type instanceof ListType listType)
+            return new ListSchema(dataTypeToSchema(listType.valueType()));
+        // Check structs first, since they are a subclass of maps
+        if (type instanceof StructType structType)
+            return new StructSchema(structType.schema());
+        if (type instanceof MapType mapType)
+            return new MapSchema(SchemaUtil.dataTypeToSchema(mapType.valueType()));
+        if (type instanceof WindowedType windowedType)
+            return mapper.toDataSchema(windowedType);
+        if (type instanceof UnionType unionType) {
+            var schemas = new DataSchema[unionType.possibleTypes().length];
+            for (int index = 0; index < unionType.possibleTypes().length; index++) {
+                schemas[index] = dataTypeToSchema(unionType.possibleTypes()[index].dataType());
+            }
+            return new UnionSchema(schemas);
+        }
+        throw new KSMLExecutionException("Can not convert data dataType " + type + " to schema dataType");
     }
 }

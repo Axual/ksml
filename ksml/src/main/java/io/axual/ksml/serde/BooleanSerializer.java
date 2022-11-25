@@ -23,13 +23,11 @@ package io.axual.ksml.serde;
 import org.apache.kafka.common.serialization.Serializer;
 
 public class BooleanSerializer implements Serializer<Boolean> {
+    private static final byte[] EMPTY = new byte[0];
+
     @Override
     public byte[] serialize(String topic, Boolean data) {
-        if (data != null) {
-            var result = new byte[1];
-            result[0] = data ? (byte) 1 : 0;
-            return result;
-        }
-        return new byte[0];
+        if (data == null) return EMPTY;
+        return new byte[]{data ? (byte) 1 : 0};
     }
 }

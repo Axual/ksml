@@ -49,7 +49,7 @@ public class SuppressOperationParser extends OperationParser<SuppressOperation> 
     @Override
     public SuppressOperation parse(YamlNode node) {
         if (node == null) return null;
-        String suppressedType = parseText(node, SUPPRESS_UNTIL_ATTRIBUTE);
+        String suppressedType = parseString(node, SUPPRESS_UNTIL_ATTRIBUTE);
         if (suppressedType != null) {
             switch (suppressedType) {
                 case SUPPRESS_UNTILTIMELIMIT:
@@ -57,7 +57,7 @@ public class SuppressOperationParser extends OperationParser<SuppressOperation> 
                 case SUPPRESS_UNTILWINDOWCLOSES:
                     return parseSuppressUntilWindowClose(node);
                 default:
-                    throw new KSMLParseException(node, "Unknown Suppressed type for suppress operation: " + suppressedType);
+                    throw new KSMLParseException(node, "Unknown Suppressed dataType for suppress operation: " + suppressedType);
             }
         }
         throw new KSMLParseException(node, "Mandatory 'until' attribute is missing for Suppress operation");
@@ -78,13 +78,13 @@ public class SuppressOperationParser extends OperationParser<SuppressOperation> 
         Suppressed.EagerBufferConfig result = null;
 
         // Check for a maxBytes setting
-        String maxBytes = parseText(node, SUPPRESS_BUFFER_MAXBYTES);
+        String maxBytes = parseString(node, SUPPRESS_BUFFER_MAXBYTES);
         if (maxBytes != null) {
             result = Suppressed.BufferConfig.maxBytes(Long.parseLong(maxBytes));
         }
 
         // Check for a maxRecords setting
-        String maxRecords = parseText(node, SUPPRESS_BUFFER_MAXRECORDS);
+        String maxRecords = parseString(node, SUPPRESS_BUFFER_MAXRECORDS);
         if (maxRecords != null) {
             if (result == null) {
                 result = Suppressed.BufferConfig.maxRecords(Long.parseLong(maxRecords));
@@ -94,7 +94,7 @@ public class SuppressOperationParser extends OperationParser<SuppressOperation> 
         }
 
         // Check for a bufferFull strategy
-        String bufferFullStrategy = parseText(node, SUPPRESS_BUFFERFULLSTRATEGY);
+        String bufferFullStrategy = parseString(node, SUPPRESS_BUFFERFULLSTRATEGY);
         if (SUPPRESS_BUFFERFULLSTRATEGY_EMIT.equals(bufferFullStrategy)) {
             if (result == null) {
                 throw new KSMLParseException(node, "Can not instantiate BufferConfig without maxBytes and/or maxRecords setting");

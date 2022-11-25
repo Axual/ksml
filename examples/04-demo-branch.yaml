@@ -26,10 +26,10 @@ pipelines:
         forEach: print_message
     branch:
       - if:
-          expression: value['color'] == 'blue'
+          expression: value != None and value['color'] == 'blue'
         to: sensor_blue
       - if:
-          expression: value['color'] == 'red'
+          expression: value != None and value['color'] == 'red'
         to: sensor_red
       - forEach:
           code: |

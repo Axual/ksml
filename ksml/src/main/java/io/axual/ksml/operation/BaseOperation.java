@@ -24,12 +24,13 @@ package io.axual.ksml.operation;
 import org.apache.kafka.streams.errors.TopologyException;
 import org.apache.kafka.streams.kstream.Named;
 
-import io.axual.ksml.data.type.base.DataType;
-import io.axual.ksml.data.type.user.UserType;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.parser.StreamOperation;
+import io.axual.ksml.schema.DataSchema;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -54,7 +55,7 @@ public class BaseOperation implements StreamOperation {
     }
 
     protected final String name;
-    private final NotationLibrary notationLibrary;
+    protected final NotationLibrary notationLibrary;
 
     public BaseOperation(OperationConfig config) {
         var error = NameValidator.validateNameAndReturnError(config.name);
@@ -94,7 +95,11 @@ public class BaseOperation implements StreamOperation {
         }
     }
 
-    protected StreamDataType streamDataTypeOf(UserType dataType, boolean isKey) {
-        return new StreamDataType(dataType.type(), notationLibrary.get(dataType.notation()), isKey);
+    protected StreamDataType streamDataTypeOf(String notationName, DataType dataType, DataSchema schema, boolean isKey) {
+        return new StreamDataType(notationLibrary, new UserType(notationName, dataType), isKey);
+    }
+
+    protected StreamDataType streamDataTypeOf(UserType userType, boolean isKey) {
+        return new StreamDataType(notationLibrary, userType, isKey);
     }
 }

@@ -5,10 +5,6 @@ streams:
     topic: ksml_sensordata_avro
     keyType: string
     valueType: avro:SensorData
-  sensor_target:
-    topic: ksml_sensordata_count
-    keyType: avro:windowed(string)
-    valueType: long
 
 functions:
   print_message:
@@ -22,6 +18,9 @@ pipelines:
       - type: groupBy
         name: ksml_sensordata_grouped
         mapper:
+          code: |
+            if value == None:
+              return "no owner"
           expression: value["owner"]
           resultType: string
       - type: windowedBy
@@ -38,4 +37,5 @@ pipelines:
         into: avro:windowed(string)
       - type: peek
         forEach: print_message
-    to: sensor_target
+    to:
+      topic: ksml_sensordata_count

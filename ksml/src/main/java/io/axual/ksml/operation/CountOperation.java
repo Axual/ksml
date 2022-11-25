@@ -24,9 +24,8 @@ package io.axual.ksml.operation;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Named;
 
-import io.axual.ksml.data.object.user.UserLong;
-import io.axual.ksml.data.type.user.StaticUserType;
-import io.axual.ksml.data.type.user.UserType;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.KGroupedTableWrapper;
@@ -42,7 +41,7 @@ public class CountOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KGroupedStreamWrapper input) {
-        final StreamDataType resultValueType = streamDataTypeOf(new StaticUserType(UserLong.DATATYPE, UserType.DEFAULT_NOTATION), false);
+        final StreamDataType resultValueType = streamDataTypeOf(UserType.DEFAULT_NOTATION, DataLong.DATATYPE, null, false);
 
         return new KTableWrapper(
                 (KTable) input.groupedStream.count(
@@ -54,7 +53,7 @@ public class CountOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KGroupedTableWrapper input) {
-        final StreamDataType resultValueType = streamDataTypeOf(new StaticUserType(UserLong.DATATYPE, UserType.DEFAULT_NOTATION), false);
+        final StreamDataType resultValueType = streamDataTypeOf(UserType.DEFAULT_NOTATION, DataLong.DATATYPE, null, false);
 
         return new KTableWrapper(
                 (KTable) input.groupedTable.count(
@@ -66,7 +65,7 @@ public class CountOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(SessionWindowedKStreamWrapper input) {
-        final StreamDataType resultValueType = streamDataTypeOf(new StaticUserType(UserLong.DATATYPE, UserType.DEFAULT_NOTATION), false);
+        final StreamDataType resultValueType = streamDataTypeOf(UserType.DEFAULT_NOTATION, DataLong.DATATYPE, null, false);
 
         return new KTableWrapper(
                 (KTable) input.sessionWindowedKStream.count(
@@ -78,7 +77,7 @@ public class CountOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(TimeWindowedKStreamWrapper input) {
-        StreamDataType resultValueType = streamDataTypeOf(new StaticUserType(UserLong.DATATYPE, UserType.DEFAULT_NOTATION), false);
+        StreamDataType resultValueType = streamDataTypeOf(UserType.DEFAULT_NOTATION, DataLong.DATATYPE, null, false);
 
         return new KTableWrapper(
                 (KTable) input.timeWindowedKStream.count(

@@ -25,7 +25,8 @@ pipelines:
     to:
       topic: ksml_sensordata_json
 
-  # The secondary pipeline achieves the same, but by inlining the target topic definition and its data types
+  # The secondary pipeline achieves the same, but by inlining the target topic definition and its
+  # data types (conversion is done implicitly on writing to the target topic)
   secondary:
     from: sensor_source
     via:

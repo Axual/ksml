@@ -21,41 +21,42 @@ package io.axual.ksml.operation;
  */
 
 
-import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.kstream.Grouped;
 import org.apache.kafka.streams.kstream.Materialized;
-import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.SessionStore;
 import org.apache.kafka.streams.state.WindowStore;
 
-import java.time.Duration;
-
-import io.axual.ksml.data.type.base.WindowedType;
-import io.axual.ksml.data.type.user.StaticUserType;
+import io.axual.ksml.data.type.WindowedType;
+import io.axual.ksml.definition.StoreDefinition;
 import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.schema.mapper.WindowedSchemaMapper;
+import io.axual.ksml.store.GroupedRegistry;
+import io.axual.ksml.store.StoreRegistry;
 import io.axual.ksml.store.StoreType;
+import io.axual.ksml.store.StoreUtil;
 
 public class StoreOperation extends BaseOperation {
-    protected final String storeName;
-    protected final Duration storeRetention;
-    protected final boolean storeCaching;
-    protected final StoreOperationConfig.GroupedRegistry groupedRegistry;
-    protected final StoreOperationConfig.StoreRegistry storeRegistry;
+    private static final WindowedSchemaMapper mapper = new WindowedSchemaMapper();
+    protected final StoreDefinition store;
+    protected final GroupedRegistry groupedRegistry;
+    protected final StoreRegistry storeRegistry;
 
     public StoreOperation(StoreOperationConfig config) {
         super(config);
-        this.storeName = config.storeName == null ? name : config.storeName;
-        this.storeRetention = config.storeRetention;
-        this.storeCaching = config.storeCaching;
+        store = new StoreDefinition(
+                config.store.name == null ? name : config.store.name,
+                config.store.retention,
+                config.store.caching
+        );
         this.groupedRegistry = config.groupedRegistry;
         this.storeRegistry = config.storeRegistry;
     }
 
     @Override
     public String toString() {
-        return super.toString() + " [storeName=\"" + storeName + "\"]";
+        return super.toString() + " [storeName=\"" + store.name + "\"]";
     }
 
     protected <K, V> Grouped<K, V> registerGrouped(Grouped<K, V> grouped) {
@@ -64,33 +65,22 @@ public class StoreOperation extends BaseOperation {
     }
 
     protected <V> Materialized<Object, V, KeyValueStore<Bytes, byte[]>> registerKeyValueStore(StreamDataType keyType, StreamDataType valueType) {
-        storeRegistry.registerStore(StoreType.KEYVALUE_STORE, storeName, storeRetention, keyType, valueType, storeCaching);
-        Materialized<Object, V, KeyValueStore<Bytes, byte[]>> mat = Materialized.as(storeName);
-        return configureStore(mat, storeRetention, keyType, valueType, storeCaching);
+        storeRegistry.registerStore(StoreType.KEYVALUE_STORE, store, keyType, valueType);
+        return StoreUtil.createKeyValueStore(store, keyType, valueType);
     }
 
     protected <V> Materialized<Object, V, SessionStore<Bytes, byte[]>> registerSessionStore(StreamDataType keyType, StreamDataType valueType) {
-        storeRegistry.registerStore(StoreType.SESSION_STORE, storeName, storeRetention, keyType, valueType, storeCaching);
-        Materialized<Object, V, SessionStore<Bytes, byte[]>> mat = Materialized.as(storeName);
-        return configureStore(mat, storeRetention, keyType, valueType, storeCaching);
+        storeRegistry.registerStore(StoreType.SESSION_STORE, store, keyType, valueType);
+        return StoreUtil.createSessionStore(store, keyType, valueType);
     }
 
     protected <V> Materialized<Object, V, WindowStore<Bytes, byte[]>> registerWindowStore(StreamDataType keyType, StreamDataType valueType) {
-        storeRegistry.registerStore(StoreType.WINDOW_STORE, storeName, storeRetention, keyType, valueType, storeCaching);
-        Materialized<Object, V, WindowStore<Bytes, byte[]>> mat = Materialized.as(storeName);
-        return configureStore(mat, storeRetention, keyType, valueType, storeCaching);
-    }
-
-    private static <V, S extends StateStore> Materialized<Object, V, S> configureStore(Materialized<Object, V, S> mat, Duration retention, StreamDataType keyType, StreamDataType valueType, boolean cachingEnabled) {
-        mat = mat.withKeySerde(keyType.getSerde());
-        mat = mat.withValueSerde((Serde<V>) valueType.getSerde());
-        if (retention != null) {
-            mat = mat.withRetention(retention);
-        }
-        return cachingEnabled ? mat.withCachingEnabled() : mat.withCachingDisabled();
+        storeRegistry.registerStore(StoreType.WINDOW_STORE, store, keyType, valueType);
+        return StoreUtil.createWindowStore(store, keyType, valueType);
     }
 
     protected StreamDataType windowedTypeOf(StreamDataType type) {
-        return streamDataTypeOf(new StaticUserType(new WindowedType(type.type()), type.notation().name()), true);
+        var windowedType = new WindowedType(type.userType().dataType());
+        return streamDataTypeOf(type.userType().notation(), windowedType, mapper.toDataSchema(windowedType), type.isKey());
     }
 }

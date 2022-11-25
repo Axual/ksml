@@ -45,7 +45,7 @@ public class ReferenceOrInlineParser<T, F extends T> extends BaseParser<T> {
         if (node == null) return null;
         // Check if the node is a text node --> parse as direct reference
         if (node.childIsText(childName)) {
-            final var resourceToFind = parseText(node, childName);
+            final var resourceToFind = parseString(node, childName);
             final var resource = lookup.apply(resourceToFind);
             if (resource == null) {
                 throw new KSMLParseException("Could not find " + resourceType + " with name " + resourceToFind);

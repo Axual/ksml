@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.axual.ksml.exception.KSMLApplyException;
-import io.axual.ksml.data.type.base.DataType;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.user.UserFunction;
 
 /**
@@ -62,10 +62,10 @@ public abstract class Invoker {
 
     protected void verifyResultReturned(DataType expected) {
         verify(function.resultType != null, "Function does not return a result");
-        verify(expected.isAssignableFrom(function.resultType.type()), "Function returns incompatible type: " + function.resultType.type() + ", expected " + expected);
+        verify(expected.isAssignableFrom(function.resultType.dataType()), "Function returns incompatible dataType: " + function.resultType.dataType() + ", expected " + expected);
     }
 
     protected void verifyResultType(DataType type) {
-        verify(type.isAssignableFrom(function.resultType.type()), "Function returns " + function.resultType.type() + " instead of " + type);
+        verify(type.isAssignableFrom(function.resultType.dataType()), "Function returns " + function.resultType.dataType() + " instead of " + type);
     }
 }

@@ -24,7 +24,7 @@ package io.axual.ksml.definition;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 
-import io.axual.ksml.data.type.user.UserType;
+import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.parser.UserTypeParser;
@@ -42,13 +42,11 @@ public class StreamDefinition extends BaseStreamDefinition {
 
     @Override
     public StreamWrapper addToBuilder(StreamsBuilder builder, String name, NotationLibrary notationLibrary) {
-        var kn = notationLibrary.get(keyType.notation());
-        var vn = notationLibrary.get(valueType.notation());
-        var keySerde = kn.getSerde(keyType.type(), true);
-        var valueSerde = vn.getSerde(valueType.type(), false);
+        var streamKey = new StreamDataType(notationLibrary, keyType, true);
+        var streamValue = new StreamDataType(notationLibrary, valueType, false);
         return new KStreamWrapper(
-                builder.stream(topic, Consumed.with(keySerde, valueSerde).withName(name)),
-                new StreamDataType(keyType.type(), kn, true),
-                new StreamDataType(valueType.type(), vn, false));
+                builder.stream(topic, Consumed.with(streamKey.getSerde(), streamValue.getSerde()).withName(name)),
+                streamKey,
+                streamValue);
     }
 }

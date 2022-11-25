@@ -23,6 +23,7 @@ package io.axual.ksml.notation;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.axual.ksml.avro.AvroNotation;
 import io.axual.ksml.exception.KSMLExecutionException;
 
 public class NotationLibrary {

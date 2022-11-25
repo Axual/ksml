@@ -8,6 +8,7 @@
 1. [Duration](#duration)
 1. [Avro](#avro)
 1. [Json](#json)
+1. [Windowed](#windowed)
 
 ## Introduction
 
@@ -69,7 +70,14 @@ avro:io.axual.ksml.example.SensorData
 
 Note: when referencing a schema, please ensure that the respective Avro schema file can be found in the KSML working directory.
 
-### Windowed
+## JSON
+
+JSON is supported through built-in serializers and deserializers. The representation on Kafka will always be ```string```. Internally JSON objects are either records or lists.
+
+For windowed keys, the JSON representation modifies the _Windowed_ type to a plain JSON object,
+containing 4 timestamp fields and a key field with the original key.
+
+## Windowed
 
 Some Kafka Streams operations modify the key type from _K_ to _Windowed\<K>_. KSML generates an AVRO
 schema on-the-fly for any windowed type. These Avro windowed definitions will not be found on disk,
@@ -79,10 +87,3 @@ following notation to refer to a windowed key type:
 avro:windowed(string)
 avro:windowed(SensorData)
 ```
-
-## JSON
-
-JSON is supported through built-in serializers and deserializers. The representation on Kafka will always be ```string```. Internally JSON objects are either records or lists.
-
-For windowed keys, the JSON representation modifies the _Windowed_ type to a plain JSON object,
-containing 4 timestamp fields and a key field with the original key.

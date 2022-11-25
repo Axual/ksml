@@ -29,14 +29,14 @@ import org.graalvm.polyglot.Value;
 
 import java.util.Arrays;
 
-import io.axual.ksml.data.mapper.PythonUserObjectMapper;
-import io.axual.ksml.data.object.user.UserObject;
-import io.axual.ksml.data.object.user.UserString;
+import io.axual.ksml.data.mapper.PythonDataObjectMapper;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.user.UserFunction;
-import io.axual.ksml.util.StringUtil;
 
 public class PythonFunction extends UserFunction {
     private static final String PYTHON = "python";
@@ -46,7 +46,7 @@ public class PythonFunction extends UserFunction {
             .allowHostAccess(HostAccess.ALL)
             .allowHostClassLookup(name -> name.equals("java.util.ArrayList") || name.equals("java.util.HashMap"))
             .build();
-    private static final PythonUserObjectMapper mapper = new PythonUserObjectMapper(context);
+    private static final PythonDataObjectMapper mapper = new PythonDataObjectMapper(context);
     protected final Value function;
 
     public PythonFunction(String name, FunctionDefinition definition) {
@@ -56,17 +56,17 @@ public class PythonFunction extends UserFunction {
         String[] functionCode = Arrays.stream(definition.code).map(line -> "  " + line).toArray(String[]::new);
 
         // Prepare a list of parameter names
-        String[] params = Arrays.stream(parameters).map(p -> p.name).toArray(String[]::new);
+        String[] params = Arrays.stream(parameters).map(ParameterDefinition::name).toArray(String[]::new);
 
         // Prepare the Python code to load
         String pyCode = "import polyglot\n" +
                 "import java\n" +
                 "ArrayList = java.type('java.util.ArrayList')\n" +
                 "HashMap = java.type('java.util.HashMap')\n" +
-                StringUtil.join("\n", definition.globalCode) + "\n" +
+                String.join("\n", definition.globalCode) + "\n" +
                 "@polyglot.export_value\n" +
-                "def " + name + "_function(" + StringUtil.join(",", params) + "):\n" +
-                StringUtil.join("\n", functionCode) + "\n" +
+                "def " + name + "_function(" + String.join(",", params) + "):\n" +
+                String.join("\n", functionCode) + "\n" +
                 "  return" + (resultType != null ? " " + definition.expression : "") + "\n" +
                 "\n" +
                 "def convert_to(value):\n" +
@@ -92,8 +92,8 @@ public class PythonFunction extends UserFunction {
                 "  return value\n" +
                 "\n" +
                 "@polyglot.export_value\n" +
-                "def " + name + "_caller(" + StringUtil.join(",", params) + "):\n" +
-                "  return convert_from(" + name + "_function(" + StringUtil.join(",", params) + "))\n";
+                "def " + name + "_caller(" + String.join(",", params) + "):\n" +
+                "  return convert_from(" + name + "_function(" + String.join(",", params) + "))\n";
 
         Source script = Source.create(PYTHON, pyCode);
         context.eval(script);
@@ -101,18 +101,14 @@ public class PythonFunction extends UserFunction {
     }
 
     @Override
-    public UserObject call(UserObject... parameters) {
+    public DataObject call(DataObject... parameters) {
         // Validate that the defined parameter list matches the amount of passed in parameters
         if (this.parameters.length != parameters.length) {
             throw new KSMLTopologyException("Parameter list does not match function spec: expected " + this.parameters.length + ", got " + parameters.length);
         }
 
         // Check all parameters and copy them into the interpreter as prefixed globals
-        Object[] arguments = new Object[parameters.length];
-        for (var index = 0; index < parameters.length; index++) {
-            checkType(this.parameters[index], parameters[index]);
-            arguments[index] = mapper.fromUserObject(parameters[index]);
-        }
+        var arguments = convertParameters(parameters);
 
         try {
             // Call the prepared function
@@ -124,34 +120,36 @@ public class PythonFunction extends UserFunction {
 
             // Check if the function is supposed to return a result value
             if (resultType != null) {
-                // The converted result value from Python
-                final UserObject result;
-
-                // If a value is expected, but none is returned, then handle special cases
-                if (pyResult.isNull()) {
-                    // An empty string in YAML (ie. '') is returned as null by the parser, so
-                    // when we expect a string and get null, we convert it to the empty string.
-                    if (resultType.type() == UserString.DATATYPE) {
-                        // Empty string may be returned as null, so catch and convert here
-                        result = new UserString(resultType.notation(), "");
-                    } else {
-                        throw new KSMLTopologyException("Illegal return from function: null");
-                    }
-                } else {
-                    // Convert the result object to a UserObject
-                    result = mapper.toUserObject(resultType, pyResult);
-                }
-
+                DataObject result = convertResult(pyResult);
                 logCall(parameters, result);
-                checkType(resultType.type(), result);
+                checkType(resultType.dataType(), result);
                 return result;
             } else {
                 logCall(parameters, null);
-                return null;
+                return new DataNull();
             }
         } catch (Exception e) {
             logCall(parameters, null);
             throw new KSMLTopologyException("Error while executing function " + name + ": " + e.getMessage());
+        }
+    }
+
+    private Object[] convertParameters(DataObject... parameters) {
+        Object[] result = new Object[parameters.length];
+        for (var index = 0; index < parameters.length; index++) {
+            checkType(this.parameters[index], parameters[index]);
+            result[index] = mapper.fromDataObject(parameters[index]);
+        }
+        return result;
+    }
+
+    private DataObject convertResult(Value pyResult) {
+        // The converted result value from Python
+        try {
+            return mapper.toDataObject(resultType.dataType(), pyResult);
+        } catch (KSMLExecutionException e) {
+            // Ignore conversion error here
+            return null;
         }
     }
 }

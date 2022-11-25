@@ -20,97 +20,83 @@ package io.axual.ksml.schema;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.avro.Schema;
-
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
-import io.axual.ksml.notation.AvroNotation;
+import io.axual.ksml.data.mapper.JsonStringMapper;
+import io.axual.ksml.data.mapper.NativeDataSchemaMapper;
+import io.axual.ksml.data.mapper.NativeJsonNodeMapper;
+import io.axual.ksml.exception.KSMLExecutionException;
 
-// First attempt at providing an internal schema class. The implementation relies heavily on Avro
-// at the moment, which is fine for now, but may change in the future.
+// Generic internal schema class
 public class DataSchema {
-    private final Schema schema;
-    private final String schemaStr;
+    public enum Type {
+        NULL,
 
-    private DataSchema(Schema schema) {
-        this.schema = schema;
-        this.schemaStr = schema.toString();
-        SchemaLibrary.registerSchema(this);
+        BOOLEAN,
+
+        BYTE,
+        SHORT,
+        INTEGER,
+        LONG,
+
+        DOUBLE,
+        FLOAT,
+
+        BYTES,
+        FIXED,
+
+        STRING,
+
+        ENUM,
+        LIST,
+        MAP,
+        STRUCT,
+
+        UNION,
     }
 
-    protected Schema schema() {
-        return schema;
+    private static final NativeDataSchemaMapper NATIVE_DATA_SCHEMA_MAPPER = new NativeDataSchemaMapper();
+    private static final NativeJsonNodeMapper NATIVE_JSON_NODE_MAPPER = new NativeJsonNodeMapper();
+    private static final JsonStringMapper JSON_STRING_MAPPER = new JsonStringMapper();
+    private final Type type;
+
+    public static DataSchema create(Type type) {
+        return switch (type) {
+            case NULL, BOOLEAN, BYTE, SHORT, INTEGER, LONG, DOUBLE, FLOAT, BYTES, STRING -> new DataSchema(type);
+            default -> throw new KSMLExecutionException("Can not use 'create' to create a schema for dataType " + type);
+        };
     }
 
-    public String name() {
-        return schema.getFullName();
+    protected DataSchema(Type type) {
+        this.type = type;
     }
 
-    public String notation() {
-        return AvroNotation.NOTATION_NAME;
+    public Type type() {
+        return type;
     }
 
     @Override
     public String toString() {
-        return schemaStr;
+        var nativeSchema = NATIVE_DATA_SCHEMA_MAPPER.fromDataSchema(this);
+        var jsonSchema = NATIVE_JSON_NODE_MAPPER.toJsonNode(nativeSchema);
+        return JSON_STRING_MAPPER.toString(jsonSchema);
+    }
+
+    public boolean isAssignableFrom(DataSchema schema) {
+        return schema != null && type == schema.type;
     }
 
     @Override
     public boolean equals(Object other) {
         if (this == other) return true;
-        if (other == null || other.getClass() != getClass()) return false;
-        var otherSchema = (DataSchema) other;
-        if (schema == null) return otherSchema.schema == null;
-        return schema.equals(otherSchema.schema);
+        if (other == null || getClass() != other.getClass()) return false;
+
+        // Compare all schema relevant fields
+        return Objects.equals(type, ((DataSchema) other).type);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(schema);
-    }
-
-    public static Builder newBuilder(Schema schema) {
-        return new Builder(schema);
-    }
-
-    public static Builder newBuilder(String name, String doc, String namespace) {
-        return new Builder(name, doc, namespace);
-    }
-
-    public static class Builder {
-        private final Schema schema;
-        private final List<Schema.Field> fields = new ArrayList<>();
-
-        public Builder(Schema schema) {
-            this.schema = schema;
-        }
-
-        public Builder(String name, String doc, String namespace) {
-            schema = Schema.createRecord(name, doc, namespace, false);
-        }
-
-        public Builder addField(Schema.Field field) {
-            fields.add(field);
-            return this;
-        }
-
-        public Builder addField(String name, Schema schema, String doc, Object defaultValue) {
-            addField(name, schema, doc, defaultValue, Schema.Field.Order.ASCENDING);
-            return this;
-        }
-
-        public Builder addField(String name, Schema schema, String doc, Object defaultValue, Schema.Field.Order order) {
-            addField(new Schema.Field(name, schema, doc, defaultValue, order));
-            return this;
-        }
-
-        public DataSchema build() {
-            if (!fields.isEmpty()) {
-                schema.setFields(fields);
-            }
-            return new DataSchema(schema);
-        }
+        return Objects.hash(type);
     }
 }

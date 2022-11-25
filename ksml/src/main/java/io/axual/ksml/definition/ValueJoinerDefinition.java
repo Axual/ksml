@@ -27,6 +27,8 @@ import static io.axual.ksml.definition.DefinitionConstants.TWO_VALUE_PARAMETERS;
 public class ValueJoinerDefinition extends FunctionDefinition {
 
     public ValueJoinerDefinition(FunctionDefinition definition) {
-        super(definition.withParameters(getParameters(definition.parameters, TWO_VALUE_PARAMETERS)));
+        super(definition
+                .withParameters(getParameters(definition.parameters, TWO_VALUE_PARAMETERS))
+                .withAResult());
     }
 }

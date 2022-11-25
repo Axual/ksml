@@ -1,0 +1,37 @@
+{
+  "type": "record",
+  "name": "WindowedString",
+  "namespace": "io.axual.ksml.data",
+  "doc": "Windowed String",
+  "fields": [
+    {
+      "name": "start",
+      "type": "long",
+      "doc": "Start timestamp",
+      "default": 0
+    },
+    {
+      "name": "end",
+      "type": "long",
+      "doc": "End timestamp",
+      "default": 0
+    },
+    {
+      "name": "startTime",
+      "type": "string",
+      "doc": "Start time",
+      "default": "Time Zero"
+    },
+    {
+      "name": "endTime",
+      "type": "string",
+      "doc": "End time",
+      "default": "Time Zero"
+    },
+    {
+      "name": "key",
+      "type": "string",
+      "doc": "Window key"
+    }
+  ]
+}

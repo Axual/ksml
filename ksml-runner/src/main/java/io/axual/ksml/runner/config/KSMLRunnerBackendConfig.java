@@ -21,7 +21,6 @@ package io.axual.ksml.runner.config;
  */
 
 
-
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.databind.JsonNode;
 

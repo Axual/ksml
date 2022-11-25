@@ -21,11 +21,12 @@ package io.axual.ksml.definition;
  */
 
 
-
 import static io.axual.ksml.definition.DefinitionConstants.NO_PARAMETERS;
 
 public class InitializerDefinition extends FunctionDefinition {
     public InitializerDefinition(FunctionDefinition definition) {
-        super(definition.withParameters(getParameters(definition.parameters, NO_PARAMETERS)));
+        super(definition
+                .withParameters(getParameters(definition.parameters, NO_PARAMETERS))
+                .withAResult());
     }
 }

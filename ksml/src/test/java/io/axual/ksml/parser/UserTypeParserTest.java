@@ -28,19 +28,19 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.stream.Stream;
 
-import io.axual.ksml.data.object.user.UserBoolean;
-import io.axual.ksml.data.object.user.UserByte;
-import io.axual.ksml.data.object.user.UserBytes;
-import io.axual.ksml.data.object.user.UserDouble;
-import io.axual.ksml.data.object.user.UserFloat;
-import io.axual.ksml.data.object.user.UserInteger;
-import io.axual.ksml.data.object.user.UserLong;
-import io.axual.ksml.data.object.user.UserNone;
-import io.axual.ksml.data.object.user.UserShort;
-import io.axual.ksml.data.object.user.UserString;
-import io.axual.ksml.data.type.base.DataType;
-import io.axual.ksml.data.type.base.SimpleType;
-import io.axual.ksml.data.type.user.UserType;
+import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.DataByte;
+import io.axual.ksml.data.object.DataBytes;
+import io.axual.ksml.data.object.DataDouble;
+import io.axual.ksml.data.object.DataFloat;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataShort;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.SimpleType;
+import io.axual.ksml.data.type.UserType;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -55,53 +55,48 @@ public class UserTypeParserTest {
         var userType = UserTypeParser.parse(type);
         assertNotNull(userType);
         assertEquals(UserType.DEFAULT_NOTATION, userType.notation(), "notation for " + type + "should default to " + UserType.DEFAULT_NOTATION);
-        final var dataType = userType.type();
-        if (!type.equals("?")) {
-            assertTrue(dataType.getClass().isAssignableFrom(SimpleType.class), "DataType is some subclass of SimpleType");
-        }
     }
 
     @ParameterizedTest
-    @DisplayName("Test parsing for type String (types 'str' and 'string'")
+    @DisplayName("Test parsing for dataType String (types 'str' and 'string'")
     @ValueSource(strings = {"str", "string"})
     void testParseStringType(String type) {
         final var userType = UserTypeParser.parse(type);
         assertNotNull(userType);
-        final var dataType = userType.type();
+        final var dataType = userType.dataType();
         assertEquals(String.class, dataType.containerClass());
         assertTrue(dataType.isAssignableFrom("some random string"));
         assertTrue(dataType.isAssignableFrom(String.class));
     }
 
     @ParameterizedTest
-    @DisplayName("Test mapping of type names to correct user types class")
+    @DisplayName("Test mapping of dataType names to correct user types class")
     @MethodSource("typesAndDataTypes")
     void testDataTypes(String type, DataType dataType) {
         final var userType = UserTypeParser.parse(type);
         assertNotNull(userType);
 
-        assertEquals(dataType, userType.type(), "DataType for '" + type + "' should be set to " + dataType);
+        assertEquals(dataType, userType.dataType(), "DataType for '" + type + "' should be set to " + dataType);
         if (type.equals("?")) {
-            assertEquals(DataType.UNKNOWN, userType.type(), "datatype for '?' should be UNKNOWN (anonymous subclass)");
+            assertEquals(DataType.UNKNOWN, userType.dataType(), "Datatype for '?' should be UNKNOWN (anonymous subclass)");
         } else {
-            assertEquals(SimpleType.class, userType.type().getClass(), "class for " + type + " should be SimpleType");
+            assertTrue(SimpleType.class.isAssignableFrom(userType.dataType().getClass()), "Class for " + type + " should be subclass of SimpleType");
         }
-
     }
 
     static Stream<Arguments> typesAndDataTypes() {
         return Stream.of(
-                Arguments.arguments("boolean", UserBoolean.DATATYPE),
-                Arguments.arguments("byte", UserByte.DATATYPE),
-                Arguments.arguments("bytes", UserBytes.DATATYPE),
-                Arguments.arguments("short", UserShort.DATATYPE),
-                Arguments.arguments("double", UserDouble.DATATYPE),
-                Arguments.arguments("float", UserFloat.DATATYPE),
-                Arguments.arguments("int", UserInteger.DATATYPE),
-                Arguments.arguments("long", UserLong.DATATYPE),
-                Arguments.arguments("str", UserString.DATATYPE),
-                Arguments.arguments("string", UserString.DATATYPE),
-                Arguments.arguments("none", UserNone.DATATYPE),
+                Arguments.arguments("boolean", DataBoolean.DATATYPE),
+                Arguments.arguments("byte", DataByte.DATATYPE),
+                Arguments.arguments("short", DataShort.DATATYPE),
+                Arguments.arguments("int", DataInteger.DATATYPE),
+                Arguments.arguments("long", DataLong.DATATYPE),
+                Arguments.arguments("double", DataDouble.DATATYPE),
+                Arguments.arguments("float", DataFloat.DATATYPE),
+                Arguments.arguments("bytes", DataBytes.DATATYPE),
+                Arguments.arguments("str", DataString.DATATYPE),
+                Arguments.arguments("string", DataString.DATATYPE),
+                Arguments.arguments("none", DataNull.DATATYPE),
                 Arguments.arguments("?", DataType.UNKNOWN)
         );
     }

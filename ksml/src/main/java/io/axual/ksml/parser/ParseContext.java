@@ -23,7 +23,6 @@ package io.axual.ksml.parser;
 
 import org.apache.kafka.streams.kstream.Grouped;
 
-import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -56,5 +55,5 @@ public interface ParseContext {
 
     <K, V> void registerGrouped(Grouped<K, V> grouped);
 
-    void registerStore(StoreType type, String storeName, Duration storeRetention, StreamDataType keyType, StreamDataType valueType, boolean cachingEnabled);
+    void registerStore(StoreType type, StoreDefinition store, StreamDataType keyType, StreamDataType valueType);
 }

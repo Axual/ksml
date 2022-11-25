@@ -30,6 +30,6 @@ public class KSMLRunnerConfigurationException extends RuntimeException {
     }
 
     public KSMLRunnerConfigurationException(String configKey, Object configValue, String message) {
-        super(message + String.format(MESSAGE_DETAIL_FORMAT, configKey, configValue));
+        super(message + String.format(MESSAGE_DETAIL_FORMAT, configKey, configValue != null ? configValue : "null"));
     }
 }

@@ -3,18 +3,6 @@ streams:
     topic: ksml_sensordata_avro
     keyType: string
     valueType: avro:SensorData
-  sensor_0:
-    topic: ksml_sensordata_sensor0
-    keyType: string
-    valueType: avro:SensorData
-  sensor_1:
-    topic: ksml_sensordata_sensor1
-    keyType: string
-    valueType: avro:SensorData
-  sensor_2:
-    topic: ksml_sensordata_sensor2
-    keyType: string
-    valueType: avro:SensorData
 
 functions:
   print_message:
@@ -23,6 +11,9 @@ functions:
 
   doubleEveryRecord:
     type: keyValueToKeyValueListTransformer
+    code: |
+      if key == None:
+        return []
     expression: "[(key+'-1',value),(key+'-2',value)]"
     resultType: "[(string,avro:SensorData)]"
 

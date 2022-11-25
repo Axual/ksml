@@ -28,17 +28,17 @@ import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserStreamPartitioner;
 
-public class RepartitionOperation extends StoreOperation {
+public class RepartitionOperation extends BaseOperation {
     private final UserFunction partitioner;
 
-    public RepartitionOperation(StoreOperationConfig config, UserFunction partitioner) {
+    public RepartitionOperation(OperationConfig config, UserFunction partitioner) {
         super(config);
         this.partitioner = partitioner;
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        Repartitioned<Object, Object> repartitioned = Repartitioned.with(input.keyType().getSerde(), input.valueType().getSerde()).withName(storeName);
+        Repartitioned<Object, Object> repartitioned = Repartitioned.with(input.keyType().getSerde(), input.valueType().getSerde()).withName(name);
         if (partitioner != null) {
             repartitioned = repartitioned.withStreamPartitioner(new UserStreamPartitioner(partitioner));
         }

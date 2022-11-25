@@ -25,6 +25,6 @@ import org.apache.kafka.common.serialization.Deserializer;
 public class ByteDeserializer implements Deserializer<Byte> {
     @Override
     public Byte deserialize(String topic, byte[] data) {
-        return data.length > 0 ? data[0] : null;
+        return data != null && data.length > 0 ? data[0] : null;
     }
 }

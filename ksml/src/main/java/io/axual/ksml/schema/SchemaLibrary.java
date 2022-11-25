@@ -29,7 +29,7 @@ import io.axual.ksml.exception.KSMLExecutionException;
 
 public class SchemaLibrary {
     private static final List<Loader> loaders = new ArrayList<>();
-    private static final Map<String, DataSchema> schemas = new HashMap<>();
+    private static final Map<String, NamedSchema> schemas = new HashMap<>();
 
     public interface Loader {
         DataSchema load(String schemaName);
@@ -38,14 +38,22 @@ public class SchemaLibrary {
     private SchemaLibrary() {
     }
 
+    public static DataSchema getSchema(String schemaName, boolean allowNull) {
+        var result = getSchema(schemaName);
+        if (result == null && !allowNull) {
+            throw new KSMLExecutionException("Can not load schema: " + schemaName);
+        }
+        return result;
+    }
+
     public static DataSchema getSchema(String schemaName) {
         if (schemas.containsKey(schemaName)) {
             return schemas.get(schemaName);
         }
         for (Loader loader : loaders) {
             DataSchema schema = loader.load(schemaName);
-            if (schema != null) {
-                schemas.put(schemaName, schema);
+            if (schema instanceof NamedSchema ns) {
+                schemas.put(schemaName, ns);
                 return schema;
             }
         }
@@ -54,16 +62,5 @@ public class SchemaLibrary {
 
     public static void registerLoader(Loader loader) {
         loaders.add(loader);
-    }
-
-    public static void registerSchema(DataSchema schema) {
-        if (!schemas.containsKey(schema.name())) {
-            schemas.put(schema.name(), schema);
-            return;
-        }
-        DataSchema existingSchema = schemas.get(schema.name());
-        if (!existingSchema.equals(schema)) {
-            throw new KSMLExecutionException("Encountered two different schema with the same name: " + schema.name());
-        }
     }
 }

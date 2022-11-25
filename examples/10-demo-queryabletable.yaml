@@ -11,6 +11,7 @@ tables:
     topic: ksml_sensordata_table
     keyType: string
     valueType: avro:SensorData
+    queryable: true
 
 functions:
   print_message:
@@ -21,6 +22,11 @@ pipelines:
   main:
     from: sensor_source
     via:
+      - type: filter
+        predicate:
+          expression: key != None
+      - type: convertKey
+        into: string
       - type: peek
         forEach: print_message
     to: sensor_target

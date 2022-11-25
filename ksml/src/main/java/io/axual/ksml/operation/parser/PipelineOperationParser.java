@@ -71,19 +71,19 @@ public class PipelineOperationParser extends ContextAwareParser<StreamOperation>
     public StreamOperation parse(YamlNode node) {
         if (node == null) return null;
 
-        final String type = parseText(node, PIPELINE_OPERATIONTYPE_ATTRIBUTE);
+        final String type = parseString(node, PIPELINE_OPERATIONTYPE_ATTRIBUTE);
         if (type == null) {
             throw new KSMLParseException(node, "Type unspecified");
         }
 
-        final String name = determineName(parseText(node, NAME_ATTRIBUTE), type);
+        final String name = determineName(parseString(node, NAME_ATTRIBUTE), type);
 
         BaseParser<? extends StreamOperation> parser = getParser(type, name);
         if (parser != null) {
             return parser.parse(node.appendName(type));
         }
 
-        throw new KSMLParseException(node, "Unknown type \"" + type + "\" in pipeline operation " + name);
+        throw new KSMLParseException(node, "Unknown dataType \"" + type + "\" in pipeline operation " + name);
     }
 
     private BaseParser<? extends StreamOperation> getParser(String type, String name) {

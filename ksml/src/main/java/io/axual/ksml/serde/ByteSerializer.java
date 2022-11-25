@@ -23,13 +23,11 @@ package io.axual.ksml.serde;
 import org.apache.kafka.common.serialization.Serializer;
 
 public class ByteSerializer implements Serializer<Byte> {
+    private static final byte[] EMPTY = new byte[0];
+
     @Override
     public byte[] serialize(String topic, Byte data) {
-        if (data != null) {
-            var result = new byte[1];
-            result[0] = data;
-            return result;
-        }
-        return new byte[0];
+        if (data == null) return EMPTY;
+        return new byte[]{data};
     }
 }

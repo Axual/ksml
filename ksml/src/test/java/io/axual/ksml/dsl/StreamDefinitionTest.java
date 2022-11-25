@@ -63,10 +63,10 @@ class StreamDefinitionTest {
         // when it adds itself to Builder
         var streamWrapper = streamDefinition.addToBuilder(builder, "name", notationLibrary);
 
-        // it adds a ktable to the builder with key and value type, and returns a KTableWrapper instance
+        // it adds a ktable to the builder with key and value dataType, and returns a KTableWrapper instance
         final var stringType = UserTypeParser.parse("string");
-        verify(mockNotation).getSerde(stringType.type(), true);
-        verify(mockNotation).getSerde(stringType.type(), false);
+        verify(mockNotation).getSerde(stringType.dataType(), true);
+        verify(mockNotation).getSerde(stringType.dataType(), false);
 
         verify(builder).stream(eq("topic"), isA(Consumed.class));
         assertThat(streamWrapper, instanceOf(KStreamWrapper.class));

@@ -26,6 +26,8 @@ import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_PARAMETERS;
 
 public class KeyTransformerDefinition extends FunctionDefinition {
     public KeyTransformerDefinition(FunctionDefinition definition) {
-        super(definition.withParameters(getParameters(definition.parameters, KEY_VALUE_PARAMETERS)));
+        super(definition
+                .withParameters(getParameters(definition.parameters, KEY_VALUE_PARAMETERS))
+                .withAResult());
     }
 }

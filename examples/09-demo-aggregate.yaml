@@ -24,6 +24,9 @@ pipelines:
       - type: groupBy
         name: ksml_sensordata_grouped
         mapper:
+          code: |
+            if value == None:
+              return "no owner"
           expression: value["owner"]
           resultType: string
       - type: windowedBy

@@ -25,6 +25,6 @@ import org.apache.kafka.common.serialization.Deserializer;
 public class BooleanDeserializer implements Deserializer<Boolean> {
     @Override
     public Boolean deserialize(String topic, byte[] data) {
-        return data.length > 0 ? data[0] != 0 : null;
+        return data != null && data.length > 0 ? data[0] != 0 : null;
     }
 }

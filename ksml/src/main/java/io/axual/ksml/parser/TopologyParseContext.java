@@ -26,7 +26,6 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Grouped;
 import org.apache.kafka.streams.kstream.internals.GroupedInternal;
 
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -34,6 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.StoreDefinition;
+import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.notation.NotationLibrary;
@@ -50,9 +50,9 @@ import lombok.AllArgsConstructor;
 public class TopologyParseContext implements ParseContext {
     private final StreamsBuilder builder;
     private final NotationLibrary notationLibrary;
-    private final Map<String, BaseStreamDefinition> streamDefinitions;
-    private final Map<String, FunctionDefinition> functionDefinitions;
-    private final Map<String, StoreDefinition> storeDefinitions;
+    private final Map<String, BaseStreamDefinition> streamDefinitions = new HashMap<>();
+    private final Map<String, FunctionDefinition> functionDefinitions = new HashMap<>();
+    private final Map<String, StoreDefinition> storeDefinitions = new HashMap<>();
     private final Map<String, StreamWrapper> streamWrappers = new HashMap<>();
     private final Map<String, AtomicInteger> typeInstanceCounters = new HashMap<>();
     private final Map<String, GroupedInternal<?, ?>> groupedStores = new HashMap<>();
@@ -61,22 +61,36 @@ public class TopologyParseContext implements ParseContext {
     @AllArgsConstructor
     public static class StoreDescriptor {
         public final StoreType type;
-        public final String storeName;
-        public final Duration storeRetention;
+        public final StoreDefinition store;
         public final StreamDataType keyType;
         public final StreamDataType valueType;
-        public final boolean cachingEnabled;
     }
 
-    public TopologyParseContext(StreamsBuilder builder, NotationLibrary notationLibrary, Map<String, BaseStreamDefinition> streamDefinitions, Map<String, FunctionDefinition> functionDefinitions, Map<String, StoreDefinition> storeDefinitions) {
+    public TopologyParseContext(StreamsBuilder builder, NotationLibrary notationLibrary) {
         this.builder = builder;
         this.notationLibrary = notationLibrary;
-        this.streamDefinitions = streamDefinitions;
-        this.functionDefinitions = functionDefinitions;
-        this.storeDefinitions = storeDefinitions;
+    }
 
-        // Generate StreamWrappers for every defined stream
-        streamDefinitions.forEach(this::buildWrapper);
+    public void registerStreamDefinition(String name, BaseStreamDefinition def) {
+        if (streamDefinitions.containsKey(name)) {
+            throw new KSMLParseException("Stream definition must be unique: " + name);
+        }
+        streamDefinitions.put(name, def);
+        buildWrapper(name, def);
+    }
+
+    public void registerFunction(String name, FunctionDefinition functionDefinition) {
+        if (functionDefinitions.containsKey(name)) {
+            throw new KSMLParseException("Function definition must be unique: " + name);
+        }
+        functionDefinitions.put(name, functionDefinition);
+    }
+
+    public void registerStore(String name, StoreDefinition storeDefinition) {
+        if (storeDefinitions.containsKey(name)) {
+            throw new KSMLParseException("Store definition must be unique: " + name);
+        }
+        storeDefinitions.put(name, storeDefinition);
     }
 
     private StreamWrapper buildWrapper(String name, BaseStreamDefinition def) {
@@ -87,7 +101,6 @@ public class TopologyParseContext implements ParseContext {
         }
         return wrapper;
     }
-
 
     @Override
     public Map<String, BaseStreamDefinition> getStreamDefinitions() {
@@ -104,7 +117,7 @@ public class TopologyParseContext implements ParseContext {
             result = buildWrapper(definition.topic, definition);
         }
         if (!resultClass.isInstance(result)) {
-            throw new KSMLTopologyException("Stream is of incorrect type " + result.getClass().getSimpleName() + " where " + resultClass.getSimpleName() + " expected");
+            throw new KSMLTopologyException("Stream is of incorrect dataType " + result.getClass().getSimpleName() + " where " + resultClass.getSimpleName() + " expected");
         }
         return (T) result;
     }
@@ -143,8 +156,8 @@ public class TopologyParseContext implements ParseContext {
         groupedStores.put(copy.name(), copy);
     }
 
-    public void registerStore(StoreType type, String storeName, Duration storeRetention, StreamDataType keyType, StreamDataType valueType, boolean cachingEnabled) {
-        stateStores.put(storeName, new StoreDescriptor(type, storeName, storeRetention, keyType, valueType, cachingEnabled));
+    public void registerStore(StoreType type, StoreDefinition store, StreamDataType keyType, StreamDataType valueType) {
+        stateStores.put(store.name, new StoreDescriptor(type, store, keyType, valueType));
     }
 
     public Map<String, StoreDescriptor> stores() {

@@ -72,29 +72,29 @@ public class JoinOperation extends StoreOperation {
     public StreamWrapper apply(KStreamWrapper input) {
         final StreamDataType resultValueType = streamDataTypeOf(valueJoiner.resultType, false);
 
-        if (joinStream instanceof KStreamWrapper) {
+        if (joinStream instanceof KStreamWrapper wrapper) {
             return new KStreamWrapper(
                     input.stream.join(
-                            ((KStreamWrapper) joinStream).stream,
+                            wrapper.stream,
                             new UserValueJoiner(valueJoiner),
                             joinWindows,
-                            StreamJoined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde()).withName(name).withStoreName(storeName)),
+                            StreamJoined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde()).withName(name).withStoreName(store.name)),
                     input.keyType(),
                     resultValueType);
         }
-        if (joinStream instanceof KTableWrapper) {
+        if (joinStream instanceof KTableWrapper wrapper) {
             return new KStreamWrapper(
                     input.stream.join(
-                            ((KTableWrapper) joinStream).table,
+                            wrapper.table,
                             new UserValueJoiner(valueJoiner),
-                            Joined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde(), storeName)),
+                            Joined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde(), store.name)),
                     input.keyType(),
                     resultValueType);
         }
-        if (joinStream instanceof GlobalKTableWrapper) {
+        if (joinStream instanceof GlobalKTableWrapper wrapper) {
             return new KStreamWrapper(
                     input.stream.join(
-                            ((GlobalKTableWrapper) joinStream).globalTable,
+                            wrapper.globalTable,
                             new UserKeyTransformer(keyValueMapper),
                             new UserValueJoiner(valueJoiner),
                             Named.as(name)),
@@ -108,10 +108,10 @@ public class JoinOperation extends StoreOperation {
     public StreamWrapper apply(KTableWrapper input) {
         final StreamDataType resultValueType = streamDataTypeOf(valueJoiner.resultType, false);
 
-        if (joinStream instanceof KTableWrapper) {
+        if (joinStream instanceof KTableWrapper wrapper) {
             return new KTableWrapper(
                     input.table.join(
-                            ((KTableWrapper) joinStream).table,
+                            wrapper.table,
                             new UserValueJoiner(valueJoiner),
                             Named.as(name),
                             registerKeyValueStore(input.keyType(), resultValueType)),

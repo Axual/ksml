@@ -21,14 +21,7 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.data.type.base.DataType;
+import io.axual.ksml.data.type.DataType;
 
-public class ParameterDefinition {
-    public final String name;
-    public final DataType type;
-
-    public ParameterDefinition(String name, DataType type) {
-        this.name = name;
-        this.type = type;
-    }
+public record ParameterDefinition(String name, DataType type) {
 }

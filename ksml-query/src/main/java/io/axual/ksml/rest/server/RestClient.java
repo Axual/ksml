@@ -26,6 +26,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import io.axual.ksml.rest.data.KeyValueBean;
+import io.axual.ksml.rest.data.KeyValueBeans;
+import io.axual.ksml.rest.data.WindowedKeyValueBeans;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.core.MediaType;
@@ -118,8 +121,8 @@ public class RestClient implements AutoCloseable {
      * @param url remote keyvalue endpoint URL
      * @return the StoreData
      */
-    public KeyValueBean getRemoteKeyValueBean(String url) {
-        return getRemoteKeyValueBean(url, DEFAULT_TIMEOUT);
+    public <T extends KeyValueBean> T getRemoteKeyValueBean(String url, Class<T> resultClass) {
+        return getRemoteKeyValueBean(url, resultClass, DEFAULT_TIMEOUT);
     }
 
     /**
@@ -129,12 +132,12 @@ public class RestClient implements AutoCloseable {
      * @param duration duration for which to wait for response before giving up
      * @return the StoreData
      */
-    public KeyValueBean getRemoteKeyValueBean(String url, Duration duration) {
+    public <T extends KeyValueBean> T getRemoteKeyValueBean(String url, Class<T> resultClass, Duration duration) {
         try {
-            Future<KeyValueBean> storeDataFuture = getRESTClient().target(url)
+            Future<T> storeDataFuture = getRESTClient().target(url)
                     .request(MediaType.APPLICATION_JSON)
                     .async() //returns asap
-                    .get(KeyValueBean.class);
+                    .get(resultClass);
             return storeDataFuture.get(duration.toMillis(), TimeUnit.MILLISECONDS); //blocks until timeout
         } catch (InterruptedException | ExecutionException e) {
             log.warn(INTERRUPTED_MESSAGE, url);

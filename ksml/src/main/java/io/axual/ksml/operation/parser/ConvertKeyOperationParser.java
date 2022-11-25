@@ -20,7 +20,7 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.user.UserType;
+import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.operation.ConvertKeyOperation;
 import io.axual.ksml.parser.OperationParser;
 import io.axual.ksml.parser.ParseContext;
@@ -40,10 +40,7 @@ public class ConvertKeyOperationParser extends OperationParser<ConvertKeyOperati
     @Override
     public ConvertKeyOperation parse(YamlNode node) {
         if (node == null) return null;
-        UserType target = UserTypeParser.parse(parseText(node, CONVERT_INTO_ATTRIBUTE));
-        return new ConvertKeyOperation(
-                operationConfig(name),
-                target.type(),
-                context.getNotationLibrary().get(target.notation()));
+        UserType target = UserTypeParser.parse(parseString(node, CONVERT_INTO_ATTRIBUTE));
+        return new ConvertKeyOperation(operationConfig(name), target);
     }
 }

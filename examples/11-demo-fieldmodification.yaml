@@ -1,0 +1,64 @@
+# This example shows how to read from an AVRO stream, modify a specific field and output to a target
+# stream. For validation purposes a second pipeline outputs the modified results.
+
+streams:
+  sensor_source:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+  sensor_target:
+    topic: ksml_sensordata_modified
+    keyType: string
+    valueType: avro:SensorDataNoColor
+
+functions:
+  print_input_message:
+    type: forEach
+    code: "print('INPUT key=' + str(key) + ', value=' + str(value))"
+
+  print_output_message:
+    type: forEach
+    code: "print('OUTPUT key=' + str(key) + ', value=' + str(value))"
+
+  # This function changes the "owner" field and returns the modified version
+  replace_owner:
+    type: valueTransformer
+    code: |
+      if value != None:
+        value["owner"] = "Zack"
+    expression: value
+    resultType: avro:SensorData
+
+  # This function removes the "color" field from the schema. It leaves the value field intact, but
+  # since the field is not defined in the schema anymore, it will no longer be written to the output
+  # topic. If you want it deleted explicitly for further pipeline processing, you can uncomment the
+  # last code line below.
+  remove_color:
+    type: valueTransformer
+    code: |
+      if value != None:
+        del value["@type"] # Remove preloaded type information from the value, so KSML does not associate it with an internally cached schema
+        schema = value["@schema"]
+        schema["name"] = schema["name"] + "NoColor"
+        for index, field in reversed(list(enumerate(schema["fields"]))):
+          if field["name"] == "color":
+            del schema["fields"][index]
+        value["@schema"] = schema
+        del value["color"]
+    expression: value
+    resultType: avro:SensorDataNoColor
+
+pipelines:
+  main:
+    from: sensor_source
+    via:
+     - type: peek
+       forEach: print_input_message
+     - type: transformValue
+       mapper: replace_owner
+     - type: transformValue
+       mapper: remove_color
+    to: sensor_target
+  validate:
+    from: sensor_target
+    forEach: print_output_message

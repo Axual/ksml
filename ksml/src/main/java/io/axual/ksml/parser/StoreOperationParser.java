@@ -32,16 +32,15 @@ public abstract class StoreOperationParser<T extends StoreOperation> extends Ope
 
     protected StoreOperationConfig storeOperationConfig(String name, YamlNode node, String childName) {
         final var storeDefinition = parseStoreInlineOrReference(node, childName, new StoreDefinitionParser());
-        final var storeName = storeDefinition != null && storeDefinition.name != null ? storeDefinition.name : name;
-        final var storeRetention = storeDefinition != null && storeDefinition.retention != null ? storeDefinition.retention : null;
-        final var storeCaching = storeDefinition == null || storeDefinition.caching == null || storeDefinition.caching;
 
         return new StoreOperationConfig(
                 name,
                 context.getNotationLibrary(),
-                storeName,
-                storeRetention,
-                storeCaching,
+                new StoreDefinition(
+                        storeDefinition != null && storeDefinition.name != null ? storeDefinition.name : name,
+                        storeDefinition != null && storeDefinition.retention != null ? storeDefinition.retention : null,
+                        storeDefinition == null || storeDefinition.caching == null || storeDefinition.caching
+                ),
                 context::registerGrouped,
                 context::registerStore);
     }

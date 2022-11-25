@@ -23,50 +23,52 @@ package io.axual.ksml.generator;
 
 import org.apache.kafka.common.serialization.Serde;
 
-import io.axual.ksml.data.object.user.UserRecord;
-import io.axual.ksml.data.type.base.DataType;
-import io.axual.ksml.data.type.base.WindowedType;
-import io.axual.ksml.notation.Notation;
-import io.axual.ksml.schema.SchemaUtil;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.type.UnionType;
+import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.data.type.WindowedType;
+import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.schema.mapper.WindowedSchemaMapper;
+import io.axual.ksml.serde.UnionSerde;
 
-public class StreamDataType {
-    private final DataType type;
-    private final Notation notation;
-    private final boolean isKey;
-
-    public StreamDataType(DataType type, Notation notation, boolean isKey) {
-        this.type = cookType(type);
-        this.notation = notation;
+public record StreamDataType(NotationLibrary notationLibrary, UserType userType, boolean isKey) {
+    public StreamDataType(NotationLibrary notationLibrary, UserType userType, boolean isKey) {
+        this.notationLibrary = notationLibrary;
+        this.userType = new UserType(userType.notation(), cookType(userType.dataType()));
         this.isKey = isKey;
     }
 
     private static DataType cookType(DataType type) {
-        // When we get a WindowedType, we automatically convert it into a record type using
+        // When we get a WindowedType, we automatically convert it into a Struct dataType using
         // fixed fields. This allows for processing downstream, since the WindowType itself
         // is KafkaStreams internal and thus not usable in user functions.
-        return type instanceof WindowedType
-                ? UserRecord.typeOf(SchemaUtil.windowTypeToSchema((WindowedType) type)).type()
+        return type instanceof WindowedType windowedType
+                ? new StructType(new WindowedSchemaMapper().toDataSchema(windowedType))
                 : type;
     }
 
-    public DataType type() {
-        return type;
-    }
-
-    public Notation notation() {
-        return notation;
+    private static UnionType cookUnion(UnionType type) {
+        var cookedUnionTypes = new UserType[type.possibleTypes().length];
+        for (int index = 0; index < type.possibleTypes().length; index++) {
+            var userType = type.possibleTypes()[index];
+            cookedUnionTypes[index] = new UserType(userType.notation(), cookType(userType.dataType()));
+        }
+        return new UnionType(cookedUnionTypes);
     }
 
     public boolean isAssignableFrom(StreamDataType other) {
-        return type.isAssignableFrom(other.type);
+        return userType.dataType().isAssignableFrom(other.userType.dataType());
     }
 
     @Override
     public String toString() {
-        return (notation != null ? notation.name() : "unknown notation") + ":" + type.schemaName();
+        return (userType.notation() != null ? userType.notation() : "unknown notation") + ":" + userType.dataType().schemaName();
     }
 
     public Serde<Object> getSerde() {
-        return notation.getSerde(type, isKey);
+        if (userType.dataType() instanceof UnionType unionType)
+            return new UnionSerde(notationLibrary, cookUnion(unionType), isKey);
+        return notationLibrary.get(userType.notation()).getSerde(userType.dataType(), isKey);
     }
 }

@@ -23,7 +23,7 @@ package io.axual.ksml.operation;
 
 import org.apache.kafka.streams.kstream.Named;
 
-import io.axual.ksml.data.type.user.UserKeyValueType;
+import io.axual.ksml.data.type.KeyValueType;
 import io.axual.ksml.stream.BaseStreamWrapper;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.user.UserFunction;
@@ -39,9 +39,11 @@ public class TransformKeyValueOperation extends BaseOperation {
 
     @Override
     public BaseStreamWrapper apply(KStreamWrapper input) {
+        var resultType = (KeyValueType) transformer.resultType.dataType();
+        var notation = transformer.resultType.notation();
         return new KStreamWrapper(
                 input.stream.map(new UserKeyValueTransformer(transformer), Named.as(name)),
-                streamDataTypeOf(((UserKeyValueType) transformer.resultType).keyType(), true),
-                streamDataTypeOf(((UserKeyValueType) transformer.resultType).valueType(), false));
+                streamDataTypeOf(notation, resultType.keyType(), null, true),
+                streamDataTypeOf(notation, resultType.valueType(), null, false));
     }
 }

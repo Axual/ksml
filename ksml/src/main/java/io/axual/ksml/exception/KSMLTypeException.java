@@ -22,7 +22,7 @@ package io.axual.ksml.exception;
 
 
 import io.axual.ksml.generator.StreamDataType;
-import io.axual.ksml.data.type.base.DataType;
+import io.axual.ksml.data.type.DataType;
 
 public class KSMLTypeException extends RuntimeException {
     public static KSMLTypeException conversionFailed(DataType variableType, DataType valueType) {
@@ -38,7 +38,7 @@ public class KSMLTypeException extends RuntimeException {
     }
 
     public static KSMLTypeException conversionFailed(String fromType, String toType) {
-        return new KSMLTypeException("Can not convert object from type \"" + fromType + "\" to \"" + toType + "\"");
+        return new KSMLTypeException("Can not convert object from dataType \"" + fromType + "\" to \"" + toType + "\"");
     }
 
     public static KSMLTypeException validationFailed(String key, Object value) {
@@ -54,7 +54,7 @@ public class KSMLTypeException extends RuntimeException {
     }
 
     public static KSMLTypeException unknownType(String type) {
-        return new KSMLTypeException("Unknown type: \"" + type + "\"");
+        return new KSMLTypeException("Unknown dataType: \"" + type + "\"");
     }
 
     public static KSMLTypeException topicTypeMismatch(String topic, StreamDataType keyType, StreamDataType valueType, DataType expectedKeyType, DataType expectedValueType) {
