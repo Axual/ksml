@@ -20,33 +20,14 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.*;
+import io.axual.ksml.data.type.*;
+import io.axual.ksml.exception.KSMLExecutionException;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 
 import java.util.HashMap;
-
-import io.axual.ksml.data.object.DataBoolean;
-import io.axual.ksml.data.object.DataByte;
-import io.axual.ksml.data.object.DataBytes;
-import io.axual.ksml.data.object.DataDouble;
-import io.axual.ksml.data.object.DataFloat;
-import io.axual.ksml.data.object.DataInteger;
-import io.axual.ksml.data.object.DataList;
-import io.axual.ksml.data.object.DataLong;
-import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataStruct;
-import io.axual.ksml.data.object.DataShort;
-import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.object.DataTuple;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.ListType;
-import io.axual.ksml.data.type.MapType;
-import io.axual.ksml.data.type.StructType;
-import io.axual.ksml.data.type.TupleType;
-import io.axual.ksml.data.type.UnionType;
-import io.axual.ksml.data.type.UserType;
-import io.axual.ksml.exception.KSMLExecutionException;
+import java.util.Map;
 
 public class PythonDataObjectMapper implements DataObjectMapper<Value> {
     private final JsonDataObjectMapper jsonDataMapper = new JsonDataObjectMapper();
@@ -176,10 +157,18 @@ public class PythonDataObjectMapper implements DataObjectMapper<Value> {
         if (object instanceof DataString val) return Value.asValue(val.value());
         if (object instanceof DataList val)
             return Value.asValue(nativeDataMapper.dataListToList(val));
-        if (object instanceof DataStruct) {
-            var value = jsonDataMapper.fromDataObject(object);
-            return context.eval("python", value);
+        if (object instanceof DataStruct val) {
+            return Value.asValue(fromDataStruct(val));
         }
         throw new KSMLExecutionException("Can not convert DataObject to Python dataType: " + object.getClass().getSimpleName());
+    }
+
+    // Convert a DataStruct to a dictionary Map of keys and values
+    Map<String,Value> fromDataStruct(DataStruct struct){
+        Map<String,Value> valueMap = new HashMap<>();
+        struct.forEach((key,value)->{
+            valueMap.put(key, fromDataObject(value));
+        });
+        return valueMap;
     }
 }

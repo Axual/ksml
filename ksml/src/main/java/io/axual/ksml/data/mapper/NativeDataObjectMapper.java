@@ -20,38 +20,19 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
-import io.axual.ksml.data.object.DataBoolean;
-import io.axual.ksml.data.object.DataByte;
-import io.axual.ksml.data.object.DataBytes;
-import io.axual.ksml.data.object.DataDouble;
-import io.axual.ksml.data.object.DataEnum;
-import io.axual.ksml.data.object.DataFloat;
-import io.axual.ksml.data.object.DataInteger;
-import io.axual.ksml.data.object.DataList;
-import io.axual.ksml.data.object.DataLong;
-import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataShort;
-import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.object.DataStruct;
-import io.axual.ksml.data.object.DataTuple;
-import io.axual.ksml.data.object.DataUnion;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.EnumType;
-import io.axual.ksml.data.type.ListType;
-import io.axual.ksml.data.type.StructType;
-import io.axual.ksml.data.type.TupleType;
+import io.axual.ksml.data.object.*;
+import io.axual.ksml.data.type.*;
 import io.axual.ksml.data.value.Tuple;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.schema.DataSchema;
 import io.axual.ksml.schema.SchemaLibrary;
 import io.axual.ksml.schema.StructSchema;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     private static final NativeDataSchemaMapper SCHEMA_MAPPER = new NativeDataSchemaMapper();
@@ -135,6 +116,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     @Override
     public DataObject toDataObject(DataType expected, Object value) {
         if (value == null) return new DataNull();
+        if (value instanceof DataObject val) return val;
         if (value instanceof Boolean val) return new DataBoolean(val);
         if (value instanceof Byte val) return new DataByte(val);
         if (value instanceof Short val) return new DataShort(val);
@@ -233,6 +215,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         for (int index = 0; index < value.size(); index++) {
             elements[index] = fromDataObject(value.get(index));
         }
+
         return new Tuple<>(elements);
     }
 }
