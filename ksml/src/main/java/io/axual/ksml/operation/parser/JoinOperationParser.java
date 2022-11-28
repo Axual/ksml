@@ -61,8 +61,7 @@ public class JoinOperationParser extends StoreOperationParser<JoinOperation> {
             return new JoinOperation(
                     storeOperationConfig(name, node, STORE_ATTRIBUTE),
                     kTableWrapper,
-                    parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()),
-                    parseDuration(node, JOIN_WINDOW_ATTRIBUTE));
+                    parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()));
         }
         if (joinStream instanceof GlobalKTableWrapper globalKTableWrapper) {
             return new JoinOperation(
