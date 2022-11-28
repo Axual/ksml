@@ -20,28 +20,34 @@ package io.axual.ksml.example.producer.factory;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 
 import java.util.Map;
 
-import io.axual.ksml.example.SensorData;
 import io.axual.ksml.example.producer.config.kafka.KafkaBackendConfig;
 
 import static io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.BOOTSTRAP_SERVERS_CONFIG;
 
-public class KafkaProducerFactory implements ProducerFactory {
+public class KafkaClientFactory implements ClientFactory {
     private final KafkaBackendConfig backendConfig;
 
-    public KafkaProducerFactory(KafkaBackendConfig config) {
+    public KafkaClientFactory(KafkaBackendConfig config) {
         backendConfig = config;
     }
 
     @Override
-    public Producer<String, SensorData> create(Map<String, Object> configs) {
+    public <V> Producer<String, V> createProducer(Map<String, Object> configs) {
         configs.put(BOOTSTRAP_SERVERS_CONFIG, backendConfig.getBootstrapUrl());
         configs.put(SCHEMA_REGISTRY_URL_CONFIG, backendConfig.getSchemaRegistryUrl());
         return new KafkaProducer<>(configs);
+    }
+
+    @Override
+    public Admin createAdmin(Map<String, Object> configs) {
+        configs.put(BOOTSTRAP_SERVERS_CONFIG, backendConfig.getBootstrapUrl());
+        return Admin.create(configs);
     }
 }

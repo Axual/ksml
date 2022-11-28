@@ -1,7 +1,7 @@
 kafka:
-  bootstrapUrl: broker:9093
+  bootstrapUrl: localhost:9092
   applicationId: io.ksml.example.producer
-  schemaRegistryUrl: http://schema_registry:8081
+  schemaRegistryUrl: http://localhost:8081
   streamsConfig:
     acks: all
 

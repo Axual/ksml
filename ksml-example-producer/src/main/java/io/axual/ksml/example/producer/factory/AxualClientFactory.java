@@ -20,36 +20,32 @@ package io.axual.ksml.example.producer.factory;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.common.config.SslConfigs;
-
-import java.util.Map;
-
+import io.axual.client.proxy.axual.admin.AxualAdminClient;
 import io.axual.client.proxy.axual.admin.AxualAdminConfig;
 import io.axual.client.proxy.axual.consumer.AxualConsumerConfig;
 import io.axual.client.proxy.axual.producer.AxualProducer;
 import io.axual.client.proxy.axual.producer.AxualProducerConfig;
 import io.axual.client.proxy.generic.registry.ProxyChain;
 import io.axual.common.config.CommonConfig;
-import io.axual.ksml.example.SensorData;
 import io.axual.ksml.example.producer.config.axual.AxualBackendConfig;
+import org.apache.kafka.clients.admin.Admin;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.common.config.SslConfigs;
 
-import static io.axual.client.proxy.generic.registry.ProxyTypeRegistry.HEADER_PROXY_ID;
-import static io.axual.client.proxy.generic.registry.ProxyTypeRegistry.LINEAGE_PROXY_ID;
-import static io.axual.client.proxy.generic.registry.ProxyTypeRegistry.RESOLVING_PROXY_ID;
-import static io.axual.client.proxy.generic.registry.ProxyTypeRegistry.SWITCHING_PROXY_ID;
+import java.util.Map;
+
+import static io.axual.client.proxy.generic.registry.ProxyTypeRegistry.*;
 import static org.apache.kafka.clients.CommonClientConfigs.SECURITY_PROTOCOL_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.BOOTSTRAP_SERVERS_CONFIG;
 
-public class AxualProducerFactory implements ProducerFactory {
+public class AxualClientFactory implements ClientFactory {
     private final AxualBackendConfig backendConfig;
 
-    public AxualProducerFactory(AxualBackendConfig config) {
+    public AxualClientFactory(AxualBackendConfig config) {
         this.backendConfig = config;
     }
 
-    @Override
-    public Producer<String, SensorData> create(Map<String, Object> configs) {
+    void addAxualClientProperties(Map<String, Object> configs) {
         ProxyChain chain = ProxyChain.newBuilder()
                 .append(SWITCHING_PROXY_ID)
                 .append(RESOLVING_PROXY_ID)
@@ -73,6 +69,11 @@ public class AxualProducerFactory implements ProducerFactory {
         configs.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, backendConfig.getSslConfig().getTruststorePassword());
         configs.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, "");
         configs.put(SslConfigs.SSL_ENABLED_PROTOCOLS_CONFIG, "TLSv1.3,TLSv1.2,TLSv1.1,TLSv1");
+    }
+
+    @Override
+    public <V> Producer<String, V> createProducer(Map<String, Object> configs) {
+        addAxualClientProperties(configs);
 
         final String PREFIX = "schema.registry.";
         configs.put(PREFIX + SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, backendConfig.getSslConfig().getKeystoreLocation());
@@ -83,5 +84,11 @@ public class AxualProducerFactory implements ProducerFactory {
         configs.put(PREFIX + SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, "");
         configs.put(PREFIX + SslConfigs.SSL_ENABLED_PROTOCOLS_CONFIG, "TLSv1.3,TLSv1.2,TLSv1.1,TLSv1");
         return new AxualProducer<>(configs);
+    }
+
+    @Override
+    public Admin createAdmin(Map<String, Object> configs) {
+        addAxualClientProperties(configs);
+        return new AxualAdminClient(configs);
     }
 }

@@ -20,12 +20,12 @@ package io.axual.ksml.example.producer.factory;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.producer.Producer;
 
 import java.util.Map;
 
-import io.axual.ksml.example.SensorData;
-
-public interface ProducerFactory {
-    Producer<String, SensorData> create(Map<String, Object> configs);
+public interface ClientFactory {
+    <V> Producer<String, V> createProducer(Map<String, Object> configs);
+   Admin createAdmin(Map<String, Object> configs);
 }

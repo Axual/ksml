@@ -11,7 +11,10 @@ ksml:
 #  - 07-demo-convert.yaml
 #  - 08-demo-count.yaml
 #  - 09-demo-aggregate.yaml
-  - 10-demo-queryabletable.yaml
+#  - 10-demo-queryabletable.yaml
+#  - 11-demo-fieldmodification.yaml
+#  - 12-demo-bytemanipulation.yaml
+  - 13-demo-join.yaml
 
 backend:
   type: kafka

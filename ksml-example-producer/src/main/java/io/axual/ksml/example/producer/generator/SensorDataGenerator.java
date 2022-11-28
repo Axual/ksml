@@ -20,10 +20,10 @@ package io.axual.ksml.example.producer.generator;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Random;
-
 import io.axual.ksml.example.SensorData;
 import io.axual.ksml.example.SensorType;
+
+import java.util.Random;
 
 public class SensorDataGenerator {
     private static final Random rand = new Random();
@@ -43,7 +43,11 @@ public class SensorDataGenerator {
     }
 
     private static int random(int range) {
-        return rand.nextInt(range);
+        return random(0, range);
+    }
+
+    private static int random(int low, int high) {
+        return rand.nextInt(low, high);
     }
 
     private static SensorData.Builder generateType(SensorData.Builder builder) {
@@ -70,10 +74,21 @@ public class SensorDataGenerator {
     }
 
     private static SensorData.Builder generateHumidity(SensorData.Builder builder) {
-        return builder
-                .setType(SensorType.HUMIDITY)
-                .setUnit(random(2) < 1 ? "g/m3" : "%")
-                .setValue("" + random(100));
+        builder.setType(SensorType.HUMIDITY);
+
+        if (rand.nextBoolean()) {
+            // g/m3
+            return builder
+                    .setType(SensorType.HUMIDITY)
+                    .setUnit("g/m3")
+                    .setValue("" + random(100));
+        } else {
+            return builder
+                    .setType(SensorType.HUMIDITY)
+                    .setUnit("%")
+                    .setValue("" + random(60, 80));
+        }
+
     }
 
     private static SensorData.Builder generateLength(SensorData.Builder builder) {
@@ -91,57 +106,31 @@ public class SensorDataGenerator {
     }
 
     private static SensorData.Builder generateTemperature(SensorData.Builder builder) {
-        return builder
-                .setType(SensorType.TEMPERATURE)
-                .setUnit(random(2) < 1 ? "C" : "F")
-                .setValue("" + random(1000));
+        builder.setType(SensorType.TEMPERATURE);
+        if (rand.nextBoolean()) {
+            return builder
+                    .setUnit("C")
+                    .setValue("" + random(-10, 35));
+        } else {
+            return builder
+                    .setUnit("F")
+                    .setValue("" + random(14, 95));
+        }
     }
 
     private static SensorData.Builder generateColor(SensorData.Builder builder) {
-        switch (random(5)) {
-            case 0:
-                return builder.setColor("black");
-            case 1:
-                return builder.setColor("blue");
-            case 2:
-                return builder.setColor("red");
-            case 3:
-                return builder.setColor("yellow");
-            case 4:
-            default:
-                return builder.setColor("white");
-        }
+        return builder.setColor(COLORS[random(COLORS.length)]);
     }
 
     private static SensorData.Builder generateCity(SensorData.Builder builder) {
-        switch (random(5)) {
-            case 0:
-                return builder.setCity("Amsterdam");
-            case 1:
-                return builder.setCity("Xanten");
-            case 2:
-                return builder.setCity("Utrecht");
-            case 3:
-                return builder.setCity("Alkmaar");
-            case 4:
-            default:
-                return builder.setCity("Leiden");
-        }
+        return builder.setCity(CITIES[random(CITIES.length)]);
     }
 
     private static SensorData.Builder generateOwner(SensorData.Builder builder) {
-        switch (random(5)) {
-            case 0:
-                return builder.setOwner("Alice");
-            case 1:
-                return builder.setOwner("Bob");
-            case 2:
-                return builder.setOwner("Charlie");
-            case 3:
-                return builder.setOwner("Dave");
-            case 4:
-            default:
-                return builder.setOwner("Evan");
-        }
+        return builder.setOwner(OWNERS[random(OWNERS.length)]);
     }
+
+    public static final String[] COLORS = new String[]{"black", "blue", "red", "yellow", "white"};
+    public static final String[] OWNERS = new String[]{"Alice", "Bob", "Charlie", "Dave", "Evan"};
+    public static final String[] CITIES = new String[]{"Amsterdam", "Xanten", "Utrecht", "Alkmaar", "Leiden"};
 }
