@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 
-public class JsonNodeDataObjectMapper implements DataObjectMapper<JsonNode> {
+public class JsonNodeDataObjectMapper extends BaseDataObjectMapper<JsonNode> {
     private static final NativeJsonNodeMapper JSON_NODE_MAPPER = new NativeJsonNodeMapper();
     private static final NativeDataObjectMapper DATA_OBJECT_MAPPER = new NativeDataObjectMapper();
 
@@ -36,7 +36,7 @@ public class JsonNodeDataObjectMapper implements DataObjectMapper<JsonNode> {
     }
 
     @Override
-    public Object fromDataObject(DataObject value) {
+    public JsonNode fromDataObject(DataObject value) {
         var nativeObject = DATA_OBJECT_MAPPER.fromDataObject(value);
         return JSON_NODE_MAPPER.toJsonNode(nativeObject);
     }

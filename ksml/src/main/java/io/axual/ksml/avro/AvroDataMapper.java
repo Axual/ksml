@@ -57,7 +57,7 @@ public class AvroDataMapper extends NativeDataObjectMapper {
     public Object fromDataObject(DataObject value) {
         if (value instanceof DataNull) return JsonProperties.NULL_VALUE;
         if (value instanceof DataStruct rec) {
-            return new AvroObject(rec.type().schema(), dataStructToMap(rec));
+            return new AvroObject(rec.type().schema(), fromDataStruct(rec));
         }
         return super.fromDataObject(value);
     }

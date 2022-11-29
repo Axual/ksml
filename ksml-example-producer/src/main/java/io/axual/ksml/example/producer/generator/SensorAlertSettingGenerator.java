@@ -20,13 +20,12 @@ package io.axual.ksml.example.producer.generator;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
+import java.util.Random;
+
 import io.axual.ksml.example.SensorAlertSetting;
 import io.axual.ksml.example.SensorAlertSettings;
 import io.axual.ksml.example.SensorType;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 
 public class SensorAlertSettingGenerator {
     private static final Random rand = new Random();
@@ -39,16 +38,18 @@ public class SensorAlertSettingGenerator {
                 .setCity(city);
         var alertSettings = new ArrayList<SensorAlertSetting>();
         switch (city) {
-            case "Amsterdam", "Utrecht":
+            case "Amsterdam", "Utrecht" -> {
                 alertSettings.add(generateHumidity(city, "74", "68"));
                 alertSettings.add(generateTemperature(city, "68", "41", "F"));
-                break;
-            case "Alkmaar", "Leiden":
+            }
+            case "Alkmaar", "Leiden" -> {
                 alertSettings.add(generateHumidity(city, "72", "70"));
                 alertSettings.add(generateTemperature(city, "25", "0", "C"));
-                break;
+            }
+            default -> {
+                // No alerts set for other cities
+            }
         }
-
 
         builder.setAlertSettings(alertSettings);
         return builder.build();

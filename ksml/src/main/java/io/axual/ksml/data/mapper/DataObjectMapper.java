@@ -33,5 +33,5 @@ public interface DataObjectMapper<T> {
 
     DataObject toDataObject(DataType expected, T value);
 
-    Object fromDataObject(DataObject value);
+    T fromDataObject(DataObject value);
 }
