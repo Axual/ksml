@@ -9,9 +9,9 @@ package io.axual.ksml;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,7 +31,6 @@ import java.util.Map;
 
 import io.axual.ksml.avro.AvroDataMapper;
 import io.axual.ksml.avro.AvroNotation;
-import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.exception.KSMLExecutionException;
@@ -42,7 +41,7 @@ import io.axual.ksml.util.DataUtil;
 import io.axual.streams.proxy.axual.AxualSerdeConfig;
 
 public class AxualAvroNotation implements Notation {
-    private static final DataObjectMapper<Object> mapper = new AvroDataMapper();
+    private static final AvroDataMapper AVRO_MAPPER = new AvroDataMapper();
     private final Map<String, Object> configs = new HashMap<>();
 
     public AxualAvroNotation(Map<String, Object> configs) {
@@ -73,7 +72,7 @@ public class AxualAvroNotation implements Notation {
         private final Serializer<Object> wrapSerializer = new Serializer<>() {
             @Override
             public byte[] serialize(String topic, Object data) {
-                var object = mapper.fromDataObject(DataUtil.asDataObject(data));
+                var object = AVRO_MAPPER.fromDataObject(DataUtil.asDataObject(data));
                 if (object == null || object == JsonProperties.NULL_VALUE) {
                     return serde.serializer().serialize(topic, null);
                 }
@@ -88,7 +87,7 @@ public class AxualAvroNotation implements Notation {
             @Override
             public Object deserialize(String topic, byte[] data) {
                 GenericRecord object = serde.deserializer().deserialize(topic, data);
-                return mapper.toDataObject(object);
+                return AVRO_MAPPER.toDataObject(object);
             }
         };
 

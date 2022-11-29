@@ -9,9 +9,9 @@ package io.axual.ksml.data.mapper;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,6 +22,7 @@ package io.axual.ksml.data.mapper;
 
 import org.graalvm.polyglot.Value;
 
+import java.util.List;
 import java.util.Map;
 
 import io.axual.ksml.data.object.DataBoolean;
@@ -45,18 +46,32 @@ import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.data.value.Tuple;
 import io.axual.ksml.exception.KSMLExecutionException;
 
-public class PythonDataObjectMapper extends BaseDataObjectMapper<Value> {
+public class PythonDataObjectMapper extends BaseDataObjectMapper {
+    private static final NativeDataObjectMapper NATIVE_DATA_OBJECT_MAPPER = new NativeDataObjectMapper();
+
     @Override
-    public DataObject toDataObject(DataType expected, Value object) {
+    public DataObject toDataObject(DataType expected, Object object) {
         // If we expect a union dataType, then check its possible types, else convert by value.
         if (expected instanceof UnionType unionType)
             return unionToDataObject(unionType, object);
-        return valueToDataObject(expected, object);
+
+        if (object instanceof Value value) {
+            object = unwrapValue(expected, value);
+            return NATIVE_DATA_OBJECT_MAPPER.toDataObject(expected, object);
+        }
+
+        if (object instanceof List<?> value) return toDataList((List<Object>) value);
+        if (object instanceof Map<?, ?> value)
+            return toDataStruct((Map<String, Object>) value, null);
+        if (object instanceof Tuple<?> value) return toDataTuple((Tuple<Object>) value);
+
+        throw new KSMLExecutionException("Can not convert Python object to DataObject: " + (object != null ? object.getClass().getSimpleName() : "null"));
     }
 
-    private DataObject unionToDataObject(UnionType unionType, Value object) {
+    private DataObject unionToDataObject(UnionType unionType, Object object) {
         for (UserType possibleType : unionType.possibleTypes()) {
             try {
                 var result = toDataObject(possibleType.dataType(), object);
@@ -69,7 +84,7 @@ public class PythonDataObjectMapper extends BaseDataObjectMapper<Value> {
         throw new KSMLExecutionException("Can not convert Python dataType to Union value: " + object.getClass().getSimpleName());
     }
 
-    private DataObject valueToDataObject(DataType expected, Value object) {
+    private Object unwrapValue(DataType expected, Value object) {
         if (object.isNull()) return new DataNull();
         if (object.isBoolean() && (expected == null || expected == DataBoolean.DATATYPE))
             return new DataBoolean(object.asBoolean());

@@ -9,9 +9,9 @@ package io.axual.ksml.data.mapper;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,15 +22,19 @@ package io.axual.ksml.data.mapper;
 
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.exception.KSMLExecutionException;
 
-public class JsonDataObjectMapper implements DataObjectMapper<String> {
+public class JsonDataObjectMapper implements DataObjectMapper {
     private static final JsonStringMapper jsonMapper = new JsonStringMapper();
     private static final NativeDataObjectMapper nativeMapper = new NativeDataObjectMapper();
 
     @Override
-    public DataObject toDataObject(DataType expected, String value) {
-        var object = jsonMapper.fromString(value);
-        return nativeMapper.toDataObject(object);
+    public DataObject toDataObject(DataType expected, Object value) {
+        if (value instanceof String str) {
+            var object = jsonMapper.fromString(str);
+            return nativeMapper.toDataObject(object);
+        }
+        throw new KSMLExecutionException("Can not convert value to String: " + (value != null ? value.getClass().getSimpleName() : "null"));
     }
 
     @Override

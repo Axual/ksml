@@ -33,24 +33,24 @@ functions:
   alert_join:
     type: valueTransformer
     code: |
-      print('JOINING key=' + str(key) + ', value=' + str(value))
+      # print('JOINING key=' + str(key) + ', value=' + str(value))
       sensordata=key
       
       triggeredAlertSettings=[]
       
       if value != None and value["alertSettings"] != None:
         for setting in value["alertSettings"]:
-          if setting["type"] == sensordata["type"] and setting["unit"] == sensordata["unit"] and ( setting["alertBelow"] > sensordata["value"] or setting["alertAbove"] < sensordata["value"] ):
+          if setting["type"] == sensordata["type"] and setting["unit"] == sensordata["unit"] and ( (setting["alertBelow"] != None and setting["alertBelow"] > sensordata["value"]) or (setting["alertAbove"]!=None and setting["alertAbove"] < sensordata["value"]) ):
             print('Triggered alert '+ setting["name"] )
+            setting["@type"]=None
+            setting["@schema"]=None
             triggeredAlertSettings.append(setting)
-
-          print("1")
 
       value={
         "sensordata" : sensordata,
         "alerts" : triggeredAlertSettings
       }
-    expression: (key,value)
+    expression: value
     resultType: json
 
   alert_split:
@@ -58,7 +58,7 @@ functions:
     resultType: "[(json,json)]"
     code: |
       newRecords=[]
-      if value != None & len( value["alerts"]) > 0 :
+      if value != None and len( value["alerts"]) > 0 :
         sensordata = value["sensordata"]
         new_key={
           "name" : sensordata["name"],
@@ -70,9 +70,9 @@ functions:
             "alert" : alert,
             "sensordata" : sensordata
           }
-        newRecords.append([new_key,new_value])
+          newRecords.append([new_key,new_value])
+      print("Returning "+str(len(newRecords))+" records")
     expression: newRecords
-
 
 pipelines:
   main:

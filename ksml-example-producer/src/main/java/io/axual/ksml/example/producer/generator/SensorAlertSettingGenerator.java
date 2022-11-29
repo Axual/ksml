@@ -21,15 +21,12 @@ package io.axual.ksml.example.producer.generator;
  */
 
 import java.util.ArrayList;
-import java.util.Random;
 
 import io.axual.ksml.example.SensorAlertSetting;
 import io.axual.ksml.example.SensorAlertSettings;
 import io.axual.ksml.example.SensorType;
 
 public class SensorAlertSettingGenerator {
-    private static final Random rand = new Random();
-
     private SensorAlertSettingGenerator() {
     }
 
@@ -59,7 +56,7 @@ public class SensorAlertSettingGenerator {
         return SensorAlertSetting.newBuilder()
                 .setName("Humidity alert for " + city)
                 .setType(SensorType.HUMIDITY)
-//                .setAlertAbove(upperBoundary)
+                .setAlertAbove(upperBoundary)
                 .setAlertBelow(lowerBoundary)
                 .setUnit("%")
                 .build();
@@ -69,7 +66,7 @@ public class SensorAlertSettingGenerator {
         return SensorAlertSetting.newBuilder()
                 .setName("Temperature(" + unit + ") alert for " + city)
                 .setType(SensorType.TEMPERATURE)
-//                .setAlertAbove(upperBoundary)
+                .setAlertAbove(upperBoundary)
                 .setAlertBelow(lowerBoundary)
                 .setUnit(unit)
                 .build();

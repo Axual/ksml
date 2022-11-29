@@ -18,7 +18,6 @@
       "name": "alertSettings",
       "type": {
         "type": "array",
-        "default": [],
         "items": {
           "doc": "Settings to determine when an alert should be send for a sensor reading",
           "name": "SensorAlertSetting",

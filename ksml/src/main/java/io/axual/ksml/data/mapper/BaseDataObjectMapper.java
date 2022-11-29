@@ -50,7 +50,7 @@ import io.axual.ksml.schema.DataSchema;
 import io.axual.ksml.schema.SchemaLibrary;
 import io.axual.ksml.schema.StructSchema;
 
-abstract class BaseDataObjectMapper<T> implements DataObjectMapper<T> {
+abstract class BaseDataObjectMapper implements DataObjectMapper {
     private static final NativeDataSchemaMapper SCHEMA_MAPPER = new NativeDataSchemaMapper();
     private static final AttributeComparator COMPARATOR = new AttributeComparator();
 
@@ -131,7 +131,7 @@ abstract class BaseDataObjectMapper<T> implements DataObjectMapper<T> {
 
     protected DataList toDataList(List<Object> list) {
         DataList result = new DataList(list.isEmpty() ? DataType.UNKNOWN : inferType(list.get(0)), list.size());
-        list.forEach(element -> result.add(toDataObject((T) element)));
+        list.forEach(element -> result.add(toDataObject(element)));
         return result;
     }
 
@@ -140,14 +140,14 @@ abstract class BaseDataObjectMapper<T> implements DataObjectMapper<T> {
         map.remove(STRUCT_SCHEMA_FIELD);
         map.remove(STRUCT_TYPE_FIELD);
         DataStruct result = new DataStruct(type);
-        map.forEach((key, value) -> result.put(key, toDataObject((T) value)));
+        map.forEach((key, value) -> result.put(key, toDataObject(value)));
         return result;
     }
 
     protected DataTuple toDataTuple(Tuple<Object> tuple) {
         DataObject[] elements = new DataObject[tuple.size()];
         for (var index = 0; index < tuple.size(); index++) {
-            elements[index] = toDataObject((T) tuple.get(index));
+            elements[index] = toDataObject(tuple.get(index));
         }
         return new DataTuple(elements);
     }

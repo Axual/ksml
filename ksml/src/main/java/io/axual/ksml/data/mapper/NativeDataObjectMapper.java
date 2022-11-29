@@ -43,7 +43,7 @@ import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.value.Tuple;
 import io.axual.ksml.exception.KSMLExecutionException;
 
-public class NativeDataObjectMapper extends BaseDataObjectMapper<Object> {
+public class NativeDataObjectMapper extends BaseDataObjectMapper {
     @Override
     public DataObject toDataObject(DataType expected, Object value) {
         if (value == null) return new DataNull();
