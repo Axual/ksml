@@ -15,7 +15,7 @@ tables:
     topic: ksml_sensoralert_settings
     keyType: string
     valueType: avro:SensorAlertSettings
-    queryable: true
+    queryable: false
 
 functions:
   print_join_message:
@@ -33,8 +33,10 @@ functions:
   alert_join:
     type: valueTransformer
     code: |
-      # print('JOINING key=' + str(key) + ', value=' + str(value))
+      #      print('JOINING\n't key=' + str(key) + '\n\t value=' + str(value))
       sensordata=key
+      sensordata["@type"]=None
+      sensordata["@schema"]=None
       
       triggeredAlertSettings=[]
       
@@ -46,11 +48,12 @@ functions:
             setting["@schema"]=None
             triggeredAlertSettings.append(setting)
 
-      value={
+      new_value={
         "sensordata" : sensordata,
         "alerts" : triggeredAlertSettings
       }
-    expression: value
+      print('JOINED ' + str(new_value))
+    expression: new_value
     resultType: json
 
   alert_split:
@@ -78,27 +81,27 @@ pipelines:
   main:
     from: sensor_source
     via:
-     - name: filter_nulls
-       type: filterNot
-       predicate: filter_nulls
-     - name: rekey_sensordata
-       type: transformKeyValue
-       mapper:
-         resultType: "(string,json)"
-         expression: (value["city"],value)
-     - name: value_to_json
-       type: convertValue
-       into: json
-     - name: alert_joining
-       type: join
-       table: sensor_alert_settings
-       valueJoiner: alert_join
-     - name: watch_join
-       type: peek
-       forEach: print_join_message
-     - name: expand_alerts
-       type: transformKeyValueToKeyValueList
-       mapper: alert_split
+      - name: filter_nulls
+        type: filterNot
+        predicate: filter_nulls
+      - name: rekey_sensordata
+        type: transformKeyValue
+        mapper:
+          resultType: "(string,json)"
+          expression: (value["city"],value)
+      - name: value_to_json
+        type: convertValue
+        into: json
+      - name: alert_joining
+        type: join
+        table: sensor_alert_settings
+        valueJoiner: alert_join
+      - name: watch_join
+        type: peek
+        forEach: print_join_message
+      - name: expand_alerts
+        type: transformKeyValueToKeyValueList
+        mapper: alert_split
     to: sensor_alerts
   verify:
     from: sensor_alerts

@@ -156,12 +156,11 @@ public class KSMLExampleProducer {
                     interrupted = true;
                     Thread.currentThread().interrupt();
                 }
-
-                long index = 0;
-                while (produceMessage(producer, index)) {
-                    Utils.sleep(500);
-                    index++;
-                }
+            }
+            long index = 0;
+            while (produceMessage(producer, index)) {
+                Utils.sleep(500);
+                index++;
             }
 
         } finally {
