@@ -21,8 +21,11 @@ package io.axual.ksml.definition;
  */
 
 
+import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
+import org.apache.kafka.streams.kstream.Materialized;
+import org.apache.kafka.streams.state.KeyValueStore;
 
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.generator.StreamDataType;
@@ -59,7 +62,16 @@ public class TableDefinition extends BaseStreamDefinition {
             var mat = StoreUtil.createKeyValueStore(store, streamKey, streamValue);
             return new KTableWrapper(builder.table(topic, mat), streamKey, streamValue);
         }
-        var consumed = Consumed.with(streamKey.getSerde(), streamValue.getSerde()).withName(name);
-        return new KTableWrapper(builder.table(topic, consumed), streamKey, streamValue);
+
+        var keySerde = streamKey.getSerde();
+        var valueSerde = streamValue.getSerde();
+
+        var materialized = Materialized
+                .<Object, Object, KeyValueStore<Bytes, byte[]>>as(name)
+                .withKeySerde(keySerde)
+                .withValueSerde(valueSerde)
+                .withStoreType(Materialized.StoreType.IN_MEMORY);
+        var consumed = Consumed.with(keySerde, valueSerde).withName(name);
+        return new KTableWrapper(builder.table(topic, consumed, materialized), streamKey, streamValue);
     }
 }

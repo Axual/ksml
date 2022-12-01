@@ -25,4 +25,10 @@ import io.axual.ksml.notation.BinaryNotation;
 public record UserType(String notation, DataType dataType) {
     public static final String DEFAULT_NOTATION = BinaryNotation.NOTATION_NAME;
     public static final UserType UNKNOWN = new UserType(DEFAULT_NOTATION, DataType.UNKNOWN);
+
+    @Override
+    public String toString() {
+        var schemaName = dataType != null ? dataType.schemaName() : "";
+        return notation.toLowerCase() + (schemaName != null && !schemaName.isEmpty() ? ":" : "") + schemaName;
+    }
 }

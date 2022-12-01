@@ -31,7 +31,6 @@ import java.util.List;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.KeyValueType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.exception.KSMLExecutionException;
@@ -42,7 +41,7 @@ public class UserKeyValueToKeyValueListTransformer extends Invoker implements Ke
     public UserKeyValueToKeyValueListTransformer(UserFunction function) {
         super(function);
         verifyParameterCount(2);
-        verifyResultReturned(new ListType(new KeyValueType(DataType.UNKNOWN, DataType.UNKNOWN)));
+        verifyResultReturned(new ListType(new TupleType(DataType.UNKNOWN, DataType.UNKNOWN)));
     }
 
     @Override

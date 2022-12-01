@@ -6,6 +6,10 @@ streams:
     topic: ksml_sensordata_avro
     keyType: string
     valueType: avro:SensorData
+  sensor_transformed:
+    topic: ksml_sensordata_transformed
+    keyType: string
+    valueType: avro:SensorData
   sensor_alerts:
     topic: ksml_sensoralert
     keyType: json
@@ -31,28 +35,28 @@ functions:
     expression: value == None
 
   alert_join:
-    type: valueTransformer
+    type: valueJoiner
     code: |
-      #      print('JOINING\n't key=' + str(key) + '\n\t value=' + str(value))
-      sensordata=key
-      sensordata["@type"]=None
-      sensordata["@schema"]=None
-      
+      print('JOINING\n\t value1=' + str(value1) + '\n\t value2=' + str(value2))
+      sensordata=value1
+      del sensordata["@type"]
+      del sensordata["@schema"]
+
       triggeredAlertSettings=[]
       
-      if value != None and value["alertSettings"] != None:
-        for setting in value["alertSettings"]:
+      if value2 != None and value2["alertSettings"] != None:
+        for setting in value2["alertSettings"]:
           if setting["type"] == sensordata["type"] and setting["unit"] == sensordata["unit"] and ( (setting["alertBelow"] != None and setting["alertBelow"] > sensordata["value"]) or (setting["alertAbove"]!=None and setting["alertAbove"] < sensordata["value"]) ):
             print('Triggered alert '+ setting["name"] )
-            setting["@type"]=None
-            setting["@schema"]=None
+            del setting["@type"]
+            del setting["@schema"]
             triggeredAlertSettings.append(setting)
 
       new_value={
         "sensordata" : sensordata,
         "alerts" : triggeredAlertSettings
       }
-      print('JOINED ' + str(new_value))
+      print('JOINED sensordata=' + str(new_value["sensordata"]) +', alerts='+str(new_value["alerts"]))
     expression: new_value
     resultType: json
 
@@ -78,7 +82,7 @@ functions:
     expression: newRecords
 
 pipelines:
-  main:
+  prepare:
     from: sensor_source
     via:
       - name: filter_nulls
@@ -87,11 +91,13 @@ pipelines:
       - name: rekey_sensordata
         type: transformKeyValue
         mapper:
-          resultType: "(string,json)"
+          resultType: "(string,avro:SensorData)"
           expression: (value["city"],value)
-      - name: value_to_json
-        type: convertValue
-        into: json
+    to: sensor_transformed
+
+  join:
+    from: sensor_transformed
+    via:
       - name: alert_joining
         type: join
         table: sensor_alert_settings
@@ -103,6 +109,7 @@ pipelines:
         type: transformKeyValueToKeyValueList
         mapper: alert_split
     to: sensor_alerts
+
   verify:
     from: sensor_alerts
     forEach: print_output_message

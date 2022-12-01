@@ -63,7 +63,8 @@ public record StreamDataType(NotationLibrary notationLibrary, UserType userType,
 
     @Override
     public String toString() {
-        return (userType.notation() != null ? userType.notation() : "unknown notation") + ":" + userType.dataType().schemaName();
+        var schemaName = userType.dataType().schemaName();
+        return (userType.notation() != null ? userType.notation().toLowerCase() : "unknown notation") + (schemaName != null && !schemaName.isEmpty() ? ":" : "") + schemaName;
     }
 
     public Serde<Object> getSerde() {

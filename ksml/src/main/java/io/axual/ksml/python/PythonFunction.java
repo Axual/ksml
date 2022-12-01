@@ -45,7 +45,7 @@ public class PythonFunction extends UserFunction {
             .allowNativeAccess(true)
             .allowPolyglotAccess(PolyglotAccess.ALL)
             .allowHostAccess(HostAccess.ALL)
-            .allowHostClassLookup(name -> name.equals("java.util.ArrayList") || name.equals("java.util.HashMap"))
+            .allowHostClassLookup(name -> name.equals("java.util.ArrayList") || name.equals("java.util.HashMap") || name.equals("java.util.TreeMap"))
             .build();
     private final Value function;
 
