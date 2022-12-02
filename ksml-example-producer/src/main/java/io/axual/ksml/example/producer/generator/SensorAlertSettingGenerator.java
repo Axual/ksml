@@ -36,15 +36,30 @@ public class SensorAlertSettingGenerator {
         var alertSettings = new ArrayList<SensorAlertSetting>();
         switch (city) {
             case "Amsterdam", "Utrecht" -> {
-                alertSettings.add(generateHumidity(city, "74", "68"));
-                alertSettings.add(generateTemperature(city, "68", "41", "F"));
+                alertSettings.add(generateHumidity(city, "90", "60"));
+                alertSettings.add(generateHumidity(city, "88", "58"));
+                alertSettings.add(generateHumidity(city, "86", "56"));
+                alertSettings.add(generateTemperature(city, "84", "54", "F"));
+                alertSettings.add(generateTemperature(city, "82", "52", "F"));
+                alertSettings.add(generateTemperature(city, "80", "50", "F"));
+                alertSettings.add(generateTemperature(city, "78", "48", "F"));
+                alertSettings.add(generateTemperature(city, "76", "46", "F"));
+                alertSettings.add(generateTemperature(city, "74", "44", "F"));
             }
             case "Alkmaar", "Leiden" -> {
                 alertSettings.add(generateHumidity(city, "72", "70"));
+                alertSettings.add(generateHumidity(city, "72", "70"));
+                alertSettings.add(generateHumidity(city, "72", "70"));
+                alertSettings.add(generateHumidity(city, "72", "70"));
+                alertSettings.add(generateHumidity(city, "72", "70"));
+                alertSettings.add(generateHumidity(city, "72", "70"));
+                alertSettings.add(generateTemperature(city, "25", "0", "C"));
+                alertSettings.add(generateTemperature(city, "25", "0", "C"));
                 alertSettings.add(generateTemperature(city, "25", "0", "C"));
             }
             default -> {
-                // No alerts set for other cities
+                alertSettings.add(generateHumidity(city, "40", "20"));
+                alertSettings.add(generateTemperature(city, "40", "20", "C"));
             }
         }
 

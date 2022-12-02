@@ -189,6 +189,7 @@ public class AxualBackend implements Backend {
                 .build());
 
         configs.put(AbstractKafkaSchemaSerDeConfig.AUTO_REGISTER_SCHEMAS, false);
+        configs.put(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE);
 
         log.info("Creating StreamRunnerConfig...");
 

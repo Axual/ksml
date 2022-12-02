@@ -63,6 +63,7 @@ public class KafkaBackend implements Backend {
         streamsProperties.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, backendConfig.getBootstrapUrl());
         streamsProperties.put(SCHEMA_REGISTRY_URL_CONFIG, backendConfig.getSchemaRegistryUrl());
         streamsProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, backendConfig.getApplicationId());
+        streamsProperties.put(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE);
 
         streamsProperties.put(StreamsConfig.STATE_DIR_CONFIG, ksmlConfig.getWorkingDirectory());
         if (ksmlConfig.getApplicationServer() != null) {
