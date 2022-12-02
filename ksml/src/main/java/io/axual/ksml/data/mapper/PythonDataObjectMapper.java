@@ -20,10 +20,10 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
-import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 
-import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
@@ -35,9 +35,9 @@ import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
@@ -46,26 +46,32 @@ import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.data.value.Tuple;
 import io.axual.ksml.exception.KSMLExecutionException;
 
-public class PythonDataObjectMapper implements DataObjectMapper<Value> {
-    private final JsonDataObjectMapper jsonDataMapper = new JsonDataObjectMapper();
-    private final NativeDataObjectMapper nativeDataMapper = new NativeDataObjectMapper();
-    private final Context context;
-
-    public PythonDataObjectMapper(Context context) {
-        this.context = context;
-    }
+public class PythonDataObjectMapper extends BaseDataObjectMapper {
+    private static final NativeDataObjectMapper NATIVE_DATA_OBJECT_MAPPER = new NativeDataObjectMapper();
 
     @Override
-    public DataObject toDataObject(DataType expected, Value object) {
+    public DataObject toDataObject(DataType expected, Object object) {
         // If we expect a union dataType, then check its possible types, else convert by value.
         if (expected instanceof UnionType unionType)
             return unionToDataObject(unionType, object);
-        return valueToDataObject(expected, object);
+
+        if (object instanceof Value value) {
+            object = unwrapValue(expected, value);
+            return NATIVE_DATA_OBJECT_MAPPER.toDataObject(expected, object);
+        }
+
+        if (object instanceof List<?> value) return toDataList((List<Object>) value);
+        if (object instanceof Map<?, ?> value)
+            return toDataStruct((Map<String, Object>) value, null);
+        if (object instanceof Tuple<?> value) return toDataTuple((Tuple<Object>) value);
+
+        throw new KSMLExecutionException("Can not convert Python object to DataObject: " + (object != null ? object.getClass().getSimpleName() : "null"));
     }
 
-    private DataObject unionToDataObject(UnionType unionType, Value object) {
+    private DataObject unionToDataObject(UnionType unionType, Object object) {
         for (UserType possibleType : unionType.possibleTypes()) {
             try {
                 var result = toDataObject(possibleType.dataType(), object);
@@ -78,7 +84,7 @@ public class PythonDataObjectMapper implements DataObjectMapper<Value> {
         throw new KSMLExecutionException("Can not convert Python dataType to Union value: " + object.getClass().getSimpleName());
     }
 
-    private DataObject valueToDataObject(DataType expected, Value object) {
+    private Object unwrapValue(DataType expected, Value object) {
         if (object.isNull()) return new DataNull();
         if (object.isBoolean() && (expected == null || expected == DataBoolean.DATATYPE))
             return new DataBoolean(object.asBoolean());
@@ -153,8 +159,8 @@ public class PythonDataObjectMapper implements DataObjectMapper<Value> {
         // Try to cast the value to a HashMap. If that works, then we received a dict value
         // back from Python.
         try {
-            HashMap<?, ?> map = object.as(HashMap.class);
-            return nativeDataMapper.mapToDataStruct(map, expected instanceof StructType rec ? rec.schema() : null);
+            Map<?, ?> map = object.as(Map.class);
+            return toDataStruct((Map<String, Object>) map, expected instanceof StructType rec ? rec.schema() : null);
         } catch (Exception e) {
             // Ignore all cast exceptions
         }
@@ -174,12 +180,8 @@ public class PythonDataObjectMapper implements DataObjectMapper<Value> {
         if (object instanceof DataDouble val) return Value.asValue(val.value());
         if (object instanceof DataBytes val) return Value.asValue(val.value());
         if (object instanceof DataString val) return Value.asValue(val.value());
-        if (object instanceof DataList val)
-            return Value.asValue(nativeDataMapper.dataListToList(val));
-        if (object instanceof DataStruct) {
-            var value = jsonDataMapper.fromDataObject(object);
-            return context.eval("python", value);
-        }
+        if (object instanceof DataList val) return Value.asValue(fromDataList(val));
+        if (object instanceof DataStruct val) return Value.asValue(fromDataStruct(val));
         throw new KSMLExecutionException("Can not convert DataObject to Python dataType: " + object.getClass().getSimpleName());
     }
 }

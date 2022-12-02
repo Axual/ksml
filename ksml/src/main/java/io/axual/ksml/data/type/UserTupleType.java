@@ -31,6 +31,20 @@ public class UserTupleType extends TupleType {
         userTypes = subTypes;
     }
 
+    @Override
+    public String toString() {
+        var subTypeStr = new StringBuilder();
+        for (UserType subType : userTypes) {
+            subTypeStr.append(subTypeStr.length() > 0 ? ", " : "").append(subType);
+        }
+        return containerName() + "<" + subTypeStr + ">";
+    }
+
+    @Override
+    public String containerName() {
+        return "UserTuple";
+    }
+
     public int getUserTypeCount() {
         return userTypes.length;
     }

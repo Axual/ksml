@@ -1,0 +1,74 @@
+{
+  "namespace": "io.axual.ksml.example",
+  "doc": "Settings to determine when an alert should be send for a sensor reading",
+  "name": "SensorAlertSettings",
+  "type": "record",
+  "fields": [
+    {
+      "doc": "The city of the sensor that the alert settings are for",
+      "name": "city",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    {
+      "doc": "A list containing alert settings for this location",
+      "name": "alertSettings",
+      "type": {
+        "type": "array",
+        "items": {
+          "doc": "Settings to determine when an alert should be send for a sensor reading",
+          "name": "SensorAlertSetting",
+          "type": "record",
+          "fields": [
+            {
+              "doc": "The name of the rule",
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "doc": "The type of the sensor",
+              "name": "type",
+              "type": {
+                "name": "SensorType",
+                "type": "enum",
+                "symbols": [
+                  "AREA",
+                  "HUMIDITY",
+                  "LENGTH",
+                  "STATE",
+                  "TEMPERATURE"
+                ]
+              }
+            },
+            {
+              "doc": "The lowest acceptable value for the sensor",
+              "name": "alertBelow",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "doc": "The highest acceptable value for the sensor",
+              "name": "alertAbove",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "doc": "The unit of the measurement used for the rule measurements",
+              "name": "unit",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -16,6 +16,7 @@ ksml:
 #    - 10-demo-queryabletable.yaml
 #    - 11-demo-fieldmodification.yaml
 #    - 12-demo-bytemanipulation.yaml
+#    - 13-demo-join.yaml
 
 backend:
   type: axual

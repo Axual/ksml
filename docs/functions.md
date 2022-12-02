@@ -74,5 +74,7 @@ See below for the list of supported function types.
 | | |`numPartitions`|`int`|The number of partitions on the topic
 |`topicNameExtractor`|`string`|`key`|_any_|The key of the message
 | | |`value`|_any_|The value of the message
+|`valueJoiner`|_any_|`value1`|_any_|The first value to join
+| | |`value2`|_any_|The second value to join
 |`valueTransformer`|_any_|`key`|_any_|The key of the message
 | | |`value`|_any_|The value of the message

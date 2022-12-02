@@ -105,7 +105,9 @@
                             </outputDirectory>
                             <stringType>CharSequence</stringType>
                             <imports>
+                                <import>${project.basedir}/src/main/schemas/SensorType.avsc</import>
                                 <import>${project.basedir}/src/main/schemas/SensorData.avsc</import>
+                                <import>${project.basedir}/src/main/schemas/SensorAlertSettings.avsc</import>
                             </imports>
                         </configuration>
                     </execution>

@@ -1,0 +1,13 @@
+{
+  "namespace": "io.axual.ksml.example",
+  "doc": "The type of a sensor",
+  "name": "SensorType",
+  "type": "enum",
+  "symbols": [
+    "AREA",
+    "HUMIDITY",
+    "LENGTH",
+    "STATE",
+    "TEMPERATURE"
+  ]
+}

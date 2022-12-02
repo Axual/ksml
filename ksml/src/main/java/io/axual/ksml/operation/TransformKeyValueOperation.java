@@ -23,7 +23,8 @@ package io.axual.ksml.operation;
 
 import org.apache.kafka.streams.kstream.Named;
 
-import io.axual.ksml.data.type.KeyValueType;
+import io.axual.ksml.data.type.UserTupleType;
+import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.stream.BaseStreamWrapper;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.user.UserFunction;
@@ -39,11 +40,17 @@ public class TransformKeyValueOperation extends BaseOperation {
 
     @Override
     public BaseStreamWrapper apply(KStreamWrapper input) {
-        var resultType = (KeyValueType) transformer.resultType.dataType();
-        var notation = transformer.resultType.notation();
-        return new KStreamWrapper(
-                input.stream.map(new UserKeyValueTransformer(transformer), Named.as(name)),
-                streamDataTypeOf(notation, resultType.keyType(), true),
-                streamDataTypeOf(notation, resultType.valueType(), false));
+        if (transformer.resultType.dataType() instanceof UserTupleType userTupleType && userTupleType.subTypeCount() == 2) {
+            var resultKeyType = userTupleType.subType(0);
+            var resultKeyNotation = userTupleType.getUserType(0).notation();
+            var resultValueType = userTupleType.subType(1);
+            var resultValueNotation = userTupleType.getUserType(1).notation();
+
+            return new KStreamWrapper(
+                    input.stream.map(new UserKeyValueTransformer(transformer), Named.as(name)),
+                    streamDataTypeOf(resultKeyNotation, resultKeyType, true),
+                    streamDataTypeOf(resultValueNotation, resultValueType, false));
+        }
+        throw new KSMLExecutionException("ResultType of keyValueTransformer not correctly specified");
     }
 }

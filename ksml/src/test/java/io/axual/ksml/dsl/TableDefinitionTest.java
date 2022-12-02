@@ -22,6 +22,7 @@ package io.axual.ksml.dsl;
 
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
+import org.apache.kafka.streams.kstream.Materialized;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -68,7 +69,7 @@ class TableDefinitionTest {
         verify(mockNotation).getSerde(stringType.dataType(), true);
         verify(mockNotation).getSerde(stringType.dataType(), false);
 
-        verify(builder).table(eq("topic"), isA(Consumed.class));
+        verify(builder).table(eq("topic"), isA(Consumed.class), isA(Materialized.class));
         assertThat(streamWrapper, instanceOf(KTableWrapper.class));
     }
 }

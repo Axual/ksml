@@ -22,15 +22,19 @@ package io.axual.ksml.data.mapper;
 
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.exception.KSMLExecutionException;
 
-public class JsonDataObjectMapper implements DataObjectMapper<String> {
+public class JsonDataObjectMapper implements DataObjectMapper {
     private static final JsonStringMapper jsonMapper = new JsonStringMapper();
     private static final NativeDataObjectMapper nativeMapper = new NativeDataObjectMapper();
 
     @Override
-    public DataObject toDataObject(DataType expected, String value) {
-        var object = jsonMapper.fromString(value);
-        return nativeMapper.toDataObject(object);
+    public DataObject toDataObject(DataType expected, Object value) {
+        if (value instanceof String str) {
+            var object = jsonMapper.fromString(str);
+            return nativeMapper.toDataObject(object);
+        }
+        throw new KSMLExecutionException("Can not convert value to String: " + (value != null ? value.getClass().getSimpleName() : "null"));
     }
 
     @Override

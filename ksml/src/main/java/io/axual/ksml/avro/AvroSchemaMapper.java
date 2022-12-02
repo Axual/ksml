@@ -20,22 +20,13 @@ package io.axual.ksml.avro;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.schema.*;
+import io.axual.ksml.schema.mapper.DataSchemaMapper;
 import org.apache.avro.Schema;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.schema.DataField;
-import io.axual.ksml.schema.DataSchema;
-import io.axual.ksml.schema.DataValue;
-import io.axual.ksml.schema.EnumSchema;
-import io.axual.ksml.schema.FixedSchema;
-import io.axual.ksml.schema.ListSchema;
-import io.axual.ksml.schema.MapSchema;
-import io.axual.ksml.schema.StructSchema;
-import io.axual.ksml.schema.UnionSchema;
-import io.axual.ksml.schema.mapper.DataSchemaMapper;
 
 // First attempt at providing an internal schema class. The implementation relies heavily on Avro
 // at the moment, which is fine for now, but may change in the future.
@@ -75,7 +66,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
 
             case STRING -> DataSchema.create(DataSchema.Type.STRING);
 
-            case ARRAY -> new ListSchema(convertToDataSchema(schema.getValueType()));
+            case ARRAY -> new ListSchema(convertToDataSchema(schema.getElementType()));
             case ENUM -> new EnumSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getEnumSymbols(), schema.getEnumDefault());
             case MAP -> new MapSchema(convertToDataSchema(schema.getValueType()));
             case RECORD -> toDataSchema(schema);

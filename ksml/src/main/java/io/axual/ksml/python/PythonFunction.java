@@ -40,14 +40,14 @@ import io.axual.ksml.user.UserFunction;
 
 public class PythonFunction extends UserFunction {
     private static final String PYTHON = "python";
-    protected static final Context context = Context.newBuilder(PYTHON)
+    private static final PythonDataObjectMapper MAPPER = new PythonDataObjectMapper();
+    private static final Context CONTEXT = Context.newBuilder(PYTHON)
             .allowNativeAccess(true)
             .allowPolyglotAccess(PolyglotAccess.ALL)
             .allowHostAccess(HostAccess.ALL)
-            .allowHostClassLookup(name -> name.equals("java.util.ArrayList") || name.equals("java.util.HashMap"))
+            .allowHostClassLookup(name -> name.equals("java.util.ArrayList") || name.equals("java.util.HashMap") || name.equals("java.util.TreeMap"))
             .build();
-    private static final PythonDataObjectMapper mapper = new PythonDataObjectMapper(context);
-    protected final Value function;
+    private final Value function;
 
     public PythonFunction(String name, FunctionDefinition definition) {
         super(name, definition.parameters, definition.resultType);
@@ -74,17 +74,17 @@ public class PythonFunction extends UserFunction {
         final var pythonCodeTemplate = """
                 import polyglot
                 import java
-                
+                                
                 ArrayList = java.type('java.util.ArrayList')
                 HashMap = java.type('java.util.HashMap')
-                
+                                
                 # global Python code goes here (first argument)
                 %1$s
-                
+                                
                 # function definition and expression go here (second argument)
                 @polyglot.export_value
                 %2$s
-                
+                                
                 def convert_to(value):
                   print('In convert_to: ')
                   print(value)
@@ -110,8 +110,8 @@ public class PythonFunction extends UserFunction {
 
         final var pyCode = pythonCodeTemplate.formatted(globalCode, functionAndExpression, pyCallerCode);
         Source script = Source.create(PYTHON, pyCode);
-        context.eval(script);
-        function = context.getPolyglotBindings().getMember(name + "_caller");
+        CONTEXT.eval(script);
+        function = CONTEXT.getPolyglotBindings().getMember(name + "_caller");
     }
 
     @Override
@@ -152,7 +152,7 @@ public class PythonFunction extends UserFunction {
         Object[] result = new Object[parameters.length];
         for (var index = 0; index < parameters.length; index++) {
             checkType(this.parameters[index], parameters[index]);
-            result[index] = mapper.fromDataObject(parameters[index]);
+            result[index] = MAPPER.fromDataObject(parameters[index]);
         }
         return result;
     }
@@ -160,7 +160,7 @@ public class PythonFunction extends UserFunction {
     private DataObject convertResult(Value pyResult) {
         // The converted result value from Python
         try {
-            return mapper.toDataObject(resultType.dataType(), pyResult);
+            return MAPPER.toDataObject(resultType.dataType(), pyResult);
         } catch (KSMLExecutionException e) {
             // Ignore conversion error here
             return null;

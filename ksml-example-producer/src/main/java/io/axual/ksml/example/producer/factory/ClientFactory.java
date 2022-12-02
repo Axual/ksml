@@ -1,8 +1,8 @@
-package io.axual.ksml.data.type;
+package io.axual.ksml.example.producer.factory;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Example Producer
  * %%
  * Copyright (C) 2021 Axual B.V.
  * %%
@@ -20,25 +20,12 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.exception.KSMLTopologyException;
+import org.apache.kafka.clients.admin.Admin;
+import org.apache.kafka.clients.producer.Producer;
 
-public class KeyValueType extends TupleType {
-    public KeyValueType(DataType keyType, DataType valueType) {
-        super(keyType, valueType);
-    }
+import java.util.Map;
 
-    public DataType keyType() {
-        return subType(0);
-    }
-
-    public DataType valueType() {
-        return subType(1);
-    }
-
-    public static KeyValueType createFrom(DataType type) {
-        if (type instanceof TupleType tupleType && tupleType.subTypeCount() == 2) {
-            return new KeyValueType(tupleType.subType(0), tupleType.subType(1));
-        }
-        throw new KSMLTopologyException("Could not convert type to KeyValue: " + type);
-    }
+public interface ClientFactory {
+    <V> Producer<String, V> createProducer(Map<String, Object> configs);
+   Admin createAdmin(Map<String, Object> configs);
 }

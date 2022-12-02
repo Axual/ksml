@@ -1,0 +1,115 @@
+# This example shows how to read sensor data from an Avro stream, join with the alert settings stored in a table and
+# produce alerts on a topic for the sensor data that should trigger alerts
+
+streams:
+  sensor_source:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+  sensor_transformed:
+    topic: ksml_sensordata_transformed
+    keyType: string
+    valueType: avro:SensorData
+  sensor_alerts:
+    topic: ksml_sensoralert
+    keyType: json
+    valueType: json
+tables:
+  sensor_alert_settings:
+    topic: ksml_sensoralert_settings
+    keyType: string
+    valueType: avro:SensorAlertSettings
+    queryable: false
+
+functions:
+  print_join_message:
+    type: forEach
+    code: "print('JOIN key=' + str(key) + ', value=' + str(value))"
+
+  print_output_message:
+    type: forEach
+    code: "print('OUTPUT key=' + str(key) + ', value=' + str(value))"
+
+  filter_nulls:
+    type: predicate
+    expression: value == None
+
+  alert_join:
+    type: valueJoiner
+    code: |
+      print('JOINING\n\t value1=' + str(value1) + '\n\t value2=' + str(value2))
+      sensordata=value1
+      del sensordata["@type"]
+      del sensordata["@schema"]
+
+      triggeredAlertSettings=[]
+      
+      if value2 != None and value2["alertSettings"] != None:
+        for setting in value2["alertSettings"]:
+          if setting["type"] == sensordata["type"] and setting["unit"] == sensordata["unit"] and ( (setting["alertBelow"] != None and setting["alertBelow"] > sensordata["value"]) or (setting["alertAbove"]!=None and setting["alertAbove"] < sensordata["value"]) ):
+            print('Triggered alert '+ setting["name"] )
+            del setting["@type"]
+            del setting["@schema"]
+            triggeredAlertSettings.append(setting)
+
+      new_value={
+        "sensordata" : sensordata,
+        "alerts" : triggeredAlertSettings
+      }
+      print('JOINED sensordata=' + str(new_value["sensordata"]) +', alerts='+str(new_value["alerts"]))
+    expression: new_value
+    resultType: json
+
+  alert_split:
+    type: keyValueToKeyValueListTransformer
+    resultType: "[(json,json)]"
+    code: |
+      newRecords=[]
+      if value != None and len( value["alerts"]) > 0 :
+        sensordata = value["sensordata"]
+        new_key={
+          "name" : sensordata["name"],
+          "type" : sensordata["type"],
+          "city" : sensordata["city"]
+        }
+        for alert in value["alerts"]:
+          new_value={
+            "alert" : alert,
+            "sensordata" : sensordata
+          }
+          newRecords.append([new_key,new_value])
+      print("Returning "+str(len(newRecords))+" records")
+    expression: newRecords
+
+pipelines:
+  prepare:
+    from: sensor_source
+    via:
+      - name: filter_nulls
+        type: filterNot
+        predicate: filter_nulls
+      - name: rekey_sensordata
+        type: transformKeyValue
+        mapper:
+          resultType: "(string,avro:SensorData)"
+          expression: (value["city"],value)
+    to: sensor_transformed
+
+  join:
+    from: sensor_transformed
+    via:
+      - name: alert_joining
+        type: join
+        table: sensor_alert_settings
+        valueJoiner: alert_join
+      - name: watch_join
+        type: peek
+        forEach: print_join_message
+      - name: expand_alerts
+        type: transformKeyValueToKeyValueList
+        mapper: alert_split
+    to: sensor_alerts
+
+  verify:
+    from: sensor_alerts
+    forEach: print_output_message

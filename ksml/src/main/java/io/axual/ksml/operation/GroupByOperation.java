@@ -24,7 +24,7 @@ package io.axual.ksml.operation;
 import org.apache.kafka.streams.kstream.Grouped;
 
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.KeyValueType;
+import io.axual.ksml.data.type.UserTupleType;
 import io.axual.ksml.exception.KSMLApplyException;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.generator.StreamDataType;
@@ -61,17 +61,19 @@ public class GroupByOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KTableWrapper input) {
-        if (!(transformer.resultType.dataType() instanceof KeyValueType resultType)) {
-            throw new KSMLApplyException("Can not apply given transformer to KTable.groupBy operation");
-        }
-        final StreamDataType resultKeyType = streamDataTypeOf(transformer.resultType.notation(), resultType.keyType(), true);
-        final StreamDataType resultValueType = streamDataTypeOf(transformer.resultType.notation(), resultType.valueType(), false);
+        if (transformer.resultType.dataType() instanceof UserTupleType userTupleType &&
+                userTupleType.subTypeCount() == 2) {
+            final StreamDataType resultKeyType = streamDataTypeOf(userTupleType.getUserType(0).notation(), userTupleType.subType(0), true);
+            final StreamDataType resultValueType = streamDataTypeOf(userTupleType.getUserType(1).notation(), userTupleType.subType(1), false);
 
-        return new KGroupedTableWrapper(
-                input.table.groupBy(
-                        new UserKeyValueTransformer(transformer),
-                        registerGrouped(Grouped.with(store.name, resultKeyType.getSerde(), resultValueType.getSerde()))),
-                resultKeyType,
-                resultValueType);
+            return new KGroupedTableWrapper(
+                    input.table.groupBy(
+                            new UserKeyValueTransformer(transformer),
+                            registerGrouped(Grouped.with(store.name, resultKeyType.getSerde(), resultValueType.getSerde()))),
+                    resultKeyType,
+                    resultValueType);
+        }
+
+        throw new KSMLApplyException("Can not apply given transformer to KTable.groupBy operation");
     }
 }

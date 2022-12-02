@@ -22,17 +22,7 @@
     {
       "doc": "The type of the sensor",
       "name": "type",
-      "type": {
-        "name": "SensorType",
-        "type": "enum",
-        "symbols": [
-          "AREA",
-          "HUMIDITY",
-          "LENGTH",
-          "STATE",
-          "TEMPERATURE"
-        ]
-      }
+      "type": "SensorType"
     },
     {
       "doc": "The unit of the sensor",

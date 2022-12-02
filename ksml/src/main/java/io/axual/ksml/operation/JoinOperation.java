@@ -52,12 +52,12 @@ public class JoinOperation extends StoreOperation {
         this.joinWindows = JoinWindows.ofTimeDifferenceWithNoGrace(joinWindowDuration);
     }
 
-    public JoinOperation(StoreOperationConfig config, KTableWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
+    public JoinOperation(StoreOperationConfig config, KTableWrapper joinStream, UserFunction valueJoiner) {
         super(config);
         this.joinStream = joinStream;
         this.keyValueMapper = null;
         this.valueJoiner = valueJoiner;
-        this.joinWindows = JoinWindows.ofTimeDifferenceWithNoGrace(joinWindowDuration);
+        this.joinWindows = null;
     }
 
     public JoinOperation(StoreOperationConfig config, GlobalKTableWrapper joinStream, UserFunction keyValueMapper, UserFunction valueJoiner) {
