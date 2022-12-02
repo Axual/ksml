@@ -2,7 +2,7 @@ ksml:
   workingDirectory: /tmp
   configDirectory: /ksml
   definitions:
-#  - 01-demo-inspect.yaml
+  - 01-demo-inspect.yaml
 #  - 02-demo-copy.yaml
 #  - 03-demo-filter.yaml
 #  - 04-demo-branch.yaml
@@ -14,7 +14,7 @@ ksml:
 #  - 10-demo-queryabletable.yaml
 #  - 11-demo-fieldmodification.yaml
 #  - 12-demo-bytemanipulation.yaml
-  - 13-demo-join.yaml
+#  - 13-demo-join.yaml
 
 backend:
   type: kafka
