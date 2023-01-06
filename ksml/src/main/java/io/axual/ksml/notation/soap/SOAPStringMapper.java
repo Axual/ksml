@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.notation.string.StringMapper;
 import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPConstants;
 import jakarta.xml.soap.SOAPException;
 import jakarta.xml.soap.SOAPMessage;
 
@@ -36,7 +37,7 @@ public class SOAPStringMapper implements StringMapper<SOAPMessage> {
 
     public SOAPStringMapper() {
         try {
-            messageFactory = MessageFactory.newInstance();
+            messageFactory = MessageFactory.newInstance(SOAPConstants.SOAP_1_2_PROTOCOL);
         } catch (SOAPException e) {
             throw FatalError.dataError("Could not create SOAP Message Factory", e);
         }

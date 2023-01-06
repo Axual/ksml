@@ -9,9 +9,9 @@ package io.axual.ksml.data.object;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,12 +20,16 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
 
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.exception.KSMLExecutionException;
 
-public class DataStruct extends HashMap<String, DataObject> implements DataObject {
+public class DataStruct extends TreeMap<String, DataObject> implements DataObject {
+    private static final String QUOTE = "\"";
+
     public interface DataStructApplier<T> {
         void apply(T value) throws Exception;
     }
@@ -86,5 +90,27 @@ public class DataStruct extends HashMap<String, DataObject> implements DataObjec
     @Override
     public int hashCode() {
         return type.hashCode() + super.hashCode() * 31;
+    }
+
+    @Override
+    public String toString() {
+        Iterator<Map.Entry<String, DataObject>> i = entrySet().iterator();
+        if (!i.hasNext())
+            return "{}";
+
+        StringBuilder sb = new StringBuilder();
+        sb.append('{');
+        for (; ; ) {
+            Map.Entry<String, DataObject> e = i.next();
+            String key = e.getKey();
+            DataObject value = e.getValue();
+            var quote = (value instanceof DataString ? QUOTE : "");
+            sb.append(QUOTE).append(key).append(QUOTE);
+            sb.append(':');
+            sb.append(quote).append(value == this ? "(this Map)" : value).append(quote);
+            if (!i.hasNext())
+                return sb.append('}').toString();
+            sb.append(',').append(' ');
+        }
     }
 }

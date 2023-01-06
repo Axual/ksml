@@ -23,10 +23,7 @@ package io.axual.ksml.producer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
-import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.utils.Utils;
 import org.slf4j.Logger;
@@ -36,8 +33,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import io.axual.ksml.producer.config.KSMLProducerConfig;
 import io.axual.ksml.producer.definition.ProducerDefinition;
@@ -46,7 +41,6 @@ import io.axual.ksml.producer.execution.IntervalSchedule;
 import io.axual.ksml.producer.factory.AxualClientFactory;
 import io.axual.ksml.producer.factory.ClientFactory;
 import io.axual.ksml.producer.factory.KafkaClientFactory;
-import io.axual.ksml.producer.generator.SensorDataGenerator;
 import io.axual.ksml.producer.parser.ProducerDefinitionFileParser;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonFunction;
@@ -64,8 +58,6 @@ import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_
 public class KSMLProducer {
     private static final Logger LOG = LoggerFactory.getLogger(KSMLProducer.class);
     private static final String DEFAULT_CONFIG_FILE_SHORT = "ksml-producer.yml";
-    public static final String TOPIC_SENSORDATA = "ksml_sensordata_avro";
-    public static final String TOPIC_SENSORALERTSETTINGS = "ksml_sensoralert_settings";
     private static final PythonContext context = new PythonContext();
     private static final IntervalSchedule<ExecutableProducer> schedule = new IntervalSchedule<>();
 
@@ -80,27 +72,6 @@ public class KSMLProducer {
         configs.put(VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
         configs.put("specific.avro.reader", true);
         return configs;
-    }
-
-    private static boolean produceMessage(Producer<String, SpecificRecord> producer, long iteration) {
-        log.info("Producing: {}", iteration);
-        String sensorName = "sensor" + (iteration % 10);
-        String key = (iteration % 2) == 0 ? sensorName : null;
-        Future<RecordMetadata> future = producer.send(
-                new ProducerRecord<>(
-                        "ksml_sensordata_avro",
-                        key,
-                        (iteration % 3) != 0 ? SensorDataGenerator.generateValue(sensorName) : null
-                ));
-        try {
-            RecordMetadata message = future.get();
-            log.info("Produced message to topic {} partition {} offset {}", message.topic(), message.partition(), message.offset());
-            return true;
-        } catch (InterruptedException | ExecutionException e) {
-            log.error("Interrupted!", e);
-            Thread.currentThread().interrupt();
-            return false;
-        }
     }
 
     public static void main(String[] args) {
@@ -153,7 +124,7 @@ public class KSMLProducer {
             var generator = new PythonFunction(context, entry.getKey(), entry.getValue().generator());
             var keySerde = factory.getNotationLibrary().get(target.keyType.notation()).getSerde(target.keyType.dataType(), true);
             var valueSerde = factory.getNotationLibrary().get(target.valueType.notation()).getSerde(target.valueType.dataType(), false);
-            var ep = new ExecutableProducer(generator, target.topic, keySerde.serializer(), valueSerde.serializer());
+            var ep = new ExecutableProducer(generator, target.topic, target.keyType.dataType(), target.valueType.dataType(), keySerde.serializer(), valueSerde.serializer());
             schedule.schedule(entry.getValue().interval().toMillis(), ep);
             LOG.info("Scheduled producers: {}", entry.getKey());
         }

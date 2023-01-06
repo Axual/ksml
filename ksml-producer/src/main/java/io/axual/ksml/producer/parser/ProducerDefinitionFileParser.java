@@ -9,9 +9,9 @@ package io.axual.ksml.producer.parser;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,9 +32,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import io.axual.ksml.KSMLConfig;
-import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.parser.StreamDefinitionParser;
-import io.axual.ksml.definition.parser.TypedFunctionDefinitionParser;
 import io.axual.ksml.generator.YAMLDefinition;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.generator.YAMLReader;
@@ -47,8 +45,8 @@ import io.axual.ksml.producer.definition.ProducerDefinition;
 import io.axual.ksml.schema.SchemaLibrary;
 
 import static io.axual.ksml.dsl.KSMLDSL.FUNCTIONS_DEFINITION;
-import static io.axual.ksml.dsl.KSMLDSL.MESSAGE_PRODUCERS_DEFINITION;
 import static io.axual.ksml.dsl.KSMLDSL.STREAMS_DEFINITION;
+import static io.axual.ksml.producer.dsl.ProducerDSL.PRODUCERS_DEFINITION;
 
 /**
  * Generate a Kafka Streams topology from a KSML configuration, using a Python interpreter.
@@ -130,13 +128,12 @@ public class ProducerDefinitionFileParser {
         var context = new ProducerParseContext(notationLibrary);
 
         // Parse all defined streams
-        Map<String, BaseStreamDefinition> streamDefinitions = new HashMap<>();
         new MapParser<>("stream definition", new StreamDefinitionParser()).parse(node.get(STREAMS_DEFINITION)).forEach(context::registerStreamDefinition);
 
         // Parse all defined functions
         new MapParser<>("function definition", new TypedFunctionDefinitionParser()).parse(node.get(FUNCTIONS_DEFINITION)).forEach(context::registerFunction);
 
         // Parse all defined message producers
-        return new HashMap<>(new MapParser<>("producer definition", new ProducerDefinitionParser(context)).parse(node.get(MESSAGE_PRODUCERS_DEFINITION)));
+        return new HashMap<>(new MapParser<>("producer definition", new ProducerDefinitionParser(context)).parse(node.get(PRODUCERS_DEFINITION)));
     }
 }

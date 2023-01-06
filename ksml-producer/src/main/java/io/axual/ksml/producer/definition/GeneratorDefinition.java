@@ -27,7 +27,7 @@ import io.axual.ksml.exception.KSMLTopologyException;
 import static io.axual.ksml.definition.DefinitionConstants.NO_PARAMETERS;
 
 public class GeneratorDefinition extends FunctionDefinition {
-    protected GeneratorDefinition(FunctionDefinition definition) {
+    public GeneratorDefinition(FunctionDefinition definition) {
         super(definition
                 .withParameters(NO_PARAMETERS)
                 .withAResult());

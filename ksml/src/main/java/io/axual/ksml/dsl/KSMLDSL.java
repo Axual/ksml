@@ -150,7 +150,6 @@ public static final String MESSAGE_PRODUCER_GENERATOR="generator";
     public static final String GLOBALTABLE_DEFINITION = "globalTable";
     public static final String GLOBALTABLES_DEFINITION = "globalTables";
     public static final String FUNCTIONS_DEFINITION = "functions";
-    public static final String MESSAGE_PRODUCERS_DEFINITION = "producers";
     public static final String STORES_DEFINITION = "stores";
     public static final String PIPELINES_DEFINITION = "pipelines";
 }

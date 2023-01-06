@@ -1,7 +1,11 @@
 # This example shows how to read from a simple stream, convert to json and output to a target topic.
 
 streams:
-  sensor_source:
+  sensordata_avro:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+  sensordata_json:
     topic: ksml_sensordata_json
     keyType: string
     valueType: json
@@ -84,23 +88,28 @@ functions:
       sensorCounter = (sensorCounter+1) % 10
 
       value = """<?xml version = "1.0"?>
-      <SOAP-ENV:Envelope xmlns:SOAP-ENV = "http://www.w3.org/2001/12/soap-envelope" SOAP-ENV:encodingStyle = "http://www.w3.org/2001/12/soap-encoding">
-      <SOAP-ENV:Body xmlns:m = "http://www.xyz.org/quotations">
+      <soapenv:Envelope xmlns:soapenv = "http://www.w3.org/2001/12/soap-envelope" soapenv:encodingStyle = "http://www.w3.org/2001/12/soap-encoding">
+      <soapenv:Body xmlns:m = "http://www.xyz.org/quotations">
       <m:GetQuotation>
       <m:QuotationsName>ACME Corp</m:QuotationsName>
       </m:GetQuotation>
-      </SOAP-ENV:Body>
-      </SOAP-ENV:Envelope>"""
+      </soapenv:Body>
+      </soapenv:Envelope>"""
     expression: (key,value)
     resultType: (string,string)
 
 producers:
-  sensordata_producer:
+  sensordata_avro_producer:
     generator: generate_sensordata_message
-    interval: 1000
-    to: sensor_source
+    interval: 555
+    to: sensordata_avro
 
-  soap_producer:
-    generator: generate_soap_message
-    interval: 1500
-    to: soap_source
+#  sensordata_json_producer:
+#    generator: generate_sensordata_message
+#    interval: 666
+#    to: sensordata_json
+
+#  soap_producer:
+#    generator: generate_soap_message
+#    interval: 777
+#    to: soap_source

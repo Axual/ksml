@@ -33,6 +33,7 @@ import io.axual.ksml.exception.KSMLDataException;
 import io.axual.ksml.execution.FatalError;
 import jakarta.xml.soap.Detail;
 import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPConstants;
 import jakarta.xml.soap.SOAPEnvelope;
 import jakarta.xml.soap.SOAPException;
 import jakarta.xml.soap.SOAPFault;
@@ -68,7 +69,7 @@ public class SOAPDataObjectMapper implements DataObjectMapper {
 
     public SOAPDataObjectMapper() {
         try {
-            messageFactory = MessageFactory.newInstance();
+            messageFactory = MessageFactory.newInstance(SOAPConstants.SOAP_1_2_PROTOCOL);
         } catch (SOAPException e) {
             throw FatalError.executionError("Could not create SOAP Message Factory", e);
         }

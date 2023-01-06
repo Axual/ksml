@@ -32,7 +32,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.definition.MessageProducerDefinition;
 import io.axual.ksml.definition.StoreDefinition;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.generator.StreamDataType;
@@ -54,7 +53,6 @@ public class TopologyParseContext implements ParseContext {
     private final String namePrefix;
     private final Map<String, BaseStreamDefinition> streamDefinitions = new HashMap<>();
     private final Map<String, FunctionDefinition> functionDefinitions = new HashMap<>();
-    private final Map<String, MessageProducerDefinition> producerDefinitions = new HashMap<>();
     private final Map<String, StoreDefinition> storeDefinitions = new HashMap<>();
     private final Map<String, StreamWrapper> streamWrappers = new HashMap<>();
     private final Map<String, AtomicInteger> typeInstanceCounters = new HashMap<>();
@@ -84,13 +82,6 @@ public class TopologyParseContext implements ParseContext {
             throw new KSMLTopologyException("Function definition must be unique: " + name);
         }
         functionDefinitions.put(name, functionDefinition);
-    }
-
-    public void registerMessageProducer(String name, MessageProducerDefinition messageProducerDefinition) {
-        if (producerDefinitions.containsKey(name)) {
-            throw new KSMLTopologyException("Producer definition must be unique: " + name);
-        }
-        producerDefinitions.put(name, messageProducerDefinition);
     }
 
     public void registerStore(String name, StoreDefinition storeDefinition) {
@@ -147,10 +138,6 @@ public class TopologyParseContext implements ParseContext {
     @Override
     public UserFunction getUserFunction(FunctionDefinition definition, String name) {
         return new PythonFunction(pythonContext, name, definition);
-    }
-
-    public Map<String, MessageProducerDefinition> producers() {
-        return producerDefinitions;
     }
 
     @Override

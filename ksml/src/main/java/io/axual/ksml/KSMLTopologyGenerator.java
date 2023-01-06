@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.TopologyGeneratorImpl;
 import io.axual.ksml.notation.avro.AvroSchemaLoader;
 import io.axual.ksml.schema.SchemaLibrary;
@@ -41,7 +40,6 @@ import io.axual.ksml.schema.SchemaLibrary;
 public class KSMLTopologyGenerator implements TopologyGenerator {
     private KSMLConfig config = new KSMLConfig(new HashMap<>());
     private Properties kafkaConfig = new Properties();
-    private ExecutionContext executionContext;
 
     public KSMLTopologyGenerator(Map<String, ?> ksmlConfigs, Properties kafkaConfigs) {
         // Parse configuration
@@ -52,12 +50,6 @@ public class KSMLTopologyGenerator implements TopologyGenerator {
 
     @Override
     public Topology create(StreamsBuilder streamsBuilder) {
-        // If a previous execution context is present, then stop and destroy it
-        if (executionContext != null) {
-            executionContext.stopExecution();
-            executionContext = null;
-        }
-
         // Register schema loaders
         var avroSchemaLoader = new AvroSchemaLoader(config.configDirectory);
         SchemaLibrary.registerLoader(avroSchemaLoader);
@@ -65,11 +57,7 @@ public class KSMLTopologyGenerator implements TopologyGenerator {
         // Create the topology generator
         var generator = new TopologyGeneratorImpl(config);
 
-        // Parse the topology and set up the execution context
-        executionContext = generator.create(streamsBuilder);
-        // After parsing, start the execution context
-        executionContext.startExecution();
-        // And return the generated topology for Kafka Streams
-        return executionContext.topology();
+        // Parse and return the topology
+        return generator.create(streamsBuilder);
     }
 }

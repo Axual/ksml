@@ -9,9 +9,9 @@ package io.axual.ksml.generator;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -37,17 +37,14 @@ import java.util.Map;
 
 import io.axual.ksml.KSMLConfig;
 import io.axual.ksml.definition.BaseStreamDefinition;
-import io.axual.ksml.definition.MessageProducerDefinition;
 import io.axual.ksml.definition.PipelineDefinition;
 import io.axual.ksml.definition.parser.GlobalTableDefinitionParser;
-import io.axual.ksml.definition.parser.MessageProducerDefinitionParser;
 import io.axual.ksml.definition.parser.PipelineDefinitionParser;
 import io.axual.ksml.definition.parser.StoreDefinitionParser;
 import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.definition.parser.TableDefinitionParser;
 import io.axual.ksml.definition.parser.TypedFunctionDefinitionParser;
 import io.axual.ksml.exception.KSMLParseException;
-import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.parser.MapParser;
 import io.axual.ksml.parser.StreamOperation;
 import io.axual.ksml.parser.TopologyParseContext;
@@ -56,7 +53,6 @@ import io.axual.ksml.stream.StreamWrapper;
 
 import static io.axual.ksml.dsl.KSMLDSL.FUNCTIONS_DEFINITION;
 import static io.axual.ksml.dsl.KSMLDSL.GLOBALTABLES_DEFINITION;
-import static io.axual.ksml.dsl.KSMLDSL.MESSAGE_PRODUCERS_DEFINITION;
 import static io.axual.ksml.dsl.KSMLDSL.PIPELINES_DEFINITION;
 import static io.axual.ksml.dsl.KSMLDSL.STORES_DEFINITION;
 import static io.axual.ksml.dsl.KSMLDSL.STREAMS_DEFINITION;
@@ -72,8 +68,7 @@ public class TopologyGeneratorImpl {
     private final KSMLConfig config;
 
     public record Result(Topology topology,
-                         Map<String, TopologyParseContext.StoreDescriptor> stores,
-                         Map<String, MessageProducerDefinition> producers) {
+                         Map<String, TopologyParseContext.StoreDescriptor> stores) {
     }
 
     public TopologyGeneratorImpl(KSMLConfig config) {
@@ -103,9 +98,8 @@ public class TopologyGeneratorImpl {
         return new ArrayList<>();
     }
 
-    public ExecutionContext create(StreamsBuilder builder) {
+    public Topology create(StreamsBuilder builder) {
         List<YAMLDefinition> definitions = readKSMLDefinitions();
-        Map<String, MessageProducerDefinition> producers = new HashMap<>();
         for (YAMLDefinition definition : definitions) {
             var generatorResult = generate(builder, YamlNode.fromRoot(definition.root(), "ksml"), getPrefix(definition.source()));
             if (generatorResult != null) {
@@ -138,10 +132,9 @@ public class TopologyGeneratorImpl {
                     }
                     LOG.info("\n{}\n", storeOutput);
                 }
-                producers.putAll(generatorResult.producers);
             }
         }
-        return new ExecutionContext(builder.build(), producers);
+        return builder.build();
     }
 
     private String getPrefix(String source) {
@@ -173,9 +166,6 @@ public class TopologyGeneratorImpl {
         // Parse all defined functions
         new MapParser<>("function definition", new TypedFunctionDefinitionParser()).parse(node.get(FUNCTIONS_DEFINITION)).forEach(context::registerFunction);
 
-        // Parse all defined message producers
-        new MapParser<>("producer definition", new MessageProducerDefinitionParser(context)).parse(node.get(MESSAGE_PRODUCERS_DEFINITION)).forEach(context::registerMessageProducer);
-
         // Parse all defined stores
         new MapParser<>("store definition", new StoreDefinitionParser()).parse(node.get(STORES_DEFINITION)).forEach(context::registerStore);
 
@@ -199,6 +189,6 @@ public class TopologyGeneratorImpl {
         });
 
         // Return the built topology
-        return new Result(context.build(), context.stores(), context.producers());
+        return new Result(context.build(), context.stores());
     }
 }
