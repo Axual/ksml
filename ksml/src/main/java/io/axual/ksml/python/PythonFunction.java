@@ -21,97 +21,23 @@ package io.axual.ksml.python;
  */
 
 
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.HostAccess;
-import org.graalvm.polyglot.PolyglotAccess;
-import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
-
-import java.util.Arrays;
 
 import io.axual.ksml.data.mapper.PythonDataObjectMapper;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.user.UserFunction;
 
 public class PythonFunction extends UserFunction {
-    private static final String PYTHON = "python";
     private static final PythonDataObjectMapper MAPPER = new PythonDataObjectMapper();
-    private static final Context CONTEXT = Context.newBuilder(PYTHON)
-            .allowNativeAccess(true)
-            .allowPolyglotAccess(PolyglotAccess.ALL)
-            .allowHostAccess(HostAccess.ALL)
-            .allowHostClassLookup(name -> name.equals("java.util.ArrayList") || name.equals("java.util.HashMap") || name.equals("java.util.TreeMap"))
-            .build();
     private final Value function;
 
-    public PythonFunction(String name, FunctionDefinition definition) {
+    public PythonFunction(PythonContext context, String name, FunctionDefinition definition) {
         super(name, definition.parameters, definition.resultType);
-
-        // Prepend two spaces of indentation before the function code
-        String[] functionCode = Arrays.stream(definition.code).map(line -> "  " + line).toArray(String[]::new);
-
-        // Prepare a list of parameter names
-        String[] params = Arrays.stream(parameters).map(ParameterDefinition::name).toArray(String[]::new);
-
-        // prepare globalCode from the function definition
-        final var globalCode = String.join("\n", definition.globalCode) + "\n";
-
-        // prepare function (if any) and expression from the function definition
-        final var functionAndExpression = "def " + name + "_function(" + String.join(",", params) + "):\n" +
-                String.join("\n", functionCode) + "\n" +
-                "  return" + (resultType != null ? " " + definition.expression : "") + "\n" +
-                "\n";
-
-        // prepare the actual caller for the code
-        final var pyCallerCode = "def " + name + "_caller(" + String.join(",", params) + "):\n  " +
-                "  return convert_from(" + name + "_function(" + String.join(",", params) + "))\n";
-
-        final var pythonCodeTemplate = """
-                import polyglot
-                import java
-                                
-                ArrayList = java.type('java.util.ArrayList')
-                HashMap = java.type('java.util.HashMap')
-                                
-                # global Python code goes here (first argument)
-                %1$s
-                                
-                # function definition and expression go here (second argument)
-                @polyglot.export_value
-                %2$s
-                                
-                def convert_to(value):
-                  print('In convert_to: ')
-                  print(value)
-                  return value
-                  
-                def convert_from(value):
-                  if isinstance(value, (list, tuple)):
-                    result = ArrayList()
-                    for e in value:
-                      result.add(convert_from(e))
-                    return result
-                  if type(value) is dict:
-                    result = HashMap()
-                    for k, v in value.items():
-                      result.put(convert_from(k), convert_from(v))
-                    return result
-                  return value
-                  
-                # caller definition goes here (third argument)
-                @polyglot.export_value
-                %3$s  
-                """;
-
-        final var pyCode = pythonCodeTemplate.formatted(globalCode, functionAndExpression, pyCallerCode);
-        Source script = Source.create(PYTHON, pyCode);
-        CONTEXT.eval(script);
-        function = CONTEXT.getPolyglotBindings().getMember(name + "_caller");
+        function = context.registerFunction(name, definition);
     }
 
     @Override

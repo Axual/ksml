@@ -22,7 +22,7 @@ pipelines:
     from: sensor_source
     via:
       - type: peek
-        name: peek_and_print
+#        name: peek_and_print
         forEach: print_message
     branch:
       - if:

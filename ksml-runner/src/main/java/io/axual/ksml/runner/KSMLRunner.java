@@ -33,6 +33,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import io.axual.ksml.exception.KSMLExecutionException;
+import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.rest.server.RestServer;
 import io.axual.ksml.runner.backend.Backend;
 import io.axual.ksml.runner.config.KSMLRunnerConfig;
@@ -82,18 +84,16 @@ public class KSMLRunner {
             backendFuture.get();
             // Future, check exit state of backend
         } catch (ExecutionException | InterruptedException e) {
-            log.error("Caught exception while waiting for finish", e);
-            Thread.currentThread().interrupt();
-        } finally {
             executorService.shutdown();
             try {
                 if (!executorService.awaitTermination(800, TimeUnit.MILLISECONDS)) {
                     executorService.shutdownNow();
                 }
-            } catch (InterruptedException e) {
+            } catch (InterruptedException e2) {
                 executorService.shutdownNow();
-                Thread.currentThread().interrupt();
+                throw FatalError.reportAndExit(new KSMLExecutionException("Exception caught", e2));
             }
+            throw FatalError.reportAndExit(new KSMLExecutionException("Exception caught", e));
         }
     }
 }

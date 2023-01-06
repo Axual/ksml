@@ -30,9 +30,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.HashMap;
 
 import io.axual.ksml.definition.GlobalTableDefinition;
-import io.axual.ksml.notation.BinaryNotation;
 import io.axual.ksml.notation.Notation;
 import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.notation.binary.BinaryNotation;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.stream.GlobalKTableWrapper;
 
@@ -55,7 +55,7 @@ class GlobalTableDefinitionTest {
 
     @Test
     void testGlobalTableDefinition() {
-        notationLibrary.put(BinaryNotation.NOTATION_NAME, mockNotation);
+        notationLibrary.register(BinaryNotation.NOTATION_NAME, mockNotation);
 
         // given a TableDefinition
         var tableDefinition = new GlobalTableDefinition("topic", "string", "string");

@@ -62,6 +62,6 @@ public class DataSchemaTypeParser extends BaseParser<DataSchema.Type> {
     }
 
     private DataSchema.Type canNotParse(YamlNode node) {
-        throw new KSMLParseException("Can not parse schema type: " + node);
+        throw new KSMLParseException(node, "Can not parse schema type: " + node);
     }
 }

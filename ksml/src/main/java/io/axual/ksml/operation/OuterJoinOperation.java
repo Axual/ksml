@@ -27,7 +27,7 @@ import org.apache.kafka.streams.kstream.StreamJoined;
 
 import java.time.Duration;
 
-import io.axual.ksml.exception.KSMLApplyException;
+import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.stream.BaseStreamWrapper;
 import io.axual.ksml.stream.KStreamWrapper;
@@ -58,11 +58,11 @@ public class OuterJoinOperation extends StoreOperation {
                             kStreamWrapper.stream,
                             new UserValueJoiner(valueJoiner),
                             joinWindows,
-                            StreamJoined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde()).withName(name).withStoreName(store.name)),
+                            StreamJoined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde()).withName(name).withStoreName(store.name())),
                     input.keyType(),
                     resultValueType);
         }
-        throw new KSMLApplyException("Can not OUTER_JOIN stream with " + joinStream.getClass().getSimpleName());
+        throw new KSMLTopologyException("Can not OUTER_JOIN stream with " + joinStream.getClass().getSimpleName());
     }
 
     @Override
@@ -79,6 +79,6 @@ public class OuterJoinOperation extends StoreOperation {
                     input.keyType(),
                     resultValueType);
         }
-        throw new KSMLApplyException("Can not OUTER_JOIN table with " + joinStream.getClass().getSimpleName());
+        throw new KSMLTopologyException("Can not OUTER_JOIN table with " + joinStream.getClass().getSimpleName());
     }
 }

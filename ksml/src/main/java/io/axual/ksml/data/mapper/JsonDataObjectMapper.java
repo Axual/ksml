@@ -34,7 +34,7 @@ public class JsonDataObjectMapper implements DataObjectMapper {
             var object = jsonMapper.fromString(str);
             return nativeMapper.toDataObject(object);
         }
-        throw new KSMLExecutionException("Can not convert value to String: " + (value != null ? value.getClass().getSimpleName() : "null"));
+        throw new KSMLExecutionException("Can not convert value to JSON String: " + (value != null ? value.getClass().getSimpleName() : "null"));
     }
 
     @Override

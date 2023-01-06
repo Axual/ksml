@@ -22,7 +22,6 @@ package io.axual.ksml.definition;
 
 
 import io.axual.ksml.data.type.UserType;
-import io.axual.ksml.exception.KSMLApplyException;
 import io.axual.ksml.exception.KSMLTopologyException;
 
 public class FunctionDefinition {
@@ -89,7 +88,7 @@ public class FunctionDefinition {
             return defaultParams;
         }
         if (specified.length != defaultParams.length) {
-            throw new KSMLApplyException("Specified parameter list does not contain " + defaultParams.length + " parameters");
+            throw new KSMLTopologyException("Specified parameter list does not contain " + defaultParams.length + " parameters");
         }
         return specified;
     }

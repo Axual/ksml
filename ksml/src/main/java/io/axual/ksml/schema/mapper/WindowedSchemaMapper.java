@@ -23,6 +23,7 @@ package io.axual.ksml.schema.mapper;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.schema.DataField;

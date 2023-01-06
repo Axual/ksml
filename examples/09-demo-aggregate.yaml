@@ -12,8 +12,8 @@ functions:
     code: "print('key=' + str(key) + ', value=' + str(value))"
 
 stores:
-  owner_count:
-    name: owner_count
+  owner_count_aggregate:
+    name: owner_count_aggregate
     retention: 3m
     caching: false
 
@@ -34,7 +34,7 @@ pipelines:
         duration: 20s
         grace: 40s
       - type: aggregate
-        store: owner_count
+        store: owner_count_aggregate
         initializer:
           expression: 0
           resultType: long

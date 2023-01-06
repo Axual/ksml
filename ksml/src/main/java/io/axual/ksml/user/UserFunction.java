@@ -36,7 +36,7 @@ import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLTopologyException;
-import io.axual.ksml.exception.KSMLTypeException;
+import io.axual.ksml.exception.KSMLDataException;
 
 /**
  * Base class for user-defined functions.
@@ -64,7 +64,7 @@ public class UserFunction {
     protected void checkType(DataType expected, DataObject value) {
         if (value instanceof DataNull) return;
         if (expected != null && value != null && !expected.isAssignableFrom(value.type())) {
-            throw KSMLTypeException.conversionFailed(expected, value.type());
+            throw KSMLDataException.conversionFailed(expected, value.type());
         }
     }
 

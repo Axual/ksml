@@ -13,27 +13,25 @@ functions:
 
 pipelines:
   # The main pipeline reads messages, converts to json, outputs them, and saves to a target topic
-  main:
+  main_to_json:
     from: sensor_source
     via:
       - type: convertValue
-        into: json
-        name: convert_value_to_json
+        into: xml
+        name: convert_value_to_xml
       - type: peek
         forEach: print_message
-        name: peek_and_print
     to:
-      topic: ksml_sensordata_json
+      topic: ksml_sensordata_xml
 
-  # The secondary pipeline achieves the same, but by inlining the target topic definition and its
+  # The alternative pipeline achieves the same, but by inlining the target topic definition and its
   # data types (conversion is done implicitly on writing to the target topic)
-  secondary:
+  alternate_to_json:
     from: sensor_source
     via:
       - type: peek
         forEach: print_message
-        name: peek_and_print2
     to:
-      topic: ksml_sensordata_json
+      topic: ksml_sensordata_xml
       keyType: string
-      valueType: json
+      valueType: xml

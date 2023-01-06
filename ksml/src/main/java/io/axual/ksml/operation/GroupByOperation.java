@@ -25,8 +25,7 @@ import org.apache.kafka.streams.kstream.Grouped;
 
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.UserTupleType;
-import io.axual.ksml.exception.KSMLApplyException;
-import io.axual.ksml.exception.KSMLExecutionException;
+import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.KGroupedTableWrapper;
@@ -48,13 +47,13 @@ public class GroupByOperation extends StoreOperation {
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
         if (transformer.resultType.dataType() == DataType.UNKNOWN) {
-            throw new KSMLExecutionException("groupBy mapper resultType not specified");
+            throw new KSMLTopologyException("groupBy mapper resultType not specified");
         }
         final StreamDataType resultKeyType = streamDataTypeOf(transformer.resultType, true);
         return new KGroupedStreamWrapper(
                 input.stream.groupBy(
                         new UserKeyTransformer(transformer),
-                        registerGrouped(Grouped.with(store.name, resultKeyType.getSerde(), input.valueType().getSerde()))),
+                        registerGrouped(Grouped.with(store.name(), resultKeyType.getSerde(), input.valueType().getSerde()))),
                 resultKeyType,
                 input.valueType());
     }
@@ -69,11 +68,11 @@ public class GroupByOperation extends StoreOperation {
             return new KGroupedTableWrapper(
                     input.table.groupBy(
                             new UserKeyValueTransformer(transformer),
-                            registerGrouped(Grouped.with(store.name, resultKeyType.getSerde(), resultValueType.getSerde()))),
+                            registerGrouped(Grouped.with(store.name(), resultKeyType.getSerde(), resultValueType.getSerde()))),
                     resultKeyType,
                     resultValueType);
         }
 
-        throw new KSMLApplyException("Can not apply given transformer to KTable.groupBy operation");
+        throw new KSMLTopologyException("Can not apply given transformer to KTable.groupBy operation");
     }
 }

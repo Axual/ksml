@@ -25,7 +25,7 @@ import io.axual.ksml.definition.parser.BranchDefinitionParser;
 import io.axual.ksml.definition.parser.ForEachActionDefinitionParser;
 import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.definition.parser.TopicNameExtractorDefinitionParser;
-import io.axual.ksml.exception.KSMLParseException;
+import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.operation.BranchOperation;
 import io.axual.ksml.operation.ForEachOperation;
 import io.axual.ksml.operation.ToOperation;
@@ -64,7 +64,7 @@ public class PipelineSinkOperationParser extends OperationParser<StreamOperation
             if (def != null) {
                 return new ToOperation(operationConfig(determineName("to")), def);
             }
-            throw new KSMLParseException("Target stream not found or not specified");
+            throw new KSMLTopologyException("Target stream not found or not specified");
         }
         return null;
     }

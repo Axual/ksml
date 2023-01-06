@@ -1,0 +1,35 @@
+Topologies:
+   Sub-topology: 0
+    Source: sensor_red (topics: [ksml_sensordata_red])
+      --> none
+
+  Sub-topology: 1
+    Source: sensor_blue (topics: [ksml_sensordata_blue])
+      --> none
+
+  Sub-topology: 2
+    Source: sensor_stream (topics: [ksml_sensordata_avro])
+      --> before-peek
+    Processor: before-peek (stores: [])
+      --> branch_001
+      <-- sensor_stream
+    Processor: branch_001 (stores: [])
+      --> branch_001-predicate-0, branch_001-predicate-1, branch_001-predicate-2
+      <-- before-peek
+    Processor: branch_001-predicate-0 (stores: [])
+      --> to_001
+      <-- branch_001
+    Processor: branch_001-predicate-1 (stores: [])
+      --> to_002
+      <-- branch_001
+    Processor: branch_001-predicate-2 (stores: [])
+      --> for_each_001
+      <-- branch_001
+    Processor: for_each_001 (stores: [])
+      --> none
+      <-- branch_001-predicate-2
+    Sink: to_001 (topic: ksml_sensordata_blue)
+      <-- branch_001-predicate-0
+    Sink: to_002 (topic: ksml_sensordata_red)
+      <-- branch_001-predicate-1
+

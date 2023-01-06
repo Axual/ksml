@@ -20,7 +20,8 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.notation.BinaryNotation;
+
+import io.axual.ksml.notation.binary.BinaryNotation;
 
 public record UserType(String notation, DataType dataType) {
     public static final String DEFAULT_NOTATION = BinaryNotation.NOTATION_NAME;

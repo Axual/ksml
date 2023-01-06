@@ -21,7 +21,6 @@ package io.axual.ksml.definition.parser;
  */
 
 
-
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.parser.BaseParser;

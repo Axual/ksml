@@ -51,6 +51,6 @@ public class KSMLConfig {
         configDirectory = (String) configs.get(KSML_CONFIG_DIRECTORY);
         notationLibrary = configs.containsKey(NOTATION_LIBRARY)
                 ? (NotationLibrary) configs.get(NOTATION_LIBRARY)
-                : new NotationLibrary(configs);
+                : new NotationLibrary((Map<String, Object>) configs);
     }
 }

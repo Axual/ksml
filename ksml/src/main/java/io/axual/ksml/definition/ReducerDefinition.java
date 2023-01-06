@@ -25,7 +25,6 @@ package io.axual.ksml.definition;
 import static io.axual.ksml.definition.DefinitionConstants.TWO_VALUE_PARAMETERS;
 
 public class ReducerDefinition extends FunctionDefinition {
-
     public ReducerDefinition(FunctionDefinition definition) {
         super(definition
                 .withParameters(getParameters(definition.parameters, TWO_VALUE_PARAMETERS))

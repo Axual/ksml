@@ -28,7 +28,7 @@ import org.apache.kafka.streams.kstream.StreamJoined;
 
 import java.time.Duration;
 
-import io.axual.ksml.exception.KSMLApplyException;
+import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.stream.GlobalKTableWrapper;
 import io.axual.ksml.stream.KStreamWrapper;
@@ -78,7 +78,7 @@ public class JoinOperation extends StoreOperation {
                             kStreamWrapper.stream,
                             new UserValueJoiner(valueJoiner),
                             joinWindows,
-                            StreamJoined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde()).withName(name).withStoreName(store.name)),
+                            StreamJoined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde()).withName(name).withStoreName(store.name())),
                     input.keyType(),
                     resultValueType);
         }
@@ -87,7 +87,7 @@ public class JoinOperation extends StoreOperation {
                     input.stream.join(
                             kTableWrapper.table,
                             new UserValueJoiner(valueJoiner),
-                            Joined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde(), store.name)),
+                            Joined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde(), store.name())),
                     input.keyType(),
                     resultValueType);
         }
@@ -101,7 +101,7 @@ public class JoinOperation extends StoreOperation {
                     input.keyType(),
                     resultValueType);
         }
-        throw new KSMLApplyException("Can not JOIN stream with " + joinStream.getClass().getSimpleName());
+        throw new KSMLTopologyException("Can not JOIN stream with " + joinStream.getClass().getSimpleName());
     }
 
     @Override
@@ -118,6 +118,6 @@ public class JoinOperation extends StoreOperation {
                     input.keyType(),
                     resultValueType);
         }
-        throw new KSMLApplyException("Can not JOIN table with " + joinStream.getClass().getSimpleName());
+        throw new KSMLTopologyException("Can not JOIN table with " + joinStream.getClass().getSimpleName());
     }
 }

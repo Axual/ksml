@@ -4,14 +4,14 @@ ksml:
   applicationServerPort: 8080
   workingDirectory: ../examples
   definitions:
-    - 01-demo-inspect.yaml
+#    - 01-demo-inspect.yaml
 #    - 02-demo-copy.yaml
 #    - 03-demo-filter.yaml
 #    - 04-demo-branch.yaml
 #    - 05-demo-dynamicrouting.yaml
 #    - 06-demo-double.yaml
 #    - 07-demo-convert.yaml
-#    - 08-demo-count.yaml
+    - 08-demo-count.yaml
 #    - 09-demo-aggregate.yaml
 #    - 10-demo-queryabletable.yaml
 #    - 11-demo-fieldmodification.yaml

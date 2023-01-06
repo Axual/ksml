@@ -23,12 +23,12 @@ package io.axual.ksml;
 
 import java.util.Map;
 
-import io.axual.ksml.avro.AvroNotation;
 import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.notation.avro.AvroNotation;
 
 public class AxualNotationLibrary extends NotationLibrary {
     public AxualNotationLibrary(Map<String, Object> configs) {
         super(configs);
-        put(AvroNotation.NOTATION_NAME, new AxualAvroNotation(configs));
+        register(AvroNotation.NOTATION_NAME, new AxualAvroNotation(configs));
     }
 }

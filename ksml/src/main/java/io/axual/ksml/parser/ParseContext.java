@@ -37,6 +37,8 @@ import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
 
 public interface ParseContext {
+    String getNamePrefix();
+
     Map<String, BaseStreamDefinition> getStreamDefinitions();
 
     <T extends BaseStreamWrapper> T getStreamWrapper(BaseStreamDefinition definition, Class<T> resultClass);

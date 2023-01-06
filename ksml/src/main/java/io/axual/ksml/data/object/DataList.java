@@ -40,6 +40,10 @@ public class DataList extends ArrayList<DataObject> implements DataObject {
         type = new ListType(valueType);
     }
 
+    public void addIfNotNull(DataObject value) {
+        if (value != null) add(value);
+    }
+
     @Override
     public DataType type() {
         return type;

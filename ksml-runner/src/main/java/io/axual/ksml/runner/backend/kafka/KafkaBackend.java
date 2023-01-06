@@ -76,12 +76,20 @@ public class KafkaBackend implements Backend {
         ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_WORKING_DIRECTORY, ksmlConfig.getWorkingDirectory());
         ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_CONFIG_DIRECTORY, ksmlConfig.getConfigurationDirectory());
         ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_SOURCE, ksmlConfig.getDefinitions());
-        ksmlConfigs.put(io.axual.ksml.KSMLConfig.NOTATION_LIBRARY, new NotationLibrary(streamsProperties));
-        var topologyGenerator = new KSMLTopologyGenerator();
-        topologyGenerator.configure(ksmlConfigs);
+        ksmlConfigs.put(io.axual.ksml.KSMLConfig.NOTATION_LIBRARY, new NotationLibrary(propertiesToMap(streamsProperties)));
+
+        var topologyGenerator = new KSMLTopologyGenerator(ksmlConfigs, streamsProperties);
 
         final var topology = topologyGenerator.create(new StreamsBuilder());
         kafkaStreams = new KafkaStreams(topology, streamsProperties);
+    }
+
+    private Map<String, Object> propertiesToMap(Properties props) {
+        var result = new HashMap<String, Object>();
+        for (var entry : props.entrySet()) {
+            result.put(entry.getKey().toString(), entry.getValue());
+        }
+        return result;
     }
 
     @Override

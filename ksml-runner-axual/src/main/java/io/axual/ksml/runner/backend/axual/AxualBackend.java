@@ -35,8 +35,10 @@ import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.axual.client.proxy.axual.producer.AxualProducerConfig;
 import io.axual.client.proxy.generic.registry.ProxyChain;
 import io.axual.common.config.ClientConfig;
 import io.axual.common.config.SslConfig;
@@ -151,6 +153,10 @@ public class AxualBackend implements Backend {
     private void createStreams() {
         Map<String, Object> configs = KafkaUtil.getKafkaConfigs(clientConfig);
         configs.putAll(discoveryResult.getConfigs());
+        configs.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        configs.put(ProducerConfig.BATCH_SIZE_CONFIG, 262144);
+        configs.put(ProducerConfig.LINGER_MS_CONFIG, 0);
+        configs.put(ProducerConfig.ACKS_CONFIG, "-1");
 
         // set up a stream topology generator based on the provided KSML definition
         Map<String, Object> ksmlConfigs = new HashMap<>();
@@ -159,13 +165,15 @@ public class AxualBackend implements Backend {
         ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_CONFIG_DIRECTORY, ksmlConfig.getConfigurationDirectory());
         ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_SOURCE, ksmlConfig.getDefinitions());
         ksmlConfigs.put(io.axual.ksml.KSMLConfig.NOTATION_LIBRARY, new AxualNotationLibrary(configs));
-        var topologyGenerator = new KSMLTopologyGenerator();
-        topologyGenerator.configure(ksmlConfigs);
 
-        configs.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        configs.put(ProducerConfig.BATCH_SIZE_CONFIG, 262144);
-        configs.put(ProducerConfig.LINGER_MS_CONFIG, 0);
-        configs.put(ProducerConfig.ACKS_CONFIG, "-1");
+        var kafkaConfigs = new Properties();
+        kafkaConfigs.putAll(configs);
+        kafkaConfigs.put(AxualProducerConfig.CHAIN_CONFIG, ProxyChain.newBuilder()
+                .append(RESOLVING_PROXY_ID)
+                .append(LINEAGE_PROXY_ID)
+                .build());
+        var topologyGenerator = new KSMLTopologyGenerator(ksmlConfigs, kafkaConfigs);
+
         configs.put(StreamsConfig.REQUEST_TIMEOUT_MS_CONFIG, 40000);
         configs.put(StreamsConfig.STATE_DIR_CONFIG, ksmlConfig.getWorkingDirectory());
         if (ksmlConfig.getApplicationServer() != null) {
@@ -189,7 +197,6 @@ public class AxualBackend implements Backend {
                 .build());
 
         configs.put(AbstractKafkaSchemaSerDeConfig.AUTO_REGISTER_SCHEMAS, false);
-        configs.put(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE);
 
         log.info("Creating StreamRunnerConfig...");
 

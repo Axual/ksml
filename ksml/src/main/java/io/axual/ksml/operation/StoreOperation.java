@@ -46,9 +46,9 @@ public class StoreOperation extends BaseOperation {
     public StoreOperation(StoreOperationConfig config) {
         super(config);
         store = new StoreDefinition(
-                config.store.name == null ? name : config.store.name,
-                config.store.retention,
-                config.store.caching
+                config.store.name() == null ? name : config.store.name(),
+                config.store.retention(),
+                config.store.caching()
         );
         this.groupedRegistry = config.groupedRegistry;
         this.storeRegistry = config.storeRegistry;
@@ -56,7 +56,7 @@ public class StoreOperation extends BaseOperation {
 
     @Override
     public String toString() {
-        return super.toString() + " [storeName=\"" + store.name + "\"]";
+        return super.toString() + " [storeName=\"" + store.name() + "\"]";
     }
 
     protected <K, V> Grouped<K, V> registerGrouped(Grouped<K, V> grouped) {

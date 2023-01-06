@@ -24,7 +24,6 @@ package io.axual.ksml.definition;
 import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_PARAMETERS;
 
 public class ValueTransformerDefinition extends FunctionDefinition {
-
     public ValueTransformerDefinition(FunctionDefinition definition) {
         super(definition
                 .withParameters(getParameters(definition.parameters, KEY_VALUE_PARAMETERS))

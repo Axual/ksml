@@ -48,7 +48,7 @@ public class ReferenceOrInlineParser<T, F extends T> extends BaseParser<T> {
             final var resourceToFind = parseString(node, childName);
             final var resource = lookup.apply(resourceToFind);
             if (resource == null) {
-                throw new KSMLParseException("Could not find " + resourceType + " with name " + resourceToFind);
+                throw new KSMLParseException(node, "Unknown " + resourceType + " \"" + resourceToFind + "\"");
             }
             return resource;
         }

@@ -26,8 +26,8 @@ import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
 
 import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.exception.KSMLApplyException;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.execution.FatalError;
 
 public class UnknownTypeSerde implements Serde<DataObject> {
     private final DataType type;
@@ -43,14 +43,14 @@ public class UnknownTypeSerde implements Serde<DataObject> {
     @Override
     public Serializer<DataObject> serializer() {
         return (topic, object) -> {
-            throw new KSMLApplyException("Can not serialize data dataType \"" + type + "\" from topic " + topic);
+            throw FatalError.dataError("Can not serialize data dataType \"" + type + "\" from topic " + topic);
         };
     }
 
     @Override
     public Deserializer<DataObject> deserializer() {
         return (topic, bytes) -> {
-            throw new KSMLApplyException("Can not deserialize data dataType \"" + type + "\" from topic " + topic);
+            throw FatalError.dataError("Can not deserialize data dataType \"" + type + "\" from topic " + topic);
         };
     }
 }

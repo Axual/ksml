@@ -23,7 +23,7 @@ package io.axual.ksml.operation;
 
 import org.apache.kafka.streams.kstream.Named;
 
-import io.axual.ksml.exception.KSMLApplyException;
+import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 
@@ -44,6 +44,6 @@ public class MergeOperation extends BaseOperation {
                     input.keyType(),
                     input.valueType());
         }
-        throw new KSMLApplyException("Incompatible stream types: " + input + " and " + mergeStream);
+        throw new KSMLTopologyException("Incompatible stream types: " + input + " and " + mergeStream);
     }
 }

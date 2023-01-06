@@ -28,7 +28,7 @@ import org.apache.kafka.streams.kstream.StreamJoined;
 
 import java.time.Duration;
 
-import io.axual.ksml.exception.KSMLApplyException;
+import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.stream.BaseStreamWrapper;
 import io.axual.ksml.stream.KStreamWrapper;
@@ -66,7 +66,7 @@ public class LeftJoinOperation extends StoreOperation {
                             kStreamWrapper.stream,
                             new UserValueJoiner(valueJoiner),
                             JoinWindows.ofTimeDifferenceWithNoGrace(joinWindowsDuration),
-                            StreamJoined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde()).withName(store.name).withStoreName(store.name)),
+                            StreamJoined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde()).withName(store.name()).withStoreName(store.name())),
                     input.keyType(),
                     resultValueType);
         }
@@ -75,11 +75,11 @@ public class LeftJoinOperation extends StoreOperation {
                     input.stream.leftJoin(
                             kTableWrapper.table,
                             new UserValueJoiner(valueJoiner),
-                            Joined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde(), store.name)),
+                            Joined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde(), store.name())),
                     input.keyType(),
                     resultValueType);
         }
-        throw new KSMLApplyException("Can not LEFT_JOIN stream with " + joinStream.getClass().getSimpleName());
+        throw new KSMLTopologyException("Can not LEFT_JOIN stream with " + joinStream.getClass().getSimpleName());
     }
 
     @Override
@@ -96,6 +96,6 @@ public class LeftJoinOperation extends StoreOperation {
                     input.keyType(),
                     resultValueType);
         }
-        throw new KSMLApplyException("Can not LEFT_JOIN table with " + joinStream.getClass().getSimpleName());
+        throw new KSMLTopologyException("Can not LEFT_JOIN table with " + joinStream.getClass().getSimpleName());
     }
 }

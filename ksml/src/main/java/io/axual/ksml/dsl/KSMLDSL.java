@@ -53,6 +53,9 @@ public class KSMLDSL {
     public static final String JOIN_MAPPER_ATTRIBUTE = "mapper";
     public static final String JOIN_WINDOW_ATTRIBUTE = "window";
     public static final String MERGE_STREAM_ATTRIBUTE = "stream";
+public static final String MESSAGE_PRODUCER_GENERATOR="generator";
+    public static final String MESSAGE_PRODUCER_WINDOW="every";
+    public static final String MESSAGE_PRODUCER_OUTPUT="to";
     public static final String PEEK_FOREACH_ATTRIBUTE = "forEach";
     public static final String PIPELINE_BRANCH_ATTRIBUTE = "branch";
     public static final String PIPELINE_TO_ATTRIBUTE = "to";
@@ -119,6 +122,7 @@ public class KSMLDSL {
     public static final String FUNCTION_TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER = "keyValueToKeyValueListTransformer";
     public static final String FUNCTION_TYPE_KEYVALUETOVALUELISTTRANSFORMER = "keyValueToValueListTransformer";
     public static final String FUNCTION_TYPE_KEYVALUETRANSFORMER = "keyValueTransformer";
+    public static final String FUNCTION_TYPE_MESSAGEGENERATOR = "messageGenerator";
     public static final String FUNCTION_TYPE_MERGER = "merger";
     public static final String FUNCTION_TYPE_PREDICATE = "predicate";
     public static final String FUNCTION_TYPE_REDUCER = "reducer";
@@ -146,6 +150,7 @@ public class KSMLDSL {
     public static final String GLOBALTABLE_DEFINITION = "globalTable";
     public static final String GLOBALTABLES_DEFINITION = "globalTables";
     public static final String FUNCTIONS_DEFINITION = "functions";
+    public static final String MESSAGE_PRODUCERS_DEFINITION = "producers";
     public static final String STORES_DEFINITION = "stores";
     public static final String PIPELINES_DEFINITION = "pipelines";
 }

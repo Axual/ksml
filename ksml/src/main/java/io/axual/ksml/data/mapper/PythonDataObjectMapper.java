@@ -9,9 +9,9 @@ package io.axual.ksml.data.mapper;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,7 +22,6 @@ package io.axual.ksml.data.mapper;
 
 import org.graalvm.polyglot.Value;
 
-import java.util.List;
 import java.util.Map;
 
 import io.axual.ksml.data.object.DataBoolean;
@@ -46,7 +45,6 @@ import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.data.type.UserType;
-import io.axual.ksml.data.value.Tuple;
 import io.axual.ksml.exception.KSMLExecutionException;
 
 public class PythonDataObjectMapper extends BaseDataObjectMapper {
@@ -58,17 +56,13 @@ public class PythonDataObjectMapper extends BaseDataObjectMapper {
         if (expected instanceof UnionType unionType)
             return unionToDataObject(unionType, object);
 
+        // If we got a Value object, then convert it to native format first
         if (object instanceof Value value) {
             object = unwrapValue(expected, value);
-            return NATIVE_DATA_OBJECT_MAPPER.toDataObject(expected, object);
         }
 
-        if (object instanceof List<?> value) return toDataList((List<Object>) value);
-        if (object instanceof Map<?, ?> value)
-            return toDataStruct((Map<String, Object>) value, null);
-        if (object instanceof Tuple<?> value) return toDataTuple((Tuple<Object>) value);
-
-        throw new KSMLExecutionException("Can not convert Python object to DataObject: " + (object != null ? object.getClass().getSimpleName() : "null"));
+        // Finally convert all native types to DataObjects
+        return NATIVE_DATA_OBJECT_MAPPER.toDataObject(expected, object);
     }
 
     private DataObject unionToDataObject(UnionType unionType, Object object) {

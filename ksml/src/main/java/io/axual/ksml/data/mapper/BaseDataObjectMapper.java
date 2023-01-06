@@ -45,7 +45,7 @@ import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.value.Tuple;
-import io.axual.ksml.exception.KSMLParseException;
+import io.axual.ksml.exception.KSMLDataException;
 import io.axual.ksml.schema.DataSchema;
 import io.axual.ksml.schema.SchemaLibrary;
 import io.axual.ksml.schema.StructSchema;
@@ -103,7 +103,7 @@ abstract class BaseDataObjectMapper implements DataObjectMapper {
         var schema = inferStructSchema(map, expected);
         if (schema instanceof StructSchema structSchema) return new StructType(structSchema);
         if (schema != null)
-            throw new KSMLParseException("Map can not be converted to " + schema);
+            throw new KSMLDataException("Map can not be converted to " + schema);
         return new StructType();
     }
 

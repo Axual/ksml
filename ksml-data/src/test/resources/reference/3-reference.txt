@@ -1,0 +1,17 @@
+Topologies:
+   Sub-topology: 0
+    Source: sensor_stream (topics: [ksml_sensordata_avro])
+      --> before-peek
+    Processor: before-peek (stores: [])
+      --> message-filter
+      <-- sensor_stream
+    Processor: message-filter (stores: [])
+      --> to_001
+      <-- before-peek
+    Sink: to_001 (topic: ksml_sensordata_filtered)
+      <-- message-filter
+
+  Sub-topology: 1
+    Source: sensor_filtered (topics: [ksml_sensordata_filtered])
+      --> none
+

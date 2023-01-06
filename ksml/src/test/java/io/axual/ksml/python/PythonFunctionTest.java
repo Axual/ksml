@@ -29,15 +29,16 @@ import io.axual.ksml.data.object.DataPrimitive;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
-import io.axual.ksml.notation.BinaryNotation;
+import io.axual.ksml.notation.binary.BinaryNotation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PythonFunctionTest {
 
+    PythonContext context = new PythonContext();
     ParameterDefinition one = new ParameterDefinition("one", DataInteger.DATATYPE);
     ParameterDefinition two = new ParameterDefinition("two", DataInteger.DATATYPE);
-    ParameterDefinition[] params = new ParameterDefinition[] { one, two };
+    ParameterDefinition[] params = new ParameterDefinition[]{one, two};
     UserType resultType = new UserType(BinaryNotation.NOTATION_NAME, DataInteger.DATATYPE);
 
     /**
@@ -47,7 +48,7 @@ public class PythonFunctionTest {
     @CsvSource({"1, 2, 3", "100,100,200", "100, -1, 99", "99, -100, -1"})
     void testAdditionExpression(Integer i1, Integer i2, Integer sum) {
         FunctionDefinition adderDef = FunctionDefinition.as(params, resultType, "one + two", null, null);
-        PythonFunction adder = new PythonFunction("adder", adderDef);
+        PythonFunction adder = new PythonFunction(context, "adder", adderDef);
 
         DataObject arg1 = new DataInteger(i1);
         DataObject arg2 = new DataInteger(i2);
@@ -68,7 +69,7 @@ public class PythonFunctionTest {
                     
                 """;
         FunctionDefinition adderDef = FunctionDefinition.as(params, resultType, "myAddFunc(one, two)", pythonCode.split("\n"), null);
-        PythonFunction adder = new PythonFunction("adder", adderDef);
+        PythonFunction adder = new PythonFunction(context, "adder", adderDef);
 
         DataObject arg1 = new DataInteger(i1);
         DataObject arg2 = new DataInteger(i2);
@@ -89,7 +90,7 @@ public class PythonFunctionTest {
                     
                 """;
         FunctionDefinition adderDef = FunctionDefinition.as(params, resultType, "myAddFunc(one, two)", null, pythonCode.split("\n"));
-        PythonFunction adder = new PythonFunction("adder", adderDef);
+        PythonFunction adder = new PythonFunction(context, "adder", adderDef);
 
         DataObject arg1 = new DataInteger(i1);
         DataObject arg2 = new DataInteger(i2);

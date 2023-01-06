@@ -1,0 +1,106 @@
+# This example shows how to read from a simple stream, convert to json and output to a target topic.
+
+streams:
+  sensor_source:
+    topic: ksml_sensordata_json
+    keyType: string
+    valueType: json
+  soap_source:
+    topic: ksml_soap
+    keyType: string
+    valueType: string
+
+functions:
+  generate_sensordata_message:
+    type: generator
+    globalCode: |
+      import time
+      import random
+
+      sensorCounter = 1
+      sensorColors = [ "black", "blue", "red", "yellow", "white" ]
+      sensorOwners = [ "Alice", "Bob", "Charlie", "Dave", "Evan" ]
+      sensorCities = [ "Amsterdam", "Xanten", "Utrecht", "Alkmaar", "Leiden" ]
+
+      sensorAreaUnits = [ "m2", "ft2" ]
+      sensorLengthUnits = [ "m", "ft" ]
+      sensorStates = [ "off", "on" ]
+
+      def generateArea():
+        return { "type": "AREA", "unit": random.choice(sensorAreaUnits), "value": str(random.randrange(1000)) }
+
+      def generateHumidity():
+        if random.randrange(2) == 0:
+          return { "type": "HUMIDITY", "unit": "g/m3", "value": str(random.randrange(100)) }
+        return { "type": "HUMIDITY", "unit": "%", "value": str(random.randrange(60, 80)) }
+
+      def generateLength():
+        return { "type": "LENGTH", "unit": random.choice(sensorLengthUnits), "value": str(random.randrange(1000)) }
+
+      def generateState():
+        return { "type": "STATE", "unit": "state", "value": random.choice(sensorStates) }
+
+      def generateTemperature():
+        if random.randrange(2) == 0:
+          return { "type": "TEMPERATURE", "unit": "C", "value": str(random.randrange(-10, 35)) }
+        return { "type": "TEMPERATURE", "unit": "F", "value": str(random.randrange(14, 95)) }
+
+    code: |
+      global sensorCounter
+      global sensorColors
+      global sensorOwners
+      global sensorCities
+      global sensorAreaUnits
+      global sensorLengthUnits
+      global sensorStates
+      
+      key = "sensor"+str(sensorCounter)
+      sensorCounter = (sensorCounter+1) % 10
+
+      value = { "name": key, "timestamp": str(round(time.time()*1000)) }
+
+      type = random.randrange(5)
+      types = { 0: generateArea,
+                1: generateHumidity,
+                2: generateLength,
+                3: generateState,
+                4: generateTemperature
+              }
+      value = { **value, **types[type]() }
+
+      value["color"] = random.choice(sensorColors)
+      value["owner"] = random.choice(sensorOwners)
+      value["city"] = random.choice(sensorCities)
+    expression: (key,value)
+    resultType: (string,json)
+
+  generate_soap_message:
+    type: generator
+    globalCode: |
+      sensorCounter = 1
+    code: |
+      global sensorCounter
+      key = "sensor"+str(sensorCounter)
+      sensorCounter = (sensorCounter+1) % 10
+
+      value = """<?xml version = "1.0"?>
+      <SOAP-ENV:Envelope xmlns:SOAP-ENV = "http://www.w3.org/2001/12/soap-envelope" SOAP-ENV:encodingStyle = "http://www.w3.org/2001/12/soap-encoding">
+      <SOAP-ENV:Body xmlns:m = "http://www.xyz.org/quotations">
+      <m:GetQuotation>
+      <m:QuotationsName>ACME Corp</m:QuotationsName>
+      </m:GetQuotation>
+      </SOAP-ENV:Body>
+      </SOAP-ENV:Envelope>"""
+    expression: (key,value)
+    resultType: (string,string)
+
+producers:
+  sensordata_producer:
+    generator: generate_sensordata_message
+    interval: 1000
+    to: sensor_source
+
+  soap_producer:
+    generator: generate_soap_message
+    interval: 1500
+    to: soap_source
