@@ -25,6 +25,7 @@
       "type": {
         "name": "SensorType",
         "type": "enum",
+        "doc": "The type of a sensor",
         "symbols": [
           "AREA",
           "HUMIDITY",
