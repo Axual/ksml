@@ -9,9 +9,9 @@ package io.axual.ksml.producer.factory;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,6 +23,7 @@ package io.axual.ksml.producer.factory;
 import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.config.SslConfigs;
+import org.apache.kafka.common.config.types.Password;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,6 +37,7 @@ import io.axual.client.proxy.generic.registry.ProxyChain;
 import io.axual.common.config.ClientConfig;
 import io.axual.common.config.CommonConfig;
 import io.axual.common.config.SslConfig;
+import io.axual.common.tools.KafkaUtil;
 import io.axual.discovery.client.DiscoveryClientRegistry;
 import io.axual.discovery.client.DiscoveryResult;
 import io.axual.discovery.client.exception.DiscoveryClientRegistrationException;
@@ -88,7 +90,19 @@ public class AxualClientFactory implements ClientFactory {
         }
 
         Map<String, Object> configs = new HashMap<>(clientConfigs);
+        configs.putAll(KafkaUtil.getKafkaConfigs(clientConfig));
         configs.putAll(discoveryResult.getConfigs());
+        // Copy the SSL configuration so the schema registry also gets it as its config
+        Map<String, Object> copy = new HashMap<>(configs);
+        copy.keySet().stream().filter(k -> k.startsWith("ssl.")).forEach(k -> {
+            final Object value = copy.get(k);
+            // Explode passwords into their string literals
+            if (value instanceof Password password) {
+                configs.put("schema.registry." + k, password.value());
+            } else {
+                configs.put("schema.registry." + k, value);
+            }
+        });
         notationLibrary = new AxualNotationLibrary(configs);
     }
 

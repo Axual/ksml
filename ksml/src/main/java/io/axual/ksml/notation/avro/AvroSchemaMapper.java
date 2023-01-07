@@ -120,7 +120,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             case BYTES -> Schema.create(Schema.Type.BYTES);
             case FIXED -> Schema.createFixed(((FixedSchema) schema).name(), ((FixedSchema) schema).doc(), ((FixedSchema) schema).namespace(), ((FixedSchema) schema).size());
             case STRING -> Schema.create(Schema.Type.STRING);
-            case ENUM -> Schema.createEnum(((EnumSchema) schema).name(), ((EnumSchema) schema).doc(), ((EnumSchema) schema).namespace(), ((EnumSchema) schema).possibleValues(), ((EnumSchema) schema).defaultValue());
+            case ENUM -> Schema.createEnum(((EnumSchema) schema).name(), ((EnumSchema) schema).doc(), ((EnumSchema) schema).namespace(), ((EnumSchema) schema).symbols(), ((EnumSchema) schema).defaultValue());
             case LIST -> Schema.createArray(convertToAvro(((ListSchema) schema).valueType()));
             case MAP -> Schema.createMap(convertToAvro(((MapSchema) schema).valueSchema()));
             case STRUCT -> Schema.createRecord(((StructSchema) schema).name(), ((StructSchema) schema).doc(), ((StructSchema) schema).namespace(), false, convertFieldsToAvro(((StructSchema) schema).fields()));

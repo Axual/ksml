@@ -68,8 +68,8 @@ public class KSMLTopologyGeneratorBasicTest {
         configs.put(KSMLConfig.KSML_SOURCE_TYPE, "content");
         configs.put(KSMLConfig.KSML_SOURCE, pipeDefinition);
         TopologyGeneratorImpl topologyGenerator = new TopologyGeneratorImpl(new KSMLConfig(configs));
-        final var executionContext = topologyGenerator.create(new StreamsBuilder());
-        final TopologyDescription description = executionContext.topology().describe();
+        final var topology = topologyGenerator.create(new StreamsBuilder());
+        final TopologyDescription description = topology.describe();
         System.out.println(description);
 
         URI referenceURI = ClassLoader.getSystemResource("reference/" + nr + "-reference.txt").toURI();

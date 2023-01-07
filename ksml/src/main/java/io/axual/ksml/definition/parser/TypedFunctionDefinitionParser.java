@@ -36,7 +36,6 @@ import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_KEYVALUETOKEYVALUELISTTRAN
 import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_KEYVALUETOVALUELISTTRANSFORMER;
 import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_KEYVALUETRANSFORMER;
 import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_MERGER;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_MESSAGEGENERATOR;
 import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_PREDICATE;
 import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_REDUCER;
 import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_STREAMPARTITIONER;
@@ -78,7 +77,6 @@ public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition
                     new KeyValueToValueListTransformerDefinitionParser();
             case FUNCTION_TYPE_KEYVALUEMAPPER, FUNCTION_TYPE_KEYVALUETRANSFORMER ->
                     new KeyValueTransformerDefinitionParser();
-            case FUNCTION_TYPE_MESSAGEGENERATOR -> new MessageGeneratorDefinitionParser();
             case FUNCTION_TYPE_MERGER -> new MergerDefinitionParser();
             case FUNCTION_TYPE_PREDICATE -> new PredicateDefinitionParser();
             case FUNCTION_TYPE_VALUEJOINER, FUNCTION_TYPE_REDUCER -> new ReducerDefinitionParser();

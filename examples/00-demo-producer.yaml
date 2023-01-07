@@ -1,4 +1,4 @@
-# This example shows how to read from a simple stream, convert to json and output to a target topic.
+# This example shows how to generate data and have it sent to a target topic in a given format.
 
 streams:
   sensordata_avro:
@@ -104,12 +104,12 @@ producers:
     interval: 555
     to: sensordata_avro
 
-#  sensordata_json_producer:
-#    generator: generate_sensordata_message
-#    interval: 666
-#    to: sensordata_json
+  sensordata_json_producer:
+    generator: generate_sensordata_message
+    interval: 666
+    to: sensordata_json
 
-#  soap_producer:
-#    generator: generate_soap_message
-#    interval: 777
-#    to: soap_source
+  soap_producer:
+    generator: generate_soap_message
+    interval: 777
+    to: soap_source

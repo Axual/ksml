@@ -9,9 +9,9 @@ package io.axual.ksml.util;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,12 +23,21 @@ package io.axual.ksml.util;
 import org.apache.kafka.streams.kstream.Windowed;
 
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.object.DataByte;
+import io.axual.ksml.data.object.DataDouble;
+import io.axual.ksml.data.object.DataFloat;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.WindowedType;
+import io.axual.ksml.schema.SchemaUtil;
 import io.axual.ksml.schema.mapper.WindowedSchemaMapper;
 
 import static io.axual.ksml.schema.mapper.WindowedSchemaMapper.END_FIELD;
@@ -68,5 +77,75 @@ public class DataUtil {
             return result;
         }
         return nativeDataObjectMapper.toDataObject(object);
+    }
+
+    // This method makes expected data types compatible with the actual data that was created.
+    // It does so by converting numbers to strings, and vice versa. It can convert complex data
+    // objects like Enums, Lists and Structs too, recursively going through sub-elements if
+    // necessary.
+    public static DataObject makeCompatible(DataObject object, DataType type) {
+        // Convert from Numbers to Strings
+        if (type == DataString.DATATYPE) {
+            if (object instanceof DataByte value) return new DataString("" + value.value());
+            if (object instanceof DataShort value) return new DataString("" + value.value());
+            if (object instanceof DataInteger value) return new DataString("" + value.value());
+            if (object instanceof DataLong value) return new DataString("" + value.value());
+            if (object instanceof DataFloat value) return new DataString("" + value.value());
+            if (object instanceof DataDouble value) return new DataString("" + value.value());
+        }
+
+        // Convert from Strings to Numbers
+        if (object instanceof DataString str) {
+            if (type == DataByte.DATATYPE)
+                return new DataByte(Byte.parseByte(str.value()));
+            if (type == DataShort.DATATYPE)
+                return new DataShort(Short.parseShort(str.value()));
+            if (type == DataInteger.DATATYPE)
+                return new DataInteger(Integer.parseInt(str.value()));
+            if (type == DataLong.DATATYPE)
+                return new DataLong(Long.parseLong(str.value()));
+            if (type == DataFloat.DATATYPE)
+                return new DataFloat(Float.parseFloat(str.value()));
+            if (type == DataDouble.DATATYPE)
+                return new DataDouble(Double.parseDouble(str.value()));
+        }
+
+        // Convert from Lists without a value type to Lists that do have a value type
+        if (object instanceof DataList list && type instanceof ListType listType) {
+            var valueType = listType.valueType();
+            if (valueType == null || valueType == DataType.UNKNOWN) return object;
+
+            // Create a new List with the give value type
+            var result = new DataList(valueType);
+
+            // Copy all list elements into the new list, possibly making sub-elements compatible
+            for (var element : list) {
+                result.add(makeCompatible(element, valueType));
+            }
+
+            // Return the List with made-compatible elements
+            return result;
+        }
+        // Convert from schemaless Structs to Structs that do have a schema
+        if (object instanceof DataStruct struct && type instanceof StructType structType) {
+            var schema = structType.schema();
+            if (schema == null) return object;
+
+            // Create a new Struct with the given schema type
+            var result = new DataStruct(structType);
+
+            // Copy all struct fields into the new struct, possibly making sub-elements compatible
+            for (var entry : struct.entrySet()) {
+                var fieldName = entry.getKey();
+                var fieldType = SchemaUtil.schemaToDataType(schema.field(fieldName).schema());
+                result.put(entry.getKey(), makeCompatible(entry.getValue(), fieldType));
+            }
+
+            // Return the Struct with made-compatible fields
+            return result;
+        }
+
+        // If no conversion was found suitable, then just return the object itself
+        return object;
     }
 }

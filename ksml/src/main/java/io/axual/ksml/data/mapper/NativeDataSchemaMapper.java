@@ -92,7 +92,7 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
         if (namedSchema.doc() != null)
             result.put(NAMEDSCHEMA_DOC_FIELD, namedSchema.doc());
         if (namedSchema instanceof EnumSchema enumSchema) {
-            result.put(ENUMSCHEMA_POSSIBLEVALUES_FIELD, enumSchema.possibleValues());
+            result.put(ENUMSCHEMA_POSSIBLEVALUES_FIELD, enumSchema.symbols());
             if (enumSchema.defaultValue() != null)
                 result.put(ENUMSCHEMA_DEFAULTVALUE_FIELD, enumSchema.defaultValue());
         }

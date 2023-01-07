@@ -25,21 +25,21 @@ import java.util.List;
 import java.util.Objects;
 
 public class EnumSchema extends NamedSchema {
-    private final List<String> possibleValues;
+    private final List<String> symbols;
     private final String defaultValue;
 
     public EnumSchema(String namespace, String name, String doc, List<String> possibleValues) {
         this(namespace, name, doc, possibleValues, null);
     }
 
-    public EnumSchema(String namespace, String name, String doc, List<String> possibleValues, String defaultValue) {
+    public EnumSchema(String namespace, String name, String doc, List<String> symbols, String defaultValue) {
         super(Type.ENUM, namespace, name, doc);
-        this.possibleValues = Collections.unmodifiableList(possibleValues);
+        this.symbols = Collections.unmodifiableList(symbols);
         this.defaultValue = defaultValue;
     }
 
-    public List<String> possibleValues() {
-        return possibleValues;
+    public List<String> symbols() {
+        return symbols;
     }
 
     public String defaultValue() {
@@ -53,12 +53,12 @@ public class EnumSchema extends NamedSchema {
         if (!super.equals(other)) return false;
 
         // Compare all schema relevant fields
-        if (!Objects.equals(possibleValues, ((EnumSchema) other).possibleValues)) return false;
+        if (!Objects.equals(symbols, ((EnumSchema) other).symbols)) return false;
         return Objects.equals(defaultValue, ((EnumSchema) other).defaultValue);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), possibleValues, defaultValue);
+        return Objects.hash(super.hashCode(), symbols, defaultValue);
     }
 }

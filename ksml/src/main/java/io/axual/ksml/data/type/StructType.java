@@ -33,16 +33,20 @@ public class StructType extends MapType {
     }
 
     public StructType(StructSchema schema) {
-        this.name = getName(schema.name());
-        this.schema = schema;
+        this(getName(schema.name()), schema);
     }
 
     public StructType(String name) {
-        this.name = getName(name);
-        this.schema = null;
+        this(name, null);
     }
 
-    private String getName(String name) {
+    private StructType(String name, StructSchema schema) {
+        super(DataType.UNKNOWN);
+        this.name = name;
+        this.schema = schema;
+    }
+
+    private static String getName(String name) {
         return name != null && name.length() > 0 ? name : "Struct";
     }
 

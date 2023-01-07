@@ -9,9 +9,9 @@ package io.axual.ksml.dsl;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -53,9 +53,6 @@ public class KSMLDSL {
     public static final String JOIN_MAPPER_ATTRIBUTE = "mapper";
     public static final String JOIN_WINDOW_ATTRIBUTE = "window";
     public static final String MERGE_STREAM_ATTRIBUTE = "stream";
-public static final String MESSAGE_PRODUCER_GENERATOR="generator";
-    public static final String MESSAGE_PRODUCER_WINDOW="every";
-    public static final String MESSAGE_PRODUCER_OUTPUT="to";
     public static final String PEEK_FOREACH_ATTRIBUTE = "forEach";
     public static final String PIPELINE_BRANCH_ATTRIBUTE = "branch";
     public static final String PIPELINE_TO_ATTRIBUTE = "to";

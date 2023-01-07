@@ -9,9 +9,9 @@ package io.axual.ksml.producer.execution;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,12 +30,11 @@ import java.util.concurrent.ExecutionException;
 
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.user.UserFunction;
+import io.axual.ksml.util.DataUtil;
 
 public class ExecutableProducer {
     private static final Logger LOG = LoggerFactory.getLogger(ExecutableProducer.class);
@@ -61,20 +60,11 @@ public class ExecutableProducer {
         this.valueSerializer = valueSerializer;
     }
 
-    private DataObject tryToMakeCompatible(DataObject object, DataType type) {
-        if (object instanceof DataStruct struct && type instanceof StructType structType) {
-            var result = new DataStruct(structType);
-            result.putAll(struct);
-            return result;
-        }
-        return object;
-    }
-
     public void produceMessage(Producer<byte[], byte[]> producer) {
         DataObject result = generator.call();
         if (result instanceof DataTuple tuple && tuple.size() == 2) {
-            var key = tryToMakeCompatible(tuple.get(0), keyType);
-            var value = tryToMakeCompatible(tuple.get(1), valueType);
+            var key = DataUtil.makeCompatible(tuple.get(0), keyType);
+            var value = DataUtil.makeCompatible(tuple.get(1), valueType);
             var okay = true;
 
             if (!keyType.isAssignableFrom(key.type())) {
