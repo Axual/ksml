@@ -24,10 +24,10 @@ import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.schema.DataField;
 
-import static io.axual.ksml.data.mapper.DataSchemaConstants.DATAFIELD_DEFAULT_VALUE_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.DATAFIELD_DOC_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.DATAFIELD_NAME_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.DATAFIELD_ORDER_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.DATAFIELD_DEFAULT_VALUE_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.DATAFIELD_DOC_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.DATAFIELD_NAME_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.DATAFIELD_ORDER_FIELD;
 
 public class DataFieldParser extends BaseParser<DataField> {
     @Override

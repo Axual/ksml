@@ -1,4 +1,4 @@
-package io.axual.ksml.data.mapper;
+package io.axual.ksml.notation.binary;
 
 /*-
  * ========================LICENSE_START=================================
@@ -25,10 +25,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.object.DataBytes;
 import io.axual.ksml.data.object.DataDouble;
+import io.axual.ksml.data.object.DataEnum;
 import io.axual.ksml.data.object.DataFloat;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataList;
@@ -39,6 +41,7 @@ import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.object.DataTuple;
+import io.axual.ksml.data.object.DataUnion;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.EnumType;
 import io.axual.ksml.data.type.ListType;
@@ -46,13 +49,34 @@ import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.value.Tuple;
 import io.axual.ksml.exception.KSMLDataException;
+import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.schema.DataSchema;
 import io.axual.ksml.schema.SchemaLibrary;
 import io.axual.ksml.schema.StructSchema;
 
-abstract class BaseDataObjectMapper implements DataObjectMapper {
+public class NativeDataObjectMapper implements DataObjectMapper<Object> {
+    public static final String STRUCT_SCHEMA_FIELD = DataStruct.META_ATTRIBUTE_CHAR + "schema";
+    public static final String STRUCT_TYPE_FIELD = DataStruct.META_ATTRIBUTE_CHAR + "type";
     private static final NativeDataSchemaMapper SCHEMA_MAPPER = new NativeDataSchemaMapper();
-    private static final AttributeComparator COMPARATOR = new AttributeComparator();
+
+    public DataObject toDataObject(DataType expected, Object value) {
+        if (value == null) return DataNull.INSTANCE;
+        if (value instanceof DataObject val) return val;
+        if (value instanceof Boolean val) return new DataBoolean(val);
+        if (value instanceof Byte val) return new DataByte(val);
+        if (value instanceof Short val) return new DataShort(val);
+        if (value instanceof Integer val) return new DataInteger(val);
+        if (value instanceof Long val) return new DataLong(val);
+        if (value instanceof Double val) return new DataDouble(val);
+        if (value instanceof Float val) return new DataFloat(val);
+        if (value instanceof byte[] val) return new DataBytes(val);
+        if (value instanceof String val) return new DataString(val);
+        if (value instanceof List<?> val) return nativeToDataList((List<Object>) val);
+        if (value instanceof Map<?, ?> val)
+            return nativeToDataStruct((Map<String, Object>) val, null);
+        if (value instanceof Tuple<?> val) return toDataTuple((Tuple<Object>) val);
+        throw new KSMLExecutionException("Can not convert to DataObject: " + value.getClass().getSimpleName());
+    }
 
     private DataType inferType(Object value) {
         if (value == null) return DataNull.DATATYPE;
@@ -129,17 +153,17 @@ abstract class BaseDataObjectMapper implements DataObjectMapper {
         return new TupleType(subTypes);
     }
 
-    protected DataList toDataList(List<Object> list) {
+    protected DataList nativeToDataList(List<Object> list) {
         DataList result = new DataList(list.isEmpty() ? DataType.UNKNOWN : inferType(list.get(0)), list.size());
         list.forEach(element -> result.add(toDataObject(element)));
         return result;
     }
 
-    protected DataObject toDataStruct(Map<String, Object> map, DataSchema schema) {
-        StructType type = inferStructType(map, schema);
+    protected DataObject nativeToDataStruct(Map<String, Object> map, DataSchema schema) {
+        var type = inferStructType(map, schema);
         map.remove(STRUCT_SCHEMA_FIELD);
         map.remove(STRUCT_TYPE_FIELD);
-        DataStruct result = new DataStruct(type);
+        DataStruct result = new DataStruct(type.schema());
         map.forEach((key, value) -> result.put(key, toDataObject(value)));
         return result;
     }
@@ -152,6 +176,34 @@ abstract class BaseDataObjectMapper implements DataObjectMapper {
         return new DataTuple(elements);
     }
 
+    @Override
+    public Object fromDataObject(DataObject value) {
+        if (value instanceof DataNull val) return val.value();
+
+        if (value instanceof DataBoolean val) return val.value();
+
+        if (value instanceof DataByte val) return val.value();
+        if (value instanceof DataShort val) return val.value();
+        if (value instanceof DataInteger val) return val.value();
+        if (value instanceof DataLong val) return val.value();
+
+        if (value instanceof DataDouble val) return val.value();
+        if (value instanceof DataFloat val) return val.value();
+
+        if (value instanceof DataBytes val) return val.value();
+
+        if (value instanceof DataString val) return val.value();
+
+        if (value instanceof DataEnum val) return val.value();
+        if (value instanceof DataList val) return fromDataList(val);
+        if (value instanceof DataStruct val) return fromDataStruct(val);
+        if (value instanceof DataTuple val) return fromDataTuple(val);
+
+        if (value instanceof DataUnion val) return val.value();
+
+        throw new KSMLExecutionException("Can not convert DataObject to native dataType: " + value.getClass().getSimpleName());
+    }
+
     public List<Object> fromDataList(DataList list) {
         List<Object> result = new ArrayList<>();
         list.forEach(element -> result.add(fromDataObject(element)));
@@ -159,9 +211,7 @@ abstract class BaseDataObjectMapper implements DataObjectMapper {
     }
 
     public Map<String, Object> fromDataStruct(DataStruct struct) {
-        // To make external representations look nice, we return a sorted map. Sorting is done
-        // based on keys, where "normal" keys are always sorted before "meta" keys.
-        Map<String, Object> result = new TreeMap<>(COMPARATOR);
+        Map<String, Object> result = new TreeMap<>(DataStruct.COMPARATOR);
         struct.forEach((key, value) -> result.put(key, fromDataObject(value)));
 
         // Convert schema to native format by encoding it in meta fields

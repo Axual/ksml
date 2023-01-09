@@ -38,6 +38,7 @@ import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.notation.string.StringMapper;
 import io.axual.ksml.parser.UserTypeParser;
 
 public class UserTypeStringMapper implements StringMapper<UserType> {

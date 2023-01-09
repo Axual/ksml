@@ -1,4 +1,4 @@
-package io.axual.ksml.data.mapper;
+package io.axual.ksml.notation.binary;
 
 /*-
  * ========================LICENSE_START=================================
@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.schema.DataField;
@@ -38,21 +39,21 @@ import io.axual.ksml.schema.StructSchema;
 import io.axual.ksml.schema.UnionSchema;
 import io.axual.ksml.schema.parser.DataSchemaParser;
 
-import static io.axual.ksml.data.mapper.DataSchemaConstants.DATAFIELD_DEFAULT_VALUE_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.DATAFIELD_DOC_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.DATAFIELD_NAME_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.DATAFIELD_ORDER_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.DATAFIELD_SCHEMA_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.DATASCHEMA_TYPE_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.ENUMSCHEMA_DEFAULTVALUE_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.ENUMSCHEMA_POSSIBLEVALUES_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.FIXEDSCHEMA_SIZE_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.LISTSCHEMA_VALUES_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.MAPSCHEMA_VALUES_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.NAMEDSCHEMA_DOC_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.NAMEDSCHEMA_NAMESPACE_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.NAMEDSCHEMA_NAME_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.STRUCTSCHEMA_FIELDS_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.DATAFIELD_DEFAULT_VALUE_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.DATAFIELD_DOC_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.DATAFIELD_NAME_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.DATAFIELD_ORDER_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.DATAFIELD_SCHEMA_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.DATASCHEMA_TYPE_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.ENUMSCHEMA_DEFAULTVALUE_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.ENUMSCHEMA_POSSIBLEVALUES_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.FIXEDSCHEMA_SIZE_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.LISTSCHEMA_VALUES_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.MAPSCHEMA_VALUES_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.NAMEDSCHEMA_DOC_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.NAMEDSCHEMA_NAMESPACE_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.NAMEDSCHEMA_NAME_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.STRUCTSCHEMA_FIELDS_FIELD;
 
 public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
     private static final DataSchemaParser PARSER = new DataSchemaParser();

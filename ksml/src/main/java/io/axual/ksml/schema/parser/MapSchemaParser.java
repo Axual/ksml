@@ -24,7 +24,7 @@ import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.schema.MapSchema;
 
-import static io.axual.ksml.data.mapper.DataSchemaConstants.MAPSCHEMA_VALUES_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.MAPSCHEMA_VALUES_FIELD;
 
 public class MapSchemaParser extends BaseParser<MapSchema> {
     @Override

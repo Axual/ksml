@@ -24,10 +24,10 @@ import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.schema.FixedSchema;
 
-import static io.axual.ksml.data.mapper.DataSchemaConstants.FIXEDSCHEMA_SIZE_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.NAMEDSCHEMA_DOC_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.NAMEDSCHEMA_NAMESPACE_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.NAMEDSCHEMA_NAME_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.FIXEDSCHEMA_SIZE_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.NAMEDSCHEMA_DOC_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.NAMEDSCHEMA_NAMESPACE_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.NAMEDSCHEMA_NAME_FIELD;
 
 public class FixedSchemaParser extends BaseParser<FixedSchema> {
     @Override

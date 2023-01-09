@@ -29,6 +29,11 @@ public class DataBytes extends DataPrimitive<byte[]> {
             return "Bytes";
         }
     };
+    public static final byte[] DEFAULT = new byte[0];
+
+    public DataBytes() {
+        this(DEFAULT);
+    }
 
     public DataBytes(byte[] value) {
         super(DATATYPE, value);

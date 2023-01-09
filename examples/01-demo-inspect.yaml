@@ -2,9 +2,9 @@
 
 streams:
   sensor_source:
-    topic: ksml_sensordata_avro
+    topic: ksml_soap
     keyType: string
-    valueType: avro:SensorData
+    valueType: soap
 
 functions:
   print_message:

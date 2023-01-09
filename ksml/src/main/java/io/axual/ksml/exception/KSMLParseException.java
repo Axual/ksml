@@ -24,7 +24,7 @@ package io.axual.ksml.exception;
 import io.axual.ksml.parser.YamlNode;
 
 public class KSMLParseException extends KSMLException {
-    private static final String ACTIVITY = "parsing";
+    private static final String ACTIVITY = "Parse";
 
     public KSMLParseException(YamlNode node, String message) {
         this(node, message, null);

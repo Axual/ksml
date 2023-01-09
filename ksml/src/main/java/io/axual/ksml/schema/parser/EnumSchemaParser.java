@@ -25,11 +25,11 @@ import io.axual.ksml.parser.ListParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.schema.EnumSchema;
 
-import static io.axual.ksml.data.mapper.DataSchemaConstants.ENUMSCHEMA_DEFAULTVALUE_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.ENUMSCHEMA_POSSIBLEVALUES_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.NAMEDSCHEMA_DOC_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.NAMEDSCHEMA_NAMESPACE_FIELD;
-import static io.axual.ksml.data.mapper.DataSchemaConstants.NAMEDSCHEMA_NAME_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.ENUMSCHEMA_DEFAULTVALUE_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.ENUMSCHEMA_POSSIBLEVALUES_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.NAMEDSCHEMA_DOC_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.NAMEDSCHEMA_NAMESPACE_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.NAMEDSCHEMA_NAME_FIELD;
 
 public class EnumSchemaParser extends BaseParser<EnumSchema> {
     @Override

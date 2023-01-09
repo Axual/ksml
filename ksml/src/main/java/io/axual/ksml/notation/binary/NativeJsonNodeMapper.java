@@ -1,4 +1,4 @@
-package io.axual.ksml.data.mapper;
+package io.axual.ksml.notation.binary;
 
 /*-
  * ========================LICENSE_START=================================
@@ -32,6 +32,7 @@ import java.util.Map;
 
 import io.axual.ksml.data.value.Tuple;
 import io.axual.ksml.exception.KSMLExecutionException;
+import io.axual.ksml.notation.json.JsonNodeMapper;
 
 public class NativeJsonNodeMapper implements JsonNodeMapper<Object> {
     private static final ObjectMapper MAPPER = new ObjectMapper();

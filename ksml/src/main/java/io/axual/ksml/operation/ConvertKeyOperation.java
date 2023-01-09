@@ -49,7 +49,7 @@ public class ConvertKeyOperation extends BaseOperation {
             if (keyAsData instanceof DataNull) return keyAsData;
             if (targetStructType == null) return keyAsData;
 
-            var result = new DataStruct(targetStructType);
+            var result = new DataStruct(targetStructType.schema());
             result.putAll((DataStruct) keyAsData);
             return result;
         }

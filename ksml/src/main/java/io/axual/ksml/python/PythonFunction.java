@@ -23,7 +23,6 @@ package io.axual.ksml.python;
 
 import org.graalvm.polyglot.Value;
 
-import io.axual.ksml.data.mapper.PythonDataObjectMapper;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.definition.FunctionDefinition;
@@ -66,7 +65,7 @@ public class PythonFunction extends UserFunction {
                 return result;
             } else {
                 logCall(parameters, null);
-                return new DataNull();
+                return DataNull.INSTANCE;
             }
         } catch (Exception e) {
             logCall(parameters, null);

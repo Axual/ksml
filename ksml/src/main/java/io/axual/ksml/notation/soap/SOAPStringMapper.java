@@ -45,7 +45,7 @@ public class SOAPStringMapper implements StringMapper<SOAPMessage> {
 
     @Override
     public SOAPMessage fromString(String value) {
-        var reader = new ByteArrayInputStream(value.getBytes());
+        var reader = new ByteArrayInputStream(value.getBytes(StandardCharsets.UTF_8));
         try {
             return messageFactory.createMessage(null, reader);
         } catch (SOAPException | IOException e) {

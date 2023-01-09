@@ -28,13 +28,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutionException;
 
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.mapper.CompatibilityMapper;
+import io.axual.ksml.notation.binary.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.user.UserFunction;
-import io.axual.ksml.util.DataUtil;
 
 public class ExecutableProducer {
     private static final Logger LOG = LoggerFactory.getLogger(ExecutableProducer.class);
@@ -44,7 +44,8 @@ public class ExecutableProducer {
     private final DataType valueType;
     private final Serializer<Object> keySerializer;
     private final Serializer<Object> valueSerializer;
-    private final NativeDataObjectMapper mapper = new NativeDataObjectMapper();
+    private final NativeDataObjectMapper nativeMapper = new NativeDataObjectMapper();
+    private final CompatibilityMapper compatibilityMapper = new CompatibilityMapper();
 
     public ExecutableProducer(UserFunction generator,
                               String topic,
@@ -63,8 +64,8 @@ public class ExecutableProducer {
     public void produceMessage(Producer<byte[], byte[]> producer) {
         DataObject result = generator.call();
         if (result instanceof DataTuple tuple && tuple.size() == 2) {
-            var key = DataUtil.makeCompatible(tuple.get(0), keyType);
-            var value = DataUtil.makeCompatible(tuple.get(1), valueType);
+            var key = compatibilityMapper.toDataObject(keyType, tuple.get(0));
+            var value = compatibilityMapper.toDataObject(valueType, tuple.get(1));
             var okay = true;
 
             if (!keyType.isAssignableFrom(key.type())) {
@@ -84,8 +85,8 @@ public class ExecutableProducer {
                 valueStr = valueStr.replaceAll("\n", "\\\\n");
                 LOG.info("Message: key={}, value={}", keyStr, valueStr);
 
-                var serializedKey = keySerializer.serialize(topic, mapper.fromDataObject(key));
-                var serializedValue = valueSerializer.serialize(topic, mapper.fromDataObject(value));
+                var serializedKey = keySerializer.serialize(topic, nativeMapper.fromDataObject(key));
+                var serializedValue = valueSerializer.serialize(topic, nativeMapper.fromDataObject(value));
                 ProducerRecord<byte[], byte[]> message = new ProducerRecord<>(
                         topic,
                         serializedKey,

@@ -21,14 +21,13 @@ package io.axual.ksml.exception;
  */
 
 public class KSMLException extends RuntimeException {
-    private static final String PREFIX = "Error ";
-    private static final String POSTFIX = " the KSML topology: ";
+    private static final String POSTFIX = " error: ";
 
     public KSMLException(String activity, String message) {
-        super(PREFIX + activity + POSTFIX + message);
+        super(activity + POSTFIX + message);
     }
 
     public KSMLException(String activity, String message, Throwable t) {
-        super(PREFIX + activity + POSTFIX + message, t);
+        super(activity + POSTFIX + message, t);
     }
 }

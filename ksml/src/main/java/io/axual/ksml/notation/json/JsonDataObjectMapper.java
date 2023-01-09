@@ -20,28 +20,10 @@ package io.axual.ksml.notation.json;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.DataObjectMapper;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.notation.string.StringDataObjectMapper;
 
-public class JsonDataObjectMapper implements DataObjectMapper {
-    private static final JsonStringMapper jsonMapper = new JsonStringMapper();
-    private static final NativeDataObjectMapper nativeMapper = new NativeDataObjectMapper();
-
-    @Override
-    public DataObject toDataObject(DataType expected, Object value) {
-        if (value instanceof String str) {
-            var object = jsonMapper.fromString(str);
-            return nativeMapper.toDataObject(object);
-        }
-        throw FatalError.dataError("Can not convert value to JSON String: " + (value != null ? value.getClass().getSimpleName() : "null"));
-    }
-
-    @Override
-    public String fromDataObject(DataObject value) {
-        var object = nativeMapper.fromDataObject(value);
-        return jsonMapper.toString(object);
+public class JsonDataObjectMapper extends StringDataObjectMapper {
+    public JsonDataObjectMapper() {
+        super(new JsonStringMapper());
     }
 }

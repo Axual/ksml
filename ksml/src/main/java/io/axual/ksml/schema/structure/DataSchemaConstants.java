@@ -1,4 +1,4 @@
-package io.axual.ksml.data.mapper;
+package io.axual.ksml.schema.structure;
 
 /*-
  * ========================LICENSE_START=================================

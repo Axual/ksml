@@ -26,24 +26,23 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.util.Utf8;
 
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.notation.binary.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.StructType;
 
 public class AvroDataMapper extends NativeDataObjectMapper {
     @Override
     public DataObject toDataObject(DataType expected, Object value) {
-        if (value == JsonProperties.NULL_VALUE) return new DataNull();
+        if (value == JsonProperties.NULL_VALUE) return DataNull.INSTANCE;
         if (value instanceof Utf8 utf8) return new DataString(utf8.toString());
         if (value instanceof GenericData.EnumSymbol) {
             return new DataString(value.toString());
         }
         if (value instanceof GenericRecord rec) {
-            DataStruct result = new DataStruct(new StructType(new AvroSchemaMapper().toDataSchema(rec.getSchema())));
+            DataStruct result = new DataStruct(new AvroSchemaMapper().toDataSchema(rec.getSchema()));
             for (Schema.Field field : rec.getSchema().getFields()) {
                 result.put(field.name(), toDataObject(rec.get(field.name())));
             }

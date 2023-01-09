@@ -36,8 +36,9 @@ public class DataNull extends DataPrimitive<Object> {
             return value == null;
         }
     };
+    public static final DataNull INSTANCE = new DataNull();
 
-    public DataNull() {
+    private DataNull() {
         super(DATATYPE);
     }
 }

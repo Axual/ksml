@@ -1,4 +1,4 @@
-package io.axual.ksml.data.mapper;
+package io.axual.ksml.python;
 
 /*-
  * ========================LICENSE_START=================================
@@ -46,23 +46,22 @@ import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLExecutionException;
+import io.axual.ksml.notation.binary.NativeDataObjectMapper;
 
-public class PythonDataObjectMapper extends BaseDataObjectMapper {
-    private static final NativeDataObjectMapper NATIVE_DATA_OBJECT_MAPPER = new NativeDataObjectMapper();
-
+public class PythonDataObjectMapper extends NativeDataObjectMapper {
     @Override
     public DataObject toDataObject(DataType expected, Object object) {
+        // If we got a Value object, then convert it to native format first
+        if (object instanceof Value value) {
+            object = valueToNative(expected, value);
+        }
+
         // If we expect a union dataType, then check its possible types, else convert by value.
         if (expected instanceof UnionType unionType)
             return unionToDataObject(unionType, object);
 
-        // If we got a Value object, then convert it to native format first
-        if (object instanceof Value value) {
-            object = unwrapValue(expected, value);
-        }
-
         // Finally convert all native types to DataObjects
-        return NATIVE_DATA_OBJECT_MAPPER.toDataObject(expected, object);
+        return super.toDataObject(expected, object);
     }
 
     private DataObject unionToDataObject(UnionType unionType, Object object) {
@@ -78,57 +77,49 @@ public class PythonDataObjectMapper extends BaseDataObjectMapper {
         throw new KSMLExecutionException("Can not convert Python dataType to Union value: " + object.getClass().getSimpleName());
     }
 
-    private Object unwrapValue(DataType expected, Value object) {
-        if (object.isNull()) return new DataNull();
+    private Object valueToNative(DataType expected, Value object) {
+        if (object.isNull()) return DataNull.INSTANCE;
         if (object.isBoolean() && (expected == null || expected == DataBoolean.DATATYPE))
-            return new DataBoolean(object.asBoolean());
+            return object.asBoolean();
 
-        if (object.isNumber()) {
-            return toDataNumber(expected, object);
-        }
+        if (object.isNumber()) return numberToNative(expected, object);
 
-        if (object.isString()) return new DataString(object.asString());
+        if (object.isString()) return object.asString();
 
         if (object.hasArrayElements()) {
-            var result = toDataArray(expected, object);
+            var result = arrayToNative(expected, object);
             if (result != null) return result;
         }
 
         // By default, try to decode a dict as a struct
         if (expected == null || expected instanceof MapType) {
-            var result = toDataStruct(expected, object);
+            var result = mapToNative(expected, object);
             if (result != null) return result;
         }
 
         throw new KSMLExecutionException("Can not convert Python dataType to DataObject: " + object.getClass().getSimpleName());
     }
 
-    private DataObject toDataNumber(DataType expected, Value object) {
+    private Object numberToNative(DataType expected, Value object) {
         if (expected != null) {
-            if (expected == DataByte.DATATYPE)
-                return new DataByte(object.asByte());
-            if (expected == DataShort.DATATYPE)
-                return new DataShort(object.asShort());
-            if (expected == DataInteger.DATATYPE)
-                return new DataInteger(object.asInt());
-            if (expected == DataLong.DATATYPE)
-                return new DataLong(object.asLong());
-            if (expected == DataFloat.DATATYPE)
-                return new DataFloat(object.asFloat());
-            if (expected == DataDouble.DATATYPE)
-                return new DataDouble(object.asDouble());
+            if (expected == DataByte.DATATYPE) return object.asByte();
+            if (expected == DataShort.DATATYPE) return object.asShort();
+            if (expected == DataInteger.DATATYPE) return object.asInt();
+            if (expected == DataLong.DATATYPE) return object.asLong();
+            if (expected == DataFloat.DATATYPE) return object.asFloat();
+            if (expected == DataDouble.DATATYPE) return object.asDouble();
         }
         // Return a long by default
-        return new DataLong(object.asLong());
+        return object.asLong();
     }
 
-    private DataObject toDataArray(DataType expected, Value object) {
+    private Object arrayToNative(DataType expected, Value object) {
         if (expected == DataBytes.DATATYPE) {
             var bytes = new byte[(int) object.getArraySize()];
             for (var index = 0; index < object.getArraySize(); index++) {
                 bytes[index] = object.getArrayElement(index).asByte();
             }
-            return new DataBytes(bytes);
+            return bytes;
         }
         if (expected instanceof TupleType expectedTuple) {
             var elements = new DataObject[(int) object.getArraySize()];
@@ -149,12 +140,12 @@ public class PythonDataObjectMapper extends BaseDataObjectMapper {
         return null;
     }
 
-    private DataObject toDataStruct(DataType expected, Value object) {
+    private DataObject mapToNative(DataType expected, Value object) {
         // Try to cast the value to a HashMap. If that works, then we received a dict value
         // back from Python.
         try {
             Map<?, ?> map = object.as(Map.class);
-            return toDataStruct((Map<String, Object>) map, expected instanceof StructType rec ? rec.schema() : null);
+            return nativeToDataStruct((Map<String, Object>) map, expected instanceof StructType rec ? rec.schema() : null);
         } catch (Exception e) {
             // Ignore all cast exceptions
         }

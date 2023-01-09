@@ -24,7 +24,7 @@ import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.schema.DataSchema;
 
-import static io.axual.ksml.data.mapper.DataSchemaConstants.DATASCHEMA_TYPE_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.DATASCHEMA_TYPE_FIELD;
 
 public class DataSchemaParser extends BaseParser<DataSchema> {
     @Override

@@ -22,9 +22,9 @@ package io.axual.ksml.schema;
 
 import java.util.Objects;
 
-import io.axual.ksml.data.mapper.JsonStringMapper;
-import io.axual.ksml.data.mapper.NativeDataSchemaMapper;
-import io.axual.ksml.data.mapper.NativeJsonNodeMapper;
+import io.axual.ksml.notation.json.JsonStringMapper;
+import io.axual.ksml.notation.binary.NativeDataSchemaMapper;
+import io.axual.ksml.notation.binary.NativeJsonNodeMapper;
 import io.axual.ksml.exception.KSMLExecutionException;
 
 // Generic internal schema class

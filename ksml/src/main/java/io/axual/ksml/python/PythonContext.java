@@ -50,15 +50,16 @@ public class PythonContext {
         // prepare globalCode from the function definition
         final var globalCode = String.join("\n", definition.globalCode) + "\n";
 
-        // prepare function (if any) and expression from the function definition
+        // Prepare function (if any) and expression from the function definition
         final var functionAndExpression = "def " + name + "_function(" + String.join(",", params) + "):\n" +
                 String.join("\n", functionCode) + "\n" +
                 "  return" + (definition.resultType != null ? " " + definition.expression : "") + "\n" +
                 "\n";
 
-        // prepare the actual caller for the code
+        // Prepare the actual caller for the code
+        final var convertedParams = Arrays.stream(params).map(p -> "convert_to_python(" + p + ")").toList();
         final var pyCallerCode = "def " + name + "_caller(" + String.join(",", params) + "):\n  " +
-                "  return convert_from(" + name + "_function(" + String.join(",", params) + "))\n";
+                "  return convert_from_python(" + name + "_function(" + String.join(",", convertedParams) + "))\n";
 
         final var pythonCodeTemplate = """
                 import polyglot
@@ -66,6 +67,7 @@ public class PythonContext {
                                 
                 ArrayList = java.type('java.util.ArrayList')
                 HashMap = java.type('java.util.HashMap')
+                TreeMap = java.type('java.util.TreeMap')
                                 
                 # global Python code goes here (first argument)
                 %1$s
@@ -74,21 +76,29 @@ public class PythonContext {
                 @polyglot.export_value
                 %2$s
                                 
-                def convert_to(value):
-                  print('In convert_to: ')
-                  print(value)
+                def convert_to_python(value):
+                  if isinstance(value, (HashMap, TreeMap)):
+                    result = dict()
+                    for k, v in value.entrySet():
+                      result[convert_to_python(k)] = convert_to_python(v)
+                    return result
+                  if isinstance(value, ArrayList):
+                    result = []
+                    for e in value:
+                      result.append(convert_to_python(e))
+                    return result
                   return value
                   
-                def convert_from(value):
+                def convert_from_python(value):
                   if isinstance(value, (list, tuple)):
                     result = ArrayList()
                     for e in value:
-                      result.add(convert_from(e))
+                      result.add(convert_from_python(e))
                     return result
                   if type(value) is dict:
                     result = HashMap()
                     for k, v in value.items():
-                      result.put(convert_from(k), convert_from(v))
+                      result.put(convert_from_python(k), convert_from_python(v))
                     return result
                   return value
                   

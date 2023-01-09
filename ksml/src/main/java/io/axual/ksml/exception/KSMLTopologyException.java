@@ -24,7 +24,7 @@ import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.generator.StreamDataType;
 
 public class KSMLTopologyException extends KSMLException {
-    private static final String ACTIVITY = "generating";
+    private static final String ACTIVITY = "Topology generation";
 
     public static KSMLTopologyException topicTypeMismatch(String topic, StreamDataType keyType, StreamDataType valueType, DataType expectedKeyType, DataType expectedValueType) {
         return new KSMLTopologyException("Incompatible key/value types: " +

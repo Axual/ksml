@@ -21,14 +21,28 @@ package io.axual.ksml.notation.xml;
  */
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.notation.string.CustomStringMapper;
 
 public class XmlStringMapper extends CustomStringMapper {
+    private static final ObjectMapper MAPPER = new XmlMapper();
+
     public XmlStringMapper() {
-        super(new XmlMapper());
+        super(MAPPER);
+    }
+
+    @Override
+    public Object fromString(String value) {
+        // If there is a header, remove it first before parsing
+        if (value.startsWith("<?xml")) {
+            value = value.substring(value.indexOf("?>") + 2);
+        }
+        // Add a dummy tag before and after to make Jackson return the root element as part of
+        // the resulting object
+        return super.fromString("<dummyRootTag>" + value + "</dummyRootTag>");
     }
 
     @Override

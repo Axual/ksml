@@ -27,12 +27,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 
-import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.exception.KSMLDataException;
 
 public class CustomStringMapper implements StringMapper<Object> {
     private static final TypeReference<List<Object>> listReference = new TypeReference<>() {
     };
     private static final TypeReference<Map<String, Object>> mapReference = new TypeReference<>() {
+    };
+    private static final TypeReference<Object> objectReference = new TypeReference<>() {
     };
     protected final ObjectMapper mapper;
 
@@ -50,7 +52,7 @@ public class CustomStringMapper implements StringMapper<Object> {
                 // Try to parse as an array and return as List<String>
                 return mapper.readValue(value, listReference);
             } catch (Exception listException) {
-                throw FatalError.dataError("Could not parse JSON string: " + value);
+                throw new KSMLDataException("Could not parse string to object: " + (value != null ? value : "null"));
             }
         }
     }
@@ -58,9 +60,9 @@ public class CustomStringMapper implements StringMapper<Object> {
     @Override
     public String toString(Object value) {
         try {
-            return mapper.writer().writeValueAsString(value);
+            return mapper.writer().withRootName("object").writeValueAsString(value);
         } catch (JsonProcessingException e) {
-            throw FatalError.dataError("Can not convert object to JSON string", e);
+            throw new KSMLDataException("Can not convert object to JSON: " + (value != null ? value.toString() : "null"), e);
         }
     }
 }

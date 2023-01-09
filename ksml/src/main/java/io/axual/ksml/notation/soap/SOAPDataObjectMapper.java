@@ -23,6 +23,7 @@ package io.axual.ksml.notation.soap;
 import javax.xml.namespace.QName;
 
 import io.axual.ksml.data.mapper.DataObjectMapper;
+import io.axual.ksml.notation.xml.XmlDataObjectMapper;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataObject;
@@ -33,7 +34,9 @@ import io.axual.ksml.exception.KSMLDataException;
 import io.axual.ksml.execution.FatalError;
 import jakarta.xml.soap.Detail;
 import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPBodyElement;
 import jakarta.xml.soap.SOAPConstants;
+import jakarta.xml.soap.SOAPElement;
 import jakarta.xml.soap.SOAPEnvelope;
 import jakarta.xml.soap.SOAPException;
 import jakarta.xml.soap.SOAPFault;
@@ -66,6 +69,7 @@ public class SOAPDataObjectMapper implements DataObjectMapper {
     public static final String SOAP_QNAME_PREFIX = "prefix";
 
     private final MessageFactory messageFactory;
+    private final XmlDataObjectMapper xmlMapper = new XmlDataObjectMapper();
 
     public SOAPDataObjectMapper() {
         try {
@@ -109,7 +113,7 @@ public class SOAPDataObjectMapper implements DataObjectMapper {
             body.putIfNotNull(SOAP_ENCODING_STYLE, DataString.from(envelope.getBody().getEncodingStyle()));
 
             // Convert body elements
-            var bodyElements = new DataList(null);
+            var bodyElements = new DataList();
             body.put(SOAP_BODY_ELEMENTS, bodyElements);
             envelope.getBody().getChildElements().forEachRemaining(element -> bodyElements.addIfNotNull(DataString.from(element.getValue())));
         }
@@ -134,7 +138,7 @@ public class SOAPDataObjectMapper implements DataObjectMapper {
     private DataObject convertFaultDetail(Detail detail) {
         if (detail == null) return null;
 
-        var detailEntries = new DataList(null);
+        var detailEntries = new DataList();
         detail.getDetailEntries().forEachRemaining(entry -> {
             var detailEntry = new DataStruct(null);
             var content = DataString.from(entry.getValue());
@@ -152,7 +156,7 @@ public class SOAPDataObjectMapper implements DataObjectMapper {
         // Convert all header elements
         var result = new DataStruct(null);
 
-        var headerElements = new DataList(null);
+        var headerElements = new DataList();
         result.put(SOAP_HEADER_ELEMENTS, headerElements);
         header.extractAllHeaderElements().forEachRemaining(element -> headerElements.addIfNotNull(convertHeaderElement(element)));
 
@@ -200,10 +204,10 @@ public class SOAPDataObjectMapper implements DataObjectMapper {
                             for (var bodyElement : bodyElements) {
                                 if (bodyElement instanceof DataStruct bodyElementStruct) {
                                     var qname = convertQName(bodyElementStruct.getAs(SOAP_QNAME, DataStruct.class));
-                                    var bodyElementValue = bodyElementStruct.getAs(SOAP_BODY_ELEMENT_VALUE, DataString.class);
+                                    var bodyElementValue = bodyElementStruct.get(SOAP_BODY_ELEMENT_VALUE);
                                     if (bodyElementValue != null) {
                                         var soapBodyElement = soapBody.addBodyElement(qname);
-                                        soapBodyElement.setValue(bodyElementValue.value());
+                                        setSoapBodyElementValue(soapBodyElement, bodyElementValue);
                                     }
                                 }
                             }
@@ -240,13 +244,7 @@ public class SOAPDataObjectMapper implements DataObjectMapper {
         for (var he : headerElements) {
             if (he instanceof DataStruct headerElement) {
                 var qname = convertQName(headerElement.getAs(SOAP_QNAME, DataStruct.class));
-                var ln = headerElement.get(SOAP_HEADER_LOCALNAME);
-                if (!(ln instanceof DataString localName))
-                    throw FatalError.dataError("Header element of SOAP Message does not contain a localname");
-                var ns = headerElement.get(SOAP_HEADER_NAMESPACE_URI);
-                var namespace = ns instanceof DataString ns2 ? ns2.value() : null;
-                var soapHeaderElement = soapHeader.addHeaderElement(new QName(namespace, localName.value()));
-
+                var soapHeaderElement = soapHeader.addHeaderElement(qname);
                 headerElement.getIfPresent(SOAP_ACTOR, DataString.class, actor -> soapHeaderElement.setActor(actor.value()));
                 headerElement.getIfPresent(SOAP_ROLE, DataString.class, role -> soapHeaderElement.setRole(role.value()));
                 headerElement.getIfPresent(SOAP_MUST_UNDERSTAND, DataBoolean.class, mu -> soapHeaderElement.setMustUnderstand(mu.value()));
@@ -267,5 +265,26 @@ public class SOAPDataObjectMapper implements DataObjectMapper {
         if (prefix == null)
             return new QName(namespaceURI != null ? namespaceURI.value() : null, localPart.value());
         return new QName(namespaceURI != null ? namespaceURI.value() : null, localPart.value(), prefix.value());
+    }
+
+    private void setSoapBodyElementValue(SOAPBodyElement soapBodyElement, DataObject value) throws SOAPException {
+        if (value instanceof DataString str) {
+            value = xmlMapper.toDataObject(str.value());
+        }
+        if (value instanceof DataStruct bodyValue) {
+            setSoapBodyElementValueInternal(soapBodyElement, bodyValue);
+        }
+    }
+
+    private void setSoapBodyElementValueInternal(SOAPElement soapElement, DataObject value) throws SOAPException {
+        if (value instanceof DataStruct struct) {
+            for (var entry : struct.entrySet()) {
+                var child = soapElement.addChildElement(entry.getKey());
+                setSoapBodyElementValueInternal(child, entry.getValue());
+            }
+        }
+        if (value instanceof DataString str) {
+            soapElement.setValue(str.value());
+        }
     }
 }

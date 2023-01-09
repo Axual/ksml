@@ -20,14 +20,34 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.exception.KSMLExecutionException;
+import io.axual.ksml.schema.StructSchema;
 
 public class DataStruct extends TreeMap<String, DataObject> implements DataObject {
+    public static final String META_ATTRIBUTE_CHAR = "@";
+    // To make external representations look nice, we base Structs on sorted maps. Sorting is done
+    // based on keys, where "normal" keys are always sorted before "meta" keys.
+    public static final Comparator<String> COMPARATOR = (o1, o2) -> {
+        if ((o1 == null || o1.isEmpty()) && (o2 == null || o2.isEmpty())) return 0;
+        if (o1 == null || o1.isEmpty()) return -1;
+        if (o2 == null || o2.isEmpty()) return 1;
+
+        var meta1 = o1.startsWith(META_ATTRIBUTE_CHAR);
+        var meta2 = o2.startsWith(META_ATTRIBUTE_CHAR);
+
+        // If only the first string starts with the meta char, then sort it last
+        if (meta1 && !meta2) return 1;
+        // If only the second string starts with the meta char, then sort it first
+        if (!meta1 && meta2) return -1;
+        // If both (do not) start with the meta char, then sort as normal
+        return o1.compareTo(o2);
+    };
     private static final String QUOTE = "\"";
 
     public interface DataStructApplier<T> {
@@ -40,8 +60,9 @@ public class DataStruct extends TreeMap<String, DataObject> implements DataObjec
         this(null);
     }
 
-    public DataStruct(StructType type) {
-        this.type = type;
+    public DataStruct(StructSchema schema) {
+        super(COMPARATOR);
+        type = new StructType(schema);
     }
 
     public void putIfNotNull(String key, DataObject value) {

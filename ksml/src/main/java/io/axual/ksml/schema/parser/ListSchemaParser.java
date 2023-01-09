@@ -24,7 +24,7 @@ import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.schema.ListSchema;
 
-import static io.axual.ksml.data.mapper.DataSchemaConstants.LISTSCHEMA_VALUES_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.LISTSCHEMA_VALUES_FIELD;
 
 public class ListSchemaParser extends BaseParser<ListSchema> {
     @Override

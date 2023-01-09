@@ -27,7 +27,7 @@ import io.axual.ksml.parser.ListParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.schema.DataField;
 
-import static io.axual.ksml.data.mapper.DataSchemaConstants.STRUCTSCHEMA_FIELDS_FIELD;
+import static io.axual.ksml.schema.structure.DataSchemaConstants.STRUCTSCHEMA_FIELDS_FIELD;
 
 public class DataFieldsParser extends BaseParser<List<DataField>> {
     @Override

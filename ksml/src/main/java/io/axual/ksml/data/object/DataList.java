@@ -29,15 +29,20 @@ import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.exception.KSMLExecutionException;
 
 public class DataList extends ArrayList<DataObject> implements DataObject {
+    private static final ListType LIST_OF_UNKNOWN = new ListType(DataType.UNKNOWN);
     private final transient ListType type;
 
+    public DataList() {
+        this(null);
+    }
+
     public DataList(DataType valueType) {
-        type = new ListType(valueType);
+        type = valueType != null ? new ListType(valueType) : LIST_OF_UNKNOWN;
     }
 
     public DataList(DataType valueType, int initialCapacity) {
         super(initialCapacity);
-        type = new ListType(valueType);
+        type = valueType != null ? new ListType(valueType) : LIST_OF_UNKNOWN;
     }
 
     public void addIfNotNull(DataObject value) {

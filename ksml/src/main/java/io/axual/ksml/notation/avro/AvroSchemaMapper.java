@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.axual.ksml.data.mapper.DataSchemaMapper;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.notation.binary.NativeDataObjectMapper;
 import io.axual.ksml.schema.DataField;
 import io.axual.ksml.schema.DataSchema;
 import io.axual.ksml.schema.DataValue;

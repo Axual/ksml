@@ -12,7 +12,7 @@ streams:
   soap_source:
     topic: ksml_soap
     keyType: string
-    valueType: string
+    valueType: soap
 
 functions:
   generate_sensordata_message:
@@ -78,7 +78,7 @@ functions:
     expression: (key,value)
     resultType: (string,json)
 
-  generate_soap_message:
+  generate_soap_message2:
     type: generator
     globalCode: |
       sensorCounter = 1
@@ -97,6 +97,19 @@ functions:
       </soapenv:Envelope>"""
     expression: (key,value)
     resultType: (string,string)
+
+  generate_soap_message:
+    type: generator
+    globalCode: |
+      sensorCounter = 1
+    code: |
+      global sensorCounter
+      key = "sensor"+str(sensorCounter)
+      sensorCounter = (sensorCounter+1) % 10
+
+      value = {"envelope":{"header":{"elements":[{"qname":{"localPart":"localHeader","namespaceURI":"https://some.site","prefix":"pre-fix"},"actor":"actor","role":"role","mustUnderstand":"true","relay":"true"}]}, "body":{"elements":[{"qname":{"localPart":"localBody", "namespaceURI": "https://some.new.site", "prefix":"broken"},"value": "<GetQuotation><QuotationsName>ACME Corp</QuotationsName></GetQuotation>"}]}}}
+    expression: (key,value)
+    resultType: (string,soap)
 
 producers:
   sensordata_avro_producer:

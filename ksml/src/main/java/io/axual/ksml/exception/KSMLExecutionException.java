@@ -22,7 +22,7 @@ package io.axual.ksml.exception;
 
 
 public class KSMLExecutionException extends KSMLException {
-    private static final String ACTIVITY = "executing";
+    private static final String ACTIVITY = "Execution";
 
     public KSMLExecutionException(String message) {
         super(ACTIVITY, message);

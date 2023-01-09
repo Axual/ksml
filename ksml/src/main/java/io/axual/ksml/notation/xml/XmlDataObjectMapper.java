@@ -4,7 +4,7 @@ package io.axual.ksml.notation.xml;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2022 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,28 +20,10 @@ package io.axual.ksml.notation.xml;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.DataObjectMapper;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.notation.string.StringDataObjectMapper;
 
-public class XmlDataObjectMapper implements DataObjectMapper {
-    private static final XmlStringMapper xmlMapper = new XmlStringMapper();
-    private static final NativeDataObjectMapper nativeMapper = new NativeDataObjectMapper();
-
-    @Override
-    public DataObject toDataObject(DataType expected, Object value) {
-        if (value instanceof String str) {
-            var object = xmlMapper.fromString(str);
-            return nativeMapper.toDataObject(object);
-        }
-        throw FatalError.dataError("Can not convert value to XML String: " + (value != null ? value.getClass().getSimpleName() : "null"));
-    }
-
-    @Override
-    public String fromDataObject(DataObject value) {
-        var object = nativeMapper.fromDataObject(value);
-        return xmlMapper.toString(object);
+public class XmlDataObjectMapper extends StringDataObjectMapper {
+    public XmlDataObjectMapper() {
+        super(new XmlStringMapper());
     }
 }

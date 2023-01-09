@@ -1,4 +1,4 @@
-package io.axual.ksml.data.mapper;
+package io.axual.ksml.notation.string;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,26 +20,28 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.exception.KSMLExecutionException;
+import io.axual.ksml.notation.binary.NativeDataObjectMapper;
 
-public class JsonDataObjectMapper implements DataObjectMapper {
-    private static final JsonStringMapper jsonMapper = new JsonStringMapper();
+public class StringDataObjectMapper implements DataObjectMapper<String> {
     private static final NativeDataObjectMapper nativeMapper = new NativeDataObjectMapper();
+    private final StringMapper<Object> stringMapper;
+
+    public StringDataObjectMapper(StringMapper<Object> stringMapper) {
+        this.stringMapper = stringMapper;
+    }
 
     @Override
-    public DataObject toDataObject(DataType expected, Object value) {
-        if (value instanceof String str) {
-            var object = jsonMapper.fromString(str);
-            return nativeMapper.toDataObject(object);
-        }
-        throw new KSMLExecutionException("Can not convert value to JSON String: " + (value != null ? value.getClass().getSimpleName() : "null"));
+    public DataObject toDataObject(DataType expected, String value) {
+        var object = stringMapper.fromString(value);
+        return nativeMapper.toDataObject(object);
     }
 
     @Override
     public String fromDataObject(DataObject value) {
         var object = nativeMapper.fromDataObject(value);
-        return jsonMapper.toString(object);
+        return stringMapper.toString(object);
     }
 }

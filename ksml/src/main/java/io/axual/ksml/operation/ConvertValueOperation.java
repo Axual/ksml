@@ -49,7 +49,7 @@ public class ConvertValueOperation extends BaseOperation {
             if (valueAsData instanceof DataNull) return valueAsData;
             if (targetStructType == null) return valueAsData;
 
-            var result = new DataStruct(targetStructType);
+            var result = new DataStruct(targetStructType.schema());
             result.putAll((DataStruct) value);
             return result;
         }
