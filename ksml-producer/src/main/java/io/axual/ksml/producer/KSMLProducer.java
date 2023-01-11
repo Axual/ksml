@@ -9,9 +9,9 @@ package io.axual.ksml.producer;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.axual.ksml.producer.config.KSMLProducerConfig;
-import io.axual.ksml.producer.definition.ProducerDefinition;
 import io.axual.ksml.producer.execution.ExecutableProducer;
 import io.axual.ksml.producer.execution.IntervalSchedule;
 import io.axual.ksml.producer.factory.AxualClientFactory;
@@ -116,15 +115,16 @@ public class KSMLProducer {
         }
 
         // Read all producer definitions from the configured YAML files
-        Map<String, ProducerDefinition> producers = new ProducerDefinitionFileParser(config.getProducer()).create(factory.getNotationLibrary());
+        var producers = new ProducerDefinitionFileParser(config.getProducer()).create(factory.getNotationLibrary());
+        var notationLibrary = factory.getNotationLibrary();
 
         // Schedule all defined producers
         for (var entry : producers.entrySet()) {
             var target = entry.getValue().target();
             var generator = new PythonFunction(context, entry.getKey(), entry.getValue().generator());
-            var keySerde = factory.getNotationLibrary().get(target.keyType.notation()).getSerde(target.keyType.dataType(), true);
-            var valueSerde = factory.getNotationLibrary().get(target.valueType.notation()).getSerde(target.valueType.dataType(), false);
-            var ep = new ExecutableProducer(generator, target.topic, target.keyType.dataType(), target.valueType.dataType(), keySerde.serializer(), valueSerde.serializer());
+            var keySerde = notationLibrary.get(target.keyType.notation()).getSerde(target.keyType.dataType(), true);
+            var valueSerde = notationLibrary.get(target.valueType.notation()).getSerde(target.valueType.dataType(), false);
+            var ep = new ExecutableProducer(notationLibrary, generator, target.topic, target.keyType, target.valueType, keySerde.serializer(), valueSerde.serializer());
             schedule.schedule(entry.getValue().interval().toMillis(), ep);
             LOG.info("Scheduled producers: {}", entry.getKey());
         }

@@ -9,9 +9,9 @@ package io.axual.ksml.notation.soap;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,10 +20,13 @@ package io.axual.ksml.notation.soap;
  * =========================LICENSE_END==================================
  */
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Node;
+
 import javax.xml.namespace.QName;
 
 import io.axual.ksml.data.mapper.DataObjectMapper;
-import io.axual.ksml.notation.xml.XmlDataObjectMapper;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataObject;
@@ -32,6 +35,7 @@ import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.exception.KSMLDataException;
 import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.notation.xml.XmlDataObjectMapper;
 import jakarta.xml.soap.Detail;
 import jakarta.xml.soap.MessageFactory;
 import jakarta.xml.soap.SOAPBodyElement;
@@ -44,11 +48,11 @@ import jakarta.xml.soap.SOAPHeader;
 import jakarta.xml.soap.SOAPHeaderElement;
 import jakarta.xml.soap.SOAPMessage;
 
-public class SOAPDataObjectMapper implements DataObjectMapper {
+public class SOAPDataObjectMapper implements DataObjectMapper<SOAPMessage> {
+    private static final Logger LOG = LoggerFactory.getLogger(SOAPDataObjectMapper.class);
     public static final String SOAP_ACTOR = "actor";
     public static final String SOAP_BODY = "body";
     public static final String SOAP_BODY_ELEMENTS = "elements";
-    public static final String SOAP_BODY_ELEMENT_VALUE = "value";
     public static final String SOAP_ENCODING_STYLE = "encodingStyle";
     public static final String SOAP_ENVELOPE = "envelope";
     public static final String SOAP_FAULT = "fault";
@@ -80,9 +84,8 @@ public class SOAPDataObjectMapper implements DataObjectMapper {
     }
 
     @Override
-    public DataObject toDataObject(DataType expected, Object value) {
-        if (value instanceof SOAPMessage val) return convertMessage(val);
-        return null;
+    public DataObject toDataObject(DataType expected, SOAPMessage value) {
+        return convertMessage(value);
     }
 
     private DataObject convertMessage(SOAPMessage message) {
@@ -115,13 +118,48 @@ public class SOAPDataObjectMapper implements DataObjectMapper {
             // Convert body elements
             var bodyElements = new DataList();
             body.put(SOAP_BODY_ELEMENTS, bodyElements);
-            envelope.getBody().getChildElements().forEachRemaining(element -> bodyElements.addIfNotNull(DataString.from(element.getValue())));
+            envelope.getBody().getChildElements().forEachRemaining(element -> bodyElements.addIfNotNull(convertBodyElement(element)));
         }
 
         // Convert fault
         if (envelope.getBody().hasFault())
             result.put(SOAP_FAULT, convertFault(envelope.getBody().getFault()));
 
+        return result;
+    }
+
+    private DataObject convertBodyElement(Node element) {
+        switch (element.getNodeType()) {
+            case Node.ELEMENT_NODE:
+                return convertListElement(element);
+            case Node.TEXT_NODE:
+                return convertStringElement(element.getTextContent());
+        }
+        LOG.warn("Unknown node type in SOAP body: " + element.getNodeType());
+        return null;
+    }
+
+    private DataString convertStringElement(String content) {
+        if (content == null) return null;
+        content = content.replaceAll("\n", "").trim();
+        if (!content.isEmpty()) return new DataString(content);
+        return null;
+    }
+
+    private DataStruct convertListElement(Node element) {
+        DataStruct result = new DataStruct();
+        DataList children = new DataList();
+        Node child = element.getFirstChild();
+        while (child != null) {
+            var value = convertBodyElement(child);
+            if (value != null) children.add(value);
+            child = child.getNextSibling();
+        }
+        if (children.size() == 1) {
+            result.put(element.getNodeName(), children.get(0));
+        } else {
+            result.put(element.getNodeName(), children);
+        }
         return result;
     }
 
@@ -203,11 +241,9 @@ public class SOAPDataObjectMapper implements DataObjectMapper {
                         body.getIfPresent(SOAP_BODY_ELEMENTS, DataList.class, bodyElements -> {
                             for (var bodyElement : bodyElements) {
                                 if (bodyElement instanceof DataStruct bodyElementStruct) {
-                                    var qname = convertQName(bodyElementStruct.getAs(SOAP_QNAME, DataStruct.class));
-                                    var bodyElementValue = bodyElementStruct.get(SOAP_BODY_ELEMENT_VALUE);
-                                    if (bodyElementValue != null) {
-                                        var soapBodyElement = soapBody.addBodyElement(qname);
-                                        setSoapBodyElementValue(soapBodyElement, bodyElementValue);
+                                    for (var bodyElementEntry : bodyElementStruct.entrySet()) {
+                                        SOAPBodyElement soapBodyElement = soapBody.addBodyElement(new QName(bodyElementEntry.getKey()));
+                                        addChildToElement(soapBodyElement, bodyElementEntry.getValue());
                                     }
                                 }
                             }
@@ -240,7 +276,25 @@ public class SOAPDataObjectMapper implements DataObjectMapper {
         }
     }
 
-    private void convertHeader(SOAPHeader soapHeader, DataList headerElements) throws SOAPException {
+    private void addChildToElement(SOAPElement parent, DataObject value) throws SOAPException {
+        if (value instanceof DataList list) {
+            for (var listElement : list) {
+                addChildToElement(parent, listElement);
+            }
+        }
+        if (value instanceof DataStruct struct) {
+            for (var structEntry : struct.entrySet()) {
+                var childElement = parent.addChildElement(new QName(structEntry.getKey()));
+                addChildToElement(childElement, structEntry.getValue());
+            }
+        }
+        if (value instanceof DataString str) {
+            parent.setTextContent(str.value());
+        }
+    }
+
+    private void convertHeader(SOAPHeader soapHeader, DataList headerElements) throws
+            SOAPException {
         for (var he : headerElements) {
             if (he instanceof DataStruct headerElement) {
                 var qname = convertQName(headerElement.getAs(SOAP_QNAME, DataStruct.class));
@@ -267,7 +321,8 @@ public class SOAPDataObjectMapper implements DataObjectMapper {
         return new QName(namespaceURI != null ? namespaceURI.value() : null, localPart.value(), prefix.value());
     }
 
-    private void setSoapBodyElementValue(SOAPBodyElement soapBodyElement, DataObject value) throws SOAPException {
+    private void setSoapBodyElementValue(SOAPBodyElement soapBodyElement, DataObject value) throws
+            SOAPException {
         if (value instanceof DataString str) {
             value = xmlMapper.toDataObject(str.value());
         }
@@ -276,7 +331,8 @@ public class SOAPDataObjectMapper implements DataObjectMapper {
         }
     }
 
-    private void setSoapBodyElementValueInternal(SOAPElement soapElement, DataObject value) throws SOAPException {
+    private void setSoapBodyElementValueInternal(SOAPElement soapElement, DataObject value) throws
+            SOAPException {
         if (value instanceof DataStruct struct) {
             for (var entry : struct.entrySet()) {
                 var child = soapElement.addChildElement(entry.getKey());

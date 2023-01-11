@@ -32,7 +32,7 @@ public class UserMerger extends Invoker implements Merger<Object, Object> {
         super(function);
         verifyParameterCount(3);
         verify(function.parameters[1].type().equals(function.parameters[2].type()), "Merger should take two value parameters of the same dataType");
-        verify(function.parameters[1].type().equals(function.resultType), "Merger should return same dataType as its value parameters");
+        verify(function.parameters[1].type().equals(function.resultType.dataType()), "Merger should return same dataType as its value parameters");
     }
 
     @Override

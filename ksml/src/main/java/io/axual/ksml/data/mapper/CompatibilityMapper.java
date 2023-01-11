@@ -9,9 +9,9 @@ package io.axual.ksml.data.mapper;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -39,7 +39,10 @@ import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.UnionType;
+import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLExecutionException;
+import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.notation.binary.NativeDataObjectMapper;
 import io.axual.ksml.notation.json.JsonDataObjectMapper;
 import io.axual.ksml.schema.SchemaUtil;
 
@@ -47,10 +50,37 @@ import io.axual.ksml.schema.SchemaUtil;
 // created. It does so by converting numbers to strings, and vice versa. It can convert complex
 // data objects like Enums, Lists and Structs too, recursively going through sub-elements if
 // necessary.
-public class CompatibilityMapper implements DataObjectMapper<DataObject> {
+public class CompatibilityMapper {
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
     private static final JsonDataObjectMapper JSON_MAPPER = new JsonDataObjectMapper();
+    private final NotationLibrary notationLibrary;
 
-    @Override
+    public CompatibilityMapper(NotationLibrary notationLibrary) {
+        this.notationLibrary = notationLibrary;
+    }
+
+    public DataObject toDataObject(UserType expected, DataObject value) {
+        // If no conversion is possible or necessary, or the value type is already compatible with
+        // the expected type, then just return the value object
+        if (expected == null || value == null || expected.dataType().isAssignableFrom(value.type()))
+            return value;
+
+        // If we have a notation library, then first run the object through the default parser.
+        // This enables amongst others String to XML parsing for automatic interpretation of
+        // complex types.
+        if (notationLibrary != null) {
+            var parser = notationLibrary.getDefaultParser(expected.notation());
+            if (parser!=null) {
+                var nativeValue = NATIVE_MAPPER.fromDataObject(value);
+                var newValue = parser.parse(nativeValue);
+                if (newValue != null) value = newValue;
+            }
+        }
+
+        // Now that we have a parsed type, run it through the compatibility mapper
+        return toDataObject(expected.dataType(), value);
+    }
+
     public DataObject toDataObject(DataType expected, DataObject value) {
         // Come up with default values if we convert from Null
         if (value == null || value instanceof DataNull)
@@ -158,10 +188,5 @@ public class CompatibilityMapper implements DataObjectMapper<DataObject> {
 
         // Return the Struct with compatible fields
         return result;
-    }
-
-    @Override
-    public DataObject fromDataObject(DataObject value) {
-        throw new KSMLExecutionException(getClass().getSimpleName() + ": method not implemented");
     }
 }

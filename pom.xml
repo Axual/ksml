@@ -74,13 +74,15 @@
         <logback.version>1.2.9</logback.version>
         <lombok.version>1.18.24</lombok.version>
         <maven.compiler.version>3.8.1</maven.compiler.version>
+        <maven.enforcer.version>3.0.0</maven.enforcer.version>
         <maven.exec.version>3.0.0</maven.exec.version>
         <maven.jar.version>3.2.0</maven.jar.version>
+        <maven.javadoc.version>3.3.0</maven.javadoc.version>
         <maven.surefire.version>2.22.2</maven.surefire.version>
         <maven.failsafe.version>2.22.2</maven.failsafe.version>
         <maven.install.version>3.0.0-M1</maven.install.version>
         <maven.license.plugin.version>1.9</maven.license.plugin.version>
-        <maven.jacoco.plugin.version>0.8.7</maven.jacoco.plugin.version>
+        <maven.jacoco.plugin.version>0.8.8</maven.jacoco.plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <slf4j.version>1.7.36</slf4j.version>
@@ -442,7 +444,7 @@
                 <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>0.8.7</version>
+                    <version>${maven.jacoco.plugin.version}</version>
                     <executions>
                         <execution>
                             <id>prepare-agent</id>
@@ -462,7 +464,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-enforcer-plugin</artifactId>
-                    <version>3.0.0</version>
+                    <version>${maven.enforcer.version}</version>
                     <executions>
                         <execution>
                             <id>enforce</id>
@@ -485,7 +487,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>${maven.compiler.version}</version>
                 <configuration>
                     <source>${java.source.version}</source>
                     <target>${java.target.version}</target>
@@ -494,7 +496,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.3.0</version>
+                <version>${maven.javadoc.version}</version>
             </plugin>
 
         </plugins>

@@ -33,7 +33,7 @@ public class DataList extends ArrayList<DataObject> implements DataObject {
     private final transient ListType type;
 
     public DataList() {
-        this(null);
+        this(DataType.UNKNOWN);
     }
 
     public DataList(DataType valueType) {

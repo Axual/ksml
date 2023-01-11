@@ -9,9 +9,9 @@ package io.axual.ksml.producer.execution;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,30 +29,33 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.ExecutionException;
 
 import io.axual.ksml.data.mapper.CompatibilityMapper;
-import io.axual.ksml.notation.binary.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataTuple;
-import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLExecutionException;
+import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.notation.binary.NativeDataObjectMapper;
 import io.axual.ksml.user.UserFunction;
 
 public class ExecutableProducer {
     private static final Logger LOG = LoggerFactory.getLogger(ExecutableProducer.class);
     private final UserFunction generator;
     private final String topic;
-    private final DataType keyType;
-    private final DataType valueType;
+    private final UserType keyType;
+    private final UserType valueType;
     private final Serializer<Object> keySerializer;
     private final Serializer<Object> valueSerializer;
     private final NativeDataObjectMapper nativeMapper = new NativeDataObjectMapper();
-    private final CompatibilityMapper compatibilityMapper = new CompatibilityMapper();
+    private final CompatibilityMapper compatibilityMapper;
 
-    public ExecutableProducer(UserFunction generator,
+    public ExecutableProducer(NotationLibrary notationLibrary,
+                              UserFunction generator,
                               String topic,
-                              DataType keyType,
-                              DataType valueType,
+                              UserType keyType,
+                              UserType valueType,
                               Serializer<Object> keySerializer,
                               Serializer<Object> valueSerializer) {
+        this.compatibilityMapper = new CompatibilityMapper(notationLibrary);
         this.generator = generator;
         this.topic = topic;
         this.keyType = keyType;
@@ -68,11 +71,11 @@ public class ExecutableProducer {
             var value = compatibilityMapper.toDataObject(valueType, tuple.get(1));
             var okay = true;
 
-            if (!keyType.isAssignableFrom(key.type())) {
+            if (!keyType.dataType().isAssignableFrom(key.type())) {
                 LOG.error("Can not convert {} to topic key type {}", key.type(), keyType);
                 okay = false;
             }
-            if (!valueType.isAssignableFrom(value.type())) {
+            if (!valueType.dataType().isAssignableFrom(value.type())) {
                 LOG.error("Can not convert {} to topic value type {}", value.type(), valueType);
                 okay = false;
             }

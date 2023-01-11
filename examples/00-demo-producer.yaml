@@ -88,13 +88,20 @@ functions:
       sensorCounter = (sensorCounter+1) % 10
 
       value = """<?xml version = "1.0"?>
-      <soapenv:Envelope xmlns:soapenv = "http://www.w3.org/2001/12/soap-envelope" soapenv:encodingStyle = "http://www.w3.org/2001/12/soap-encoding">
-      <soapenv:Body xmlns:m = "http://www.xyz.org/quotations">
-      <m:GetQuotation>
-      <m:QuotationsName>ACME Corp</m:QuotationsName>
-      </m:GetQuotation>
-      </soapenv:Body>
-      </soapenv:Envelope>"""
+      <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+      <env:Header><pre-fix:localHeader xmlns:pre-fix="https://some.site" env:role="role"/>
+      </env:Header>
+      <env:Body>
+      <GetQuotation>
+      <QuotationsName>ACME Corp</QuotationsName>
+      </GetQuotation>
+      <GetSomethingElse>
+      <SomethingElseName1>ACME Corp something else 1</SomethingElseName1>
+      <SomethingElseName2>ACME Corp something else 2</SomethingElseName2>
+      <SomethingElseName3>ACME Corp something else 3</SomethingElseName3>
+      </GetSomethingElse>
+      </env:Body>
+      </env:Envelope>"""
     expression: (key,value)
     resultType: (string,string)
 
@@ -107,7 +114,7 @@ functions:
       key = "sensor"+str(sensorCounter)
       sensorCounter = (sensorCounter+1) % 10
 
-      value = {"envelope":{"header":{"elements":[{"qname":{"localPart":"localHeader","namespaceURI":"https://some.site","prefix":"pre-fix"},"actor":"actor","role":"role","mustUnderstand":"true","relay":"true"}]}, "body":{"elements":[{"qname":{"localPart":"localBody", "namespaceURI": "https://some.new.site", "prefix":"broken"},"value": "<GetQuotation><QuotationsName>ACME Corp</QuotationsName></GetQuotation>"}]}}}
+      value = {"envelope":{"header":{"elements":[{"qname":{"localPart":"localHeader","namespaceURI":"https://some.site","prefix":"pre-fix"},"actor":"actor","role":"role","mustUnderstand":"true","relay":"true"}]}, "body":{"elements":[{"qname":{"localPart":"localBody", "namespaceURI": "https://some.new.site", "prefix":"broken"},"value": "<GetQuotation><QuotationsName>ACME Corp</QuotationsName><GetSomethingElse><SomethingElseName1>ACME Corp something else 1</SomethingElseName1><SomethingElseName2>ACME Corp something else 2</SomethingElseName2><SomethingElseName3>ACME Corp something else 3</SomethingElseName3></GetSomethingElse></GetQuotation>"}]}}}
     expression: (key,value)
     resultType: (string,soap)
 
@@ -123,6 +130,6 @@ producers:
     to: sensordata_json
 
   soap_producer:
-    generator: generate_soap_message
+    generator: generate_soap_message2
     interval: 777
     to: soap_source
