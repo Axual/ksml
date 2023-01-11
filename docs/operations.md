@@ -521,9 +521,9 @@ to: output_stream
 
 Convert a KTable into a KStream object.
 
-|Stream Type |Returns |Parameter |Value Type| Description
-|:---|:---|:---|:---|:---
-|[KTable][KTable::toStream]`<K,V>`|[KStream]`<K,V>`|_none_
+| Stream Type                       | Returns          |Parameter |Value Type| Description
+|:----------------------------------|:-----------------|:---|:---|:---
+| [KTable][KTable::toStream]`<K,V>` | [KStream]`<K,V>` |`mapper`|Inline or reference|(Optional)The [KeyValueMapper] function. If no mapper is specified, `K` will be used.
 
 Example:
 ```yaml

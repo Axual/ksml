@@ -9,9 +9,9 @@ package io.axual.ksml.notation.binary;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -49,7 +49,7 @@ public class NativeJsonNodeMapper implements JsonNodeMapper<Object> {
     private JsonNode listToJsonNode(List<?> list) {
         var result = MAPPER.createArrayNode();
         for (Object element : list) {
-            result.add(toJsonNode(element));
+            addToArrayNode(result, element);
         }
         return result;
     }
@@ -90,6 +90,8 @@ public class NativeJsonNodeMapper implements JsonNodeMapper<Object> {
         if (value instanceof String val) return node.add(val);
         if (value instanceof JsonNode val) return node.add(val);
         if (value instanceof Tuple<?> val) return node.add(tupleToJsonNode(val));
+        if (value instanceof List<?> || value instanceof Map<?, ?>)
+            return node.add(toJsonNode(value));
         throw new KSMLExecutionException("Can not add value to ObjectNode: " + value.getClass().getSimpleName());
     }
 
@@ -105,6 +107,8 @@ public class NativeJsonNodeMapper implements JsonNodeMapper<Object> {
         if (value instanceof String val) return node.put(key, val);
         if (value instanceof JsonNode val) return node.set(key, val);
         if (value instanceof Tuple<?> val) return node.set(key, tupleToJsonNode(val));
+        if (value instanceof List<?> || value instanceof Map<?, ?>)
+            node.set(key, toJsonNode(value));
         throw new KSMLExecutionException("Can not add value to ObjectNode: " + value.getClass().getSimpleName());
     }
 

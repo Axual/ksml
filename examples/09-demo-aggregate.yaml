@@ -13,7 +13,7 @@ functions:
 
 stores:
   owner_count_aggregate:
-    name: owner_count_aggregate
+    name: ownerCount
     retention: 3m
     caching: false
 

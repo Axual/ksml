@@ -37,6 +37,7 @@ import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserValueJoiner;
 
 public class OuterJoinOperation extends StoreOperation {
+    private static final String VALUEJOINER_NAME = "ValueJoiner";
     private final BaseStreamWrapper joinStream;
     private final UserFunction valueJoiner;
     private final JoinWindows joinWindows;
@@ -53,6 +54,22 @@ public class OuterJoinOperation extends StoreOperation {
         final StreamDataType resultValueType = streamDataTypeOf(valueJoiner.resultType, false);
 
         if (joinStream instanceof KStreamWrapper kStreamWrapper) {
+            /*    Kafka Streams method signature:
+             *    <VO, VR> KStream<K, VR> outerJoin(
+             *          final KStream<K, VO> otherStream,
+             *          final ValueJoiner<? super V, ? super VO, ? extends VR> joiner,
+             *          final JoinWindows windows,
+             *          final StreamJoined<K, V, VO> streamJoined)
+             */
+
+            checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
+            var k = input.keyType().userType().dataType();
+            var v = input.valueType().userType().dataType();
+            var vo = kStreamWrapper.valueType().userType().dataType();
+            var vr = valueJoiner.resultType.dataType();
+            checkType("Join stream keyType", kStreamWrapper.keyType().userType().dataType(), equalTo(k));
+            checkFunction(VALUEJOINER_NAME, valueJoiner, equalTo(vr), superOf(v), superOf(vo));
+
             return new KStreamWrapper(
                     input.stream.outerJoin(
                             kStreamWrapper.stream,
@@ -70,6 +87,22 @@ public class OuterJoinOperation extends StoreOperation {
         final StreamDataType resultValueType = streamDataTypeOf(valueJoiner.resultType, false);
 
         if (joinStream instanceof KTableWrapper kTableWrapper) {
+            /*    Kafka Streams method signature:
+             *    <VO, VR> KTable<K, VR> outerJoin(
+             *          final KTable<K, VO> other,
+             *          final ValueJoiner<? super V, ? super VO, ? extends VR> joiner,
+             *          final Named named,
+             *          final Materialized<K, VR, KeyValueStore<Bytes, byte[]>> materialized)
+             */
+
+            checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
+            var k = input.keyType().userType().dataType();
+            var v = input.valueType().userType().dataType();
+            var vo = kTableWrapper.valueType().userType().dataType();
+            var vr = valueJoiner.resultType.dataType();
+            checkType("Join table keyType", kTableWrapper.keyType().userType().dataType(), equalTo(k));
+            checkFunction(VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(v), superOf(vo));
+
             return new KTableWrapper(
                     input.table.outerJoin(
                             kTableWrapper.table,

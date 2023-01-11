@@ -9,9 +9,9 @@ package io.axual.ksml.python;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,6 +28,7 @@ import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.user.UserFunction;
 
 public class PythonFunction extends UserFunction {
@@ -69,7 +70,7 @@ public class PythonFunction extends UserFunction {
             }
         } catch (Exception e) {
             logCall(parameters, null);
-            throw new KSMLTopologyException("Error while executing function " + name + ": " + e.getMessage());
+            throw FatalError.reportAndExit(new KSMLTopologyException("Error while executing function " + name + ": " + e.getMessage(), e));
         }
     }
 
@@ -83,12 +84,6 @@ public class PythonFunction extends UserFunction {
     }
 
     private DataObject convertResult(Value pyResult) {
-        // The converted result value from Python
-        try {
-            return MAPPER.toDataObject(resultType.dataType(), pyResult);
-        } catch (KSMLExecutionException e) {
-            // Ignore conversion error here
-            return null;
-        }
+        return MAPPER.toDataObject(resultType.dataType(), pyResult);
     }
 }

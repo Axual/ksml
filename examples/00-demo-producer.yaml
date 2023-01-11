@@ -5,6 +5,10 @@ streams:
     topic: ksml_sensordata_avro
     keyType: string
     valueType: avro:SensorData
+  sensor_alert:
+    topic: ksml_sensoralert_settings
+    keyType: string
+    valueType: avro:SensorAlertSettings
   sensordata_json:
     topic: ksml_sensordata_json
     keyType: string
@@ -105,6 +109,63 @@ functions:
     expression: (key,value)
     resultType: (string,string)
 
+  generate_sensor_alert_message:
+    type: generator
+    globalCode: |
+      def generateHumidityAlert(city, upperBoundary, lowerBoundary):
+        result = {}
+        result["name"] = "Humidity alert for " + city
+        result["type"] = "HUMIDITY"
+        result["alertAbove"] = upperBoundary
+        result["alertBelow"] = lowerBoundary
+        result["unit"] = "%"
+        return result
+
+      def generateTemperatureAlert(city, upperBoundary, lowerBoundary, unit):
+        result = {}
+        result["name"] = "Temperature alert for " + city
+        result["type"] = "TEMPERATURE"
+        result["alertAbove"] = upperBoundary
+        result["alertBelow"] = lowerBoundary
+        result["unit"] = unit
+        return result
+
+    code: |
+      global sensorCities
+
+      settings = []
+
+      city = random.choice(sensorCities)
+
+      if city in ("Amsterdam","Utrecht"):
+        settings.append(generateHumidityAlert(city, "90","60"))
+        settings.append(generateHumidityAlert(city, "88","58"))
+        settings.append(generateHumidityAlert(city, "86","56"))
+        settings.append(generateTemperatureAlert(city, "84","54","F"))
+        settings.append(generateTemperatureAlert(city, "82","52","F"))
+        settings.append(generateTemperatureAlert(city, "80","50","F"))
+        settings.append(generateTemperatureAlert(city, "78","48","F"))
+        settings.append(generateTemperatureAlert(city, "76","46","F"))
+        settings.append(generateTemperatureAlert(city, "74","44","F"))
+
+      if city in ("Alkmaar","Leiden"):
+        settings.append(generateHumidityAlert(city, "72","70"))
+        settings.append(generateHumidityAlert(city, "72","70"))
+        settings.append(generateHumidityAlert(city, "72","70"))
+        settings.append(generateHumidityAlert(city, "72","70"))
+        settings.append(generateHumidityAlert(city, "72","70"))
+        settings.append(generateHumidityAlert(city, "72","70"))
+        settings.append(generateTemperatureAlert(city, "25","0","C"))
+        settings.append(generateTemperatureAlert(city, "25","0","C"))
+        settings.append(generateTemperatureAlert(city, "25","0","C"))
+
+      result = dict()
+      result["city"] = city
+      result["alertSettings"] = settings
+      result["@type"] = SensorAlertSettings
+    expression: (city,result)
+    resultType: (string,avro:SensorAlertSettings)
+
   generate_soap_message:
     type: generator
     globalCode: |
@@ -119,6 +180,11 @@ functions:
     resultType: (string,soap)
 
 producers:
+  sensordata_alert_producer:
+    generator: generate_sensor_alert_message
+    interval: 4000
+    to: sensor_alert
+
   sensordata_avro_producer:
     generator: generate_sensordata_message
     interval: 555

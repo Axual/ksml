@@ -37,7 +37,7 @@ public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition
 
         final String type = parseString(node, FUNCTION_TYPE);
         if (type == null) {
-            throw new KSMLParseException(node, "Type unspecified");
+            throw new KSMLParseException(node, "Function type not specified");
         }
 
         BaseParser<? extends FunctionDefinition> parser = getParser(type);

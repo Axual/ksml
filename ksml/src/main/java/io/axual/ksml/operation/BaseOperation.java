@@ -9,9 +9,9 @@ package io.axual.ksml.operation;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,12 +24,15 @@ package io.axual.ksml.operation;
 import org.apache.kafka.streams.errors.TopologyException;
 import org.apache.kafka.streams.kstream.Named;
 
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.parser.StreamOperation;
+import io.axual.ksml.user.UserFunction;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -80,6 +83,76 @@ public class BaseOperation implements StreamOperation {
         if (object == null) {
             throw new KSMLTopologyException(ERROR_IN_TOPOLOGY + ": " + description + " not defined");
         }
+    }
+
+    protected interface TypeCompatibilityChecker {
+        boolean compare(DataType type);
+    }
+
+    protected record TypeComparator(TypeCompatibilityChecker checker, String faultDescription) {
+    }
+
+    protected KSMLTopologyException topologyError(String message) {
+        return new KSMLTopologyException(ERROR_IN_TOPOLOGY + ": " + message);
+    }
+
+    protected TypeComparator equalTo(DataType compareType) {
+        return new TypeComparator(
+                type -> compareType.isAssignableFrom(type) && type.isAssignableFrom(compareType),
+                "of type " + compareType);
+    }
+
+    protected TypeComparator superOf(DataType compareType) {
+        return new TypeComparator(
+                type -> type.isAssignableFrom(compareType),
+                "(superclass of) type " + compareType);
+    }
+
+    protected TypeComparator subOf(DataType compareType) {
+        return new TypeComparator(
+                compareType::isAssignableFrom,
+                "(subclass of) type " + compareType);
+    }
+
+    protected void checkType(String subject, DataType type, TypeComparator comparator) {
+        if (!comparator.checker.compare(type)) {
+            throw topologyError(subject + " is expected to be " + comparator.faultDescription);
+        }
+    }
+
+    protected void checkFunction(String functionType, UserFunction function, TypeComparator resultType, TypeComparator... parameters) {
+        // Check if the function is defined
+        if (function == null) {
+            throw topologyError(functionType + " is not defined");
+        }
+
+        // Check if the resultType of the function is as expected
+        checkType(functionType + " resultType", (function.resultType != null ? function.resultType.dataType() : DataNull.DATATYPE), resultType);
+
+        // Check if the number of parameters is as expected
+        if (function.parameters.length != parameters.length) {
+            throw topologyError(functionType + " is expected to take " + parameters.length + " parameters");
+        }
+
+        // Check if all parameters are of expected type
+        for (int index = 0; index < function.parameters.length; index++) {
+            checkType(functionType + " parameter " + (index + 1) + " (\"" + function.parameters[index].name() + "\")", function.parameters[index].type(), parameters[index]);
+        }
+    }
+
+    protected TupleType checkTuple(String faultDescription, DataType type, DataType... elements) {
+        if (!(type instanceof TupleType tupleType)) {
+            throw new KSMLTopologyException(ERROR_IN_TOPOLOGY + ": " + faultDescription + " is expected to be a tuple");
+        }
+        if (tupleType.subTypeCount() != elements.length) {
+            throw new KSMLTopologyException(ERROR_IN_TOPOLOGY + ": " + faultDescription + " is expected to be a tuple with " + elements.length + " elements");
+        }
+        for (int index = 0; index < elements.length; index++) {
+            if (!elements[index].isAssignableFrom(tupleType.subType(index))) {
+                throw new KSMLTopologyException(ERROR_IN_TOPOLOGY + ": " + faultDescription + " tuple element " + index + " is expected to be (subclass) of type " + elements[index]);
+            }
+        }
+        return tupleType;
     }
 
     protected void checkAssignable(DataType superType, DataType subType, String message) {

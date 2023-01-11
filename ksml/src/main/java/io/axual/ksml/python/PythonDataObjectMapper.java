@@ -9,9 +9,9 @@ package io.axual.ksml.python;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -46,7 +46,9 @@ import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLExecutionException;
+import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.notation.binary.NativeDataObjectMapper;
+import io.axual.ksml.util.ExecutionUtil;
 
 public class PythonDataObjectMapper extends NativeDataObjectMapper {
     @Override
@@ -97,7 +99,7 @@ public class PythonDataObjectMapper extends NativeDataObjectMapper {
             if (result != null) return result;
         }
 
-        throw new KSMLExecutionException("Can not convert Python dataType to DataObject: " + object.getClass().getSimpleName());
+        throw FatalError.dataError("Can not convert Python dataType to DataObject: " + object.getClass().getSimpleName());
     }
 
     private Object numberToNative(DataType expected, Value object) {
@@ -141,16 +143,9 @@ public class PythonDataObjectMapper extends NativeDataObjectMapper {
     }
 
     private DataObject mapToNative(DataType expected, Value object) {
-        // Try to cast the value to a HashMap. If that works, then we received a dict value
-        // back from Python.
-        try {
-            Map<?, ?> map = object.as(Map.class);
-            return nativeToDataStruct((Map<String, Object>) map, expected instanceof StructType rec ? rec.schema() : null);
-        } catch (Exception e) {
-            // Ignore all cast exceptions
-        }
-
-        return null;
+        Map<?, ?> map = ExecutionUtil.tryThis(() -> object.as(Map.class));
+        if (map == null) return null;
+        return nativeToDataStruct((Map<String, Object>) map, expected instanceof StructType rec ? rec.schema() : null);
     }
 
     @Override
