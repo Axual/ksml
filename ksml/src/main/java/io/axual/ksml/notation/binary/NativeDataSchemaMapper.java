@@ -120,7 +120,7 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
         result.put(DATAFIELD_NAME_FIELD, field.name());
         result.put(DATAFIELD_DOC_FIELD, field.doc());
         result.put(DATAFIELD_SCHEMA_FIELD, convertSchema(field.schema()));
-        if (field.defaultValue() != null && field.defaultValue().value() != null)
+        if (field.defaultValue() != null)
             encodeDefaultValue(result, DATAFIELD_DEFAULT_VALUE_FIELD, field.defaultValue());
         result.put(DATAFIELD_ORDER_FIELD, field.order().toString());
         return result;
