@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.axual.ksml.data.mapper.DataSchemaMapper;
+import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.notation.binary.NativeDataObjectMapper;
 import io.axual.ksml.schema.DataField;
 import io.axual.ksml.schema.DataSchema;
@@ -111,6 +112,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
 
     private Schema convertToAvro(DataSchema schema) {
         return switch (schema.type()) {
+            case ANY -> FatalError.schemaError("AVRO schema do not support ANY types", Schema.class);
             case NULL -> Schema.create(Schema.Type.NULL);
             case BOOLEAN -> Schema.create(Schema.Type.BOOLEAN);
             case BYTE, SHORT, INTEGER -> Schema.create(Schema.Type.INT);
@@ -121,10 +123,10 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             case FIXED -> Schema.createFixed(((FixedSchema) schema).name(), ((FixedSchema) schema).doc(), ((FixedSchema) schema).namespace(), ((FixedSchema) schema).size());
             case STRING -> Schema.create(Schema.Type.STRING);
             case ENUM -> Schema.createEnum(((EnumSchema) schema).name(), ((EnumSchema) schema).doc(), ((EnumSchema) schema).namespace(), ((EnumSchema) schema).symbols(), ((EnumSchema) schema).defaultValue());
-            case LIST -> Schema.createArray(convertToAvro(((ListSchema) schema).valueType()));
+            case LIST -> Schema.createArray(convertToAvro(((ListSchema) schema).valueSchema()));
             case MAP -> Schema.createMap(convertToAvro(((MapSchema) schema).valueSchema()));
             case STRUCT -> Schema.createRecord(((StructSchema) schema).name(), ((StructSchema) schema).doc(), ((StructSchema) schema).namespace(), false, convertFieldsToAvro(((StructSchema) schema).fields()));
-            case UNION -> Schema.createUnion(convertToAvro(((UnionSchema) schema).possibleSchema()));
+            case UNION -> Schema.createUnion(convertToAvro(((UnionSchema) schema).possibleSchemas()));
         };
     }
 

@@ -47,6 +47,18 @@ public class EnumSchema extends NamedSchema {
     }
 
     @Override
+    public boolean isAssignableFrom(DataSchema otherSchema) {
+        if (!super.isAssignableFrom(otherSchema)) return false;
+        if (!(otherSchema instanceof EnumSchema enumSchema)) return false;
+        // This schema is assignable from the other schema when the list of symbols is a superset
+        // of the otherSchema's set of symbols.
+        for (String symbol : enumSchema.symbols) {
+            if (!symbols.contains(symbol)) return false;
+        }
+        return true;
+    }
+
+    @Override
     public boolean equals(Object other) {
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;

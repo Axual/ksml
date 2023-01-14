@@ -24,15 +24,42 @@ import java.util.Arrays;
 import java.util.Objects;
 
 public class UnionSchema extends DataSchema {
-    private final DataSchema[] possibleSchema;
+    private final DataSchema[] possibleSchemas;
 
-    public UnionSchema(DataSchema... possibleSchema) {
+    public UnionSchema(DataSchema... possibleSchemas) {
         super(Type.UNION);
-        this.possibleSchema = possibleSchema;
+        this.possibleSchemas = possibleSchemas;
     }
 
-    public DataSchema[] possibleSchema() {
-        return possibleSchema;
+    public DataSchema[] possibleSchemas() {
+        return possibleSchemas;
+    }
+
+    @Override
+    public boolean isAssignableFrom(DataSchema otherSchema) {
+        // Don't call the super method here, since that gives wrong semantics. As a union we are
+        // assignable from any schema type, so we must skip the comparison of our own schema type
+        // with that of the other schema.
+
+        // By convention, we are not assignable if the other schema is null.
+        if (otherSchema == null) return false;
+
+        // If the other schema is a union, then we compare all possible types of that union.
+        if (otherSchema instanceof UnionSchema otherUnionSchema) {
+            // This schema is assignable from the other union schema when all of its possible
+            // schema can be assigned to this union schema.
+            for (DataSchema otherUnionsPossibleSchema : otherUnionSchema.possibleSchemas) {
+                if (!isAssignableFrom(otherUnionsPossibleSchema)) return false;
+            }
+            return true;
+        }
+
+        // The other schema is not a union --> we are assignable from the other schema if at least
+        // one of our possible schema is assignable from the other schema.
+        for (DataSchema possibleSchema : possibleSchemas) {
+            if (possibleSchema.isAssignableFrom(otherSchema)) return true;
+        }
+        return false;
     }
 
     @Override
@@ -42,11 +69,11 @@ public class UnionSchema extends DataSchema {
         if (!super.equals(other)) return false;
 
         // Compare all schema relevant fields
-        return Arrays.equals(possibleSchema, ((UnionSchema) other).possibleSchema);
+        return Arrays.equals(possibleSchemas, ((UnionSchema) other).possibleSchemas);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), Arrays.hashCode(possibleSchema));
+        return Objects.hash(super.hashCode(), Arrays.hashCode(possibleSchemas));
     }
 }

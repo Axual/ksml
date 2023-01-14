@@ -52,6 +52,7 @@ import io.axual.ksml.exception.KSMLDataException;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.schema.DataSchema;
 import io.axual.ksml.schema.SchemaLibrary;
+import io.axual.ksml.schema.SchemaUtil;
 import io.axual.ksml.schema.StructSchema;
 
 public class NativeDataObjectMapper implements DataObjectMapper<Object> {
@@ -71,9 +72,10 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         if (value instanceof Float val) return new DataFloat(val);
         if (value instanceof byte[] val) return new DataBytes(val);
         if (value instanceof String val) return new DataString(val);
-        if (value instanceof List<?> val) return nativeToDataList((List<Object>) val);
+        if (value instanceof List<?> val)
+            return nativeToDataList((List<Object>) val, expected instanceof ListType expectedList ? expectedList.valueType() : DataType.UNKNOWN);
         if (value instanceof Map<?, ?> val)
-            return nativeToDataStruct((Map<String, Object>) val, null);
+            return nativeToDataStruct((Map<String, Object>) val, expected instanceof StructType expectedStruct ? expectedStruct.schema() : null);
         if (value instanceof Tuple<?> val) return toDataTuple((Tuple<Object>) val);
         throw new KSMLExecutionException("Can not convert to DataObject: " + value.getClass().getSimpleName());
     }
@@ -132,15 +134,25 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     }
 
     private DataSchema inferStructSchema(Map<?, ?> map, DataSchema expected) {
-        // Find out the schema of the struct by looking at the fields. If there are no fields to
-        // override the expected schema, then return the expected schema.
-        if (map.containsKey(STRUCT_TYPE_FIELD)) {
-            var typeName = map.get(STRUCT_TYPE_FIELD).toString();
-            return SchemaLibrary.getSchema(typeName);
-        } else if (map.containsKey(STRUCT_SCHEMA_FIELD)) {
+        // Find out the schema of the struct by looking at the fields. If there are no meta fields
+        // to override the expected schema, then return the expected schema.
+
+        // The "@schema" field overrides the entire schema library. If this field is filled, then
+        // we assume the entire schema is contained within the map itself. Therefore we do not
+        // consult the schema library, but instead directly decode the schema from the field.
+        if (map.containsKey(STRUCT_SCHEMA_FIELD)) {
             var nativeSchema = map.get(STRUCT_SCHEMA_FIELD);
             return SCHEMA_MAPPER.toDataSchema(nativeSchema);
         }
+
+        // The "@type" field indicates a type that is assumed to be contained in the schema
+        // library. If this field is set, then look up the schema by name in the library.
+        if (map.containsKey(STRUCT_TYPE_FIELD)) {
+            var typeName = map.get(STRUCT_TYPE_FIELD).toString();
+            return SchemaLibrary.getSchema(typeName);
+        }
+
+        // No fields found to override the expected schema, so simply return that.
         return expected;
     }
 
@@ -153,9 +165,9 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         return new TupleType(subTypes);
     }
 
-    protected DataList nativeToDataList(List<Object> list) {
-        DataList result = new DataList(list.isEmpty() ? DataType.UNKNOWN : inferType(list.get(0)), list.size());
-        list.forEach(element -> result.add(toDataObject(element)));
+    protected DataList nativeToDataList(List<Object> list, DataType valueType) {
+        DataList result = new DataList(valueType);
+        list.forEach(element -> result.add(toDataObject(valueType, element)));
         return result;
     }
 
@@ -164,7 +176,12 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         map.remove(STRUCT_SCHEMA_FIELD);
         map.remove(STRUCT_TYPE_FIELD);
         DataStruct result = new DataStruct(type.schema());
-        map.forEach((key, value) -> result.put(key, toDataObject(value)));
+        map.forEach((key, value) -> {
+            var field = type.schema() != null ? type.schema().field(key) : null;
+            var fieldSchema = field != null ? field.schema() : null;
+            var subType = SchemaUtil.schemaToDataType(fieldSchema);
+            result.put(key, toDataObject(subType, value));
+        });
         return result;
     }
 

@@ -24,18 +24,18 @@ import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.schema.FixedSchema;
 
-import static io.axual.ksml.schema.structure.DataSchemaConstants.FIXEDSCHEMA_SIZE_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.NAMEDSCHEMA_DOC_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.NAMEDSCHEMA_NAMESPACE_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.NAMEDSCHEMA_NAME_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.FIXED_SCHEMA_SIZE_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.NAMED_SCHEMA_DOC_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.NAMED_SCHEMA_NAMESPACE_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.NAMED_SCHEMA_NAME_FIELD;
 
 public class FixedSchemaParser extends BaseParser<FixedSchema> {
     @Override
     public FixedSchema parse(YamlNode node) {
         return new FixedSchema(
-                parseString(node, NAMEDSCHEMA_NAMESPACE_FIELD),
-                parseString(node, NAMEDSCHEMA_NAME_FIELD),
-                parseString(node, NAMEDSCHEMA_DOC_FIELD),
-                parseInteger(node, FIXEDSCHEMA_SIZE_FIELD));
+                parseString(node, NAMED_SCHEMA_NAMESPACE_FIELD),
+                parseString(node, NAMED_SCHEMA_NAME_FIELD),
+                parseString(node, NAMED_SCHEMA_DOC_FIELD),
+                parseInteger(node, FIXED_SCHEMA_SIZE_FIELD));
     }
 }

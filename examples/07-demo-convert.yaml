@@ -21,6 +21,14 @@ pipelines:
         name: convert_value_to_xml
       - type: peek
         forEach: print_message
+      - type: convertValue
+        into: string
+        name: convert_value_to_string
+      - type: peek
+        forEach: print_message
+      - type: convertValue
+        into: xml
+        name: convert_value_to_xml2
     to:
       topic: ksml_sensordata_xml
 

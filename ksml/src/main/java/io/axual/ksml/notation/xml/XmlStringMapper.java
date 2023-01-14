@@ -50,7 +50,7 @@ public class XmlStringMapper extends CustomStringMapper {
         try {
             return mapper.writer().withRootName("object").writeValueAsString(value);
         } catch (JsonProcessingException e) {
-            throw FatalError.dataError("Can not convert object to XML string", e);
+            throw FatalError.dataError("Can not convert object to XML string: " + (value != null ? value.toString() : "null"), e);
         }
     }
 }

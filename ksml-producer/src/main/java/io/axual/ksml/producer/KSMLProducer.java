@@ -9,9 +9,9 @@ package io.axual.ksml.producer;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,7 +22,16 @@ package io.axual.ksml.producer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
+import io.axual.ksml.producer.config.KSMLProducerConfig;
+import io.axual.ksml.producer.execution.ExecutableProducer;
+import io.axual.ksml.producer.execution.IntervalSchedule;
+import io.axual.ksml.producer.factory.AxualClientFactory;
+import io.axual.ksml.producer.factory.ClientFactory;
+import io.axual.ksml.producer.factory.KafkaClientFactory;
+import io.axual.ksml.producer.parser.ProducerDefinitionFileParser;
+import io.axual.ksml.python.PythonContext;
+import io.axual.ksml.python.PythonFunction;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.utils.Utils;
@@ -34,24 +43,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.axual.ksml.producer.config.KSMLProducerConfig;
-import io.axual.ksml.producer.execution.ExecutableProducer;
-import io.axual.ksml.producer.execution.IntervalSchedule;
-import io.axual.ksml.producer.factory.AxualClientFactory;
-import io.axual.ksml.producer.factory.ClientFactory;
-import io.axual.ksml.producer.factory.KafkaClientFactory;
-import io.axual.ksml.producer.parser.ProducerDefinitionFileParser;
-import io.axual.ksml.python.PythonContext;
-import io.axual.ksml.python.PythonFunction;
-import lombok.extern.slf4j.Slf4j;
-
-import static org.apache.kafka.clients.producer.ProducerConfig.ACKS_CONFIG;
-import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG;
-import static org.apache.kafka.clients.producer.ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION;
-import static org.apache.kafka.clients.producer.ProducerConfig.RECONNECT_BACKOFF_MAX_MS_CONFIG;
-import static org.apache.kafka.clients.producer.ProducerConfig.RETRIES_CONFIG;
-import static org.apache.kafka.clients.producer.ProducerConfig.RETRY_BACKOFF_MS_CONFIG;
-import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
+import static org.apache.kafka.clients.producer.ProducerConfig.*;
 
 @Slf4j
 public class KSMLProducer {

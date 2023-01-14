@@ -1,4 +1,4 @@
-package io.axual.ksml.schema.parser;
+package io.axual.ksml.schema;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,15 +20,30 @@ package io.axual.ksml.schema.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.parser.BaseParser;
-import io.axual.ksml.parser.YamlNode;
-import io.axual.ksml.schema.ListSchema;
+import java.util.Objects;
 
-import static io.axual.ksml.dsl.DataSchemaDSL.LIST_SCHEMA_VALUES_FIELD;
+public class AnySchema extends DataSchema {
+    public static final AnySchema INSTANCE = new AnySchema();
 
-public class ListSchemaParser extends BaseParser<ListSchema> {
+    private AnySchema() {
+        super(Type.ANY);
+    }
+
     @Override
-    public ListSchema parse(YamlNode node) {
-        return new ListSchema(new DataSchemaParser().parse(node.get(LIST_SCHEMA_VALUES_FIELD)));
+    public boolean isAssignableFrom(DataSchema otherSchema) {
+        // This schema is assumed to be assignable from any other schema (except null).
+        return otherSchema != null;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!super.equals(other)) return false;
+        if (this == other) return true;
+        return other.getClass() == getClass();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode());
     }
 }

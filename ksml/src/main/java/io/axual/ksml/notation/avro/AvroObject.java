@@ -9,9 +9,9 @@ package io.axual.ksml.notation.avro;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.axual.ksml.exception.KSMLDataException;
+import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.schema.DataSchema;
 import io.axual.ksml.schema.StructSchema;
 
@@ -39,6 +40,9 @@ public class AvroObject implements GenericRecord {
     private Schema avroSchema = null;
 
     public AvroObject(StructSchema schema, Map<?, ?> source) {
+        if (schema == null) {
+            throw FatalError.executionError("Can not create an AVRO object without schema");
+        }
         this.schema = schema;
         schema.fields().forEach(field -> put(field.name(), source.get(field.name())));
     }

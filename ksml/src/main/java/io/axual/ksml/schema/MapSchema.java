@@ -35,6 +35,15 @@ public class MapSchema extends DataSchema {
     }
 
     @Override
+    public boolean isAssignableFrom(DataSchema otherSchema) {
+        if (!super.isAssignableFrom(otherSchema)) return false;
+        if (!(otherSchema instanceof MapSchema otherMapSchema)) return false;
+        // This schema is assignable from the other schema when the value schema is assignable from
+        // the otherSchema's value schema.
+        return valueSchema.isAssignableFrom(otherMapSchema.valueSchema);
+    }
+
+    @Override
     public boolean equals(Object other) {
         if (!super.equals(other)) return false;
         if (this == other) return true;

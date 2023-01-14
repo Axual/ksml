@@ -162,9 +162,9 @@ functions:
       result = dict()
       result["city"] = city
       result["alertSettings"] = settings
-      result["@type"] = SensorAlertSettings
+      result["@type"] = "SensorAlertSettings"
     expression: (city,result)
-    resultType: (string,avro:SensorAlertSettings)
+    resultType: (string,json)
 
   generate_soap_message:
     type: generator

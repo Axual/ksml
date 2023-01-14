@@ -28,14 +28,6 @@ public class KSMLDataException extends KSMLExecutionException {
         return conversionFailed(valueType.toString(), variableType.toString());
     }
 
-    public static KSMLDataException conversionFailed(DataType variableType, Class<?> valueType) {
-        return conversionFailed(valueType.getSimpleName(), variableType.toString());
-    }
-
-    public static KSMLDataException conversionFailed(Class<?> fromType, Class<?> toType) {
-        return conversionFailed(fromType.getSimpleName(), toType.getSimpleName());
-    }
-
     public static KSMLDataException conversionFailed(String fromType, String toType) {
         return new KSMLDataException("Can not convert object from dataType \"" + fromType + "\" to \"" + toType + "\"");
     }
@@ -43,18 +35,6 @@ public class KSMLDataException extends KSMLExecutionException {
     public static KSMLDataException validationFailed(String key, Object value) {
         return new KSMLDataException("Field validation failed for key \"" + key + "\": value=" + value);
     }
-
-//    public static KSMLDataException unknownType(DataType type) {
-//        return unknownType(type.toString());
-//    }
-//
-//    public static KSMLDataException unknownType(Class<?> type) {
-//        return unknownType(type.getSimpleName());
-//    }
-//
-//    public static KSMLDataException unknownType(String type) {
-//        return new KSMLDataException("Unknown dataType: \"" + type + "\"");
-//    }
 
     public KSMLDataException(String message) {
         super(message);

@@ -23,12 +23,10 @@ package io.axual.ksml.schema;
 public record DataField(String name, DataSchema schema, String doc, DataValue defaultValue,
                         Order order) {
     public enum Order {
-        ASCENDING,
-        DESCENDING,
-        IGNORE;
+        ASCENDING, DESCENDING, IGNORE;
     }
 
     public boolean isAssignableFrom(DataField field) {
-        return schema.isAssignableFrom(field.schema);
+        return field != null && schema.isAssignableFrom(field.schema);
     }
 }

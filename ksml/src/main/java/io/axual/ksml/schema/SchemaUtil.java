@@ -41,16 +41,15 @@ import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.schema.mapper.WindowedSchemaMapper;
+
+import static io.axual.ksml.dsl.WindowedSchema.generateWindowedSchema;
 
 public class SchemaUtil {
-    private static final WindowedSchemaMapper mapper = new WindowedSchemaMapper();
-
     private SchemaUtil() {
     }
 
     public static DataSchema dataTypeToSchema(DataType type) {
-        if (type == DataType.UNKNOWN) return DataSchema.create(DataSchema.Type.NULL);
+        if (type == DataType.UNKNOWN) return AnySchema.INSTANCE;
         if (type == DataNull.DATATYPE) return DataSchema.create(DataSchema.Type.NULL);
         if (type == DataBoolean.DATATYPE) return DataSchema.create(DataSchema.Type.BOOLEAN);
         if (type == DataByte.DATATYPE) return DataSchema.create(DataSchema.Type.BYTE);
@@ -72,7 +71,7 @@ public class SchemaUtil {
         if (type instanceof MapType mapType)
             return new MapSchema(SchemaUtil.dataTypeToSchema(mapType.valueType()));
         if (type instanceof WindowedType windowedType)
-            return mapper.toDataSchema(windowedType);
+            return generateWindowedSchema(windowedType);
         if (type instanceof UnionType unionType) {
             var schemas = new DataSchema[unionType.possibleTypes().length];
             for (int index = 0; index < unionType.possibleTypes().length; index++) {
@@ -84,6 +83,8 @@ public class SchemaUtil {
     }
 
     public static DataType schemaToDataType(DataSchema schema) {
+        if (schema == null) return DataType.UNKNOWN;
+        if (schema.type() == DataSchema.Type.ANY) return DataType.UNKNOWN;
         if (schema.type() == DataSchema.Type.NULL) return DataNull.DATATYPE;
         if (schema.type() == DataSchema.Type.BOOLEAN) return DataBoolean.DATATYPE;
         if (schema.type() == DataSchema.Type.SHORT) return DataShort.DATATYPE;
@@ -97,14 +98,14 @@ public class SchemaUtil {
         if (schema instanceof EnumSchema enumSchema)
             return new EnumType(enumSchema.symbols().toArray(new String[0]));
         if (schema instanceof ListSchema listSchema)
-            return new ListType(schemaToDataType(listSchema.valueType()));
+            return new ListType(schemaToDataType(listSchema.valueSchema()));
         if (schema instanceof StructSchema structSchema) return new StructType(structSchema);
         if (schema instanceof MapSchema mapSchema)
             return new MapType(schemaToDataType(mapSchema.valueSchema()));
         if (schema instanceof UnionSchema unionSchema) {
-            var types = new UserType[unionSchema.possibleSchema().length];
-            for (int index = 0; index < unionSchema.possibleSchema().length; index++) {
-                types[index] = new UserType(UserType.DEFAULT_NOTATION, schemaToDataType(unionSchema.possibleSchema()[index]));
+            var types = new UserType[unionSchema.possibleSchemas().length];
+            for (int index = 0; index < unionSchema.possibleSchemas().length; index++) {
+                types[index] = new UserType(UserType.DEFAULT_NOTATION, schemaToDataType(unionSchema.possibleSchemas()[index]));
             }
             return new UnionType(types);
         }

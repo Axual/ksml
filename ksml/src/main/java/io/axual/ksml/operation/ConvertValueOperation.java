@@ -9,9 +9,9 @@ package io.axual.ksml.operation;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,46 +23,31 @@ package io.axual.ksml.operation;
 import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.ValueMapper;
 
-import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.object.DataStruct;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.util.DataUtil;
 
 public class ConvertValueOperation extends BaseOperation {
-    private final ValueConverter converter;
+    private final DataObjectConverter mapper;
     private final UserType targetType;
-
-    private static class ValueConverter implements ValueMapper<Object, Object> {
-        private final StructType targetStructType;
-
-        public ValueConverter(DataType toType) {
-            this.targetStructType = toType instanceof StructType structType ? structType : null;
-        }
-
-        @Override
-        public Object apply(Object value) {
-            var valueAsData = DataUtil.asDataObject(value);
-            if (valueAsData instanceof DataNull) return valueAsData;
-            if (targetStructType == null) return valueAsData;
-
-            var result = new DataStruct(targetStructType.schema());
-            result.putAll((DataStruct) value);
-            return result;
-        }
-    }
 
     public ConvertValueOperation(OperationConfig config, UserType targetType) {
         super(config);
+        this.mapper = new DataObjectConverter(notationLibrary);
         this.targetType = targetType;
-        converter = new ValueConverter(this.targetType.dataType());
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
+        // Set up the mapping function to convert the value
+        ValueMapper<Object, Object> converter = value -> {
+            var valueAsData = DataUtil.asDataObject(value);
+            return mapper.convert(input.valueType().userType().notation(), valueAsData, targetType);
+        };
+
+        // Inject the mapper into the topology
         return new KStreamWrapper(
                 input.stream.mapValues(converter, Named.as(name)),
                 input.keyType(),

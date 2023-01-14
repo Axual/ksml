@@ -24,19 +24,19 @@ import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.schema.DataField;
 
-import static io.axual.ksml.schema.structure.DataSchemaConstants.DATAFIELD_DEFAULT_VALUE_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.DATAFIELD_DOC_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.DATAFIELD_NAME_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.DATAFIELD_ORDER_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.DATA_FIELD_DEFAULT_VALUE_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.DATA_FIELD_DOC_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.DATA_FIELD_NAME_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.DATA_FIELD_ORDER_FIELD;
 
 public class DataFieldParser extends BaseParser<DataField> {
     @Override
     public DataField parse(YamlNode node) {
         return new DataField(
-                parseString(node, DATAFIELD_NAME_FIELD),
+                parseString(node, DATA_FIELD_NAME_FIELD),
                 new DataSchemaParser().parse(node),
-                parseString(node, DATAFIELD_DOC_FIELD),
-                new DataValueParser().parse(node.get(DATAFIELD_DEFAULT_VALUE_FIELD)),
-                new DataFieldOrderParser().parse(node.get(DATAFIELD_ORDER_FIELD)));
+                parseString(node, DATA_FIELD_DOC_FIELD),
+                new DataValueParser().parse(node.get(DATA_FIELD_DEFAULT_VALUE_FIELD)),
+                new DataFieldOrderParser().parse(node.get(DATA_FIELD_ORDER_FIELD)));
     }
 }

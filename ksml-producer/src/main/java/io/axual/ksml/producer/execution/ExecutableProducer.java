@@ -9,9 +9,9 @@ package io.axual.ksml.producer.execution;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutionException;
 
-import io.axual.ksml.data.mapper.CompatibilityMapper;
+import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.type.UserType;
@@ -46,7 +46,7 @@ public class ExecutableProducer {
     private final Serializer<Object> keySerializer;
     private final Serializer<Object> valueSerializer;
     private final NativeDataObjectMapper nativeMapper = new NativeDataObjectMapper();
-    private final CompatibilityMapper compatibilityMapper;
+    private final DataObjectConverter dataObjectConverter;
 
     public ExecutableProducer(NotationLibrary notationLibrary,
                               UserFunction generator,
@@ -55,7 +55,7 @@ public class ExecutableProducer {
                               UserType valueType,
                               Serializer<Object> keySerializer,
                               Serializer<Object> valueSerializer) {
-        this.compatibilityMapper = new CompatibilityMapper(notationLibrary);
+        this.dataObjectConverter = new DataObjectConverter(notationLibrary);
         this.generator = generator;
         this.topic = topic;
         this.keyType = keyType;
@@ -67,8 +67,8 @@ public class ExecutableProducer {
     public void produceMessage(Producer<byte[], byte[]> producer) {
         DataObject result = generator.call();
         if (result instanceof DataTuple tuple && tuple.size() == 2) {
-            var key = compatibilityMapper.toDataObject(keyType, tuple.get(0));
-            var value = compatibilityMapper.toDataObject(valueType, tuple.get(1));
+            var key = dataObjectConverter.convertTo(keyType, tuple.get(0));
+            var value = dataObjectConverter.convertTo(valueType, tuple.get(1));
             var okay = true;
 
             if (!keyType.dataType().isAssignableFrom(key.type())) {

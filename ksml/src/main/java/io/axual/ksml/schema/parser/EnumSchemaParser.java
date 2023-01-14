@@ -25,20 +25,20 @@ import io.axual.ksml.parser.ListParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.schema.EnumSchema;
 
-import static io.axual.ksml.schema.structure.DataSchemaConstants.ENUMSCHEMA_DEFAULTVALUE_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.ENUMSCHEMA_POSSIBLEVALUES_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.NAMEDSCHEMA_DOC_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.NAMEDSCHEMA_NAMESPACE_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.NAMEDSCHEMA_NAME_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.ENUM_SCHEMA_DEFAULTVALUE_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.ENUM_SCHEMA_POSSIBLEVALUES_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.NAMED_SCHEMA_DOC_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.NAMED_SCHEMA_NAMESPACE_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.NAMED_SCHEMA_NAME_FIELD;
 
 public class EnumSchemaParser extends BaseParser<EnumSchema> {
     @Override
     public EnumSchema parse(YamlNode node) {
         return new EnumSchema(
-                parseString(node, NAMEDSCHEMA_NAMESPACE_FIELD),
-                parseString(node, NAMEDSCHEMA_NAME_FIELD),
-                parseString(node, NAMEDSCHEMA_DOC_FIELD),
-                new ListParser<>(new SymbolParser()).parse(node.get(ENUMSCHEMA_POSSIBLEVALUES_FIELD)),
-                parseString(node, ENUMSCHEMA_DEFAULTVALUE_FIELD));
+                parseString(node, NAMED_SCHEMA_NAMESPACE_FIELD),
+                parseString(node, NAMED_SCHEMA_NAME_FIELD),
+                parseString(node, NAMED_SCHEMA_DOC_FIELD),
+                new ListParser<>(new SymbolParser()).parse(node.get(ENUM_SCHEMA_POSSIBLEVALUES_FIELD)),
+                parseString(node, ENUM_SCHEMA_DEFAULTVALUE_FIELD));
     }
 }

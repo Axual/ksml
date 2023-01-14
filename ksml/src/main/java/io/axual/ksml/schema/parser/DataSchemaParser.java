@@ -22,18 +22,21 @@ package io.axual.ksml.schema.parser;
 
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.schema.AnySchema;
 import io.axual.ksml.schema.DataSchema;
 
-import static io.axual.ksml.schema.structure.DataSchemaConstants.DATASCHEMA_TYPE_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.DATA_SCHEMA_TYPE_FIELD;
 
 public class DataSchemaParser extends BaseParser<DataSchema> {
     @Override
     public DataSchema parse(YamlNode node) {
-        var typeNode = node.isObject() ? node.get(DATASCHEMA_TYPE_FIELD) : node;
+        var typeNode = node.isObject() ? node.get(DATA_SCHEMA_TYPE_FIELD) : node;
         var parseNode = typeNode.isObject() || typeNode.isArray() ? typeNode : node;
         var schemaType = new DataSchemaTypeParser().parse(typeNode);
         return switch (schemaType) {
-            case NULL, BOOLEAN, BYTE, SHORT, INTEGER, LONG, FLOAT, DOUBLE, BYTES, STRING -> DataSchema.create(schemaType);
+            case ANY -> AnySchema.INSTANCE;
+            case NULL, BOOLEAN, BYTE, SHORT, INTEGER, LONG, FLOAT, DOUBLE, BYTES, STRING ->
+                    DataSchema.create(schemaType);
             case FIXED -> new FixedSchemaParser().parse(parseNode);
             case ENUM -> new EnumSchemaParser().parse(parseNode);
             case LIST -> new ListSchemaParser().parse(parseNode);

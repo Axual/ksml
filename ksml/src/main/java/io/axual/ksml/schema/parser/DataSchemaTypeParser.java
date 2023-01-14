@@ -25,14 +25,33 @@ import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.schema.DataSchema;
 
-import static io.axual.ksml.schema.structure.DataSchemaConstants.DATASCHEMA_TYPE_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.ANY_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.BOOLEAN_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.BYTES_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.BYTE_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.DATA_SCHEMA_TYPE_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.DOUBLE_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.ENUM_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.FIXED_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.FLOAT_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.INTEGER_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.INTEGER_TYPE_ALTERNATIVE;
+import static io.axual.ksml.dsl.DataSchemaDSL.LIST_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.LIST_TYPE_ALTERNATIVE;
+import static io.axual.ksml.dsl.DataSchemaDSL.LONG_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.MAP_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.NULL_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.SHORT_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.STRING_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.STRUCT_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.STRUCT_TYPE_ALTERNATIVE;
 
 public class DataSchemaTypeParser extends BaseParser<DataSchema.Type> {
     @Override
     public DataSchema.Type parse(YamlNode node) {
         if (node.isArray()) return DataSchema.Type.UNION;
         if (node.isObject()) {
-            var subtype = parseString(node, DATASCHEMA_TYPE_FIELD);
+            var subtype = parseString(node, DATA_SCHEMA_TYPE_FIELD);
             return parseType(node, subtype);
         }
         if (node.isString()) {
@@ -43,20 +62,22 @@ public class DataSchemaTypeParser extends BaseParser<DataSchema.Type> {
 
     private DataSchema.Type parseType(YamlNode node, String type) {
         return switch (type) {
-            case "null" -> DataSchema.Type.NULL;
-            case "byte" -> DataSchema.Type.BYTE;
-            case "short" -> DataSchema.Type.SHORT;
-            case "int", "integer" -> DataSchema.Type.INTEGER;
-            case "long" -> DataSchema.Type.LONG;
-            case "double" -> DataSchema.Type.DOUBLE;
-            case "float" -> DataSchema.Type.FLOAT;
-            case "bytes" -> DataSchema.Type.BYTES;
-            case "fixed" -> DataSchema.Type.FIXED;
-            case "string" -> DataSchema.Type.STRING;
-            case "enum" -> DataSchema.Type.ENUM;
-            case "array", "list" -> DataSchema.Type.LIST;
-            case "map" -> DataSchema.Type.MAP;
-            case "record", "struct" -> DataSchema.Type.STRUCT;
+            case ANY_TYPE -> DataSchema.Type.ANY;
+            case NULL_TYPE -> DataSchema.Type.NULL;
+            case BOOLEAN_TYPE -> DataSchema.Type.BOOLEAN;
+            case BYTE_TYPE -> DataSchema.Type.BYTE;
+            case SHORT_TYPE -> DataSchema.Type.SHORT;
+            case INTEGER_TYPE, INTEGER_TYPE_ALTERNATIVE -> DataSchema.Type.INTEGER;
+            case LONG_TYPE -> DataSchema.Type.LONG;
+            case DOUBLE_TYPE -> DataSchema.Type.DOUBLE;
+            case FLOAT_TYPE -> DataSchema.Type.FLOAT;
+            case BYTES_TYPE -> DataSchema.Type.BYTES;
+            case FIXED_TYPE -> DataSchema.Type.FIXED;
+            case STRING_TYPE -> DataSchema.Type.STRING;
+            case ENUM_TYPE -> DataSchema.Type.ENUM;
+            case LIST_TYPE, LIST_TYPE_ALTERNATIVE -> DataSchema.Type.LIST;
+            case MAP_TYPE -> DataSchema.Type.MAP;
+            case STRUCT_TYPE, STRUCT_TYPE_ALTERNATIVE -> DataSchema.Type.STRUCT;
             default -> canNotParse(node);
         };
     }

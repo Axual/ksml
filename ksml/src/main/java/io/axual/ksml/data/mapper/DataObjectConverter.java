@@ -50,58 +50,59 @@ import io.axual.ksml.schema.SchemaUtil;
 // created. It does so by converting numbers to strings, and vice versa. It can convert complex
 // data objects like Enums, Lists and Structs too, recursively going through sub-elements if
 // necessary.
-public class CompatibilityMapper {
+public class DataObjectConverter {
     private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
     private static final JsonDataObjectMapper JSON_MAPPER = new JsonDataObjectMapper();
     private final NotationLibrary notationLibrary;
 
-    public CompatibilityMapper(NotationLibrary notationLibrary) {
+    public DataObjectConverter(NotationLibrary notationLibrary) {
         this.notationLibrary = notationLibrary;
     }
 
-    public DataObject toDataObject(UserType expected, DataObject value) {
+    public DataObject convert(String sourceNotation, DataObject value, UserType targetType) {
         // If no conversion is possible or necessary, or the value type is already compatible with
         // the expected type, then just return the value object
-        if (expected == null || value == null || expected.dataType().isAssignableFrom(value.type()))
+        if (targetType == null || value == null || targetType.dataType().isAssignableFrom(value.type()))
             return value;
 
-        // If we have a notation library, then first run the object through the default parser.
-        // This enables amongst others String to XML parsing for automatic interpretation of
-        // complex types.
+        // First step is to use the converters from the notations to convert the type into the desired target type
+        value = applyNotationConverters(sourceNotation, value, targetType);
+
+        // Now that we have a parsed type, run it through the compatibility mapper
+        return convert(value, targetType.dataType());
+    }
+
+    private DataObject applyNotationConverters(String sourceNotation, DataObject value, UserType targetType) {
+        // If we have a notation library, then we can check if the notations have converters to translate the value
         if (notationLibrary != null) {
-            var parser = notationLibrary.getDefaultParser(expected.notation());
-            if (parser!=null) {
-                var nativeValue = NATIVE_MAPPER.fromDataObject(value);
-                var newValue = parser.parse(nativeValue);
-                if (newValue != null) value = newValue;
+            // First we see if the target notation is able to interpret the source value
+            var targetConverter = notationLibrary.getConverter(targetType.notation());
+            if (targetConverter != null) {
+                var target = targetConverter.convert(value, targetType);
+                if (target != null && targetType.dataType().isAssignableFrom(target.type())) return target;
+            }
+            var sourceConverter = notationLibrary.getConverter(sourceNotation);
+            if (sourceConverter != null) {
+                var target = sourceConverter.convert(value, targetType);
+                if (target != null && targetType.dataType().isAssignableFrom(target.type())) return target;
             }
         }
 
-        // Now that we have a parsed type, run it through the compatibility mapper
-        return toDataObject(expected.dataType(), value);
+        return value;
     }
 
-    public DataObject toDataObject(DataType expected, DataObject value) {
+    public DataObject convert(DataObject value, DataType targetType) {
         // Come up with default values if we convert from Null
         if (value == null || value instanceof DataNull)
-            return convertFromNull(expected);
-
-        // Convert from anything to String
-        if (expected == DataString.DATATYPE) return convertToString(value);
-
-        // Convert from Strings to anything
-        if (value instanceof DataString str) {
-            var converted = convertFromString(expected, str.value());
-            return converted != null ? converted : value;
-        }
+            return convertFromNull(targetType);
 
         // Convert list without a value type to a list with a specific value type
-        if (value instanceof DataList list && expected instanceof ListType listType) {
+        if (value instanceof DataList list && targetType instanceof ListType listType) {
             return convertList(listType, list);
         }
 
         // Convert from schemaless structs to a struct with a schema
-        if (value instanceof DataStruct struct && expected instanceof StructType structType) {
+        if (value instanceof DataStruct struct && targetType instanceof StructType structType) {
             return convertStruct(structType, struct);
         }
 
@@ -135,25 +136,6 @@ public class CompatibilityMapper {
         return new DataTuple(elements);
     }
 
-    private DataString convertToString(DataObject value) {
-        if (value instanceof DataList || value instanceof DataStruct)
-            return new DataString(JSON_MAPPER.fromDataObject(value));
-        return new DataString(value.toString());
-    }
-
-    private DataObject convertFromString(DataType expected, String value) {
-        if (expected == DataNull.DATATYPE) return DataNull.INSTANCE;
-        if (expected == DataByte.DATATYPE) return new DataByte(Byte.parseByte(value));
-        if (expected == DataShort.DATATYPE) return new DataShort(Short.parseShort(value));
-        if (expected == DataInteger.DATATYPE) return new DataInteger(Integer.parseInt(value));
-        if (expected == DataLong.DATATYPE) return new DataLong(Long.parseLong(value));
-        if (expected == DataFloat.DATATYPE) return new DataFloat(Float.parseFloat(value));
-        if (expected == DataDouble.DATATYPE) return new DataDouble(Double.parseDouble(value));
-        if (expected instanceof ListType || expected instanceof StructType)
-            return toDataObject(expected, JSON_MAPPER.toDataObject(value));
-        return null;
-    }
-
     private DataObject convertList(ListType expected, DataList value) {
         var valueType = expected.valueType();
 
@@ -165,7 +147,7 @@ public class CompatibilityMapper {
 
         // Copy all list elements into the new list, possibly making sub-elements compatible
         for (var element : value) {
-            result.add(toDataObject(valueType, element));
+            result.add(convert(element, valueType));
         }
 
         // Return the List with made-compatible elements
@@ -183,7 +165,7 @@ public class CompatibilityMapper {
         for (var entry : value.entrySet()) {
             var fieldName = entry.getKey();
             var fieldType = SchemaUtil.schemaToDataType(schema.field(fieldName).schema());
-            result.put(entry.getKey(), toDataObject(fieldType, entry.getValue()));
+            result.put(entry.getKey(), convert(entry.getValue(), fieldType));
         }
 
         // Return the Struct with compatible fields

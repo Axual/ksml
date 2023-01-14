@@ -31,14 +31,12 @@ import org.apache.kafka.streams.state.WindowStore;
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.definition.StoreDefinition;
 import io.axual.ksml.generator.StreamDataType;
-import io.axual.ksml.schema.mapper.WindowedSchemaMapper;
 import io.axual.ksml.store.GroupedRegistry;
 import io.axual.ksml.store.StoreRegistry;
 import io.axual.ksml.store.StoreType;
 import io.axual.ksml.store.StoreUtil;
 
 public class StoreOperation extends BaseOperation {
-    private static final WindowedSchemaMapper mapper = new WindowedSchemaMapper();
     protected final StoreDefinition store;
     protected final GroupedRegistry groupedRegistry;
     protected final StoreRegistry storeRegistry;

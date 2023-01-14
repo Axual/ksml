@@ -24,11 +24,11 @@ import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.schema.MapSchema;
 
-import static io.axual.ksml.schema.structure.DataSchemaConstants.MAPSCHEMA_VALUES_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.MAP_SCHEMA_VALUES_FIELD;
 
 public class MapSchemaParser extends BaseParser<MapSchema> {
     @Override
     public MapSchema parse(YamlNode node) {
-        return new MapSchema(new DataSchemaParser().parse(node.get(MAPSCHEMA_VALUES_FIELD)));
+        return new MapSchema(new DataSchemaParser().parse(node.get(MAP_SCHEMA_VALUES_FIELD)));
     }
 }

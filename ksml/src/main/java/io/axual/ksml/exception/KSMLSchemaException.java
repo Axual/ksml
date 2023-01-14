@@ -1,10 +1,10 @@
-package io.axual.ksml.schema.parser;
+package io.axual.ksml.exception;
 
 /*-
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2022 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,13 @@ package io.axual.ksml.schema.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.parser.BaseParser;
-import io.axual.ksml.parser.YamlNode;
-import io.axual.ksml.schema.ListSchema;
 
-import static io.axual.ksml.dsl.DataSchemaDSL.LIST_SCHEMA_VALUES_FIELD;
+public class KSMLSchemaException extends KSMLExecutionException {
+    public KSMLSchemaException(String message) {
+        super(message);
+    }
 
-public class ListSchemaParser extends BaseParser<ListSchema> {
-    @Override
-    public ListSchema parse(YamlNode node) {
-        return new ListSchema(new DataSchemaParser().parse(node.get(LIST_SCHEMA_VALUES_FIELD)));
+    public KSMLSchemaException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

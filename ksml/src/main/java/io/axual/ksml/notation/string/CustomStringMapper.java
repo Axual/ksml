@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.axual.ksml.exception.KSMLDataException;
+import io.axual.ksml.execution.FatalError;
 
 public class CustomStringMapper implements StringMapper<Object> {
     private static final TypeReference<List<Object>> listReference = new TypeReference<>() {
@@ -60,9 +61,9 @@ public class CustomStringMapper implements StringMapper<Object> {
     @Override
     public String toString(Object value) {
         try {
-            return mapper.writer().withRootName("object").writeValueAsString(value);
+            return mapper.writer().writeValueAsString(value);
         } catch (JsonProcessingException e) {
-            throw new KSMLDataException("Can not convert object to JSON: " + (value != null ? value.toString() : "null"), e);
+            throw FatalError.dataError("Can not convert object to JSON string: " + (value != null ? value.toString() : "null"), e);
         }
     }
 }

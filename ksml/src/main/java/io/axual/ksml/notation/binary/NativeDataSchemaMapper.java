@@ -39,21 +39,33 @@ import io.axual.ksml.schema.StructSchema;
 import io.axual.ksml.schema.UnionSchema;
 import io.axual.ksml.schema.parser.DataSchemaParser;
 
-import static io.axual.ksml.schema.structure.DataSchemaConstants.DATAFIELD_DEFAULT_VALUE_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.DATAFIELD_DOC_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.DATAFIELD_NAME_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.DATAFIELD_ORDER_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.DATAFIELD_SCHEMA_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.DATASCHEMA_TYPE_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.ENUMSCHEMA_DEFAULTVALUE_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.ENUMSCHEMA_POSSIBLEVALUES_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.FIXEDSCHEMA_SIZE_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.LISTSCHEMA_VALUES_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.MAPSCHEMA_VALUES_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.NAMEDSCHEMA_DOC_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.NAMEDSCHEMA_NAMESPACE_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.NAMEDSCHEMA_NAME_FIELD;
-import static io.axual.ksml.schema.structure.DataSchemaConstants.STRUCTSCHEMA_FIELDS_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.ANY_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.BOOLEAN_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.BYTES_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.BYTE_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.DATA_FIELD_DEFAULT_VALUE_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.DATA_FIELD_DOC_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.DATA_FIELD_NAME_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.DATA_FIELD_ORDER_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.DATA_FIELD_SCHEMA_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.DATA_SCHEMA_TYPE_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.DOUBLE_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.ENUM_SCHEMA_DEFAULTVALUE_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.ENUM_SCHEMA_POSSIBLEVALUES_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.FIXED_SCHEMA_SIZE_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.FIXED_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.FLOAT_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.INTEGER_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.LIST_SCHEMA_VALUES_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.LONG_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.MAP_SCHEMA_VALUES_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.NAMED_SCHEMA_DOC_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.NAMED_SCHEMA_NAMESPACE_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.NAMED_SCHEMA_NAME_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.NULL_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.SHORT_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.STRING_TYPE;
+import static io.axual.ksml.dsl.DataSchemaDSL.STRUCT_SCHEMA_FIELDS_FIELD;
 
 public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
     private static final DataSchemaParser PARSER = new DataSchemaParser();
@@ -70,38 +82,38 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
     public Object fromDataSchema(DataSchema schema) {
         if (schema instanceof UnionSchema unionSchema) {
             var result = new ArrayList<>();
-            for (DataSchema possibleSchema : unionSchema.possibleSchema())
+            for (DataSchema possibleSchema : unionSchema.possibleSchemas())
                 result.add(convertSchema(possibleSchema));
             return result;
         }
 
         var result = new HashMap<String, Object>();
-        result.put(DATASCHEMA_TYPE_FIELD, schema.type().toString().toLowerCase());
+        result.put(DATA_SCHEMA_TYPE_FIELD, schema.type().toString().toLowerCase());
         if (schema instanceof NamedSchema namedSchema)
             writeNamedSchemaToMap(result, namedSchema);
         if (schema instanceof ListSchema listSchema)
-            result.put(LISTSCHEMA_VALUES_FIELD, convertSchema(listSchema.valueType()));
+            result.put(LIST_SCHEMA_VALUES_FIELD, convertSchema(listSchema.valueSchema()));
         if (schema instanceof MapSchema mapSchema)
-            result.put(MAPSCHEMA_VALUES_FIELD, convertSchema(mapSchema.valueSchema()));
+            result.put(MAP_SCHEMA_VALUES_FIELD, convertSchema(mapSchema.valueSchema()));
         return result;
     }
 
     private void writeNamedSchemaToMap(Map<String, Object> result, NamedSchema namedSchema) {
         if (namedSchema.namespace() != null)
-            result.put(NAMEDSCHEMA_NAMESPACE_FIELD, namedSchema.namespace());
-        result.put(NAMEDSCHEMA_NAME_FIELD, namedSchema.name());
+            result.put(NAMED_SCHEMA_NAMESPACE_FIELD, namedSchema.namespace());
+        result.put(NAMED_SCHEMA_NAME_FIELD, namedSchema.name());
         if (namedSchema.doc() != null)
-            result.put(NAMEDSCHEMA_DOC_FIELD, namedSchema.doc());
+            result.put(NAMED_SCHEMA_DOC_FIELD, namedSchema.doc());
         if (namedSchema instanceof EnumSchema enumSchema) {
-            result.put(ENUMSCHEMA_POSSIBLEVALUES_FIELD, enumSchema.symbols());
+            result.put(ENUM_SCHEMA_POSSIBLEVALUES_FIELD, enumSchema.symbols());
             if (enumSchema.defaultValue() != null)
-                result.put(ENUMSCHEMA_DEFAULTVALUE_FIELD, enumSchema.defaultValue());
+                result.put(ENUM_SCHEMA_DEFAULTVALUE_FIELD, enumSchema.defaultValue());
         }
         if (namedSchema instanceof FixedSchema fixedSchema)
-            result.put(FIXEDSCHEMA_SIZE_FIELD, fixedSchema.size());
+            result.put(FIXED_SCHEMA_SIZE_FIELD, fixedSchema.size());
         if (namedSchema instanceof StructSchema structSchema) {
             var fields = new ArrayList<Map<String, Object>>();
-            result.put(STRUCTSCHEMA_FIELDS_FIELD, fields);
+            result.put(STRUCT_SCHEMA_FIELDS_FIELD, fields);
             for (DataField field : structSchema.fields()) {
                 fields.add(convertField(field));
             }
@@ -109,20 +121,32 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
     }
 
     private Object convertSchema(DataSchema schema) {
+        if (schema == null) return null;
         return switch (schema.type()) {
-            case NULL, BYTE, SHORT, INTEGER, LONG, DOUBLE, FLOAT, BYTES, STRING -> schema.type().toString().toLowerCase();
+            case ANY -> ANY_TYPE;
+            case NULL -> NULL_TYPE;
+            case BOOLEAN -> BOOLEAN_TYPE;
+            case BYTE -> BYTE_TYPE;
+            case SHORT -> SHORT_TYPE;
+            case INTEGER -> INTEGER_TYPE;
+            case LONG -> LONG_TYPE;
+            case DOUBLE -> DOUBLE_TYPE;
+            case FLOAT -> FLOAT_TYPE;
+            case BYTES -> BYTES_TYPE;
+            case FIXED -> FIXED_TYPE;
+            case STRING -> STRING_TYPE;
             default -> fromDataSchema(schema);
         };
     }
 
     private Map<String, Object> convertField(DataField field) {
         var result = new HashMap<String, Object>();
-        result.put(DATAFIELD_NAME_FIELD, field.name());
-        result.put(DATAFIELD_DOC_FIELD, field.doc());
-        result.put(DATAFIELD_SCHEMA_FIELD, convertSchema(field.schema()));
+        result.put(DATA_FIELD_NAME_FIELD, field.name());
+        result.put(DATA_FIELD_DOC_FIELD, field.doc());
+        result.put(DATA_FIELD_SCHEMA_FIELD, convertSchema(field.schema()));
         if (field.defaultValue() != null)
-            encodeDefaultValue(result, DATAFIELD_DEFAULT_VALUE_FIELD, field.defaultValue());
-        result.put(DATAFIELD_ORDER_FIELD, field.order().toString());
+            encodeDefaultValue(result, DATA_FIELD_DEFAULT_VALUE_FIELD, field.defaultValue());
+        result.put(DATA_FIELD_ORDER_FIELD, field.order().toString());
         return result;
     }
 

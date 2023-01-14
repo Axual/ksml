@@ -9,9 +9,9 @@ package io.axual.ksml.parser;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,24 +21,8 @@ package io.axual.ksml.parser;
  */
 
 
-import io.axual.ksml.data.object.DataBoolean;
-import io.axual.ksml.data.object.DataByte;
-import io.axual.ksml.data.object.DataBytes;
-import io.axual.ksml.data.object.DataDouble;
-import io.axual.ksml.data.object.DataFloat;
-import io.axual.ksml.data.object.DataInteger;
-import io.axual.ksml.data.object.DataLong;
-import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.object.DataShort;
-import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.EnumType;
-import io.axual.ksml.data.type.ListType;
-import io.axual.ksml.data.type.StructType;
-import io.axual.ksml.data.type.UnionType;
-import io.axual.ksml.data.type.UserTupleType;
-import io.axual.ksml.data.type.UserType;
-import io.axual.ksml.data.type.WindowedType;
+import io.axual.ksml.data.object.*;
+import io.axual.ksml.data.type.*;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.notation.avro.AvroNotation;
@@ -164,27 +148,37 @@ public class UserTypeParser {
 
         // AVRO without schema
         if (type.equalsIgnoreCase(AvroNotation.NOTATION_NAME)) {
-            return new UserType(AvroNotation.NOTATION_NAME, new StructType());
+            return new UserType(AvroNotation.NOTATION_NAME, AvroNotation.DEFAULT_TYPE);
         }
 
-        // JSON with schema
+        // JSON with schema (not implemented yet)
         if (typeNotation.equalsIgnoreCase(JsonNotation.NOTATION_NAME)) {
-            return new UserType(JsonNotation.NOTATION_NAME, new StructType());
+            return new UserType(JsonNotation.NOTATION_NAME, JsonNotation.DEFAULT_TYPE);
         }
 
         // JSON without schema
         if (type.equalsIgnoreCase(JsonNotation.NOTATION_NAME)) {
-            return new UserType(JsonNotation.NOTATION_NAME, new StructType());
+            return new UserType(JsonNotation.NOTATION_NAME, JsonNotation.DEFAULT_TYPE);
         }
 
         // SOAP without schema
         if (type.equalsIgnoreCase(SOAPNotation.NOTATION_NAME)) {
-            return new UserType(SOAPNotation.NOTATION_NAME, new StructType());
+            return new UserType(SOAPNotation.NOTATION_NAME, SOAPNotation.DEFAULT_TYPE);
+        }
+
+        // SOAP with schema (not implemented yet)
+        if (typeNotation.equalsIgnoreCase(SOAPNotation.NOTATION_NAME)) {
+            return new UserType(SOAPNotation.NOTATION_NAME, SOAPNotation.DEFAULT_TYPE);
         }
 
         // XML without schema
         if (type.equalsIgnoreCase(XmlNotation.NOTATION_NAME)) {
-            return new UserType(XmlNotation.NOTATION_NAME, new StructType());
+            return new UserType(XmlNotation.NOTATION_NAME, XmlNotation.DEFAULT_TYPE);
+        }
+
+        // XML with schema (not implemented yet)
+        if (typeNotation.equalsIgnoreCase(XmlNotation.NOTATION_NAME)) {
+            return new UserType(XmlNotation.NOTATION_NAME, XmlNotation.DEFAULT_TYPE);
         }
 
         return new UserType(resultNotation, parseType(type));

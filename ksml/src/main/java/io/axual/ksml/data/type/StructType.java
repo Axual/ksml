@@ -9,9 +9,9 @@ package io.axual.ksml.data.type;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,7 +30,7 @@ public class StructType extends MapType {
     private final StructSchema schema;
 
     public StructType() {
-        this((String) null);
+        this(null, null);
     }
 
     public StructType(StructSchema schema) {
@@ -43,7 +43,7 @@ public class StructType extends MapType {
 
     private StructType(String name, StructSchema schema) {
         super(DataType.UNKNOWN);
-        this.name = name != null ? name : DEFAULT_NAME;
+        this.name = name != null && !name.isEmpty() ? name : DEFAULT_NAME;
         this.schema = schema;
     }
 
@@ -62,7 +62,7 @@ public class StructType extends MapType {
 
     @Override
     public String schemaName() {
-        return schema != null ? schema.name() : "";
+        return schema != null ? schema.name() : name;
     }
 
     @Override

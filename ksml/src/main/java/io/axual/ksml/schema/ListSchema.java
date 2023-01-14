@@ -25,13 +25,24 @@ import java.util.Objects;
 public class ListSchema extends DataSchema {
     private final DataSchema valueSchema;
 
-    public ListSchema(DataSchema valueType) {
+    public ListSchema(DataSchema valueSchema) {
         super(Type.LIST);
-        this.valueSchema = valueType;
+        this.valueSchema = valueSchema;
     }
 
-    public DataSchema valueType() {
+    public DataSchema valueSchema() {
         return valueSchema;
+    }
+
+    @Override
+    public boolean isAssignableFrom(DataSchema otherSchema) {
+        if (!super.isAssignableFrom(otherSchema)) return false;
+        if (!(otherSchema instanceof ListSchema otherListSchema)) return false;
+        // If the value schema is null, then any schema can be assigned.
+        if (valueSchema == null) return true;
+        // This schema is assignable from the other schema when the value schema is assignable from
+        // the otherSchema's value schema.
+        return valueSchema.isAssignableFrom(otherListSchema.valueSchema);
     }
 
     @Override

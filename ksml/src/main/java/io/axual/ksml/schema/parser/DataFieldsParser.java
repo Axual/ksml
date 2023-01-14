@@ -27,11 +27,11 @@ import io.axual.ksml.parser.ListParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.schema.DataField;
 
-import static io.axual.ksml.schema.structure.DataSchemaConstants.STRUCTSCHEMA_FIELDS_FIELD;
+import static io.axual.ksml.dsl.DataSchemaDSL.STRUCT_SCHEMA_FIELDS_FIELD;
 
 public class DataFieldsParser extends BaseParser<List<DataField>> {
     @Override
     public List<DataField> parse(YamlNode node) {
-        return new ListParser<>(new DataFieldParser()).parse(node.get(STRUCTSCHEMA_FIELDS_FIELD, "field"));
+        return new ListParser<>(new DataFieldParser()).parse(node.get(STRUCT_SCHEMA_FIELDS_FIELD, "field"));
     }
 }

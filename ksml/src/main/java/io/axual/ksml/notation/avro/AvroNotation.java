@@ -9,9 +9,9 @@ package io.axual.ksml.notation.avro;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,6 +20,14 @@ package io.axual.ksml.notation.avro;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.MapType;
+import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.notation.Notation;
+import io.axual.ksml.util.DataUtil;
+import io.confluent.kafka.serializers.KafkaAvroDeserializer;
+import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
@@ -27,16 +35,9 @@ import org.apache.kafka.common.serialization.Serializer;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.MapType;
-import io.axual.ksml.execution.FatalError;
-import io.axual.ksml.notation.Notation;
-import io.axual.ksml.util.DataUtil;
-import io.confluent.kafka.serializers.KafkaAvroDeserializer;
-import io.confluent.kafka.serializers.KafkaAvroSerializer;
-
 public class AvroNotation implements Notation {
     public static final String NOTATION_NAME = "AVRO";
+    public static final DataType DEFAULT_TYPE = new StructType();
     private static final AvroDataMapper mapper = new AvroDataMapper();
     private final Map<String, Object> configs = new HashMap<>();
 

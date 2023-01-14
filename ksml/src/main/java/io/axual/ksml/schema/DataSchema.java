@@ -30,6 +30,8 @@ import io.axual.ksml.exception.KSMLExecutionException;
 // Generic internal schema class
 public class DataSchema {
     public enum Type {
+        ANY,
+
         NULL,
 
         BOOLEAN,

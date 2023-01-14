@@ -35,6 +35,15 @@ public class FixedSchema extends NamedSchema {
     }
 
     @Override
+    public boolean isAssignableFrom(DataSchema otherSchema) {
+        if (!super.isAssignableFrom(otherSchema)) return false;
+        if (!(otherSchema instanceof FixedSchema otherFixedSchema)) return false;
+        // This schema is assignable from the other schema when the maximum size is greater or
+        // equal than the other schema's maximum size.
+        return size >= otherFixedSchema.size;
+    }
+
+    @Override
     public boolean equals(Object other) {
         if (!super.equals(other)) return false;
         return size == ((FixedSchema) other).size;
