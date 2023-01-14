@@ -20,11 +20,6 @@ package io.axual.ksml.notation.binary;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
@@ -55,10 +50,20 @@ import io.axual.ksml.schema.SchemaLibrary;
 import io.axual.ksml.schema.SchemaUtil;
 import io.axual.ksml.schema.StructSchema;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     public static final String STRUCT_SCHEMA_FIELD = DataStruct.META_ATTRIBUTE_CHAR + "schema";
     public static final String STRUCT_TYPE_FIELD = DataStruct.META_ATTRIBUTE_CHAR + "type";
     private static final NativeDataSchemaMapper SCHEMA_MAPPER = new NativeDataSchemaMapper();
+    private boolean includeTypeInfo = true;
+
+    public void setIncludeTypeInfo(boolean includeTypeInfo) {
+        this.includeTypeInfo = includeTypeInfo;
+    }
 
     public DataObject toDataObject(DataType expected, Object value) {
         if (value == null) return DataNull.INSTANCE;
@@ -233,7 +238,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
 
         // Convert schema to native format by encoding it in meta fields
         var schema = struct.type().schema();
-        if (schema != null) {
+        if (schema != null && includeTypeInfo) {
             result.put(STRUCT_TYPE_FIELD, schema.name());
             result.put(STRUCT_SCHEMA_FIELD, SCHEMA_MAPPER.fromDataSchema(schema));
         }

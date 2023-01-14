@@ -10,10 +10,10 @@ ksml:
 #    - 04-demo-branch.yaml
 #    - 05-demo-dynamicrouting.yaml
 #    - 06-demo-double.yaml
-    - 07-demo-convert.yaml
+#    - 07-demo-convert.yaml
 #    - 08-demo-count.yaml
 #    - 09-demo-aggregate.yaml
-#    - 10-demo-queryabletable.yaml
+    - 10-demo-queryabletable.yaml
 #    - 11-demo-fieldmodification.yaml
 #    - 12-demo-bytemanipulation.yaml
 #    - 13-demo-join.yaml

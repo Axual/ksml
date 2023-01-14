@@ -9,9 +9,9 @@ package io.axual.ksml.rest.data;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,15 +20,21 @@ package io.axual.ksml.rest.data;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.notation.binary.NativeDataObjectMapper;
 import io.axual.ksml.util.DataUtil;
 
 public class KeyValueBean {
-    public final DataObject key;
-    public final DataObject value;
+    private static final NativeDataObjectMapper MAPPER = new NativeDataObjectMapper();
+
+    static {
+        MAPPER.setIncludeTypeInfo(false);
+    }
+
+    public final Object key;
+    public final Object value;
 
     public KeyValueBean(Object key, Object value) {
-        this.key = DataUtil.asDataObject(key);
-        this.value = DataUtil.asDataObject(value);
+        this.key = MAPPER.fromDataObject(DataUtil.asDataObject(key));
+        this.value = MAPPER.fromDataObject(DataUtil.asDataObject(value));
     }
 }
