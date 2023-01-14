@@ -20,15 +20,6 @@ package io.axual.ksml;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.avro.JsonProperties;
-import org.apache.avro.generic.GenericRecord;
-import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serializer;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.exception.KSMLExecutionException;
@@ -39,6 +30,14 @@ import io.axual.ksml.schema.DataSchema;
 import io.axual.ksml.serde.UnknownTypeSerde;
 import io.axual.ksml.util.DataUtil;
 import io.axual.streams.proxy.axual.AxualSerdeConfig;
+import org.apache.avro.JsonProperties;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serializer;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class AxualAvroNotation implements Notation {
     private static final AvroDataMapper AVRO_MAPPER = new AvroDataMapper();

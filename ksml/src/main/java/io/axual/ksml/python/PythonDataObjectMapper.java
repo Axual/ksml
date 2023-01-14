@@ -20,35 +20,15 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
-import org.graalvm.polyglot.Value;
-
-import java.util.Map;
-
-import io.axual.ksml.data.object.DataBoolean;
-import io.axual.ksml.data.object.DataByte;
-import io.axual.ksml.data.object.DataBytes;
-import io.axual.ksml.data.object.DataDouble;
-import io.axual.ksml.data.object.DataFloat;
-import io.axual.ksml.data.object.DataInteger;
-import io.axual.ksml.data.object.DataList;
-import io.axual.ksml.data.object.DataLong;
-import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataShort;
-import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.object.DataStruct;
-import io.axual.ksml.data.object.DataTuple;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.ListType;
-import io.axual.ksml.data.type.MapType;
-import io.axual.ksml.data.type.StructType;
-import io.axual.ksml.data.type.TupleType;
-import io.axual.ksml.data.type.UnionType;
-import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.data.object.*;
+import io.axual.ksml.data.type.*;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.notation.binary.NativeDataObjectMapper;
 import io.axual.ksml.util.ExecutionUtil;
+import org.graalvm.polyglot.Value;
+
+import java.util.Map;
 
 public class PythonDataObjectMapper extends NativeDataObjectMapper {
     @Override
@@ -94,7 +74,7 @@ public class PythonDataObjectMapper extends NativeDataObjectMapper {
         }
 
         // By default, try to decode a dict as a struct
-        if (expected == null || expected instanceof MapType) {
+        if (expected == null || expected instanceof MapType || expected.isAssignableFrom(new StructType())) {
             var result = mapToNative(expected, object);
             if (result != null) return result;
         }

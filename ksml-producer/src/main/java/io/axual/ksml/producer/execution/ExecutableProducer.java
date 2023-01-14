@@ -20,14 +20,6 @@ package io.axual.ksml.producer.execution;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.serialization.Serializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.ExecutionException;
-
 import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataTuple;
@@ -36,6 +28,15 @@ import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.notation.binary.NativeDataObjectMapper;
 import io.axual.ksml.user.UserFunction;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.Serializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.ExecutionException;
+
+import static io.axual.ksml.data.type.UserType.DEFAULT_NOTATION;
 
 public class ExecutableProducer {
     private static final Logger LOG = LoggerFactory.getLogger(ExecutableProducer.class);
@@ -67,8 +68,8 @@ public class ExecutableProducer {
     public void produceMessage(Producer<byte[], byte[]> producer) {
         DataObject result = generator.call();
         if (result instanceof DataTuple tuple && tuple.size() == 2) {
-            var key = dataObjectConverter.convertTo(keyType, tuple.get(0));
-            var value = dataObjectConverter.convertTo(valueType, tuple.get(1));
+            var key = dataObjectConverter.convert(DEFAULT_NOTATION, tuple.get(0), keyType);
+            var value = dataObjectConverter.convert(DEFAULT_NOTATION, tuple.get(1), valueType);
             var okay = true;
 
             if (!keyType.dataType().isAssignableFrom(key.type())) {

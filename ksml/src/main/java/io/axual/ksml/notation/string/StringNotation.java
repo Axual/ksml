@@ -20,18 +20,12 @@ package io.axual.ksml.notation.string;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serializer;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
-
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.notation.Notation;
 import io.axual.ksml.util.DataUtil;
+import org.apache.kafka.common.serialization.*;
 
 public abstract class StringNotation implements Notation {
     private final StringSerde serde = new StringSerde();
@@ -43,8 +37,11 @@ public abstract class StringNotation implements Notation {
 
     @Override
     public Serde<Object> getSerde(DataType type, boolean isKey) {
-        if (type instanceof MapType) return serde;
-        throw FatalError.dataError(name() + " serde not found for data type " + type);
+        return serde;
+    }
+
+    protected RuntimeException noSerdeFor(DataType type) {
+        return FatalError.executionError(name() + " serde not found for data type: " + type);
     }
 
     private class StringSerde implements Serde<Object> {

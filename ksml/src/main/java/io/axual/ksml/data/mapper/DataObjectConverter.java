@@ -9,9 +9,9 @@ package io.axual.ksml.data.mapper;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -41,6 +41,7 @@ import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLExecutionException;
+import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.notation.binary.NativeDataObjectMapper;
 import io.axual.ksml.notation.json.JsonDataObjectMapper;
@@ -66,10 +67,17 @@ public class DataObjectConverter {
             return value;
 
         // First step is to use the converters from the notations to convert the type into the desired target type
-        value = applyNotationConverters(sourceNotation, value, targetType);
+        var convertedValue = applyNotationConverters(sourceNotation, value, targetType);
 
-        // Now that we have a parsed type, run it through the compatibility mapper
-        return convert(value, targetType.dataType());
+        // If the notation conversion was good enough, then return that result
+        if (targetType.dataType().isAssignableFrom(value)) return convertedValue;
+
+        // As a final attempt to convert to the right type, run it through the compatibility converter
+        convertedValue = convert(convertedValue, targetType.dataType());
+        if (convertedValue != null) return convertedValue;
+
+        // We can't perform the conversion, so report a fatal error
+        throw FatalError.dataError("Can not convert value to " + targetType + ": " + value);
     }
 
     private DataObject applyNotationConverters(String sourceNotation, DataObject value, UserType targetType) {
@@ -92,9 +100,22 @@ public class DataObjectConverter {
     }
 
     public DataObject convert(DataObject value, DataType targetType) {
+        // If we're already compatible with the target type, then return the value itself. This line is here mainly
+        // for recursive calls from lists and maps.
+        if (targetType.isAssignableFrom(value)) return value;
+
         // Come up with default values if we convert from Null
         if (value == null || value instanceof DataNull)
             return convertFromNull(targetType);
+
+        // Convert from anything to String
+        if (targetType == DataString.DATATYPE) return convertToString(value);
+
+        // Convert from Strings to anything
+        if (value instanceof DataString str) {
+            var converted = convertFromString(targetType, str.value());
+            return converted != null ? converted : value;
+        }
 
         // Convert list without a value type to a list with a specific value type
         if (value instanceof DataList list && targetType instanceof ListType listType) {
@@ -134,6 +155,28 @@ public class DataObjectConverter {
         for (int index = 0; index < elements.length; index++)
             elements[index] = convertFromNull(tupleType.subType(index));
         return new DataTuple(elements);
+    }
+
+    private DataString convertToString(DataObject value) {
+        if (value instanceof DataNull) return new DataString(null);
+        if (value instanceof DataByte val) return new DataString("" + val);
+        if (value instanceof DataShort val) return new DataString("" + val);
+        if (value instanceof DataInteger val) return new DataString("" + val);
+        if (value instanceof DataLong val) return new DataString("" + val);
+        if (value instanceof DataDouble val) return new DataString("" + val);
+        if (value instanceof DataFloat val) return new DataString("" + val);
+        return new DataString(value.toString());
+    }
+
+    private DataObject convertFromString(DataType expected, String value) {
+        if (expected == DataNull.DATATYPE) return DataNull.INSTANCE;
+        if (expected == DataByte.DATATYPE) return new DataByte(Byte.parseByte(value));
+        if (expected == DataShort.DATATYPE) return new DataShort(Short.parseShort(value));
+        if (expected == DataInteger.DATATYPE) return new DataInteger(Integer.parseInt(value));
+        if (expected == DataLong.DATATYPE) return new DataLong(Long.parseLong(value));
+        if (expected == DataFloat.DATATYPE) return new DataFloat(Float.parseFloat(value));
+        if (expected == DataDouble.DATATYPE) return new DataDouble(Double.parseDouble(value));
+        return null;
     }
 
     private DataObject convertList(ListType expected, DataList value) {
