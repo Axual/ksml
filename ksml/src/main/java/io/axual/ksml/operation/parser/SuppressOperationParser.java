@@ -25,7 +25,6 @@ import org.apache.kafka.streams.kstream.Suppressed;
 
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.operation.SuppressOperation;
-import io.axual.ksml.parser.OperationParser;
 import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 

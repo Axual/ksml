@@ -12,10 +12,12 @@
 
     <artifactId>ksml</artifactId>
     <name>KSML</name>
-    <description>The core components for parsing and executing a KSML definition to a Kafka Streams topology</description>
+    <description>The core components for parsing and executing a KSML definition to a Kafka Streams topology
+    </description>
 
     <properties>
-        <sonar.coverage.jacoco.xmlReportPaths>../ksml-reporting/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.coverage.jacoco.xmlReportPaths>../ksml-reporting/target/site/jacoco-aggregate/jacoco.xml
+        </sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <dependencies>
@@ -42,6 +44,10 @@
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.networknt</groupId>
+            <artifactId>json-schema-validator</artifactId>
         </dependency>
         <dependency>
             <groupId>jakarta.xml.soap</groupId>

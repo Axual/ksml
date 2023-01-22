@@ -26,7 +26,6 @@ import io.axual.ksml.definition.parser.ValueJoinerDefinitionParser;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.operation.JoinOperation;
 import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.parser.StoreOperationParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.stream.GlobalKTableWrapper;
 import io.axual.ksml.stream.KStreamWrapper;

@@ -26,7 +26,7 @@ import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.notation.Notation;
 import io.axual.ksml.notation.avro.AvroDataMapper;
 import io.axual.ksml.notation.avro.AvroNotation;
-import io.axual.ksml.schema.DataSchema;
+import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.serde.UnknownTypeSerde;
 import io.axual.ksml.util.DataUtil;
 import io.axual.streams.proxy.axual.AxualSerdeConfig;

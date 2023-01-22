@@ -55,7 +55,7 @@ public class JsonNotation extends StringNotation {
 
     @Override
     public Serde<Object> getSerde(DataType type, boolean isKey) {
-        // JSON types can either be Map (or Struct), or List, or the standard type (Union of Struct and List)
+        // JSON types can either be Map (or Struct), or List, or the union type of both Struct and List
         if (type instanceof MapType || type instanceof ListType || JsonNotation.DEFAULT_TYPE.isAssignableFrom(type))
             return super.getSerde(type, isKey);
         // Other types can not be serialized as JSON

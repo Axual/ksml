@@ -46,8 +46,8 @@ import io.axual.ksml.definition.parser.TableDefinitionParser;
 import io.axual.ksml.definition.parser.TypedFunctionDefinitionParser;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.parser.MapParser;
-import io.axual.ksml.parser.StreamOperation;
-import io.axual.ksml.parser.TopologyParseContext;
+import io.axual.ksml.operation.StreamOperation;
+import io.axual.ksml.parser.topology.TopologyParseContext;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.stream.StreamWrapper;
 

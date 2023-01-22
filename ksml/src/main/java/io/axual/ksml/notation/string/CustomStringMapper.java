@@ -20,24 +20,17 @@ package io.axual.ksml.notation.string;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.util.List;
-import java.util.Map;
-
 import io.axual.ksml.exception.KSMLDataException;
 import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.notation.binary.NativeJsonNodeMapper;
+
+import java.io.IOException;
+import java.io.StringWriter;
 
 public class CustomStringMapper implements StringMapper<Object> {
-    private static final TypeReference<List<Object>> listReference = new TypeReference<>() {
-    };
-    private static final TypeReference<Map<String, Object>> mapReference = new TypeReference<>() {
-    };
-    private static final TypeReference<Object> objectReference = new TypeReference<>() {
-    };
     protected final ObjectMapper mapper;
+    private static final NativeJsonNodeMapper NATIVE_MAPPER = new NativeJsonNodeMapper();
 
     public CustomStringMapper(ObjectMapper mapper) {
         this.mapper = mapper;
@@ -46,23 +39,20 @@ public class CustomStringMapper implements StringMapper<Object> {
     @Override
     public Object fromString(String value) {
         try {
-            // Try to parse as an object and return as Map<String,Object>
-            return mapper.readValue(value, mapReference);
+            var tree = mapper.readTree(value);
+            return NATIVE_MAPPER.fromJsonNode(tree);
         } catch (Exception mapException) {
-            try {
-                // Try to parse as an array and return as List<String>
-                return mapper.readValue(value, listReference);
-            } catch (Exception listException) {
-                throw new KSMLDataException("Could not parse string to object: " + (value != null ? value : "null"));
-            }
+            throw new KSMLDataException("Could not parse string to object: " + (value != null ? value : "null"));
         }
     }
 
     @Override
     public String toString(Object value) {
         try {
-            return mapper.writer().writeValueAsString(value);
-        } catch (JsonProcessingException e) {
+            final var writer = new StringWriter();
+            mapper.writeTree(mapper.createGenerator(writer), NATIVE_MAPPER.toJsonNode(value));
+            return writer.toString();
+        } catch (IOException e) {
             throw FatalError.dataError("Can not convert object to JSON string: " + (value != null ? value.toString() : "null"), e);
         }
     }

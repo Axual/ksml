@@ -29,8 +29,8 @@ import java.util.Map;
 import java.util.Properties;
 
 import io.axual.ksml.generator.TopologyGeneratorImpl;
-import io.axual.ksml.notation.avro.AvroSchemaLoader;
-import io.axual.ksml.schema.SchemaLibrary;
+import io.axual.ksml.notation.avroschema.AvroSchemaLoader;
+import io.axual.ksml.data.schema.SchemaLibrary;
 
 /**
  * Generates a Kafka Streams topology based on a KSML config file.

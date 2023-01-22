@@ -27,7 +27,7 @@ import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.exception.KSMLDataException;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.notation.xml.XmlDataObjectMapper;
-import io.axual.ksml.schema.AnySchema;
+import io.axual.ksml.data.schema.AnySchema;
 import jakarta.xml.soap.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

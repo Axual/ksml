@@ -21,8 +21,8 @@ package io.axual.ksml.notation.xml;
  */
 
 import io.axual.ksml.execution.FatalError;
-import io.axual.ksml.schema.DataSchema;
-import io.axual.ksml.schema.SchemaLibrary;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.SchemaLibrary;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

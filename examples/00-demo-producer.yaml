@@ -17,6 +17,10 @@ streams:
     topic: ksml_soap
     keyType: string
     valueType: soap
+  xsd_source:
+    topic: ksml_xsd
+    keyType: string
+    valueType: xsd
 
 functions:
   generate_sensordata_message:
@@ -179,6 +183,39 @@ functions:
     expression: (key,value)
     resultType: (string,soap)
 
+  generate_xsd_message:
+    type: generator
+    code: |
+      key = "dummy"
+      value="""<?xml version="1.0"?>
+      <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+      <xs:element name="noteOne">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="to" type="xs:string"/>
+            <xs:element name="from" type="xs:string"/>
+            <xs:element name="heading" type="xs:string"/>
+            <xs:element name="body" type="xs:string"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+
+      <xs:element name="noteTwo">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="to" type="xs:string"/>
+            <xs:element name="from" type="xs:string"/>
+            <xs:element name="heading" type="xs:string"/>
+            <xs:element name="body" type="xs:string"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+
+      </xs:schema>"""
+    expression: (key,value)
+    resultType: (string,string)
+
 producers:
   sensordata_alert_producer:
     generator: generate_sensor_alert_message
@@ -199,3 +236,8 @@ producers:
     generator: generate_soap_message2
     interval: 777
     to: soap_source
+
+  xsd_producer:
+    generator: generate_xsd_message
+    interval: 1000
+    to: xsd_source

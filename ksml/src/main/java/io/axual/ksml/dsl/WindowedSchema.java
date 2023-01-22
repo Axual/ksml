@@ -24,10 +24,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.axual.ksml.data.type.WindowedType;
-import io.axual.ksml.schema.DataField;
-import io.axual.ksml.schema.DataSchema;
-import io.axual.ksml.schema.SchemaUtil;
-import io.axual.ksml.schema.StructSchema;
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.SchemaUtil;
+import io.axual.ksml.data.schema.StructSchema;
 
 public class WindowedSchema {
     private WindowedSchema() {

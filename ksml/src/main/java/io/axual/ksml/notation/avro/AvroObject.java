@@ -20,6 +20,7 @@ package io.axual.ksml.notation.avro;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.notation.avroschema.AvroSchemaMapper;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
@@ -29,8 +30,8 @@ import java.util.Map;
 
 import io.axual.ksml.exception.KSMLDataException;
 import io.axual.ksml.execution.FatalError;
-import io.axual.ksml.schema.DataSchema;
-import io.axual.ksml.schema.StructSchema;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.StructSchema;
 
 public class AvroObject implements GenericRecord {
     private static final AvroSchemaMapper schemaMapper = new AvroSchemaMapper();

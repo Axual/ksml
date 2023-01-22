@@ -23,7 +23,7 @@ package io.axual.ksml.notation.xml;
 import javax.xml.validation.Schema;
 
 import io.axual.ksml.data.mapper.DataSchemaMapper;
-import io.axual.ksml.schema.DataSchema;
+import io.axual.ksml.data.schema.DataSchema;
 
 public class XmlSchemaMapper implements DataSchemaMapper<Schema> {
     @Override

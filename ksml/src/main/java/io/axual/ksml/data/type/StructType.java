@@ -20,9 +20,9 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Objects;
+import io.axual.ksml.data.schema.StructSchema;
 
-import io.axual.ksml.schema.StructSchema;
+import java.util.Objects;
 
 public class StructType extends MapType {
     private static final String DEFAULT_NAME = "Struct";

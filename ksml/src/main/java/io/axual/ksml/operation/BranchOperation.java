@@ -28,7 +28,6 @@ import org.apache.kafka.streams.kstream.Predicate;
 import java.util.List;
 
 import io.axual.ksml.definition.BranchDefinition;
-import io.axual.ksml.parser.StreamOperation;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserPredicate;

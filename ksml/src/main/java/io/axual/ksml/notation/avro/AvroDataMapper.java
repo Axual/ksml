@@ -20,6 +20,7 @@ package io.axual.ksml.notation.avro;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.notation.avroschema.AvroSchemaMapper;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;

@@ -37,12 +37,12 @@ import io.axual.ksml.generator.YAMLDefinition;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.generator.YAMLReader;
 import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.notation.avro.AvroSchemaLoader;
+import io.axual.ksml.notation.avroschema.AvroSchemaLoader;
 import io.axual.ksml.parser.MapParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.producer.config.producer.ProducerConfig;
 import io.axual.ksml.producer.definition.ProducerDefinition;
-import io.axual.ksml.schema.SchemaLibrary;
+import io.axual.ksml.data.schema.SchemaLibrary;
 
 import static io.axual.ksml.dsl.KSMLDSL.FUNCTIONS_DEFINITION;
 import static io.axual.ksml.dsl.KSMLDSL.STREAMS_DEFINITION;

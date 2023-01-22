@@ -20,14 +20,14 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.exception.KSMLExecutionException;
+import io.axual.ksml.data.schema.StructSchema;
+
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
-
-import io.axual.ksml.data.type.StructType;
-import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.schema.StructSchema;
 
 public class DataStruct extends TreeMap<String, DataObject> implements DataObject {
     public static final String META_ATTRIBUTE_CHAR = "@";

@@ -45,7 +45,7 @@ import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.notation.binary.NativeDataObjectMapper;
 import io.axual.ksml.notation.json.JsonDataObjectMapper;
-import io.axual.ksml.schema.SchemaUtil;
+import io.axual.ksml.data.schema.SchemaUtil;
 
 // This DataObjectMapper makes expected data types compatible with the actual data that was
 // created. It does so by converting numbers to strings, and vice versa. It can convert complex

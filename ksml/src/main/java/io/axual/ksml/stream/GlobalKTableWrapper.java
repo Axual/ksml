@@ -24,7 +24,7 @@ package io.axual.ksml.stream;
 import org.apache.kafka.streams.kstream.GlobalKTable;
 
 import io.axual.ksml.generator.StreamDataType;
-import io.axual.ksml.parser.StreamOperation;
+import io.axual.ksml.operation.StreamOperation;
 
 public class GlobalKTableWrapper extends BaseStreamWrapper {
     public final GlobalKTable<Object, Object> globalTable;

@@ -22,10 +22,10 @@ package io.axual.ksml.dsl;
 
 import java.util.ArrayList;
 
-import io.axual.ksml.schema.DataField;
-import io.axual.ksml.schema.DataSchema;
-import io.axual.ksml.schema.ListSchema;
-import io.axual.ksml.schema.StructSchema;
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.ListSchema;
+import io.axual.ksml.data.schema.StructSchema;
 
 public class RecordContextSchema {
     private RecordContextSchema() {

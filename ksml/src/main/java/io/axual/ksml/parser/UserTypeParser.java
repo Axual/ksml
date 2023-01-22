@@ -21,16 +21,33 @@ package io.axual.ksml.parser;
  */
 
 
-import io.axual.ksml.data.object.*;
-import io.axual.ksml.data.type.*;
+import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.DataByte;
+import io.axual.ksml.data.object.DataBytes;
+import io.axual.ksml.data.object.DataDouble;
+import io.axual.ksml.data.object.DataFloat;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataShort;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.EnumType;
+import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.type.UnionType;
+import io.axual.ksml.data.type.UserTupleType;
+import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.notation.avro.AvroNotation;
 import io.axual.ksml.notation.json.JsonNotation;
 import io.axual.ksml.notation.soap.SOAPNotation;
 import io.axual.ksml.notation.xml.XmlNotation;
-import io.axual.ksml.schema.SchemaLibrary;
-import io.axual.ksml.schema.StructSchema;
+import io.axual.ksml.notation.xsd.XsdNotation;
+import io.axual.ksml.data.schema.SchemaLibrary;
+import io.axual.ksml.data.schema.StructSchema;
 
 import static io.axual.ksml.data.type.UserType.UNKNOWN;
 
@@ -179,6 +196,11 @@ public class UserTypeParser {
         // XML with schema (not implemented yet)
         if (typeNotation.equalsIgnoreCase(XmlNotation.NOTATION_NAME)) {
             return new UserType(XmlNotation.NOTATION_NAME, XmlNotation.DEFAULT_TYPE);
+        }
+
+        // XSD schema
+        if (type.equalsIgnoreCase(XsdNotation.NOTATION_NAME)) {
+            return new UserType(XsdNotation.NOTATION_NAME, XsdNotation.DEFAULT_TYPE);
         }
 
         return new UserType(resultNotation, parseType(type));

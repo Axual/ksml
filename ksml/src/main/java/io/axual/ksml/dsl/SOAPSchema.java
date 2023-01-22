@@ -22,14 +22,14 @@ package io.axual.ksml.dsl;
 
 import java.util.ArrayList;
 
-import io.axual.ksml.schema.DataField;
-import io.axual.ksml.schema.DataSchema;
-import io.axual.ksml.schema.ListSchema;
-import io.axual.ksml.schema.StructSchema;
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.ListSchema;
+import io.axual.ksml.data.schema.StructSchema;
 
 import static io.axual.ksml.dsl.DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE;
-import static io.axual.ksml.schema.DataSchema.Type.BOOLEAN;
-import static io.axual.ksml.schema.DataSchema.Type.STRING;
+import static io.axual.ksml.data.schema.DataSchema.Type.BOOLEAN;
+import static io.axual.ksml.data.schema.DataSchema.Type.STRING;
 
 public class SOAPSchema {
     private SOAPSchema() {

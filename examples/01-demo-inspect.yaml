@@ -5,6 +5,10 @@ streams:
     topic: ksml_soap
     keyType: string
     valueType: soap
+  xsd_source:
+    topic: ksml_xsd
+    keyType: string
+    valueType: xsd
 
 functions:
   print_message:
@@ -14,4 +18,7 @@ functions:
 pipelines:
   main:
     from: sensor_source
+    forEach: print_message
+  second:
+    from: xsd_source
     forEach: print_message

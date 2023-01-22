@@ -23,7 +23,8 @@ package io.axual.ksml.notation.xml;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
-import io.axual.ksml.data.parser.NotationConverter;
+import io.axual.ksml.notation.NotationConverter;
+import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.UserType;
 
 public class XmlDataObjectConverter implements NotationConverter {
@@ -31,20 +32,14 @@ public class XmlDataObjectConverter implements NotationConverter {
 
     @Override
     public DataObject convert(DataObject value, UserType targetType) {
-        // Convert from Struct
-        if (value instanceof DataStruct) {
-            // Convert to String
-            if (targetType.dataType() == DataString.DATATYPE) {
-                return new DataString(DATA_OBJECT_MAPPER.fromDataObject(value));
-            }
+        // Convert from Struct to String
+        if (value instanceof DataStruct && targetType.dataType() == DataString.DATATYPE) {
+            return new DataString(DATA_OBJECT_MAPPER.fromDataObject(value));
         }
 
-        // Convert from String
-        if (value instanceof DataString str) {
-            // Convert to Struct
-            if (targetType.dataType() instanceof DataStruct) {
-                return DATA_OBJECT_MAPPER.toDataObject(str.value());
-            }
+        // Convert from String to Struct
+        if (value instanceof DataString str && targetType.dataType() instanceof StructType) {
+            return DATA_OBJECT_MAPPER.toDataObject(str.value());
         }
 
         // Return null if there is no conversion possible

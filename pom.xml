@@ -51,10 +51,10 @@
     <modules>
         <module>ksml</module>
         <module>ksml-axual</module>
-        <module>ksml-producer</module>
         <module>ksml-query</module>
         <module>ksml-runner</module>
         <module>ksml-runner-axual</module>
+        <module>ksml-producer</module>
         <module>ksml-reporting</module>
     </modules>
 
@@ -63,8 +63,8 @@
         <apache.kafka.version>3.2.3</apache.kafka.version>
         <axual.version>6.0.4</axual.version>
         <commons.logging.version>1.1</commons.logging.version>
-        <confluent.version>7.3.0</confluent.version>
-        <graalvm.version>21.1.0</graalvm.version>
+        <confluent.version>7.3.1</confluent.version>
+        <graalvm.version>22.3.0</graalvm.version>
         <gson.version>2.9.1</gson.version>
         <hamcrest.version>2.1</hamcrest.version>
         <jackson.version>2.14.1</jackson.version>
@@ -94,6 +94,8 @@
         <junit-platform-runner.version>1.2.0</junit-platform-runner.version>
         <junit-vintage-engine.version>5.2.0</junit-vintage-engine.version>
         <jersey.version>3.1.0</jersey.version>
+        <json.schema.validator.version>1.0.76</json.schema.validator.version>
+
         <!-- following properties filled at build time by jacoco -->
         <surefireArgLine/>
         <failsafeArgLine/>
@@ -182,6 +184,11 @@
                 <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
                 <artifactId>jackson-jakarta-rs-json-provider</artifactId>
                 <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.networknt</groupId>
+                <artifactId>json-schema-validator</artifactId>
+                <version>${json.schema.validator.version}</version>
             </dependency>
             <dependency>
                 <groupId>jakarta.xml.soap</groupId>

@@ -23,7 +23,7 @@ package io.axual.ksml.definition;
 
 import java.util.List;
 
-import io.axual.ksml.parser.StreamOperation;
+import io.axual.ksml.operation.StreamOperation;
 
 public record PipelineDefinition(BaseStreamDefinition source, List<StreamOperation> chain,
                                  StreamOperation sink) {

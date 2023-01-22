@@ -27,7 +27,6 @@ import org.apache.kafka.streams.kstream.TimeWindows;
 
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.operation.WindowedByOperation;
-import io.axual.ksml.parser.OperationParser;
 import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 

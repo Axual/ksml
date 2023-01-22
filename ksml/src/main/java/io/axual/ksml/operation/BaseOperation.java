@@ -31,7 +31,6 @@ import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.parser.StreamOperation;
 import io.axual.ksml.user.UserFunction;
 import lombok.extern.slf4j.Slf4j;
 

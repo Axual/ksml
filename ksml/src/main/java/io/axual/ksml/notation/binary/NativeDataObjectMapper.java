@@ -45,10 +45,10 @@ import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.value.Tuple;
 import io.axual.ksml.exception.KSMLDataException;
 import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.schema.DataSchema;
-import io.axual.ksml.schema.SchemaLibrary;
-import io.axual.ksml.schema.SchemaUtil;
-import io.axual.ksml.schema.StructSchema;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.SchemaLibrary;
+import io.axual.ksml.data.schema.SchemaUtil;
+import io.axual.ksml.data.schema.StructSchema;
 
 import java.util.ArrayList;
 import java.util.List;

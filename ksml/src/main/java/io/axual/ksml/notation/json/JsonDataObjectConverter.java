@@ -21,7 +21,7 @@ package io.axual.ksml.notation.json;
  */
 
 import io.axual.ksml.data.object.*;
-import io.axual.ksml.data.parser.NotationConverter;
+import io.axual.ksml.notation.NotationConverter;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.UnionType;

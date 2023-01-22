@@ -20,7 +20,6 @@ package io.axual.ksml.notation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.parser.NotationConverter;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.notation.avro.AvroNotation;
 import io.axual.ksml.notation.binary.BinaryNotation;
@@ -30,6 +29,8 @@ import io.axual.ksml.notation.soap.SOAPDataObjectConverter;
 import io.axual.ksml.notation.soap.SOAPNotation;
 import io.axual.ksml.notation.xml.XmlDataObjectConverter;
 import io.axual.ksml.notation.xml.XmlNotation;
+import io.axual.ksml.notation.xsd.XsdDataObjectConverter;
+import io.axual.ksml.notation.xsd.XsdNotation;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,14 +47,15 @@ public class NotationLibrary {
         register(JsonNotation.NOTATION_NAME, new JsonNotation(), new JsonDataObjectConverter());
         register(SOAPNotation.NOTATION_NAME, new SOAPNotation(), new SOAPDataObjectConverter());
         register(XmlNotation.NOTATION_NAME, new XmlNotation(), new XmlDataObjectConverter());
+        register(XsdNotation.NOTATION_NAME, new XsdNotation(), new XsdDataObjectConverter());
     }
 
     public void register(String name, Notation notation) {
         register(name, notation, null);
     }
 
-    public void register(String name, Notation notation, NotationConverter defaultParser) {
-        notationEntries.put(name, new NotationEntry(notation, defaultParser));
+    public void register(String name, Notation notation, NotationConverter converter) {
+        notationEntries.put(name, new NotationEntry(notation, converter));
     }
 
     public Notation get(String notation) {

@@ -22,11 +22,11 @@ package io.axual.ksml.notation.soap;
 
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.parser.NotationConverter;
+import io.axual.ksml.notation.NotationConverter;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.dsl.SOAPSchema;
-import io.axual.ksml.schema.AnySchema;
+import io.axual.ksml.data.schema.AnySchema;
 
 public class SOAPDataObjectConverter implements NotationConverter {
     private static final SOAPDataObjectMapper DATA_OBJECT_MAPPER = new SOAPDataObjectMapper();
