@@ -20,16 +20,18 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.data.schema.StructSchema;
 
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.BiConsumer;
 
-public class DataStruct extends TreeMap<String, DataObject> implements DataObject {
+public class DataStruct implements DataObject {
     public static final String META_ATTRIBUTE_CHAR = "@";
     // To make external representations look nice, we base Structs on sorted maps. Sorting is done
     // based on keys, where "normal" keys are always sorted before "meta" keys.
@@ -54,6 +56,7 @@ public class DataStruct extends TreeMap<String, DataObject> implements DataObjec
         void apply(T value) throws Exception;
     }
 
+    private final TreeMap<String, DataObject> contents = new TreeMap<>(COMPARATOR);
     private final transient StructType type;
 
     public DataStruct() {
@@ -61,8 +64,23 @@ public class DataStruct extends TreeMap<String, DataObject> implements DataObjec
     }
 
     public DataStruct(StructSchema schema) {
-        super(COMPARATOR);
         type = new StructType(schema);
+    }
+
+    public DataObject get(String key) {
+        return contents.get(key);
+    }
+
+    public void put(String key, DataObject value) {
+        contents.put(key, value);
+    }
+
+    public Set<Map.Entry<String, DataObject>> entrySet() {
+        return contents.entrySet();
+    }
+
+    public void forEach(BiConsumer<String, DataObject> action) {
+        contents.forEach(action);
     }
 
     public void putIfNotNull(String key, DataObject value) {
@@ -115,12 +133,13 @@ public class DataStruct extends TreeMap<String, DataObject> implements DataObjec
 
     @Override
     public String toString() {
+        var schemaName = type.schemaName() + ": ";
         Iterator<Map.Entry<String, DataObject>> i = entrySet().iterator();
         if (!i.hasNext())
-            return "{}";
+            return schemaName + "{}";
 
         StringBuilder sb = new StringBuilder();
-        sb.append('{');
+        sb.append(schemaName).append('{');
         for (; ; ) {
             Map.Entry<String, DataObject> e = i.next();
             String key = e.getKey();

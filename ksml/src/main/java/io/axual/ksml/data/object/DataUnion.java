@@ -26,4 +26,9 @@ public class DataUnion extends DataPrimitive<DataObject> {
     public DataUnion(UnionType type, DataObject value) {
         super(type, value);
     }
+
+    @Override
+    public String toString() {
+        return type().toString() + ": " + super.toString();
+    }
 }

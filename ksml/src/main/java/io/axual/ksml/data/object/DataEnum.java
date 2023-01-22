@@ -37,4 +37,9 @@ public class DataEnum extends DataPrimitive<String> {
         }
         return false;
     }
+
+    @Override
+    public String toString() {
+        return type().toString() + ": " + super.toString();
+    }
 }

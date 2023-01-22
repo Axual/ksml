@@ -41,7 +41,7 @@ public class DataBytes extends DataPrimitive<byte[]> {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder("[");
+        StringBuilder builder = new StringBuilder(type().toString()).append(": [");
         for (int index = 0; index < value().length; index++) {
             if (index > 0) builder.append(", ");
             builder.append(String.format("%02X ", value()[index]));
