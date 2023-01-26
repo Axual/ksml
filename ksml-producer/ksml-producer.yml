@@ -1,7 +1,10 @@
 producer:
   workingDirectory: ../examples
   definitions:
-    - 00-demo-producer.yaml
+    - 00-demo-produce-alertsettings.yaml
+    - 00-demo-produce-sensordata.yaml
+    - 00-demo-produce-soap.yaml
+    - 00-demo-produce-xsd.yaml
 
 kafka:
   bootstrapUrl: localhost:9092

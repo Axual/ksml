@@ -1,0 +1,82 @@
+# This example shows how to generate data and have it sent to a target topic in a given format.
+
+functions:
+  generate_sensordata_message:
+    type: generator
+    globalCode: |
+      import time
+      import random
+
+      sensorCounter = 1
+      sensorColors = [ "black", "blue", "red", "yellow", "white" ]
+      sensorOwners = [ "Alice", "Bob", "Charlie", "Dave", "Evan" ]
+      sensorCities = [ "Amsterdam", "Xanten", "Utrecht", "Alkmaar", "Leiden" ]
+
+      sensorAreaUnits = [ "m2", "ft2" ]
+      sensorLengthUnits = [ "m", "ft" ]
+      sensorStates = [ "off", "on" ]
+
+      def generateArea():
+        return { "type": "AREA", "unit": random.choice(sensorAreaUnits), "value": str(random.randrange(1000)) }
+
+      def generateHumidity():
+        if random.randrange(2) == 0:
+          return { "type": "HUMIDITY", "unit": "g/m3", "value": str(random.randrange(100)) }
+        return { "type": "HUMIDITY", "unit": "%", "value": str(random.randrange(60, 80)) }
+
+      def generateLength():
+        return { "type": "LENGTH", "unit": random.choice(sensorLengthUnits), "value": str(random.randrange(1000)) }
+
+      def generateState():
+        return { "type": "STATE", "unit": "state", "value": random.choice(sensorStates) }
+
+      def generateTemperature():
+        if random.randrange(2) == 0:
+          return { "type": "TEMPERATURE", "unit": "C", "value": str(random.randrange(-10, 35)) }
+        return { "type": "TEMPERATURE", "unit": "F", "value": str(random.randrange(14, 95)) }
+
+    code: |
+      global sensorCounter
+      global sensorColors
+      global sensorOwners
+      global sensorCities
+      global sensorAreaUnits
+      global sensorLengthUnits
+      global sensorStates
+      
+      key = "sensor"+str(sensorCounter)
+      sensorCounter = (sensorCounter+1) % 10
+
+      value = { "name": key, "timestamp": str(round(time.time()*1000)) }
+
+      type = random.randrange(5)
+      types = { 0: generateArea,
+                1: generateHumidity,
+                2: generateLength,
+                3: generateState,
+                4: generateTemperature
+              }
+      value = { **value, **types[type]() }
+
+      value["color"] = random.choice(sensorColors)
+      value["owner"] = random.choice(sensorOwners)
+      value["city"] = random.choice(sensorCities)
+    expression: (key,value)
+    resultType: (string,json)
+
+producers:
+  sensordata_avro_producer:
+    generator: generate_sensordata_message
+    interval: 555
+    to:
+      topic: ksml_sensordata_avro
+      keyType: string
+      valueType: avro:SensorData
+
+  sensordata_json_producer:
+    generator: generate_sensordata_message
+    interval: 666
+    to:
+      topic: ksml_sensordata_json
+      keyType: string
+      valueType: json
