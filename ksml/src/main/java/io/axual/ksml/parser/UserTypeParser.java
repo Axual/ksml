@@ -42,10 +42,10 @@ import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.notation.avro.AvroNotation;
+import io.axual.ksml.notation.csv.CsvNotation;
 import io.axual.ksml.notation.json.JsonNotation;
 import io.axual.ksml.notation.soap.SOAPNotation;
 import io.axual.ksml.notation.xml.XmlNotation;
-import io.axual.ksml.notation.xsd.XsdNotation;
 import io.axual.ksml.data.schema.SchemaLibrary;
 import io.axual.ksml.data.schema.StructSchema;
 
@@ -168,6 +168,11 @@ public class UserTypeParser {
             return new UserType(AvroNotation.NOTATION_NAME, AvroNotation.DEFAULT_TYPE);
         }
 
+        // CSV without schema
+        if (type.equalsIgnoreCase(CsvNotation.NOTATION_NAME)) {
+            return new UserType(CsvNotation.NOTATION_NAME, CsvNotation.DEFAULT_TYPE);
+        }
+
         // JSON with schema (not implemented yet)
         if (typeNotation.equalsIgnoreCase(JsonNotation.NOTATION_NAME)) {
             return new UserType(JsonNotation.NOTATION_NAME, JsonNotation.DEFAULT_TYPE);
@@ -193,14 +198,12 @@ public class UserTypeParser {
             return new UserType(XmlNotation.NOTATION_NAME, XmlNotation.DEFAULT_TYPE);
         }
 
-        // XML with schema (not implemented yet)
+        // XML with schema
         if (typeNotation.equalsIgnoreCase(XmlNotation.NOTATION_NAME)) {
-            return new UserType(XmlNotation.NOTATION_NAME, XmlNotation.DEFAULT_TYPE);
-        }
-
-        // XSD schema
-        if (type.equalsIgnoreCase(XsdNotation.NOTATION_NAME)) {
-            return new UserType(XsdNotation.NOTATION_NAME, XsdNotation.DEFAULT_TYPE);
+            var schema = SchemaLibrary.getSchema(type, false);
+            if (!(schema instanceof StructSchema structSchema))
+                throw new KSMLParseException("Schema definition is not a STRUCT: " + type);
+            return new UserType(XmlNotation.NOTATION_NAME, new StructType(structSchema));
         }
 
         return new UserType(resultNotation, parseType(type));

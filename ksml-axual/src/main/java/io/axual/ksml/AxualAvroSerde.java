@@ -32,7 +32,7 @@ import java.util.Map;
 
 import io.axual.client.proxy.resolving.generic.ResolvingProxyConfig;
 import io.axual.common.resolver.TopicPatternResolver;
-import io.axual.ksml.notation.avroschema.AvroSchemaMapper;
+import io.axual.ksml.notation.avro.AvroSchemaMapper;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.serde.avro.BaseAvroDeserializer;
 import io.axual.streams.config.StreamRunnerConfig;

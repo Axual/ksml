@@ -21,16 +21,19 @@ package io.axual.ksml;
  */
 
 
+import io.axual.ksml.data.schema.SchemaLibrary;
+import io.axual.ksml.generator.TopologyGeneratorImpl;
+import io.axual.ksml.notation.avro.AvroNotation;
+import io.axual.ksml.notation.avro.AvroSchemaLoader;
+import io.axual.ksml.notation.json.JsonNotation;
+import io.axual.ksml.notation.json.JsonSchemaLoader;
+import io.axual.ksml.notation.xml.XmlNotation;
+import io.axual.ksml.notation.xml.XmlSchemaLoader;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
-import io.axual.ksml.generator.TopologyGeneratorImpl;
-import io.axual.ksml.notation.avroschema.AvroSchemaLoader;
-import io.axual.ksml.data.schema.SchemaLibrary;
 
 /**
  * Generates a Kafka Streams topology based on a KSML config file.
@@ -38,11 +41,13 @@ import io.axual.ksml.data.schema.SchemaLibrary;
  * @see KSMLConfig
  */
 public class KSMLTopologyGenerator implements TopologyGenerator {
-    private KSMLConfig config = new KSMLConfig(new HashMap<>());
-    private Properties kafkaConfig = new Properties();
+    private final String applicationId;
+    private final KSMLConfig config;
+    private final Properties kafkaConfig = new Properties();
 
-    public KSMLTopologyGenerator(Map<String, ?> ksmlConfigs, Properties kafkaConfigs) {
+    public KSMLTopologyGenerator(String applicationId, Map<String, ?> ksmlConfigs, Properties kafkaConfigs) {
         // Parse configuration
+        this.applicationId = applicationId;
         this.config = new KSMLConfig(ksmlConfigs);
         this.kafkaConfig.clear();
         this.kafkaConfig.putAll(kafkaConfigs);
@@ -51,13 +56,14 @@ public class KSMLTopologyGenerator implements TopologyGenerator {
     @Override
     public Topology create(StreamsBuilder streamsBuilder) {
         // Register schema loaders
-        var avroSchemaLoader = new AvroSchemaLoader(config.configDirectory);
-        SchemaLibrary.registerLoader(avroSchemaLoader);
+        SchemaLibrary.registerLoader(AvroNotation.NOTATION_NAME, new AvroSchemaLoader(config.configDirectory));
+        SchemaLibrary.registerLoader(JsonNotation.NOTATION_NAME, new JsonSchemaLoader(config.configDirectory));
+        SchemaLibrary.registerLoader(XmlNotation.NOTATION_NAME, new XmlSchemaLoader(config.configDirectory));
 
         // Create the topology generator
         var generator = new TopologyGeneratorImpl(config);
 
         // Parse and return the topology
-        return generator.create(streamsBuilder);
+        return generator.create(applicationId, streamsBuilder);
     }
 }

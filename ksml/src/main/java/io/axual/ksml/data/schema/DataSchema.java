@@ -20,12 +20,12 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Objects;
-
-import io.axual.ksml.notation.json.JsonStringMapper;
+import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.notation.binary.NativeDataSchemaMapper;
 import io.axual.ksml.notation.binary.NativeJsonNodeMapper;
-import io.axual.ksml.exception.KSMLExecutionException;
+import io.axual.ksml.notation.json.JsonStringMapper;
+
+import java.util.Objects;
 
 // Generic internal schema class
 public class DataSchema {
@@ -79,9 +79,10 @@ public class DataSchema {
 
     @Override
     public String toString() {
-        var nativeSchema = NATIVE_DATA_SCHEMA_MAPPER.fromDataSchema(this);
-        var jsonSchema = NATIVE_JSON_NODE_MAPPER.toJsonNode(nativeSchema);
-        return JSON_STRING_MAPPER.toString(jsonSchema);
+        return type.toString();
+//        var nativeSchema = NATIVE_DATA_SCHEMA_MAPPER.fromDataSchema(this);
+//        var jsonSchema = NATIVE_JSON_NODE_MAPPER.toJsonNode(nativeSchema);
+//        return JSON_STRING_MAPPER.toString(jsonSchema);
     }
 
     public boolean isAssignableFrom(DataSchema schema) {

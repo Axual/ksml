@@ -21,13 +21,6 @@ package io.axual.ksml.user;
  */
 
 
-import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.kstream.KeyValueMapper;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
@@ -36,34 +29,40 @@ import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;
 import io.axual.ksml.util.DataUtil;
+import org.apache.kafka.streams.KeyValue;
+import org.apache.kafka.streams.kstream.KeyValueMapper;
+
+import java.util.ArrayList;
+import java.util.Collections;
 
 public class UserKeyValueToKeyValueListTransformer extends Invoker implements KeyValueMapper<Object, Object, Iterable<KeyValue<Object, Object>>> {
+    private final DataType resultKeyType;
+    private final DataType resultValueType;
+
     public UserKeyValueToKeyValueListTransformer(UserFunction function) {
         super(function);
         verifyParameterCount(2);
         verifyResultReturned(new ListType(new TupleType(DataType.UNKNOWN, DataType.UNKNOWN)));
+
+        // If the above check worked, then we can safely perform the following cast
+        var tupleType = (TupleType) ((ListType) function.resultType.dataType()).valueType();
+        resultKeyType = tupleType.subType(0);
+        resultValueType = tupleType.subType(1);
     }
 
     @Override
     public Iterable<KeyValue<Object, Object>> apply(Object key, Object value) {
         var result = function.call(DataUtil.asDataObject(key), DataUtil.asDataObject(value));
-        if (function.resultType.dataType() instanceof ListType listType &&
-                listType.valueType() instanceof TupleType tupleType &&
-                tupleType.subTypeCount() == 2) {
-            var keyType = tupleType.subType(0);
-            var valueType = tupleType.subType(1);
+        if (result == null) return Collections.emptyList();
 
-            if (result == null) return Collections.emptyList();
-
-            if (result instanceof DataList) {
-                var list = (List<DataObject>) result;
-                var convertedResult = new ArrayList<KeyValue<Object, Object>>();
-                for (DataObject element : list) {
-                    KeyValue<DataObject, DataObject> convertedKeyValue = function.convertToKeyValue(element, keyType, valueType);
-                    convertedResult.add((KeyValue) convertedKeyValue);
-                }
-                return convertedResult;
+        // We need to convert the resulting messages to KeyValue tuples as per the method signature
+        if (result instanceof DataList list) {
+            var convertedResult = new ArrayList<KeyValue<Object, Object>>();
+            for (DataObject element : list) {
+                var convertedKeyValue = function.convertToKeyValue(element, resultKeyType, resultValueType);
+                convertedResult.add(convertedKeyValue);
             }
+            return convertedResult;
         }
 
         throw new KSMLExecutionException("Expected list back from function: " + function.name);

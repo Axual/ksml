@@ -20,15 +20,13 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import io.axual.ksml.exception.KSMLExecutionException;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class SchemaLibrary {
-    private static final List<Loader> loaders = new ArrayList<>();
+    private static final Map<String, Loader> loaders = new HashMap<>();
     private static final Map<String, NamedSchema> schemas = new HashMap<>();
 
     public interface Loader {
@@ -39,28 +37,40 @@ public class SchemaLibrary {
     }
 
     public static DataSchema getSchema(String schemaName, boolean allowNull) {
-        var result = getSchema(schemaName);
-        if (result == null && !allowNull) {
-            throw new KSMLExecutionException("Can not load schema: " + schemaName);
+        for (String notationName : loaders.keySet()) {
+            var schema = getSchema(notationName, schemaName);
+            if (schema != null) return schema;
         }
-        return result;
-    }
 
-    public static DataSchema getSchema(String schemaName) {
-        if (schemas.containsKey(schemaName)) {
-            return schemas.get(schemaName);
-        }
-        for (Loader loader : loaders) {
-            DataSchema schema = loader.load(schemaName);
-            if (schema instanceof NamedSchema ns) {
-                schemas.put(schemaName, ns);
-                return schema;
-            }
+        if (!allowNull) {
+            throw new KSMLExecutionException("Can not load schema: " + schemaName);
         }
         return null;
     }
 
-    public static void registerLoader(Loader loader) {
-        loaders.add(loader);
+    public static DataSchema getSchema(String notationName, String schemaName, boolean allowNull) {
+        var result = getSchema(notationName, schemaName);
+        if (result == null && !allowNull) {
+            throw new KSMLExecutionException("Can not load schema: " + notationName + ":" + schemaName);
+        }
+        return result;
+    }
+
+    private static DataSchema getSchema(String notationName, String schemaName) {
+        if (schemas.containsKey(schemaName)) {
+            return schemas.get(schemaName);
+        }
+        var loader = loaders.get(notationName);
+        if (loader == null) return null;
+
+        var schema = loader.load(schemaName);
+        if (schema instanceof NamedSchema ns) {
+            schemas.put(schemaName, ns);
+        }
+        return schema;
+    }
+
+    public static void registerLoader(String notationName, Loader loader) {
+        loaders.put(notationName, loader);
     }
 }

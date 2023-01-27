@@ -4,7 +4,7 @@ package io.axual.ksml.notation.xml;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2022 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,19 +20,205 @@ package io.axual.ksml.notation.xml;
  * =========================LICENSE_END==================================
  */
 
-import javax.xml.validation.Schema;
-
 import io.axual.ksml.data.mapper.DataSchemaMapper;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.execution.FatalError;
 
-public class XmlSchemaMapper implements DataSchemaMapper<Schema> {
+import java.util.ArrayList;
+import java.util.List;
+
+import static io.axual.ksml.notation.xml.XmlDataObjectMapper.ATTRIBUTES_ELEMENT_NAME;
+import static io.axual.ksml.notation.xml.XmlDataObjectMapper.COUNT_SYMBOL;
+
+// This class maps an XSD schema to the internal DataSchema format. It does this
+// in two steps, where the first step reads in the schema as plain XML. The second
+// step parses the DataObject structure and translates the schema contents to the
+// internal format. The fromDataSchema method does the reverse.
+//
+// Note: this is a first rough implementation of parsing an XSD. Not all field types
+// and complex data structures are supported yet. Feel free to complement.
+//
+// Improvement suggestions:
+// - namespace handling
+// - completing primitive and structured types
+// - code polishing and documenting
+//
+// An example schema:
+// <?xml version="1.0" encoding="UTF-8"?>
+// <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+//     <xs:element name="note">
+//         <xs:complexType>
+//             <xs:sequence>
+//                 <xs:element name="to" type="xs:string"/>
+//                 <xs:element name="from" type="xs:string"/>
+//                 <xs:element name="heading" type="xs:string"/>
+//                 <xs:element name="body" type="xs:string"/>
+//             </xs:sequence>
+//         </xs:complexType>
+//     </xs:element>
+// </xs:schema>
+//
+// Translates into the following intermediate structure during translation:
+// {
+//  ".attributes": {
+//    "xmlns:xs": "http://www.w3.org/2001/XMLSchema"
+//  },
+//  "element#1": {
+//    ".attributes": {
+//      "name": "note"
+//    },
+//    "complexType": {
+//      "sequence": {
+//        "element#1": {
+//          ".attributes": {
+//            "name": "to",
+//            "type": "xs:string"
+//          }
+//        },
+//        "element#2": {
+//          ".attributes": {
+//            "name": "from",
+//            "type": "xs:string"
+//          }
+//        },
+//        "element#3": {
+//          ".attributes": {
+//            "name": "heading",
+//            "type": "xs:string"
+//          }
+//        },
+//        "element#4": {
+//          ".attributes": {
+//            "name": "body",
+//            "type": "xs:string"
+//          }
+//        }
+//      }
+//    }
+//  }
+//}
+public class XmlSchemaMapper implements DataSchemaMapper<String> {
+    private static final XmlDataObjectMapper MAPPER = new XmlDataObjectMapper();
+    private static final String ELEMENT_NAME = "element";
+    private static final String NAME_NAME = "name";
+    private static final String TYPE_NAME = "type";
+    private static final String COMPLEX_TYPE_NAME = "complexType";
+    private static final String SEQUENCE_NAME = "sequence";
+
     @Override
-    public DataSchema toDataSchema(Schema value) {
+    public StructSchema toDataSchema(String name, String schema) {
+        var parsedSchema = MAPPER.toDataObject(schema);
+        if (parsedSchema instanceof DataStruct schemaStruct) {
+            var result = new StructSchema(null, name, "Converted from XSD", parseFields(schemaStruct));
+            var back = fromDataSchema(result);
+            if (schema.equals(back)) {
+                return result;
+            }
+            return result;
+        }
+        throw FatalError.schemaError("Can not parse XML Schema: " + name);
+    }
+
+    private List<DataField> parseFields(DataStruct object) {
+        var result = new ArrayList<DataField>();
+        var field = parseField(object, ELEMENT_NAME);
+        if (field != null) result.add(field);
+        var index = 1;
+        while (object.containsKey(ELEMENT_NAME + COUNT_SYMBOL + index)) {
+            field = parseField(object, ELEMENT_NAME + COUNT_SYMBOL + index);
+            if (field != null) result.add(field);
+            index++;
+        }
+        return result;
+    }
+
+    private DataField parseField(DataStruct object, String elementName) {
+        var element = object.get(elementName);
+        if (element instanceof DataStruct elementStruct) {
+            var fieldName = elementStruct.get(ATTRIBUTES_ELEMENT_NAME) instanceof DataStruct attributeStruct ? attributeStruct.get(NAME_NAME) : null;
+            if (fieldName != null) {
+                var fieldType = elementStruct.get(ATTRIBUTES_ELEMENT_NAME) instanceof DataStruct attributeStruct ? attributeStruct.get(TYPE_NAME) : null;
+                if (fieldType instanceof DataString fieldTypeString) {
+                    var type = fieldTypeString.value().contains(":") ? fieldTypeString.value().substring(fieldTypeString.value().indexOf(":") + 1) : fieldTypeString.value();
+                    return simpleField(fieldName.toString(), type);
+                } else {
+                    // Field type is not specified, so dig down into the elements below to find out the type
+                    var complexTypeElement = elementStruct.get(COMPLEX_TYPE_NAME);
+                    if (complexTypeElement instanceof DataStruct complexTypeStruct) {
+                        var sequenceElement = complexTypeStruct.get(SEQUENCE_NAME);
+                        if (sequenceElement instanceof DataStruct sequenceStruct) {
+                            var fields = parseFields(sequenceStruct);
+                            return new DataField(fieldName.toString(), new StructSchema(null, fieldName.toString(), null, fields), null, null, DataField.Order.ASCENDING);
+                        }
+                    }
+                }
+            }
+        }
         return null;
     }
 
+    private DataField simpleField(String name, String type) {
+        var schema = switch (type) {
+            case "any" -> DataSchema.create(DataSchema.Type.ANY);
+            case "boolean" -> DataSchema.create(DataSchema.Type.BOOLEAN);
+            case "integer" -> DataSchema.create(DataSchema.Type.INTEGER);
+            case "string" -> DataSchema.create(DataSchema.Type.STRING);
+            default -> null;
+        };
+        if (schema == null) return null;
+        return new DataField(name, schema, null, null, DataField.Order.ASCENDING);
+    }
+
     @Override
-    public Object fromDataSchema(DataSchema value) {
+    public String fromDataSchema(DataSchema schema) {
+        if (schema instanceof StructSchema structSchema) {
+            var codedSchema = encodeSchema(structSchema);
+            return MAPPER.fromDataObject(codedSchema);
+        }
         return null;
+    }
+
+    private DataStruct encodeSchema(StructSchema schema) {
+        var prefix = "xs:";
+        var result = new DataStruct(new StructSchema(null,prefix+schema.name(),null,null));
+        var attributes = new DataStruct();
+        attributes.put("xmlns:xs", new DataString("http://www.w3.org/2001/XMLSchema"));
+        result.put(ATTRIBUTES_ELEMENT_NAME, attributes);
+        var elementCount = 0;
+        for (var field : schema.fields()) {
+            DataStruct fieldStruct = new DataStruct();
+            result.put(prefix + ELEMENT_NAME + COUNT_SYMBOL + (++elementCount), fieldStruct);
+            attributes = new DataStruct();
+            fieldStruct.put(ATTRIBUTES_ELEMENT_NAME, attributes);
+            attributes.put(NAME_NAME, new DataString(field.name()));
+            var fieldSchema = field.schema();
+            var fieldType = simpleType(fieldSchema.type());
+            if (fieldType != null) {
+                attributes.put(TYPE_NAME, new DataString(prefix + fieldType));
+            } else {
+                if (fieldSchema instanceof StructSchema fieldStructSchema) {
+                    var complexTypeStruct = new DataStruct();
+                    fieldStruct.put(prefix + COMPLEX_TYPE_NAME, complexTypeStruct);
+                    var sequenceStruct = encodeSchema(fieldStructSchema);
+                    complexTypeStruct.put(prefix + SEQUENCE_NAME, sequenceStruct);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public String simpleType(DataSchema.Type type) {
+        return switch (type) {
+            case ANY -> "any";
+            case BOOLEAN -> "boolean";
+            case INTEGER -> "integer";
+            case STRING -> "string";
+            default -> null;
+        };
     }
 }

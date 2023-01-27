@@ -20,13 +20,7 @@ package io.axual.ksml.notation.binary;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
 import io.axual.ksml.data.mapper.DataSchemaMapper;
-import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.DataValue;
@@ -37,42 +31,22 @@ import io.axual.ksml.data.schema.MapSchema;
 import io.axual.ksml.data.schema.NamedSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
+import io.axual.ksml.exception.KSMLExecutionException;
+import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.parser.schema.DataSchemaParser;
 
-import static io.axual.ksml.dsl.DataSchemaDSL.ANY_TYPE;
-import static io.axual.ksml.dsl.DataSchemaDSL.BOOLEAN_TYPE;
-import static io.axual.ksml.dsl.DataSchemaDSL.BYTES_TYPE;
-import static io.axual.ksml.dsl.DataSchemaDSL.BYTE_TYPE;
-import static io.axual.ksml.dsl.DataSchemaDSL.DATA_FIELD_DEFAULT_VALUE_FIELD;
-import static io.axual.ksml.dsl.DataSchemaDSL.DATA_FIELD_DOC_FIELD;
-import static io.axual.ksml.dsl.DataSchemaDSL.DATA_FIELD_NAME_FIELD;
-import static io.axual.ksml.dsl.DataSchemaDSL.DATA_FIELD_ORDER_FIELD;
-import static io.axual.ksml.dsl.DataSchemaDSL.DATA_FIELD_SCHEMA_FIELD;
-import static io.axual.ksml.dsl.DataSchemaDSL.DATA_SCHEMA_TYPE_FIELD;
-import static io.axual.ksml.dsl.DataSchemaDSL.DOUBLE_TYPE;
-import static io.axual.ksml.dsl.DataSchemaDSL.ENUM_SCHEMA_DEFAULTVALUE_FIELD;
-import static io.axual.ksml.dsl.DataSchemaDSL.ENUM_SCHEMA_POSSIBLEVALUES_FIELD;
-import static io.axual.ksml.dsl.DataSchemaDSL.FIXED_SCHEMA_SIZE_FIELD;
-import static io.axual.ksml.dsl.DataSchemaDSL.FIXED_TYPE;
-import static io.axual.ksml.dsl.DataSchemaDSL.FLOAT_TYPE;
-import static io.axual.ksml.dsl.DataSchemaDSL.INTEGER_TYPE;
-import static io.axual.ksml.dsl.DataSchemaDSL.LIST_SCHEMA_VALUES_FIELD;
-import static io.axual.ksml.dsl.DataSchemaDSL.LONG_TYPE;
-import static io.axual.ksml.dsl.DataSchemaDSL.MAP_SCHEMA_VALUES_FIELD;
-import static io.axual.ksml.dsl.DataSchemaDSL.NAMED_SCHEMA_DOC_FIELD;
-import static io.axual.ksml.dsl.DataSchemaDSL.NAMED_SCHEMA_NAMESPACE_FIELD;
-import static io.axual.ksml.dsl.DataSchemaDSL.NAMED_SCHEMA_NAME_FIELD;
-import static io.axual.ksml.dsl.DataSchemaDSL.NULL_TYPE;
-import static io.axual.ksml.dsl.DataSchemaDSL.SHORT_TYPE;
-import static io.axual.ksml.dsl.DataSchemaDSL.STRING_TYPE;
-import static io.axual.ksml.dsl.DataSchemaDSL.STRUCT_SCHEMA_FIELDS_FIELD;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import static io.axual.ksml.dsl.DataSchemaDSL.*;
 
 public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
     private static final DataSchemaParser PARSER = new DataSchemaParser();
     private static final NativeJsonNodeMapper JSON_NODE_MAPPER = new NativeJsonNodeMapper();
 
     @Override
-    public DataSchema toDataSchema(Object value) {
+    public DataSchema toDataSchema(String name, Object value) {
         var json = JSON_NODE_MAPPER.toJsonNode(value);
         var root = YamlNode.fromRoot(json, "Schema");
         return PARSER.parse(root);

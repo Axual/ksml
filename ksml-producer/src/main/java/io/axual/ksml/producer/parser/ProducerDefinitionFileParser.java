@@ -21,6 +21,19 @@ package io.axual.ksml.producer.parser;
  */
 
 
+import io.axual.ksml.KSMLConfig;
+import io.axual.ksml.data.schema.SchemaLibrary;
+import io.axual.ksml.definition.parser.StreamDefinitionParser;
+import io.axual.ksml.generator.YAMLDefinition;
+import io.axual.ksml.generator.YAMLObjectMapper;
+import io.axual.ksml.generator.YAMLReader;
+import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.notation.avro.AvroNotation;
+import io.axual.ksml.notation.avro.AvroSchemaLoader;
+import io.axual.ksml.parser.MapParser;
+import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.producer.config.producer.ProducerConfig;
+import io.axual.ksml.producer.definition.ProducerDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,19 +43,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
-import io.axual.ksml.KSMLConfig;
-import io.axual.ksml.definition.parser.StreamDefinitionParser;
-import io.axual.ksml.generator.YAMLDefinition;
-import io.axual.ksml.generator.YAMLObjectMapper;
-import io.axual.ksml.generator.YAMLReader;
-import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.notation.avroschema.AvroSchemaLoader;
-import io.axual.ksml.parser.MapParser;
-import io.axual.ksml.parser.YamlNode;
-import io.axual.ksml.producer.config.producer.ProducerConfig;
-import io.axual.ksml.producer.definition.ProducerDefinition;
-import io.axual.ksml.data.schema.SchemaLibrary;
 
 import static io.axual.ksml.dsl.KSMLDSL.FUNCTIONS_DEFINITION;
 import static io.axual.ksml.dsl.KSMLDSL.STREAMS_DEFINITION;
@@ -76,7 +76,7 @@ public class ProducerDefinitionFileParser {
     public Map<String, ProducerDefinition> create(NotationLibrary notationLibrary) {
         // Register schema loaders
         var avroSchemaLoader = new AvroSchemaLoader(config.workingDirectory);
-        SchemaLibrary.registerLoader(avroSchemaLoader);
+        SchemaLibrary.registerLoader(AvroNotation.NOTATION_NAME, avroSchemaLoader);
 
         List<YAMLDefinition> definitions = readDefinitions();
         Map<String, ProducerDefinition> producers = new TreeMap<>();

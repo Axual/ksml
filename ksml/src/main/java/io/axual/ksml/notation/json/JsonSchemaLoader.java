@@ -1,4 +1,4 @@
-package io.axual.ksml.notation.jsonschema;
+package io.axual.ksml.notation.json;
 
 /*-
  * ========================LICENSE_START=================================
@@ -21,8 +21,6 @@ package io.axual.ksml.notation.jsonschema;
  */
 
 
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.SchemaLoader;
 import lombok.extern.slf4j.Slf4j;
@@ -30,15 +28,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class JsonSchemaLoader extends SchemaLoader {
     private static final JsonSchemaMapper MAPPER = new JsonSchemaMapper();
-    private static final JsonSchemaFactory FACTORY = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4);
 
     public JsonSchemaLoader(String schemaDirectory) {
         super("JSON", schemaDirectory, ".json");
     }
 
     @Override
-    protected DataSchema parseSchema(String schema) {
-        var jsonSchema = FACTORY.getSchema(schema);
-        return MAPPER.toDataSchema(jsonSchema);
+    protected DataSchema parseSchema(String name, String schema) {
+        return MAPPER.toDataSchema(name, null);
     }
 }

@@ -1,10 +1,10 @@
-package io.axual.ksml.notation.xsd;
+package io.axual.ksml.notation.csv;
 
 /*-
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2022 Axual B.V.
+ * Copyright (C) 2021 - 2023 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,19 +21,20 @@ package io.axual.ksml.notation.xsd;
  */
 
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.MapType;
-import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.notation.string.StringMapper;
 import io.axual.ksml.notation.string.StringNotation;
 import org.apache.kafka.common.serialization.Serde;
 
-public class XsdNotation extends StringNotation {
-    public static final String NOTATION_NAME = "XSD";
-    public static final DataType DEFAULT_TYPE = new StructType();
-    private static final XsdDataObjectMapper MAPPER = new XsdDataObjectMapper();
+public class CsvNotation extends StringNotation {
+    public static final String NOTATION_NAME = "CSV";
+    public static final DataType LINE_TYPE = new ListType(DataString.DATATYPE);
+    public static final DataType DEFAULT_TYPE = new ListType(LINE_TYPE);
+    private static final CsvDataObjectMapper MAPPER = new CsvDataObjectMapper();
 
-    public XsdNotation() {
+    public CsvNotation() {
         super(new StringMapper<>() {
             @Override
             public DataObject fromString(String value) {
@@ -54,8 +55,8 @@ public class XsdNotation extends StringNotation {
 
     @Override
     public Serde<Object> getSerde(DataType type, boolean isKey) {
-        // XML types should ways be Maps (or Structs)
-        if (type instanceof MapType) return super.getSerde(type, isKey);
+        // CSV types should ways be Lists
+        if (type instanceof ListType) return super.getSerde(type, isKey);
         // Other types can not be serialized as XML
         throw noSerdeFor(type);
     }

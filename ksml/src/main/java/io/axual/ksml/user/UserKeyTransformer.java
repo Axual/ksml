@@ -21,12 +21,11 @@ package io.axual.ksml.user;
  */
 
 
-import org.apache.kafka.streams.kstream.KeyValueMapper;
-
 import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.util.DataUtil;
-import io.axual.ksml.python.Invoker;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.python.Invoker;
+import io.axual.ksml.util.DataUtil;
+import org.apache.kafka.streams.kstream.KeyValueMapper;
 
 public class UserKeyTransformer extends Invoker implements KeyValueMapper<Object, Object, Object> {
     public UserKeyTransformer(UserFunction function) {

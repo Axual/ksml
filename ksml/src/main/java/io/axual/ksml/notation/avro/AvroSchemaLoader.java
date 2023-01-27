@@ -1,10 +1,10 @@
-package io.axual.ksml.notation.jsonschema;
+package io.axual.ksml.notation.avro;
 
 /*-
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,18 +20,23 @@ package io.axual.ksml.notation.jsonschema;
  * =========================LICENSE_END==================================
  */
 
-import com.networknt.schema.JsonSchema;
-import io.axual.ksml.data.mapper.DataSchemaMapper;
-import io.axual.ksml.data.schema.DataSchema;
 
-public class JsonSchemaMapper implements DataSchemaMapper<JsonSchema> {
-    @Override
-    public DataSchema toDataSchema(JsonSchema value) {
-        return null;
+import io.axual.ksml.data.schema.SchemaLoader;
+import io.axual.ksml.data.schema.DataSchema;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.Schema;
+
+@Slf4j
+public class AvroSchemaLoader extends SchemaLoader {
+    private static final AvroSchemaMapper MAPPER = new AvroSchemaMapper();
+
+    public AvroSchemaLoader(String schemaDirectory) {
+        super("AVRO", schemaDirectory, ".avsc");
     }
 
     @Override
-    public Object fromDataSchema(DataSchema value) {
-        return null;
+    protected DataSchema parseSchema(String name, String schema) {
+        var result = new Schema.Parser().parse(schema);
+        return MAPPER.toDataSchema(name, result);
     }
 }

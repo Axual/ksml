@@ -21,15 +21,14 @@ package io.axual.ksml.operation;
  */
 
 
-import org.apache.kafka.streams.kstream.KeyValueMapper;
-import org.apache.kafka.streams.kstream.Named;
-
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserKeyTransformer;
 import io.axual.ksml.util.DataUtil;
+import org.apache.kafka.streams.kstream.KeyValueMapper;
+import org.apache.kafka.streams.kstream.Named;
 
 public class ToStreamOperation extends BaseOperation {
     private static final String MAPPER_NAME = "Mapper";

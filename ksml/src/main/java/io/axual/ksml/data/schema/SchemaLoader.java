@@ -21,7 +21,6 @@ package io.axual.ksml.data.schema;
  */
 
 
-import io.axual.ksml.execution.FatalError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +53,7 @@ public abstract class SchemaLoader implements SchemaLibrary.Loader {
             schemaName = schemaName.substring(schemaName.indexOf(".") + 1);
         }
 
-        throw FatalError.schemaError("Could not load " + schemaDescr + " schema: " + schemaName);
+        return null;
     }
 
     private DataSchema loadInternal(String schemaName) {
@@ -65,7 +64,7 @@ public abstract class SchemaLoader implements SchemaLibrary.Loader {
             try (var resource = getClass().getResourceAsStream(schemaName)) {
                 if (resource != null) {
                     var contents = new String(resource.readAllBytes(), StandardCharsets.UTF_8);
-                    var schema = parseSchema(contents);
+                    var schema = parseSchema(schemaName, contents);
                     if (schema != null) return schema;
                 }
             }
@@ -76,7 +75,7 @@ public abstract class SchemaLoader implements SchemaLibrary.Loader {
         // Try to load the schema from file
         try {
             var contents = Files.readString(Path.of(schemaFile));
-            var schema = parseSchema(contents);
+            var schema = parseSchema(schemaName, contents);
             if (schema != null) return schema;
         } catch (IOException e) {
             // Ignore
@@ -87,5 +86,5 @@ public abstract class SchemaLoader implements SchemaLibrary.Loader {
         return null;
     }
 
-    protected abstract DataSchema parseSchema(String schema);
+    protected abstract DataSchema parseSchema(String schemaName, String schema);
 }

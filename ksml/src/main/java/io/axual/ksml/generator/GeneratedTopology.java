@@ -1,10 +1,10 @@
-package io.axual.ksml.notation.avroschema;
+package io.axual.ksml.generator;
 
 /*-
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 Axual B.V.
+ * Copyright (C) 2021 - 2023 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,23 +20,12 @@ package io.axual.ksml.notation.avroschema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.parser.topology.TopologyParseContext;
+import org.apache.kafka.streams.Topology;
 
-import io.axual.ksml.data.schema.SchemaLoader;
-import io.axual.ksml.data.schema.DataSchema;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.avro.Schema;
+import java.util.Map;
+import java.util.Set;
 
-@Slf4j
-public class AvroSchemaLoader extends SchemaLoader {
-    private static final AvroSchemaMapper MAPPER = new AvroSchemaMapper();
-
-    public AvroSchemaLoader(String schemaDirectory) {
-        super("AVRO", schemaDirectory, ".avsc");
-    }
-
-    @Override
-    protected DataSchema parseSchema(String schema) {
-        var result = new Schema.Parser().parse(schema);
-        return MAPPER.toDataSchema(result);
-    }
+public record GeneratedTopology(Topology topology, Set<String> inputTopics, Set<String> intermediateTopics,
+                                Set<String> outputTopics, Map<String, TopologyParseContext.StoreDescriptor> stores) {
 }

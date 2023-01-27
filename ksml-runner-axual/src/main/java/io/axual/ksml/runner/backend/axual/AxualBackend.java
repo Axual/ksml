@@ -21,23 +21,6 @@ package io.axual.ksml.runner.backend.axual;
  */
 
 
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.Serializer;
-import org.apache.kafka.common.utils.Utils;
-import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.KeyQueryMetadata;
-import org.apache.kafka.streams.StoreQueryParameters;
-import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.StreamsMetadata;
-import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import io.axual.client.proxy.axual.producer.AxualProducerConfig;
 import io.axual.client.proxy.generic.registry.ProxyChain;
 import io.axual.common.config.ClientConfig;
@@ -50,6 +33,7 @@ import io.axual.discovery.client.exception.DiscoveryClientRegistrationException;
 import io.axual.discovery.client.tools.DiscoveryConfigParserV2;
 import io.axual.ksml.AxualNotationLibrary;
 import io.axual.ksml.KSMLTopologyGenerator;
+import io.axual.ksml.TopologyGenerator;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.rest.server.StreamsQuerier;
 import io.axual.ksml.runner.backend.Backend;
@@ -62,10 +46,26 @@ import io.axual.streams.proxy.generic.factory.UncaughtExceptionHandlerFactory;
 import io.axual.streams.proxy.wrapped.WrappedStreamsConfig;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.utils.Utils;
+import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.KeyQueryMetadata;
+import org.apache.kafka.streams.StoreQueryParameters;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.StreamsMetadata;
+import org.apache.kafka.streams.Topology;
+import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
 
-import static io.axual.client.proxy.generic.registry.ProxyTypeRegistry.HEADER_PROXY_ID;
-import static io.axual.client.proxy.generic.registry.ProxyTypeRegistry.LINEAGE_PROXY_ID;
-import static io.axual.client.proxy.generic.registry.ProxyTypeRegistry.RESOLVING_PROXY_ID;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static io.axual.client.proxy.generic.registry.ProxyTypeRegistry.*;
 import static io.axual.client.proxy.switching.generic.DistributorConfigs.DISTRIBUTOR_DISTANCE_CONFIG;
 import static io.axual.client.proxy.switching.generic.DistributorConfigs.DISTRIBUTOR_TIMEOUT_CONFIG;
 import static io.axual.common.tools.MapUtil.stringValue;
@@ -84,6 +84,8 @@ public class AxualBackend implements Backend {
 
     private AxualStreams axualStreams;
     private DiscoveryResult discoveryResult;
+    private TopologyGenerator topologyGenerator;
+    private Map<String, Object> axualConfigs;
 
     public AxualBackend(KSMLConfig ksmlConfig, AxualBackendConfig config) {
         log.info("Constructing Axual Backend");
@@ -172,7 +174,7 @@ public class AxualBackend implements Backend {
                 .append(RESOLVING_PROXY_ID)
                 .append(LINEAGE_PROXY_ID)
                 .build());
-        var topologyGenerator = new KSMLTopologyGenerator(ksmlConfigs, kafkaConfigs);
+        topologyGenerator = new KSMLTopologyGenerator(clientConfig.getApplicationId(), ksmlConfigs, kafkaConfigs);
 
         configs.put(StreamsConfig.REQUEST_TIMEOUT_MS_CONFIG, 40000);
         configs.put(StreamsConfig.STATE_DIR_CONFIG, ksmlConfig.getWorkingDirectory());
@@ -180,7 +182,7 @@ public class AxualBackend implements Backend {
             configs.put(StreamsConfig.APPLICATION_SERVER_CONFIG, ksmlConfig.getApplicationServer());
         }
 
-        configs.put(WrappedStreamsConfig.TOPOLOGY_FACTORY_CONFIG, (TopologyFactory) topologyGenerator::create);
+        configs.put(WrappedStreamsConfig.TOPOLOGY_FACTORY_CONFIG, (TopologyFactory) this::createTopology);
         configs.put(WrappedStreamsConfig.UNCAUGHT_EXCEPTION_HANDLER_FACTORY_CONFIG, (UncaughtExceptionHandlerFactory) streams -> throwable -> {
             log.error("Caught serious exception in thread!", throwable);
             return StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_APPLICATION;
@@ -197,11 +199,41 @@ public class AxualBackend implements Backend {
                 .build());
 
         configs.put(AbstractKafkaSchemaSerDeConfig.AUTO_REGISTER_SCHEMAS, false);
+        axualConfigs = configs;
 
         log.info("Creating StreamRunnerConfig...");
 
         log.info("Creating AxualStreams...");
         axualStreams = new AxualStreams(configs);
+    }
+
+    private Topology createTopology(StreamsBuilder builder) {
+        log.info("Creating Topology...");
+        var result = topologyGenerator.create(builder);
+//        log.info("Validating Topology...");
+//        var adminConfigs = new HashMap<>(axualConfigs);
+//        adminConfigs.put(AxualAdminConfig.CHAIN_CONFIG, ProxyChain.newBuilder()
+//                .append(RESOLVING_PROXY_ID)
+//                .append(LINEAGE_PROXY_ID)
+//                .append(HEADER_PROXY_ID)
+//                .build());
+//        var producerConfigs = new HashMap<>(axualConfigs);
+//        producerConfigs.put(AxualProducerConfig.CHAIN_CONFIG, ProxyChain.newBuilder()
+//                .append(RESOLVING_PROXY_ID)
+//                .append(LINEAGE_PROXY_ID)
+//                .append(HEADER_PROXY_ID)
+//                .build());
+//        producerConfigs.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, clientConfig.getApplicationId());
+//        producerConfigs.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
+//        producerConfigs.put(ProducerConfig.RETRIES_CONFIG, 1);
+//        var producer = new AxualProducer<>(producerConfigs);
+//        producer.initTransactions();
+//        TopologyValidator.validateTopology(
+//                result,
+//                clientConfig.getApplicationId(),
+//                new AxualAdminClient(adminConfigs),
+//                producer);
+        return result;
     }
 
     private boolean waitForDistribution() {

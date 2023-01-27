@@ -35,6 +35,10 @@ public class FatalError {
     private FatalError() {
     }
 
+    public static RuntimeException configError(String message) {
+        return dataError(message, null);
+    }
+
     public static RuntimeException dataError(String message) {
         return dataError(message, null);
     }

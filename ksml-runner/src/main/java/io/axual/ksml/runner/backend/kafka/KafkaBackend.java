@@ -21,6 +21,12 @@ package io.axual.ksml.runner.backend.kafka;
  */
 
 
+import io.axual.ksml.KSMLTopologyGenerator;
+import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.rest.server.StreamsQuerier;
+import io.axual.ksml.runner.backend.Backend;
+import io.axual.ksml.runner.config.KSMLConfig;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.utils.Utils;
@@ -36,13 +42,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import io.axual.ksml.KSMLTopologyGenerator;
-import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.rest.server.StreamsQuerier;
-import io.axual.ksml.runner.backend.Backend;
-import io.axual.ksml.runner.config.KSMLConfig;
-import lombok.extern.slf4j.Slf4j;
 
 import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
 
@@ -78,8 +77,7 @@ public class KafkaBackend implements Backend {
         ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_SOURCE, ksmlConfig.getDefinitions());
         ksmlConfigs.put(io.axual.ksml.KSMLConfig.NOTATION_LIBRARY, new NotationLibrary(propertiesToMap(streamsProperties)));
 
-        var topologyGenerator = new KSMLTopologyGenerator(ksmlConfigs, streamsProperties);
-
+        var topologyGenerator = new KSMLTopologyGenerator(backendConfig.getApplicationId(), ksmlConfigs, streamsProperties);
         final var topology = topologyGenerator.create(new StreamsBuilder());
         kafkaStreams = new KafkaStreams(topology, streamsProperties);
     }

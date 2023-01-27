@@ -47,7 +47,7 @@ import java.util.HashMap;
 
 public class XmlDataObjectMapper implements DataObjectMapper<String> {
     private static final Logger LOG = LoggerFactory.getLogger(XmlDataObjectMapper.class);
-    private static final String COUNT_SYMBOL = "#";
+    public static final String COUNT_SYMBOL = "#";
     public static final String ATTRIBUTES_ELEMENT_NAME = ".attributes";
 
     private final DocumentBuilder documentBuilder;
@@ -100,9 +100,15 @@ public class XmlDataObjectMapper implements DataObjectMapper<String> {
         return null;
     }
 
+    private String stripNamespace(String name) {
+        if (name.contains(":")) return name.substring(name.indexOf(":") + 1);
+        return name;
+    }
+
     private DataStruct elementToDataObject(Element element) {
-        var elementName = element.getNodeName();
-        var result = new DataStruct(new StructSchema(null, elementName, "ConvertedFromXML", null));
+        var elementName = stripNamespace(element.getNodeName());
+        var result = new DataStruct(new StructSchema(null, elementName, "Converted from XML", null));
+
 
         // Store all attributes in the result as dot-prefixed names
         var attributes = element.getAttributes();
@@ -124,7 +130,7 @@ public class XmlDataObjectMapper implements DataObjectMapper<String> {
 
         Node child = element.getFirstChild();
         while (child != null) {
-            var name = child.getNodeName();
+            var name = stripNamespace(child.getNodeName());
             var value = valueToDataObject(child);
             if (value != null) {
                 // Add the name and value to the lists
@@ -149,7 +155,8 @@ public class XmlDataObjectMapper implements DataObjectMapper<String> {
             if (nameCount != null && nameCount > 1) {
                 var childNameNumber = childNameNumbering.get(name);
                 if (childNameNumber == null) childNameNumber = 0L;
-                childNameNumbering.put(name, childNameNumber + 1);
+                childNameNumber++;
+                childNameNumbering.put(name, childNameNumber);
                 name = name + COUNT_SYMBOL + childNameNumber;
             }
             result.put(name, value);

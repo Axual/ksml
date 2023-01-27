@@ -20,7 +20,6 @@ package io.axual.ksml.notation.avro;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.notation.avroschema.AvroSchemaMapper;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
@@ -43,7 +42,7 @@ public class AvroDataMapper extends NativeDataObjectMapper {
             return new DataString(value.toString());
         }
         if (value instanceof GenericRecord rec) {
-            DataStruct result = new DataStruct(new AvroSchemaMapper().toDataSchema(rec.getSchema()));
+            DataStruct result = new DataStruct(new AvroSchemaMapper().toDataSchema(rec.getSchema().getName(), rec.getSchema()));
             for (Schema.Field field : rec.getSchema().getFields()) {
                 result.put(field.name(), toDataObject(rec.get(field.name())));
             }

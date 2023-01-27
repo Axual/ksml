@@ -21,12 +21,6 @@ package io.axual.ksml.user;
  */
 
 
-import org.apache.kafka.streams.KeyValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Arrays;
-
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
@@ -34,9 +28,14 @@ import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.definition.ParameterDefinition;
+import io.axual.ksml.exception.KSMLDataException;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLTopologyException;
-import io.axual.ksml.exception.KSMLDataException;
+import org.apache.kafka.streams.KeyValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
 
 /**
  * Base class for user-defined functions.
@@ -104,7 +103,7 @@ public class UserFunction {
         return new KSMLTopologyException("Expected " + expectedType + " from function " + name + " but got: " + (result != null ? result : "null"));
     }
 
-    public KeyValue<DataObject, DataObject> convertToKeyValue(DataObject result, DataType keyType, DataType valueType) {
+    public KeyValue<Object, Object> convertToKeyValue(DataObject result, DataType keyType, DataType valueType) {
         if (result instanceof DataList list &&
                 list.size() == 2 &&
                 keyType.isAssignableFrom(list.get(0).type()) &&

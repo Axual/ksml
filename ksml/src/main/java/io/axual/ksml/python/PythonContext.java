@@ -20,6 +20,8 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.definition.ParameterDefinition;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.PolyglotAccess;
@@ -27,9 +29,6 @@ import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 
 import java.util.Arrays;
-
-import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.definition.ParameterDefinition;
 
 public class PythonContext {
     private static final String PYTHON = "python";
@@ -109,7 +108,11 @@ public class PythonContext {
 
         final var pyCode = pythonCodeTemplate.formatted(globalCode, functionAndExpression, pyCallerCode);
         Source script = Source.create(PYTHON, pyCode);
-        context.eval(script);
+        try {
+            context.eval(script);
+        }catch (Exception e) {
+            System.out.println(e);
+        }
         return context.getPolyglotBindings().getMember(name + "_caller");
     }
 }

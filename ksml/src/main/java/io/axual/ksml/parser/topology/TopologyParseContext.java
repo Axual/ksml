@@ -21,28 +21,29 @@ package io.axual.ksml.parser.topology;
  */
 
 
-import io.axual.ksml.parser.ParseContext;
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.Topology;
-import org.apache.kafka.streams.kstream.Grouped;
-import org.apache.kafka.streams.kstream.internals.GroupedInternal;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.StoreDefinition;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonFunction;
 import io.axual.ksml.store.StoreType;
 import io.axual.ksml.stream.BaseStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.Topology;
+import org.apache.kafka.streams.kstream.Grouped;
+import org.apache.kafka.streams.kstream.internals.GroupedInternal;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Parse context which calls {@link StreamsBuilder} to build up the streams topology and keeps track of the wrapped streams.
@@ -59,6 +60,7 @@ public class TopologyParseContext implements ParseContext {
     private final Map<String, AtomicInteger> typeInstanceCounters = new HashMap<>();
     private final Map<String, GroupedInternal<?, ?>> groupedStores = new HashMap<>();
     private final Map<String, StoreDescriptor> stateStores = new HashMap<>();
+    private final Set<String> knownTopics = new HashSet<>();
 
     public record StoreDescriptor(StoreType type, StoreDefinition store, StreamDataType keyType,
                                   StreamDataType valueType) {
@@ -70,11 +72,20 @@ public class TopologyParseContext implements ParseContext {
         this.namePrefix = namePrefix;
     }
 
+    public Set<String> getRegisteredTopics() {
+        return knownTopics;
+    }
+
+    public void registerTopic(String topic) {
+        knownTopics.add(topic);
+    }
+
     public void registerStreamDefinition(String name, BaseStreamDefinition def) {
         if (streamDefinitions.containsKey(name)) {
             throw new KSMLTopologyException("Stream definition must be unique: " + name);
         }
         streamDefinitions.put(name, def);
+        registerTopic(def.topic);
         buildWrapper(name, def);
     }
 

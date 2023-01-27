@@ -24,8 +24,7 @@
     </organization>
 
     <description>
-        KSML allows low-code developers to specify a Kafka Streams topology using YAML and Python
-        snippets.
+        KSML allows low-code developers to specify a Kafka Streams topology using YAML and Python snippets.
     </description>
 
     <url>https://axual.com/</url>
@@ -60,7 +59,7 @@
 
     <properties>
         <apache.avro.version>1.11.1</apache.avro.version>
-        <apache.kafka.version>3.2.3</apache.kafka.version>
+        <apache.kafka.version>3.3.2</apache.kafka.version>
         <axual.version>6.0.4</axual.version>
         <commons.logging.version>1.1</commons.logging.version>
         <confluent.version>7.3.1</confluent.version>
@@ -71,7 +70,7 @@
         <java.source.version>17</java.source.version>
         <java.target.version>17</java.target.version>
         <jupiter.version>5.7.1</jupiter.version>
-        <logback.version>1.2.9</logback.version>
+        <logback.version>1.4.5</logback.version>
         <lombok.version>1.18.24</lombok.version>
         <maven.compiler.version>3.8.1</maven.compiler.version>
         <maven.enforcer.version>3.0.0</maven.enforcer.version>
@@ -83,9 +82,10 @@
         <maven.install.version>3.0.0-M1</maven.install.version>
         <maven.license.plugin.version>1.9</maven.license.plugin.version>
         <maven.jacoco.plugin.version>0.8.8</maven.jacoco.plugin.version>
+        <opencsv.version>5.7.1</opencsv.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <slf4j.version>1.7.36</slf4j.version>
+        <slf4j.version>2.0.6</slf4j.version>
         <mockito-core.version>3.10.0</mockito-core.version>
         <jakarta.soap.version>3.0.0</jakarta.soap.version>
         <saaj.version>3.0.0</saaj.version>
@@ -186,11 +186,6 @@
                 <version>${jackson.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.networknt</groupId>
-                <artifactId>json-schema-validator</artifactId>
-                <version>${json.schema.validator.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>jakarta.xml.soap</groupId>
                 <artifactId>jakarta.xml.soap-api</artifactId>
                 <version>${jakarta.soap.version}</version>
@@ -199,6 +194,11 @@
                 <groupId>com.sun.xml.messaging.saaj</groupId>
                 <artifactId>saaj-impl</artifactId>
                 <version>${saaj.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.opencsv</groupId>
+                <artifactId>opencsv</artifactId>
+                <version>${opencsv.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.jersey.containers</groupId>

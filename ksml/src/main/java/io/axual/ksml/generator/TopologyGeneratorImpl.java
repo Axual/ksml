@@ -22,19 +22,6 @@ package io.axual.ksml.generator;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
-
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.Topology;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import io.axual.ksml.KSMLConfig;
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.PipelineDefinition;
@@ -45,18 +32,27 @@ import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.definition.parser.TableDefinitionParser;
 import io.axual.ksml.definition.parser.TypedFunctionDefinitionParser;
 import io.axual.ksml.exception.KSMLParseException;
-import io.axual.ksml.parser.MapParser;
 import io.axual.ksml.operation.StreamOperation;
-import io.axual.ksml.parser.topology.TopologyParseContext;
+import io.axual.ksml.parser.MapParser;
 import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.parser.topology.TopologyParseContext;
 import io.axual.ksml.stream.StreamWrapper;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.Topology;
+import org.apache.kafka.streams.TopologyDescription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTIONS_DEFINITION;
-import static io.axual.ksml.dsl.KSMLDSL.GLOBALTABLES_DEFINITION;
-import static io.axual.ksml.dsl.KSMLDSL.PIPELINES_DEFINITION;
-import static io.axual.ksml.dsl.KSMLDSL.STORES_DEFINITION;
-import static io.axual.ksml.dsl.KSMLDSL.STREAMS_DEFINITION;
-import static io.axual.ksml.dsl.KSMLDSL.TABLES_DEFINITION;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static io.axual.ksml.dsl.KSMLDSL.*;
 
 /**
  * Generate a Kafka Streams topology from a KSML configuration, using a Python interpreter.
@@ -66,10 +62,6 @@ import static io.axual.ksml.dsl.KSMLDSL.TABLES_DEFINITION;
 public class TopologyGeneratorImpl {
     private static final Logger LOG = LoggerFactory.getLogger(TopologyGeneratorImpl.class);
     private final KSMLConfig config;
-
-    public record Result(Topology topology,
-                         Map<String, TopologyParseContext.StoreDescriptor> stores) {
-    }
 
     public TopologyGeneratorImpl(KSMLConfig config) {
         this.config = config;
@@ -88,8 +80,7 @@ public class TopologyGeneratorImpl {
                     LOG.info("Reading KSML from content string: {}", config.source);
                     return Collections.singletonList(new YAMLDefinition("content", YAMLObjectMapper.INSTANCE.readValue((String) config.source, JsonNode.class)));
                 }
-                default ->
-                        throw new KSMLParseException(null, "Unknown KSML source dataType: " + config.sourceType);
+                default -> throw new KSMLParseException(null, "Unknown KSML source dataType: " + config.sourceType);
             }
         } catch (IOException e) {
             LOG.info("Can not read YAML: {}", e.getMessage());
@@ -98,43 +89,66 @@ public class TopologyGeneratorImpl {
         return new ArrayList<>();
     }
 
-    public Topology create(StreamsBuilder builder) {
+    public Topology create(String applicationId, StreamsBuilder builder) {
         List<YAMLDefinition> definitions = readKSMLDefinitions();
+        GeneratedTopology generatorResult = null;
         for (YAMLDefinition definition : definitions) {
-            var generatorResult = generate(builder, YamlNode.fromRoot(definition.root(), "ksml"), getPrefix(definition.source()));
-            if (generatorResult != null) {
-                LOG.info("\n\n{}", generatorResult.topology() != null ? generatorResult.topology().describe() : "null");
-                if (generatorResult.stores.size() > 0) {
-                    StringBuilder storeOutput = new StringBuilder("Registered state stores:\n");
-                    for (var entry : generatorResult.stores().entrySet()) {
-                        storeOutput
-                                .append("  ")
-                                .append(entry.getKey())
-                                .append(" (")
-                                .append(entry.getValue().type())
-                                .append("): key=")
-                                .append(entry.getValue().keyType())
-                                .append(", value=")
-                                .append(entry.getValue().valueType())
-                                .append(", retention=")
-                                .append(entry.getValue().store().retention() != null ? entry.getValue().store().retention() : "null")
-                                .append(", caching=")
-                                .append(entry.getValue().store().caching() != null ? entry.getValue().store().caching() : "null")
-                                .append(", url_path=/state/")
-                                .append(switch (entry.getValue().type()) {
-                                    case KEYVALUE_STORE -> "keyvalue";
-                                    case SESSION_STORE -> "session";
-                                    case WINDOW_STORE -> "windowed";
-                                })
-                                .append("/")
-                                .append(entry.getKey())
-                                .append("/");
-                    }
-                    LOG.info("\n{}\n", storeOutput);
-                }
-            }
+            generatorResult = generate(applicationId, builder, YamlNode.fromRoot(definition.root(), "ksml"), getPrefix(definition.source()));
         }
+
+        if (generatorResult != null) {
+            StringBuilder summary = new StringBuilder("\n\n");
+            summary.append(generatorResult.topology() != null ? generatorResult.topology().describe() : "null");
+            summary.append("\n");
+
+            appendTopics(summary, "Input topics", generatorResult.inputTopics());
+            appendTopics(summary, "Intermediate topics", generatorResult.intermediateTopics());
+            appendTopics(summary, "Output topics", generatorResult.outputTopics());
+
+            appendStores(summary, "Registered state stores", generatorResult.stores());
+
+            LOG.info("\n{}\n", summary);
+        }
+
         return builder.build();
+    }
+
+    public void appendTopics(StringBuilder builder, String description, Set<String> topics) {
+        if (topics.size() > 0) {
+            builder.append(description).append(":\n  ");
+            builder.append(String.join("\n  ", topics));
+            builder.append("\n");
+        }
+    }
+
+    public void appendStores(StringBuilder builder, String description, Map<String, TopologyParseContext.StoreDescriptor> stores) {
+        if (stores.size() > 0) {
+            builder.append(description).append(":\n");
+        }
+        for (var entry : stores.entrySet()) {
+            builder
+                    .append("  ")
+                    .append(entry.getKey())
+                    .append(" (")
+                    .append(entry.getValue().type())
+                    .append("): key=")
+                    .append(entry.getValue().keyType())
+                    .append(", value=")
+                    .append(entry.getValue().valueType())
+                    .append(", retention=")
+                    .append(entry.getValue().store().retention() != null ? entry.getValue().store().retention() : "null")
+                    .append(", caching=")
+                    .append(entry.getValue().store().caching() != null ? entry.getValue().store().caching() : "null")
+                    .append(", url_path=/state/")
+                    .append(switch (entry.getValue().type()) {
+                        case KEYVALUE_STORE -> "keyvalue";
+                        case SESSION_STORE -> "session";
+                        case WINDOW_STORE -> "windowed";
+                    })
+                    .append("/")
+                    .append(entry.getKey())
+                    .append("/");
+        }
     }
 
     private String getPrefix(String source) {
@@ -151,7 +165,8 @@ public class TopologyGeneratorImpl {
         return source;
     }
 
-    private Result generate(StreamsBuilder builder, YamlNode node, String namePrefix) {
+    private GeneratedTopology generate(String applicationId, StreamsBuilder builder, YamlNode node, String
+            namePrefix) {
         if (node == null) return null;
 
         // Set up the parse context, which will gather toplevel information on the streams topology
@@ -188,7 +203,62 @@ public class TopologyGeneratorImpl {
             }
         });
 
-        // Return the built topology
-        return new Result(context.build(), context.stores());
+        // Build the result topology
+        var topology = context.build();
+
+        // Derive all input, intermediate and output topics
+        var knownTopics = context.getRegisteredTopics();
+        var topologyInputs = new HashSet<String>();
+        var topologyOutputs = new HashSet<String>();
+        var inputTopics = new HashSet<String>();
+        var outputTopics = new HashSet<String>();
+        var intermediateTopics = new HashSet<String>();
+
+        analyzeTopology(topology, topologyInputs, topologyOutputs);
+
+        for (String topic : topologyInputs) {
+            if (knownTopics.contains(topic)) {
+                inputTopics.add(topic);
+            } else {
+                intermediateTopics.add(applicationId + "-" + topic);
+            }
+        }
+
+        for (String topic : topologyOutputs) {
+            if (knownTopics.contains(topic)) {
+                outputTopics.add(topic);
+            } else {
+                intermediateTopics.add(applicationId + "-" + topic);
+            }
+        }
+
+        // Return the built topology and its context
+        return new GeneratedTopology(
+                topology,
+                inputTopics,
+                intermediateTopics,
+                outputTopics,
+                context.stores());
+    }
+
+    private static void analyzeTopology(Topology topology, Set<String> inputTopics, Set<String> outputTopics) {
+        var description = topology.describe();
+        for (int index = 0; index < description.subtopologies().size(); index++) {
+            for (var subTopology : description.subtopologies()) {
+                for (var node : subTopology.nodes()) {
+                    if (node instanceof TopologyDescription.Source sourceNode) {
+                        inputTopics.addAll(sourceNode.topicSet());
+                        if (sourceNode.topicPattern() != null)
+                            inputTopics.add(sourceNode.topicPattern().pattern());
+                    }
+                    if (node instanceof TopologyDescription.Processor processorNode) {
+//                        stores.addAll(processorNode.stores());
+                    }
+                    if (node instanceof TopologyDescription.Sink sinkNode) {
+                        outputTopics.add(sinkNode.topic());
+                    }
+                }
+            }
+        }
     }
 }

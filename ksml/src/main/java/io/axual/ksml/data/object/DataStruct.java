@@ -67,8 +67,17 @@ public class DataStruct implements DataObject {
         type = new StructType(schema);
     }
 
+    public boolean containsKey(String key) {
+        return contents.containsKey(key);
+    }
+
     public DataObject get(String key) {
         return contents.get(key);
+    }
+
+    public DataString getAsString(String key) {
+        var result = contents.get(key);
+        return result instanceof DataString str ? str : result != null ? new DataString(result.toString()) : null;
     }
 
     public void put(String key, DataObject value) {

@@ -1,4 +1,4 @@
-package io.axual.ksml.notation.avroschema;
+package io.axual.ksml.notation.avro;
 
 /*-
  * ========================LICENSE_START=================================
@@ -45,7 +45,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     private static final NativeDataObjectMapper nativeMapper = new NativeDataObjectMapper();
 
     @Override
-    public StructSchema toDataSchema(Schema schema) {
+    public StructSchema toDataSchema(String name, Schema schema) {
         return new StructSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), convertFieldsToDataSchema(schema.getFields()));
     }
 
@@ -69,7 +69,8 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             case LONG -> DataSchema.create(DataSchema.Type.LONG);
 
             case BYTES -> DataSchema.create(DataSchema.Type.BYTES);
-            case FIXED -> new FixedSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getFixedSize());
+            case FIXED ->
+                    new FixedSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getFixedSize());
 
             case FLOAT -> DataSchema.create(DataSchema.Type.FLOAT);
             case DOUBLE -> DataSchema.create(DataSchema.Type.DOUBLE);
@@ -77,9 +78,10 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             case STRING -> DataSchema.create(DataSchema.Type.STRING);
 
             case ARRAY -> new ListSchema(convertToDataSchema(schema.getElementType()));
-            case ENUM -> new EnumSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getEnumSymbols(), schema.getEnumDefault());
+            case ENUM ->
+                    new EnumSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getEnumSymbols(), schema.getEnumDefault());
             case MAP -> new MapSchema(convertToDataSchema(schema.getValueType()));
-            case RECORD -> toDataSchema(schema);
+            case RECORD -> toDataSchema(schema.getName(), schema);
             case UNION -> new UnionSchema(convertToDataSchema(schema.getTypes()).toArray(new DataSchema[0]));
         };
     }
@@ -120,12 +122,15 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             case DOUBLE -> Schema.create(Schema.Type.DOUBLE);
             case FLOAT -> Schema.create(Schema.Type.FLOAT);
             case BYTES -> Schema.create(Schema.Type.BYTES);
-            case FIXED -> Schema.createFixed(((FixedSchema) schema).name(), ((FixedSchema) schema).doc(), ((FixedSchema) schema).namespace(), ((FixedSchema) schema).size());
+            case FIXED ->
+                    Schema.createFixed(((FixedSchema) schema).name(), ((FixedSchema) schema).doc(), ((FixedSchema) schema).namespace(), ((FixedSchema) schema).size());
             case STRING -> Schema.create(Schema.Type.STRING);
-            case ENUM -> Schema.createEnum(((EnumSchema) schema).name(), ((EnumSchema) schema).doc(), ((EnumSchema) schema).namespace(), ((EnumSchema) schema).symbols(), ((EnumSchema) schema).defaultValue());
+            case ENUM ->
+                    Schema.createEnum(((EnumSchema) schema).name(), ((EnumSchema) schema).doc(), ((EnumSchema) schema).namespace(), ((EnumSchema) schema).symbols(), ((EnumSchema) schema).defaultValue());
             case LIST -> Schema.createArray(convertToAvro(((ListSchema) schema).valueSchema()));
             case MAP -> Schema.createMap(convertToAvro(((MapSchema) schema).valueSchema()));
-            case STRUCT -> Schema.createRecord(((StructSchema) schema).name(), ((StructSchema) schema).doc(), ((StructSchema) schema).namespace(), false, convertFieldsToAvro(((StructSchema) schema).fields()));
+            case STRUCT ->
+                    Schema.createRecord(((StructSchema) schema).name(), ((StructSchema) schema).doc(), ((StructSchema) schema).namespace(), false, convertFieldsToAvro(((StructSchema) schema).fields()));
             case UNION -> Schema.createUnion(convertToAvro(((UnionSchema) schema).possibleSchemas()));
         };
     }
