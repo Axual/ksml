@@ -53,7 +53,7 @@
         <module>ksml-query</module>
         <module>ksml-runner</module>
         <module>ksml-runner-axual</module>
-        <module>ksml-producer</module>
+        <module>ksml-data-generator</module>
         <module>ksml-reporting</module>
     </modules>
 
