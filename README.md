@@ -26,9 +26,9 @@ The submodules are as follows:
 * [`ksml-runner-axual`](ksml-runner-axual/) 
   adaption of the standard runner, intended for use with Axual Platform and/or Axual Cloud
 
-The following example project is also included:
-* [`ksml-example-producer`](ksml-example-producer/)
-  example producer, which writes random SensorData messages to a Kafka topic for demo purposes
+* [`ksml-data-generator`](ksml-data-generator/)
+  A KSML based data generator, allows for programmable data generator using KSML definitions
+
 
 ## Building KSML
 Building and running KSML requires an installation of GraalVM and the corresponding Python module.
@@ -41,8 +41,8 @@ See the paragraphs below for details.
 #### Using the multistage Docker build
 You can build either the standard KSML runner, or the runner for the Axual platform using one of the following commands:
 
-    docker build -t axual/ksml -f Dockerfile-build-runner . --build-arg runner=ksml-runner
-    docker build -t axual/ksml -f Dockerfile-build-runner . --build-arg runner=ksml-runner-axual
+    docker buildx build -t axual/ksml:local -f Dockerfile --target ksml . --build-arg runner=ksml-runner
+    docker buildx build -t axual/ksml-axual:local -f Dockerfile --target ksml . --build-arg runner=ksml-runner-axual
 
 If you do not specify a `--build-arg`, the plain Kafka runner will be built by default.
 
@@ -58,8 +58,8 @@ Maven commands:
 
 Then build the runtime container by passing in either `./ksml-runner` or `ksml-runner-axual` as build context:
 
-    docker build -t axual/ksml -f Dockerfile ./ksml-runner
-    docker build -t axual/ksml -f Dockerfile ./ksml-runner-axual
+    docker buildx build -t axual/ksml:local -f Dockerfile --target ksml . --build-arg runner=ksml-runner
+    docker buildx build -t axual/ksml-axual:local -f Dockerfile --target ksml . --build-arg runner=ksml-runner-axual
 
 ## Running KSML
 To run the KSML demo, we provide a Docker compose file which will start Kafka, create the demo topics, and start a container
