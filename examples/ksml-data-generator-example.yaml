@@ -1,3 +1,11 @@
+producer:
+  workingDirectory: /ksml
+  definitions:
+        - 00-example-generate-alertsettings.yaml
+        - 00-example-generate-sensordata.yaml
+#        - 00-example-generate-soap.yaml
+#        - 00-example-generate-xsd.yaml
+
 kafka:
   bootstrapUrl: broker:9093
   applicationId: io.ksml.example.producer
