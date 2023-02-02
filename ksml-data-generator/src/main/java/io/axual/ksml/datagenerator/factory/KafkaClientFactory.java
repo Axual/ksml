@@ -43,7 +43,7 @@ public class KafkaClientFactory implements ClientFactory {
         this.clientConfigs = new HashMap<>(clientConfigs);
         this.clientConfigs.put(BOOTSTRAP_SERVERS_CONFIG, backendConfig.getBootstrapUrl());
         this.clientConfigs.put(SCHEMA_REGISTRY_URL_CONFIG, backendConfig.getSchemaRegistryUrl());
-        notationLibrary = new NotationLibrary(clientConfigs);
+        notationLibrary = new NotationLibrary(this.clientConfigs);
     }
 
     @Override
