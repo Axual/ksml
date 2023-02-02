@@ -33,7 +33,7 @@ public class JsonDataObjectConverter implements NotationConverter {
     @Override
     public DataObject convert(DataObject value, UserType targetType) {
         // Convert from structured JSON
-        if (value instanceof DataList || value instanceof DataStruct || value instanceof DataUnion) {
+        if (value instanceof DataList || value instanceof DataStruct) {
             // Convert to String
             if (targetType.dataType() == DataString.DATATYPE) {
                 return new DataString(DATA_OBJECT_MAPPER.fromDataObject(value));

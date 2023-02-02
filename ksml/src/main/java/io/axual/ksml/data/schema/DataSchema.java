@@ -21,9 +21,6 @@ package io.axual.ksml.data.schema;
  */
 
 import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.notation.binary.NativeDataSchemaMapper;
-import io.axual.ksml.notation.binary.NativeJsonNodeMapper;
-import io.axual.ksml.notation.json.JsonStringMapper;
 
 import java.util.Objects;
 
@@ -57,9 +54,6 @@ public class DataSchema {
         UNION,
     }
 
-    private static final NativeDataSchemaMapper NATIVE_DATA_SCHEMA_MAPPER = new NativeDataSchemaMapper();
-    private static final NativeJsonNodeMapper NATIVE_JSON_NODE_MAPPER = new NativeJsonNodeMapper();
-    private static final JsonStringMapper JSON_STRING_MAPPER = new JsonStringMapper();
     private final Type type;
 
     public static DataSchema create(Type type) {
@@ -80,9 +74,6 @@ public class DataSchema {
     @Override
     public String toString() {
         return type.toString();
-//        var nativeSchema = NATIVE_DATA_SCHEMA_MAPPER.fromDataSchema(this);
-//        var jsonSchema = NATIVE_JSON_NODE_MAPPER.toJsonNode(nativeSchema);
-//        return JSON_STRING_MAPPER.toString(jsonSchema);
     }
 
     public boolean isAssignableFrom(DataSchema schema) {

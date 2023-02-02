@@ -43,11 +43,11 @@ import static io.axual.ksml.dsl.DataSchemaDSL.*;
 
 public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
     private static final DataSchemaParser PARSER = new DataSchemaParser();
-    private static final NativeJsonNodeMapper JSON_NODE_MAPPER = new NativeJsonNodeMapper();
+    private static final JsonNodeNativeMapper JSON_NODE_MAPPER = new JsonNodeNativeMapper();
 
     @Override
     public DataSchema toDataSchema(String name, Object value) {
-        var json = JSON_NODE_MAPPER.toJsonNode(value);
+        var json = JSON_NODE_MAPPER.fromNative(value);
         var root = YamlNode.fromRoot(json, "Schema");
         return PARSER.parse(root);
     }

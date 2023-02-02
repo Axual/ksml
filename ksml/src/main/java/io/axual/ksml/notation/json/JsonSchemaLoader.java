@@ -35,6 +35,6 @@ public class JsonSchemaLoader extends SchemaLoader {
 
     @Override
     protected DataSchema parseSchema(String name, String schema) {
-        return MAPPER.toDataSchema(name, null);
+        return MAPPER.toDataSchema(name, schema);
     }
 }

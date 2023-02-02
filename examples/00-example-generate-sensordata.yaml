@@ -67,11 +67,19 @@ functions:
 producers:
   sensordata_avro_producer:
     generator: generate_sensordata_message
-    interval: 555
+    interval: 444
     to:
       topic: ksml_sensordata_avro
       keyType: string
       valueType: avro:SensorData
+
+  sensordata_csv_producer:
+    generator: generate_sensordata_message
+    interval: 555
+    to:
+      topic: ksml_sensordata_csv
+      keyType: string
+      valueType: csv:SensorData
 
   sensordata_json_producer:
     generator: generate_sensordata_message
@@ -79,4 +87,4 @@ producers:
     to:
       topic: ksml_sensordata_json
       keyType: string
-      valueType: json
+      valueType: json:SensorData

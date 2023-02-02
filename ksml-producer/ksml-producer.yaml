@@ -1,11 +1,11 @@
 producer:
   workingDirectory: ../examples
   definitions:
-#    - 00-demo-produce-alertsettings.yaml
-#    - 00-demo-produce-sensordata.yaml
-#    - 00-demo-produce-soap.yaml
-#    - 00-demo-produce-xsd.yaml
-    - 00-demo-produce-rabo-carbon.yaml
+    - 00-example-generate-alertsettings.yaml
+    - 00-example-generate-sensordata.yaml
+    - 00-example-generate-soap.yaml
+#    - 00-example-generate-xsd.yaml
+#    - 00-example-generate-rabo-carbon.yaml
 
 kafka:
   bootstrapUrl: localhost:9092

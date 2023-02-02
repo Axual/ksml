@@ -25,6 +25,8 @@ import io.axual.ksml.data.schema.SchemaLibrary;
 import io.axual.ksml.generator.TopologyGeneratorImpl;
 import io.axual.ksml.notation.avro.AvroNotation;
 import io.axual.ksml.notation.avro.AvroSchemaLoader;
+import io.axual.ksml.notation.csv.CsvNotation;
+import io.axual.ksml.notation.csv.CsvSchemaLoader;
 import io.axual.ksml.notation.json.JsonNotation;
 import io.axual.ksml.notation.json.JsonSchemaLoader;
 import io.axual.ksml.notation.xml.XmlNotation;
@@ -57,6 +59,7 @@ public class KSMLTopologyGenerator implements TopologyGenerator {
     public Topology create(StreamsBuilder streamsBuilder) {
         // Register schema loaders
         SchemaLibrary.registerLoader(AvroNotation.NOTATION_NAME, new AvroSchemaLoader(config.configDirectory));
+        SchemaLibrary.registerLoader(CsvNotation.NOTATION_NAME, new CsvSchemaLoader(config.configDirectory));
         SchemaLibrary.registerLoader(JsonNotation.NOTATION_NAME, new JsonSchemaLoader(config.configDirectory));
         SchemaLibrary.registerLoader(XmlNotation.NOTATION_NAME, new XmlSchemaLoader(config.configDirectory));
 

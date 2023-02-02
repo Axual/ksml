@@ -20,11 +20,11 @@ package io.axual.ksml.notation.xml;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
-import io.axual.ksml.notation.string.StringMapper;
 import io.axual.ksml.notation.string.StringNotation;
 import org.apache.kafka.common.serialization.Serde;
 
@@ -34,14 +34,14 @@ public class XmlNotation extends StringNotation {
     private static final XmlDataObjectMapper MAPPER = new XmlDataObjectMapper();
 
     public XmlNotation() {
-        super(new StringMapper<>() {
+        super(new DataObjectMapper<>() {
             @Override
-            public DataObject fromString(String value) {
-                return MAPPER.toDataObject(value);
+            public DataObject toDataObject(DataType expected, String value) {
+                return MAPPER.toDataObject(expected, value);
             }
 
             @Override
-            public String toString(DataObject value) {
+            public String fromDataObject(DataObject value) {
                 return MAPPER.fromDataObject(value);
             }
         });

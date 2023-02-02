@@ -25,5 +25,5 @@ import io.axual.ksml.data.schema.DataSchema;
 public interface DataSchemaMapper<T> {
     DataSchema toDataSchema(String name, T value);
 
-    T fromDataSchema(DataSchema value);
+    T fromDataSchema(DataSchema schema);
 }

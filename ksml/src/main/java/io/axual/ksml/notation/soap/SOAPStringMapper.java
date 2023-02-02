@@ -20,17 +20,17 @@ package io.axual.ksml.notation.soap;
  * =========================LICENSE_END==================================
  */
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.notation.string.StringMapper;
 import jakarta.xml.soap.MessageFactory;
 import jakarta.xml.soap.SOAPConstants;
 import jakarta.xml.soap.SOAPException;
 import jakarta.xml.soap.SOAPMessage;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 public class SOAPStringMapper implements StringMapper<SOAPMessage> {
     private final MessageFactory messageFactory;

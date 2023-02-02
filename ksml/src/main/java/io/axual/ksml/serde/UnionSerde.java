@@ -20,6 +20,11 @@ package io.axual.ksml.serde;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.UnionType;
+import io.axual.ksml.exception.KSMLExecutionException;
+import io.axual.ksml.notation.NotationLibrary;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
@@ -27,12 +32,6 @@ import org.apache.kafka.common.serialization.Serializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.UnionType;
-import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.notation.NotationLibrary;
 
 public class UnionSerde implements Serde<Object> {
     private record PossibleType(DataType type, Serializer<Object> serializer,
@@ -84,6 +83,8 @@ public class UnionSerde implements Serde<Object> {
             for (PossibleType possibleType : possibleTypes) {
                 try {
                     Object result = possibleType.deserializer.deserialize(topic, data);
+                    if (result instanceof DataObject dataObject && possibleType.type.isAssignableFrom(dataObject))
+                        return result;
                     if (possibleType.type.isAssignableFrom(result)) return result;
                 } catch (Exception e) {
                     // Not properly deserialized, so ignore and try next alternative

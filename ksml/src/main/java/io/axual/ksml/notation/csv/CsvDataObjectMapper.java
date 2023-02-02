@@ -27,36 +27,55 @@ import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.schema.SchemaUtil;
+import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.notation.binary.NativeDataObjectMapper;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
 
-import static io.axual.ksml.notation.csv.CsvNotation.DEFAULT_TYPE;
-import static io.axual.ksml.notation.csv.CsvNotation.LINE_TYPE;
-
 public class CsvDataObjectMapper implements DataObjectMapper<String> {
-    private static final String[] EMPTY_LINE = new String[0];
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
 
     @Override
-    public DataList toDataObject(DataType expected, String value) {
-        var in = new StringReader(value);
-        var reader = new CSVReader(in);
-        try {
-            var lines = reader.readAll();
-            var result = new DataList(DEFAULT_TYPE);
-            for (var line : lines) result.add(convertLine(line));
-            return result;
-        } catch (IOException | CsvException e) {
-            throw FatalError.executionError("Could not parse CSV", e);
+    public DataObject toDataObject(DataType expected, String value) {
+        if (value != null) {
+            try {
+                var in = new StringReader(value);
+                var reader = new CSVReader(in);
+                var lines = reader.readAll();
+                if (lines.size() > 0) {
+                    if (expected instanceof StructType structType && structType.schema() != null)
+                        return convertToStruct(lines.get(0), structType.schema());
+                    return convertToList(lines.get(0));
+                }
+            } catch (IOException | CsvException e) {
+                throw FatalError.executionError("Could not parse CSV", e);
+            }
         }
+        return new DataList(DataString.DATATYPE);
     }
 
-    private DataList convertLine(String[] elements) {
-        var result = new DataList(LINE_TYPE);
+    private DataStruct convertToStruct(String[] line, StructSchema schema) {
+        // Convert the line with its elements to a Struct with given schema
+        var result = new DataStruct(schema);
+        for (int index = 0; index < schema.fields().size(); index++) {
+            var field = schema.field(index);
+            var value = index < line.length ? line[index] : (field.defaultValue() != null ? field.defaultValue().value() : null);
+            result.put(field.name(), NATIVE_MAPPER.toDataObject(SchemaUtil.schemaToDataType(field.schema()), value));
+        }
+        return result;
+    }
+
+    private DataList convertToList(String[] elements) {
+        // Convert the line to a list of Strings
+        var result = new DataList(DataString.DATATYPE);
         for (String element : elements) {
             result.add(DataString.from(element));
         }
@@ -65,26 +84,44 @@ public class CsvDataObjectMapper implements DataObjectMapper<String> {
 
     @Override
     public String fromDataObject(DataObject value) {
-        var csv = new ArrayList<String[]>();
-        if (value instanceof DataList valueList) {
-            for (var line : valueList) csv.add(compileLine(line));
-            var out = new StringWriter();
-            var writer = new CSVWriter(out);
-            writer.writeAll(csv);
-            return out.toString();
-        }
+        if (value instanceof DataStruct valueStruct)
+            return convertFromStruct(valueStruct);
+        if (value instanceof DataList valueList)
+            return convertFromList(valueList);
         return null;
     }
 
-    private String[] compileLine(DataObject line) {
-        if (line instanceof DataList lineList) {
-            var result = new String[lineList.size()];
-            for (int index = 0; index < lineList.size(); index++) {
-                var item = lineList.get(index);
-                result[index] = item != null ? item.toString() : null;
-            }
-            return result;
+    private String convertFromStruct(DataStruct value) {
+        if (value.type().schema() != null) {
+            // Convert from a Struct with a schema --> compose fields by order in the schema
+            var schema = value.type().schema();
+            var line = new String[schema.fields().size()];
+            for (var index = 0; index < schema.fields().size(); index++)
+                line[index] = value.get(schema.field(index).name()).toString();
+            return convertToCsv(line);
+        } else {
+            // Convert from a Struct without a schema --> compose fields alphabetically
+            var line = new String[value.size()];
+            var index = 0;
+            for (var entry : value.entrySet())
+                line[index++] = entry.getValue().toString();
+            return convertToCsv(line);
         }
-        return EMPTY_LINE;
+    }
+
+    private String convertFromList(DataList value) {
+        var line = new String[value.size()];
+        for (var index = 0; index < value.size(); index++)
+            line[index] = value.get(index).toString();
+        return convertToCsv(line);
+    }
+
+    private String convertToCsv(String[] line) {
+        var csv = new ArrayList<String[]>();
+        csv.add(line);
+        var out = new StringWriter();
+        var writer = new CSVWriter(out);
+        writer.writeAll(csv);
+        return out.toString();
     }
 }

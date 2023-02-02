@@ -46,10 +46,6 @@ public class StructSchema extends NamedSchema {
         }
     }
 
-    public int numFields() {
-        return fields.size();
-    }
-
     public DataField field(int index) {
         return fields.get(index);
     }

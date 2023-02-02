@@ -1,18 +1,10 @@
 Topologies:
    Sub-topology: 0
-    Source: sensor_red (topics: [ksml_sensordata_red])
-      --> none
-
-  Sub-topology: 1
-    Source: sensor_blue (topics: [ksml_sensordata_blue])
-      --> none
-
-  Sub-topology: 2
-    Source: sensor_stream (topics: [ksml_sensordata_avro])
+    Source: ksml_sensordata_avro (topics: [ksml_sensordata_avro])
       --> before-peek
     Processor: before-peek (stores: [])
       --> branch_001
-      <-- sensor_stream
+      <-- ksml_sensordata_avro
     Processor: branch_001 (stores: [])
       --> branch_001-predicate-0, branch_001-predicate-1, branch_001-predicate-2
       <-- before-peek

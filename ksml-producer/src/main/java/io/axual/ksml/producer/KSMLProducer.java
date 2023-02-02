@@ -48,7 +48,7 @@ import static org.apache.kafka.clients.producer.ProducerConfig.*;
 @Slf4j
 public class KSMLProducer {
     private static final Logger LOG = LoggerFactory.getLogger(KSMLProducer.class);
-    private static final String DEFAULT_CONFIG_FILE_SHORT = "ksml-producer.yml";
+    private static final String DEFAULT_CONFIG_FILE_SHORT = "ksml-producer.yaml";
     private static final PythonContext context = new PythonContext();
     private static final IntervalSchedule<ExecutableProducer> schedule = new IntervalSchedule<>();
 

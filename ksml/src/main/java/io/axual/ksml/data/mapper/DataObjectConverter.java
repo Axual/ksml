@@ -34,6 +34,7 @@ import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.object.DataUnion;
+import io.axual.ksml.data.schema.SchemaUtil;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.StructType;
@@ -43,17 +44,12 @@ import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.notation.binary.NativeDataObjectMapper;
-import io.axual.ksml.notation.json.JsonDataObjectMapper;
-import io.axual.ksml.data.schema.SchemaUtil;
 
-// This DataObjectMapper makes expected data types compatible with the actual data that was
+// This DataObjectConverter makes expected data types compatible with the actual data that was
 // created. It does so by converting numbers to strings, and vice versa. It can convert complex
 // data objects like Enums, Lists and Structs too, recursively going through sub-elements if
 // necessary.
 public class DataObjectConverter {
-    private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
-    private static final JsonDataObjectMapper JSON_MAPPER = new JsonDataObjectMapper();
     private final NotationLibrary notationLibrary;
 
     public DataObjectConverter(NotationLibrary notationLibrary) {
@@ -83,12 +79,19 @@ public class DataObjectConverter {
     private DataObject applyNotationConverters(String sourceNotation, DataObject value, UserType targetType) {
         // If we have a notation library, then we can check if the notations have converters to translate the value
         if (notationLibrary != null) {
+            // If the value is a union, then dig down to its real value
+            while (value instanceof DataUnion valueUnion) {
+                value = valueUnion.value();
+            }
+
             // First we see if the target notation is able to interpret the source value
             var targetConverter = notationLibrary.getConverter(targetType.notation());
             if (targetConverter != null) {
                 var target = targetConverter.convert(value, targetType);
                 if (target != null && targetType.dataType().isAssignableFrom(target.type())) return target;
             }
+
+            // If the target notation was not able to convert, then try the source notation
             var sourceConverter = notationLibrary.getConverter(sourceNotation);
             if (sourceConverter != null) {
                 var target = sourceConverter.convert(value, targetType);

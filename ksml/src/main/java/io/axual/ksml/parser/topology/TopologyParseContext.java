@@ -86,7 +86,6 @@ public class TopologyParseContext implements ParseContext {
         }
         streamDefinitions.put(name, def);
         registerTopic(def.topic);
-        buildWrapper(name, def);
     }
 
     public void registerFunction(String name, FunctionDefinition functionDefinition) {

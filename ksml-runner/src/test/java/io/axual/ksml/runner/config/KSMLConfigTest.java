@@ -44,7 +44,7 @@ class KSMLConfigTest {
     @Test
     @DisplayName("validate of complete config should not throw exceptions")
     void shouldValidateConfig() throws Exception {
-        final var yaml = getClass().getClassLoader().getResourceAsStream("ksml-config.yml");
+        final var yaml = getClass().getClassLoader().getResourceAsStream("ksml-config.yaml");
         final var ksmlConfig = objectMapper.readValue(yaml, KSMLConfig.class);
 
         ksmlConfig.validate();
@@ -53,7 +53,7 @@ class KSMLConfigTest {
     @Test
     @DisplayName("validate of incorrect config directory should throw exception")
     void shouldThrowOnWrongConfigdir() throws Exception {
-        final var yaml = getClass().getClassLoader().getResourceAsStream("ksml-config-wrong-configdir.yml");
+        final var yaml = getClass().getClassLoader().getResourceAsStream("ksml-config-wrong-configdir.yaml");
         final var ksmlConfig = objectMapper.readValue(yaml, KSMLConfig.class);
 
         assertThrows(KSMLRunnerConfigurationException.class, ksmlConfig::validate, "should throw exception for wrong configdir");
@@ -62,7 +62,7 @@ class KSMLConfigTest {
     @Test
     @DisplayName("if configdir is missing it should default to workdir")
     void shouldDefaultConfigToWorkdir() throws Exception {
-        final var yaml = getClass().getClassLoader().getResourceAsStream("ksml-config-no-configdir.yml");
+        final var yaml = getClass().getClassLoader().getResourceAsStream("ksml-config-no-configdir.yaml");
         final var ksmlConfig = objectMapper.readValue(yaml, KSMLConfig.class);
 
         ksmlConfig.validate();

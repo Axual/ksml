@@ -24,10 +24,11 @@ import io.axual.ksml.exception.KSMLExecutionException;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class SchemaLibrary {
-    private static final Map<String, Loader> loaders = new HashMap<>();
-    private static final Map<String, NamedSchema> schemas = new HashMap<>();
+    private static final Map<String, Loader> loaders = new TreeMap<>();
+    private static final Map<String, Map<String, NamedSchema>> schemas = new HashMap<>();
 
     public interface Loader {
         DataSchema load(String schemaName);
@@ -37,35 +38,42 @@ public class SchemaLibrary {
     }
 
     public static DataSchema getSchema(String schemaName, boolean allowNull) {
-        for (String notationName : loaders.keySet()) {
-            var schema = getSchema(notationName, schemaName);
-            if (schema != null) return schema;
+        // Look up the schema in the list of already loaded schemas. The process goes alphabetically, so any AVRO
+        // schema automatically overrules any CSV schema with the same name. This process only applies for schema
+        // types returned from Python. Any other schema references should know its notation and therefore those
+        // lookups should not go through this method.
+        for (var notationSchemas : schemas.entrySet()) {
+            var notationSchema = notationSchemas.getValue().get(schemaName);
+            if (notationSchema != null) return notationSchema;
         }
 
         if (!allowNull) {
-            throw new KSMLExecutionException("Can not load schema: " + schemaName);
+            throw new KSMLExecutionException("Unknown schema: " + schemaName);
         }
         return null;
     }
 
     public static DataSchema getSchema(String notationName, String schemaName, boolean allowNull) {
-        var result = getSchema(notationName, schemaName);
-        if (result == null && !allowNull) {
-            throw new KSMLExecutionException("Can not load schema: " + notationName + ":" + schemaName);
+        var notationSchemas = schemas.get(notationName);
+        if (notationSchemas != null) {
+            var schema = notationSchemas.get(schemaName);
+            if (schema != null) return schema;
         }
-        return result;
-    }
 
-    private static DataSchema getSchema(String notationName, String schemaName) {
-        if (schemas.containsKey(schemaName)) {
-            return schemas.get(schemaName);
-        }
         var loader = loaders.get(notationName);
         if (loader == null) return null;
 
         var schema = loader.load(schemaName);
         if (schema instanceof NamedSchema ns) {
-            schemas.put(schemaName, ns);
+            if (notationSchemas == null) {
+                notationSchemas = new TreeMap<>();
+                schemas.put(notationName, notationSchemas);
+            }
+            notationSchemas.put(schemaName, ns);
+        }
+
+        if (!allowNull && schema == null) {
+            throw new KSMLExecutionException("Can not load schema: " + schemaName);
         }
         return schema;
     }

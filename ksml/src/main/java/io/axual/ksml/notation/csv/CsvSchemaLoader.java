@@ -1,10 +1,10 @@
-package io.axual.ksml.notation.json;
+package io.axual.ksml.notation.csv;
 
 /*-
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2022 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,21 @@ package io.axual.ksml.notation.json;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
 
-public interface JsonNodeMapper<T> {
-    JsonNode toJsonNode(T value);
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.SchemaLoader;
+import lombok.extern.slf4j.Slf4j;
 
-    T fromJsonNode(JsonNode root);
+@Slf4j
+public class CsvSchemaLoader extends SchemaLoader {
+    private static final CsvSchemaMapper MAPPER = new CsvSchemaMapper();
+
+    public CsvSchemaLoader(String schemaDirectory) {
+        super("CSV", schemaDirectory, ".csv");
+    }
+
+    @Override
+    protected DataSchema parseSchema(String name, String schema) {
+        return MAPPER.toDataSchema(name, schema);
+    }
 }

@@ -1,0 +1,31 @@
+# This example shows how to read from three simple streams and output every message on stdout
+
+streams:
+  sensor_source_avro:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+  sensor_source_csv:
+    topic: ksml_sensordata_csv
+    keyType: string
+    valueType: csv:SensorData
+  sensor_source_json:
+    topic: ksml_sensordata_json
+    keyType: string
+    valueType: json:SensorData
+
+functions:
+  print_message:
+    type: forEach
+    code: "print('key=' + str(key) + ', value=' + str(value))"
+
+pipelines:
+  consume_avro:
+    from: sensor_source_avro
+    forEach: print_message
+  consume_csv:
+    from: sensor_source_csv
+    forEach: print_message
+  consume_json:
+    from: sensor_source_json
+    forEach: print_message

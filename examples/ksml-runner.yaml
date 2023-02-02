@@ -1,0 +1,26 @@
+ksml:
+  workingDirectory: /tmp
+  configDirectory: /ksml
+  definitions:
+  - 01-example-inspect.yaml
+#  - 02-example-copy.yaml
+#  - 03-example-filter.yaml
+#  - 04-example-branch.yaml
+#  - 05-example-route.yaml
+#  - 06-example-duplicate.yaml
+#  - 07-example-convert.yaml
+#  - 08-example-count.yaml
+#  - 09-example-aggregate.yaml
+#  - 10-example-queryabletable.yaml
+#  - 11-example-fieldmodification.yaml
+#  - 12-example-bytemanipulation.yaml
+#  - 13-example-join.yaml
+
+backend:
+  type: kafka
+  config:
+    bootstrapUrl: broker:9093
+    applicationId: io.ksml.example.processor
+    schemaRegistryUrl: http://schema_registry:8081
+    streamsConfig:
+      acks: all

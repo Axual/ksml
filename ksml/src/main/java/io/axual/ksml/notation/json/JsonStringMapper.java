@@ -21,11 +21,36 @@ package io.axual.ksml.notation.json;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.axual.ksml.exception.KSMLDataException;
+import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.notation.binary.JsonNodeNativeMapper;
+import io.axual.ksml.notation.string.StringMapper;
 
-import io.axual.ksml.notation.string.CustomStringMapper;
+import java.io.IOException;
+import java.io.StringWriter;
 
-public class JsonStringMapper extends CustomStringMapper {
-    public JsonStringMapper() {
-        super(new ObjectMapper());
+public class JsonStringMapper implements StringMapper<Object> {
+    protected final ObjectMapper mapper = new ObjectMapper();
+    private static final JsonNodeNativeMapper NATIVE_MAPPER = new JsonNodeNativeMapper();
+
+    @Override
+    public Object fromString(String value) {
+        try {
+            var tree = mapper.readTree(value);
+            return NATIVE_MAPPER.toNative(tree);
+        } catch (Exception mapException) {
+            throw new KSMLDataException("Could not parse string to object: " + (value != null ? value : "null"));
+        }
+    }
+
+    @Override
+    public String toString(Object value) {
+        try {
+            final var writer = new StringWriter();
+            mapper.writeTree(mapper.createGenerator(writer), NATIVE_MAPPER.fromNative(value));
+            return writer.toString();
+        } catch (IOException e) {
+            throw FatalError.dataError("Can not convert object to JSON string: " + (value != null ? value.toString() : "null"), e);
+        }
     }
 }

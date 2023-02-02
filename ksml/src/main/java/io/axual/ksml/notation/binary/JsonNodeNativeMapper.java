@@ -24,29 +24,26 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.axual.ksml.data.value.Tuple;
+import io.axual.ksml.exception.KSMLExecutionException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.axual.ksml.data.value.Tuple;
-import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.notation.json.JsonNodeMapper;
-
-public class NativeJsonNodeMapper implements JsonNodeMapper<Object> {
+public class JsonNodeNativeMapper {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    @Override
-    public JsonNode toJsonNode(Object value) {
+    public JsonNode fromNative(Object value) {
         if (value instanceof List<?> list)
-            return listToJsonNode(list);
+            return fromNativeList(list);
         if (value instanceof Map<?, ?> map)
-            return mapToJsonNode(map);
-        throw new KSMLExecutionException("Can not convert to JsonNode: " + value.getClass().getSimpleName());
+            return fromNativeMap(map);
+        throw new KSMLExecutionException("Can not convert to JsonNode: " + (value != null ? value.getClass().getSimpleName() : "null"));
     }
 
-    private JsonNode listToJsonNode(List<?> list) {
+    private JsonNode fromNativeList(List<?> list) {
         var result = MAPPER.createArrayNode();
         for (Object element : list) {
             addToArrayNode(result, element);
@@ -54,11 +51,11 @@ public class NativeJsonNodeMapper implements JsonNodeMapper<Object> {
         return result;
     }
 
-    private JsonNode mapToJsonNode(Map<?, ?> map) {
+    private JsonNode fromNativeMap(Map<?, ?> map) {
         var result = MAPPER.createObjectNode();
         for (Map.Entry<?, ?> entry : map.entrySet()) {
             var key = entry.getKey().toString();
-            var value = valueToJsonValue(entry.getValue());
+            var value = fromNativeValue(entry.getValue());
             addToObjectNode(result, key, value);
         }
         return result;
@@ -67,14 +64,14 @@ public class NativeJsonNodeMapper implements JsonNodeMapper<Object> {
     private JsonNode tupleToJsonNode(Tuple<?> value) {
         var result = MAPPER.createArrayNode();
         for (Object element : value.elements()) {
-            addToArrayNode(result, valueToJsonValue(element));
+            addToArrayNode(result, fromNativeValue(element));
         }
         return result;
     }
 
-    private Object valueToJsonValue(Object value) {
-        if (value instanceof List<?>) return toJsonNode(value);
-        if (value instanceof Map<?, ?>) return toJsonNode(value);
+    private Object fromNativeValue(Object value) {
+        if (value instanceof List<?>) return fromNative(value);
+        if (value instanceof Map<?, ?>) return fromNative(value);
         return value;
     }
 
@@ -91,7 +88,7 @@ public class NativeJsonNodeMapper implements JsonNodeMapper<Object> {
         if (value instanceof JsonNode val) return node.add(val);
         if (value instanceof Tuple<?> val) return node.add(tupleToJsonNode(val));
         if (value instanceof List<?> || value instanceof Map<?, ?>)
-            return node.add(toJsonNode(value));
+            return node.add(fromNative(value));
         throw new KSMLExecutionException("Can not add value to ObjectNode: " + value.getClass().getSimpleName());
     }
 
@@ -108,36 +105,35 @@ public class NativeJsonNodeMapper implements JsonNodeMapper<Object> {
         if (value instanceof JsonNode val) return node.set(key, val);
         if (value instanceof Tuple<?> val) return node.set(key, tupleToJsonNode(val));
         if (value instanceof List<?> || value instanceof Map<?, ?>)
-            node.set(key, toJsonNode(value));
+            node.set(key, fromNative(value));
         throw new KSMLExecutionException("Can not add value to ObjectNode: " + value.getClass().getSimpleName());
     }
 
-    @Override
-    public Object fromJsonNode(JsonNode node) {
-        if (node.isArray()) return arrayToList((ArrayNode) node);
-        if (node.isObject()) return objectToMap((ObjectNode) node);
+    public Object toNative(JsonNode node) {
+        if (node.isArray()) return toNativeList((ArrayNode) node);
+        if (node.isObject()) return toNativeMap((ObjectNode) node);
         throw new KSMLExecutionException("Can not convert from JsonNode: " + node.toPrettyString());
     }
 
-    private Object arrayToList(ArrayNode node) {
+    private Object toNativeList(ArrayNode node) {
         var result = new ArrayList<>();
         for (var it = node.elements(); it.hasNext(); ) {
             var element = it.next();
-            result.add(jsonValueToValue(element));
+            result.add(toNativeValue(element));
         }
         return result;
     }
 
-    private Object objectToMap(ObjectNode node) {
+    private Object toNativeMap(ObjectNode node) {
         var result = new HashMap<String, Object>();
         for (var it = node.fields(); it.hasNext(); ) {
             var entry = it.next();
-            result.put(entry.getKey(), jsonValueToValue(entry.getValue()));
+            result.put(entry.getKey(), toNativeValue(entry.getValue()));
         }
         return result;
     }
 
-    private Object jsonValueToValue(JsonNode value) {
+    private Object toNativeValue(JsonNode value) {
         try {
             if (value.isNull()) return null;
             if (value.isShort()) return value.shortValue();
@@ -147,8 +143,8 @@ public class NativeJsonNodeMapper implements JsonNodeMapper<Object> {
             if (value.isFloat()) return value.floatValue();
             if (value.isBinary()) return value.binaryValue();
             if (value.isTextual()) return value.textValue();
-            if (value.isArray()) return fromJsonNode(value);
-            if (value.isObject()) return fromJsonNode(value);
+            if (value.isArray()) return toNative(value);
+            if (value.isObject()) return toNative(value);
         } catch (Exception e) {
             throw new KSMLExecutionException("Can not convert from JSON value: " + value.getClass().getSimpleName(), e);
         }

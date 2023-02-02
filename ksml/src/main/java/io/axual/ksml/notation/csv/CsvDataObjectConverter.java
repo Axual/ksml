@@ -9,9 +9,9 @@ package io.axual.ksml.notation.csv;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,11 +23,12 @@ package io.axual.ksml.notation.csv;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.object.DataUnion;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.notation.NotationConverter;
+
+import static io.axual.ksml.notation.csv.CsvNotation.DEFAULT_TYPE;
 
 public class CsvDataObjectConverter implements NotationConverter {
     private static final CsvDataObjectMapper DATA_OBJECT_MAPPER = new CsvDataObjectMapper();
@@ -35,7 +36,7 @@ public class CsvDataObjectConverter implements NotationConverter {
     @Override
     public DataObject convert(DataObject value, UserType targetType) {
         // Convert from structured CSV
-        if (value instanceof DataList || value instanceof DataUnion) {
+        if (value instanceof DataList valueList && DEFAULT_TYPE.equals(valueList.type())) {
             // Convert to String
             if (targetType.dataType() == DataString.DATATYPE) {
                 return new DataString(DATA_OBJECT_MAPPER.fromDataObject(value));

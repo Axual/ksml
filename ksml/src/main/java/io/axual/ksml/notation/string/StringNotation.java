@@ -20,24 +20,27 @@ package io.axual.ksml.notation.string;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.notation.Notation;
 import io.axual.ksml.util.DataUtil;
-import org.apache.kafka.common.serialization.*;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 
 public abstract class StringNotation implements Notation {
-    private final StringSerde serde = new StringSerde();
-    private final StringMapper<DataObject> mapper;
+    private final DataObjectMapper<String> mapper;
 
-    public StringNotation(StringMapper<DataObject> mapper) {
+    public StringNotation(DataObjectMapper<String> mapper) {
         this.mapper = mapper;
     }
 
     @Override
     public Serde<Object> getSerde(DataType type, boolean isKey) {
-        return serde;
+        return new StringSerde(type);
     }
 
     protected RuntimeException noSerdeFor(DataType type) {
@@ -45,27 +48,29 @@ public abstract class StringNotation implements Notation {
     }
 
     private class StringSerde implements Serde<Object> {
+        private final DataType expectedDataType;
+
+        public StringSerde(DataType expectedDataType) {
+            this.expectedDataType = expectedDataType;
+        }
+
         private final StringSerializer serializer = new StringSerializer();
         private final StringDeserializer deserializer = new StringDeserializer();
 
-        private final Serializer<Object> wrapSerializer = (topic, data) -> {
-            var str = mapper.toString(DataUtil.asDataObject(data));
-            return serializer.serialize(topic, str);
-        };
-
-        private final Deserializer<Object> wrapDeserializer = (topic, data) -> {
-            String str = deserializer.deserialize(topic, data);
-            return mapper.fromString(str);
-        };
-
         @Override
         public Serializer<Object> serializer() {
-            return wrapSerializer;
+            return (topic, data) -> {
+                var str = mapper.fromDataObject(DataUtil.asDataObject(data));
+                return serializer.serialize(topic, str);
+            };
         }
 
         @Override
         public Deserializer<Object> deserializer() {
-            return wrapDeserializer;
+            return (topic, data) -> {
+                String str = deserializer.deserialize(topic, data);
+                return mapper.toDataObject(expectedDataType, str);
+            };
         }
     }
 }

@@ -76,7 +76,7 @@ backend:
 ## Starting a container
 To start a container the KSML definitions and Runner configuration files need to be available in a directory mounted inside the docker container.
 
-The default Runner configuration filename is **_ksml-runner.yml_**.
+The default Runner configuration filename is **_ksml-runner.yaml_**.
 If no arguments are given, the runner will look for this file in the home directory
 
 ```
@@ -86,11 +86,11 @@ docker run --rm -ti -v /path/to/local/ksml/directory:/ksml -w /ksml axual/ksml-a
 
 ## or
 
-docker run --rm -ti -v /path/to/local/ksml/directory:/ksml -w /ksml axual/ksml-axual:latest /ksml/ksml-runner.yml
+docker run --rm -ti -v /path/to/local/ksml/directory:/ksml -w /ksml axual/ksml-axual:latest /ksml/ksml-runner.yaml
 ```
 
-or, if the runner configuration is in a different file, like **_my-runner.yml_**.
+or, if the runner configuration is in a different file, like **_my-runner.yaml_**.
 
 ```
-docker run --rm -ti -v /path/to/local/ksml/directory:/ksml axual/ksml-axual:latest /ksml/my-runner.yml
+docker run --rm -ti -v /path/to/local/ksml/directory:/ksml axual/ksml-axual:latest /ksml/my-runner.yaml
 ```

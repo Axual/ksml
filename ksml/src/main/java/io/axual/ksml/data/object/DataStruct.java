@@ -71,19 +71,6 @@ public class DataStruct implements DataObject {
         return contents.containsKey(key);
     }
 
-    public DataObject get(String key) {
-        return contents.get(key);
-    }
-
-    public DataString getAsString(String key) {
-        var result = contents.get(key);
-        return result instanceof DataString str ? str : result != null ? new DataString(result.toString()) : null;
-    }
-
-    public void put(String key, DataObject value) {
-        contents.put(key, value);
-    }
-
     public Set<Map.Entry<String, DataObject>> entrySet() {
         return contents.entrySet();
     }
@@ -92,8 +79,8 @@ public class DataStruct implements DataObject {
         contents.forEach(action);
     }
 
-    public void putIfNotNull(String key, DataObject value) {
-        if (value != null) put(key, value);
+    public DataObject get(String key) {
+        return contents.get(key);
     }
 
     public void getIfPresent(String key, DataStructApplier<DataObject> applier) {
@@ -121,6 +108,23 @@ public class DataStruct implements DataObject {
             return (T) value;
         }
         return defaultValue;
+    }
+
+    public DataString getAsString(String key) {
+        var result = contents.get(key);
+        return result instanceof DataString str ? str : result != null ? new DataString(result.toString()) : null;
+    }
+
+    public void put(String key, DataObject value) {
+        contents.put(key, value);
+    }
+
+    public void putIfNotNull(String key, DataObject value) {
+        if (value != null) put(key, value);
+    }
+
+    public int size() {
+        return contents.size();
     }
 
     @Override

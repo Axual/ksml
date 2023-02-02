@@ -157,7 +157,7 @@ public class UserTypeParser {
 
         // AVRO with schema
         if (typeNotation.equalsIgnoreCase(AvroNotation.NOTATION_NAME)) {
-            var schema = SchemaLibrary.getSchema(type, false);
+            var schema = SchemaLibrary.getSchema(AvroNotation.NOTATION_NAME, type, false);
             if (!(schema instanceof StructSchema structSchema))
                 throw new KSMLParseException("Schema definition is not a STRUCT: " + type);
             return new UserType(AvroNotation.NOTATION_NAME, new StructType(structSchema));
@@ -168,14 +168,25 @@ public class UserTypeParser {
             return new UserType(AvroNotation.NOTATION_NAME, AvroNotation.DEFAULT_TYPE);
         }
 
+        // CSV with schema
+        if (typeNotation.equalsIgnoreCase(CsvNotation.NOTATION_NAME)) {
+            var schema = SchemaLibrary.getSchema(CsvNotation.NOTATION_NAME, type, false);
+            if (!(schema instanceof StructSchema structSchema))
+                throw new KSMLParseException("Schema definition is not a STRUCT: " + type);
+            return new UserType(CsvNotation.NOTATION_NAME, new StructType(structSchema));
+        }
+
         // CSV without schema
         if (type.equalsIgnoreCase(CsvNotation.NOTATION_NAME)) {
             return new UserType(CsvNotation.NOTATION_NAME, CsvNotation.DEFAULT_TYPE);
         }
 
-        // JSON with schema (not implemented yet)
+        // JSON with schema
         if (typeNotation.equalsIgnoreCase(JsonNotation.NOTATION_NAME)) {
-            return new UserType(JsonNotation.NOTATION_NAME, JsonNotation.DEFAULT_TYPE);
+            var schema = SchemaLibrary.getSchema(JsonNotation.NOTATION_NAME, type, false);
+            if (!(schema instanceof StructSchema structSchema))
+                throw new KSMLParseException("Schema definition is not a STRUCT: " + type);
+            return new UserType(JsonNotation.NOTATION_NAME, new StructType(structSchema));
         }
 
         // JSON without schema
@@ -200,7 +211,7 @@ public class UserTypeParser {
 
         // XML with schema
         if (typeNotation.equalsIgnoreCase(XmlNotation.NOTATION_NAME)) {
-            var schema = SchemaLibrary.getSchema(type, false);
+            var schema = SchemaLibrary.getSchema(XmlNotation.NOTATION_NAME, type, false);
             if (!(schema instanceof StructSchema structSchema))
                 throw new KSMLParseException("Schema definition is not a STRUCT: " + type);
             return new UserType(XmlNotation.NOTATION_NAME, new StructType(structSchema));

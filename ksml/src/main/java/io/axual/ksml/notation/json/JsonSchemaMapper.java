@@ -104,7 +104,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     }
 
     @Override
-    public String fromDataSchema(DataSchema value) {
+    public String fromDataSchema(DataSchema schema) {
         return null;
     }
 }

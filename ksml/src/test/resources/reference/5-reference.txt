@@ -1,22 +1,10 @@
 Topologies:
    Sub-topology: 0
-    Source: sensor_0 (topics: [ksml_sensordata_sensor0])
-      --> none
-
-  Sub-topology: 1
-    Source: sensor_1 (topics: [ksml_sensordata_sensor1])
-      --> none
-
-  Sub-topology: 2
-    Source: sensor_2 (topics: [ksml_sensordata_sensor2])
-      --> none
-
-  Sub-topology: 3
-    Source: sensor_stream (topics: [ksml_sensordata_avro])
+    Source: ksml_sensordata_avro (topics: [ksml_sensordata_avro])
       --> before-peek
     Processor: before-peek (stores: [])
       --> to_name_extract_001
-      <-- sensor_stream
+      <-- ksml_sensordata_avro
     Sink: to_name_extract_001 (extractor class: io.axual.ksml.user.UserTopicNameExtractor)
       <-- before-peek
 

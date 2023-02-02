@@ -45,7 +45,7 @@ public class DataList implements DataObject, Iterable<DataObject> {
     }
 
     @Override
-    public DataType type() {
+    public ListType type() {
         return type;
     }
 

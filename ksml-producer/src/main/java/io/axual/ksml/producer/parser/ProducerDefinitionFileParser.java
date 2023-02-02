@@ -30,6 +30,12 @@ import io.axual.ksml.generator.YAMLReader;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.notation.avro.AvroNotation;
 import io.axual.ksml.notation.avro.AvroSchemaLoader;
+import io.axual.ksml.notation.csv.CsvNotation;
+import io.axual.ksml.notation.csv.CsvSchemaLoader;
+import io.axual.ksml.notation.json.JsonNotation;
+import io.axual.ksml.notation.json.JsonSchemaLoader;
+import io.axual.ksml.notation.xml.XmlNotation;
+import io.axual.ksml.notation.xml.XmlSchemaLoader;
 import io.axual.ksml.parser.MapParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.producer.config.producer.ProducerConfig;
@@ -75,8 +81,10 @@ public class ProducerDefinitionFileParser {
 
     public Map<String, ProducerDefinition> create(NotationLibrary notationLibrary) {
         // Register schema loaders
-        var avroSchemaLoader = new AvroSchemaLoader(config.workingDirectory);
-        SchemaLibrary.registerLoader(AvroNotation.NOTATION_NAME, avroSchemaLoader);
+        SchemaLibrary.registerLoader(AvroNotation.NOTATION_NAME, new AvroSchemaLoader(config.workingDirectory));
+        SchemaLibrary.registerLoader(CsvNotation.NOTATION_NAME, new CsvSchemaLoader(config.workingDirectory));
+        SchemaLibrary.registerLoader(JsonNotation.NOTATION_NAME, new JsonSchemaLoader(config.workingDirectory));
+        SchemaLibrary.registerLoader(XmlNotation.NOTATION_NAME, new XmlSchemaLoader(config.workingDirectory));
 
         List<YAMLDefinition> definitions = readDefinitions();
         Map<String, ProducerDefinition> producers = new TreeMap<>();

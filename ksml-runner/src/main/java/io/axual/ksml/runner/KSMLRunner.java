@@ -42,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class KSMLRunner {
-    private static final String DEFAULT_CONFIG_FILE_SHORT = "ksml-runner.yml";
+    private static final String DEFAULT_CONFIG_FILE_SHORT = "ksml-runner.yaml";
 
     public static void main(String[] args) {
         final var configPath = new File(args.length == 0 ? DEFAULT_CONFIG_FILE_SHORT : args[0]);
