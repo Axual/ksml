@@ -21,6 +21,7 @@ package io.axual.ksml.notation.xml;
  */
 
 import io.axual.ksml.data.mapper.DataSchemaMapper;
+import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.DataField;
@@ -113,47 +114,71 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
     public StructSchema toDataSchema(String name, String schema) {
         var parsedSchema = MAPPER.toDataObject(schema);
         if (parsedSchema instanceof DataStruct schemaStruct) {
-            var result = new StructSchema(null, name, "Converted from XSD", parseFields(schemaStruct));
-            var back = fromDataSchema(result);
-            if (schema.equals(back)) {
-                return result;
+            var containedSchema = findSchema(schemaStruct, name);
+            if (containedSchema instanceof DataStruct containedSchemaStruct) {
+                var field = parseField(containedSchemaStruct);
+                if (field.schema() instanceof StructSchema fieldStructSchema) return fieldStructSchema;
             }
-            return result;
         }
         throw FatalError.schemaError("Can not parse XML Schema: " + name);
     }
 
+    private DataObject findSchema(DataStruct container, String name) {
+        var firstAttempt = findSchemaByChild(container.get(ELEMENT_NAME), name);
+        if (firstAttempt != null) return firstAttempt;
+        var index = 1;
+        while (container.containsKey(ELEMENT_NAME + COUNT_SYMBOL + index)) {
+            var attempt = findSchemaByChild(container.get(ELEMENT_NAME + COUNT_SYMBOL + index), name);
+            if (attempt != null) return attempt;
+        }
+        return null;
+    }
+
+    private DataObject findSchemaByChild(DataObject child, String name) {
+        if (child instanceof DataStruct childStruct) {
+            var attributes = childStruct.get(ATTRIBUTES_ELEMENT_NAME);
+            if (attributes instanceof DataStruct attrributeStruct) {
+                var childName = attrributeStruct.get(NAME_NAME);
+                if (childName instanceof DataString childNameStr && childNameStr.value().equals(name)) return child;
+            }
+        }
+        return null;
+    }
+
     private List<DataField> parseFields(DataStruct object) {
         var result = new ArrayList<DataField>();
-        var field = parseField(object, ELEMENT_NAME);
-        if (field != null) result.add(field);
+        var fieldChild = object.get(ELEMENT_NAME);
+        if (fieldChild instanceof DataStruct fieldStruct) {
+            var field = parseField(fieldStruct);
+            if (field != null) result.add(field);
+        }
         var index = 1;
         while (object.containsKey(ELEMENT_NAME + COUNT_SYMBOL + index)) {
-            field = parseField(object, ELEMENT_NAME + COUNT_SYMBOL + index);
-            if (field != null) result.add(field);
+            fieldChild = object.get(ELEMENT_NAME + COUNT_SYMBOL + index);
+            if (fieldChild instanceof DataStruct fieldStruct) {
+                var field = parseField(fieldStruct);
+                if (field != null) result.add(field);
+            }
             index++;
         }
         return result;
     }
 
-    private DataField parseField(DataStruct object, String elementName) {
-        var element = object.get(elementName);
-        if (element instanceof DataStruct elementStruct) {
-            var fieldName = elementStruct.get(ATTRIBUTES_ELEMENT_NAME) instanceof DataStruct attributeStruct ? attributeStruct.get(NAME_NAME) : null;
-            if (fieldName != null) {
-                var fieldType = elementStruct.get(ATTRIBUTES_ELEMENT_NAME) instanceof DataStruct attributeStruct ? attributeStruct.get(TYPE_NAME) : null;
-                if (fieldType instanceof DataString fieldTypeString) {
-                    var type = fieldTypeString.value().contains(":") ? fieldTypeString.value().substring(fieldTypeString.value().indexOf(":") + 1) : fieldTypeString.value();
-                    return simpleField(fieldName.toString(), type);
-                } else {
-                    // Field type is not specified, so dig down into the elements below to find out the type
-                    var complexTypeElement = elementStruct.get(COMPLEX_TYPE_NAME);
-                    if (complexTypeElement instanceof DataStruct complexTypeStruct) {
-                        var sequenceElement = complexTypeStruct.get(SEQUENCE_NAME);
-                        if (sequenceElement instanceof DataStruct sequenceStruct) {
-                            var fields = parseFields(sequenceStruct);
-                            return new DataField(fieldName.toString(), new StructSchema(null, fieldName.toString(), null, fields), null, null, DataField.Order.ASCENDING);
-                        }
+    private DataField parseField(DataStruct fieldStruct) {
+        var fieldName = fieldStruct.get(ATTRIBUTES_ELEMENT_NAME) instanceof DataStruct attributeStruct ? attributeStruct.get(NAME_NAME) : null;
+        if (fieldName != null) {
+            var fieldType = fieldStruct.get(ATTRIBUTES_ELEMENT_NAME) instanceof DataStruct attributeStruct ? attributeStruct.get(TYPE_NAME) : null;
+            if (fieldType instanceof DataString fieldTypeString) {
+                var type = fieldTypeString.value().contains(":") ? fieldTypeString.value().substring(fieldTypeString.value().indexOf(":") + 1) : fieldTypeString.value();
+                return simpleField(fieldName.toString(), type);
+            } else {
+                // Field type is not specified, so dig down into the elements below to find out the type
+                var complexTypeElement = fieldStruct.get(COMPLEX_TYPE_NAME);
+                if (complexTypeElement instanceof DataStruct complexTypeStruct) {
+                    var sequenceElement = complexTypeStruct.get(SEQUENCE_NAME);
+                    if (sequenceElement instanceof DataStruct sequenceStruct) {
+                        var fields = parseFields(sequenceStruct);
+                        return new DataField(fieldName.toString(), new StructSchema(null, fieldName.toString(), "Converted from XSD", fields), null, null, DataField.Order.ASCENDING);
                     }
                 }
             }
@@ -166,6 +191,7 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
             case "any" -> DataSchema.create(DataSchema.Type.ANY);
             case "boolean" -> DataSchema.create(DataSchema.Type.BOOLEAN);
             case "integer" -> DataSchema.create(DataSchema.Type.INTEGER);
+            case "long" -> DataSchema.create(DataSchema.Type.LONG);
             case "string" -> DataSchema.create(DataSchema.Type.STRING);
             default -> null;
         };
@@ -184,7 +210,7 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
 
     private DataStruct encodeSchema(StructSchema schema) {
         var prefix = "xs:";
-        var result = new DataStruct(new StructSchema(null,prefix+schema.name(),null,null));
+        var result = new DataStruct(new StructSchema(null, prefix + schema.name(), null, null));
         var attributes = new DataStruct();
         attributes.put("xmlns:xs", new DataString("http://www.w3.org/2001/XMLSchema"));
         result.put(ATTRIBUTES_ELEMENT_NAME, attributes);
@@ -217,6 +243,7 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
             case ANY -> "any";
             case BOOLEAN -> "boolean";
             case INTEGER -> "integer";
+            case LONG -> "long";
             case STRING -> "string";
             default -> null;
         };

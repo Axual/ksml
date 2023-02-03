@@ -88,3 +88,11 @@ producers:
       topic: ksml_sensordata_json
       keyType: string
       valueType: json:SensorData
+
+  sensordata_xml_producer:
+    generator: generate_sensordata_message
+    interval: 777
+    to:
+      topic: ksml_sensordata_xml
+      keyType: string
+      valueType: xml:SensorData

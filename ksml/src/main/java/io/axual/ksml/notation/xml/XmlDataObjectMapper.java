@@ -26,6 +26,7 @@ import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.execution.FatalError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +79,7 @@ public class XmlDataObjectMapper implements DataObjectMapper<String> {
         try {
             var doc = documentBuilder.parse(new ByteArrayInputStream(value.getBytes()));
             doc.getDocumentElement().normalize();
-            return elementToDataObject(doc.getDocumentElement());
+            return elementToDataObject(doc.getDocumentElement(), expected instanceof StructType structType ? structType.schema() : null);
         } catch (Exception e) {
             throw FatalError.dataError("Could not parse XML", e);
         }
@@ -91,7 +92,7 @@ public class XmlDataObjectMapper implements DataObjectMapper<String> {
             if (childNode != null && childNode.getNextSibling() == null && childNode.getNodeType() == Node.TEXT_NODE) {
                 return stringToDataObject(childNode.getTextContent());
             }
-            return elementToDataObject((Element) node);
+            return elementToDataObject((Element) node, null);
         }
         if (nodeType == Node.TEXT_NODE) {
             return stringToDataObject(node.getTextContent());
@@ -105,10 +106,9 @@ public class XmlDataObjectMapper implements DataObjectMapper<String> {
         return name;
     }
 
-    private DataStruct elementToDataObject(Element element) {
+    private DataStruct elementToDataObject(Element element, StructSchema schema) {
         var elementName = stripNamespace(element.getNodeName());
-        var result = new DataStruct(new StructSchema(null, elementName, "Converted from XML", null));
-
+        var result = new DataStruct(schema != null ? schema : new StructSchema(null, elementName, "Converted from XML", null));
 
         // Store all attributes in the result as dot-prefixed names
         var attributes = element.getAttributes();

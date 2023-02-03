@@ -13,6 +13,10 @@ streams:
     topic: ksml_sensordata_json
     keyType: string
     valueType: json:SensorData
+  sensor_source_xml:
+    topic: ksml_sensordata_xml
+    keyType: string
+    valueType: xml:SensorData
 
 functions:
   print_message:
@@ -28,4 +32,7 @@ pipelines:
     forEach: print_message
   consume_json:
     from: sensor_source_json
+    forEach: print_message
+  consume_xml:
+    from: sensor_source_xml
     forEach: print_message
