@@ -25,24 +25,30 @@ import org.apache.kafka.common.header.Header;
 import org.apache.kafka.streams.processor.RecordContext;
 import org.apache.kafka.streams.processor.TopicNameExtractor;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
+import io.axual.ksml.data.object.DataBytes;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;
 import io.axual.ksml.util.DataUtil;
 import lombok.extern.slf4j.Slf4j;
 
+import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA_HEADERS_FIELD;
+import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_HEADER_SCHEMA;
+import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_HEADER_SCHEMA_KEY_FIELD;
+import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA_OFFSET_FIELD;
+import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA_PARTITION_FIELD;
+import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA;
+import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA_TIMESTAMP_FIELD;
+import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA_TOPIC_FIELD;
+import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_HEADER_SCHEMA_VALUE_FIELD;
+
 @Slf4j
 public class UserTopicNameExtractor extends Invoker implements TopicNameExtractor<Object, Object> {
-    private static final String HEADERS = "headers";
-    private static final String OFFSET = "offset";
-    private static final String PARTITION = "partition";
-    private static final String TIMESTAMP = "timestamp";
-    private static final String TOPIC = "topic";
-
     public UserTopicNameExtractor(UserFunction function) {
         super(function);
         verifyParameterCount(3);
@@ -54,27 +60,27 @@ public class UserTopicNameExtractor extends Invoker implements TopicNameExtracto
         var result = function.call(
                 DataUtil.asDataObject(key),
                 DataUtil.asDataObject(value),
-                DataUtil.asDataObject(convertRecordContext(recordContext)));
+                convertRecordContext(recordContext));
         if (result instanceof DataString dataString) {
             return dataString.value();
         }
         throw new KSMLExecutionException("Expected string result from function: " + function.name);
     }
 
-    private Map<String, Object> convertRecordContext(RecordContext recordContext) {
-        final var result = new HashMap<String, Object>();
-        result.put(OFFSET, recordContext.offset());
-        result.put(TIMESTAMP, recordContext.timestamp());
-        result.put(TOPIC, recordContext.topic());
-        result.put(PARTITION, recordContext.partition());
-        final var headers = new ArrayList<Map<String, Object>>();
+    private DataStruct convertRecordContext(RecordContext recordContext) {
+        final var result = new DataStruct(RECORD_CONTEXT_SCHEMA);
+        result.put(RECORD_CONTEXT_SCHEMA_OFFSET_FIELD, new DataLong(recordContext.offset()));
+        result.put(RECORD_CONTEXT_SCHEMA_TIMESTAMP_FIELD, new DataLong(recordContext.timestamp()));
+        result.put(RECORD_CONTEXT_SCHEMA_TOPIC_FIELD, new DataString(recordContext.topic()));
+        result.put(RECORD_CONTEXT_SCHEMA_PARTITION_FIELD, new DataInteger(recordContext.partition()));
+        final var headerList = new DataList(new StructType(RECORD_CONTEXT_HEADER_SCHEMA));
         for (Header header : recordContext.headers()) {
-            Map<String, Object> h = new HashMap<>();
-            h.put("key", header.key());
-            h.put("value", header.value());
-            headers.add(h);
+            var hdr = new DataStruct(RECORD_CONTEXT_HEADER_SCHEMA);
+            hdr.put(RECORD_CONTEXT_HEADER_SCHEMA_KEY_FIELD, new DataString(header.key()));
+            hdr.put(RECORD_CONTEXT_HEADER_SCHEMA_VALUE_FIELD, new DataBytes(header.value()));
+            headerList.add(hdr);
         }
-        result.put(HEADERS, headers);
+        result.put(RECORD_CONTEXT_SCHEMA_HEADERS_FIELD, headerList);
         return result;
     }
 }

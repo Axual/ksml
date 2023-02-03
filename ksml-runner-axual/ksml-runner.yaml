@@ -1,0 +1,35 @@
+ksml:
+  applicationServerEnabled: true
+  applicationServerHost: 0.0.0.0
+  applicationServerPort: 8080
+  workingDirectory: ../examples
+  definitions:
+    - 01-example-inspect.yaml
+#    - 02-example-copy.yaml
+#    - 03-example-filter.yaml
+#    - 04-example-branch.yaml
+#    - 05-example-route.yaml
+#    - 06-example-duplicate.yaml
+#    - 07-example-convert.yaml
+#    - 08-example-count.yaml
+#    - 09-example-aggregate.yaml
+#    - 10-example-queryabletable.yaml
+#    - 11-example-fieldmodification.yaml
+#    - 12-example-bytemanipulation.yaml
+#    - 13-example-join.yaml
+
+backend:
+  type: axual
+  config:
+    tenant: dizzl
+    environment: dev
+    endpoint: https://discovery-dizzlsandbox.axual.cloud
+    applicationId: io.axual.ksml.example.processor
+    applicationVersion: 0.0.1
+    sslConfig:
+      enableHostnameVerification: false
+      keystoreLocation: /Users/dizzl/dev/project/axual/ksml/examples/demo1.app.dizzl.com.keystore.jks
+      keystorePassword: notsecret
+      keyPassword: notsecret
+      truststoreLocation: /Users/dizzl/dev/project/axual/ksml/examples/demo1.app.dizzl.com.truststore.jks
+      truststorePassword: notsecret

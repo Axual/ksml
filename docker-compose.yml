@@ -99,12 +99,14 @@ services:
                        kafka-topics --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic io.ksml.example.processor-ownerCount-changelog'"
 
   example-producer:
-    image: axual/ksml-example-producer:latest
-    hostname: kafka-setup
+    image: axual/ksml-data-generator:latest
+    hostname: kafka-data-generator
     restart: always
     networks:
       - ksml
     working_dir: /ksml
+    command:
+      - /ksml/ksml-data-generator-example.yaml
     volumes:
     - ./examples:/ksml
     depends_on:

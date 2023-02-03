@@ -23,7 +23,6 @@ package io.axual.ksml.operation.parser;
 
 import io.axual.ksml.definition.parser.KeyTransformerDefinitionParser;
 import io.axual.ksml.operation.TransformKeyOperation;
-import io.axual.ksml.parser.OperationParser;
 import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 

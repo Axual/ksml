@@ -25,7 +25,6 @@ import org.apache.kafka.streams.kstream.Produced;
 
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.definition.BaseStreamDefinition;
-import io.axual.ksml.exception.KSMLTypeException;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 
@@ -39,10 +38,17 @@ public class ToOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
+        /*    Kafka Streams method signature:
+         *    void to(
+         *          final String topic,
+         *          final Produced<K, V> produced)
+         */
+
+        var k = input.keyType().userType().dataType();
+        var v = input.valueType().userType().dataType();
         // Perform a dataType check to see if the key/value data types received matches the stream definition's types
-        if (!target.keyType.dataType().isAssignableFrom(input.keyType().userType().dataType()) || !target.valueType.dataType().isAssignableFrom(input.valueType().userType().dataType())) {
-            throw KSMLTypeException.topicTypeMismatch(target.topic, input.keyType(), input.valueType(), target.keyType.dataType(), target.valueType.dataType());
-        }
+        checkType("Target topic keyType", target.keyType.dataType(), superOf(k));
+        checkType("Target topic valueType", target.valueType.dataType(), superOf(v));
 
         var keySerde = target.keyType.dataType() != DataType.UNKNOWN
                 ? streamDataTypeOf(target.keyType, true).getSerde()

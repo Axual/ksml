@@ -11,4 +11,5 @@ target/
 
 examples/io.axual*
 examples/io.ksml*
-examples/untracked
+
+workspace/*

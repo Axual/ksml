@@ -24,6 +24,11 @@ import io.axual.ksml.data.type.SimpleType;
 
 public class DataLong extends DataPrimitive<Long> {
     public static final SimpleType DATATYPE = new SimpleType(Long.class);
+    public static final Long DEFAULT = 0L;
+
+    public DataLong() {
+        this(DEFAULT);
+    }
 
     public DataLong(Long value) {
         super(DATATYPE, value);

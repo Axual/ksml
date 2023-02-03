@@ -20,10 +20,10 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.schema.DataSchema;
+import io.axual.ksml.data.schema.DataSchema;
 
 public interface DataSchemaMapper<T> {
-    DataSchema toDataSchema(T value);
+    DataSchema toDataSchema(String name, T value);
 
-    Object fromDataSchema(DataSchema value);
+    T fromDataSchema(DataSchema schema);
 }

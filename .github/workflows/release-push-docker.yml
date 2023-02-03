@@ -33,22 +33,24 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: build and push example producer
+      - name: build and push data generator
         uses: docker/build-push-action@v3
         with:
-          file: Dockerfile-build-example-producer
+          file: Dockerfile
+          target: ksml-datagen
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            axual/ksml-example-producer:${{ github.event.release.tag_name }}
-            ghcr.io/axual/ksml-example-producer:${{ github.event.release.tag_name }}
-            axual/ksml-example-producer:latest
-            ghcr.io/axual/ksml-example-producer:latest
+            axual/ksml-data-generator:${{ github.event.release.tag_name }}
+            ghcr.io/axual/ksml-data-generator:${{ github.event.release.tag_name }}
+            axual/ksml-data-generator:latest
+            ghcr.io/axual/ksml-data-generator:latest
 
       - name: build and push plain Kafka runner
         uses: docker/build-push-action@v3
         with:
-          file: Dockerfile-build-runner
+          file: Dockerfile
+          target: ksml
           build-args: "runner=ksml-runner"
           platforms: linux/amd64,linux/arm64
           push: true
@@ -59,7 +61,8 @@ jobs:
       - name: build and push Axual runner
         uses: docker/build-push-action@v3
         with:
-          file: Dockerfile-build-runner
+          file: Dockerfile
+          target: ksml
           build-args: "runner=ksml-runner-axual"
           platforms: linux/amd64,linux/arm64
           push: true

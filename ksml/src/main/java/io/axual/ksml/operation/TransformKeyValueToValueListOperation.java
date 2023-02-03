@@ -23,24 +23,38 @@ package io.axual.ksml.operation;
 
 import org.apache.kafka.streams.kstream.Named;
 
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserKeyValueToValueListTransformer;
 
 public class TransformKeyValueToValueListOperation extends BaseOperation {
-    private final UserFunction transformer;
+    private static final String MAPPER_NAME = "Mapper";
+    private final UserFunction mapper;
 
-    public TransformKeyValueToValueListOperation(OperationConfig config, UserFunction transformer) {
+    public TransformKeyValueToValueListOperation(OperationConfig config, UserFunction mapper) {
         super(config);
-        this.transformer = transformer;
+        this.mapper = mapper;
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
+        /*    Kafka Streams method signature:
+         *    <VR> KStream<K, VR> flatMapValues(
+         *          final ValueMapperWithKey<? super K, ? super V, ? extends Iterable<? extends VR>> mapper,
+         *          final Named named)
+         */
+
+        checkNotNull(mapper, MAPPER_NAME.toLowerCase());
+        var k = input.keyType().userType().dataType();
+        var v = input.valueType().userType().dataType();
+        checkFunction(MAPPER_NAME, mapper, subOf(new ListType(DataType.UNKNOWN)), superOf(k), superOf(v));
+
         return new KStreamWrapper(
-                input.stream.flatMapValues(new UserKeyValueToValueListTransformer(transformer), Named.as(name)),
+                input.stream.flatMapValues(new UserKeyValueToValueListTransformer(mapper), Named.as(name)),
                 input.keyType(),
-                streamDataTypeOf(transformer.resultType, false));
+                streamDataTypeOf(mapper.resultType, false));
     }
 }

@@ -28,7 +28,7 @@ import org.apache.kafka.streams.kstream.StreamJoined;
 
 import java.time.Duration;
 
-import io.axual.ksml.exception.KSMLApplyException;
+import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.stream.GlobalKTableWrapper;
 import io.axual.ksml.stream.KStreamWrapper;
@@ -39,6 +39,8 @@ import io.axual.ksml.user.UserKeyTransformer;
 import io.axual.ksml.user.UserValueJoiner;
 
 public class JoinOperation extends StoreOperation {
+    private static final String KEYSELECTOR_NAME = "Mapper";
+    private static final String VALUEJOINER_NAME = "ValueJoiner";
     private final StreamWrapper joinStream;
     private final UserFunction keyValueMapper;
     private final UserFunction valueJoiner;
@@ -73,25 +75,75 @@ public class JoinOperation extends StoreOperation {
         final StreamDataType resultValueType = streamDataTypeOf(valueJoiner.resultType, false);
 
         if (joinStream instanceof KStreamWrapper kStreamWrapper) {
+            /*    Kafka Streams method signature:
+             *    <VO, VR> KStream<K, VR> join(
+             *          final KStream<K, VO> otherStream,
+             *          final ValueJoiner<? super V, ? super VO, ? extends VR> joiner,
+             *          final JoinWindows windows,
+             *          final StreamJoined<K, V, VO> streamJoined)
+             */
+
+            checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
+            var k = input.keyType().userType().dataType();
+            var v = input.valueType().userType().dataType();
+            var vo = kStreamWrapper.valueType().userType().dataType();
+            var vr = valueJoiner.resultType.dataType();
+            checkType("Join stream keyType", kStreamWrapper.keyType().userType().dataType(), equalTo(k));
+            checkFunction(VALUEJOINER_NAME, valueJoiner, equalTo(vr), superOf(v), superOf(vo));
+
             return new KStreamWrapper(
                     input.stream.join(
                             kStreamWrapper.stream,
                             new UserValueJoiner(valueJoiner),
                             joinWindows,
-                            StreamJoined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde()).withName(name).withStoreName(store.name)),
+                            StreamJoined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde()).withName(name).withStoreName(store.name())),
                     input.keyType(),
                     resultValueType);
         }
         if (joinStream instanceof KTableWrapper kTableWrapper) {
+            /*    Kafka Streams method signature:
+             *    <VT, VR> KStream<K, VR> join(
+             *          final KTable<K, VT> table,
+             *          final ValueJoiner<? super V, ? super VT, ? extends VR> joiner,
+             *          final Joined<K, V, VT> joined)
+             */
+
+            checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
+            var k = input.keyType().userType().dataType();
+            var v = input.valueType().userType().dataType();
+            var vt = kTableWrapper.valueType().userType().dataType();
+            var vr = valueJoiner.resultType.dataType();
+            checkType("Join table keyType", kTableWrapper.keyType().userType().dataType(), equalTo(k));
+            checkFunction(VALUEJOINER_NAME, valueJoiner, equalTo(vr), superOf(v), superOf(vt));
+
             return new KStreamWrapper(
                     input.stream.join(
                             kTableWrapper.table,
                             new UserValueJoiner(valueJoiner),
-                            Joined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde(), store.name)),
+                            Joined.with(input.keyType().getSerde(), input.valueType().getSerde(), resultValueType.getSerde(), store.name())),
                     input.keyType(),
                     resultValueType);
         }
         if (joinStream instanceof GlobalKTableWrapper globalKTableWrapper) {
+            /*    Kafka Streams method signature:
+             *    <GK, GV, RV> KStream<K, RV> join(
+             *          final GlobalKTable<GK, GV> globalTable,
+             *          final KeyValueMapper<? super K, ? super V, ? extends GK> keySelector,
+             *          final ValueJoiner<? super V, ? super GV, ? extends RV> joiner,
+             *          final Named named)
+             */
+
+            checkNotNull(keyValueMapper, KEYSELECTOR_NAME.toLowerCase());
+            checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
+            var k = input.keyType().userType().dataType();
+            var v = input.valueType().userType().dataType();
+            var gk = globalKTableWrapper.keyType().userType().dataType();
+            var gv = globalKTableWrapper.valueType().userType().dataType();
+            var rv = valueJoiner.resultType.dataType();
+            checkType("Join globalKTable keyType", globalKTableWrapper.keyType().userType().dataType(), equalTo(k));
+            checkFunction(KEYSELECTOR_NAME, keyValueMapper, subOf(gk), superOf(k), superOf(v));
+            checkFunction(VALUEJOINER_NAME, valueJoiner, subOf(rv), superOf(v), superOf(gv));
+
             return new KStreamWrapper(
                     input.stream.join(
                             globalKTableWrapper.globalTable,
@@ -101,7 +153,7 @@ public class JoinOperation extends StoreOperation {
                     input.keyType(),
                     resultValueType);
         }
-        throw new KSMLApplyException("Can not JOIN stream with " + joinStream.getClass().getSimpleName());
+        throw new KSMLTopologyException("Can not JOIN stream with " + joinStream.getClass().getSimpleName());
     }
 
     @Override
@@ -109,6 +161,22 @@ public class JoinOperation extends StoreOperation {
         final StreamDataType resultValueType = streamDataTypeOf(valueJoiner.resultType, false);
 
         if (joinStream instanceof KTableWrapper kTableWrapper) {
+            /*    Kafka Streams method signature:
+             *    <VO, VR> KTable<K, VR> join(
+             *          final KTable<K, VO> other,
+             *          final ValueJoiner<? super V, ? super VO, ? extends VR> joiner,
+             *          final Named named,
+             *          final Materialized<K, VR, KeyValueStore<Bytes, byte[]>> materialized)
+             */
+
+            checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
+            var k = input.keyType().userType().dataType();
+            var v = input.valueType().userType().dataType();
+            var vo = kTableWrapper.valueType().userType().dataType();
+            var vr = valueJoiner.resultType.dataType();
+            checkType("Join table keyType", kTableWrapper.keyType().userType().dataType(), equalTo(k));
+            checkFunction(VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(v), superOf(vo));
+
             return new KTableWrapper(
                     input.table.join(
                             kTableWrapper.table,
@@ -118,6 +186,6 @@ public class JoinOperation extends StoreOperation {
                     input.keyType(),
                     resultValueType);
         }
-        throw new KSMLApplyException("Can not JOIN table with " + joinStream.getClass().getSimpleName());
+        throw new KSMLTopologyException("Can not JOIN table with " + joinStream.getClass().getSimpleName());
     }
 }

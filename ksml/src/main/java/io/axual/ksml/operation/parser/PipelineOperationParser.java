@@ -25,7 +25,7 @@ import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.ContextAwareParser;
 import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.parser.StreamOperation;
+import io.axual.ksml.operation.StreamOperation;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.NAME_ATTRIBUTE;

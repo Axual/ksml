@@ -23,7 +23,6 @@ package io.axual.ksml.operation;
 
 import org.apache.kafka.streams.kstream.Named;
 
-import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
@@ -31,28 +30,54 @@ import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserValueTransformer;
 
 public class TransformValueOperation extends StoreOperation {
-    private final UserFunction transformer;
+    private static final String MAPPER_NAME = "Mapper";
+    private final UserFunction mapper;
 
-    public TransformValueOperation(StoreOperationConfig config, UserFunction transformer) {
+    public TransformValueOperation(StoreOperationConfig config, UserFunction mapper) {
         super(config);
-        this.transformer = transformer;
+        this.mapper = mapper;
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
+        /*    Kafka Streams method signature:
+         *    <VR> KStream<K, VR> mapValues(
+         *          final ValueMapperWithKey<? super K, ? super V, ? extends VR> mapper,
+         *          final Named named)
+         */
+
+        checkNotNull(mapper, MAPPER_NAME.toLowerCase());
+        var k = input.keyType().userType().dataType();
+        var v = input.valueType().userType().dataType();
+        var vr = mapper.resultType.dataType();
+        checkFunction(MAPPER_NAME, mapper, equalTo(vr), superOf(k), superOf(v));
+
+        final var resultValueType = streamDataTypeOf(mapper.resultType, false);
         return new KStreamWrapper(
-                input.stream.mapValues(new UserValueTransformer(transformer), Named.as(name)),
+                input.stream.mapValues(new UserValueTransformer(this.mapper), Named.as(name)),
                 input.keyType(),
-                streamDataTypeOf(transformer.resultType, false));
+                resultValueType);
     }
 
     @Override
     public StreamWrapper apply(KTableWrapper input) {
-        final StreamDataType resultValueType = streamDataTypeOf(transformer.resultType, false);
+        /*    Kafka Streams method signature:
+         *    <VR> KTable<K, VR> mapValues(
+         *          final ValueMapperWithKey<? super K, ? super V, ? extends VR> mapper,
+         *          final Named named,
+         *          final Materialized<K, VR, KeyValueStore<Bytes, byte[]>> materialized)
+         */
 
+        checkNotNull(mapper, MAPPER_NAME.toLowerCase());
+        var k = input.keyType().userType().dataType();
+        var v = input.valueType().userType().dataType();
+        var vr = mapper.resultType.dataType();
+        checkFunction(MAPPER_NAME, mapper, equalTo(vr), superOf(k), superOf(v));
+
+        final var resultValueType = streamDataTypeOf(mapper.resultType, false);
         return new KTableWrapper(
                 input.table.mapValues(
-                        new UserValueTransformer(transformer),
+                        new UserValueTransformer(mapper),
                         Named.as(name),
                         registerKeyValueStore(input.keyType(), resultValueType)),
                 input.keyType(),

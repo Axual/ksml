@@ -24,7 +24,7 @@ package io.axual.ksml.stream;
 import org.apache.kafka.streams.kstream.TimeWindowedKStream;
 
 import io.axual.ksml.generator.StreamDataType;
-import io.axual.ksml.parser.StreamOperation;
+import io.axual.ksml.operation.StreamOperation;
 
 public class TimeWindowedKStreamWrapper extends BaseStreamWrapper {
     public final TimeWindowedKStream<Object, Object> timeWindowedKStream;

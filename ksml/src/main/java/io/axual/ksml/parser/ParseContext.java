@@ -21,11 +21,6 @@ package io.axual.ksml.parser;
  */
 
 
-import org.apache.kafka.streams.kstream.Grouped;
-
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.StoreDefinition;
@@ -35,8 +30,15 @@ import io.axual.ksml.store.StoreType;
 import io.axual.ksml.stream.BaseStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
+import org.apache.kafka.streams.kstream.Grouped;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public interface ParseContext {
+    String getNamePrefix();
+
     Map<String, BaseStreamDefinition> getStreamDefinitions();
 
     <T extends BaseStreamWrapper> T getStreamWrapper(BaseStreamDefinition definition, Class<T> resultClass);
@@ -53,6 +55,8 @@ public interface ParseContext {
 
     NotationLibrary getNotationLibrary();
 
+    Set<String> getRegisteredTopics();
+    void registerTopic(String topic);
     <K, V> void registerGrouped(Grouped<K, V> grouped);
 
     void registerStore(StoreType type, StoreDefinition store, StreamDataType keyType, StreamDataType valueType);

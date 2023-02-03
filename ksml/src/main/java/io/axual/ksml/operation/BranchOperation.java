@@ -28,7 +28,6 @@ import org.apache.kafka.streams.kstream.Predicate;
 import java.util.List;
 
 import io.axual.ksml.definition.BranchDefinition;
-import io.axual.ksml.parser.StreamOperation;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserPredicate;
@@ -57,11 +56,11 @@ public class BranchOperation extends BaseOperation {
         // For every branch, generate a separate pipeline
         for (var index = 0; index < resultStreams.length; index++) {
             StreamWrapper branchCursor = new KStreamWrapper(resultStreams[index], input.keyType(), input.valueType());
-            for (StreamOperation operation : branches.get(index).pipeline.chain) {
+            for (StreamOperation operation : branches.get(index).pipeline().chain()) {
                 branchCursor = branchCursor.apply(operation);
             }
-            if (branches.get(index).pipeline.sink != null) {
-                branchCursor.apply(branches.get(index).pipeline.sink);
+            if (branches.get(index).pipeline().sink() != null) {
+                branchCursor.apply(branches.get(index).pipeline().sink());
             }
         }
 
@@ -69,8 +68,8 @@ public class BranchOperation extends BaseOperation {
     }
 
     private static Predicate<Object, Object> getBranchPredicate(BranchDefinition definition) {
-        if (definition.predicate != null) {
-            return new UserPredicate(definition.predicate);
+        if (definition.predicate() != null) {
+            return new UserPredicate(definition.predicate());
         }
         return (k, v) -> true;
     }

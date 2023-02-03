@@ -24,10 +24,7 @@ package io.axual.ksml.operation;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Named;
 
-import java.util.Locale;
-
 import io.axual.ksml.generator.StreamDataType;
-import io.axual.ksml.stream.BaseStreamWrapper;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.KGroupedTableWrapper;
 import io.axual.ksml.stream.KTableWrapper;
@@ -60,18 +57,24 @@ public class AggregateOperation extends StoreOperation {
         this.subtractor = subtractor;
     }
 
-    private void checkAggregationFunction(UserFunction function, BaseStreamWrapper input, String name) {
-        checkAssignable(function.parameters[0].type(), input.keyType().userType().dataType(), "Stream key type incompatible with " + name + "'s first parameter");
-        checkAssignable(function.parameters[1].type(), input.valueType().userType().dataType(), "Stream value type incompatible with " + name + "'s second parameter");
-        checkAssignable(function.parameters[2].type(), initializer.resultType.dataType(), "Initializer result type is incompatible with " + name + "'s third parameter");
-        checkAssignable(function.parameters[2].type(), function.resultType.dataType(), name + " result type is incompatible with its third parameter");
-    }
-
     @Override
     public StreamWrapper apply(KGroupedStreamWrapper input) {
+        /*    Kafka Streams method signature:
+         *    <VR> KTable<K, VR> aggregate(
+         *          final Initializer<VR> initializer,
+         *          final Aggregator<? super K, ? super V, VR> aggregator,
+         *          final Merger<? super K, VR> sessionMerger,
+         *          final Named named,
+         *          final Materialized<K, VR, SessionStore<Bytes, byte[]>> materialized)
+         */
+
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
-        checkNotNull(aggregator, AGGREGATOR_NAME.toLowerCase());
-        checkAggregationFunction(aggregator, input, AGGREGATOR_NAME);
+        final var k = input.keyType().userType().dataType();
+        final var v = input.valueType().userType().dataType();
+        final var vr = initializer.resultType.dataType();
+        checkFunction(INITIALIZER_NAME, initializer, equalTo(vr));
+        checkFunction(AGGREGATOR_NAME, aggregator, equalTo(vr), superOf(k), superOf(v), superOf(vr));
+        checkFunction(MERGER_NAME, merger, equalTo(vr), superOf(k), equalTo(vr), superOf(vr));
 
         final StreamDataType resultValueType = streamDataTypeOf(aggregator.resultType, false);
 
@@ -87,11 +90,22 @@ public class AggregateOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KGroupedTableWrapper input) {
+        /*    Kafka Streams method signature:
+         *    <VR> KTable<K, VR> aggregate(
+         *          final Initializer<VR> initializer,
+         *          final Aggregator<? super K, ? super V, VR> adder,
+         *          final Aggregator<? super K, ? super V, VR> subtractor,
+         *          final Named named,
+         *          final Materialized<K, VR, SessionStore<Bytes, byte[]>> materialized)
+         */
+
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
-        checkNotNull(adder, ADDER_NAME.toLowerCase(Locale.ROOT));
-        checkNotNull(subtractor, SUBTRACTOR_NAME.toLowerCase(Locale.ROOT));
-        checkAggregationFunction(adder, input, ADDER_NAME);
-        checkAggregationFunction(subtractor, input, SUBTRACTOR_NAME);
+        final var k = input.keyType().userType().dataType();
+        final var v = input.valueType().userType().dataType();
+        final var vr = initializer.resultType.dataType();
+        checkFunction(INITIALIZER_NAME, initializer, equalTo(vr));
+        checkFunction(ADDER_NAME, adder, equalTo(vr), superOf(k), superOf(v), superOf(vr));
+        checkFunction(SUBTRACTOR_NAME, subtractor, equalTo(vr), superOf(k), equalTo(vr), superOf(vr));
 
         final StreamDataType resultValueType = streamDataTypeOf(adder.resultType, false);
 
@@ -108,14 +122,24 @@ public class AggregateOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(SessionWindowedKStreamWrapper input) {
-        checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
-        checkNotNull(aggregator, AGGREGATOR_NAME.toLowerCase());
-        checkNotNull(merger, MERGER_NAME.toLowerCase());
-        checkAggregationFunction(aggregator, input, AGGREGATOR_NAME);
-        checkAssignable(merger.parameters[0].type(), input.keyType().userType().dataType(), "Stream key type incompatible with Merger's first parameter");
-        checkEqual(aggregator.resultType.dataType(), merger.parameters[1].type(), "Aggregator result type is incompatible with Merger's second parameter");
+        /*    Kafka Streams method signature:
+         *    <VR> KTable<Windowed<K>, VR> aggregate(
+         *          final Initializer<VR> initializer,
+         *          final Aggregator<? super K, ? super V, VR> aggregator,
+         *          final Merger<? super K, VR> sessionMerger,
+         *          final Named named,
+         *          final Materialized<K, VR, SessionStore<Bytes, byte[]>> materialized)
+         */
 
-        final StreamDataType resultValueType = streamDataTypeOf(aggregator.resultType, false);
+        checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
+        final var k = input.keyType().userType().dataType();
+        final var v = input.valueType().userType().dataType();
+        final var vr = initializer.resultType.dataType();
+        checkFunction(INITIALIZER_NAME, initializer, equalTo(vr));
+        checkFunction(AGGREGATOR_NAME, aggregator, equalTo(vr), superOf(k), superOf(v), superOf(vr));
+        checkFunction(MERGER_NAME, merger, equalTo(vr), superOf(k), equalTo(vr), superOf(vr));
+
+        final StreamDataType resultValueType = streamDataTypeOf(merger.resultType, false);
 
         return new KTableWrapper(
                 (KTable) input.sessionWindowedKStream.aggregate(
@@ -130,9 +154,21 @@ public class AggregateOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(TimeWindowedKStreamWrapper input) {
+        /*
+         *    Kafka Streams method signature:
+         *    <VR> KTable<Windowed<K>, VR> aggregate(
+         *          final Initializer<VR> initializer,
+         *          final Aggregator<? super K, ? super V, VR> aggregator,
+         *          final Named named,
+         *          final Materialized<K, VR, SessionStore<Bytes, byte[]>> materialized)
+         */
+
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
-        checkNotNull(aggregator, AGGREGATOR_NAME.toLowerCase());
-        checkAggregationFunction(aggregator, input, AGGREGATOR_NAME);
+        final var k = input.keyType().userType().dataType();
+        final var v = input.valueType().userType().dataType();
+        final var vr = initializer.resultType.dataType();
+        checkFunction(INITIALIZER_NAME, initializer, equalTo(vr));
+        checkFunction(AGGREGATOR_NAME, aggregator, equalTo(vr), superOf(k), superOf(v), superOf(vr));
 
         final StreamDataType resultValueType = streamDataTypeOf(aggregator.resultType, false);
 

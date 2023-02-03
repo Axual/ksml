@@ -20,28 +20,32 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.function.UnaryOperator;
-
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.exception.KSMLExecutionException;
 
-public class DataList extends ArrayList<DataObject> implements DataObject {
+import java.util.ArrayList;
+import java.util.Iterator;
+
+public class DataList implements DataObject, Iterable<DataObject> {
+    private static final ListType LIST_OF_UNKNOWN = new ListType(DataType.UNKNOWN);
+    private final ArrayList<DataObject> contents = new ArrayList<>();
     private final transient ListType type;
 
-    public DataList(DataType valueType) {
-        type = new ListType(valueType);
+    public DataList() {
+        this(DataType.UNKNOWN);
     }
 
-    public DataList(DataType valueType, int initialCapacity) {
-        super(initialCapacity);
-        type = new ListType(valueType);
+    public DataList(DataType valueType) {
+        type = valueType != null ? new ListType(valueType) : LIST_OF_UNKNOWN;
+    }
+
+    public void addIfNotNull(DataObject value) {
+        if (value != null) add(value);
     }
 
     @Override
-    public DataType type() {
+    public ListType type() {
         return type;
     }
 
@@ -56,42 +60,33 @@ public class DataList extends ArrayList<DataObject> implements DataObject {
         return value;
     }
 
-    private void checkValueTypes(Collection<? extends DataObject> values) {
-        for (DataObject value : values) {
-            checkValueType(value);
-        }
-    }
-
-    @Override
     public DataObject set(int index, DataObject element) {
-        return super.set(index, checkValueType(element));
+        return contents.set(index, checkValueType(element));
     }
 
-    @Override
     public boolean add(DataObject element) {
-        return super.add(checkValueType(element));
+        return contents.add(checkValueType(element));
     }
 
-    @Override
     public void add(int index, DataObject element) {
-        super.add(index, checkValueType(element));
+        contents.add(index, checkValueType(element));
     }
 
     @Override
-    public boolean addAll(Collection<? extends DataObject> values) {
-        checkValueTypes(values);
-        return super.addAll(values);
+    public Iterator<DataObject> iterator() {
+        return contents.iterator();
     }
 
-    @Override
-    public boolean addAll(int index, Collection<? extends DataObject> values) {
-        checkValueTypes(values);
-        return super.addAll(index, values);
+    public int size() {
+        return contents.size();
     }
 
-    @Override
-    public void replaceAll(UnaryOperator<DataObject> operator) {
-        super.replaceAll(element -> checkValueType(operator.apply(element)));
+    public DataObject get(int index) {
+        return contents.get(index);
+    }
+
+    public boolean isEmpty() {
+        return contents.isEmpty();
     }
 
     @Override
@@ -104,5 +99,16 @@ public class DataList extends ArrayList<DataObject> implements DataObject {
     @Override
     public int hashCode() {
         return type.hashCode() + super.hashCode() * 31;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(type.toString()).append(": [");
+        for (int index = 0; index < size(); index++) {
+            if (index > 0) sb.append(", ");
+            sb.append(get(index).toString());
+        }
+        sb.append("]");
+        return sb.toString();
     }
 }

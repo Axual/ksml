@@ -21,13 +21,14 @@ package io.axual.ksml.exception;
  */
 
 
+public class KSMLExecutionException extends KSMLException {
+    private static final String ACTIVITY = "Execution";
 
-public class KSMLExecutionException extends RuntimeException {
     public KSMLExecutionException(String message) {
-        super("Error while executing the Kafka Streams topology: " + message);
+        super(ACTIVITY, message);
     }
 
     public KSMLExecutionException(String message, Throwable t) {
-        super(message, t);
+        super(ACTIVITY, message, t);
     }
 }

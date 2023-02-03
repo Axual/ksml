@@ -23,46 +23,31 @@ package io.axual.ksml.operation;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Named;
 
-import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.object.DataStruct;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.util.DataUtil;
 
 public class ConvertKeyOperation extends BaseOperation {
-    private final KeyConverter converter;
+    private final DataObjectConverter mapper;
     private final UserType targetType;
-
-    private static class KeyConverter implements KeyValueMapper<Object, Object, Object> {
-        private final StructType targetStructType;
-
-        public KeyConverter(DataType toType) {
-            this.targetStructType = toType instanceof StructType structType ? structType : null;
-        }
-
-        @Override
-        public Object apply(Object key, Object value) {
-            var keyAsData = DataUtil.asDataObject(key);
-            if (keyAsData instanceof DataNull) return keyAsData;
-            if (targetStructType == null) return keyAsData;
-
-            var result = new DataStruct(targetStructType);
-            result.putAll((DataStruct) keyAsData);
-            return result;
-        }
-    }
 
     public ConvertKeyOperation(OperationConfig config, UserType targetType) {
         super(config);
+        this.mapper = new DataObjectConverter(notationLibrary);
         this.targetType = targetType;
-        converter = new KeyConverter(targetType.dataType());
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
+        // Set up the mapping function to convert the value
+        KeyValueMapper<Object, Object, Object> converter = (key, value) -> {
+            var keyAsData = DataUtil.asDataObject(key);
+            return mapper.convert(input.keyType().userType().notation(), keyAsData, targetType);
+        };
+
+        // Inject the mapper into the topology
         return new KStreamWrapper(
                 input.stream.selectKey(converter, Named.as(name)),
                 streamDataTypeOf(targetType, true),

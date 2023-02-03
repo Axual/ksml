@@ -20,29 +20,53 @@ package io.axual.ksml.notation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.notation.avro.AvroNotation;
+import io.axual.ksml.notation.binary.BinaryNotation;
+import io.axual.ksml.notation.csv.CsvDataObjectConverter;
+import io.axual.ksml.notation.csv.CsvNotation;
+import io.axual.ksml.notation.json.JsonDataObjectConverter;
+import io.axual.ksml.notation.json.JsonNotation;
+import io.axual.ksml.notation.soap.SOAPDataObjectConverter;
+import io.axual.ksml.notation.soap.SOAPNotation;
+import io.axual.ksml.notation.xml.XmlDataObjectConverter;
+import io.axual.ksml.notation.xml.XmlNotation;
+
 import java.util.HashMap;
 import java.util.Map;
 
-import io.axual.ksml.avro.AvroNotation;
-import io.axual.ksml.exception.KSMLExecutionException;
-
 public class NotationLibrary {
-    private final Map<String, Notation> notations = new HashMap<>();
-
-    public NotationLibrary(Map<?, ?> configs) {
-        notations.put(AvroNotation.NOTATION_NAME, new AvroNotation((Map<String, Object>) configs));
-        notations.put(JsonNotation.NOTATION_NAME, new JsonNotation((Map<String, Object>) configs));
-        notations.put(BinaryNotation.NOTATION_NAME, new BinaryNotation((Map<String, Object>) configs, notations.get(JsonNotation.NOTATION_NAME)));
+    private record NotationEntry(Notation notation, NotationConverter converter) {
     }
 
-    // Note: this method is public to facilitate testing
-    public void put(String notationName, Notation notation) {
-        notations.put(notationName, notation);
+    private final Map<String, NotationEntry> notationEntries = new HashMap<>();
+
+    public NotationLibrary(Map<String, Object> configs) {
+        register(AvroNotation.NOTATION_NAME, new AvroNotation(configs), null);
+        register(BinaryNotation.NOTATION_NAME, new BinaryNotation(), null);
+        register(CsvNotation.NOTATION_NAME, new CsvNotation(), new CsvDataObjectConverter());
+        register(JsonNotation.NOTATION_NAME, new JsonNotation(), new JsonDataObjectConverter());
+        register(SOAPNotation.NOTATION_NAME, new SOAPNotation(), new SOAPDataObjectConverter());
+        register(XmlNotation.NOTATION_NAME, new XmlNotation(), new XmlDataObjectConverter());
+    }
+
+    public void register(String name, Notation notation) {
+        register(name, notation, null);
+    }
+
+    public void register(String name, Notation notation, NotationConverter converter) {
+        notationEntries.put(name, new NotationEntry(notation, converter));
     }
 
     public Notation get(String notation) {
-        var result = notations.get(notation);
-        if (result != null) return result;
-        throw new KSMLExecutionException("Data type notation not found: " + notation);
+        var result = notationEntries.get(notation);
+        if (result != null) return result.notation;
+        throw FatalError.dataError("Data type notation not found: " + notation);
+    }
+
+    public NotationConverter getConverter(String notation) {
+        var result = notationEntries.get(notation);
+        if (result != null) return result.converter;
+        throw FatalError.dataError("Data type notation not found: " + notation);
     }
 }

@@ -25,7 +25,7 @@ import org.apache.kafka.streams.kstream.SessionWindows;
 import org.apache.kafka.streams.kstream.SlidingWindows;
 import org.apache.kafka.streams.kstream.TimeWindows;
 
-import io.axual.ksml.exception.KSMLApplyException;
+import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.SessionWindowedKStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
@@ -68,6 +68,6 @@ public class WindowedByOperation extends BaseOperation {
         if (timeWindows != null) {
             return new TimeWindowedKStreamWrapper(input.groupedStream.windowedBy(timeWindows), input.keyType(), input.valueType());
         }
-        throw new KSMLApplyException("Operation " + name + ". Error applying WINDOW BY to " + input);
+        throw new KSMLTopologyException("Operation " + name + ". Error applying WINDOW BY to " + input);
     }
 }

@@ -50,12 +50,16 @@ public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition
 
         final String type = parseString(node, FUNCTION_TYPE);
         if (type == null) {
-            throw new KSMLParseException(node, "Type unspecified");
+            throw new KSMLParseException(node, "Function type not specified");
         }
 
         BaseParser<? extends FunctionDefinition> parser = getParser(type);
         if (parser != null) {
-            return parser.parse(node.appendName(type));
+            try {
+                return parser.parse(node.appendName(type));
+            } catch (RuntimeException e) {
+                throw new KSMLParseException(node, "Error parsing typed function");
+            }
         }
 
         return new FunctionDefinitionParser().parse(node.appendName("generic"));
@@ -67,9 +71,12 @@ public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition
             case FUNCTION_TYPE_FOREACHACTION -> new ForEachActionDefinitionParser();
             case FUNCTION_TYPE_INITIALIZER -> new InitializerDefinitionParser();
             case FUNCTION_TYPE_KEYTRANSFORMER -> new KeyTransformerDefinitionParser();
-            case FUNCTION_TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER -> new KeyValueToKeyValueListTransformerDefinitionParser();
-            case FUNCTION_TYPE_KEYVALUETOVALUELISTTRANSFORMER -> new KeyValueToValueListTransformerDefinitionParser();
-            case FUNCTION_TYPE_KEYVALUEMAPPER, FUNCTION_TYPE_KEYVALUETRANSFORMER -> new KeyValueTransformerDefinitionParser();
+            case FUNCTION_TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER ->
+                    new KeyValueToKeyValueListTransformerDefinitionParser();
+            case FUNCTION_TYPE_KEYVALUETOVALUELISTTRANSFORMER ->
+                    new KeyValueToValueListTransformerDefinitionParser();
+            case FUNCTION_TYPE_KEYVALUEMAPPER, FUNCTION_TYPE_KEYVALUETRANSFORMER ->
+                    new KeyValueTransformerDefinitionParser();
             case FUNCTION_TYPE_MERGER -> new MergerDefinitionParser();
             case FUNCTION_TYPE_PREDICATE -> new PredicateDefinitionParser();
             case FUNCTION_TYPE_VALUEJOINER, FUNCTION_TYPE_REDUCER -> new ReducerDefinitionParser();

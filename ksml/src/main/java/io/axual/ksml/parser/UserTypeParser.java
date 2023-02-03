@@ -21,7 +21,6 @@ package io.axual.ksml.parser;
  */
 
 
-import io.axual.ksml.avro.AvroNotation;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.object.DataBytes;
@@ -42,9 +41,13 @@ import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.exception.KSMLTopologyException;
-import io.axual.ksml.notation.JsonNotation;
-import io.axual.ksml.schema.SchemaLibrary;
-import io.axual.ksml.schema.StructSchema;
+import io.axual.ksml.notation.avro.AvroNotation;
+import io.axual.ksml.notation.csv.CsvNotation;
+import io.axual.ksml.notation.json.JsonNotation;
+import io.axual.ksml.notation.soap.SOAPNotation;
+import io.axual.ksml.notation.xml.XmlNotation;
+import io.axual.ksml.data.schema.SchemaLibrary;
+import io.axual.ksml.data.schema.StructSchema;
 
 import static io.axual.ksml.data.type.UserType.UNKNOWN;
 
@@ -71,7 +74,7 @@ public class UserTypeParser {
         if (types.length == 1) {
             return types[0];
         }
-        throw new KSMLParseException("Could not parse data dataType: " + type);
+        throw new KSMLParseException("Could not parse data type: " + type);
     }
 
     // Parses a list of comma-separated user data types. If no comma is found, then the returned
@@ -89,7 +92,7 @@ public class UserTypeParser {
         if (remainder.startsWith(TYPE_SEPARATOR)) {
             remainderTypes = parseListOfTypesAndNotation(remainder.substring(1), defaultNotation, false);
         } else if (!remainder.isEmpty()) {
-            throw new KSMLParseException("Could not parse dataType: " + type);
+            throw new KSMLParseException("Could not parse data type: " + type);
         }
 
         var result = new UserType[remainderTypes.length + 1];
@@ -119,7 +122,7 @@ public class UserTypeParser {
         // List type
         if (type.startsWith(SQUARE_BRACKET_OPEN)) {
             if (!type.endsWith(SQUARE_BRACKET_CLOSE)) {
-                throw new KSMLParseException("Error in dataType: " + type);
+                throw new KSMLParseException("Error in data type: " + type);
             }
             var valueType = parseTypeAndNotation(type.substring(1, type.length() - 1), resultNotation, false);
             return new UserType(valueType.notation(), new ListType(valueType.dataType()));
@@ -128,7 +131,7 @@ public class UserTypeParser {
         // Tuple type
         if (type.startsWith(ROUND_BRACKET_OPEN)) {
             if (!type.endsWith(ROUND_BRACKET_CLOSE)) {
-                throw new KSMLParseException("Error in dataType: " + type);
+                throw new KSMLParseException("Error in data type: " + type);
             }
             var valueTypes = parseListOfTypesAndNotation(type.substring(1, type.length() - 1), resultNotation, false);
             return new UserType(resultNotation, new UserTupleType(valueTypes));
@@ -154,7 +157,7 @@ public class UserTypeParser {
 
         // AVRO with schema
         if (typeNotation.equalsIgnoreCase(AvroNotation.NOTATION_NAME)) {
-            var schema = SchemaLibrary.getSchema(type, false);
+            var schema = SchemaLibrary.getSchema(AvroNotation.NOTATION_NAME, type, false);
             if (!(schema instanceof StructSchema structSchema))
                 throw new KSMLParseException("Schema definition is not a STRUCT: " + type);
             return new UserType(AvroNotation.NOTATION_NAME, new StructType(structSchema));
@@ -162,17 +165,56 @@ public class UserTypeParser {
 
         // AVRO without schema
         if (type.equalsIgnoreCase(AvroNotation.NOTATION_NAME)) {
-            return new UserType(AvroNotation.NOTATION_NAME, new StructType());
+            return new UserType(AvroNotation.NOTATION_NAME, AvroNotation.DEFAULT_TYPE);
+        }
+
+        // CSV with schema
+        if (typeNotation.equalsIgnoreCase(CsvNotation.NOTATION_NAME)) {
+            var schema = SchemaLibrary.getSchema(CsvNotation.NOTATION_NAME, type, false);
+            if (!(schema instanceof StructSchema structSchema))
+                throw new KSMLParseException("Schema definition is not a STRUCT: " + type);
+            return new UserType(CsvNotation.NOTATION_NAME, new StructType(structSchema));
+        }
+
+        // CSV without schema
+        if (type.equalsIgnoreCase(CsvNotation.NOTATION_NAME)) {
+            return new UserType(CsvNotation.NOTATION_NAME, CsvNotation.DEFAULT_TYPE);
         }
 
         // JSON with schema
         if (typeNotation.equalsIgnoreCase(JsonNotation.NOTATION_NAME)) {
-            return new UserType(JsonNotation.NOTATION_NAME, new StructType());
+            var schema = SchemaLibrary.getSchema(JsonNotation.NOTATION_NAME, type, false);
+            if (!(schema instanceof StructSchema structSchema))
+                throw new KSMLParseException("Schema definition is not a STRUCT: " + type);
+            return new UserType(JsonNotation.NOTATION_NAME, new StructType(structSchema));
         }
 
         // JSON without schema
         if (type.equalsIgnoreCase(JsonNotation.NOTATION_NAME)) {
-            return new UserType(JsonNotation.NOTATION_NAME, new StructType());
+            return new UserType(JsonNotation.NOTATION_NAME, JsonNotation.DEFAULT_TYPE);
+        }
+
+        // SOAP without schema
+        if (type.equalsIgnoreCase(SOAPNotation.NOTATION_NAME)) {
+            return new UserType(SOAPNotation.NOTATION_NAME, SOAPNotation.DEFAULT_TYPE);
+        }
+
+        // SOAP with schema (not implemented yet)
+        if (typeNotation.equalsIgnoreCase(SOAPNotation.NOTATION_NAME)) {
+            return new UserType(SOAPNotation.NOTATION_NAME, SOAPNotation.DEFAULT_TYPE);
+        }
+
+        // XML without schema
+        if (type.equalsIgnoreCase(XmlNotation.NOTATION_NAME)) {
+            return new UserType(XmlNotation.NOTATION_NAME, XmlNotation.DEFAULT_TYPE);
+        }
+
+        // XML with schema
+        if (typeNotation.equalsIgnoreCase(XmlNotation.NOTATION_NAME)) {
+            var schema = SchemaLibrary.getSchema(XmlNotation.NOTATION_NAME, type, false);
+            if (!(schema instanceof StructSchema structSchema))
+                throw new KSMLParseException("Schema definition is not a STRUCT: " + type);
+            return new UserType(XmlNotation.NOTATION_NAME, new StructType(structSchema));
         }
 
         return new UserType(resultNotation, parseType(type));

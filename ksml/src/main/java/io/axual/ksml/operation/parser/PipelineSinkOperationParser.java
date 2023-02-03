@@ -25,16 +25,15 @@ import io.axual.ksml.definition.parser.BranchDefinitionParser;
 import io.axual.ksml.definition.parser.ForEachActionDefinitionParser;
 import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.definition.parser.TopicNameExtractorDefinitionParser;
-import io.axual.ksml.exception.KSMLParseException;
+import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.operation.BranchOperation;
 import io.axual.ksml.operation.ForEachOperation;
 import io.axual.ksml.operation.ToOperation;
 import io.axual.ksml.operation.ToTopicNameExtractorOperation;
 import io.axual.ksml.parser.ListParser;
-import io.axual.ksml.parser.OperationParser;
 import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.ReferenceOrInlineParser;
-import io.axual.ksml.parser.StreamOperation;
+import io.axual.ksml.operation.StreamOperation;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.PIPELINE_BRANCH_ATTRIBUTE;
@@ -62,9 +61,10 @@ public class PipelineSinkOperationParser extends OperationParser<StreamOperation
         if (node.get(PIPELINE_TO_ATTRIBUTE) != null) {
             final var def = new ReferenceOrInlineParser<>("stream", PIPELINE_TO_ATTRIBUTE, context.getStreamDefinitions()::get, new StreamDefinitionParser()).parse(node);
             if (def != null) {
+                context.registerTopic(def.topic);
                 return new ToOperation(operationConfig(determineName("to")), def);
             }
-            throw new KSMLParseException("Target stream not found or not specified");
+            throw new KSMLTopologyException("Target stream not found or not specified");
         }
         return null;
     }

@@ -38,18 +38,18 @@ public class StoreUtil {
     }
 
     public static <V> Materialized<Object, V, KeyValueStore<Bytes, byte[]>> createKeyValueStore(StoreDefinition storeDefinition, StreamDataType keyType, StreamDataType valueType) {
-        Materialized<Object, V, KeyValueStore<Bytes, byte[]>> mat = Materialized.as(storeDefinition.name);
-        return configureStore(mat, storeDefinition.retention, keyType, valueType, storeDefinition.caching);
+        Materialized<Object, V, KeyValueStore<Bytes, byte[]>> mat = Materialized.as(storeDefinition.name());
+        return configureStore(mat, storeDefinition.retention(), keyType, valueType, storeDefinition.caching());
     }
 
     public static <V> Materialized<Object, V, SessionStore<Bytes, byte[]>> createSessionStore(StoreDefinition storeDefinition, StreamDataType keyType, StreamDataType valueType) {
-        Materialized<Object, V, SessionStore<Bytes, byte[]>> mat = Materialized.as(storeDefinition.name);
-        return configureStore(mat, storeDefinition.retention, keyType, valueType, storeDefinition.caching);
+        Materialized<Object, V, SessionStore<Bytes, byte[]>> mat = Materialized.as(storeDefinition.name());
+        return configureStore(mat, storeDefinition.retention(), keyType, valueType, storeDefinition.caching());
     }
 
     public static <V> Materialized<Object, V, WindowStore<Bytes, byte[]>> createWindowStore(StoreDefinition storeDefinition, StreamDataType keyType, StreamDataType valueType) {
-        Materialized<Object, V, WindowStore<Bytes, byte[]>> mat = Materialized.as(storeDefinition.name);
-        return configureStore(mat, storeDefinition.retention, keyType, valueType, storeDefinition.caching);
+        Materialized<Object, V, WindowStore<Bytes, byte[]>> mat = Materialized.as(storeDefinition.name());
+        return configureStore(mat, storeDefinition.retention(), keyType, valueType, storeDefinition.caching());
     }
 
     private static <V, S extends StateStore> Materialized<Object, V, S> configureStore(Materialized<Object, V, S> mat, Duration retention, StreamDataType keyType, StreamDataType valueType, Boolean cachingEnabled) {

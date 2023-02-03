@@ -23,15 +23,12 @@ package io.axual.ksml.data.mapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 
-public interface DataObjectMapper {
-    String STRUCT_SCHEMA_FIELD = AttributeComparator.META_ATTRIBUTE_CHAR + "schema";
-    String STRUCT_TYPE_FIELD = AttributeComparator.META_ATTRIBUTE_CHAR + "type";
-
-    default DataObject toDataObject(Object value) {
+public interface DataObjectMapper<T> {
+    default DataObject toDataObject(T value) {
         return toDataObject(null, value);
     }
 
-    DataObject toDataObject(DataType expected, Object value);
+    DataObject toDataObject(DataType expected, T value);
 
-    Object fromDataObject(DataObject value);
+    T fromDataObject(DataObject value);
 }

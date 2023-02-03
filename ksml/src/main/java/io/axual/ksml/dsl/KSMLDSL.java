@@ -103,6 +103,7 @@ public class KSMLDSL {
     public static final String SUPPRESS_BUFFERFULLSTRATEGY = "bufferFullStrategy";
     public static final String SUPPRESS_BUFFERFULLSTRATEGY_EMIT = "emitEarlyWhenFull";
     public static final String SUPPRESS_BUFFERFULLSTRATEGY_SHUTDOWN = "shutdownWhenFull";
+    public static final String TO_STREAM_MAPPER_ATTRIBUTE = "mapper";
     public static final String TRANSFORMKEY_MAPPER_ATTRIBUTE = "mapper";
     public static final String TRANSFORMKEYVALUE_MAPPER_ATTRIBUTE = "mapper";
     public static final String TRANSFORMKEYVALUETOKEYVALUELIST_MAPPER_ATTRIBUTE = "mapper";
@@ -119,6 +120,7 @@ public class KSMLDSL {
     public static final String FUNCTION_TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER = "keyValueToKeyValueListTransformer";
     public static final String FUNCTION_TYPE_KEYVALUETOVALUELISTTRANSFORMER = "keyValueToValueListTransformer";
     public static final String FUNCTION_TYPE_KEYVALUETRANSFORMER = "keyValueTransformer";
+    public static final String FUNCTION_TYPE_MESSAGEGENERATOR = "messageGenerator";
     public static final String FUNCTION_TYPE_MERGER = "merger";
     public static final String FUNCTION_TYPE_PREDICATE = "predicate";
     public static final String FUNCTION_TYPE_REDUCER = "reducer";

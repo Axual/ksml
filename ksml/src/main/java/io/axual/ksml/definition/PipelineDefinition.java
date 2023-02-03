@@ -21,15 +21,10 @@ package io.axual.ksml.definition;
  */
 
 
-
 import java.util.List;
 
-import io.axual.ksml.parser.StreamOperation;
-import lombok.AllArgsConstructor;
+import io.axual.ksml.operation.StreamOperation;
 
-@AllArgsConstructor
-public class PipelineDefinition {
-    public final BaseStreamDefinition source;
-    public final List<StreamOperation> chain;
-    public final StreamOperation sink;
+public record PipelineDefinition(BaseStreamDefinition source, List<StreamOperation> chain,
+                                 StreamOperation sink) {
 }

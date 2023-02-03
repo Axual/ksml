@@ -21,21 +21,21 @@ package io.axual.ksml.user;
  */
 
 
-import org.apache.kafka.streams.kstream.Reducer;
-
-import io.axual.ksml.util.DataUtil;
+import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.python.Invoker;
+import io.axual.ksml.util.DataUtil;
+import org.apache.kafka.streams.kstream.Reducer;
 
 public class UserReducer extends Invoker implements Reducer<Object> {
     public UserReducer(UserFunction function) {
         super(function);
         verifyParameterCount(2);
         verify(function.parameters[0].type().equals(function.parameters[1].type()), "Reducer should take two parameters of the same dataType");
-        verify(function.parameters[0].type().equals(function.resultType), "Reducer should return same dataType as its parameters");
+        verify(function.parameters[0].type().equals(function.resultType.dataType()), "Reducer should return same dataType as its parameters");
     }
 
     @Override
-    public Object apply(Object value1, Object value2) {
+    public DataObject apply(Object value1, Object value2) {
         return function.call(DataUtil.asDataObject(value1), DataUtil.asDataObject(value2));
     }
 }

@@ -21,10 +21,10 @@ package io.axual.ksml.user;
  */
 
 
-import org.apache.kafka.streams.kstream.Aggregator;
-
-import io.axual.ksml.util.DataUtil;
+import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.python.Invoker;
+import io.axual.ksml.util.DataUtil;
+import org.apache.kafka.streams.kstream.Aggregator;
 
 public class UserAggregator extends Invoker implements Aggregator<Object, Object, Object> {
 
@@ -34,7 +34,7 @@ public class UserAggregator extends Invoker implements Aggregator<Object, Object
     }
 
     @Override
-    public Object apply(Object key, Object value, Object aggregatedValue) {
+    public DataObject apply(Object key, Object value, Object aggregatedValue) {
         return function.call(DataUtil.asDataObject(key), DataUtil.asDataObject(value), DataUtil.asDataObject(aggregatedValue));
     }
 }

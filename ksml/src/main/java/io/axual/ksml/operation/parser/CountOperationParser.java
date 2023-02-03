@@ -23,7 +23,6 @@ package io.axual.ksml.operation.parser;
 
 import io.axual.ksml.operation.CountOperation;
 import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.parser.StoreOperationParser;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;

@@ -34,6 +34,9 @@ import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserReducer;
 
 public class ReduceOperation extends StoreOperation {
+    private static final String ADDER_NAME = "Adder";
+    private static final String REDUCER_NAME = "Reducer";
+    private static final String SUBTRACTOR_NAME = "Subtractor";
     private final UserFunction reducer;
     private final UserFunction adder;
     private final UserFunction subtractor;
@@ -47,6 +50,16 @@ public class ReduceOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KGroupedStreamWrapper input) {
+        /*    Kafka Streams method signature:
+         *    KTable<K, V> reduce(
+         *          final Reducer<V> reducer,
+         *          final Named named,
+         *          final Materialized<K, V, KeyValueStore<Bytes, byte[]>> materialized)
+         */
+
+        var v = input.valueType().userType().dataType();
+        checkFunction(REDUCER_NAME, reducer, equalTo(v), equalTo(v), equalTo(v));
+
         return new KTableWrapper(
                 input.groupedStream.reduce(
                         new UserReducer(reducer),
@@ -58,6 +71,18 @@ public class ReduceOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KGroupedTableWrapper input) {
+        /*    Kafka Streams method signature:
+         *    KTable<K, V> reduce(
+         *          final Reducer<V> adder,
+         *          final Reducer<V> subtractor,
+         *          final Named named,
+         *          final Materialized<K, V, KeyValueStore<Bytes, byte[]>> materialized)
+         */
+
+        var v = input.valueType().userType().dataType();
+        checkFunction(ADDER_NAME, adder, equalTo(v), equalTo(v), equalTo(v));
+        checkFunction(SUBTRACTOR_NAME, subtractor, equalTo(v), equalTo(v), equalTo(v));
+
         return new KTableWrapper(
                 input.groupedTable.reduce(
                         new UserReducer(adder),
@@ -70,6 +95,16 @@ public class ReduceOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(SessionWindowedKStreamWrapper input) {
+        /*    Kafka Streams method signature:
+         *    KTable<Windowed<K>, V> reduce(
+         *          final Reducer<V> reducer,
+         *          final Named named,
+         *          final Materialized<K, V, KeyValueStore<Bytes, byte[]>> materialized)
+         */
+
+        var v = input.valueType().userType().dataType();
+        checkFunction(REDUCER_NAME, reducer, equalTo(v), equalTo(v), equalTo(v));
+
         return new KTableWrapper(
                 (KTable) input.sessionWindowedKStream.reduce(
                         new UserReducer(reducer),
@@ -81,6 +116,16 @@ public class ReduceOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(TimeWindowedKStreamWrapper input) {
+        /*    Kafka Streams method signature:
+         *    KTable<Windowed<K>, V> reduce(
+         *          final Reducer<V> reducer,
+         *          final Named named,
+         *          final Materialized<K, V, KeyValueStore<Bytes, byte[]>> materialized)
+         */
+
+        var v = input.valueType().userType().dataType();
+        checkFunction(REDUCER_NAME, reducer, equalTo(v), equalTo(v), equalTo(v));
+
         return new KTableWrapper(
                 (KTable) input.timeWindowedKStream.reduce(
                         new UserReducer(reducer),

@@ -21,15 +21,19 @@ package io.axual.ksml.operation;
  */
 
 
-
 import org.apache.kafka.streams.kstream.Produced;
 
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserTopicNameExtractor;
 
+import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA;
+
 public class ToTopicNameExtractorOperation extends BaseOperation {
+    private static final String TOPICNAMEEXTRACTOR_NAME = "TopicNameExtractor";
     private final UserFunction topicNameExtractor;
 
     public ToTopicNameExtractorOperation(OperationConfig config, UserFunction topicNameExtractor) {
@@ -39,6 +43,16 @@ public class ToTopicNameExtractorOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
+        /*    Kafka Streams method signature:
+         *    void to(
+         *          final TopicNameExtractor<K, V> topicExtractor,
+         *          final Produced<K, V> produced)
+         */
+
+        var k = input.keyType().userType().dataType();
+        var v = input.valueType().userType().dataType();
+        checkFunction(TOPICNAMEEXTRACTOR_NAME, topicNameExtractor, equalTo(DataString.DATATYPE), superOf(k), superOf(v), superOf(new StructType(RECORD_CONTEXT_SCHEMA)));
+
         input.stream.to(new UserTopicNameExtractor(topicNameExtractor), Produced.with(input.keyType().getSerde(), input.valueType().getSerde()).withName(name));
         return null;
     }

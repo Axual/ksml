@@ -29,8 +29,9 @@ import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.schema.mapper.WindowedSchemaMapper;
 import io.axual.ksml.serde.UnionSerde;
+
+import static io.axual.ksml.dsl.WindowedSchema.generateWindowedSchema;
 
 public record StreamDataType(NotationLibrary notationLibrary, UserType userType, boolean isKey) {
     public StreamDataType(NotationLibrary notationLibrary, UserType userType, boolean isKey) {
@@ -44,7 +45,7 @@ public record StreamDataType(NotationLibrary notationLibrary, UserType userType,
         // fixed fields. This allows for processing downstream, since the WindowType itself
         // is KafkaStreams internal and thus not usable in user functions.
         return type instanceof WindowedType windowedType
-                ? new StructType(new WindowedSchemaMapper().toDataSchema(windowedType))
+                ? new StructType(generateWindowedSchema(windowedType))
                 : type;
     }
 

@@ -24,6 +24,11 @@ import io.axual.ksml.data.type.SimpleType;
 
 public class DataInteger extends DataPrimitive<Integer> {
     public static final SimpleType DATATYPE = new SimpleType(Integer.class);
+    public static final Integer DEFAULT = 0;
+
+    public DataInteger() {
+        this(DEFAULT);
+    }
 
     public DataInteger(Integer value) {
         super(DATATYPE, value);

@@ -24,7 +24,6 @@ package io.axual.ksml.operation.parser;
 import io.axual.ksml.definition.parser.KeyValueMapperDefinitionParser;
 import io.axual.ksml.operation.GroupByOperation;
 import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.parser.StoreOperationParser;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.GROUPBY_MAPPER_ATTRIBUTE;

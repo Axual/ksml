@@ -26,7 +26,6 @@ import io.axual.ksml.definition.parser.InitializerDefinitionParser;
 import io.axual.ksml.definition.parser.MergerDefinitionParser;
 import io.axual.ksml.operation.AggregateOperation;
 import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.parser.StoreOperationParser;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.AGGREGATE_ADDER_ATTRIBTUE;

@@ -31,14 +31,12 @@ import org.apache.kafka.streams.state.WindowStore;
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.definition.StoreDefinition;
 import io.axual.ksml.generator.StreamDataType;
-import io.axual.ksml.schema.mapper.WindowedSchemaMapper;
 import io.axual.ksml.store.GroupedRegistry;
 import io.axual.ksml.store.StoreRegistry;
 import io.axual.ksml.store.StoreType;
 import io.axual.ksml.store.StoreUtil;
 
 public class StoreOperation extends BaseOperation {
-    private static final WindowedSchemaMapper mapper = new WindowedSchemaMapper();
     protected final StoreDefinition store;
     protected final GroupedRegistry groupedRegistry;
     protected final StoreRegistry storeRegistry;
@@ -46,9 +44,9 @@ public class StoreOperation extends BaseOperation {
     public StoreOperation(StoreOperationConfig config) {
         super(config);
         store = new StoreDefinition(
-                config.store.name == null ? name : config.store.name,
-                config.store.retention,
-                config.store.caching
+                config.store.name() == null ? name : config.store.name(),
+                config.store.retention(),
+                config.store.caching()
         );
         this.groupedRegistry = config.groupedRegistry;
         this.storeRegistry = config.storeRegistry;
@@ -56,7 +54,7 @@ public class StoreOperation extends BaseOperation {
 
     @Override
     public String toString() {
-        return super.toString() + " [storeName=\"" + store.name + "\"]";
+        return super.toString() + " [storeName=\"" + store.name() + "\"]";
     }
 
     protected <K, V> Grouped<K, V> registerGrouped(Grouped<K, V> grouped) {

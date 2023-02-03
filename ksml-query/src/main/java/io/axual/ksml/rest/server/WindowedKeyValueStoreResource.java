@@ -31,7 +31,7 @@ import org.apache.kafka.streams.state.ReadOnlyWindowStore;
 import java.time.Instant;
 import java.util.List;
 
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.notation.binary.NativeDataObjectMapper;
 import io.axual.ksml.rest.data.KeyValueBean;
 import io.axual.ksml.rest.data.WindowedKeyValueBean;
 import jakarta.ws.rs.GET;

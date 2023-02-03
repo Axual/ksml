@@ -21,9 +21,9 @@ package io.axual.ksml.user;
  */
 
 
-import org.apache.kafka.streams.kstream.Initializer;
-
+import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.python.Invoker;
+import org.apache.kafka.streams.kstream.Initializer;
 
 public class UserInitializer extends Invoker implements Initializer<Object> {
 
@@ -33,7 +33,7 @@ public class UserInitializer extends Invoker implements Initializer<Object> {
     }
 
     @Override
-    public Object apply() {
+    public DataObject apply() {
         return function.call();
     }
 }

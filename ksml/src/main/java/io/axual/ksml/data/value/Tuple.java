@@ -57,4 +57,15 @@ public class Tuple<T> {
     public int hashCode() {
         return Objects.hash(elements);
     }
+
+    @Override
+    public String toString() {
+        var sb = new StringBuilder("(");
+        for (int index = 0; index < elements.size(); index++) {
+            if (index > 0) sb.append(", ");
+            sb.append(elements().get(index).toString());
+        }
+        sb.append(")");
+        return sb.toString();
+    }
 }

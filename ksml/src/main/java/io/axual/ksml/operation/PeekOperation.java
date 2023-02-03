@@ -24,21 +24,33 @@ package io.axual.ksml.operation;
 
 import org.apache.kafka.streams.kstream.Named;
 
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserForeachAction;
 import io.axual.ksml.user.UserFunction;
 
 public class PeekOperation extends BaseOperation {
-    private final UserFunction forEach;
+    private static final String FOREACHACTION_NAME = "ForEachAction";
+    private final UserFunction forEachAction;
 
-    public PeekOperation(OperationConfig config, UserFunction forEach) {
+    public PeekOperation(OperationConfig config, UserFunction forEachAction) {
         super(config);
-        this.forEach = forEach;
+        this.forEachAction = forEachAction;
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        return new KStreamWrapper(input.stream.peek(new UserForeachAction(forEach), Named.as(name)), input.keyType(), input.valueType());
+        /*    Kafka Streams method signature:
+         *    KTable<K, V> filterNot(
+         *          final Predicate<? super K, ? super V> predicate
+         *          final Named named)
+         */
+
+        var k = input.keyType().userType().dataType();
+        var v = input.valueType().userType().dataType();
+        checkFunction(FOREACHACTION_NAME, forEachAction, equalTo(DataNull.DATATYPE), superOf(k), superOf(v));
+
+        return new KStreamWrapper(input.stream.peek(new UserForeachAction(forEachAction), Named.as(name)), input.keyType(), input.valueType());
     }
 }

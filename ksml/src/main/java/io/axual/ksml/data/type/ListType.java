@@ -20,11 +20,15 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import java.util.List;
-
 import io.axual.ksml.exception.KSMLTopologyException;
 
+import java.util.List;
+
 public class ListType extends ComplexType {
+    public ListType() {
+        this(DataType.UNKNOWN);
+    }
+
     public ListType(DataType valueType) {
         super(List.class, valueType);
     }

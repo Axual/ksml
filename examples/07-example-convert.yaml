@@ -1,0 +1,70 @@
+# This example shows how to read from a simple AVRO stream, then perform a series of conversions:
+#
+# source topic --> AVRO --> JSON --> String --> JSON --> XML --> String --> XML --> target topic
+# output to a target topic.
+#
+# Note that AVRO, XML and JSON all have the same INTERNAL representation, so printing one or the other won't give any
+# other output on stdout. The difference only shows when converting to a String or writing to a target topic.
+
+streams:
+  sensor_source:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+
+functions:
+  print_message:
+    type: forEach
+    code: "print('key=' + str(key) + ', value=' + str(value))"
+
+pipelines:
+  # The main pipeline reads messages, converts to json, outputs them, and saves to a target topic
+  main_to_xml:
+    from: sensor_source
+    via:
+      # Change notation to JSON
+      - type: convertValue
+        into: json
+        name: convert_to_json_1
+      - type: peek
+        forEach: print_message
+      # Convert from JSON to String
+      - type: convertValue
+        into: string
+        name: convert_json_to_string
+      - type: peek
+        forEach: print_message
+      # Convert back from String to JSON
+      - type: convertValue
+        into: json
+        name: convert_to_json_2
+      # Change notation to XML
+      - type: convertValue
+        into: xml
+        name: convert_to_xml_1
+      - type: peek
+        forEach: print_message
+      # Convert from XML to String
+      - type: convertValue
+        into: string
+        name: convert_value_to_string
+      - type: peek
+        forEach: print_message
+      # Convert back from String to XML
+      - type: convertValue
+        into: xml
+        name: convert_to_xml_2
+    to:
+      topic: ksml_sensordata_xml
+
+  # The alternative pipeline achieves the same, but by inlining the target topic definition and its
+  # data types (conversion is done implicitly on writing to the target topic)
+  alternate_to_xml:
+    from: sensor_source
+    via:
+      - type: peek
+        forEach: print_message
+    to:
+      topic: ksml_sensordata_xml
+      keyType: string
+      valueType: xml

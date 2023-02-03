@@ -21,11 +21,12 @@ package io.axual.ksml.operation.parser;
  */
 
 
-
+import io.axual.ksml.definition.parser.KeyTransformerDefinitionParser;
 import io.axual.ksml.operation.ToStreamOperation;
-import io.axual.ksml.parser.OperationParser;
 import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
+
+import static io.axual.ksml.dsl.KSMLDSL.TO_STREAM_MAPPER_ATTRIBUTE;
 
 public class ToStreamOperationParser extends OperationParser<ToStreamOperation> {
     private final String name;
@@ -38,6 +39,8 @@ public class ToStreamOperationParser extends OperationParser<ToStreamOperation> 
     @Override
     public ToStreamOperation parse(YamlNode node) {
         if (node == null) return null;
-        return new ToStreamOperation(operationConfig(name));
+        return new ToStreamOperation(
+                operationConfig(name),
+                parseOptionalFunction(node, TO_STREAM_MAPPER_ATTRIBUTE, new KeyTransformerDefinitionParser()));
     }
 }

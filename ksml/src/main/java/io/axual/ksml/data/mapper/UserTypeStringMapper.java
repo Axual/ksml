@@ -20,8 +20,6 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
-import java.util.stream.Collectors;
-
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.object.DataBytes;
@@ -40,8 +38,9 @@ import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.parser.UserTypeParser;
 
-public class UserTypeStringMapper implements StringMapper<UserType> {
-    @Override
+import java.util.stream.Collectors;
+
+public class UserTypeStringMapper {
     public String toString(UserType value) {
         var notation = value.notation().toLowerCase();
         var type = toString(value.dataType());
@@ -85,7 +84,6 @@ public class UserTypeStringMapper implements StringMapper<UserType> {
         return "(" + types + ")";
     }
 
-    @Override
     public UserType fromString(String type) {
         return UserTypeParser.parse(type);
     }

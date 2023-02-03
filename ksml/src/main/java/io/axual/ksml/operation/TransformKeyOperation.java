@@ -29,18 +29,31 @@ import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserKeyTransformer;
 
 public class TransformKeyOperation extends BaseOperation {
-    private final UserFunction transformer;
+    private static final String MAPPER_NAME = "Mapper";
+    private final UserFunction mapper;
 
-    public TransformKeyOperation(OperationConfig config, UserFunction transformer) {
+    public TransformKeyOperation(OperationConfig config, UserFunction mapper) {
         super(config);
-        this.transformer = transformer;
+        this.mapper = mapper;
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
+        /*    Kafka Streams method signature:
+         *    <KR> KStream<KR, V> selectKey(
+         *          final KeyValueMapper<? super K, ? super V, ? extends KR> mapper,
+         *          final Named named)
+         */
+
+        checkNotNull(mapper, MAPPER_NAME.toLowerCase());
+        var k = input.keyType().userType().dataType();
+        var v = input.valueType().userType().dataType();
+        var kr = mapper.resultType.dataType();
+        checkFunction(MAPPER_NAME, mapper, equalTo(kr), superOf(k), superOf(v));
+
         return new KStreamWrapper(
-                input.stream.selectKey(new UserKeyTransformer(transformer), Named.as(name)),
-                streamDataTypeOf(transformer.resultType, true),
+                input.stream.selectKey(new UserKeyTransformer(mapper), Named.as(name)),
+                streamDataTypeOf(mapper.resultType, true),
                 input.valueType());
     }
 }

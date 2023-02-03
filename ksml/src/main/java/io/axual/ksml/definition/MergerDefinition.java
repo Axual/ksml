@@ -25,7 +25,6 @@ package io.axual.ksml.definition;
 import static io.axual.ksml.definition.DefinitionConstants.KEY_AND_TWO_VALUE_PARAMETERS;
 
 public class MergerDefinition extends FunctionDefinition {
-
     public MergerDefinition(FunctionDefinition definition) {
         super(definition
                 .withParameters(getParameters(definition.parameters, KEY_AND_TWO_VALUE_PARAMETERS))

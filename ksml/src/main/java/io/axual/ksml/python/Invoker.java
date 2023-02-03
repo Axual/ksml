@@ -24,8 +24,8 @@ package io.axual.ksml.python;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.axual.ksml.exception.KSMLApplyException;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.user.UserFunction;
 
 /**
@@ -39,14 +39,14 @@ public abstract class Invoker {
 
     protected Invoker(UserFunction function) {
         if (function == null) {
-            throw new KSMLApplyException("Invoker: function can not be null");
+            throw new KSMLTopologyException("Invoker: function can not be null");
         }
         this.function = function;
     }
 
     protected void verify(boolean condition, String errorMessage) {
         if (!condition) {
-            throw new KSMLApplyException("This function can not be used as a " + getClass().getSimpleName() + ": " + errorMessage);
+            throw new KSMLTopologyException("This function can not be used as a " + getClass().getSimpleName() + ": " + errorMessage);
         }
     }
 

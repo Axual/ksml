@@ -70,6 +70,6 @@ key=sensor1, value={'owner': 'Bob', 'color': 'yellow', 'city': 'Utrecht', '@type
 
 ## Next steps
 
-Check out the examples in the [Examples](../examples/) directory. By modifying the file `examples/ksml-runner.yml` you can select the example(s) to run.
+Check out the examples in the [Examples](../examples/) directory. By modifying the file `examples/ksml-runner.yaml` you can select the example(s) to run.
 
 For a more elaborate introduction, you can start [here](introduction.md) or refer to the [documentation](index.md).

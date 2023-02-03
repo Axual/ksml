@@ -20,30 +20,35 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.schema.StructSchema;
+
 import java.util.Objects;
 
-import io.axual.ksml.schema.StructSchema;
-
 public class StructType extends MapType {
+    private static final String DEFAULT_NAME = "Struct";
     private final String name;
     private final StructSchema schema;
 
     public StructType() {
-        this((String) null);
+        this(null, null);
     }
 
     public StructType(StructSchema schema) {
-        this.name = getName(schema.name());
-        this.schema = schema;
+        this(schema != null ? getName(schema.name()) : null, schema);
     }
 
     public StructType(String name) {
-        this.name = getName(name);
-        this.schema = null;
+        this(name, null);
     }
 
-    private String getName(String name) {
-        return name != null && name.length() > 0 ? name : "Struct";
+    private StructType(String name, StructSchema schema) {
+        super(DataType.UNKNOWN);
+        this.name = name != null && !name.isEmpty() ? name : DEFAULT_NAME;
+        this.schema = schema;
+    }
+
+    private static String getName(String name) {
+        return name;
     }
 
     @Override
@@ -57,7 +62,7 @@ public class StructType extends MapType {
 
     @Override
     public String schemaName() {
-        return schema != null ? schema.name() : "";
+        return schema != null ? schema.name() : name;
     }
 
     @Override

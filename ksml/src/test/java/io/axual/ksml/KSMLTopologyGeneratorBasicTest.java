@@ -21,6 +21,7 @@ package io.axual.ksml;
  */
 
 
+import io.axual.ksml.generator.TopologyGeneratorImpl;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TopologyDescription;
 import org.graalvm.home.Version;
@@ -37,8 +38,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-
-import io.axual.ksml.generator.TopologyGeneratorImpl;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -68,7 +67,7 @@ public class KSMLTopologyGeneratorBasicTest {
         configs.put(KSMLConfig.KSML_SOURCE_TYPE, "content");
         configs.put(KSMLConfig.KSML_SOURCE, pipeDefinition);
         TopologyGeneratorImpl topologyGenerator = new TopologyGeneratorImpl(new KSMLConfig(configs));
-        final var topology = topologyGenerator.create(new StreamsBuilder());
+        final var topology = topologyGenerator.create("some.app.id", new StreamsBuilder());
         final TopologyDescription description = topology.describe();
         System.out.println(description);
 
@@ -86,7 +85,7 @@ public class KSMLTopologyGeneratorBasicTest {
             "leave short@123 alone,leave short@123 alone"
     })
     void cleanDescriptionTest(String input, String expected) {
-        System.out.println("input='" + input +"',expected='" + expected + "'");
+        System.out.println("input='" + input + "',expected='" + expected + "'");
         assertThat(cleanDescription(input), is(expected));
     }
 

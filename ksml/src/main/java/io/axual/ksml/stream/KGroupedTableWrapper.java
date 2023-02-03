@@ -24,7 +24,7 @@ package io.axual.ksml.stream;
 import org.apache.kafka.streams.kstream.KGroupedTable;
 
 import io.axual.ksml.generator.StreamDataType;
-import io.axual.ksml.parser.StreamOperation;
+import io.axual.ksml.operation.StreamOperation;
 
 public class KGroupedTableWrapper extends BaseStreamWrapper {
     public final KGroupedTable<Object, Object> groupedTable;

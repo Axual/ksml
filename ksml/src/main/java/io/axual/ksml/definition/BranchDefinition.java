@@ -21,12 +21,7 @@ package io.axual.ksml.definition;
  */
 
 
-
 import io.axual.ksml.user.UserFunction;
-import lombok.AllArgsConstructor;
 
-@AllArgsConstructor
-public class BranchDefinition {
-    public final UserFunction predicate;
-    public final PipelineDefinition pipeline;
+public record BranchDefinition(UserFunction predicate, PipelineDefinition pipeline) {
 }

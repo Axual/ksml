@@ -56,4 +56,9 @@ public class DataTuple extends Tuple<DataObject> implements DataObject {
     public int hashCode() {
         return type.hashCode() + 31 * super.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return type.toString() + ": " + super.toString();
+    }
 }

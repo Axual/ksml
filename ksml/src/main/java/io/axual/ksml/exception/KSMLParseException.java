@@ -21,15 +21,20 @@ package io.axual.ksml.exception;
  */
 
 
-
 import io.axual.ksml.parser.YamlNode;
 
-public class KSMLParseException extends RuntimeException {
+public class KSMLParseException extends KSMLException {
+    private static final String ACTIVITY = "Parse";
+
     public KSMLParseException(YamlNode node, String message) {
-        this("Error in YAML node '" + (node != null ? node.toString() : "<root>") + "': " + message);
+        this(node, message, null);
+    }
+
+    public KSMLParseException(YamlNode node, String message, Throwable cause) {
+        super(ACTIVITY, "Error in YAML node " + (node != null ? node.toString() : "<root>") + ": " + message, cause);
     }
 
     public KSMLParseException(String message) {
-        super(message);
+        super(ACTIVITY, message);
     }
 }

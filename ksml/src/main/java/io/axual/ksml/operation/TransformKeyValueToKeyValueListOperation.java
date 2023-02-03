@@ -23,7 +23,9 @@ package io.axual.ksml.operation;
 
 import org.apache.kafka.streams.kstream.Named;
 
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.UserTupleType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.stream.KStreamWrapper;
@@ -32,16 +34,28 @@ import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserKeyValueToKeyValueListTransformer;
 
 public class TransformKeyValueToKeyValueListOperation extends BaseOperation {
-    private final UserFunction transformer;
+    private static final String MAPPER_NAME = "Mapper";
+    private final UserFunction mapper;
 
-    public TransformKeyValueToKeyValueListOperation(OperationConfig config, UserFunction transformer) {
+    public TransformKeyValueToKeyValueListOperation(OperationConfig config, UserFunction mapper) {
         super(config);
-        this.transformer = transformer;
+        this.mapper = mapper;
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        if (transformer.resultType.dataType() instanceof ListType listType &&
+        /*    Kafka Streams method signature:
+         *    <KR, VR> KStream<KR, VR> flatMap(
+         *          final KeyValueMapper<? super K, ? super V, ? extends Iterable<? extends KeyValue<? extends KR, ? extends VR>>> mapper,
+         *          final Named named)
+         */
+
+        checkNotNull(mapper, MAPPER_NAME.toLowerCase());
+        var k = input.keyType().userType().dataType();
+        var v = input.valueType().userType().dataType();
+        checkFunction(MAPPER_NAME, mapper, subOf(new ListType(new TupleType(DataType.UNKNOWN, DataType.UNKNOWN))), superOf(k), superOf(v));
+
+        if (mapper.resultType.dataType() instanceof ListType listType &&
                 listType.valueType() instanceof UserTupleType userTupleType &&
                 userTupleType.subTypeCount() == 2) {
             var resultKeyType = userTupleType.subType(0);
@@ -50,7 +64,7 @@ public class TransformKeyValueToKeyValueListOperation extends BaseOperation {
             var resultValueNotation = userTupleType.getUserType(1).notation();
 
             return new KStreamWrapper(
-                    input.stream.flatMap(new UserKeyValueToKeyValueListTransformer(transformer), Named.as(name)),
+                    input.stream.flatMap(new UserKeyValueToKeyValueListTransformer(mapper), Named.as(name)),
                     streamDataTypeOf(resultKeyNotation, resultKeyType, true),
                     streamDataTypeOf(resultValueNotation, resultValueType, false));
         }

@@ -26,8 +26,8 @@ import java.util.Map;
 import io.axual.ksml.data.object.DataString;
 
 public class MapType extends ComplexType {
-    public MapType() {
-        super(Map.class, DataString.DATATYPE, DataType.UNKNOWN);
+    public MapType(DataType valueType) {
+        super(Map.class, DataString.DATATYPE, valueType);
     }
 
     public DataType keyType() {

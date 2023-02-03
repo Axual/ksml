@@ -21,10 +21,10 @@ package io.axual.ksml.user;
  */
 
 
-import org.apache.kafka.streams.kstream.Merger;
-
-import io.axual.ksml.util.DataUtil;
+import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.python.Invoker;
+import io.axual.ksml.util.DataUtil;
+import org.apache.kafka.streams.kstream.Merger;
 
 public class UserMerger extends Invoker implements Merger<Object, Object> {
 
@@ -32,11 +32,11 @@ public class UserMerger extends Invoker implements Merger<Object, Object> {
         super(function);
         verifyParameterCount(3);
         verify(function.parameters[1].type().equals(function.parameters[2].type()), "Merger should take two value parameters of the same dataType");
-        verify(function.parameters[1].type().equals(function.resultType), "Merger should return same dataType as its value parameters");
+        verify(function.parameters[1].type().equals(function.resultType.dataType()), "Merger should return same dataType as its value parameters");
     }
 
     @Override
-    public Object apply(Object key, Object value1, Object value2) {
+    public DataObject apply(Object key, Object value1, Object value2) {
         return function.call(DataUtil.asDataObject(key), DataUtil.asDataObject(value1), DataUtil.asDataObject(value2));
     }
 }

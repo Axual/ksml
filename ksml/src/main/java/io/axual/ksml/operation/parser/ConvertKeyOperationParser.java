@@ -22,7 +22,6 @@ package io.axual.ksml.operation.parser;
 
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.operation.ConvertKeyOperation;
-import io.axual.ksml.parser.OperationParser;
 import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.parser.YamlNode;

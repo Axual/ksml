@@ -23,7 +23,6 @@ package io.axual.ksml.operation;
 
 import org.apache.kafka.streams.kstream.Named;
 
-import io.axual.ksml.exception.KSMLApplyException;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 
@@ -37,13 +36,14 @@ public class MergeOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        // Check if the two streams contain similar key and value types
-        if (input.keyType().isAssignableFrom(mergeStream.keyType()) && input.valueType().isAssignableFrom(mergeStream.valueType())) {
-            return new KStreamWrapper(
-                    input.stream.merge(mergeStream.stream, Named.as(name)),
-                    input.keyType(),
-                    input.valueType());
-        }
-        throw new KSMLApplyException("Incompatible stream types: " + input + " and " + mergeStream);
+        var k = input.keyType().userType().dataType();
+        var v = input.valueType().userType().dataType();
+        checkType("Merge stream keyType", mergeStream.keyType().userType().dataType(), equalTo(k));
+        checkType("Merge stream valueType", mergeStream.valueType().userType().dataType(), equalTo(v));
+
+        return new KStreamWrapper(
+                input.stream.merge(mergeStream.stream, Named.as(name)),
+                input.keyType(),
+                input.valueType());
     }
 }
