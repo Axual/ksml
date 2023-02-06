@@ -21,8 +21,7 @@ package io.axual.ksml.python;
  */
 
 
-import org.graalvm.polyglot.Value;
-
+import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.definition.FunctionDefinition;
@@ -30,13 +29,18 @@ import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.user.UserFunction;
+import org.graalvm.polyglot.Value;
+
+import static io.axual.ksml.data.type.UserType.DEFAULT_NOTATION;
 
 public class PythonFunction extends UserFunction {
     private static final PythonDataObjectMapper MAPPER = new PythonDataObjectMapper();
+    private final DataObjectConverter converter;
     private final Value function;
 
     public PythonFunction(PythonContext context, String name, FunctionDefinition definition) {
         super(name, definition.parameters, definition.resultType);
+        converter = context.getConverter();
         function = context.registerFunction(name, definition);
     }
 
@@ -62,6 +66,7 @@ public class PythonFunction extends UserFunction {
             if (resultType != null) {
                 DataObject result = convertResult(pyResult);
                 logCall(parameters, result);
+                result = converter != null ? converter.convert(DEFAULT_NOTATION, result, resultType) : result;
                 checkType(resultType.dataType(), result);
                 return result;
             } else {

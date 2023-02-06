@@ -22,6 +22,7 @@ package io.axual.ksml.datagenerator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.datagenerator.config.KSMLDataGeneratorConfig;
 import io.axual.ksml.datagenerator.execution.ExecutableProducer;
 import io.axual.ksml.datagenerator.execution.IntervalSchedule;
@@ -49,7 +50,6 @@ import static org.apache.kafka.clients.producer.ProducerConfig.*;
 public class KSMLDataGenerator {
     private static final Logger LOG = LoggerFactory.getLogger(KSMLDataGenerator.class);
     private static final String DEFAULT_CONFIG_FILE_SHORT = "ksml-data-generator.yaml";
-    private static final PythonContext context = new PythonContext();
     private static final IntervalSchedule<ExecutableProducer> schedule = new IntervalSchedule<>();
 
     private static Map<String, Object> getGenericConfigs() {
@@ -107,8 +107,9 @@ public class KSMLDataGenerator {
         }
 
         // Read all producer definitions from the configured YAML files
-        var producers = new ProducerDefinitionFileParser(config.getProducer()).create(factory.getNotationLibrary());
         var notationLibrary = factory.getNotationLibrary();
+        var context = new PythonContext(new DataObjectConverter(notationLibrary));
+        var producers = new ProducerDefinitionFileParser(config.getProducer()).create(notationLibrary,context);
 
         // Schedule all defined producers
         for (var entry : producers.entrySet()) {

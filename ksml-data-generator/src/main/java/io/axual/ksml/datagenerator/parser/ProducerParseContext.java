@@ -21,9 +21,6 @@ package io.axual.ksml.datagenerator.parser;
  */
 
 
-import java.util.HashMap;
-import java.util.Map;
-
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.exception.KSMLTopologyException;
@@ -32,17 +29,21 @@ import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonFunction;
 import io.axual.ksml.user.UserFunction;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Parse context
  */
 public class ProducerParseContext implements ParseContext {
-    private final PythonContext pythonContext = new PythonContext();
     private final NotationLibrary notationLibrary;
+    private final PythonContext pythonContext;
     private final Map<String, StreamDefinition> streamDefinitions = new HashMap<>();
     private final Map<String, FunctionDefinition> functionDefinitions = new HashMap<>();
 
-    public ProducerParseContext(NotationLibrary notationLibrary) {
+    public ProducerParseContext(NotationLibrary notationLibrary, PythonContext pythonContext) {
         this.notationLibrary = notationLibrary;
+        this.pythonContext = pythonContext;
     }
 
     public void registerStreamDefinition(String name, StreamDefinition def) {

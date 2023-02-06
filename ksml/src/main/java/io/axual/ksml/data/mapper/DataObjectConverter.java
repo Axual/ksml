@@ -40,10 +40,13 @@ import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.UnionType;
+import io.axual.ksml.data.type.UserTupleType;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.notation.NotationLibrary;
+
+import static io.axual.ksml.data.type.UserType.DEFAULT_NOTATION;
 
 // This DataObjectConverter makes expected data types compatible with the actual data that was
 // created. It does so by converting numbers to strings, and vice versa. It can convert complex
@@ -62,11 +65,56 @@ public class DataObjectConverter {
         if (targetType == null || value == null || targetType.dataType().isAssignableFrom(value.type()))
             return value;
 
+        // Perform type conversions recursively, going into complex types if necessary
+
+        // Recurse into lists
+        if (targetType.dataType() instanceof ListType targetListType
+                && value instanceof DataList valueList) {
+            var result = new DataList(targetListType.valueType());
+            var expectedValueType = new UserType(DEFAULT_NOTATION, targetListType.valueType());
+            for (int index = 0; index < valueList.size(); index++) {
+                result.add(convert(DEFAULT_NOTATION, valueList.get(index), expectedValueType));
+            }
+            return result;
+        }
+
+        // Recurse into structs
+        if (targetType.dataType() instanceof StructType targetStructType
+                && value instanceof DataStruct valueStruct) {
+            // Don't recurse into structs without a schema, just return those plainly
+            if (targetStructType.schema() == null) return value;
+            // Recurse and convert struct entries
+            DataStruct result = new DataStruct(targetStructType.schema());
+            for (var entry : valueStruct.entrySet()) {
+                // Determine the new value type
+                var newValueType = new UserType(DEFAULT_NOTATION, SchemaUtil.schemaToDataType(targetStructType.schema()));
+                // Convert to that type if necessary
+                result.put(entry.getKey(), convert(DEFAULT_NOTATION, entry.getValue(), newValueType));
+            }
+            return result;
+        }
+
+        // Recurse into tuples
+        if (targetType.dataType() instanceof TupleType targetTupleType
+                && value instanceof DataTuple valueTuple
+                && targetTupleType.subTypeCount() == valueTuple.size()) {
+            var convertedDataObjects = new DataObject[valueTuple.size()];
+            for (int index = 0; index < valueTuple.size(); index++) {
+                // If the tuple type contains the notation, then use that notation for conversion, otherwise use the
+                // default notation
+                var elementType = targetTupleType instanceof UserTupleType targetUserTupleType
+                        ? targetUserTupleType.getUserType(index)
+                        : new UserType(DEFAULT_NOTATION, targetTupleType.subType(index));
+                convertedDataObjects[index] = convert(DEFAULT_NOTATION, valueTuple.get(index), elementType);
+            }
+            return new DataTuple(convertedDataObjects);
+        }
+
         // First step is to use the converters from the notations to convert the type into the desired target type
         var convertedValue = applyNotationConverters(sourceNotation, value, targetType);
 
         // If the notation conversion was good enough, then return that result
-        if (targetType.dataType().isAssignableFrom(value)) return convertedValue;
+        if (targetType.dataType().isAssignableFrom(convertedValue)) return convertedValue;
 
         // As a final attempt to convert to the right type, run it through the compatibility converter
         convertedValue = convert(convertedValue, targetType.dataType());

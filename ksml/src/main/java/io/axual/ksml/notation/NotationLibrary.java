@@ -59,13 +59,13 @@ public class NotationLibrary {
     }
 
     public Notation get(String notation) {
-        var result = notationEntries.get(notation);
+        var result = notation != null ? notationEntries.get(notation) : null;
         if (result != null) return result.notation;
-        throw FatalError.dataError("Data type notation not found: " + notation);
+        throw FatalError.dataError("Data type notation not found: " + (notation != null ? notation : "null"));
     }
 
     public NotationConverter getConverter(String notation) {
-        var result = notationEntries.get(notation);
+        var result = notation != null ? notationEntries.get(notation) : null;
         if (result != null) return result.converter;
         throw FatalError.dataError("Data type notation not found: " + notation);
     }

@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PythonFunctionTest {
 
-    PythonContext context = new PythonContext();
+    PythonContext context = new PythonContext(null);
     ParameterDefinition one = new ParameterDefinition("one", DataInteger.DATATYPE);
     ParameterDefinition two = new ParameterDefinition("two", DataInteger.DATATYPE);
     ParameterDefinition[] params = new ParameterDefinition[]{one, two};
