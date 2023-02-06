@@ -34,7 +34,6 @@ import io.axual.ksml.notation.binary.BinaryNotation;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PythonFunctionTest {
-
     PythonContext context = new PythonContext(null);
     ParameterDefinition one = new ParameterDefinition("one", DataInteger.DATATYPE);
     ParameterDefinition two = new ParameterDefinition("two", DataInteger.DATATYPE);
