@@ -60,12 +60,24 @@ public class DataObjectConverter {
     }
 
     public DataObject convert(String sourceNotation, DataObject value, UserType targetType) {
+        return convert(sourceNotation, value, targetType, false);
+    }
+
+    private DataObject convert(String sourceNotation, DataObject value, UserType targetType, boolean allowFail) {
         // If no conversion is possible or necessary, or the value type is already compatible with
         // the expected type, then just return the value object
         if (targetType == null || value == null || targetType.dataType().isAssignableFrom(value.type()))
             return value;
 
         // Perform type conversions recursively, going into complex types if necessary
+
+        // Recurse into union types
+        if (targetType.dataType() instanceof UnionType targetUnionType) {
+            for (int index = 0; index < targetUnionType.possibleTypes().length; index++) {
+                var convertedValue = convert(sourceNotation, value, targetUnionType.possibleTypes()[index], true);
+                if (convertedValue != null) return convertedValue;
+            }
+        }
 
         // Recurse into lists
         if (targetType.dataType() instanceof ListType targetListType
@@ -87,7 +99,8 @@ public class DataObjectConverter {
             DataStruct result = new DataStruct(targetStructType.schema());
             for (var entry : valueStruct.entrySet()) {
                 // Determine the new value type
-                var newValueType = new UserType(DEFAULT_NOTATION, SchemaUtil.schemaToDataType(targetStructType.schema()));
+                var field = targetStructType.schema().field(entry.getKey());
+                var newValueType = new UserType(DEFAULT_NOTATION, SchemaUtil.schemaToDataType(field.schema()));
                 // Convert to that type if necessary
                 result.put(entry.getKey(), convert(DEFAULT_NOTATION, entry.getValue(), newValueType));
             }
@@ -119,6 +132,9 @@ public class DataObjectConverter {
         // As a final attempt to convert to the right type, run it through the compatibility converter
         convertedValue = convert(convertedValue, targetType.dataType());
         if (convertedValue != null) return convertedValue;
+
+        // If we are okay with failing a conversion, then return null
+        if (allowFail) return null;
 
         // We can't perform the conversion, so report a fatal error
         throw FatalError.dataError("Can not convert value to " + targetType + ": " + value);
@@ -164,8 +180,7 @@ public class DataObjectConverter {
 
         // Convert from Strings to anything
         if (value instanceof DataString str) {
-            var converted = convertFromString(targetType, str.value());
-            return converted != null ? converted : value;
+            return convertFromString(targetType, str.value());
         }
 
         // Convert list without a value type to a list with a specific value type
@@ -220,7 +235,7 @@ public class DataObjectConverter {
     }
 
     private DataObject convertFromString(DataType expected, String value) {
-        if (expected == DataNull.DATATYPE) return DataNull.INSTANCE;
+        if (expected == DataNull.DATATYPE && value == null) return DataNull.INSTANCE;
         if (expected == DataByte.DATATYPE) return new DataByte(Byte.parseByte(value));
         if (expected == DataShort.DATATYPE) return new DataShort(Short.parseShort(value));
         if (expected == DataInteger.DATATYPE) return new DataInteger(Integer.parseInt(value));
