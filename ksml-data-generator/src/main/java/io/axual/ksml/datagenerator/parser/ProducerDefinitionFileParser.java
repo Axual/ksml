@@ -41,6 +41,7 @@ import io.axual.ksml.notation.xml.XmlSchemaLoader;
 import io.axual.ksml.parser.MapParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.python.PythonContext;
+import io.axual.ksml.python.PythonFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -141,6 +142,10 @@ public class ProducerDefinitionFileParser {
 
         // Parse all defined functions
         new MapParser<>("function definition", new TypedFunctionDefinitionParser()).parse(node.get(FUNCTIONS_DEFINITION)).forEach(context::registerFunction);
+        // Generate all the function code in the Python context
+        for (var function : context.getFunctionDefinitions().entrySet()) {
+            new PythonFunction(pythonContext, function.getKey(), function.getValue());
+        }
 
         // Parse all defined message producers
         return new HashMap<>(new MapParser<>("producer definition", new ProducerDefinitionParser(context)).parse(node.get(PRODUCERS_DEFINITION)));

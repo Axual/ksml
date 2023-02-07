@@ -95,6 +95,8 @@ public class TopologyParseContext implements ParseContext {
             throw new KSMLTopologyException("Function definition must be unique: " + name);
         }
         functionDefinitions.put(name, functionDefinition);
+        // Pre-load the function into the Python context
+        new PythonFunction(pythonContext, name, functionDefinition);
     }
 
     public void registerStore(String name, StoreDefinition storeDefinition) {

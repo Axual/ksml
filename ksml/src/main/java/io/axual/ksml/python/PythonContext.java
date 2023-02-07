@@ -21,6 +21,7 @@ package io.axual.ksml.python;
  */
 
 import io.axual.ksml.data.mapper.DataObjectConverter;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
 import org.graalvm.polyglot.Context;
@@ -62,7 +63,7 @@ public class PythonContext {
         // Prepare function (if any) and expression from the function definition
         final var functionAndExpression = "def " + name + "_function(" + String.join(",", params) + "):\n" +
                 String.join("\n", functionCode) + "\n" +
-                "  return" + (definition.resultType != null ? " " + definition.expression : "") + "\n" +
+                "  return" + (definition.resultType != null && definition.resultType.dataType() != DataNull.DATATYPE ? " " + definition.expression : "") + "\n" +
                 "\n";
 
         // Prepare the actual caller for the code

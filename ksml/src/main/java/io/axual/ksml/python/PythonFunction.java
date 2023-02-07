@@ -42,6 +42,8 @@ public class PythonFunction extends UserFunction {
         super(name, definition.parameters, definition.resultType);
         converter = context.getConverter();
         function = context.registerFunction(name, definition);
+        if (function == null)
+            throw FatalError.executionError("Error in function: " + name);
     }
 
     @Override

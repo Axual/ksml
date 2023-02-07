@@ -109,7 +109,9 @@ public class KSMLDataGenerator {
         // Read all producer definitions from the configured YAML files
         var notationLibrary = factory.getNotationLibrary();
         var context = new PythonContext(new DataObjectConverter(notationLibrary));
-        var producers = new ProducerDefinitionFileParser(config.getProducer()).create(notationLibrary,context);
+        var producers = new ProducerDefinitionFileParser(config.getProducer()).create(notationLibrary, context);
+
+        // Load all functions into the Python context
 
         // Schedule all defined producers
         for (var entry : producers.entrySet()) {
