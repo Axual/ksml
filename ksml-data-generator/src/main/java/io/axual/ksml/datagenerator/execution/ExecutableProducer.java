@@ -72,11 +72,11 @@ public class ExecutableProducer {
             var value = dataObjectConverter.convert(DEFAULT_NOTATION, tuple.get(1), valueType);
             var okay = true;
 
-            if (!keyType.dataType().isAssignableFrom(key.type())) {
+            if (key != null && !keyType.dataType().isAssignableFrom(key.type())) {
                 LOG.error("Can not convert {} to topic key type {}", key.type(), keyType);
                 okay = false;
             }
-            if (!valueType.dataType().isAssignableFrom(value.type())) {
+            if (value != null && !valueType.dataType().isAssignableFrom(value.type())) {
                 LOG.error("Can not convert {} to topic value type {}", value.type(), valueType);
                 okay = false;
             }
