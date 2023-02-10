@@ -28,39 +28,7 @@ import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.operation.StreamOperation;
 import io.axual.ksml.parser.YamlNode;
 
-import static io.axual.ksml.dsl.KSMLDSL.NAME_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_AGGREGATE_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_CONVERTKEY_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_CONVERTVALUE_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_COUNT_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_FILTERNOT_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_FILTER_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_FLATMAPVALUES_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_FLATMAP_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_GROUPBYKEY_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_GROUPBY_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_JOIN_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_LEFTJOIN_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_MAPKEYVALUE_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_MAPKEY_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_MAPVALUES_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_MAP_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_SELECTKEY_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_MAPVALUE_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_MERGE_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_OUTERJOIN_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_PEEK_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_REDUCE_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_REPARTITION_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_SUPPRESS_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_TOSTREAM_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_TRANSFORMKEYVALUETOKEYVALUELIST_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_TRANSFORMKEYVALUETOVALUELIST_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_TRANSFORMKEYVALUE_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_TRANSFORMKEY_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_TRANSFORMVALUE_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_WINDOWEDBY_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.PIPELINE_OPERATIONTYPE_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class PipelineOperationParser extends ContextAwareParser<StreamOperation> {
     public PipelineOperationParser(ParseContext context) {
@@ -90,6 +58,7 @@ public class PipelineOperationParser extends ContextAwareParser<StreamOperation>
         return switch (type) {
             case OPERATION_AGGREGATE_TYPE -> new AggregateOperationParser(name, context);
             case OPERATION_CONVERTKEY_TYPE -> new ConvertKeyOperationParser(name, context);
+            case OPERATION_CONVERTKEYVALUE_TYPE -> new ConvertKeyValueOperationParser(name, context);
             case OPERATION_CONVERTVALUE_TYPE -> new ConvertValueOperationParser(name, context);
             case OPERATION_COUNT_TYPE -> new CountOperationParser(name, context);
             case OPERATION_FILTER_TYPE -> new FilterOperationParser(name, context);

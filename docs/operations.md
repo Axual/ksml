@@ -8,6 +8,7 @@
 1. [Operations](#transform-operations)
     * [aggregate](#aggregate)
     * [convertKey](#convertkey)
+   * [convertKeyValue](#convertkeyvalue)
     * [convertValue](#convertvalue)
     * [count](#count)
     * [filter](#filter)
@@ -131,6 +132,23 @@ from: input_stream
 via:
   - type: convertKey
     into: string
+to: output_stream
+```
+
+### convertKeyValue
+
+This built-in operation takes a message and converts the key and value into a given type.
+
+|Stream Type | Returns          |Parameter |Value Type| Description
+|:---|:-----------------|:---|:---|:---
+|KStream`<K,V>`| KStream`<KR,VR>` |`into`|string|The type to convert to
+
+Example:
+```yaml
+from: input_stream
+via:
+  - type: convertKeyValue
+    into: (string,avro:SensorData)
 to: output_stream
 ```
 

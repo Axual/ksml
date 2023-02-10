@@ -31,12 +31,12 @@ import io.axual.ksml.util.DataUtil;
 
 public class ConvertValueOperation extends BaseOperation {
     private final DataObjectConverter mapper;
-    private final UserType targetType;
+    private final UserType targetValueType;
 
-    public ConvertValueOperation(OperationConfig config, UserType targetType) {
+    public ConvertValueOperation(OperationConfig config, UserType targetValueType) {
         super(config);
         this.mapper = new DataObjectConverter(notationLibrary);
-        this.targetType = targetType;
+        this.targetValueType = targetValueType;
     }
 
     @Override
@@ -44,13 +44,13 @@ public class ConvertValueOperation extends BaseOperation {
         // Set up the mapping function to convert the value
         ValueMapper<Object, Object> converter = value -> {
             var valueAsData = DataUtil.asDataObject(value);
-            return mapper.convert(input.valueType().userType().notation(), valueAsData, targetType);
+            return mapper.convert(input.valueType().userType().notation(), valueAsData, targetValueType);
         };
 
         // Inject the mapper into the topology
         return new KStreamWrapper(
                 input.stream.mapValues(converter, Named.as(name)),
                 input.keyType(),
-                streamDataTypeOf(targetType, false));
+                streamDataTypeOf(targetValueType, false));
     }
 }
