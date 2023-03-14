@@ -22,6 +22,7 @@ package io.axual.ksml.runner.backend.kafka;
 
 
 import io.axual.ksml.KSMLTopologyGenerator;
+import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.rest.server.StreamsQuerier;
 import io.axual.ksml.runner.backend.Backend;
@@ -63,6 +64,8 @@ public class KafkaBackend implements Backend {
         streamsProperties.put(SCHEMA_REGISTRY_URL_CONFIG, backendConfig.getSchemaRegistryUrl());
         streamsProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, backendConfig.getApplicationId());
         streamsProperties.put(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE);
+        streamsProperties.put(StreamsConfig.DEFAULT_PRODUCTION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionContext.class);
+        streamsProperties.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionContext.class);
 
         streamsProperties.put(StreamsConfig.STATE_DIR_CONFIG, ksmlConfig.getWorkingDirectory());
         if (ksmlConfig.getApplicationServer() != null) {
@@ -81,6 +84,7 @@ public class KafkaBackend implements Backend {
         var topologyGenerator = new KSMLTopologyGenerator(backendConfig.getApplicationId(), ksmlConfigs, streamsProperties);
         final var topology = topologyGenerator.create(new StreamsBuilder());
         kafkaStreams = new KafkaStreams(topology, streamsProperties);
+        kafkaStreams.setUncaughtExceptionHandler(ExecutionContext.INSTANCE::uncaughtException);
     }
 
     private Map<String, Object> propertiesToMap(Properties props) {
