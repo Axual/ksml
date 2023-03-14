@@ -2,7 +2,24 @@ ksml:
   applicationServerEnabled: true
   applicationServerHost: 0.0.0.0
   applicationServerPort: 8080
-  workingDirectory: ../examples
+  workingDirectory: .
+  configDirectory: .
+  errorHandling:
+    consume:
+      log: true
+      logPayload: true
+      loggerName: ConsumeError
+      handler: continueOnFail
+    process:
+      log: true
+      logPayload: true
+      loggerName: ProcessError
+      handler: stopOnFail
+    produce:
+      log: true
+      logPayload: true
+      loggerName: ProduceError
+      handler: continueOnFail
   definitions:
     - 01-example-inspect.yaml
 #  - 02-example-copy.yaml

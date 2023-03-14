@@ -61,7 +61,7 @@ public class NotationLibrary {
     public Notation get(String notation) {
         var result = notation != null ? notationEntries.get(notation) : null;
         if (result != null) return result.notation;
-        throw FatalError.dataError("Data type notation not found: " + (notation != null ? notation : "null"));
+        throw FatalError.dataError("Data notation is not registered in the NotationLibrary: " + (notation != null ? notation : "null"));
     }
 
     public NotationConverter getConverter(String notation) {

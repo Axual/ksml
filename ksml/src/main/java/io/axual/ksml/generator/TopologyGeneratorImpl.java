@@ -32,6 +32,7 @@ import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.definition.parser.TableDefinitionParser;
 import io.axual.ksml.definition.parser.TypedFunctionDefinitionParser;
 import io.axual.ksml.exception.KSMLParseException;
+import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.operation.StreamOperation;
 import io.axual.ksml.parser.MapParser;
 import io.axual.ksml.parser.YamlNode;
@@ -65,6 +66,7 @@ public class TopologyGeneratorImpl {
 
     public TopologyGeneratorImpl(KSMLConfig config) {
         this.config = config;
+        ExecutionContext.INSTANCE.setAllowDataInLogs(config.allowDataInLogs);
     }
 
     private List<YAMLDefinition> readKSMLDefinitions() {

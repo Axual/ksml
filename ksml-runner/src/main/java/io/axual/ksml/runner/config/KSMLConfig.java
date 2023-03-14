@@ -21,16 +21,14 @@ package io.axual.ksml.runner.config;
  */
 
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.axual.ksml.runner.exception.KSMLRunnerConfigurationException;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-
-import io.axual.ksml.runner.exception.KSMLRunnerConfigurationException;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Data
@@ -42,6 +40,7 @@ public class KSMLConfig {
     private String applicationServerHost;
     private String applicationServerPort;
     private String workingDirectory;
+    private Boolean allowDataInLogs;
 
     @JsonProperty("configDirectory")
     private String configurationDirectory;

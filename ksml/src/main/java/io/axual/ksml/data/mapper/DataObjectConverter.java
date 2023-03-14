@@ -47,6 +47,7 @@ import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.notation.NotationLibrary;
 
 import static io.axual.ksml.data.type.UserType.DEFAULT_NOTATION;
+import static io.axual.ksml.execution.ExecutionContext.maskData;
 
 // This DataObjectConverter makes expected data types compatible with the actual data that was
 // created. It does so by converting numbers to strings, and vice versa. It can convert complex
@@ -100,9 +101,12 @@ public class DataObjectConverter {
             for (var entry : valueStruct.entrySet()) {
                 // Determine the new value type
                 var field = targetStructType.schema().field(entry.getKey());
-                var newValueType = new UserType(DEFAULT_NOTATION, SchemaUtil.schemaToDataType(field.schema()));
-                // Convert to that type if necessary
-                result.put(entry.getKey(), convert(DEFAULT_NOTATION, entry.getValue(), newValueType));
+                // Only copy if the field exists in the target structure
+                if (field != null) {
+                    var newValueType = new UserType(DEFAULT_NOTATION, SchemaUtil.schemaToDataType(field.schema()));
+                    // Convert to that type if necessary
+                    result.put(entry.getKey(), convert(DEFAULT_NOTATION, entry.getValue(), newValueType));
+                }
             }
             return result;
         }
@@ -137,7 +141,7 @@ public class DataObjectConverter {
         if (allowFail) return null;
 
         // We can't perform the conversion, so report a fatal error
-        throw FatalError.dataError("Can not convert value to " + targetType + ": " + value);
+        throw FatalError.dataError("Can not convert value to " + targetType + ": " + maskData(value));
     }
 
     private DataObject applyNotationConverters(String sourceNotation, DataObject value, UserType targetType) {

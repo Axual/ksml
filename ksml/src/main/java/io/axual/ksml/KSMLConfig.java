@@ -9,9 +9,9 @@ package io.axual.ksml;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,11 +21,10 @@ package io.axual.ksml;
  */
 
 
+import io.axual.ksml.notation.NotationLibrary;
 import org.apache.kafka.common.annotation.InterfaceStability;
 
 import java.util.Map;
-
-import io.axual.ksml.notation.NotationLibrary;
 
 /**
  * Configuration for generating and running KSML definitions.
@@ -35,11 +34,13 @@ public class KSMLConfig {
     public static final String KSML_SOURCE_TYPE = "ksml.source.type";
     public static final String KSML_SOURCE = "ksml.source";
     public static final String KSML_WORKING_DIRECTORY = "ksml.working.dir";
+    public static final String KSML_ALLOW_DATA_IN_LOGS = "ksml.allow.data.in.logs";
     public static final String KSML_CONFIG_DIRECTORY = "ksml.config.dir";
     public static final String NOTATION_LIBRARY = "notation.library";
 
     public final String sourceType;
     public final String workingDirectory;
+    public final boolean allowDataInLogs;
     public final String configDirectory;
     public final Object source;
     public final NotationLibrary notationLibrary;
@@ -48,6 +49,7 @@ public class KSMLConfig {
         sourceType = configs.containsKey(KSML_SOURCE_TYPE) ? (String) configs.get(KSML_SOURCE_TYPE) : "file";
         source = configs.get(KSMLConfig.KSML_SOURCE);
         workingDirectory = (String) configs.get(KSML_WORKING_DIRECTORY);
+        allowDataInLogs = configs.get(KSML_ALLOW_DATA_IN_LOGS) != null && Boolean.TRUE.toString().equalsIgnoreCase(configs.get(KSML_ALLOW_DATA_IN_LOGS).toString());
         configDirectory = (String) configs.get(KSML_CONFIG_DIRECTORY);
         notationLibrary = configs.containsKey(NOTATION_LIBRARY)
                 ? (NotationLibrary) configs.get(NOTATION_LIBRARY)

@@ -9,9 +9,9 @@ package io.axual.ksml.datagenerator;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -117,9 +117,10 @@ public class KSMLDataGenerator {
         for (var entry : producers.entrySet()) {
             var target = entry.getValue().target();
             var generator = new PythonFunction(context, entry.getKey(), entry.getValue().generator());
+            var condition = entry.getValue().condition() != null ? new PythonFunction(context, entry.getKey() + "_producercondition", entry.getValue().condition()) : null;
             var keySerde = notationLibrary.get(target.keyType.notation()).getSerde(target.keyType.dataType(), true);
             var valueSerde = notationLibrary.get(target.valueType.notation()).getSerde(target.valueType.dataType(), false);
-            var ep = new ExecutableProducer(notationLibrary, generator, target.topic, target.keyType, target.valueType, keySerde.serializer(), valueSerde.serializer());
+            var ep = new ExecutableProducer(notationLibrary, generator, condition, target.topic, target.keyType, target.valueType, keySerde.serializer(), valueSerde.serializer());
             schedule.schedule(entry.getValue().interval().toMillis(), ep);
             LOG.info("Scheduled producers: {}", entry.getKey());
         }

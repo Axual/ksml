@@ -25,5 +25,5 @@ import io.axual.ksml.definition.StreamDefinition;
 
 import java.time.Duration;
 
-public record ProducerDefinition(FunctionDefinition generator, Duration interval, StreamDefinition target) {
+public record ProducerDefinition(FunctionDefinition generator, Duration interval, FunctionDefinition condition, StreamDefinition target) {
 }

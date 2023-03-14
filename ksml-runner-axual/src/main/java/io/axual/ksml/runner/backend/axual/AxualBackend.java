@@ -35,6 +35,7 @@ import io.axual.ksml.AxualNotationLibrary;
 import io.axual.ksml.KSMLTopologyGenerator;
 import io.axual.ksml.TopologyGenerator;
 import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.rest.server.StreamsQuerier;
 import io.axual.ksml.runner.backend.Backend;
 import io.axual.ksml.runner.config.KSMLConfig;
@@ -164,6 +165,7 @@ public class AxualBackend implements Backend {
         Map<String, Object> ksmlConfigs = new HashMap<>();
         ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_SOURCE_TYPE, "file");
         ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_WORKING_DIRECTORY, ksmlConfig.getWorkingDirectory());
+        ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_ALLOW_DATA_IN_LOGS, ksmlConfig.getAllowDataInLogs());
         ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_CONFIG_DIRECTORY, ksmlConfig.getConfigurationDirectory());
         ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_SOURCE, ksmlConfig.getDefinitions());
         ksmlConfigs.put(io.axual.ksml.KSMLConfig.NOTATION_LIBRARY, new AxualNotationLibrary(configs));
@@ -184,8 +186,7 @@ public class AxualBackend implements Backend {
 
         configs.put(WrappedStreamsConfig.TOPOLOGY_FACTORY_CONFIG, (TopologyFactory) this::createTopology);
         configs.put(WrappedStreamsConfig.UNCAUGHT_EXCEPTION_HANDLER_FACTORY_CONFIG, (UncaughtExceptionHandlerFactory) streams -> throwable -> {
-            log.error("Caught serious exception in thread!", throwable);
-            return StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_APPLICATION;
+            return ExecutionContext.INSTANCE.uncaughtException(throwable);
         });
         configs.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, UnknownTypeSerde.class.getName());
         configs.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, UnknownTypeSerde.class.getName());
