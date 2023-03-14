@@ -9,9 +9,9 @@ package io.axual.ksml.runner.backend.axual;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,13 +32,17 @@ import io.axual.discovery.client.DiscoveryResult;
 import io.axual.discovery.client.exception.DiscoveryClientRegistrationException;
 import io.axual.discovery.client.tools.DiscoveryConfigParserV2;
 import io.axual.ksml.AxualNotationLibrary;
+import io.axual.ksml.KSMLConfig;
 import io.axual.ksml.KSMLTopologyGenerator;
 import io.axual.ksml.TopologyGenerator;
 import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.execution.ErrorHandler;
 import io.axual.ksml.execution.ExecutionContext;
+import io.axual.ksml.execution.ExecutionErrorHandler;
 import io.axual.ksml.rest.server.StreamsQuerier;
 import io.axual.ksml.runner.backend.Backend;
-import io.axual.ksml.runner.config.KSMLConfig;
+import io.axual.ksml.runner.config.KSMLErrorHandlingConfig;
+import io.axual.ksml.runner.config.KSMLRunnerKSMLConfig;
 import io.axual.ksml.serde.UnknownTypeSerde;
 import io.axual.streams.proxy.axual.AxualStreams;
 import io.axual.streams.proxy.axual.AxualStreamsConfig;
@@ -51,17 +55,9 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.utils.Utils;
-import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.KeyQueryMetadata;
-import org.apache.kafka.streams.StoreQueryParameters;
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.StreamsMetadata;
-import org.apache.kafka.streams.Topology;
-import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
+import org.apache.kafka.streams.*;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -81,14 +77,14 @@ public class AxualBackend implements Backend {
 
     private final DiscoveryConfig discoveryConfig;
     private final ClientConfig clientConfig;
-    private final KSMLConfig ksmlConfig;
+    private final KSMLRunnerKSMLConfig ksmlConfig;
 
     private AxualStreams axualStreams;
     private DiscoveryResult discoveryResult;
     private TopologyGenerator topologyGenerator;
     private Map<String, Object> axualConfigs;
 
-    public AxualBackend(KSMLConfig ksmlConfig, AxualBackendConfig config) {
+    public AxualBackend(KSMLRunnerKSMLConfig ksmlConfig, AxualBackendConfig config) {
         log.info("Constructing Axual Backend");
         this.ksmlConfig = ksmlConfig;
 
@@ -162,12 +158,47 @@ public class AxualBackend implements Backend {
         configs.put(ProducerConfig.ACKS_CONFIG, "-1");
 
         // set up a stream topology generator based on the provided KSML definition
-        Map<String, Object> ksmlConfigs = new HashMap<>();
-        ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_SOURCE_TYPE, "file");
-        ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_WORKING_DIRECTORY, ksmlConfig.getWorkingDirectory());
-        ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_CONFIG_DIRECTORY, ksmlConfig.getConfigurationDirectory());
-        ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_SOURCE, ksmlConfig.getDefinitions());
-        ksmlConfigs.put(io.axual.ksml.KSMLConfig.NOTATION_LIBRARY, new AxualNotationLibrary(configs));
+        // TODO: Remove
+//        Map<String, Object> ksmlConfigs = new HashMap<>();
+//        ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_SOURCE_TYPE, "file");
+//        ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_WORKING_DIRECTORY, KSMLRunnerKsmlConfig.getWorkingDirectory());
+//        ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_CONFIG_DIRECTORY, KSMLRunnerKsmlConfig.getConfigurationDirectory());
+//        ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_SOURCE, KSMLRunnerKsmlConfig.getDefinitions());
+//        ksmlConfigs.put(io.axual.ksml.KSMLConfig.NOTATION_LIBRARY, new AxualNotationLibrary(configs));
+
+        var errorHandlerConfig = this.ksmlConfig.getErrorHandlingConfig();
+        var consumeErrorHandlerConfig = errorHandlerConfig.getConsumerErrorHandlingConfig();
+        var produceErrorHandlerConfig = errorHandlerConfig.getProducerErrorHandlingConfig();
+        var processErrorHandlerConfig = errorHandlerConfig.getProcessErrorHandlingConfig();
+
+        var ksmlConfig = KSMLConfig.builder()
+                .sourceType("file")
+                .workingDirectory(this.ksmlConfig.getWorkingDirectory())
+                .configDirectory(this.ksmlConfig.getConfigurationDirectory())
+                .source(this.ksmlConfig.getDefinitions())
+                .notationLibrary(new AxualNotationLibrary(configs))
+                .consumeErrorHandler(
+                        new ErrorHandler(
+                                consumeErrorHandlerConfig.isLog(),
+                                consumeErrorHandlerConfig.isLogPayload(),
+                                consumeErrorHandlerConfig.getLoggerName(),
+                                consumeErrorHandlerConfig.getHandler() == KSMLErrorHandlingConfig.ErrorHandlingConfig.Handler.STOP ? ErrorHandler.HandlerType.STOP_ON_FAIL : ErrorHandler.HandlerType.CONTINUE_ON_FAIL)
+                )
+                .produceErrorHandler(
+                        new ErrorHandler(
+                                produceErrorHandlerConfig.isLog(),
+                                produceErrorHandlerConfig.isLogPayload(),
+                                produceErrorHandlerConfig.getLoggerName(),
+                                produceErrorHandlerConfig.getHandler() == KSMLErrorHandlingConfig.ErrorHandlingConfig.Handler.STOP ? ErrorHandler.HandlerType.STOP_ON_FAIL : ErrorHandler.HandlerType.CONTINUE_ON_FAIL)
+                )
+                .processErrorHandler(
+                        new ErrorHandler(
+                                processErrorHandlerConfig.isLog(),
+                                processErrorHandlerConfig.isLogPayload(),
+                                processErrorHandlerConfig.getLoggerName(),
+                                processErrorHandlerConfig.getHandler() == KSMLErrorHandlingConfig.ErrorHandlingConfig.Handler.STOP ? ErrorHandler.HandlerType.STOP_ON_FAIL : ErrorHandler.HandlerType.CONTINUE_ON_FAIL)
+                )
+                .build();
 
         var kafkaConfigs = new Properties();
         kafkaConfigs.putAll(configs);
@@ -175,20 +206,18 @@ public class AxualBackend implements Backend {
                 .append(RESOLVING_PROXY_ID)
                 .append(LINEAGE_PROXY_ID)
                 .build());
-        topologyGenerator = new KSMLTopologyGenerator(clientConfig.getApplicationId(), ksmlConfigs, kafkaConfigs);
+        topologyGenerator = new KSMLTopologyGenerator(clientConfig.getApplicationId(), ksmlConfig, kafkaConfigs);
 
         configs.put(StreamsConfig.REQUEST_TIMEOUT_MS_CONFIG, 40000);
-        configs.put(StreamsConfig.STATE_DIR_CONFIG, ksmlConfig.getWorkingDirectory());
-        if (ksmlConfig.getApplicationServer() != null) {
-            configs.put(StreamsConfig.APPLICATION_SERVER_CONFIG, ksmlConfig.getApplicationServer());
+        configs.put(StreamsConfig.STATE_DIR_CONFIG, this.ksmlConfig.getWorkingDirectory());
+        if (this.ksmlConfig.getApplicationServer() != null) {
+            configs.put(StreamsConfig.APPLICATION_SERVER_CONFIG, this.ksmlConfig.getApplicationServer());
         }
 
         configs.put(WrappedStreamsConfig.TOPOLOGY_FACTORY_CONFIG, (TopologyFactory) this::createTopology);
-        configs.put(WrappedStreamsConfig.UNCAUGHT_EXCEPTION_HANDLER_FACTORY_CONFIG, (UncaughtExceptionHandlerFactory) streams -> throwable -> {
-            return ExecutionContext.INSTANCE.uncaughtException(throwable);
-        });
-        configs.put(StreamsConfig.DEFAULT_PRODUCTION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionContext.class);
-        configs.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionContext.class);
+        configs.put(WrappedStreamsConfig.UNCAUGHT_EXCEPTION_HANDLER_FACTORY_CONFIG, (UncaughtExceptionHandlerFactory) streams -> ExecutionContext.INSTANCE::uncaughtException);
+        configs.put(StreamsConfig.DEFAULT_PRODUCTION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class);
+        configs.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class);
         configs.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, UnknownTypeSerde.class.getName());
         configs.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, UnknownTypeSerde.class.getName());
 

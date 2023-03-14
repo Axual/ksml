@@ -49,7 +49,7 @@ class KSMLRunnerConfigTest {
 
         ksmlRunnerConfig.validate();
 
-        assertNotNull(ksmlRunnerConfig.getKsmlConfig());
+        assertNotNull(ksmlRunnerConfig.getKSMLRunnerKsmlConfig());
         assertNotNull(ksmlRunnerConfig.getBackendConfig());
         assertEquals("kafka", ksmlRunnerConfig.getBackendConfig().getType());
     }

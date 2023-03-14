@@ -9,9 +9,9 @@ package io.axual.ksml.generator;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,6 +27,7 @@ import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.PipelineDefinition;
 import io.axual.ksml.definition.parser.*;
 import io.axual.ksml.exception.KSMLParseException;
+import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.operation.StreamOperation;
 import io.axual.ksml.parser.MapParser;
 import io.axual.ksml.parser.YamlNode;
@@ -54,6 +55,9 @@ public class TopologyGeneratorImpl {
 
     public TopologyGeneratorImpl(KSMLConfig config) {
         this.config = config;
+        ExecutionContext.INSTANCE.setConsumeHandler(config.consumeErrorHandler);
+        ExecutionContext.INSTANCE.setProduceHandler(config.produceErrorHandler);
+        ExecutionContext.INSTANCE.setProcessHandler(config.processErrorHandler);
     }
 
     private List<YAMLDefinition> readKSMLDefinitions() {

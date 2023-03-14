@@ -32,7 +32,7 @@ import java.util.List;
 
 @Slf4j
 @Data
-public class KSMLConfig {
+public class KSMLRunnerKSMLConfig {
     private static final String DEFAULT_HOSTNAME = "0.0.0.0";
     private static final String DEFAULT_PORT = "8080";
 

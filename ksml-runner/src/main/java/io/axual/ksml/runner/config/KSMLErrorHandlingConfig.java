@@ -1,12 +1,11 @@
 package io.axual.ksml.runner.config;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
 @Setter
-@Getter
+//@Getter
 public class KSMLErrorHandlingConfig {
 
     private ErrorHandlingConfig consume;
@@ -18,6 +17,9 @@ public class KSMLErrorHandlingConfig {
         if (consume == null) {
             return getDefaultErrorHandlingConfig("ConsumeError");
         }
+        if (consume.getLoggerName() == null) {
+            consume.setLoggerName("ConsumeError");
+        }
         return consume;
     }
 
@@ -25,12 +27,18 @@ public class KSMLErrorHandlingConfig {
         if (produce == null) {
             return getDefaultErrorHandlingConfig("ProduceError");
         }
+        if (produce.getLoggerName() == null) {
+            produce.setLoggerName("ProduceError");
+        }
         return produce;
     }
 
     public ErrorHandlingConfig getProcessErrorHandlingConfig() {
         if (process == null) {
             return getDefaultErrorHandlingConfig("ProcessError");
+        }
+        if (process.getLoggerName() == null) {
+            process.setLoggerName("ProcessError");
         }
         return process;
     }
@@ -42,6 +50,7 @@ public class KSMLErrorHandlingConfig {
     }
 
     @Setter
+    @Getter
     public static class ErrorHandlingConfig {
         private boolean log = true;
         private boolean logPayload = false;
@@ -53,8 +62,8 @@ public class KSMLErrorHandlingConfig {
             CONTINUE;
 
             @JsonCreator
-            public static Handler forValues(String value){
-                if(value == null){
+            public static Handler forValues(String value) {
+                if (value == null) {
                     return null;
                 }
 

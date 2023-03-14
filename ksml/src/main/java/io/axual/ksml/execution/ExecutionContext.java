@@ -30,12 +30,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Base64;
-import java.util.Map;
 
-public class ExecutionContext implements DeserializationExceptionHandler, ProductionExceptionHandler {
+public class ExecutionContext {
     public static final ExecutionContext INSTANCE = new ExecutionContext();
-    //    private static final Logger log = LoggerFactory.getLogger(ExecutionContext.class);
-    private boolean allowDataInLogs;
     private ErrorHandler consumeHandler;
     private ErrorHandler processHandler;
     private ErrorHandler produceHandler;
@@ -44,7 +41,7 @@ public class ExecutionContext implements DeserializationExceptionHandler, Produc
     private Logger produceExceptionLogger;
     private Logger processExceptionLogger;
 
-    public ExecutionContext() {
+    private ExecutionContext() {
         // do nothing
     }
 
@@ -66,45 +63,39 @@ public class ExecutionContext implements DeserializationExceptionHandler, Produc
     public static final String DATA_MASK = "*****";
     public static final String DATA_NULL = "<NULL>";
 
-    public static String maskData(Object data) {
-        if (!INSTANCE.allowDataInLogs) return DATA_MASK;
+    public String maskData(Object data) {
+        if (!processHandler.logPayload()) return DATA_MASK;
         return data.toString();
     }
 
     public StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse uncaughtException(Throwable throwable) {
         processExceptionLogger.error("Caught serious exception, restarting the KSML client", throwable);
         // Restart only the current instance of Streams
-        return StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT;
+        return
+                StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT;
     }
 
-    @Override
-    public DeserializationHandlerResponse handle(ProcessorContext context, ConsumerRecord<byte[], byte[]> record, Exception exception) {
-        if (consumeHandler.log()) {
+    public DeserializationExceptionHandler.DeserializationHandlerResponse handle(ProcessorContext context, ConsumerRecord<byte[], byte[]> record, Exception exception) {
+        if (ExecutionContext.INSTANCE.consumeHandler.log()) {
             // log record
             String key = consumeHandler.logPayload() ? bytesToString(record.key()) : DATA_MASK;
             String value = consumeHandler.logPayload() ? bytesToString(record.value()) : DATA_MASK;
             consumeExceptionLogger.error("Exception occurred while consuming a record from topic {}, partition {}, offset {}, key : {}, value : {}", context.topic(), context.partition(), context.offset(), key, value, exception);
         }
-        return consumeHandler.handlerType() == ErrorHandler.HandlerType.CONTINUE_ON_FAIL ? DeserializationHandlerResponse.CONTINUE : DeserializationHandlerResponse.FAIL;
+        return consumeHandler.handlerType() == ErrorHandler.HandlerType.CONTINUE_ON_FAIL ? DeserializationExceptionHandler.DeserializationHandlerResponse.CONTINUE : DeserializationExceptionHandler.DeserializationHandlerResponse.FAIL;
     }
 
     public String bytesToString(byte[] data) {
         return data == null ? DATA_NULL : Base64.getEncoder().encodeToString(data);
     }
 
-    @Override
-    public ProductionExceptionHandlerResponse handle(ProducerRecord<byte[], byte[]> record, Exception exception) {
+    public ProductionExceptionHandler.ProductionExceptionHandlerResponse handle(ProducerRecord<byte[], byte[]> record, Exception exception) {
         if (produceHandler.log()) {
             // log record
-            String key = consumeHandler.logPayload() ? bytesToString(record.key()) : DATA_MASK;
-            String value = consumeHandler.logPayload() ? bytesToString(record.value()) : DATA_MASK;
-            consumeExceptionLogger.error("Exception occurred while producing a record with key : {}, value : {}", key, value);
+            String key = produceHandler.logPayload() ? bytesToString(record.key()) : DATA_MASK;
+            String value = produceHandler.logPayload() ? bytesToString(record.value()) : DATA_MASK;
+            produceExceptionLogger.error("Exception occurred while producing a record with key : {}, value : {}", key, value);
         }
-        return produceHandler.handlerType() == ErrorHandler.HandlerType.CONTINUE_ON_FAIL ? ProductionExceptionHandlerResponse.CONTINUE : ProductionExceptionHandlerResponse.FAIL;
-    }
-
-    @Override
-    public void configure(Map<String, ?> map) {
-        // do nothing
+        return produceHandler.handlerType() == ErrorHandler.HandlerType.CONTINUE_ON_FAIL ? ProductionExceptionHandler.ProductionExceptionHandlerResponse.CONTINUE : ProductionExceptionHandler.ProductionExceptionHandlerResponse.FAIL;
     }
 }

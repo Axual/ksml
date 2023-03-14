@@ -58,9 +58,9 @@ public class KSMLRunner {
             log.info("Using backed of type {}", config.getBackendConfig().getType());
             Backend backend = config.getConfiguredBackend();
 
-            if (Boolean.TRUE.equals(config.getKsmlConfig().getApplicationServerEnabled())) {
+            if (Boolean.TRUE.equals(config.getKSMLRunnerKsmlConfig().getApplicationServerEnabled())) {
                 // Run with the REST server
-                HostInfo hostInfo = new HostInfo(config.getKsmlConfig().getApplicationServerHost(), config.getKsmlConfig().getApplicationServerPort());
+                HostInfo hostInfo = new HostInfo(config.getKSMLRunnerKsmlConfig().getApplicationServerHost(), config.getKSMLRunnerKsmlConfig().getApplicationServerPort());
 
                 try (RestServer restServer = new RestServer(hostInfo)) {
                     restServer.start(backend.getQuerier());

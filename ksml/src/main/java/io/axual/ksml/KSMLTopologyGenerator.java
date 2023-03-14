@@ -47,11 +47,10 @@ public class KSMLTopologyGenerator implements TopologyGenerator {
     private final KSMLConfig config;
     private final Properties kafkaConfig = new Properties();
 
-    public KSMLTopologyGenerator(String applicationId, Map<String, ?> ksmlConfigs, Properties kafkaConfigs) {
+    public KSMLTopologyGenerator(String applicationId, KSMLConfig ksmlConfig, Properties kafkaConfigs) {
         // Parse configuration
         this.applicationId = applicationId;
-        this.config = new KSMLConfig(ksmlConfigs);
-        this.kafkaConfig.clear();
+        this.config = ksmlConfig;
         this.kafkaConfig.putAll(kafkaConfigs);
     }
 

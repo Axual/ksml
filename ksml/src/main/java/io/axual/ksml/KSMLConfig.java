@@ -21,37 +21,37 @@ package io.axual.ksml;
  */
 
 
+import io.axual.ksml.execution.ErrorHandler;
 import io.axual.ksml.notation.NotationLibrary;
+import lombok.Builder;
 import org.apache.kafka.common.annotation.InterfaceStability;
 
-import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Configuration for generating and running KSML definitions.
  */
 @InterfaceStability.Evolving
 public class KSMLConfig {
-    public static final String KSML_SOURCE_TYPE = "ksml.source.type";
-    public static final String KSML_SOURCE = "ksml.source";
-    public static final String KSML_WORKING_DIRECTORY = "ksml.working.dir";
-    public static final String KSML_ALLOW_DATA_IN_LOGS = "ksml.allow.data.in.logs";
-    public static final String KSML_CONFIG_DIRECTORY = "ksml.config.dir";
-    public static final String NOTATION_LIBRARY = "notation.library";
 
     public final String sourceType;
     public final String workingDirectory;
     public final String configDirectory;
     public final Object source;
     public final NotationLibrary notationLibrary;
+    public final ErrorHandler consumeErrorHandler;
+    public final ErrorHandler produceErrorHandler;
+    public final ErrorHandler processErrorHandler;
 
-    public KSMLConfig(Map<String, ?> configs) {
-        sourceType = configs.containsKey(KSML_SOURCE_TYPE) ? (String) configs.get(KSML_SOURCE_TYPE) : "file";
-        source = configs.get(KSMLConfig.KSML_SOURCE);
-        workingDirectory = (String) configs.get(KSML_WORKING_DIRECTORY);
-
-        configDirectory = (String) configs.get(KSML_CONFIG_DIRECTORY);
-        notationLibrary = configs.containsKey(NOTATION_LIBRARY)
-                ? (NotationLibrary) configs.get(NOTATION_LIBRARY)
-                : new NotationLibrary((Map<String, Object>) configs);
+    @Builder
+    public KSMLConfig(String sourceType, String workingDirectory, String configDirectory, Object source, NotationLibrary notationLibrary, ErrorHandler consumeErrorHandler, ErrorHandler produceErrorHandler, ErrorHandler processErrorHandler) {
+        this.sourceType = sourceType != null ? sourceType : "file";
+        this.workingDirectory = workingDirectory;
+        this.configDirectory = configDirectory;
+        this.source = source;
+        this.notationLibrary = notationLibrary != null ? notationLibrary : new NotationLibrary(new HashMap<>());
+        this.consumeErrorHandler = consumeErrorHandler != null ? consumeErrorHandler : new ErrorHandler(true, false, "ConsumeError", ErrorHandler.HandlerType.STOP_ON_FAIL);
+        this.produceErrorHandler = produceErrorHandler != null ? produceErrorHandler : new ErrorHandler(true, false, "ProduceError", ErrorHandler.HandlerType.STOP_ON_FAIL);
+        this.processErrorHandler = processErrorHandler != null ? processErrorHandler : new ErrorHandler(true, false, "ProcessError", ErrorHandler.HandlerType.STOP_ON_FAIL);
     }
 }
