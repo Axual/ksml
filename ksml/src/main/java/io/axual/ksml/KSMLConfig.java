@@ -32,16 +32,9 @@ import java.util.HashMap;
  * Configuration for generating and running KSML definitions.
  */
 @InterfaceStability.Evolving
-public class KSMLConfig {
-
-    public final String sourceType;
-    public final String workingDirectory;
-    public final String configDirectory;
-    public final Object source;
-    public final NotationLibrary notationLibrary;
-    public final ErrorHandler consumeErrorHandler;
-    public final ErrorHandler produceErrorHandler;
-    public final ErrorHandler processErrorHandler;
+public record KSMLConfig(String sourceType, String workingDirectory, String configDirectory, Object source,
+                         NotationLibrary notationLibrary, ErrorHandler consumeErrorHandler,
+                         ErrorHandler produceErrorHandler, ErrorHandler processErrorHandler) {
 
     @Builder
     public KSMLConfig(String sourceType, String workingDirectory, String configDirectory, Object source, NotationLibrary notationLibrary, ErrorHandler consumeErrorHandler, ErrorHandler produceErrorHandler, ErrorHandler processErrorHandler) {

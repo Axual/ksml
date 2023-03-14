@@ -55,25 +55,25 @@ public class TopologyGeneratorImpl {
 
     public TopologyGeneratorImpl(KSMLConfig config) {
         this.config = config;
-        ExecutionContext.INSTANCE.setConsumeHandler(config.consumeErrorHandler);
-        ExecutionContext.INSTANCE.setProduceHandler(config.produceErrorHandler);
-        ExecutionContext.INSTANCE.setProcessHandler(config.processErrorHandler);
+        ExecutionContext.INSTANCE.setConsumeHandler(config.consumeErrorHandler());
+        ExecutionContext.INSTANCE.setProduceHandler(config.produceErrorHandler());
+        ExecutionContext.INSTANCE.setProcessHandler(config.processErrorHandler());
     }
 
     private List<YAMLDefinition> readKSMLDefinitions() {
         try {
-            switch (config.sourceType) {
+            switch (config.sourceType()) {
                 case "file" -> {
                     // Parse source from file
-                    LOG.info("Reading KSML from source file(s): {}", config.source);
-                    return YAMLReader.readYAML(YAMLObjectMapper.INSTANCE, config.configDirectory, config.source);
+                    LOG.info("Reading KSML from source file(s): {}", config.source());
+                    return YAMLReader.readYAML(YAMLObjectMapper.INSTANCE, config.configDirectory(), config.source());
                 }
                 case "content" -> {
                     // Parse YAML content directly from string
-                    LOG.info("Reading KSML from content string: {}", config.source);
-                    return Collections.singletonList(new YAMLDefinition("content", YAMLObjectMapper.INSTANCE.readValue((String) config.source, JsonNode.class)));
+                    LOG.info("Reading KSML from content string: {}", config.source());
+                    return Collections.singletonList(new YAMLDefinition("content", YAMLObjectMapper.INSTANCE.readValue((String) config.source(), JsonNode.class)));
                 }
-                default -> throw new KSMLParseException(null, "Unknown KSML source dataType: " + config.sourceType);
+                default -> throw new KSMLParseException(null, "Unknown KSML source dataType: " + config.sourceType());
             }
         } catch (IOException e) {
             LOG.info("Can not read YAML: {}", e.getMessage());
@@ -163,7 +163,7 @@ public class TopologyGeneratorImpl {
         if (node == null) return null;
 
         // Set up the parse context, which will gather toplevel information on the streams topology
-        TopologyParseContext context = new TopologyParseContext(builder, config.notationLibrary, namePrefix);
+        TopologyParseContext context = new TopologyParseContext(builder, config.notationLibrary(), namePrefix);
 
         // Parse all defined streams
         Map<String, BaseStreamDefinition> streamDefinitions = new HashMap<>();
