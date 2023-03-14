@@ -40,7 +40,7 @@ public class KSMLConfig {
     private String applicationServerHost;
     private String applicationServerPort;
     private String workingDirectory;
-    private Boolean allowDataInLogs;
+    private KSMLErrorHandlingConfig errorHandling;
 
     @JsonProperty("configDirectory")
     private String configurationDirectory;
@@ -77,6 +77,12 @@ public class KSMLConfig {
             return workingDirectory;
         }
         return configurationDirectory;
+    }
+
+    public KSMLErrorHandlingConfig getErrorHandlingConfig() {
+        if (errorHandling == null) {
+            return new KSMLErrorHandlingConfig();
+        } else return errorHandling;
     }
 
     public void validate() throws KSMLRunnerConfigurationException {

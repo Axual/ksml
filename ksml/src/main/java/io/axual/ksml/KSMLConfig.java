@@ -40,7 +40,6 @@ public class KSMLConfig {
 
     public final String sourceType;
     public final String workingDirectory;
-    public final boolean allowDataInLogs;
     public final String configDirectory;
     public final Object source;
     public final NotationLibrary notationLibrary;
@@ -49,7 +48,7 @@ public class KSMLConfig {
         sourceType = configs.containsKey(KSML_SOURCE_TYPE) ? (String) configs.get(KSML_SOURCE_TYPE) : "file";
         source = configs.get(KSMLConfig.KSML_SOURCE);
         workingDirectory = (String) configs.get(KSML_WORKING_DIRECTORY);
-        allowDataInLogs = configs.get(KSML_ALLOW_DATA_IN_LOGS) != null && Boolean.TRUE.toString().equalsIgnoreCase(configs.get(KSML_ALLOW_DATA_IN_LOGS).toString());
+
         configDirectory = (String) configs.get(KSML_CONFIG_DIRECTORY);
         notationLibrary = configs.containsKey(NOTATION_LIBRARY)
                 ? (NotationLibrary) configs.get(NOTATION_LIBRARY)

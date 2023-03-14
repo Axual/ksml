@@ -25,14 +25,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.axual.ksml.KSMLConfig;
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.PipelineDefinition;
-import io.axual.ksml.definition.parser.GlobalTableDefinitionParser;
-import io.axual.ksml.definition.parser.PipelineDefinitionParser;
-import io.axual.ksml.definition.parser.StoreDefinitionParser;
-import io.axual.ksml.definition.parser.StreamDefinitionParser;
-import io.axual.ksml.definition.parser.TableDefinitionParser;
-import io.axual.ksml.definition.parser.TypedFunctionDefinitionParser;
+import io.axual.ksml.definition.parser.*;
 import io.axual.ksml.exception.KSMLParseException;
-import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.operation.StreamOperation;
 import io.axual.ksml.parser.MapParser;
 import io.axual.ksml.parser.YamlNode;
@@ -45,13 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static io.axual.ksml.dsl.KSMLDSL.*;
 
@@ -66,7 +54,6 @@ public class TopologyGeneratorImpl {
 
     public TopologyGeneratorImpl(KSMLConfig config) {
         this.config = config;
-        ExecutionContext.INSTANCE.setAllowDataInLogs(config.allowDataInLogs);
     }
 
     private List<YAMLDefinition> readKSMLDefinitions() {
