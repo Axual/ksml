@@ -36,26 +36,16 @@ public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition
         if (node == null) return null;
 
         final String type = parseString(node, FUNCTION_TYPE);
-        if (type == null) {
-            throw new KSMLParseException(node, "Function type not specified");
-        }
-
         BaseParser<? extends FunctionDefinition> parser = getParser(type);
-        if (parser != null) {
-            try {
-                return parser.parse(node.appendName(type));
-            } catch (RuntimeException e) {
-                throw new KSMLParseException(node, "Error parsing typed function");
-            }
+        try {
+            return parser.parse(node.appendName(type));
+        } catch (RuntimeException e) {
+            throw new KSMLParseException(node, "Error parsing typed function");
         }
-
-        return new FunctionDefinitionParser().parse(node.appendName("generic"));
     }
 
     private BaseParser<? extends FunctionDefinition> getParser(String type) {
-        return switch (type) {
-            case FUNCTION_TYPE_GENERATOR -> new GeneratorDefinitionParser();
-            default -> null;
-        };
+        if (FUNCTION_TYPE_GENERATOR.equals(type)) return new GeneratorDefinitionParser();
+        return new FunctionDefinitionParser();
     }
 }

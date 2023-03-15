@@ -9,9 +9,9 @@ package io.axual.ksml.generator;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,13 +25,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.axual.ksml.KSMLConfig;
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.PipelineDefinition;
-import io.axual.ksml.definition.parser.GlobalTableDefinitionParser;
-import io.axual.ksml.definition.parser.PipelineDefinitionParser;
-import io.axual.ksml.definition.parser.StoreDefinitionParser;
-import io.axual.ksml.definition.parser.StreamDefinitionParser;
-import io.axual.ksml.definition.parser.TableDefinitionParser;
-import io.axual.ksml.definition.parser.TypedFunctionDefinitionParser;
+import io.axual.ksml.definition.parser.*;
 import io.axual.ksml.exception.KSMLParseException;
+import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.operation.StreamOperation;
 import io.axual.ksml.parser.MapParser;
 import io.axual.ksml.parser.YamlNode;
@@ -44,13 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static io.axual.ksml.dsl.KSMLDSL.*;
 
@@ -65,22 +55,25 @@ public class TopologyGeneratorImpl {
 
     public TopologyGeneratorImpl(KSMLConfig config) {
         this.config = config;
+        ExecutionContext.INSTANCE.setConsumeHandler(config.consumeErrorHandler());
+        ExecutionContext.INSTANCE.setProduceHandler(config.produceErrorHandler());
+        ExecutionContext.INSTANCE.setProcessHandler(config.processErrorHandler());
     }
 
     private List<YAMLDefinition> readKSMLDefinitions() {
         try {
-            switch (config.sourceType) {
+            switch (config.sourceType()) {
                 case "file" -> {
                     // Parse source from file
-                    LOG.info("Reading KSML from source file(s): {}", config.source);
-                    return YAMLReader.readYAML(YAMLObjectMapper.INSTANCE, config.configDirectory, config.source);
+                    LOG.info("Reading KSML from source file(s): {}", config.source());
+                    return YAMLReader.readYAML(YAMLObjectMapper.INSTANCE, config.configDirectory(), config.source());
                 }
                 case "content" -> {
                     // Parse YAML content directly from string
-                    LOG.info("Reading KSML from content string: {}", config.source);
-                    return Collections.singletonList(new YAMLDefinition("content", YAMLObjectMapper.INSTANCE.readValue((String) config.source, JsonNode.class)));
+                    LOG.info("Reading KSML from content string: {}", config.source());
+                    return Collections.singletonList(new YAMLDefinition("content", YAMLObjectMapper.INSTANCE.readValue((String) config.source(), JsonNode.class)));
                 }
-                default -> throw new KSMLParseException(null, "Unknown KSML source dataType: " + config.sourceType);
+                default -> throw new KSMLParseException(null, "Unknown KSML source dataType: " + config.sourceType());
             }
         } catch (IOException e) {
             LOG.info("Can not read YAML: {}", e.getMessage());
@@ -170,7 +163,7 @@ public class TopologyGeneratorImpl {
         if (node == null) return null;
 
         // Set up the parse context, which will gather toplevel information on the streams topology
-        TopologyParseContext context = new TopologyParseContext(builder, config.notationLibrary, namePrefix);
+        TopologyParseContext context = new TopologyParseContext(builder, config.notationLibrary(), namePrefix);
 
         // Parse all defined streams
         Map<String, BaseStreamDefinition> streamDefinitions = new HashMap<>();
@@ -254,7 +247,7 @@ public class TopologyGeneratorImpl {
                     if (node instanceof TopologyDescription.Processor processorNode) {
 //                        stores.addAll(processorNode.stores());
                     }
-                    if (node instanceof TopologyDescription.Sink sinkNode) {
+                    if (node instanceof TopologyDescription.Sink sinkNode && sinkNode.topic() != null) {
                         outputTopics.add(sinkNode.topic());
                     }
                 }

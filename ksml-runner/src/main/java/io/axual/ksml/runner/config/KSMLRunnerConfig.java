@@ -42,17 +42,17 @@ public class KSMLRunnerConfig {
     private static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 
     @JsonProperty("ksml")
-    private KSMLConfig ksmlConfig;
+    private KSMLRunnerKSMLConfig KSMLRunnerKsmlConfig;
 
     @JsonProperty("backend")
     private KSMLRunnerBackendConfig backendConfig;
 
     public void validate() throws KSMLRunnerConfigurationException {
-        if (ksmlConfig == null) {
-            throw new KSMLRunnerConfigurationException("ksml", ksmlConfig);
+        if (KSMLRunnerKsmlConfig == null) {
+            throw new KSMLRunnerConfigurationException("ksml", KSMLRunnerKsmlConfig);
         }
 
-        ksmlConfig.validate();
+        KSMLRunnerKsmlConfig.validate();
 
         if (backendConfig == null) {
             throw new KSMLRunnerConfigurationException("backend", backendConfig);
@@ -81,6 +81,6 @@ public class KSMLRunnerConfig {
         final BackendConfig backendConfig = mapper.readValue(mapper.writeValueAsString(config), provider.getConfigClass());
         backendConfig.validate();
 
-        return provider.create(ksmlConfig, backendConfig);
+        return provider.create(KSMLRunnerKsmlConfig, backendConfig);
     }
 }

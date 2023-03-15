@@ -9,9 +9,9 @@ package io.axual.ksml.runner.backend.kafka;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,21 +21,19 @@ package io.axual.ksml.runner.backend.kafka;
  */
 
 
+import io.axual.ksml.KSMLConfig;
 import io.axual.ksml.KSMLTopologyGenerator;
+import io.axual.ksml.execution.ExecutionContext;
+import io.axual.ksml.execution.ExecutionErrorHandler;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.rest.server.StreamsQuerier;
 import io.axual.ksml.runner.backend.Backend;
-import io.axual.ksml.runner.config.KSMLConfig;
+import io.axual.ksml.runner.config.KSMLRunnerKSMLConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.utils.Utils;
-import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.KeyQueryMetadata;
-import org.apache.kafka.streams.StoreQueryParameters;
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.StreamsMetadata;
+import org.apache.kafka.streams.*;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -50,7 +48,7 @@ public class KafkaBackend implements Backend {
     private final KafkaStreams kafkaStreams;
     private final AtomicBoolean stopRunning = new AtomicBoolean(false);
 
-    public KafkaBackend(KSMLConfig ksmlConfig, KafkaBackendConfig backendConfig) {
+    public KafkaBackend(KSMLRunnerKSMLConfig runnerKSMLConfig, KafkaBackendConfig backendConfig) {
         log.info("Constructing Kafka Backend");
 
         var streamsProperties = new Properties();
@@ -63,23 +61,27 @@ public class KafkaBackend implements Backend {
         streamsProperties.put(SCHEMA_REGISTRY_URL_CONFIG, backendConfig.getSchemaRegistryUrl());
         streamsProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, backendConfig.getApplicationId());
         streamsProperties.put(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE);
+        streamsProperties.put(StreamsConfig.DEFAULT_PRODUCTION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class);
+        streamsProperties.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class);
 
-        streamsProperties.put(StreamsConfig.STATE_DIR_CONFIG, ksmlConfig.getWorkingDirectory());
-        if (ksmlConfig.getApplicationServer() != null) {
-            streamsProperties.put(StreamsConfig.APPLICATION_SERVER_CONFIG, ksmlConfig.getApplicationServer());
+        streamsProperties.put(StreamsConfig.STATE_DIR_CONFIG, runnerKSMLConfig.getWorkingDirectory());
+        if (runnerKSMLConfig.getApplicationServer() != null) {
+            streamsProperties.put(StreamsConfig.APPLICATION_SERVER_CONFIG, runnerKSMLConfig.getApplicationServer());
         }
 
         // set up a stream topology generator based on the provided KSML definition
-        Map<String, Object> ksmlConfigs = new HashMap<>();
-        ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_SOURCE_TYPE, "file");
-        ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_WORKING_DIRECTORY, ksmlConfig.getWorkingDirectory());
-        ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_CONFIG_DIRECTORY, ksmlConfig.getConfigurationDirectory());
-        ksmlConfigs.put(io.axual.ksml.KSMLConfig.KSML_SOURCE, ksmlConfig.getDefinitions());
-        ksmlConfigs.put(io.axual.ksml.KSMLConfig.NOTATION_LIBRARY, new NotationLibrary(propertiesToMap(streamsProperties)));
+        var ksmlConfig = KSMLConfig.builder()
+                .sourceType("file")
+                .workingDirectory(runnerKSMLConfig.getWorkingDirectory())
+                .configDirectory(runnerKSMLConfig.getConfigurationDirectory())
+                .source(runnerKSMLConfig.getDefinitions())
+                .notationLibrary(new NotationLibrary(propertiesToMap(streamsProperties)))
+                .build();
 
-        var topologyGenerator = new KSMLTopologyGenerator(backendConfig.getApplicationId(), ksmlConfigs, streamsProperties);
+        var topologyGenerator = new KSMLTopologyGenerator(backendConfig.getApplicationId(), ksmlConfig, streamsProperties);
         final var topology = topologyGenerator.create(new StreamsBuilder());
         kafkaStreams = new KafkaStreams(topology, streamsProperties);
+        kafkaStreams.setUncaughtExceptionHandler(ExecutionContext.INSTANCE::uncaughtException);
     }
 
     private Map<String, Object> propertiesToMap(Properties props) {

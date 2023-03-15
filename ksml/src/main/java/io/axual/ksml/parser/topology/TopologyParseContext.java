@@ -21,6 +21,7 @@ package io.axual.ksml.parser.topology;
  */
 
 
+import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.StoreDefinition;
@@ -49,7 +50,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Parse context which calls {@link StreamsBuilder} to build up the streams topology and keeps track of the wrapped streams.
  */
 public class TopologyParseContext implements ParseContext {
-    private final PythonContext pythonContext = new PythonContext();
+    private final PythonContext pythonContext;
     private final StreamsBuilder builder;
     private final NotationLibrary notationLibrary;
     private final String namePrefix;
@@ -70,6 +71,7 @@ public class TopologyParseContext implements ParseContext {
         this.builder = builder;
         this.notationLibrary = notationLibrary;
         this.namePrefix = namePrefix;
+        this.pythonContext = new PythonContext(new DataObjectConverter(notationLibrary));
     }
 
     public Set<String> getRegisteredTopics() {
@@ -93,6 +95,8 @@ public class TopologyParseContext implements ParseContext {
             throw new KSMLTopologyException("Function definition must be unique: " + name);
         }
         functionDefinitions.put(name, functionDefinition);
+        // Pre-load the function into the Python context
+        new PythonFunction(pythonContext, name, functionDefinition);
     }
 
     public void registerStore(String name, StoreDefinition storeDefinition) {

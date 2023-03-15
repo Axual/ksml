@@ -3,10 +3,11 @@ ksml:
   applicationServerHost: 0.0.0.0
   applicationServerPort: 8080
   workingDirectory: ../examples
+  allowDataInLogs: true
   definitions:
-    - 01-example-inspect.yaml
+#    - 01-example-inspect.yaml
 #    - 02-example-copy.yaml
-#    - 03-example-filter.yaml
+    - 03-example-filter.yaml
 #    - 04-example-branch.yaml
 #    - 05-example-route.yaml
 #    - 06-example-duplicate.yaml

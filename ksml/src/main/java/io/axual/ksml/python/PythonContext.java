@@ -20,6 +20,8 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.DataObjectConverter;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
 import org.graalvm.polyglot.Context;
@@ -38,6 +40,15 @@ public class PythonContext {
             .allowHostAccess(HostAccess.ALL)
             .allowHostClassLookup(name -> name.equals("java.util.ArrayList") || name.equals("java.util.HashMap") || name.equals("java.util.TreeMap"))
             .build();
+    private final DataObjectConverter converter;
+
+    public PythonContext(DataObjectConverter converter) {
+        this.converter = converter;
+    }
+
+    public DataObjectConverter getConverter() {
+        return converter;
+    }
 
     public Value registerFunction(String name, FunctionDefinition definition) {
         // Prepend two spaces of indentation before the function code
@@ -52,7 +63,7 @@ public class PythonContext {
         // Prepare function (if any) and expression from the function definition
         final var functionAndExpression = "def " + name + "_function(" + String.join(",", params) + "):\n" +
                 String.join("\n", functionCode) + "\n" +
-                "  return" + (definition.resultType != null ? " " + definition.expression : "") + "\n" +
+                "  return" + (definition.resultType != null && definition.resultType.dataType() != DataNull.DATATYPE ? " " + definition.expression : "") + "\n" +
                 "\n";
 
         // Prepare the actual caller for the code
@@ -110,7 +121,7 @@ public class PythonContext {
         Source script = Source.create(PYTHON, pyCode);
         try {
             context.eval(script);
-        }catch (Exception e) {
+        } catch (Exception e) {
             System.out.println(e);
         }
         return context.getPolyglotBindings().getMember(name + "_caller");

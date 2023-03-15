@@ -23,6 +23,8 @@ package io.axual.ksml.datagenerator.parser;
 
 import io.axual.ksml.KSMLConfig;
 import io.axual.ksml.data.schema.SchemaLibrary;
+import io.axual.ksml.datagenerator.config.producer.DataGeneratorConfig;
+import io.axual.ksml.datagenerator.definition.ProducerDefinition;
 import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.generator.YAMLDefinition;
 import io.axual.ksml.generator.YAMLObjectMapper;
@@ -38,8 +40,8 @@ import io.axual.ksml.notation.xml.XmlNotation;
 import io.axual.ksml.notation.xml.XmlSchemaLoader;
 import io.axual.ksml.parser.MapParser;
 import io.axual.ksml.parser.YamlNode;
-import io.axual.ksml.datagenerator.config.producer.DataGeneratorConfig;
-import io.axual.ksml.datagenerator.definition.ProducerDefinition;
+import io.axual.ksml.python.PythonContext;
+import io.axual.ksml.python.PythonFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,9 +52,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static io.axual.ksml.datagenerator.dsl.ProducerDSL.PRODUCERS_DEFINITION;
 import static io.axual.ksml.dsl.KSMLDSL.FUNCTIONS_DEFINITION;
 import static io.axual.ksml.dsl.KSMLDSL.STREAMS_DEFINITION;
-import static io.axual.ksml.datagenerator.dsl.ProducerDSL.PRODUCERS_DEFINITION;
 
 /**
  * Generate a Kafka Streams topology from a KSML configuration, using a Python interpreter.
@@ -79,7 +81,7 @@ public class ProducerDefinitionFileParser {
         return new ArrayList<>();
     }
 
-    public Map<String, ProducerDefinition> create(NotationLibrary notationLibrary) {
+    public Map<String, ProducerDefinition> create(NotationLibrary notationLibrary, PythonContext pythonContext) {
         // Register schema loaders
         SchemaLibrary.registerLoader(AvroNotation.NOTATION_NAME, new AvroSchemaLoader(config.workingDirectory));
         SchemaLibrary.registerLoader(CsvNotation.NOTATION_NAME, new CsvSchemaLoader(config.workingDirectory));
@@ -89,7 +91,7 @@ public class ProducerDefinitionFileParser {
         List<YAMLDefinition> definitions = readDefinitions();
         Map<String, ProducerDefinition> producers = new TreeMap<>();
         for (YAMLDefinition definition : definitions) {
-            producers.putAll(generate(YamlNode.fromRoot(definition.root(), "definition"), notationLibrary));
+            producers.putAll(generate(YamlNode.fromRoot(definition.root(), "definition"), notationLibrary, pythonContext));
         }
 
         StringBuilder output = new StringBuilder("\n\nRegistered producers:\n");
@@ -129,17 +131,21 @@ public class ProducerDefinitionFileParser {
         return source;
     }
 
-    private Map<String, ProducerDefinition> generate(YamlNode node, NotationLibrary notationLibrary) {
+    private Map<String, ProducerDefinition> generate(YamlNode node, NotationLibrary notationLibrary, PythonContext pythonContext) {
         if (node == null) return null;
 
         // Set up the parse context, which will gather toplevel information on the streams topology
-        var context = new ProducerParseContext(notationLibrary);
+        var context = new ProducerParseContext(notationLibrary, pythonContext);
 
         // Parse all defined streams
         new MapParser<>("stream definition", new StreamDefinitionParser()).parse(node.get(STREAMS_DEFINITION)).forEach(context::registerStreamDefinition);
 
         // Parse all defined functions
         new MapParser<>("function definition", new TypedFunctionDefinitionParser()).parse(node.get(FUNCTIONS_DEFINITION)).forEach(context::registerFunction);
+        // Generate all the function code in the Python context
+        for (var function : context.getFunctionDefinitions().entrySet()) {
+            new PythonFunction(pythonContext, function.getKey(), function.getValue());
+        }
 
         // Parse all defined message producers
         return new HashMap<>(new MapParser<>("producer definition", new ProducerDefinitionParser(context)).parse(node.get(PRODUCERS_DEFINITION)));

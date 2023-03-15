@@ -9,9 +9,9 @@ package io.axual.ksml.datagenerator;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,6 +22,7 @@ package io.axual.ksml.datagenerator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.datagenerator.config.KSMLDataGeneratorConfig;
 import io.axual.ksml.datagenerator.execution.ExecutableProducer;
 import io.axual.ksml.datagenerator.execution.IntervalSchedule;
@@ -49,7 +50,6 @@ import static org.apache.kafka.clients.producer.ProducerConfig.*;
 public class KSMLDataGenerator {
     private static final Logger LOG = LoggerFactory.getLogger(KSMLDataGenerator.class);
     private static final String DEFAULT_CONFIG_FILE_SHORT = "ksml-data-generator.yaml";
-    private static final PythonContext context = new PythonContext();
     private static final IntervalSchedule<ExecutableProducer> schedule = new IntervalSchedule<>();
 
     private static Map<String, Object> getGenericConfigs() {
@@ -107,16 +107,20 @@ public class KSMLDataGenerator {
         }
 
         // Read all producer definitions from the configured YAML files
-        var producers = new ProducerDefinitionFileParser(config.getProducer()).create(factory.getNotationLibrary());
         var notationLibrary = factory.getNotationLibrary();
+        var context = new PythonContext(new DataObjectConverter(notationLibrary));
+        var producers = new ProducerDefinitionFileParser(config.getProducer()).create(notationLibrary, context);
+
+        // Load all functions into the Python context
 
         // Schedule all defined producers
         for (var entry : producers.entrySet()) {
             var target = entry.getValue().target();
             var generator = new PythonFunction(context, entry.getKey(), entry.getValue().generator());
+            var condition = entry.getValue().condition() != null ? new PythonFunction(context, entry.getKey() + "_producercondition", entry.getValue().condition()) : null;
             var keySerde = notationLibrary.get(target.keyType.notation()).getSerde(target.keyType.dataType(), true);
             var valueSerde = notationLibrary.get(target.valueType.notation()).getSerde(target.valueType.dataType(), false);
-            var ep = new ExecutableProducer(notationLibrary, generator, target.topic, target.keyType, target.valueType, keySerde.serializer(), valueSerde.serializer());
+            var ep = new ExecutableProducer(notationLibrary, generator, condition, target.topic, target.keyType, target.valueType, keySerde.serializer(), valueSerde.serializer());
             schedule.schedule(entry.getValue().interval().toMillis(), ep);
             LOG.info("Scheduled producers: {}", entry.getKey());
         }

@@ -6,7 +6,10 @@ Axual KSML
 KSML is a wrapper around Kafka Streams that allows for development of low code stream processing applications. It was developed by Axual early 2021 and released as open source in May 2021.
 
 ## Introduction
-Kafka Streams has captured the hearts and minds of many developers that want to develop streaming applications on top of Kafka. But as powerful as the framework is, Kafka Streams has had a hard time getting around the requirement of writing Java code and setting up build pipelines. There were some attempts to rebuild Kafka Streams, but up until now popular languages like Python did not receive equally powerful (and maintained) stream processing frameworks. KSML provides a new declarative approach to unlock Kafka Streamsto a wider audience. Using only a few simple basic rules and Python snippets, you will be able to write streaming applications in very little time.
+Kafka Streams has captured the hearts and minds of many developers that want to develop streaming applications on top of Kafka. But as powerful as the framework is, Kafka Streams has had a hard time getting around the requirement of writing Java code and setting up build pipelines. There were some attempts to rebuild Kafka Streams, but up until now popular languages like Python did not receive equally powerful (and maintained) stream processing frameworks. KSML provides a new declarative approach to unlock Kafka Streams to a wider audience. Using only a few simple basic rules and Python snippets, you will be able to write streaming applications in very little time.
+
+## Language
+To quickly jump to the KSML specification, use this link: https://axual.github.io/ksml/
 
 ## Project Overview
 The project is divided into modules based functionality in order to be included separately depending

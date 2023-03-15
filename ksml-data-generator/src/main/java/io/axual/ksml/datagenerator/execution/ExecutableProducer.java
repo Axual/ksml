@@ -9,9 +9,9 @@ package io.axual.ksml.datagenerator.execution;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,10 +21,12 @@ package io.axual.ksml.datagenerator.execution;
  */
 
 import io.axual.ksml.data.mapper.DataObjectConverter;
+import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLExecutionException;
+import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.notation.binary.NativeDataObjectMapper;
 import io.axual.ksml.user.UserFunction;
@@ -41,6 +43,7 @@ import static io.axual.ksml.data.type.UserType.DEFAULT_NOTATION;
 public class ExecutableProducer {
     private static final Logger LOG = LoggerFactory.getLogger(ExecutableProducer.class);
     private final UserFunction generator;
+    private final UserFunction condition;
     private final String topic;
     private final UserType keyType;
     private final UserType valueType;
@@ -51,6 +54,7 @@ public class ExecutableProducer {
 
     public ExecutableProducer(NotationLibrary notationLibrary,
                               UserFunction generator,
+                              UserFunction condition,
                               String topic,
                               UserType keyType,
                               UserType valueType,
@@ -58,6 +62,7 @@ public class ExecutableProducer {
                               Serializer<Object> valueSerializer) {
         this.dataObjectConverter = new DataObjectConverter(notationLibrary);
         this.generator = generator;
+        this.condition = condition;
         this.topic = topic;
         this.keyType = keyType;
         this.valueType = valueType;
@@ -68,46 +73,60 @@ public class ExecutableProducer {
     public void produceMessage(Producer<byte[], byte[]> producer) {
         DataObject result = generator.call();
         if (result instanceof DataTuple tuple && tuple.size() == 2) {
-            var key = dataObjectConverter.convert(DEFAULT_NOTATION, tuple.get(0), keyType);
-            var value = dataObjectConverter.convert(DEFAULT_NOTATION, tuple.get(1), valueType);
-            var okay = true;
+            var key = tuple.get(0);
+            var value = tuple.get(1);
 
-            if (!keyType.dataType().isAssignableFrom(key.type())) {
-                LOG.error("Can not convert {} to topic key type {}", key.type(), keyType);
-                okay = false;
-            }
-            if (!valueType.dataType().isAssignableFrom(value.type())) {
-                LOG.error("Can not convert {} to topic value type {}", value.type(), valueType);
-                okay = false;
-            }
+            if (checkCondition(key, value)) {
+                key = dataObjectConverter.convert(DEFAULT_NOTATION, key, keyType);
+                value = dataObjectConverter.convert(DEFAULT_NOTATION, value, valueType);
+                var okay = true;
 
-            if (okay) {
-                var keyStr = key != null ? key.toString() : "null";
-                var valueStr = value != null ? value.toString() : "null";
-
-                keyStr = keyStr.replaceAll("\n", "\\\\n");
-                valueStr = valueStr.replaceAll("\n", "\\\\n");
-                LOG.info("Message: key={}, value={}", keyStr, valueStr);
-
-                var serializedKey = keySerializer.serialize(topic, nativeMapper.fromDataObject(key));
-                var serializedValue = valueSerializer.serialize(topic, nativeMapper.fromDataObject(value));
-                ProducerRecord<byte[], byte[]> message = new ProducerRecord<>(
-                        topic,
-                        serializedKey,
-                        serializedValue
-                );
-                var future = producer.send(message);
-                try {
-                    var metadata = future.get();
-                    if (metadata != null && metadata.hasOffset()) {
-                        LOG.info("Produced message to {}, partition {}, offset {}", metadata.topic(), metadata.partition(), metadata.offset());
-                    } else {
-                        LOG.error("Error producing message to topic {}", topic);
-                    }
-                } catch (InterruptedException | ExecutionException e) {
-                    throw new KSMLExecutionException("Could not produce to topic " + topic, e);
+                if (key != null && !keyType.dataType().isAssignableFrom(key.type())) {
+                    LOG.error("Can not convert {} to topic key type {}", key.type(), keyType);
+                    okay = false;
                 }
+                if (value != null && !valueType.dataType().isAssignableFrom(value.type())) {
+                    LOG.error("Can not convert {} to topic value type {}", value.type(), valueType);
+                    okay = false;
+                }
+
+                if (okay) {
+                    var keyStr = key != null ? key.toString() : "null";
+                    var valueStr = value != null ? value.toString() : "null";
+
+                    keyStr = keyStr.replaceAll("\n", "\\\\n");
+                    valueStr = valueStr.replaceAll("\n", "\\\\n");
+                    LOG.info("Message: key={}, value={}", keyStr, valueStr);
+
+                    var serializedKey = keySerializer.serialize(topic, nativeMapper.fromDataObject(key));
+                    var serializedValue = valueSerializer.serialize(topic, nativeMapper.fromDataObject(value));
+                    ProducerRecord<byte[], byte[]> message = new ProducerRecord<>(
+                            topic,
+                            serializedKey,
+                            serializedValue
+                    );
+                    var future = producer.send(message);
+                    try {
+                        var metadata = future.get();
+                        if (metadata != null && metadata.hasOffset()) {
+                            LOG.info("Produced message to {}, partition {}, offset {}", metadata.topic(), metadata.partition(), metadata.offset());
+                        } else {
+                            LOG.error("Error producing message to topic {}", topic);
+                        }
+                    } catch (InterruptedException | ExecutionException e) {
+                        throw new KSMLExecutionException("Could not produce to topic " + topic, e);
+                    }
+                }
+            } else {
+                LOG.info("Condition FALSE, skipping message");
             }
         }
+    }
+
+    private boolean checkCondition(DataObject key, DataObject value) {
+        if (condition == null) return true;
+        DataObject result = condition.call(key, value);
+        if (result instanceof DataBoolean resultBoolean) return resultBoolean.value();
+        throw FatalError.executionError("Producer condition did not return a boolean value: " + condition.name);
     }
 }

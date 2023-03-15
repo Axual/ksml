@@ -64,6 +64,7 @@ public class KSMLDSL {
     public static final String PIPELINE_OPERATIONTYPE_ATTRIBUTE = "type";
     public static final String OPERATION_AGGREGATE_TYPE = "aggregate";
     public static final String OPERATION_CONVERTKEY_TYPE = "convertKey";
+    public static final String OPERATION_CONVERTKEYVALUE_TYPE = "convertKeyValue";
     public static final String OPERATION_CONVERTVALUE_TYPE = "convertValue";
     public static final String OPERATION_COUNT_TYPE = "count";
     public static final String OPERATION_FILTER_TYPE = "filter";

@@ -22,6 +22,7 @@ package io.axual.ksml;
 
 
 import io.axual.ksml.generator.TopologyGeneratorImpl;
+import io.axual.ksml.notation.NotationLibrary;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TopologyDescription;
 import org.graalvm.home.Version;
@@ -63,10 +64,12 @@ public class KSMLTopologyGeneratorBasicTest {
         final URI uri = ClassLoader.getSystemResource("pipelines/" + nr + "-demo.yaml").toURI();
         final Path path = Paths.get(uri);
         String pipeDefinition = Files.readString(path);
-        Map<String, Object> configs = new HashMap<>();
-        configs.put(KSMLConfig.KSML_SOURCE_TYPE, "content");
-        configs.put(KSMLConfig.KSML_SOURCE, pipeDefinition);
-        TopologyGeneratorImpl topologyGenerator = new TopologyGeneratorImpl(new KSMLConfig(configs));
+        TopologyGeneratorImpl topologyGenerator = new TopologyGeneratorImpl(KSMLConfig.builder()
+                .sourceType("content")
+                .source(pipeDefinition)
+                .notationLibrary(new NotationLibrary(new HashMap<>()))
+                .build());
+
         final var topology = topologyGenerator.create("some.app.id", new StreamsBuilder());
         final TopologyDescription description = topology.describe();
         System.out.println(description);
