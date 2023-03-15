@@ -37,11 +37,7 @@ RUN \
 ADD . /project_dir
 RUN \
   --mount=type=cache,target=/root/.m2,id=mvnRepo \
-  cd /project_dir && /apache-maven-3.8.5/bin/mvn clean package
-
-# Step 2 Build the KSML Project
-ADD . /project_dir
-RUN cd /project_dir && /apache-maven-3.8.5/bin/mvn clean package
+  cd /project_dir && /apache-maven-3.8.5/bin/mvn --no-transfer-progress package
 
 
 # Step 3 Build the basic graalvm image stage
