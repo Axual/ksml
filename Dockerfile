@@ -9,9 +9,7 @@ WORKDIR /
 RUN \
   --mount=type=cache,target=/downloads,id=grlDownloads \
   --mount=type=cache,target=/opt/graal,id=grl \
-  cd /downloads \
-  && curl -o "/downloads/maven.tgz" https://archive.apache.org/dist/maven/maven-3/3.8.5/binaries/apache-maven-3.8.5-bin.tar.gz \
-  && JAVA_ARCH= \
+  JAVA_ARCH= \
   && case "$TARGETARCH" in \
   amd64) \
     JAVA_ARCH="amd64" \
@@ -24,9 +22,11 @@ RUN \
     exit 1 \
   ;; \
   esac  \
-  && curl -k -L -o "/downloads/graalvm.tgz" "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.3.0/graalvm-ce-java17-linux-${JAVA_ARCH}-22.3.0.tar.gz" \
-  && tar -xzf /downloads/maven.tgz -C "/" \
-  && tar -xzf /downloads/graalvm.tgz -C "/opt" \
+  && mkdir -p "/downloads/${JAVA_ARCH}" \
+  && curl -o "/downloads/${JAVA_ARCH}/maven.tgz" https://archive.apache.org/dist/maven/maven-3/3.8.5/binaries/apache-maven-3.8.5-bin.tar.gz \
+  && curl -k -L -o "/downloads/${JAVA_ARCH}/graalvm.tgz" "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.3.0/graalvm-ce-java17-linux-${JAVA_ARCH}-22.3.0.tar.gz" \
+  && tar -xzf "/downloads/${JAVA_ARCH}/maven.tgz" -C "/" \
+  && tar -xzf "/downloads/${JAVA_ARCH}/graalvm.tgz" -C "/opt" \
   && mv /opt/graalvm* /opt/graalvm \
   &&  mkdir -p "/opt/ksml/libs" \
   && chown -R 1024:users /opt \
