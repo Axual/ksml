@@ -45,19 +45,24 @@ public class ExecutionContext {
         // do nothing
     }
 
+    private Logger logger(ErrorHandler handler, String defaultIfNull) {
+        var name = handler.loggerName() != null ? handler.loggerName() : defaultIfNull;
+        return LoggerFactory.getLogger(name);
+    }
+
     public void setConsumeHandler(ErrorHandler consumeHandler) {
         this.consumeHandler = consumeHandler;
-        this.consumeExceptionLogger = LoggerFactory.getLogger(consumeHandler.loggerName());
+        this.consumeExceptionLogger = logger(consumeHandler, "ConsumeError");
     }
 
     public void setProcessHandler(ErrorHandler processHandler) {
         this.processHandler = processHandler;
-        this.processExceptionLogger = LoggerFactory.getLogger(processHandler.loggerName());
+        this.processExceptionLogger = logger(consumeHandler, "ProcessError");
     }
 
     public void setProduceHandler(ErrorHandler produceHandler) {
         this.produceHandler = produceHandler;
-        this.produceExceptionLogger = LoggerFactory.getLogger(produceHandler.loggerName());
+        this.produceExceptionLogger = logger(consumeHandler, "ProduceError");
     }
 
     public static final String DATA_MASK = "*****";
@@ -71,8 +76,7 @@ public class ExecutionContext {
     public StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse uncaughtException(Throwable throwable) {
         processExceptionLogger.error("Caught serious exception, restarting the KSML client", throwable);
         // Restart only the current instance of Streams
-        return
-                StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT;
+        return StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.REPLACE_THREAD;
     }
 
     public DeserializationExceptionHandler.DeserializationHandlerResponse handle(ProcessorContext context, ConsumerRecord<byte[], byte[]> record, Exception exception) {

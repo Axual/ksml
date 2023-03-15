@@ -247,7 +247,7 @@ public class TopologyGeneratorImpl {
                     if (node instanceof TopologyDescription.Processor processorNode) {
 //                        stores.addAll(processorNode.stores());
                     }
-                    if (node instanceof TopologyDescription.Sink sinkNode) {
+                    if (node instanceof TopologyDescription.Sink sinkNode && sinkNode.topic() != null) {
                         outputTopics.add(sinkNode.topic());
                     }
                 }
