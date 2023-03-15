@@ -42,26 +42,15 @@ jobs:
             axual/ksml-data-generator:snapshot
             ghcr.io/axual/ksml-data-generator:snapshot
 
-      - name: build and push plain Kafka runner
+      - name: build and push KSML Runner
         uses: docker/build-push-action@v4
         with:
           file: Dockerfile
           target: ksml
-          build-args: "runner=ksml-runner"
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             axual/ksml:snapshot
             ghcr.io/axual/ksml:snapshot
-
-      - name: build and push Axual runner
-        uses: docker/build-push-action@v4
-        with:
-          file: Dockerfile
-          target: ksml
-          build-args: "runner=ksml-runner-axual"
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
             axual/ksml-axual:snapshot
             ghcr.io/axual/ksml-axual:snapshot

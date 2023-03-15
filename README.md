@@ -24,10 +24,7 @@ The submodules are as follows:
   adaption of the KSML serde generator, intended for use with Axual Platform and/or Axual Cloud
 
 * [`ksml-runner`](ksml-runner/) 
-  standalone Java application, that combines both Kafka Streams and KSML in a runnable jar
-
-* [`ksml-runner-axual`](ksml-runner-axual/) 
-  adaption of the standard runner, intended for use with Axual Platform and/or Axual Cloud
+  standalone Java application for running KSML against plain Kafka and Axual Platform/Cloud deployments
 
 * [`ksml-data-generator`](ksml-data-generator/)
   A KSML based data generator, allows for programmable data generator using KSML definitions
@@ -44,13 +41,16 @@ See the paragraphs below for details.
 #### Using the multistage Docker build
 You can build either the standard KSML runner, or the runner for the Axual platform using one of the following commands:
 
-    docker buildx build -t axual/ksml:local -f Dockerfile --target ksml . --build-arg runner=ksml-runner
-    docker buildx build -t axual/ksml-axual:local -f Dockerfile --target ksml . --build-arg runner=ksml-runner-axual
+    # Create the BuildX builder for KSML 
+    docker buildx create --name ksml
+    # Build KSML Runner
+    docker buildx --builder ksml build --load -t axual/ksml:local --target ksml -f Dockerfile .
+    # Build KSML Data Generator 
+    docker buildx --builder ksml build --load -t axual/ksml-data-generator:local --target ksml-datagen -f Dockerfile .
 
-If you do not specify a `--build-arg`, the plain Kafka runner will be built by default.
 
 #### Install GraalVM locally
-Download GraalVM from [this page](https://www.graalvm.org/downloads/) and install it for your
+Download GraalVM for Java 17 or later from [this page](https://www.graalvm.org/downloads/) and install it for your
 platform as explained. Once installed, use the command ```gu install python``` to install the Python
 module. For more information, check out the [Python Reference](https://www.graalvm.org/reference-manual/python/) pages.
 
@@ -58,11 +58,6 @@ Once installed, select GraalVM as your default Java JVM. Then you can build KSML
 Maven commands:
 
 ```mvn clean package```
-
-Then build the runtime container by passing in either `./ksml-runner` or `ksml-runner-axual` as build context:
-
-    docker buildx build -t axual/ksml:local -f Dockerfile --target ksml . --build-arg runner=ksml-runner
-    docker buildx build -t axual/ksml-axual:local -f Dockerfile --target ksml . --build-arg runner=ksml-runner-axual
 
 ## Running KSML
 To run the KSML demo, we provide a Docker compose file which will start Kafka, create the demo topics, and start a container

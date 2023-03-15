@@ -46,26 +46,17 @@ jobs:
             axual/ksml-data-generator:latest
             ghcr.io/axual/ksml-data-generator:latest
 
-      - name: build and push plain Kafka runner
+      - name: build and push KSML Runner
         uses: docker/build-push-action@v4
         with:
           file: Dockerfile
           target: ksml
-          build-args: "runner=ksml-runner"
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             axual/ksml:${{ github.event.release.tag_name }}
             ghcr.io/axual/ksml:${{ github.event.release.tag_name }}
-
-      - name: build and push Axual runner
-        uses: docker/build-push-action@v4
-        with:
-          file: Dockerfile
-          target: ksml
-          build-args: "runner=ksml-runner-axual"
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
+            ghcr.io/axual/ksml:latest
             axual/ksml-axual:${{ github.event.release.tag_name }}
             ghcr.io/axual/ksml-axual:${{ github.event.release.tag_name }}
+            ghcr.io/axual/ksml-axual:latest
