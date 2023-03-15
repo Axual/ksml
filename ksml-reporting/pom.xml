@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ksml-parent</artifactId>
         <groupId>io.axual.ksml</groupId>
-        <version>0.8.0-SNAPSHOT</version>
+        <version>0.1.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -14,8 +14,8 @@
     <description>This module aggregates Jacoco coverage reports for all submodules.</description>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
         <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
@@ -27,17 +27,17 @@
         </dependency>
         <dependency>
             <groupId>io.axual.ksml</groupId>
+            <artifactId>ksml-axual</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.axual.ksml</groupId>
             <artifactId>ksml-query</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.axual.ksml</groupId>
             <artifactId>ksml-runner</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.axual.ksml</groupId>
-            <artifactId>ksml-data-generator</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

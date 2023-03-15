@@ -20,11 +20,8 @@ The submodules are as follows:
 * [`ksml`](ksml/) 
   the core component that can parse KSML definition files and convert them to a Kafka Streams topology
 
-* [`ksml-query`](ksml-query/)
-  allows an active KSML application to be queries via REST for its internal state stores
-
-* [`ksml-kafka-clients`](ksml-kafka-clients/) 
-  extension of the standard Kafka clients, intended for use with Axual Platform and/or Axual Cloud
+* [`ksml-axual`](ksml-axual/) 
+  adaption of the KSML serde generator, intended for use with Axual Platform and/or Axual Cloud
 
 * [`ksml-runner`](ksml-runner/) 
   standalone Java application for running KSML against plain Kafka and Axual Platform/Cloud deployments
@@ -47,26 +44,9 @@ You can build either the standard KSML runner, or the runner for the Axual platf
     # Create the BuildX builder for KSML 
     docker buildx create --name ksml
     # Build KSML Runner
-    docker buildx --builder ksml build --load --platform linux/amd64,linux/arm64 -t axual/ksml:local --target ksml -f Dockerfile .
-    # Build KSML Data Generator 
-    docker buildx --builder ksml build --load --platform linux/amd64,linux/arm64 -t axual/ksml-data-generator:local --target ksml-datagen -f Dockerfile .
-    # Remove the BuildX builder for KSML
-    docker buildx rm ksml
-
-If you get the following error it means that your setup cannot build for multiple platforms yet.
-
-    ERROR: docker exporter does not currently support exporting manifest lists
-
-You can perform a build for just your platform by removing the `--platform linux/amd64,linux/arm64` arguments from the commands above
-
-    # Create the BuildX builder for KSML 
-    docker buildx create --name ksml
-    # Build KSML Runner
     docker buildx --builder ksml build --load -t axual/ksml:local --target ksml -f Dockerfile .
     # Build KSML Data Generator 
     docker buildx --builder ksml build --load -t axual/ksml-data-generator:local --target ksml-datagen -f Dockerfile .
-    # Remove the BuildX builder for KSML
-    docker buildx rm ksml
 
 
 #### Install GraalVM locally

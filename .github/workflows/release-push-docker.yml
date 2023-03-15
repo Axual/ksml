@@ -55,6 +55,8 @@ jobs:
           push: true
           tags: |
             axual/ksml:${{ github.event.release.tag_name }}
-            axual/ksml:latest
             ghcr.io/axual/ksml:${{ github.event.release.tag_name }}
             ghcr.io/axual/ksml:latest
+            axual/ksml-axual:${{ github.event.release.tag_name }}
+            ghcr.io/axual/ksml-axual:${{ github.event.release.tag_name }}
+            ghcr.io/axual/ksml-axual:latest
