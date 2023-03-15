@@ -45,24 +45,19 @@ public class ExecutionContext {
         // do nothing
     }
 
-    private Logger logger(ErrorHandler handler, String defaultIfNull) {
-        var name = handler.loggerName() != null ? handler.loggerName() : defaultIfNull;
-        return LoggerFactory.getLogger(name);
-    }
-
     public void setConsumeHandler(ErrorHandler consumeHandler) {
         this.consumeHandler = consumeHandler;
-        this.consumeExceptionLogger = logger(consumeHandler, "ConsumeError");
+        this.consumeExceptionLogger = LoggerFactory.getLogger(consumeHandler.loggerName());
     }
 
     public void setProcessHandler(ErrorHandler processHandler) {
         this.processHandler = processHandler;
-        this.processExceptionLogger = logger(consumeHandler, "ProcessError");
+        this.processExceptionLogger = LoggerFactory.getLogger(processHandler.loggerName());
     }
 
     public void setProduceHandler(ErrorHandler produceHandler) {
         this.produceHandler = produceHandler;
-        this.produceExceptionLogger = logger(consumeHandler, "ProduceError");
+        this.produceExceptionLogger = LoggerFactory.getLogger(produceHandler.loggerName());
     }
 
     public static final String DATA_MASK = "*****";
@@ -74,9 +69,9 @@ public class ExecutionContext {
     }
 
     public StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse uncaughtException(Throwable throwable) {
-        processExceptionLogger.error("Caught serious exception, restarting the KSML client", throwable);
-        // Restart only the current instance of Streams
-        return StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.REPLACE_THREAD;
+        processExceptionLogger.error("Caught unhandled exception, stopping this KSML instance", throwable);
+        // Stop only the current instance of KSML
+        return StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT;
     }
 
     public DeserializationExceptionHandler.DeserializationHandlerResponse handle(ProcessorContext context, ConsumerRecord<byte[], byte[]> record, Exception exception) {
@@ -84,13 +79,13 @@ public class ExecutionContext {
             // log record
             String key = consumeHandler.logPayload() ? bytesToString(record.key()) : DATA_MASK;
             String value = consumeHandler.logPayload() ? bytesToString(record.value()) : DATA_MASK;
-            consumeExceptionLogger.error("Exception occurred while consuming a record from topic {}, partition {}, offset {}, key : {}, value : {}", context.topic(), context.partition(), context.offset(), key, value, exception);
+            consumeExceptionLogger.error("Exception occurred while consuming a record from topic: {}, partition: {}, offset: {}, key: {}, value: {}", record.topic(), record.partition(), record.offset(), key, value, exception);
         }
         return consumeHandler.handlerType() == ErrorHandler.HandlerType.CONTINUE_ON_FAIL ? DeserializationExceptionHandler.DeserializationHandlerResponse.CONTINUE : DeserializationExceptionHandler.DeserializationHandlerResponse.FAIL;
     }
 
     public String bytesToString(byte[] data) {
-        return data == null ? DATA_NULL : Base64.getEncoder().encodeToString(data);
+        return data == null ? DATA_NULL : "(base64)" + Base64.getEncoder().encodeToString(data);
     }
 
     public ProductionExceptionHandler.ProductionExceptionHandlerResponse handle(ProducerRecord<byte[], byte[]> record, Exception exception) {
@@ -98,7 +93,7 @@ public class ExecutionContext {
             // log record
             String key = produceHandler.logPayload() ? bytesToString(record.key()) : DATA_MASK;
             String value = produceHandler.logPayload() ? bytesToString(record.value()) : DATA_MASK;
-            produceExceptionLogger.error("Exception occurred while producing a record with key : {}, value : {}", key, value);
+            produceExceptionLogger.error("Exception occurred while producing a record with key: {}, value: {}", key, value, exception);
         }
         return produceHandler.handlerType() == ErrorHandler.HandlerType.CONTINUE_ON_FAIL ? ProductionExceptionHandler.ProductionExceptionHandlerResponse.CONTINUE : ProductionExceptionHandler.ProductionExceptionHandlerResponse.FAIL;
     }
