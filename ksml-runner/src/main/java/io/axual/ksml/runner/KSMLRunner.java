@@ -23,28 +23,53 @@ package io.axual.ksml.runner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
-import org.apache.kafka.streams.state.HostInfo;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.rest.server.RestServer;
 import io.axual.ksml.runner.backend.Backend;
 import io.axual.ksml.runner.config.KSMLRunnerConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.streams.state.HostInfo;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 @Slf4j
 public class KSMLRunner {
     private static final String DEFAULT_CONFIG_FILE_SHORT = "ksml-runner.yaml";
 
     public static void main(String[] args) {
+        // Load name and version from manifest
+        String name = "KSML Runner";
+        String version = "";
+        try {
+            ClassLoader cl = KSMLRunner.class.getClassLoader();
+
+            try (InputStream url = cl.getResourceAsStream("META-INF/MANIFEST.MF")) {
+                Manifest manifest = new Manifest(url);
+                Attributes attr = manifest.getMainAttributes();
+                String attrName = attr.getValue("Implementation-Title");
+                if (attrName != null) {
+                    name = attrName;
+                }
+
+                String attrVersion = attr.getValue("Implementation-Version");
+                if (attrVersion != null) {
+                    version = attrVersion;
+                }
+            }
+        } catch (IOException e) {
+            log.info("Could not load manifest file, using default values");
+        }
+
+        log.info("Starting {} {}", name, version);
         final var configPath = new File(args.length == 0 ? DEFAULT_CONFIG_FILE_SHORT : args[0]);
         if (!configPath.exists()) {
             log.error("Configuration file '{}' not found", configPath);
@@ -55,7 +80,7 @@ public class KSMLRunner {
             final var mapper = new ObjectMapper(new YAMLFactory());
             final KSMLRunnerConfig config = mapper.readValue(configPath, KSMLRunnerConfig.class);
             config.validate();
-            log.info("Using backed of type {}", config.getBackendConfig().getType());
+            log.info("Using {} backend", config.getBackendConfig().getType());
             Backend backend = config.getConfiguredBackend();
 
             if (Boolean.TRUE.equals(config.getKSMLRunnerKsmlConfig().getApplicationServerEnabled())) {

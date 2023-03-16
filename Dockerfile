@@ -51,14 +51,10 @@ ENV JAVA_HOME=/opt/graalvm
 ENV PATH=/opt/graalvm/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 COPY --chown=1024:users --from=builder /opt/ /opt/
 
-# Step 4 The stage to build KSML runners
+# Step 4 The stage to build KSML runner
 FROM ksml-graal as ksml
-# --- specify one of [ksml-runner, ksml-runner-axual]; ksml-runner is default
-ARG runner=ksml-runner
-RUN echo Building runner: $runner
-
-COPY --chown=1024:users --from=builder /project_dir/$runner/target/libs/ /opt/ksml/libs/
-COPY --chown=1024:users --from=builder /project_dir/$runner/target/ksml-runner*.jar /opt/ksml/ksml.jar
+COPY --chown=1024:users --from=builder /project_dir/ksml-runner/target/libs/ /opt/ksml/libs/
+COPY --chown=1024:users --from=builder /project_dir/ksml-runner/target/ksml-runner*.jar /opt/ksml/ksml.jar
 
 WORKDIR /opt/ksml
 USER 1024:users

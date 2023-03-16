@@ -21,11 +21,11 @@ package io.axual.ksml.datagenerator.parser;
  */
 
 
+import io.axual.ksml.datagenerator.definition.ProducerDefinition;
 import io.axual.ksml.definition.parser.PredicateDefinitionParser;
 import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.parser.ReferenceOrInlineParser;
 import io.axual.ksml.parser.YamlNode;
-import io.axual.ksml.datagenerator.definition.ProducerDefinition;
 
 import static io.axual.ksml.datagenerator.dsl.ProducerDSL.*;
 

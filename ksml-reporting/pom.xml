@@ -40,11 +40,6 @@
             <artifactId>ksml-runner</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>io.axual.ksml</groupId>
-            <artifactId>ksml-runner-axual</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 
     <build>
