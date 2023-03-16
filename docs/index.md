@@ -6,7 +6,7 @@ Welcome to the KSML documentation, Use the menu on the left to navigate through 
 KSML allows anyone to specify a powerful Kafka Streams application in just a few lines of YAML and Python snippets.
 
 ## Prerequisites
-- Java 11 is the minimum Java version supported
+- GraalVM 22.3 with Java 17 and Python plugin installed
 - Maven 3 - To build the project
 
 ## Contents
