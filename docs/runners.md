@@ -26,8 +26,28 @@ The configuration file passed to the KSML runner is in YAML format and should co
 
 ```yaml
 ksml:
-  workingDirectory: <absolute path>
-    definitions:
+  applicationServerEnabled: true               # true if you want to enable REST querying of state stores
+  applicationServerHost: 0.0.0.0               # by default listen on all interfaces
+  applicationServerPort: 8080                  # port to listen on
+  workingDirectory: <absolute/relative path>   # working directory
+  configDirectory: .                           # config directory
+  errorHandling:                               # how to handle errors
+    consume:
+      log: true                                # log errors
+      logPayload: true                         # log message payloads upon error
+      loggerName: ConsumeError                 # logger name
+      handler: continueOnFail                  # continue or stop on error
+    process:
+      log: true                                # log errors
+      logPayload: true                         # log message payloads upon error
+      loggerName: ProcessError                 # logger name
+      handler: stopOnFail                      # continue or stop on error
+    produce:
+      log: true                                # log errors
+      logPayload: true                         # log message payloads upon error
+      loggerName: ProduceError                 # logger name
+      handler: continueOnFail                  # continue or stop on error
+    definitions:                               # KSML definition files from the working directory
       - definition1.yaml
       - definition2.yaml
       - <more here...>
