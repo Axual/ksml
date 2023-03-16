@@ -29,7 +29,7 @@ RUN \
   && tar -xzf "/${DOWNLOAD_DIR}/maven.tgz" -C "/" \
   && tar -xzf "/${DOWNLOAD_DIR}/graalvm.tgz" -C "/opt" \
   && mv /opt/graalvm* /opt/graalvm \
-  &&  mkdir -p "/opt/ksml/libs" \
+  && mkdir -p "/opt/ksml/libs" \
   && chown -R 1024:users /opt \
   && chown -R 1024:users /tmp \
   && /opt/graalvm/bin/gu -A install python
