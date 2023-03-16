@@ -6,9 +6,9 @@ USER root
 WORKDIR /
 
 # Step 1 Download and install Maven and GraalVM for build and reuse in second stage, cache the results
+#  --mount=type=cache,target=/opt/graalvm,id=grl_$TARGETARCH \
 RUN \
-  --mount=type=cache,target=/downloads,id=grlDownloads \
-  --mount=type=cache,target=/opt/graal,id=grl \
+  --mount=type=cache,target=/downloads/$TARGETARCH,id=grlDownloads_$TARGETARCH \
   JAVA_ARCH= \
   && case "$TARGETARCH" in \
   amd64) \
@@ -22,22 +22,26 @@ RUN \
     exit 1 \
   ;; \
   esac  \
-  && mkdir -p "/downloads/${JAVA_ARCH}" \
-  && curl -o "/downloads/${JAVA_ARCH}/maven.tgz" https://archive.apache.org/dist/maven/maven-3/3.8.5/binaries/apache-maven-3.8.5-bin.tar.gz \
-  && curl -k -L -o "/downloads/${JAVA_ARCH}/graalvm.tgz" "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.3.0/graalvm-ce-java17-linux-${JAVA_ARCH}-22.3.0.tar.gz" \
-  && tar -xzf "/downloads/${JAVA_ARCH}/maven.tgz" -C "/" \
-  && tar -xzf "/downloads/${JAVA_ARCH}/graalvm.tgz" -C "/opt" \
+  && DOWNLOAD_DIR="/downloads/$TARGETARCH" \
+  && mkdir -p "${DOWNLOAD_DIR}" \
+  && curl -o "/${DOWNLOAD_DIR}/maven.tgz" "https://archive.apache.org/dist/maven/maven-3/3.8.5/binaries/apache-maven-3.8.5-bin.tar.gz" \
+  && curl -k -L -o "/${DOWNLOAD_DIR}/graalvm.tgz" "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.3.0/graalvm-ce-java17-linux-${JAVA_ARCH}-22.3.0.tar.gz" \
+  && tar -xzf "/${DOWNLOAD_DIR}/maven.tgz" -C "/" \
+  && tar -xzf "/${DOWNLOAD_DIR}/graalvm.tgz" -C "/opt" \
   && mv /opt/graalvm* /opt/graalvm \
   &&  mkdir -p "/opt/ksml/libs" \
   && chown -R 1024:users /opt \
   && chown -R 1024:users /tmp \
-  && /opt/graalvm/bin/gu -A -v install python
+  && /opt/graalvm/bin/gu -A install python
 
 # Step 2 Build the KSML Project, cache the M2 repository location
 ADD . /project_dir
 RUN \
-  --mount=type=cache,target=/root/.m2,id=mvnRepo \
-  cd /project_dir && /apache-maven-3.8.5/bin/mvn --no-transfer-progress package
+  --mount=type=cache,target=/root/.m2/repo/$TARGETARCH,id=mvnRepo_$TARGETARCH \
+  cd /project_dir \
+  && /apache-maven-3.8.5/bin/mvn -Dmaven.repo.local="/root/.m2/repo/$TARGETARCH" dependency:go-offline --no-transfer-progress \
+    && /apache-maven-3.8.5/bin/mvn -Dmaven.repo.local="/root/.m2/repo/$TARGETARCH" --no-transfer-progress package
+
 
 
 # Step 3 Build the basic graalvm image stage
