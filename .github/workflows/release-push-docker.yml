@@ -34,7 +34,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: build and push data generator
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           file: Dockerfile
           target: ksml-datagen
@@ -47,7 +47,7 @@ jobs:
             ghcr.io/axual/ksml-data-generator:latest
 
       - name: build and push plain Kafka runner
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           file: Dockerfile
           target: ksml
@@ -59,7 +59,7 @@ jobs:
             ghcr.io/axual/ksml:${{ github.event.release.tag_name }}
 
       - name: build and push Axual runner
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           file: Dockerfile
           target: ksml
