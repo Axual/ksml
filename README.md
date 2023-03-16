@@ -44,9 +44,26 @@ You can build either the standard KSML runner, or the runner for the Axual platf
     # Create the BuildX builder for KSML 
     docker buildx create --name ksml
     # Build KSML Runner
+    docker buildx --builder ksml build --load --platform linux/amd64,linux/arm64 -t axual/ksml:local --target ksml -f Dockerfile .
+    # Build KSML Data Generator 
+    docker buildx --builder ksml build --load --platform linux/amd64,linux/arm64 -t axual/ksml-data-generator:local --target ksml-datagen -f Dockerfile .
+    # Remove the BuildX builder for KSML
+    docker buildx rm ksml
+
+If you get the following error it means that your setup cannot build for multiple platforms yet.
+
+    ERROR: docker exporter does not currently support exporting manifest lists
+
+You can perform a build for just your platform by removing the `--platform linux/amd64,linux/arm64` arguments from the commands above
+
+    # Create the BuildX builder for KSML 
+    docker buildx create --name ksml
+    # Build KSML Runner
     docker buildx --builder ksml build --load -t axual/ksml:local --target ksml -f Dockerfile .
     # Build KSML Data Generator 
     docker buildx --builder ksml build --load -t axual/ksml-data-generator:local --target ksml-datagen -f Dockerfile .
+    # Remove the BuildX builder for KSML
+    docker buildx rm ksml
 
 
 #### Install GraalVM locally
