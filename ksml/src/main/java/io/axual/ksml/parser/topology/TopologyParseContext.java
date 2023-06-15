@@ -9,9 +9,9 @@ package io.axual.ksml.parser.topology;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,21 +24,22 @@ package io.axual.ksml.parser.topology;
 import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.definition.StoreDefinition;
+import io.axual.ksml.definition.KeyValueStateStoreDefinition;
+import io.axual.ksml.definition.SessionStateStoreDefinition;
+import io.axual.ksml.definition.StateStoreDefinition;
+import io.axual.ksml.definition.WindowStateStoreDefinition;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonFunction;
-import io.axual.ksml.store.StoreType;
 import io.axual.ksml.stream.BaseStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
-import org.apache.kafka.streams.kstream.Grouped;
-import org.apache.kafka.streams.kstream.internals.GroupedInternal;
+import org.apache.kafka.streams.state.Stores;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,18 +55,24 @@ public class TopologyParseContext implements ParseContext {
     private final StreamsBuilder builder;
     private final NotationLibrary notationLibrary;
     private final String namePrefix;
+
+    // All registered KStreams, KTables and KGlobalTables
     private final Map<String, BaseStreamDefinition> streamDefinitions = new HashMap<>();
+
+    // All registered user functions
     private final Map<String, FunctionDefinition> functionDefinitions = new HashMap<>();
-    private final Map<String, StoreDefinition> storeDefinitions = new HashMap<>();
+
+    // All registered state stores
+    private final Map<String, StateStoreDefinition> stateStoreDefinitions = new HashMap<>();
+
+    // The names of all state stores that were created, either through explicit creation or through the use of a
+    // Materialized parameter in any of the Kafka Streams operations.
+    private final Set<String> createdStateStores = new HashSet<>();
+
+    // All wrapped KStreams, KTables and KGlobalTables
     private final Map<String, StreamWrapper> streamWrappers = new HashMap<>();
     private final Map<String, AtomicInteger> typeInstanceCounters = new HashMap<>();
-    private final Map<String, GroupedInternal<?, ?>> groupedStores = new HashMap<>();
-    private final Map<String, StoreDescriptor> stateStores = new HashMap<>();
     private final Set<String> knownTopics = new HashSet<>();
-
-    public record StoreDescriptor(StoreType type, StoreDefinition store, StreamDataType keyType,
-                                  StreamDataType valueType) {
-    }
 
     public TopologyParseContext(StreamsBuilder builder, NotationLibrary notationLibrary, String namePrefix) {
         this.builder = builder;
@@ -95,19 +102,40 @@ public class TopologyParseContext implements ParseContext {
             throw new KSMLTopologyException("Function definition must be unique: " + name);
         }
         functionDefinitions.put(name, functionDefinition);
-        // Pre-load the function into the Python context
+
+        // If there are any uncreated state stores needed, create them first
+        for (final var storeName : functionDefinition.storeNames) {
+            final var store = stateStoreDefinitions.get(storeName);
+            if (store == null)
+                throw new KSMLTopologyException("Function " + name + " uses undefined state store: " + storeName);
+            if (!createdStateStores.contains(storeName)) {
+                createUserStateStore(store);
+            }
+        }
+
+        // Preload the function into the Python context
         new PythonFunction(pythonContext, name, functionDefinition);
     }
 
-    public void registerStore(String name, StoreDefinition storeDefinition) {
-        if (storeDefinitions.containsKey(name)) {
-            throw new KSMLTopologyException("Store definition must be unique: " + name);
+    public void registerStateStore(String name, StateStoreDefinition store) {
+        // State stores can only be registered once. Duplicate names are a sign of faulty KSML definitions
+        if (stateStoreDefinitions.containsKey(store.name())) {
+            throw new KSMLTopologyException("StateStore is not unique: " + store.name());
         }
-        storeDefinitions.put(name, storeDefinition);
+        stateStoreDefinitions.put(store.name(), store);
+    }
+
+    public void registerStateStoreAsCreated(String name, StateStoreDefinition store) {
+        registerStateStore(name, store);
+        markStateStoreCreated(name);
+    }
+
+    public void markStateStoreCreated(String name) {
+        createdStateStores.add(name);
     }
 
     private StreamWrapper buildWrapper(String name, BaseStreamDefinition def) {
-        var wrapper = def.addToBuilder(builder, name, notationLibrary);
+        var wrapper = def.addToBuilder(builder, name, notationLibrary, this::registerStateStoreAsCreated);
         streamWrappers.put(name, wrapper);
         if (!name.equals(def.topic)) {
             streamWrappers.put(def.topic, wrapper);
@@ -156,8 +184,8 @@ public class TopologyParseContext implements ParseContext {
     }
 
     @Override
-    public Map<String, StoreDefinition> getStoreDefinitions() {
-        return storeDefinitions;
+    public Map<String, StateStoreDefinition> getStoreDefinitions() {
+        return stateStoreDefinitions;
     }
 
     @Override
@@ -170,22 +198,55 @@ public class TopologyParseContext implements ParseContext {
         return notationLibrary;
     }
 
-    @Override
-    public <K, V> void registerGrouped(Grouped<K, V> grouped) {
-        var copy = new GroupedInternal<>(grouped);
-        groupedStores.put(copy.name(), copy);
-    }
+    private void createUserStateStore(StateStoreDefinition store) {
+        final var keyType = new StreamDataType(notationLibrary, store.keyType(), true);
+        final var valueType = new StreamDataType(notationLibrary, store.valueType(), false);
 
-    @Override
-    public void registerStore(StoreType type, StoreDefinition store, StreamDataType keyType, StreamDataType valueType) {
-        stateStores.put(store.name(), new StoreDescriptor(type, store, keyType, valueType));
-    }
+        if (store instanceof KeyValueStateStoreDefinition storeDef) {
+            var supplier = storeDef.persistent()
+                    ? (storeDef.timestamped()
+                    ? Stores.persistentTimestampedKeyValueStore(storeDef.name())
+                    : Stores.persistentKeyValueStore(storeDef.name()))
+                    : Stores.inMemoryKeyValueStore(storeDef.name());
+            var storeBuilder = Stores.keyValueStoreBuilder(supplier, keyType.getSerde(), valueType.getSerde());
+            storeBuilder = storeDef.caching() ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
+            storeBuilder = storeDef.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();
+            builder.addStateStore(storeBuilder);
+        }
 
-    public Map<String, StoreDescriptor> stores() {
-        return stateStores;
+        if (store instanceof SessionStateStoreDefinition storeDef) {
+            var supplier = storeDef.persistent()
+                    ? Stores.persistentSessionStore(storeDef.name(), storeDef.retention())
+                    : Stores.inMemorySessionStore(storeDef.name(), storeDef.retention());
+            var storeBuilder = Stores.sessionStoreBuilder(supplier, keyType.getSerde(), valueType.getSerde());
+            storeBuilder = storeDef.caching() ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
+            storeBuilder = storeDef.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();
+            builder.addStateStore(storeBuilder);
+        }
+
+        if (store instanceof WindowStateStoreDefinition storeDef) {
+            var supplier = store.persistent()
+                    ? (storeDef.timestamped()
+                    ? Stores.persistentTimestampedWindowStore(storeDef.name(), storeDef.retention(), storeDef.windowSize(), storeDef.retainDuplicates())
+                    : Stores.persistentWindowStore(storeDef.name(), storeDef.retention(), storeDef.windowSize(), storeDef.retainDuplicates()))
+                    : Stores.inMemoryWindowStore(storeDef.name(), storeDef.retention(), storeDef.windowSize(), storeDef.retainDuplicates());
+            var storeBuilder = Stores.windowStoreBuilder(supplier, keyType.getSerde(), valueType.getSerde());
+            storeBuilder = storeDef.caching() ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
+            storeBuilder = storeDef.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();
+            builder.addStateStore(storeBuilder);
+        }
+
+        markStateStoreCreated(store.name());
     }
 
     public Topology build() {
+        // Create all state stores that were defined, but not yet implicitly created (eg. through using Materialized)
+        for (Map.Entry<String, StateStoreDefinition> entry : stateStoreDefinitions.entrySet()) {
+            if (!createdStateStores.contains(entry.getKey())) {
+                createUserStateStore(entry.getValue());
+                createdStateStores.add(entry.getKey());
+            }
+        }
         return builder.build();
     }
 }

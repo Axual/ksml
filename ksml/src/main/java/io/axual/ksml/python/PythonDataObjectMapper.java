@@ -9,9 +9,9 @@ package io.axual.ksml.python;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -74,12 +74,16 @@ public class PythonDataObjectMapper extends NativeDataObjectMapper {
         }
 
         // By default, try to decode a dict as a struct
-        if (expected == null || expected instanceof MapType || expected.isAssignableFrom(new StructType())) {
+        if (object.hasHashEntries() ) {
+            // TODO: Check if the following conditions should also make us go in this statement block
+            // expected == null || expected instanceof MapType || expected.isAssignableFrom(new StructType())
             var result = mapToNative(expected, object);
             if (result != null) return result;
         }
 
-        throw FatalError.dataError("Can not convert Python dataType to DataObject: " + object.getClass().getSimpleName());
+        throw FatalError.dataError("Can not convert Python dataType to DataObject: "
+                + object.getClass().getSimpleName()
+                + (expected != null ? ", expected: " + expected : ""));
     }
 
     private Object numberToNative(DataType expected, Value object) {

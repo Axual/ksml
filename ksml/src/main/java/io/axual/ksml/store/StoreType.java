@@ -9,9 +9,9 @@ package io.axual.ksml.store;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,8 +20,20 @@ package io.axual.ksml.store;
  * =========================LICENSE_END==================================
  */
 
+import static io.axual.ksml.dsl.KSMLDSL.*;
+
 public enum StoreType {
-    KEYVALUE_STORE,
-    SESSION_STORE,
-    WINDOW_STORE
+    KEYVALUE_STORE(STORE_TYPE_KEYVALUE),
+    SESSION_STORE(STORE_TYPE_SESSION),
+    WINDOW_STORE(STORE_TYPE_WINDOW);
+
+    private final String externalName;
+
+    StoreType(String externalName) {
+        this.externalName = externalName;
+    }
+
+    public String externalName() {
+        return externalName;
+    }
 }

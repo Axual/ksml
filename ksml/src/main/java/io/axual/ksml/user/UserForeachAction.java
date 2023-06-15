@@ -9,9 +9,9 @@ package io.axual.ksml.user;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,10 +21,10 @@ package io.axual.ksml.user;
  */
 
 
-import org.apache.kafka.streams.kstream.ForeachAction;
-
-import io.axual.ksml.util.DataUtil;
 import io.axual.ksml.python.Invoker;
+import io.axual.ksml.store.StateStores;
+import io.axual.ksml.util.DataUtil;
+import org.apache.kafka.streams.kstream.ForeachAction;
 
 public class UserForeachAction extends Invoker implements ForeachAction<Object, Object> {
 
@@ -36,6 +36,11 @@ public class UserForeachAction extends Invoker implements ForeachAction<Object, 
 
     @Override
     public void apply(Object key, Object value) {
-        function.call(DataUtil.asDataObject(key), DataUtil.asDataObject(value));
+        verifyNoStoresUsed();
+        apply(null, key, value);
+    }
+
+    public void apply(StateStores stores, Object key, Object value) {
+        function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
     }
 }

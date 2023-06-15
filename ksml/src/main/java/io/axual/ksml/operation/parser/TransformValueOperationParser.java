@@ -26,8 +26,7 @@ import io.axual.ksml.operation.TransformValueOperation;
 import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 
-import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.TRANSFORMVALUE_MAPPER_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class TransformValueOperationParser extends StoreOperationParser<TransformValueOperation> {
     private final String name;
@@ -41,7 +40,7 @@ public class TransformValueOperationParser extends StoreOperationParser<Transfor
     public TransformValueOperation parse(YamlNode node) {
         if (node == null) return null;
         return new TransformValueOperation(
-                storeOperationConfig(name, node, STORE_ATTRIBUTE),
+                storeOperationConfig(name, node, MATERIALIZED_ATTRIBUTE),
                 parseFunction(node, TRANSFORMVALUE_MAPPER_ATTRIBUTE, new ValueTransformerDefinitionParser()));
     }
 }

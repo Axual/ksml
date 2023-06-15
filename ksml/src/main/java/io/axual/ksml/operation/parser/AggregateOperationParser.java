@@ -9,9 +9,9 @@ package io.axual.ksml.operation.parser;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,12 +28,7 @@ import io.axual.ksml.operation.AggregateOperation;
 import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 
-import static io.axual.ksml.dsl.KSMLDSL.AGGREGATE_ADDER_ATTRIBTUE;
-import static io.axual.ksml.dsl.KSMLDSL.AGGREGATE_AGGREGATOR_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.AGGREGATE_INITIALIZER_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.AGGREGATE_MERGER_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.AGGREGATE_SUBTRACTOR_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class AggregateOperationParser extends StoreOperationParser<AggregateOperation> {
     private final String name;

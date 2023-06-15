@@ -30,7 +30,7 @@ public class KeyValueTransformerDefinition extends FunctionDefinition {
     public KeyValueTransformerDefinition(FunctionDefinition definition) {
         super(definition
                 .withParameters(getParameters(definition.parameters, KEY_VALUE_PARAMETERS)));
-        if (definition.resultType == null || !(definition.resultType.dataType() instanceof UserTupleType)) {
+        if (resultType == null || !(resultType.dataType() instanceof UserTupleType)) {
             throw new KSMLTopologyException("ResultType of keyValueTransformer not correctly specified");
         }
     }

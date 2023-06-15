@@ -9,9 +9,9 @@ package io.axual.ksml.definition;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,24 +24,30 @@ package io.axual.ksml.definition;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLTopologyException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class FunctionDefinition {
     private static final String DEFINITION_LITERAL = "Definition";
+    private static final String[] EMPTY_STRING_ARRAY = new String[]{};
+    private static final List<String> EMPTY_STRING_LIST = new ArrayList<>();
     public final ParameterDefinition[] parameters;
     public final UserType resultType;
     public final String expression;
     public final String[] code;
     public final String[] globalCode;
+    public final List<String> storeNames;
 
-    public static FunctionDefinition as(ParameterDefinition[] parameters, UserType result, String expression, String[] code, String[] globalCode) {
-        return new FunctionDefinition(parameters, result, expression, code, globalCode);
+    public static FunctionDefinition as(ParameterDefinition[] parameters, UserType result, String expression, String[] code, String[] globalCode, List<String> storeNames) {
+        return new FunctionDefinition(parameters, result, expression, code, globalCode, storeNames);
     }
 
-    public FunctionDefinition withCode(String expression, String[] code, String[] globalCode) {
-        return new FunctionDefinition(parameters, resultType, expression, code, globalCode);
+    public FunctionDefinition withCode(String expression, String[] code, String[] globalCode, List<String> storeNames) {
+        return new FunctionDefinition(parameters, resultType, expression, code, globalCode, storeNames);
     }
 
     public FunctionDefinition withParameters(ParameterDefinition[] parameters) {
-        return new FunctionDefinition(parameters, resultType, expression, code, globalCode);
+        return new FunctionDefinition(parameters, resultType, expression, code, globalCode, storeNames);
     }
 
     public FunctionDefinition withoutResult() {
@@ -49,7 +55,7 @@ public class FunctionDefinition {
     }
 
     public FunctionDefinition withResult(UserType resultType) {
-        return new FunctionDefinition(parameters, resultType, resultType != null ? expression : null, code, globalCode);
+        return new FunctionDefinition(parameters, resultType, resultType != null ? expression : null, code, globalCode, storeNames);
     }
 
     public FunctionDefinition withAResult() {
@@ -66,12 +72,17 @@ public class FunctionDefinition {
         return this;
     }
 
-    private FunctionDefinition(ParameterDefinition[] parameters, UserType resultType, String expression, String[] code, String[] globalCode) {
+    public FunctionDefinition withStoreNames(List<String> storeNames) {
+        return new FunctionDefinition(parameters, resultType, expression, code, globalCode, storeNames);
+    }
+
+    private FunctionDefinition(ParameterDefinition[] parameters, UserType resultType, String expression, String[] code, String[] globalCode, List<String> storeNames) {
         this.parameters = parameters;
         this.resultType = resultType;
         this.expression = expression;
-        this.code = code != null ? code : new String[]{};
-        this.globalCode = globalCode != null ? globalCode : new String[]{};
+        this.code = code != null ? code : EMPTY_STRING_ARRAY;
+        this.globalCode = globalCode != null ? globalCode : EMPTY_STRING_ARRAY;
+        this.storeNames = storeNames != null ? storeNames : EMPTY_STRING_LIST;
     }
 
     protected FunctionDefinition(FunctionDefinition definition) {
@@ -79,7 +90,8 @@ public class FunctionDefinition {
         this.resultType = definition.resultType;
         this.expression = definition.expression;
         this.code = definition.code != null ? definition.code : new String[]{};
-        this.globalCode = definition.globalCode != null ? definition.globalCode : new String[]{};
+        this.globalCode = definition.globalCode != null ? definition.globalCode : EMPTY_STRING_ARRAY;
+        this.storeNames = definition.storeNames != null ? definition.storeNames : EMPTY_STRING_LIST;
     }
 
     // Check if parameters were specified already. If so, then use the explicitly defined parameters. If not, use the default ones.

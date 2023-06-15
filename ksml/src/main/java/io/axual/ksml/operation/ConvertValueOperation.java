@@ -9,9 +9,9 @@ package io.axual.ksml.operation;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -41,16 +41,27 @@ public class ConvertValueOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
+        /*    Kafka Streams method signature:
+         *    <VR> KStream<K, VR> mapValues(
+         *          final ValueMapper<? super V, ? extends VR> mapper,
+         *          final Named named)
+         */
+
+        final var k = input.keyType();
+        final var v = input.valueType();
+        final var vr = streamDataTypeOf(targetValueType, false);
+
         // Set up the mapping function to convert the value
         ValueMapper<Object, Object> converter = value -> {
             var valueAsData = DataUtil.asDataObject(value);
-            return mapper.convert(input.valueType().userType().notation(), valueAsData, targetValueType);
+            return mapper.convert(v.userType().notation(), valueAsData, vr.userType());
         };
 
+        final var output = name != null
+                ? input.stream.mapValues(converter, Named.as(name))
+                : input.stream.mapValues(converter);
+
         // Inject the mapper into the topology
-        return new KStreamWrapper(
-                input.stream.mapValues(converter, Named.as(name)),
-                input.keyType(),
-                streamDataTypeOf(targetValueType, false));
+        return new KStreamWrapper(output, k, vr);
     }
 }

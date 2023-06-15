@@ -9,9 +9,9 @@ package io.axual.ksml.operation;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,20 +20,17 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.definition.StoreDefinition;
+import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.store.GroupedRegistry;
-import io.axual.ksml.store.StoreRegistry;
+import io.axual.ksml.store.StateStoreRegistry;
 
 public class StoreOperationConfig extends OperationConfig {
-    public final StoreDefinition store;
-    public final GroupedRegistry groupedRegistry;
-    public final StoreRegistry storeRegistry;
+    public final StateStoreDefinition store;
+    public final StateStoreRegistry stateStoreRegistry;
 
-    public StoreOperationConfig(String name, NotationLibrary notationLibrary, StoreDefinition store, GroupedRegistry groupedRegistry, StoreRegistry storeRegistry) {
-        super(name, notationLibrary);
+    public StoreOperationConfig(String name, NotationLibrary notationLibrary, StateStoreDefinition store, StateStoreRegistry stateStoreRegistry) {
+        super(name, notationLibrary, null);
         this.store = store;
-        this.groupedRegistry = groupedRegistry;
-        this.storeRegistry = storeRegistry;
+        this.stateStoreRegistry = stateStoreRegistry;
     }
 }

@@ -9,9 +9,9 @@ package io.axual.ksml.operation.parser;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -65,12 +65,12 @@ public class SuppressOperationParser extends OperationParser<SuppressOperation> 
     private SuppressOperation parseSuppressUntilTimeLimit(YamlNode node) {
         var duration = parseDuration(node, SUPPRESS_DURATION_ATTRIBUTE);
         var bufferConfig = parseBufferConfig(node);
-        return SuppressOperation.create(operationConfig(name), Suppressed.untilTimeLimit(duration, bufferConfig));
+        return SuppressOperation.create(parseConfig(node, name), Suppressed.untilTimeLimit(duration, bufferConfig));
     }
 
     private SuppressOperation parseSuppressUntilWindowClose(YamlNode node) {
         var bufferConfig = parseStrictBufferConfig(node);
-        return SuppressOperation.createWindowed(operationConfig(name), Suppressed.untilWindowCloses(bufferConfig));
+        return SuppressOperation.createWindowed(parseConfig(node, name), Suppressed.untilWindowCloses(bufferConfig));
     }
 
     private Suppressed.EagerBufferConfig parseBufferConfig(YamlNode node) {

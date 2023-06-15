@@ -9,9 +9,9 @@ package io.axual.ksml.dsl;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,19 +35,37 @@ public class KSMLDSL {
     public static final String FUNCTION_PARAMETERS_ATTRIBUTE = "parameters";
     public static final String FUNCTION_CODE_ATTRIBUTE = "code";
     public static final String FUNCTION_GLOBALCODE_ATTRIBUTE = "globalCode";
+    public static final String FUNCTION_STORES_ATTRIBUTE = "stores";
     public static final String FUNCTION_RESULTTYPE_ATTRIBUTE = "resultType";
     public static final String FUNCTION_EXPRESSION_ATTRIBUTE = "expression";
     public static final String FILTER_PREDICATE_ATTRIBUTE = "predicate";
     public static final String FILTERNOT_PREDICATE_ATTRIBUTE = "predicate";
     public static final String STORE_ATTRIBUTE = "store";
     public static final String STORE_NAME_ATTRIBUTE = "name";
+    public static final String STORE_TYPE_ATTRIBUTE = "type";
+    public static final String STORE_PERSISTENT_ATTRIBUTE = "persistent";
+    public static final String STORE_TIMESTAMPED_ATTRIBUTE = "timestamped";
+    public static final String STORE_KEYTYPE_ATTRIBUTE = "keyType";
+    public static final String STORE_VALUETYPE_ATTRIBUTE = "valueType";
     public static final String STORE_RETENTION_ATTRIBUTE = "retention";
     public static final String STORE_CACHING_ATTRIBUTE = "caching";
+    public static final String STORE_LOGGING_ATTRIBUTE = "logging";
+    public static final String STORE_TYPE_KEYVALUE = "keyValue";
+    public static final String STORE_TYPE_SESSION = "session";
+    public static final String STORE_TYPE_WINDOW = "window";
+    public static final String STORE_WINDOWSIZE_ATTRIBUTE = "windowSize";
+    public static final String STORE_RETAINDUPLICATES_ATTRIBUTE = "retainDuplicates";
+    public static final String MATERIALIZED_ATTRIBUTE = "materialized";
+    public static final String MATERIALIZED_NAME_ATTRIBUTE = "name";
+    public static final String MATERIALIZED_RETENTION_ATTRIBUTE = "retention";
+    public static final String MATERIALIZED_CACHING_ATTRIBUTE = "caching";
+    public static final String MATERIALIZED_LOGGING_ATTRIBUTE = "logging";
     public static final String NAME_ATTRIBUTE = "name";
     public static final String TOPIC_ATTRIBUTE = "topic";
     public static final String KEYTYPE_ATTRIBUTE = "keyType";
     public static final String VALUETYPE_ATTRIBUTE = "valueType";
     public static final String QUERYABLE_ATTRIBUTE = "queryable";
+    public static final String PERSISTENT_ATTRIBUTE = "persistent";
     public static final String GROUPBY_MAPPER_ATTRIBUTE = "mapper";
     public static final String JOIN_VALUEJOINER_ATTRIBUTE = "valueJoiner";
     public static final String JOIN_MAPPER_ATTRIBUTE = "mapper";
@@ -91,6 +109,7 @@ public class KSMLDSL {
     public static final String OPERATION_PEEK_TYPE = "peek";
     public static final String OPERATION_REDUCE_TYPE = "reduce";
     public static final String OPERATION_REPARTITION_TYPE = "repartition";
+    public static final String OPERATION_STORES_ATTRIBUTE = "stores";
     public static final String OPERATION_SUPPRESS_TYPE = "suppress";
     public static final String OPERATION_TOSTREAM_TYPE = "toStream";
     public static final String OPERATION_WINDOWEDBY_TYPE = "windowedBy";

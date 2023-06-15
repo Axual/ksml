@@ -9,9 +9,9 @@ package io.axual.ksml.generator;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,12 +20,12 @@ package io.axual.ksml.generator;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.parser.topology.TopologyParseContext;
+import io.axual.ksml.definition.StateStoreDefinition;
 import org.apache.kafka.streams.Topology;
 
 import java.util.Map;
 import java.util.Set;
 
 public record GeneratedTopology(Topology topology, Set<String> inputTopics, Set<String> intermediateTopics,
-                                Set<String> outputTopics, Map<String, TopologyParseContext.StoreDescriptor> stores) {
+                                Set<String> outputTopics, Map<String, StateStoreDefinition> stores) {
 }

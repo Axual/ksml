@@ -9,9 +9,9 @@ package io.axual.ksml.user;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,6 +28,7 @@ import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;
+import io.axual.ksml.store.StateStores;
 import io.axual.ksml.util.DataUtil;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
@@ -36,8 +37,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class UserKeyValueToKeyValueListTransformer extends Invoker implements KeyValueMapper<Object, Object, Iterable<KeyValue<Object, Object>>> {
-    private final DataType resultKeyType;
-    private final DataType resultValueType;
+    protected final DataType resultKeyType;
+    protected final DataType resultValueType;
 
     public UserKeyValueToKeyValueListTransformer(UserFunction function) {
         super(function);
@@ -52,7 +53,12 @@ public class UserKeyValueToKeyValueListTransformer extends Invoker implements Ke
 
     @Override
     public Iterable<KeyValue<Object, Object>> apply(Object key, Object value) {
-        var result = function.call(DataUtil.asDataObject(key), DataUtil.asDataObject(value));
+        verifyNoStoresUsed();
+        return apply(null, key, value);
+    }
+
+    public Iterable<KeyValue<Object, Object>> apply(StateStores stores, Object key, Object value) {
+        var result = function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
         if (result == null) return Collections.emptyList();
 
         // We need to convert the resulting messages to KeyValue tuples as per the method signature

@@ -9,9 +9,9 @@ package io.axual.ksml.python;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,12 +21,11 @@ package io.axual.ksml.python;
  */
 
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.user.UserFunction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Base class for stream operations.
@@ -67,5 +66,9 @@ public abstract class Invoker {
 
     protected void verifyResultType(DataType type) {
         verify(type.isAssignableFrom(function.resultType.dataType()), "Function returns " + function.resultType.dataType() + " instead of " + type);
+    }
+
+    protected void verifyNoStoresUsed() {
+        verify(function.storeNames.length == 0, getClass().getSimpleName() + " function uses state stores in a context where it can not: " + String.join(",", function.storeNames));
     }
 }

@@ -9,9 +9,9 @@ package io.axual.ksml.operation.parser;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -58,7 +58,8 @@ public class WindowedByOperationParser extends OperationParser<WindowedByOperati
                 case WINDOWEDBY_WINDOWTYPE_SESSION -> parseSessionWindows(node);
                 case WINDOWEDBY_WINDOWTYPE_SLIDING -> parseSlidingWindows(node);
                 case WINDOWEDBY_WINDOWTYPE_TIME -> parseTimeWindows(node);
-                default -> throw new KSMLParseException(node, "Unknown WindowType for windowedBy operation: " + windowType);
+                default ->
+                        throw new KSMLParseException(node, "Unknown WindowType for windowedBy operation: " + windowType);
             };
         }
         throw new KSMLParseException(node, "WindowType missing for windowedBy operation");
@@ -70,13 +71,13 @@ public class WindowedByOperationParser extends OperationParser<WindowedByOperati
         var sessionWindows = (grace != null && grace.toMillis() > 0)
                 ? SessionWindows.ofInactivityGapAndGrace(duration, grace)
                 : SessionWindows.ofInactivityGapWithNoGrace(duration);
-        return new WindowedByOperation(operationConfig(name), sessionWindows);
+        return new WindowedByOperation(parseConfig(node, name), sessionWindows);
     }
 
     private WindowedByOperation parseSlidingWindows(YamlNode node) {
         var timeDifference = parseDuration(node, WINDOWEDBY_WINDOWTYPE_SLIDING_TIMEDIFFERENCE);
         var grace = parseDuration(node, WINDOWEDBY_WINDOWTYPE_SLIDING_GRACE);
-        return new WindowedByOperation(operationConfig(name), SlidingWindows.ofTimeDifferenceAndGrace(timeDifference, grace));
+        return new WindowedByOperation(parseConfig(node, name), SlidingWindows.ofTimeDifferenceAndGrace(timeDifference, grace));
     }
 
     private WindowedByOperation parseTimeWindows(YamlNode node) {
@@ -90,6 +91,6 @@ public class WindowedByOperationParser extends OperationParser<WindowedByOperati
         if (advanceBy != null && advanceBy.toMillis() > 0 && advanceBy.toMillis() <= duration.toMillis()) {
             timeWindows = timeWindows.advanceBy(advanceBy);
         }
-        return new WindowedByOperation(operationConfig(name), timeWindows);
+        return new WindowedByOperation(parseConfig(node, name), timeWindows);
     }
 }

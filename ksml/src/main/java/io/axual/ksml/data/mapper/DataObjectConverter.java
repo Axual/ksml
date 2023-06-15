@@ -65,7 +65,7 @@ public class DataObjectConverter {
         if (targetType.dataType() instanceof ListType targetListType
                 && value instanceof DataList valueList) {
             var result = new DataList(targetListType.valueType());
-            var expectedValueType = new UserType(DEFAULT_NOTATION, targetListType.valueType());
+            var expectedValueType = new UserType(targetListType.valueType());
             for (int index = 0; index < valueList.size(); index++) {
                 result.add(convert(DEFAULT_NOTATION, valueList.get(index), expectedValueType));
             }
@@ -84,7 +84,7 @@ public class DataObjectConverter {
                 var field = targetStructType.schema().field(entry.getKey());
                 // Only copy if the field exists in the target structure
                 if (field != null) {
-                    var newValueType = new UserType(DEFAULT_NOTATION, SchemaUtil.schemaToDataType(field.schema()));
+                    var newValueType = new UserType(SchemaUtil.schemaToDataType(field.schema()));
                     // Convert to that type if necessary
                     result.put(entry.getKey(), convert(DEFAULT_NOTATION, entry.getValue(), newValueType));
                 }
@@ -102,7 +102,7 @@ public class DataObjectConverter {
                 // default notation
                 var elementType = targetTupleType instanceof UserTupleType targetUserTupleType
                         ? targetUserTupleType.getUserType(index)
-                        : new UserType(DEFAULT_NOTATION, targetTupleType.subType(index));
+                        : new UserType(targetTupleType.subType(index));
                 convertedDataObjects[index] = convert(DEFAULT_NOTATION, valueTuple.get(index), elementType);
             }
             return new DataTuple(convertedDataObjects);

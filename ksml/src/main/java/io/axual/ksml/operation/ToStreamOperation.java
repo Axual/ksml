@@ -9,9 +9,9 @@ package io.axual.ksml.operation;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -47,18 +47,17 @@ public class ToStreamOperation extends BaseOperation {
          *          final Named named)
          */
 
-        var k = input.keyType().userType().dataType();
-        var v = input.valueType().userType().dataType();
-        var kr = mapper != null ? mapper.resultType.dataType() : k;
+        final var k = streamDataTypeOf(input.keyType().userType(), true);
+        final var v = streamDataTypeOf(input.valueType().userType(), false);
+        final var kr = mapper != null ? streamDataTypeOf(mapper.resultType, true) : k;
         if (mapper != null) checkFunction(MAPPER_NAME, mapper, equalTo(kr), superOf(k), superOf(v));
 
-        KeyValueMapper<Object, Object, Object> userMapper = mapper != null
+        final KeyValueMapper<Object, Object, Object> userMapper = mapper != null
                 ? new UserKeyTransformer(mapper)
                 : (key, value) -> DataUtil.asDataObject(key);
-
-        return new KStreamWrapper(
-                input.table.toStream(userMapper, Named.as(name)),
-                input.keyType(),
-                input.valueType());
+        final var output = name != null
+                ? input.table.toStream(userMapper, Named.as(name))
+                : input.table.toStream(userMapper);
+        return new KStreamWrapper(output, kr, v);
     }
 }
