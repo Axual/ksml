@@ -12,7 +12,7 @@ jobs:
     name: Build and test on GraalVM
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: download GraalVM
@@ -20,7 +20,7 @@ jobs:
           download_url="https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.3.0/graalvm-ce-java17-linux-amd64-22.3.0.tar.gz"
           wget -O $RUNNER_TEMP/graal_package.tar.gz $download_url
       - name: Set up GraalVM
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           distribution: 'jdkfile'
           jdkFile: ${{ runner.temp }}/graal_package.tar.gz
@@ -30,13 +30,13 @@ jobs:
         run: |
           gu install python
       - name: Cache SonarCloud packages
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
       - name: Cache Maven packages
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
