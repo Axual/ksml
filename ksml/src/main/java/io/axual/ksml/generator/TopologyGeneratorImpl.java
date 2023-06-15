@@ -4,7 +4,7 @@ package io.axual.ksml.generator;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package io.axual.ksml.generator;
  * limitations under the License.
  * =========================LICENSE_END==================================
  */
+
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.axual.ksml.KSMLConfig;
@@ -49,6 +50,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +58,12 @@ import java.util.Set;
 
 import static io.axual.ksml.dsl.KSMLDSL.*;
 import static io.axual.ksml.store.StoreType.*;
+
+/**
+ * Generate a Kafka Streams topology from a KSML configuration, using a Python interpreter.
+ *
+ * @see KSMLConfig
+ */
 public class TopologyGeneratorImpl {
     private static final Logger LOG = LoggerFactory.getLogger(TopologyGeneratorImpl.class);
     private final KSMLConfig config;
@@ -83,7 +91,7 @@ public class TopologyGeneratorImpl {
                 default -> throw new KSMLParseException(null, "Unknown KSML source dataType: " + config.sourceType());
             }
         } catch (IOException e) {
-            LOG.error("Can not read YAML: {}", e.getMessage());
+            LOG.info("Can not read YAML: {}", e.getMessage());
         }
 
         return new ArrayList<>();
@@ -176,8 +184,9 @@ public class TopologyGeneratorImpl {
         TopologyParseContext context = new TopologyParseContext(builder, config.notationLibrary(), namePrefix);
 
         // Parse all defined streams
+        Map<String, BaseStreamDefinition> streamDefinitions = new HashMap<>();
         new MapParser<>("stream definition", new StreamDefinitionParser()).parse(node.get(STREAMS_DEFINITION)).forEach(context::registerStreamDefinition);
-        new MapParser<>("table definition", new TableDefinitionParser(context)).parse(node.get(TABLES_DEFINITION)).forEach(context::registerStreamDefinition);
+        new MapParser<>("table definition", new TableDefinitionParser()).parse(node.get(TABLES_DEFINITION)).forEach(context::registerStreamDefinition);
         new MapParser<>("globalTable definition", new GlobalTableDefinitionParser()).parse(node.get(GLOBALTABLES_DEFINITION)).forEach(context::registerStreamDefinition);
 
         // Parse all defined stores

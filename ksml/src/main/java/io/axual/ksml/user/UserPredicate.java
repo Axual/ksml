@@ -4,7 +4,7 @@ package io.axual.ksml.user;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ package io.axual.ksml.user;
 
 
 import io.axual.ksml.data.object.DataBoolean;
-import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;
 import io.axual.ksml.store.StateStores;
@@ -30,12 +29,10 @@ import io.axual.ksml.util.DataUtil;
 import org.apache.kafka.streams.kstream.Predicate;
 
 public class UserPredicate extends Invoker implements Predicate<Object, Object> {
-    private final static DataType EXPECTED_RESULT_TYPE = DataBoolean.DATATYPE;
-
     public UserPredicate(UserFunction function) {
         super(function);
         verifyParameterCount(2);
-        verifyResultType(EXPECTED_RESULT_TYPE);
+        verifyResultType(DataBoolean.DATATYPE);
     }
 
     @Override
@@ -45,8 +42,7 @@ public class UserPredicate extends Invoker implements Predicate<Object, Object> 
     }
 
     public boolean test(StateStores stores, Object key, Object value) {
-        verifyAppliedResultType(EXPECTED_RESULT_TYPE);
-        final var result = function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
+        var result = function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
         if (result instanceof DataBoolean dataBoolean) {
             return dataBoolean.value();
         }

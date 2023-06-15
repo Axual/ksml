@@ -4,7 +4,7 @@ package io.axual.ksml.operation;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,12 +57,20 @@ public class AggregateOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KGroupedStreamWrapper input) {
+        /*    Kafka Streams method signature:
+         *    <VR> KTable<K, VR> aggregate(
+         *          final Initializer<VR> initializer,
+         *          final Aggregator<? super K, ? super V, VR> aggregator,
+         *          final Named named,
+         *          final Materialized<K, VR, SessionStore<Bytes, byte[]>> materialized)
+         */
+
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
-        final var k = input.keyType();
-        final var v = input.valueType();
-        final var vr = streamDataTypeOf(firstSpecificType(initializer, aggregator), false);
-        checkFunction(INITIALIZER_NAME, initializer, vr);
-        checkFunction(AGGREGATOR_NAME, aggregator, vr, superOf(k), superOf(v), superOf(vr));
+        final var k = streamDataTypeOf(input.keyType().userType(), true);
+        final var v = streamDataTypeOf(input.valueType().userType(), false);
+        final var vr = streamDataTypeOf(initializer.resultType, false);
+        checkFunction(INITIALIZER_NAME, initializer, equalTo(vr));
+        checkFunction(AGGREGATOR_NAME, aggregator, equalTo(vr), superOf(k), superOf(v), superOf(vr));
         final var kvStore = validateKeyValueStore(store, k, vr);
 
         final var init = new UserInitializer(initializer);
@@ -90,16 +98,16 @@ public class AggregateOperation extends StoreOperation {
          *          final Aggregator<? super K, ? super V, VR> adder,
          *          final Aggregator<? super K, ? super V, VR> subtractor,
          *          final Named named,
-         *          final Materialized<K, VR, KeyValueStore<Bytes, byte[]>> materialized)
+         *          final Materialized<K, VR, SessionStore<Bytes, byte[]>> materialized)
          */
 
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
-        final var k = input.keyType();
-        final var v = input.valueType();
-        final var vr = streamDataTypeOf(firstSpecificType(initializer, adder, subtractor), false);
-        checkFunction(INITIALIZER_NAME, initializer, vr);
-        checkFunction(ADDER_NAME, adder, vr, superOf(k), superOf(v), superOf(vr));
-        checkFunction(SUBTRACTOR_NAME, subtractor, vr, superOf(k), superOf(vr), superOf(vr));
+        final var k = streamDataTypeOf(input.keyType().userType(), true);
+        final var v = streamDataTypeOf(input.valueType().userType(), false);
+        final var vr = streamDataTypeOf(initializer.resultType, false);
+        checkFunction(INITIALIZER_NAME, initializer, equalTo(vr));
+        checkFunction(ADDER_NAME, adder, equalTo(vr), superOf(k), superOf(v), superOf(vr));
+        checkFunction(SUBTRACTOR_NAME, subtractor, equalTo(vr), superOf(k), superOf(vr), superOf(vr));
         final var kvStore = validateKeyValueStore(store, k, vr);
 
         final var init = new UserInitializer(initializer);
@@ -133,12 +141,12 @@ public class AggregateOperation extends StoreOperation {
          */
 
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
-        final var k = input.keyType();
-        final var v = input.valueType();
-        final var vr = streamDataTypeOf(firstSpecificType(initializer, aggregator, merger), false);
-        checkFunction(INITIALIZER_NAME, initializer, vr);
-        checkFunction(AGGREGATOR_NAME, aggregator, vr, superOf(k), superOf(v), superOf(vr));
-        checkFunction(MERGER_NAME, merger, vr, superOf(k), equalTo(vr), superOf(vr));
+        final var k = streamDataTypeOf(input.keyType().userType(), true);
+        final var v = streamDataTypeOf(input.valueType().userType(), false);
+        final var vr = streamDataTypeOf(initializer.resultType, false);
+        checkFunction(INITIALIZER_NAME, initializer, equalTo(vr));
+        checkFunction(AGGREGATOR_NAME, aggregator, equalTo(vr), superOf(k), superOf(v), superOf(vr));
+        checkFunction(MERGER_NAME, merger, equalTo(vr), superOf(k), equalTo(vr), superOf(vr));
         final var sessionStore = validateSessionStore(store, k, vr);
 
         final var init = new UserInitializer(initializer);
@@ -168,15 +176,15 @@ public class AggregateOperation extends StoreOperation {
          *          final Initializer<VR> initializer,
          *          final Aggregator<? super K, ? super V, VR> aggregator,
          *          final Named named,
-         *          final Materialized<K, VR, WindowStore<Bytes, byte[]>> materialized)
+         *          final Materialized<K, VR, SessionStore<Bytes, byte[]>> materialized)
          */
 
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
-        final var k = input.keyType();
-        final var v = input.valueType();
-        final var vr = streamDataTypeOf(firstSpecificType(initializer, aggregator), false);
-        checkFunction(INITIALIZER_NAME, initializer, vr);
-        checkFunction(AGGREGATOR_NAME, aggregator, vr, superOf(k), superOf(v), superOf(vr));
+        final var k = streamDataTypeOf(input.keyType().userType(), true);
+        final var v = streamDataTypeOf(input.valueType().userType(), false);
+        final var vr = streamDataTypeOf(initializer.resultType, false);
+        checkFunction(INITIALIZER_NAME, initializer, equalTo(vr));
+        checkFunction(AGGREGATOR_NAME, aggregator, equalTo(vr), superOf(k), superOf(v), superOf(vr));
         final var windowStore = validateWindowStore(store, k, vr);
 
         final var init = new UserInitializer(initializer);

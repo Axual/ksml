@@ -4,7 +4,7 @@ package io.axual.ksml.user;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,11 @@ import io.axual.ksml.util.DataUtil;
 import org.apache.kafka.streams.kstream.ForeachAction;
 
 public class UserForeachAction extends Invoker implements ForeachAction<Object, Object> {
+
     public UserForeachAction(UserFunction function) {
         super(function);
         verifyParameterCount(2);
-        verifyNoResult();
+        verifyNoResultReturned();
     }
 
     @Override
@@ -40,7 +41,6 @@ public class UserForeachAction extends Invoker implements ForeachAction<Object, 
     }
 
     public void apply(StateStores stores, Object key, Object value) {
-        verifyNoAppliedResult();
         function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
     }
 }

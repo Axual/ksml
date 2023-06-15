@@ -4,7 +4,7 @@ package io.axual.ksml.operation;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ package io.axual.ksml.operation;
 
 
 import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.operation.processor.OperationProcessorSupplier;
 import io.axual.ksml.operation.processor.PeekProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
@@ -42,9 +41,15 @@ public class PeekOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
+        /*    Kafka Streams method signature:
+         *    KTable<K, V> filterNot(
+         *          final Predicate<? super K, ? super V> predicate
+         *          final Named named)
+         */
+
         final var k = input.keyType();
         final var v = input.valueType();
-        checkFunction(FOREACHACTION_NAME, forEachAction, new UserType(DataNull.DATATYPE), superOf(k), superOf(v));
+        checkFunction(FOREACHACTION_NAME, forEachAction, equalTo(DataNull.DATATYPE), superOf(k), superOf(v));
 
         final var action = new UserForeachAction(forEachAction);
         final var storeNames = combineStoreNames(this.storeNames, forEachAction.storeNames);

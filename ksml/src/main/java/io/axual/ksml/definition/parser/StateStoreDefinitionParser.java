@@ -4,7 +4,7 @@ package io.axual.ksml.definition.parser;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,19 +34,16 @@ import io.axual.ksml.store.StoreType;
 import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class StateStoreDefinitionParser extends BaseParser<StateStoreDefinition> {
+    private final String defaultName;
     private final StoreType expectedType;
 
     public StateStoreDefinitionParser() {
-        this(null);
-    }
-
-    public StateStoreDefinitionParser(StoreType expectedType) {
         this(null, null);
     }
 
-    public StateStoreDefinitionParser(StoreType expectedType, String defaultName) {
+    public StateStoreDefinitionParser(String defaultName, StoreType expectedType) {
+        this.defaultName = defaultName;
         this.expectedType = expectedType;
-        setDefaultName(defaultName);
     }
 
     @Override
@@ -80,18 +77,15 @@ public class StateStoreDefinitionParser extends BaseParser<StateStoreDefinition>
     private StateStoreDefinition parseStore(YamlNode node, StoreType type) {
         return switch (type) {
             case KEYVALUE_STORE -> new KeyValueStateStoreDefinition(
-                    parseString(node, STORE_NAME_ATTRIBUTE, getDefaultName()),
+                    parseString(node, STORE_NAME_ATTRIBUTE),
                     parseBoolean(node, STORE_PERSISTENT_ATTRIBUTE),
                     parseBoolean(node, STORE_TIMESTAMPED_ATTRIBUTE),
-                    parseBoolean(node, STORE_VERSIONED_ATTRIBUTE),
-                    parseDuration(node, STORE_HISTORY_RETENTION_ATTRIBUTE),
-                    parseDuration(node, STORE_SEGMENT_INTERVAL_ATTRIBUTE),
                     UserTypeParser.parse(parseString(node, STORE_KEYTYPE_ATTRIBUTE)),
                     UserTypeParser.parse(parseString(node, STORE_VALUETYPE_ATTRIBUTE)),
                     parseBoolean(node, STORE_CACHING_ATTRIBUTE),
                     parseBoolean(node, STORE_LOGGING_ATTRIBUTE));
             case SESSION_STORE -> new SessionStateStoreDefinition(
-                    parseString(node, STORE_NAME_ATTRIBUTE, getDefaultName()),
+                    parseString(node, STORE_NAME_ATTRIBUTE),
                     parseBoolean(node, STORE_PERSISTENT_ATTRIBUTE),
                     parseBoolean(node, STORE_TIMESTAMPED_ATTRIBUTE),
                     parseDuration(node, STORE_RETENTION_ATTRIBUTE),
@@ -100,7 +94,7 @@ public class StateStoreDefinitionParser extends BaseParser<StateStoreDefinition>
                     parseBoolean(node, STORE_CACHING_ATTRIBUTE),
                     parseBoolean(node, STORE_LOGGING_ATTRIBUTE));
             case WINDOW_STORE -> new WindowStateStoreDefinition(
-                    parseString(node, STORE_NAME_ATTRIBUTE, getDefaultName()),
+                    parseString(node, STORE_NAME_ATTRIBUTE),
                     parseBoolean(node, STORE_PERSISTENT_ATTRIBUTE),
                     parseBoolean(node, STORE_TIMESTAMPED_ATTRIBUTE),
                     parseDuration(node, STORE_RETENTION_ATTRIBUTE),

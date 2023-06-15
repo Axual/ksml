@@ -4,7 +4,7 @@ package io.axual.ksml.operation;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,8 +36,15 @@ public class MergeOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        final var k = input.keyType();
-        final var v = input.valueType();
+        /*
+         *    Kafka Streams method signature:
+         *    KStream<K, V> merge(
+         *          final KStream<K, V> stream,
+         *          final Named named);
+         */
+
+        final var k = streamDataTypeOf(input.keyType().userType(), true);
+        final var v = streamDataTypeOf(input.valueType().userType(), false);
         checkType("Merge stream keyType", mergeStream.keyType().userType(), equalTo(k));
         checkType("Merge stream valueType", mergeStream.valueType().userType(), equalTo(v));
         final var output = name != null

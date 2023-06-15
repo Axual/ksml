@@ -4,7 +4,7 @@ package io.axual.ksml.operation.parser;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ public abstract class OperationParser<T extends StreamOperation> extends Context
     }
 
     protected OperationConfig parseConfig(YamlNode node, String operationName) {
-        var storeNames = new ListParser<>("operation store", new StringValueParser()).parse(node.get(OPERATION_STORES_ATTRIBUTE));
+        var storeNames = new ListParser<>(new StringValueParser()).parse(node.get(OPERATION_STORES_ATTRIBUTE));
         return new OperationConfig(
                 operationName,
                 context.getNotationLibrary(),

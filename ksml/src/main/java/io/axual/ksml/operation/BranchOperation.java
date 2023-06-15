@@ -4,7 +4,7 @@ package io.axual.ksml.operation;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,14 @@ public class BranchOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        final var k = input.keyType();
-        final var v = input.valueType();
+        /*    Kafka Streams method signature:
+         *    KStream<K, V>[] branch(
+         *          final Named named,
+         *          final Predicate<? super K, ? super V>... predicates)
+         */
+
+        final var k = streamDataTypeOf(input.keyType().userType(), true);
+        final var v = streamDataTypeOf(input.valueType().userType(), false);
 
         // Prepare the branch predicates to pass into the KStream
         @SuppressWarnings("unchecked") final var predicates = new Predicate[branches.size()];

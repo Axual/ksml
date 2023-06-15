@@ -4,7 +4,7 @@ package io.axual.ksml.operation;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.UserTupleType;
-import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.operation.processor.OperationProcessorSupplier;
 import io.axual.ksml.operation.processor.TransformKeyValueProcessor;
@@ -44,12 +43,18 @@ public class TransformKeyValueOperation extends BaseOperation {
 
     @Override
     public BaseStreamWrapper apply(KStreamWrapper input) {
+        /*    Kafka Streams method signature:
+         *    <KR, VR> KStream<KR, VR> map(
+         *          final KeyValueMapper<? super K, ? super V, ? extends KeyValue<? extends KR, ? extends VR>> mapper,
+         *          final Named named)
+         */
+
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var kvTuple = firstSpecificType(mapper, new UserType(new UserTupleType(k.userType(), v.userType())));
+        final var kvTuple = mapper.resultType;
         checkTuple(MAPPER_NAME + " resultType", kvTuple, DataType.UNKNOWN, DataType.UNKNOWN);
-        checkFunction(MAPPER_NAME, mapper, kvTuple, superOf(k), superOf(v));
+        checkFunction(MAPPER_NAME, mapper, equalTo(kvTuple), superOf(k), superOf(v));
 
         if (kvTuple.dataType() instanceof UserTupleType userTupleType && userTupleType.subTypeCount() == 2) {
             final var kr = streamDataTypeOf(userTupleType.getUserType(0), true);
@@ -66,6 +71,6 @@ public class TransformKeyValueOperation extends BaseOperation {
                     : input.stream.process(supplier, storeNames);
             return new KStreamWrapper(output, kr, vr);
         }
-        throw new KSMLExecutionException("ResultType of keyValueTransformer not defined as a tuple of key and value");
+        throw new KSMLExecutionException("ResultType of keyValueTransformer not correctly specified");
     }
 }

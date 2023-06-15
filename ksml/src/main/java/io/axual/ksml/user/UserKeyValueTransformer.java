@@ -4,7 +4,7 @@ package io.axual.ksml.user;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,12 +30,15 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 
 public class UserKeyValueTransformer extends Invoker implements KeyValueMapper<Object, Object, KeyValue<Object, Object>> {
-    private final static DataType EXPECTED_RESULT_TYPE = new TupleType(DataType.UNKNOWN, DataType.UNKNOWN);
+    protected final DataType resultKeyType;
+    protected final DataType resultValueType;
 
     public UserKeyValueTransformer(UserFunction function) {
         super(function);
         verifyParameterCount(2);
-        verifyResultType(EXPECTED_RESULT_TYPE);
+        verifyResultReturned(new TupleType(DataType.UNKNOWN, DataType.UNKNOWN));
+        resultKeyType = ((TupleType) function.resultType.dataType()).subType(0);
+        resultValueType = ((TupleType) function.resultType.dataType()).subType(1);
     }
 
     @Override
@@ -45,10 +48,7 @@ public class UserKeyValueTransformer extends Invoker implements KeyValueMapper<O
     }
 
     public KeyValue<Object, Object> apply(StateStores stores, Object key, Object value) {
-        verifyAppliedResultType(EXPECTED_RESULT_TYPE);
-        final var kr = ((TupleType) function.appliedResultType.dataType()).subType(0);
-        final var vr = ((TupleType) function.appliedResultType.dataType()).subType(1);
-        final var result = function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
-        return function.convertToKeyValue(result, kr, vr);
+        var result = function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
+        return function.convertToKeyValue(result, resultKeyType, resultValueType);
     }
 }

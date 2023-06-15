@@ -4,7 +4,7 @@ package io.axual.ksml.operation;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,10 +41,16 @@ public class ToStreamOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KTableWrapper input) {
-        final var k = input.keyType();
-        final var v = input.valueType();
-        final var kr = mapper != null ? streamDataTypeOf(firstSpecificType(mapper, k), true) : k;
-        if (mapper != null) checkFunction(MAPPER_NAME, mapper, kr, superOf(k), superOf(v));
+        /*    Kafka Streams method signature:
+         *    <KR> KStream<KR, V> toStream(
+         *          final KeyValueMapper<? super K, ? super V, ? extends KR> mapper,
+         *          final Named named)
+         */
+
+        final var k = streamDataTypeOf(input.keyType().userType(), true);
+        final var v = streamDataTypeOf(input.valueType().userType(), false);
+        final var kr = mapper != null ? streamDataTypeOf(mapper.resultType, true) : k;
+        if (mapper != null) checkFunction(MAPPER_NAME, mapper, equalTo(kr), superOf(k), superOf(v));
 
         final KeyValueMapper<Object, Object, Object> userMapper = mapper != null
                 ? new UserKeyTransformer(mapper)

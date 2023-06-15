@@ -4,7 +4,7 @@ package io.axual.ksml.definition;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@ package io.axual.ksml.definition;
 
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.store.StoreType;
-
-import java.util.Objects;
 
 public abstract class StateStoreDefinition {
     private final StoreType type;
@@ -84,23 +82,5 @@ public abstract class StateStoreDefinition {
 
     public boolean logging() {
         return logging != null && logging;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (!(other instanceof StateStoreDefinition def)) return false;
-        return (Objects.equals(type, def.type)
-                && Objects.equals(name, def.name)
-                && Objects.equals(persistent, def.persistent)
-                && Objects.equals(timestamped, def.timestamped)
-                && Objects.equals(keyType, def.keyType)
-                && Objects.equals(valueType, def.valueType)
-                && Objects.equals(caching, def.caching)
-                && Objects.equals(logging, def.logging));
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), type, name, persistent, timestamped, keyType, valueType, caching, logging);
     }
 }

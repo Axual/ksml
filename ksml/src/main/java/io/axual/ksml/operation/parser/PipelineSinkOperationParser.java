@@ -4,7 +4,7 @@ package io.axual.ksml.operation.parser;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ public class PipelineSinkOperationParser extends OperationParser<StreamOperation
     public StreamOperation parse(YamlNode node) {
         if (node == null) return null;
         if (node.get(PIPELINE_BRANCH_ATTRIBUTE) != null) {
-            return new BranchOperation(parseConfig(node, determineName("branch")), new ListParser<>("branch definition", new BranchDefinitionParser(context)).parse(node.get(PIPELINE_BRANCH_ATTRIBUTE)));
+            return new BranchOperation(parseConfig(node, determineName("branch")), new ListParser<>(new BranchDefinitionParser(context)).parse(node.get(PIPELINE_BRANCH_ATTRIBUTE)));
         }
         if (node.get(PIPELINE_FOREACH_ATTRIBUTE) != null) {
             return new ForEachOperation(parseConfig(node, determineName("for_each")), parseFunction(node, PIPELINE_FOREACH_ATTRIBUTE, new ForEachActionDefinitionParser()));
@@ -59,7 +59,7 @@ public class PipelineSinkOperationParser extends OperationParser<StreamOperation
             return new ToTopicNameExtractorOperation(parseConfig(node, determineName("to_name_extract")), parseFunction(node, PIPELINE_TOTOPICNAMEEXTRACTOR_ATTRIBUTE, new TopicNameExtractorDefinitionParser()));
         }
         if (node.get(PIPELINE_TO_ATTRIBUTE) != null) {
-            final var def = new ReferenceOrInlineParser<>("stream", PIPELINE_TO_ATTRIBUTE, context.getStreamDefinitions()::get, new StreamDefinitionParser()).parseDefinition(node);
+            final var def = new ReferenceOrInlineParser<>("stream", PIPELINE_TO_ATTRIBUTE, context.getStreamDefinitions()::get, new StreamDefinitionParser()).parse(node);
             if (def != null) {
                 context.registerTopic(def.topic);
                 return new ToOperation(parseConfig(node, determineName("to")), def);

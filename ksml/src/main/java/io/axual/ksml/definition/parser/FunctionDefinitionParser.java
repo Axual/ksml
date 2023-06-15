@@ -4,7 +4,7 @@ package io.axual.ksml.definition.parser;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,11 +40,11 @@ public class FunctionDefinitionParser extends BaseParser<FunctionDefinition> {
     public FunctionDefinition parse(YamlNode node) {
         if (node == null) return null;
         return FunctionDefinition.as(
-                new ListParser<>("function parameter", new ParameterDefinitionParser()).parse(node.get(FUNCTION_PARAMETERS_ATTRIBUTE)).toArray(new ParameterDefinition[0]),
+                new ListParser<>(new ParameterDefinitionParser()).parse(node.get(FUNCTION_PARAMETERS_ATTRIBUTE)).toArray(new ParameterDefinition[0]),
                 UserTypeParser.parse(parseString(node, FUNCTION_RESULTTYPE_ATTRIBUTE)),
                 parseString(node, FUNCTION_EXPRESSION_ATTRIBUTE),
                 parseMultilineText(node, FUNCTION_CODE_ATTRIBUTE),
                 parseMultilineText(node, FUNCTION_GLOBALCODE_ATTRIBUTE),
-                new ListParser<>("function store", new StringValueParser()).parse(node.get(FUNCTION_STORES_ATTRIBUTE)));
+                new ListParser<>(new StringValueParser()).parse(node.get(FUNCTION_STORES_ATTRIBUTE)));
     }
 }

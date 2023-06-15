@@ -4,7 +4,7 @@ package io.axual.ksml.operation;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,12 +33,16 @@ public class GroupByKeyOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
+        /*    Kafka Streams method signature:
+         *    KGroupedStream<K, V> groupByKey(
+         *          final Grouped<K, V> grouped);
+         */
+
         final var k = input.keyType();
         final var v = input.valueType();
 
         final var kvStore = validateKeyValueStore(store, k, v);
         var grouped = Grouped.with(k.getSerde(), v.getSerde());
-        if (name != null) grouped = grouped.withName(name);
         if (kvStore != null) grouped = grouped.withName(kvStore.name());
         final var output = input.stream.groupByKey(grouped);
         return new KGroupedStreamWrapper(output, k, v);

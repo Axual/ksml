@@ -4,7 +4,7 @@ package io.axual.ksml.parser;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,23 +22,12 @@ package io.axual.ksml.parser;
 
 
 import io.axual.ksml.exception.KSMLParseException;
-import io.axual.ksml.execution.FatalError;
 
 import java.time.Duration;
 import java.util.function.Function;
 import java.util.function.ToLongFunction;
 
 public abstract class BaseParser<T> {
-    private String defaultName;
-
-    protected String getDefaultName() {
-        return defaultName;
-    }
-
-    public void setDefaultName(String defaultName) {
-        this.defaultName = defaultName;
-    }
-
     protected interface BooleanToStringConverter {
         String interpret(boolean value);
     }
@@ -65,15 +54,7 @@ public abstract class BaseParser<T> {
     }
 
     protected Duration parseDuration(YamlNode parent, String childName) {
-        return parseDuration(parent, childName, (Duration) null);
-    }
-
-    protected Duration parseDuration(YamlNode parent, String childName, String errorMessageIfNull) {
-        final var result = parseDuration(parent, childName, (Duration) null);
-        if (result == null && errorMessageIfNull != null) {
-            throw FatalError.parseError(parent, errorMessageIfNull);
-        }
-        return result;
+        return parseDuration(parent, childName, null);
     }
 
     protected Duration parseDuration(YamlNode parent, String childName, Duration valueIfNull) {

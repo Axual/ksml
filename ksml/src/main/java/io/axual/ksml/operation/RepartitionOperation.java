@@ -4,7 +4,7 @@ package io.axual.ksml.operation;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
@@ -41,13 +40,19 @@ public class RepartitionOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
+        /*    Kafka Streams method signature:
+         *    KStream<K, V> repartition(
+         *          final Repartitioned<K, V> repartitioned)
+         */
+
         checkNotNull(partitioner, "Partitioner must be defined");
         final var k = input.keyType();
         final var v = input.valueType();
-        checkFunction(PARTITIONER_NAME, partitioner, new UserType(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
-        var repartitioned = Repartitioned.with(k.getSerde(), v.getSerde()).withStreamPartitioner(new UserStreamPartitioner(partitioner));
-        if (name != null) repartitioned = repartitioned.withName(name);
-        final var output = input.stream.repartition(repartitioned);
+        checkFunction(PARTITIONER_NAME, partitioner, equalTo(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
+        final var repartitioned = Repartitioned.with(k.getSerde(), v.getSerde()).withStreamPartitioner(new UserStreamPartitioner(partitioner));
+        final var output = name != null
+                ? input.stream.repartition(repartitioned.withName(name))
+                : input.stream.repartition(repartitioned);
         return new KStreamWrapper(output, k, v);
     }
 }

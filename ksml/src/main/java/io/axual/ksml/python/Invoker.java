@@ -4,7 +4,7 @@ package io.axual.ksml.python;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,17 @@ package io.axual.ksml.python;
  */
 
 
-import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.user.UserFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+/**
+ * Base class for stream operations.
+ * Subclasses can implement Kafka Streams operations by subclassing this class and invoking
+ * the {@link UserFunction} contained in it.
+ */
 public abstract class Invoker {
     private static final Logger LOG = LoggerFactory.getLogger(Invoker.class);
     protected final UserFunction function;
@@ -46,35 +50,22 @@ public abstract class Invoker {
     }
 
     protected void verifyParameterCount(int count) {
-        verify(function.fixedParameterCount <= count, "Function needs at least " + count + " parameters");
-        verify(function.parameters.length >= count, "Function needs at most " + count + " parameters");
+        verify(function.parameters.length == count, "Function needs " + count + " parameters");
     }
 
-    protected void verifyNoResult() {
-        verifyNoResultInternal(function.resultType);
-    }
-
-    protected void verifyNoAppliedResult() {
-        verifyNoResultInternal(function.appliedResultType);
-    }
-
-    private void verifyNoResultInternal(UserType type) {
-        if (type != null && type.dataType() != DataNull.DATATYPE) {
-            LOG.warn("Function {} used as {}: Function return value of type " + type + " will be ignored", function.name, getClass().getSimpleName());
+    protected void verifyNoResultReturned() {
+        if (function.resultType != null) {
+            LOG.warn("Function {} used as {}: Function return value will be ignored", function.name, getClass().getSimpleName());
         }
     }
 
-    protected void verifyResultType(DataType expected) {
-        verifyTypeInternal(function.resultType, expected);
+    protected void verifyResultReturned(DataType expected) {
+        verify(function.resultType != null, "Function does not return a result");
+        verify(expected.isAssignableFrom(function.resultType.dataType()), "Function returns incompatible dataType: " + function.resultType.dataType() + ", expected " + expected);
     }
 
-    protected void verifyAppliedResultType(DataType expected) {
-        verifyTypeInternal(function.appliedResultType, expected);
-    }
-
-    private void verifyTypeInternal(UserType type, DataType expected) {
-        verify(type != null, "Function does not return a result, while " + expected + " was expected");
-        verify(expected.isAssignableFrom(type.dataType()), "Function does not return expected " + expected + ". but " + type.dataType() + " instead");
+    protected void verifyResultType(DataType type) {
+        verify(type.isAssignableFrom(function.resultType.dataType()), "Function returns " + function.resultType.dataType() + " instead of " + type);
     }
 
     protected void verifyNoStoresUsed() {

@@ -4,7 +4,7 @@ package io.axual.ksml.operation;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,24 +75,32 @@ public class JoinOperation extends StoreOperation {
         checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
+        final var vr = streamDataTypeOf(valueJoiner.resultType, false);
 
-        if (joinStream instanceof KStreamWrapper otherStream) {
-            final var vo = otherStream.valueType();
-            final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
+        if (joinStream instanceof KStreamWrapper kStreamWrapper) {
+            /*    Kafka Streams method signature:
+             *    <VO, VR> KStream<K, VR> join(
+             *          final KStream<K, VO> otherStream,
+             *          final ValueJoiner<? super V, ? super VO, ? extends VR> joiner,
+             *          final JoinWindows windows,
+             *          final StreamJoined<K, V, VO> streamJoined)
+             */
+
+            final var vo = kStreamWrapper.valueType();
             checkType("Join stream keyType", vo, equalTo(k));
-            checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vo));
-            var joined = StreamJoined.with(k.getSerde(), v.getSerde(), vo.getSerde());
+            checkFunction(VALUEJOINER_NAME, valueJoiner, equalTo(vr), superOf(v), superOf(vo));
+            var joined = StreamJoined.with(k.getSerde(), v.getSerde(), vr.getSerde());
             if (name != null) joined = joined.withName(name);
             if (store != null) {
                 if (store.name() != null) joined = joined.withStoreName(store.name());
                 joined = store.logging() ? joined.withLoggingEnabled(new HashMap<>()) : joined.withLoggingDisabled();
             }
             final var joiner = new UserValueJoiner(valueJoiner);
-            final var output = (KStream) input.stream.join(otherStream.stream, joiner, joinWindows, joined);
+            final var output = (KStream) input.stream.join(kStreamWrapper.stream, joiner, joinWindows, joined);
             return new KStreamWrapper(output, k, vr);
         }
 
-        if (joinStream instanceof KTableWrapper otherTable) {
+        if (joinStream instanceof KTableWrapper kTableWrapper) {
             /*    Kafka Streams method signature:
              *    <VT, VR> KStream<K, VR> join(
              *          final KTable<K, VT> table,
@@ -100,17 +108,16 @@ public class JoinOperation extends StoreOperation {
              *          final Joined<K, V, VT> joined)
              */
 
-            final var vt = otherTable.valueType();
-            final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vt, v), false);
-            checkType("Join table keyType", otherTable.keyType(), equalTo(k));
-            checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vt));
-            var joined = Joined.with(k.getSerde(), v.getSerde(), vt.getSerde());
+            var vt = kTableWrapper.valueType();
+            checkType("Join table keyType", kTableWrapper.keyType(), equalTo(k));
+            checkFunction(VALUEJOINER_NAME, valueJoiner, equalTo(vr), superOf(v), superOf(vt));
+            var joined = Joined.with(k.getSerde(), v.getSerde(), vr.getSerde());
             if (name != null) joined = joined.withName(name);
-            final var output = (KStream) input.stream.join(otherTable.table, new UserValueJoiner(valueJoiner), joined);
+            final var output = (KStream) input.stream.join(kTableWrapper.table, new UserValueJoiner(valueJoiner), joined);
             return new KStreamWrapper(output, k, vr);
         }
 
-        if (joinStream instanceof GlobalKTableWrapper otherGlobalKTable) {
+        if (joinStream instanceof GlobalKTableWrapper globalKTableWrapper) {
             /*    Kafka Streams method signature:
              *    <GK, GV, RV> KStream<K, RV> join(
              *          final GlobalKTable<GK, GV> globalTable,
@@ -120,20 +127,20 @@ public class JoinOperation extends StoreOperation {
              */
 
             checkNotNull(keyValueMapper, KEYSELECTOR_NAME.toLowerCase());
-            final var gk = otherGlobalKTable.keyType();
-            final var gv = otherGlobalKTable.valueType();
-            final var rv = streamDataTypeOf(firstSpecificType(valueJoiner, gv, v), false);
-            checkType("Join globalKTable keyType", otherGlobalKTable.keyType(), equalTo(k));
-            checkFunction(KEYSELECTOR_NAME, keyValueMapper, subOf(gk), gk, superOf(k), superOf(v));
-            checkFunction(VALUEJOINER_NAME, valueJoiner, rv, superOf(v), superOf(gv));
+            var gk = globalKTableWrapper.keyType();
+            var gv = globalKTableWrapper.valueType();
+            var rv = streamDataTypeOf(valueJoiner.resultType, false);
+            checkType("Join globalKTable keyType", globalKTableWrapper.keyType(), equalTo(k));
+            checkFunction(KEYSELECTOR_NAME, keyValueMapper, subOf(gk), superOf(k), superOf(v));
+            checkFunction(VALUEJOINER_NAME, valueJoiner, subOf(rv), superOf(v), superOf(gv));
             final var output = name != null
                     ? (KStream) input.stream.join(
-                    otherGlobalKTable.globalTable,
+                    globalKTableWrapper.globalTable,
                     new UserKeyTransformer(keyValueMapper),
                     new UserValueJoiner(valueJoiner),
                     Named.as(name))
                     : (KStream) input.stream.join(
-                    otherGlobalKTable.globalTable,
+                    globalKTableWrapper.globalTable,
                     new UserKeyTransformer(keyValueMapper),
                     new UserValueJoiner(valueJoiner));
             return new KStreamWrapper(output, k, rv);
@@ -147,6 +154,7 @@ public class JoinOperation extends StoreOperation {
         checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
+        final var vr = streamDataTypeOf(valueJoiner.resultType, false);
 
         if (joinStream instanceof KTableWrapper kTableWrapper) {
             /*    Kafka Streams method signature:
@@ -158,9 +166,8 @@ public class JoinOperation extends StoreOperation {
              */
 
             final var vo = kTableWrapper.valueType();
-            final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
             checkType("Join table keyType", kTableWrapper.keyType(), equalTo(k));
-            checkFunction(VALUEJOINER_NAME, valueJoiner, subOf(vr), vr, superOf(v), superOf(vo));
+            checkFunction(VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(v), superOf(vo));
             final var kvStore = validateKeyValueStore(store, k, vr);
             if (kvStore != null) {
                 final var mat = materialize(kvStore);

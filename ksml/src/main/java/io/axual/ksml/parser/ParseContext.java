@@ -4,7 +4,7 @@ package io.axual.ksml.parser;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,9 +44,7 @@ public interface ParseContext {
 
     Map<String, FunctionDefinition> getFunctionDefinitions();
 
-    UserFunction createAnonUserFunction(String name, FunctionDefinition definition, YamlNode node);
-
-    UserFunction createNamedUserFunction(String name, FunctionDefinition definition);
+    UserFunction getUserFunction(FunctionDefinition definition, String name);
 
     Map<String, StateStoreDefinition> getStoreDefinitions();
 
@@ -60,5 +58,5 @@ public interface ParseContext {
 
     void registerStateStore(String name, StateStoreDefinition store);
 
-    void registerStateStoreAsCreated(StateStoreDefinition store);
+    void registerStateStoreAsCreated(String name, StateStoreDefinition store);
 }

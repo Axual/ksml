@@ -4,7 +4,7 @@ package io.axual.ksml.user;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,12 +29,10 @@ import io.axual.ksml.util.DataUtil;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 
 public class UserKeyTransformer extends Invoker implements KeyValueMapper<Object, Object, Object> {
-    private final static DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
-
     public UserKeyTransformer(UserFunction function) {
         super(function);
         verifyParameterCount(2);
-        verifyResultType(EXPECTED_RESULT_TYPE);
+        verifyResultReturned(DataType.UNKNOWN);
     }
 
     @Override
@@ -44,7 +42,6 @@ public class UserKeyTransformer extends Invoker implements KeyValueMapper<Object
     }
 
     public DataObject apply(StateStores stores, Object key, Object value) {
-        verifyAppliedResultType(EXPECTED_RESULT_TYPE);
         return function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
     }
 }

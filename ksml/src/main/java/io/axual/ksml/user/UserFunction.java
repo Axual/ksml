@@ -4,7 +4,7 @@ package io.axual.ksml.user;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,27 +38,24 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+
+/**
+ * Base class for user-defined functions.
+ * Currently there is one subclass {@link io.axual.ksml.python.PythonFunction}, which handles Python based functions.
+ */
 public class UserFunction {
     private static final Logger LOG = LoggerFactory.getLogger(UserFunction.class);
     private static final String[] TEMPLATE = new String[]{};
     public final String name;
     public final ParameterDefinition[] parameters;
-    public final int fixedParameterCount;
     public final UserType resultType;
-    public UserType appliedResultType;
     public final String[] storeNames;
 
     public UserFunction(String name, ParameterDefinition[] parameters, UserType resultType, List<String> storeNames) {
-        this(name, parameters, resultType, storeNames != null ? storeNames.toArray(TEMPLATE) : TEMPLATE);
-    }
-
-    public UserFunction(String name, ParameterDefinition[] parameters, UserType resultType, String[] storeNames) {
         this.name = name;
         this.parameters = parameters;
-        this.fixedParameterCount = getFixedParameterCount(parameters);
         this.resultType = resultType;
-        this.appliedResultType = resultType;
-        this.storeNames = storeNames != null ? storeNames : TEMPLATE;
+        this.storeNames = storeNames != null ? storeNames.toArray(TEMPLATE) : TEMPLATE;
         LOG.info("Registered function '{}'", this);
     }
 
@@ -69,25 +66,6 @@ public class UserFunction {
                 + "(" + String.join(", ", params) + ")"
                 + (resultType != null ? " ==> " + resultType : "")
                 + (storeNames.length > 0 ? " using store" + (storeNames.length > 1 ? "s" : "") + " " + String.join(",", storeNames) : "");
-    }
-
-
-    // Count the number of fixed parameters. Throw an error if the ordering is illegal (ie. fixed parameters should
-    // always come before optional parameters in the params list)
-    private static int getFixedParameterCount(ParameterDefinition[] parameters) {
-        var inOptionals = false;
-        var fixedParamCount = 0;
-        for (final var param : parameters) {
-            if (!param.isOptional()) {
-                if (inOptionals) {
-                    throw new KSMLTopologyException("Error in parameter list, fixed parameters should be listed first: " + Arrays.toString(parameters));
-                }
-                fixedParamCount++;
-            } else {
-                inOptionals = true;
-            }
-        }
-        return fixedParamCount;
     }
 
     protected void checkType(DataType expected, DataObject value) {

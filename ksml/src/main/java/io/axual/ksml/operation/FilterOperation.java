@@ -4,7 +4,7 @@ package io.axual.ksml.operation;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ package io.axual.ksml.operation;
 
 
 import io.axual.ksml.data.object.DataBoolean;
-import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.operation.processor.FilterProcessor;
 import io.axual.ksml.operation.processor.OperationProcessorSupplier;
 import io.axual.ksml.stream.KStreamWrapper;
@@ -43,9 +42,15 @@ public class FilterOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
+        /*    Kafka Streams method signature:
+         *    KStream<K, V> filter(
+         *          final Predicate<? super K, ? super V> predicate
+         *          final Named named)
+         */
+
         final var k = input.keyType();
         final var v = input.valueType();
-        checkFunction(PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k), superOf(v));
+        checkFunction(PREDICATE_NAME, predicate, equalTo(DataBoolean.DATATYPE), superOf(k), superOf(v));
 
         final var action = new UserPredicate(predicate);
         final var storeNames = combineStoreNames(this.storeNames, predicate.storeNames);
@@ -70,7 +75,7 @@ public class FilterOperation extends BaseOperation {
 
         final var k = input.keyType();
         final var v = input.valueType();
-        checkFunction(PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k), superOf(v));
+        checkFunction(PREDICATE_NAME, predicate, equalTo(DataBoolean.DATATYPE), superOf(k), superOf(v));
         final var output = name != null
                 ? input.table.filter(new UserPredicate(predicate), Named.as(name))
                 : input.table.filter(new UserPredicate(predicate));

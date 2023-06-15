@@ -4,7 +4,7 @@ package io.axual.ksml.operation;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,13 +46,19 @@ public class TransformKeyValueToKeyValueListOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        checkNotNull(mapper, MAPPER_NAME.toLowerCase());
-        final var k = input.keyType();
-        final var v = input.valueType();
-        final var mapperResultType = firstSpecificType(mapper, new UserType(new ListType(new TupleType(DataType.UNKNOWN, DataType.UNKNOWN))));
-        checkFunction(MAPPER_NAME, mapper, subOf(mapperResultType), mapperResultType, superOf(k), superOf(v));
+        /*    Kafka Streams method signature:
+         *    <KR, VR> KStream<KR, VR> flatMap(
+         *          final KeyValueMapper<? super K, ? super V, ? extends Iterable<? extends KeyValue<? extends KR, ? extends VR>>> mapper,
+         *          final Named named)
+         */
 
-        if (mapperResultType.dataType() instanceof ListType mapperResultListType &&
+        checkNotNull(mapper, MAPPER_NAME.toLowerCase());
+        final var k = streamDataTypeOf(input.keyType().userType(), true);
+        final var v = streamDataTypeOf(input.valueType().userType(), false);
+        final var mapperResultType = new UserType(new ListType(new TupleType(DataType.UNKNOWN, DataType.UNKNOWN)));
+        checkFunction(MAPPER_NAME, mapper, subOf(mapperResultType), superOf(k), superOf(v));
+
+        if (mapper.resultType.dataType() instanceof ListType mapperResultListType &&
                 mapperResultListType.valueType() instanceof UserTupleType mapperResultListTupleValueType &&
                 mapperResultListTupleValueType.subTypeCount() == 2) {
             final var kr = streamDataTypeOf(mapperResultListTupleValueType.getUserType(0), true);

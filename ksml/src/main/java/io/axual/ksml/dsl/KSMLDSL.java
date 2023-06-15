@@ -4,7 +4,7 @@ package io.axual.ksml.dsl;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,24 +38,21 @@ public class KSMLDSL {
     public static final String FUNCTION_STORES_ATTRIBUTE = "stores";
     public static final String FUNCTION_RESULTTYPE_ATTRIBUTE = "resultType";
     public static final String FUNCTION_EXPRESSION_ATTRIBUTE = "expression";
-    public static final String FILTER_PREDICATE_ATTRIBUTE = "if";
-    public static final String FILTERNOT_PREDICATE_ATTRIBUTE = "if";
+    public static final String FILTER_PREDICATE_ATTRIBUTE = "predicate";
+    public static final String FILTERNOT_PREDICATE_ATTRIBUTE = "predicate";
     public static final String STORE_ATTRIBUTE = "store";
     public static final String STORE_NAME_ATTRIBUTE = "name";
     public static final String STORE_TYPE_ATTRIBUTE = "type";
     public static final String STORE_PERSISTENT_ATTRIBUTE = "persistent";
     public static final String STORE_TIMESTAMPED_ATTRIBUTE = "timestamped";
-    public static final String STORE_VERSIONED_ATTRIBUTE = "versioned";
-    public static final String STORE_HISTORY_RETENTION_ATTRIBUTE = "historyRetention";
-    public static final String STORE_SEGMENT_INTERVAL_ATTRIBUTE = "segmentInterval";
     public static final String STORE_KEYTYPE_ATTRIBUTE = "keyType";
     public static final String STORE_VALUETYPE_ATTRIBUTE = "valueType";
     public static final String STORE_RETENTION_ATTRIBUTE = "retention";
     public static final String STORE_CACHING_ATTRIBUTE = "caching";
     public static final String STORE_LOGGING_ATTRIBUTE = "logging";
-    public static final String STORE_TYPE_KEYVALUE = "keyValueStore";
-    public static final String STORE_TYPE_SESSION = "sessionStore";
-    public static final String STORE_TYPE_WINDOW = "windowStore";
+    public static final String STORE_TYPE_KEYVALUE = "keyValue";
+    public static final String STORE_TYPE_SESSION = "session";
+    public static final String STORE_TYPE_WINDOW = "window";
     public static final String STORE_WINDOWSIZE_ATTRIBUTE = "windowSize";
     public static final String STORE_RETAINDUPLICATES_ATTRIBUTE = "retainDuplicates";
     public static final String MATERIALIZED_ATTRIBUTE = "materialized";
@@ -115,9 +112,7 @@ public class KSMLDSL {
     public static final String OPERATION_STORES_ATTRIBUTE = "stores";
     public static final String OPERATION_SUPPRESS_TYPE = "suppress";
     public static final String OPERATION_TOSTREAM_TYPE = "toStream";
-    public static final String OPERATION_WINDOWBYTIME_TYPE = "windowByTime";
-    public static final String OPERATION_WINDOWBYSESSION_TYPE = "windowBySession";
-    public static final String OPERATION_WINDOWBY_TIME_TYPE = "windowByTime";
+    public static final String OPERATION_WINDOWEDBY_TYPE = "windowedBy";
     public static final String REPARTITION_PARTITIONER_ATTRIBUTE = "partitioner";
     public static final String SUPPRESS_UNTIL_ATTRIBUTE = "until";
     public static final String SUPPRESS_UNTILTIMELIMIT = "timeLimit";
@@ -136,11 +131,9 @@ public class KSMLDSL {
     public static final String TRANSFORMVALUE_MAPPER_ATTRIBUTE = "mapper";
     public static final String FUNCTION_PARAMETER_NAME = "name";
     public static final String FUNCTION_PARAMETER_TYPE = "type";
-    public static final String FUNCTION_PARAMETER_DEFAULT_VALUE = "defaultValue";
     public static final String FUNCTION_TYPE = "type";
     public static final String FUNCTION_TYPE_AGGREGATOR = "aggregator";
     public static final String FUNCTION_TYPE_FOREACHACTION = "forEach";
-    public static final String FUNCTION_TYPE_GENERIC = "generic";
     public static final String FUNCTION_TYPE_INITIALIZER = "initializer";
     public static final String FUNCTION_TYPE_KEYTRANSFORMER = "keyTransformer";
     public static final String FUNCTION_TYPE_KEYVALUEMAPPER = "keyValueMapper";
@@ -156,10 +149,6 @@ public class KSMLDSL {
     public static final String FUNCTION_TYPE_VALUEJOINER = "valueJoiner";
     public static final String FUNCTION_TYPE_VALUETRANSFORMER = "valueTransformer";
     public static final String WINDOWEDBY_WINDOWTYPE_ATTRIBUTE = "windowType";
-    public static final String WINDOWBYTIME_WINDOWTYPE_ATTRIBUTE = "windowType";
-    public static final String WINDOWBYTIME_WINDOWTYPE_TUMBLING = "tumbling";
-    public static final String WINDOWBYTIME_WINDOWTYPE_HOPPING = "hopping";
-    public static final String WINDOWBYTIME_WINDOWTYPE_SLIDING = "sliding";
     public static final String WINDOWEDBY_WINDOWTYPE_SESSION = "session";
     public static final String WINDOWEDBY_WINDOWTYPE_SLIDING = "sliding";
     public static final String WINDOWEDBY_WINDOWTYPE_TIME = "time";

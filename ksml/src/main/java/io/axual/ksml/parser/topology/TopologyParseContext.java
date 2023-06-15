@@ -4,7 +4,7 @@ package io.axual.ksml.parser.topology;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,27 +27,29 @@ import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.SessionStateStoreDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
-import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.definition.WindowStateStoreDefinition;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonFunction;
-import io.axual.ksml.store.StoreUtil;
 import io.axual.ksml.stream.BaseStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
+import org.apache.kafka.streams.state.Stores;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ * Parse context which calls {@link StreamsBuilder} to build up the streams topology and keeps track of the wrapped streams.
+ */
 public class TopologyParseContext implements ParseContext {
     private final PythonContext pythonContext;
     private final StreamsBuilder builder;
@@ -93,10 +95,6 @@ public class TopologyParseContext implements ParseContext {
         }
         streamDefinitions.put(name, def);
         registerTopic(def.topic);
-        if (def instanceof TableDefinition tableDef) {
-            // Ensure the local state store is registered with the StreamBuilder
-            getStreamWrapper(tableDef);
-        }
     }
 
     public void registerFunction(String name, FunctionDefinition functionDefinition) {
@@ -116,38 +114,20 @@ public class TopologyParseContext implements ParseContext {
         }
 
         // Preload the function into the Python context
-        PythonFunction.fromNamed(pythonContext, name, functionDefinition);
+        new PythonFunction(pythonContext, name, functionDefinition);
     }
 
     public void registerStateStore(String name, StateStoreDefinition store) {
-        registerStateStore(name, store, false);
-    }
-
-    public void registerStateStore(String name, StateStoreDefinition store, boolean canBeDuplicate) {
-        // Check if the store is properly named
-        if (store.name() == null || store.name().isEmpty()) {
-            throw new KSMLTopologyException("StateStore does not have a name: " + store);
-        }
-        // Check if the name is equal to the store name (otherwise a parsing error occurred)
-        if (!store.name().equals(name)) {
-            throw new KSMLTopologyException("StateStore name mistmatch: this is a parsing error: " + store);
-        }
         // State stores can only be registered once. Duplicate names are a sign of faulty KSML definitions
         if (stateStoreDefinitions.containsKey(store.name())) {
-            if (!canBeDuplicate) {
-                throw new KSMLTopologyException("StateStore is not unique: " + store.name());
-            }
-            if (!stateStoreDefinitions.get(store.name()).equals(store)) {
-                throw new KSMLTopologyException("StateStore definition conflicts earlier registration: " + store);
-            }
-        } else {
-            stateStoreDefinitions.put(store.name(), store);
+            throw new KSMLTopologyException("StateStore is not unique: " + store.name());
         }
+        stateStoreDefinitions.put(store.name(), store);
     }
 
-    public void registerStateStoreAsCreated(StateStoreDefinition store) {
-        registerStateStore(store.name(), store, true);
-        markStateStoreCreated(store.name());
+    public void registerStateStoreAsCreated(String name, StateStoreDefinition store) {
+        registerStateStore(name, store);
+        markStateStoreCreated(name);
     }
 
     public void markStateStoreCreated(String name) {
@@ -199,12 +179,8 @@ public class TopologyParseContext implements ParseContext {
     }
 
     @Override
-    public UserFunction createAnonUserFunction(String name, FunctionDefinition definition, YamlNode node) {
-        return PythonFunction.fromAnon(pythonContext, name, definition, node.getDottedName());
-    }
-    @Override
-    public UserFunction createNamedUserFunction(String name, FunctionDefinition definition) {
-        return PythonFunction.fromNamed(pythonContext, name, definition);
+    public UserFunction getUserFunction(FunctionDefinition definition, String name) {
+        return new PythonFunction(pythonContext, name, definition);
     }
 
     @Override
@@ -227,17 +203,36 @@ public class TopologyParseContext implements ParseContext {
         final var valueType = new StreamDataType(notationLibrary, store.valueType(), false);
 
         if (store instanceof KeyValueStateStoreDefinition storeDef) {
-            final var storeBuilder = StoreUtil.getStoreBuilder(storeDef, notationLibrary);
+            var supplier = storeDef.persistent()
+                    ? (storeDef.timestamped()
+                    ? Stores.persistentTimestampedKeyValueStore(storeDef.name())
+                    : Stores.persistentKeyValueStore(storeDef.name()))
+                    : Stores.inMemoryKeyValueStore(storeDef.name());
+            var storeBuilder = Stores.keyValueStoreBuilder(supplier, keyType.getSerde(), valueType.getSerde());
+            storeBuilder = storeDef.caching() ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
+            storeBuilder = storeDef.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();
             builder.addStateStore(storeBuilder);
         }
 
         if (store instanceof SessionStateStoreDefinition storeDef) {
-            final var storeBuilder = StoreUtil.getStoreBuilder(storeDef, notationLibrary);
+            var supplier = storeDef.persistent()
+                    ? Stores.persistentSessionStore(storeDef.name(), storeDef.retention())
+                    : Stores.inMemorySessionStore(storeDef.name(), storeDef.retention());
+            var storeBuilder = Stores.sessionStoreBuilder(supplier, keyType.getSerde(), valueType.getSerde());
+            storeBuilder = storeDef.caching() ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
+            storeBuilder = storeDef.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();
             builder.addStateStore(storeBuilder);
         }
 
         if (store instanceof WindowStateStoreDefinition storeDef) {
-            final var storeBuilder = StoreUtil.getStoreBuilder(storeDef, notationLibrary);
+            var supplier = store.persistent()
+                    ? (storeDef.timestamped()
+                    ? Stores.persistentTimestampedWindowStore(storeDef.name(), storeDef.retention(), storeDef.windowSize(), storeDef.retainDuplicates())
+                    : Stores.persistentWindowStore(storeDef.name(), storeDef.retention(), storeDef.windowSize(), storeDef.retainDuplicates()))
+                    : Stores.inMemoryWindowStore(storeDef.name(), storeDef.retention(), storeDef.windowSize(), storeDef.retainDuplicates());
+            var storeBuilder = Stores.windowStoreBuilder(supplier, keyType.getSerde(), valueType.getSerde());
+            storeBuilder = storeDef.caching() ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
+            storeBuilder = storeDef.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();
             builder.addStateStore(storeBuilder);
         }
 

@@ -4,7 +4,7 @@ package io.axual.ksml.operation;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,12 +43,18 @@ public class TransformKeyValueToValueListOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
+        /*    Kafka Streams method signature:
+         *    <VR> KStream<K, VR> flatMapValues(
+         *          final ValueMapperWithKey<? super K, ? super V, ? extends Iterable<? extends VR>> mapper,
+         *          final Named named)
+         */
+
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var vr = streamDataTypeOf(firstSpecificType(mapper, new UserType(new ListType(v.userType().dataType()))), false);
+        final var vr = streamDataTypeOf(mapper.resultType, false);
         final var mapperResultType = new UserType(new ListType(DataType.UNKNOWN));
-        checkFunction(MAPPER_NAME, mapper, subOf(mapperResultType), vr, superOf(k), superOf(v));
+        checkFunction(MAPPER_NAME, mapper, subOf(mapperResultType), superOf(k), superOf(v));
 
         final var action = new UserKeyValueToValueListTransformer(mapper);
         final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames);

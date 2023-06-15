@@ -4,7 +4,7 @@ package io.axual.ksml.operation;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,11 +42,17 @@ public class TransformValueOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
+        /*    Kafka Streams method signature:
+         *    <VR> KStream<K, VR> mapValues(
+         *          final ValueMapperWithKey<? super K, ? super V, ? extends VR> mapper,
+         *          final Named named)
+         */
+
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
-        final var k = input.keyType();
-        final var v = input.valueType();
-        final var vr = streamDataTypeOf(firstSpecificType(mapper, v.userType()), false);
-        checkFunction(MAPPER_NAME, mapper, vr, superOf(k), superOf(v));
+        final var k = streamDataTypeOf(input.keyType().userType(), true);
+        final var v = streamDataTypeOf(input.valueType().userType(), false);
+        final var vr = streamDataTypeOf(mapper.resultType, false);
+        checkFunction(MAPPER_NAME, mapper, equalTo(vr), superOf(k), superOf(v));
 
         final var action = new UserValueTransformer(mapper);
         final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames);
@@ -71,10 +77,10 @@ public class TransformValueOperation extends StoreOperation {
          */
 
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
-        final var k = input.keyType();
-        final var v = input.valueType();
-        final var vr = streamDataTypeOf(firstSpecificType(mapper, v.userType()), false);
-        checkFunction(MAPPER_NAME, mapper, vr, superOf(k), superOf(v));
+        final var k = streamDataTypeOf(input.keyType().userType(), true);
+        final var v = streamDataTypeOf(input.valueType().userType(), false);
+        final var vr = streamDataTypeOf(mapper.resultType, false);
+        checkFunction(MAPPER_NAME, mapper, equalTo(vr), superOf(k), superOf(v));
         final var kvStore = validateKeyValueStore(store, k, vr);
 
         final var map = new UserValueTransformer(mapper);

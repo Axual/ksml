@@ -4,7 +4,7 @@ package io.axual.ksml.operation;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,11 +43,17 @@ public class ToTopicNameExtractorOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        final var k = input.keyType();
-        final var v = input.valueType();
+        /*    Kafka Streams method signature:
+         *    void to(
+         *          final TopicNameExtractor<K, V> topicExtractor,
+         *          final Produced<K, V> produced)
+         */
+
+        final var k = input.keyType().userType();
+        final var v = input.valueType().userType();
         final var topicNameType = new UserType(DataString.DATATYPE);
         final var recordContextType = new UserType(new StructType(RECORD_CONTEXT_SCHEMA));
-        checkFunction(TOPICNAMEEXTRACTOR_NAME, topicNameExtractor, topicNameType, superOf(k), superOf(v), superOf(recordContextType));
+        checkFunction(TOPICNAMEEXTRACTOR_NAME, topicNameExtractor, equalTo(topicNameType), superOf(k), superOf(v), superOf(recordContextType));
         var produced = Produced.with(input.keyType().getSerde(), input.valueType().getSerde());
         if (name != null) produced = produced.withName(name);
         input.stream.to(new UserTopicNameExtractor(topicNameExtractor), produced);
