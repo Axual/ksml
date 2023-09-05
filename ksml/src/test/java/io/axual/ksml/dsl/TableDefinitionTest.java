@@ -4,14 +4,14 @@ package io.axual.ksml.dsl;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,7 +20,6 @@ package io.axual.ksml.dsl;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.notation.Notation;
 import io.axual.ksml.notation.NotationLibrary;
@@ -56,15 +55,15 @@ class TableDefinitionTest {
     @Test
     void testTableDefinition() {
         notationLibrary.register(BinaryNotation.NOTATION_NAME, mockNotation);
-        var stringType = UserTypeParser.parse("string");
 
         // given a TableDefinition
-        var tableDefinition = new TableDefinition("topic", stringType, stringType, new KeyValueStateStoreDefinition("storename", stringType, stringType));
+        var tableDefinition = new TableDefinition("topic", "string", "string", null);
 
         // when it adds itself to Builder
         var streamWrapper = tableDefinition.addToBuilder(builder, "name", notationLibrary, null);
 
         // it adds a ktable to the builder with key and value dataType, and returns a KTableWrapper instance
+        final var stringType = UserTypeParser.parse("string");
         verify(mockNotation).getSerde(stringType.dataType(), true);
         verify(mockNotation).getSerde(stringType.dataType(), false);
 

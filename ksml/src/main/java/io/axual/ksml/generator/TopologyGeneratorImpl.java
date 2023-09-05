@@ -9,9 +9,9 @@ package io.axual.ksml.generator;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -37,6 +37,7 @@ import io.axual.ksml.definition.parser.TypedFunctionDefinitionParser;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.operation.StreamOperation;
+import io.axual.ksml.parser.ListParser;
 import io.axual.ksml.parser.MapParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.parser.topology.TopologyParseContext;
@@ -190,7 +191,7 @@ public class TopologyGeneratorImpl {
         new MapParser<>("globalTable definition", new GlobalTableDefinitionParser()).parse(node.get(GLOBALTABLES_DEFINITION)).forEach(context::registerStreamDefinition);
 
         // Parse all defined stores
-        new MapParser<>("store definition", new StateStoreDefinitionParser()).parse(node.get(STORES_DEFINITION)).forEach(context::registerStateStore);
+        new ListParser<>("store definition", new StateStoreDefinitionParser()).parse(node.get(STORES_DEFINITION)).forEach(context::registerStateStore);
 
         // Parse all defined functions
         new MapParser<>("function definition", new TypedFunctionDefinitionParser()).parse(node.get(FUNCTIONS_DEFINITION)).forEach(context::registerFunction);

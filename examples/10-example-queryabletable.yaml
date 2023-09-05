@@ -11,6 +11,16 @@ tables:
     topic: ksml_sensordata_table
     keyType: string
     valueType: avro:SensorData
+    store:
+      name: queryable_name
+      persistent: true
+      caching: true
+      logging: true
+
+functions:
+  print_message:
+    type: forEach
+    code: "print('key=' + str(key) + ', value=' + str(value))"
 
 pipelines:
   main:
@@ -19,7 +29,8 @@ pipelines:
       - type: filter
         predicate:
           expression: key != None
+      - type: convertKey
+        into: string
       - type: peek
-        forEach:
-          code: log.info("STORED INTO TABLE key={}, value={}", key, value)
+        forEach: print_message
     to: sensor_target
