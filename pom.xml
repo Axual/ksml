@@ -52,7 +52,6 @@
         <module>ksml-axual</module>
         <module>ksml-query</module>
         <module>ksml-runner</module>
-        <module>ksml-scraper</module>
         <module>ksml-data-generator</module>
         <module>ksml-reporting</module>
     </modules>
