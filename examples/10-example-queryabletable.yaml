@@ -11,7 +11,11 @@ tables:
     topic: ksml_sensordata_table
     keyType: string
     valueType: avro:SensorData
-    queryable: true
+    store:
+      name: queryable_name
+      persistent: true
+      caching: true
+      logging: true
 
 functions:
   print_message:

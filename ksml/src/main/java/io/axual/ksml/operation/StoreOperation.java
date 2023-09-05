@@ -9,9 +9,9 @@ package io.axual.ksml.operation;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -149,17 +149,17 @@ public class StoreOperation extends BaseOperation {
     }
 
     protected <V> Materialized<Object, V, KeyValueStore<Bytes, byte[]>> materialize(KeyValueStateStoreDefinition store) {
-        stateStoreRegistry.registerStateStore(store.name(), store);
+        stateStoreRegistry.registerStateStore(store);
         return StoreUtil.materialize(store, notationLibrary);
     }
 
     protected <V> Materialized<Object, V, SessionStore<Bytes, byte[]>> materialize(SessionStateStoreDefinition store) {
-        stateStoreRegistry.registerStateStore(store.name(), store);
+        stateStoreRegistry.registerStateStore(store);
         return StoreUtil.materialize(store, notationLibrary);
     }
 
     protected <V> Materialized<Object, V, WindowStore<Bytes, byte[]>> materialize(WindowStateStoreDefinition store) {
-        stateStoreRegistry.registerStateStore(store.name(), store);
+        stateStoreRegistry.registerStateStore(store);
         return StoreUtil.materialize(store, notationLibrary);
     }
 }

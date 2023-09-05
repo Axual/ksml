@@ -9,9 +9,9 @@ package io.axual.ksml.parser.topology;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -117,7 +117,7 @@ public class TopologyParseContext implements ParseContext {
         new PythonFunction(pythonContext, name, functionDefinition);
     }
 
-    public void registerStateStore(String name, StateStoreDefinition store) {
+    public void registerStateStore(StateStoreDefinition store) {
         // State stores can only be registered once. Duplicate names are a sign of faulty KSML definitions
         if (stateStoreDefinitions.containsKey(store.name())) {
             throw new KSMLTopologyException("StateStore is not unique: " + store.name());
@@ -125,9 +125,9 @@ public class TopologyParseContext implements ParseContext {
         stateStoreDefinitions.put(store.name(), store);
     }
 
-    public void registerStateStoreAsCreated(String name, StateStoreDefinition store) {
-        registerStateStore(name, store);
-        markStateStoreCreated(name);
+    public void registerStateStoreAsCreated(StateStoreDefinition store) {
+        registerStateStore(store);
+        markStateStoreCreated(store.name());
     }
 
     public void markStateStoreCreated(String name) {
