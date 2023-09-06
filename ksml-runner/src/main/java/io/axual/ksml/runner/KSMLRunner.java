@@ -9,9 +9,9 @@ package io.axual.ksml.runner;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -81,19 +81,35 @@ public class KSMLRunner {
             final KSMLRunnerConfig config = mapper.readValue(configPath, KSMLRunnerConfig.class);
             config.validate();
             log.info("Using {} backend", config.getBackendConfig().getType());
-            Backend backend = config.getConfiguredBackend();
+            try (final Backend backend = config.getConfiguredBackend()) {
+                var shutdownHook = new Thread(() -> {
+                    try {
+                        log.debug("In KSML shutdown hook");
+                        backend.close();
+                    } catch (Exception e) {
+                        log.error("Could not properly close the KSML backend", e);
+                    }
+                });
 
-            if (Boolean.TRUE.equals(config.getKSMLRunnerKsmlConfig().getApplicationServerEnabled())) {
-                // Run with the REST server
-                HostInfo hostInfo = new HostInfo(config.getKSMLRunnerKsmlConfig().getApplicationServerHost(), config.getKSMLRunnerKsmlConfig().getApplicationServerPort());
+                Runtime.getRuntime().addShutdownHook(shutdownHook);
 
-                try (RestServer restServer = new RestServer(hostInfo)) {
-                    restServer.start(backend.getQuerier());
+                if (Boolean.TRUE.equals(config.getKSMLRunnerKsmlConfig().getApplicationServerEnabled())) {
+                    // Run with the REST server
+                    HostInfo hostInfo = new HostInfo(config.getKSMLRunnerKsmlConfig().getApplicationServerHost(), config.getKSMLRunnerKsmlConfig().getApplicationServerPort());
+
+                    try (RestServer restServer = new RestServer(hostInfo)) {
+                        restServer.start(backend.getQuerier());
+                        run(backend);
+                    }
+                } else {
+                    // Run without the REST server
                     run(backend);
                 }
-            } else {
-                // Run without the REST server
-                run(backend);
+
+                Runtime.getRuntime().removeShutdownHook(shutdownHook);
+            } catch (Exception e) {
+                log.error("An exception occurred while running KSML", e);
+                System.exit(2);
             }
         } catch (IOException e) {
             log.error("An exception occurred while reading the configuration", e);
