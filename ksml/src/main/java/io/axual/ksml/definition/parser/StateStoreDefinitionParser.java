@@ -77,7 +77,7 @@ public class StateStoreDefinitionParser extends BaseParser<StateStoreDefinition>
     private StateStoreDefinition parseStore(YamlNode node, StoreType type) {
         return switch (type) {
             case KEYVALUE_STORE -> new KeyValueStateStoreDefinition(
-                    parseString(node, STORE_NAME_ATTRIBUTE),
+                    parseString(node, STORE_NAME_ATTRIBUTE, defaultName),
                     parseBoolean(node, STORE_PERSISTENT_ATTRIBUTE),
                     parseBoolean(node, STORE_TIMESTAMPED_ATTRIBUTE),
                     UserTypeParser.parse(parseString(node, STORE_KEYTYPE_ATTRIBUTE)),
@@ -85,7 +85,7 @@ public class StateStoreDefinitionParser extends BaseParser<StateStoreDefinition>
                     parseBoolean(node, STORE_CACHING_ATTRIBUTE),
                     parseBoolean(node, STORE_LOGGING_ATTRIBUTE));
             case SESSION_STORE -> new SessionStateStoreDefinition(
-                    parseString(node, STORE_NAME_ATTRIBUTE),
+                    parseString(node, STORE_NAME_ATTRIBUTE, defaultName),
                     parseBoolean(node, STORE_PERSISTENT_ATTRIBUTE),
                     parseBoolean(node, STORE_TIMESTAMPED_ATTRIBUTE),
                     parseDuration(node, STORE_RETENTION_ATTRIBUTE),
@@ -94,7 +94,7 @@ public class StateStoreDefinitionParser extends BaseParser<StateStoreDefinition>
                     parseBoolean(node, STORE_CACHING_ATTRIBUTE),
                     parseBoolean(node, STORE_LOGGING_ATTRIBUTE));
             case WINDOW_STORE -> new WindowStateStoreDefinition(
-                    parseString(node, STORE_NAME_ATTRIBUTE),
+                    parseString(node, STORE_NAME_ATTRIBUTE, defaultName),
                     parseBoolean(node, STORE_PERSISTENT_ATTRIBUTE),
                     parseBoolean(node, STORE_TIMESTAMPED_ATTRIBUTE),
                     parseDuration(node, STORE_RETENTION_ATTRIBUTE),
