@@ -51,7 +51,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -185,7 +184,6 @@ public class TopologyGeneratorImpl {
         TopologyParseContext context = new TopologyParseContext(builder, config.notationLibrary(), namePrefix);
 
         // Parse all defined streams
-        Map<String, BaseStreamDefinition> streamDefinitions = new HashMap<>();
         new MapParser<>("stream definition", new StreamDefinitionParser()).parse(node.get(STREAMS_DEFINITION)).forEach(context::registerStreamDefinition);
         new MapParser<>("table definition", new TableDefinitionParser()).parse(node.get(TABLES_DEFINITION)).forEach(context::registerStreamDefinition);
         new MapParser<>("globalTable definition", new GlobalTableDefinitionParser()).parse(node.get(GLOBALTABLES_DEFINITION)).forEach(context::registerStreamDefinition);
