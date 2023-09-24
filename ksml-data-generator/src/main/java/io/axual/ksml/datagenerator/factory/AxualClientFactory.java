@@ -20,14 +20,6 @@ package io.axual.ksml.datagenerator.factory;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.clients.admin.Admin;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.common.config.SslConfigs;
-import org.apache.kafka.common.config.types.Password;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import io.axual.client.proxy.axual.admin.AxualAdminClient;
 import io.axual.client.proxy.axual.admin.AxualAdminConfig;
 import io.axual.client.proxy.axual.consumer.AxualConsumerConfig;
@@ -43,14 +35,19 @@ import io.axual.discovery.client.DiscoveryResult;
 import io.axual.discovery.client.exception.DiscoveryClientRegistrationException;
 import io.axual.discovery.client.tools.DiscoveryConfigParserV2;
 import io.axual.ksml.AxualNotationLibrary;
+import io.axual.ksml.datagenerator.config.axual.AxualBackendConfig;
+import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.datagenerator.config.axual.AxualBackendConfig;
+import org.apache.kafka.clients.admin.Admin;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.common.config.SslConfigs;
+import org.apache.kafka.common.config.types.Password;
 
-import static io.axual.client.proxy.generic.registry.ProxyTypeRegistry.HEADER_PROXY_ID;
-import static io.axual.client.proxy.generic.registry.ProxyTypeRegistry.LINEAGE_PROXY_ID;
-import static io.axual.client.proxy.generic.registry.ProxyTypeRegistry.RESOLVING_PROXY_ID;
-import static io.axual.client.proxy.generic.registry.ProxyTypeRegistry.SWITCHING_PROXY_ID;
+import java.util.HashMap;
+import java.util.Map;
+
+import static io.axual.client.proxy.generic.registry.ProxyTypeRegistry.*;
 import static org.apache.kafka.clients.CommonClientConfigs.SECURITY_PROTOCOL_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.BOOTSTRAP_SERVERS_CONFIG;
 
@@ -89,6 +86,9 @@ public class AxualClientFactory implements ClientFactory {
             throw new KSMLTopologyException("Axual discovery service registration failed", e);
         }
 
+        if (discoveryResult == null) {
+            throw new KSMLExecutionException("Could not initialize due to missing Discovery result");
+        }
         Map<String, Object> configs = new HashMap<>(clientConfigs);
         configs.putAll(KafkaUtil.getKafkaConfigs(clientConfig));
         configs.putAll(discoveryResult.getConfigs());

@@ -27,22 +27,7 @@ import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.YamlNode;
 
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_AGGREGATOR;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_FOREACHACTION;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_INITIALIZER;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_KEYTRANSFORMER;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_KEYVALUEMAPPER;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_KEYVALUETOVALUELISTTRANSFORMER;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_KEYVALUETRANSFORMER;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_MERGER;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_PREDICATE;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_REDUCER;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_STREAMPARTITIONER;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_TOPICNAMEEXTRACTOR;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_VALUEJOINER;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_VALUETRANSFORMER;
+import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition> {
     @Override
@@ -67,39 +52,29 @@ public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition
     }
 
     private BaseParser<? extends FunctionDefinition> getParser(YamlNode node, String type) {
-        switch (type) {
-            case FUNCTION_TYPE_AGGREGATOR:
-                return new AggregatorDefinitionParser();
-            case FUNCTION_TYPE_FOREACHACTION:
-                return new ForEachActionDefinitionParser();
-            case FUNCTION_TYPE_INITIALIZER:
-                return new InitializerDefinitionParser();
-            case FUNCTION_TYPE_KEYTRANSFORMER:
-                return new KeyTransformerDefinitionParser();
-            case FUNCTION_TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER:
-                return new KeyValueToKeyValueListTransformerDefinitionParser();
-            case FUNCTION_TYPE_KEYVALUETOVALUELISTTRANSFORMER:
-                return new KeyValueToValueListTransformerDefinitionParser();
-            case FUNCTION_TYPE_KEYVALUEMAPPER, FUNCTION_TYPE_KEYVALUETRANSFORMER:
-                return new KeyValueTransformerDefinitionParser();
-            case FUNCTION_TYPE_MERGER:
-                return new MergerDefinitionParser();
-            case FUNCTION_TYPE_PREDICATE:
-                return new PredicateDefinitionParser();
-            case FUNCTION_TYPE_VALUEJOINER, FUNCTION_TYPE_REDUCER:
-                return new ReducerDefinitionParser();
-            case FUNCTION_TYPE_STREAMPARTITIONER:
-                return new StreamPartitionerDefinitionParser();
-            case FUNCTION_TYPE_TOPICNAMEEXTRACTOR:
-                return new TopicNameExtractorDefinitionParser();
-            case FUNCTION_TYPE_VALUETRANSFORMER:
-                return new ValueTransformerDefinitionParser();
-            default: {
+        return switch (type) {
+            case FUNCTION_TYPE_AGGREGATOR -> new AggregatorDefinitionParser();
+            case FUNCTION_TYPE_FOREACHACTION -> new ForEachActionDefinitionParser();
+            case FUNCTION_TYPE_INITIALIZER -> new InitializerDefinitionParser();
+            case FUNCTION_TYPE_KEYTRANSFORMER -> new KeyTransformerDefinitionParser();
+            case FUNCTION_TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER ->
+                    new KeyValueToKeyValueListTransformerDefinitionParser();
+            case FUNCTION_TYPE_KEYVALUETOVALUELISTTRANSFORMER -> new KeyValueToValueListTransformerDefinitionParser();
+            case FUNCTION_TYPE_KEYVALUEMAPPER, FUNCTION_TYPE_KEYVALUETRANSFORMER ->
+                    new KeyValueTransformerDefinitionParser();
+            case FUNCTION_TYPE_MERGER -> new MergerDefinitionParser();
+            case FUNCTION_TYPE_PREDICATE -> new PredicateDefinitionParser();
+            case FUNCTION_TYPE_VALUEJOINER, FUNCTION_TYPE_REDUCER -> new ReducerDefinitionParser();
+            case FUNCTION_TYPE_STREAMPARTITIONER -> new StreamPartitionerDefinitionParser();
+            case FUNCTION_TYPE_TOPICNAMEEXTRACTOR -> new TopicNameExtractorDefinitionParser();
+            case FUNCTION_TYPE_VALUETRANSFORMER -> new ValueTransformerDefinitionParser();
+            case FUNCTION_TYPE_GENERIC -> new FunctionDefinitionParser();
+            default -> {
                 if (!type.isEmpty()) {
                     throw FatalError.parseError(node, "Unknown function type: " + type);
                 }
-                return null;
+                yield null;
             }
-        }
+        };
     }
 }

@@ -134,6 +134,7 @@ public class KSMLDSL {
     public static final String FUNCTION_TYPE = "type";
     public static final String FUNCTION_TYPE_AGGREGATOR = "aggregator";
     public static final String FUNCTION_TYPE_FOREACHACTION = "forEach";
+    public static final String FUNCTION_TYPE_GENERIC = "generic";
     public static final String FUNCTION_TYPE_INITIALIZER = "initializer";
     public static final String FUNCTION_TYPE_KEYTRANSFORMER = "keyTransformer";
     public static final String FUNCTION_TYPE_KEYVALUEMAPPER = "keyValueMapper";
