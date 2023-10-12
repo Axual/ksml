@@ -1,72 +1,96 @@
-FROM redhat/ubi8:8.6-990 as graal-builder
+# Dockerfile for Axual Connect
+# Local Build (ARM64/Apple Mx) docker buildx build --platform=linux/arm64 -t axual/ksml:local --load --target ksml .
+# Local Build (AMD65) docker buildx build --platform=linux/amd64 -t axual/ksml:local --load --target ksml .
+# Targets
+# - base            = UBI image with ksml user and build packages from microdnf
+# - graal-builder   = base stage plus Maven and GraalVM and GraalPython installed
+# - builder         = builds the KSML Maven project with graal-builder
+# - ksml-graal      = base stage + GraalVM/Python copied from the graal-builder stage, creates a venv for the ksml user
+# - ksml            = ksml-graal image plus the KSML Runner JAR files and required libraries from builder stage
+# - ksml-datagen    = ksml-graal image plus the KSML Data Generator JAR files and required libraries from builder stage
+
+
+# Step 1: Create the common base image with the ksml user and group and the required packages
+FROM registry.axual.io/redhat/ubi8/ubi-minimal:8.8-1072.1696517598 AS base
+ENV LANG=en_US.UTF-8
+
+# Environment variable for Connect Build and Runtime
+ENV PATH=/opt/graal/bin:$PATH \
+	KSML_HOME="/home/ksml" \
+    	KSML_INSTALL="/opt/ksml"
+
+RUN set -eux \
+        && microdnf install -y curl tar unzip gzip zlib openssl-devel gcc gcc-c++ make patch glibc-langpack-en libxcrypt shadow-utils \
+	&& groupadd --gid 1024 ksml \
+        && useradd -g ksml -u 1024 -d $KSML_HOME -ms /bin/sh -f -1 ksml \
+        && chown -R ksml:0 $KSML_HOME /opt                               \
+        && chmod -R g=u /home /opt
+
+
+# Step 2: Download Graal and Maven into the base image
+FROM base AS graal-builder
 ARG TARGETARCH
-ENV JAVA_HOME=/opt/graalvm
-ENV PATH=/opt/graalvm/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-USER root
-WORKDIR /
+ARG GRAALVM_JDK_VERSION=17.0.8
+ARG MAVEN_VERSION=3.9.5
 
-# Step 1 Download and install Maven and GraalVM for build and reuse in second stage, cache the results
-#  --mount=type=cache,target=/opt/graalvm,id=grl_$TARGETARCH \
-RUN \
-  --mount=type=cache,target=/downloads/$TARGETARCH,id=grlDownloads_$TARGETARCH \
-  JAVA_ARCH= \
-  && case "$TARGETARCH" in \
-  amd64) \
-    JAVA_ARCH="amd64" \
-  ;; \
-  arm64) \
-    JAVA_ARCH="aarch64" \
-  ;; \
-  *) \
-    echo "Unsupported target architecture $TARGETARCH" \
-    exit 1 \
-  ;; \
-  esac  \
-  && useradd -m -N -G "users" -u 1024 "graal" \
-  && DOWNLOAD_DIR="/downloads/$TARGETARCH" \
-  && mkdir -p "${DOWNLOAD_DIR}" \
-  && curl -o "/${DOWNLOAD_DIR}/maven.tgz" "https://archive.apache.org/dist/maven/maven-3/3.8.5/binaries/apache-maven-3.8.5-bin.tar.gz" \
-  && curl -k -L -o "/${DOWNLOAD_DIR}/graalvm.tgz" "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.3.0/graalvm-ce-java17-linux-${JAVA_ARCH}-22.3.0.tar.gz" \
-  && tar -xzf "/${DOWNLOAD_DIR}/maven.tgz" -C "/" \
-  && tar -xzf "/${DOWNLOAD_DIR}/graalvm.tgz" -C "/opt" \
-  && mv /opt/graalvm* /opt/graalvm \
-  && mkdir -p "/opt/ksml/libs" \
-  && chown -R graal:users /opt \
-  && chown -R graal:users /tmp \
-  && /opt/graalvm/bin/gu -A install python
+RUN set -eux \
+    && JAVA_ARCH= \
+    && case "$TARGETARCH" in \
+    amd64) \
+    	JAVA_ARCH="x64" \
+    ;; \
+    arm64) \
+    	JAVA_ARCH="aarch64" \
+    ;; \
+    *) \
+    	echo "Unsupported target architecture $TARGETARCH" \
+    	exit 1 \
+    ;; \
+    esac  \
+    && mkdir -p /opt/maven \
+    && MVN_PKG=https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
+    && curl --fail --silent --location --retry 3 ${MVN_PKG} | gunzip | tar x -C /opt/maven --strip-components=1 \
+    && GRAALVM_PKG=https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-${GRAALVM_JDK_VERSION}/graalvm-community-jdk-${GRAALVM_JDK_VERSION}_linux-${JAVA_ARCH}_bin.tar.gz \
+    && mkdir -p /opt/graal \
+    && curl --fail --silent --location --retry 3 ${GRAALVM_PKG} | gunzip | tar x -C /opt/graal --strip-components=1 \
+    && gu -A install python
 
-# Step 2 Build the KSML Project, cache the M2 repository location
-FROM graal-builder as builder
+
+# Step 3: Build the KSML Project, cache the M2 repository location
+FROM graal-builder AS builder
+ARG TARGETARCH
 ADD . /project_dir
 RUN \
   --mount=type=cache,target=/root/.m2/repo/$TARGETARCH,id=mvnRepo_$TARGETARCH \
   cd /project_dir \
-  && /apache-maven-3.8.5/bin/mvn -Dmaven.repo.local="/root/.m2/repo/$TARGETARCH" dependency:go-offline --no-transfer-progress \
-    && /apache-maven-3.8.5/bin/mvn -Dmaven.repo.local="/root/.m2/repo/$TARGETARCH" --no-transfer-progress package
+  && /opt/maven/bin/mvn -Dmaven.repo.local="/root/.m2/repo/$TARGETARCH" dependency:go-offline --no-transfer-progress \
+    && /opt/maven/bin/mvn -Dmaven.repo.local="/root/.m2/repo/$TARGETARCH" --no-transfer-progress package
 
-# Step 3 Build the basic graalvm image stage
-FROM redhat/ubi8:8.6-990 as ksml-graal
+
+# Step 4: Build the basic graalvm image stage
+FROM base AS ksml-graal
 MAINTAINER Axual <maintainer@axual.io>
 ENV JAVA_HOME=/opt/graalvm
-ENV PATH=/opt/graalvm/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-RUN  useradd -m -N -G "users" -u 1024 "graal"
-COPY --chown=graal:users --from=graal-builder /opt/ /opt/
+COPY --chown=ksml:0 --from=graal-builder /opt/graal/ /opt/graal/
 
-# Step 4 The stage to build KSML runner
-FROM ksml-graal as ksml
-COPY --chown=graal:users --from=builder /project_dir/ksml-runner/target/libs/ /opt/ksml/libs/
-COPY --chown=graal:users --from=builder /project_dir/ksml-runner/target/ksml-runner*.jar /opt/ksml/ksml.jar
+WORKDIR /home/ksml
+USER ksml
+RUN graalpy -m venv graalenv && \
+    echo "source $HOME/graalenv/bin/activate" >> ~/.bashrc
 
-WORKDIR /opt/ksml
-USER graal:users
+
+# Step 5: Create the KSML Runner image
+FROM ksml-graal AS ksml
+COPY --chown=ksml:0 --from=builder /project_dir/ksml-runner/target/libs/ /opt/ksml/libs/
+COPY --chown=ksml:0 --from=builder /project_dir/ksml-runner/target/ksml-runner*.jar /opt/ksml/ksml.jar
+
 ENTRYPOINT ["java", "-jar", "/opt/ksml/ksml.jar"]
 
-# Step 5 The stage to build KSML data generators
-FROM ksml-graal as ksml-datagen
-COPY --chown=graal:users --from=builder /project_dir/ksml-data-generator/target/libs/ /opt/ksml/libs/
-COPY --chown=graal:users --from=builder /project_dir/ksml-data-generator/target/ksml-data-generator-*.jar /opt/ksml/ksml-data-generator.jar
 
-RUN chown -R graal:users /opt
-WORKDIR /opt/ksml
-USER graal:users
+# Step 6: Create the KSML Data Generator image
+FROM ksml-graal AS ksml-datagen
+COPY --chown=ksml:0 --from=builder /project_dir/ksml-data-generator/target/libs/ /opt/ksml/libs/
+COPY --chown=ksml:0 --from=builder /project_dir/ksml-data-generator/target/ksml-data-generator-*.jar /opt/ksml/ksml-data-generator.jar
+
 ENTRYPOINT ["java", "-jar", "/opt/ksml/ksml-data-generator.jar"]
+
