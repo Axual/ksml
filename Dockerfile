@@ -11,7 +11,7 @@
 
 
 # Step 1: Create the common base image with the ksml user and group and the required packages
-FROM registry.axual.io/redhat/ubi8/ubi-minimal:8.8-1072.1696517598 AS base
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.8-1072.1696517598 AS base
 ENV LANG=en_US.UTF-8
 
 # Environment variable for Connect Build and Runtime
