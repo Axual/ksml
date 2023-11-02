@@ -2,16 +2,16 @@ package io.axual.ksml.client.resolving;
 
 /*-
  * ========================LICENSE_START=================================
- * Extended Kafka clients for KSML
+ * KSML Runner
  * %%
  * Copyright (C) 2021 - 2023 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,6 +20,7 @@ package io.axual.ksml.client.resolving;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.client.resolving.PatternResolver;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,11 +34,14 @@ public class PatternResolverTest {
     private static final String TENANT = "tenant";
     private static final String INSTANCE = "instance";
     private static final String ENVIRONMENT = "environment";
+    private static final String DOMAIN = "domain";
+    private static final String PLACEHOLDER_PREFIX = "{";
+    private static final String PLACEHOLDER_SUFFIX = "}";
 
     private static final String[] PATTERNS = {
             "{tenant}-{instance}-{environment}-{topic}",
             "{tenant}-{instance}-{topic}-{environment}",
-//            "{tenant}##${instance}$#-#{environment}#$$#---#{topic}"
+            "{tenant}.....{instance}.#-#{environment}#..#---#{topic}"
     };
 
     @Test

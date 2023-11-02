@@ -2,7 +2,7 @@ package io.axual.ksml.client.generic;
 
 /*-
  * ========================LICENSE_START=================================
- * Extended Kafka clients for KSML
+ * KSML Runner
  * %%
  * Copyright (C) 2021 - 2023 Axual B.V.
  * %%
@@ -41,8 +41,8 @@ public class ResolvingClientConfig {
 
     protected final Map<String, Object> configs;
     protected final Map<String, Object> downstreamConfigs;
-    public final GroupResolver groupResolver;
-    public final TopicResolver topicResolver;
+    protected final GroupResolver groupResolver;
+    protected final TopicResolver topicResolver;
 
     public ResolvingClientConfig(Map<String, ?> configs) {
         this.configs = Collections.unmodifiableMap(configs);
@@ -50,14 +50,10 @@ public class ResolvingClientConfig {
         var defaultContext = MapUtil.toStringValues(configs);
 
         var groupPattern = configs.get(GROUP_ID_PATTERN_CONFIG);
-        groupResolver = groupPattern != null
-                ? new GroupPatternResolver(groupPattern.toString(), defaultContext)
-                : new GroupPatternResolver("{group.id}", defaultContext);
+        groupResolver = groupPattern != null ? new GroupPatternResolver(groupPattern.toString(), defaultContext) : null;
 
         var topicPattern = configs.get(TOPIC_PATTERN_CONFIG);
-        topicResolver = topicPattern != null
-                ? new TopicPatternResolver(topicPattern.toString(), defaultContext)
-                : new TopicPatternResolver("{topic}", defaultContext);
+        topicResolver = topicPattern != null ? new TopicPatternResolver(topicPattern.toString(), defaultContext) : null;
     }
 
     public <T> T getConfiguredInstance(String key, Class<T> expectedClass) {

@@ -1,10 +1,10 @@
-package io.axual.ksml.client.resolving;
+package io.axual.ksml.runner.exception;
 
 /*-
  * ========================LICENSE_START=================================
- * axual-common
+ * KSML Runner
  * %%
- * Copyright (C) 2020 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,16 @@ package io.axual.ksml.client.resolving;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Map;
 
-/**
- * This class is able to resolve and unresolve patterns for Kafka transactional ids. The class implements
- * the {@link TransactionalIdResolver} interface.
- */
-public class TransactionalIdPatternResolver extends CachedPatternResolver implements TransactionalIdResolver {
-    private static final String DEFAULT_PLACEHOLDER_VALUE = "transactional.id";
+public class RunnerConfigurationException extends RunnerException {
+    public static final String MESSAGE_DETAIL_FORMAT = "%nConfiguration Key   : '%s'%nConfiguration Value : '%s' ";
+    public static final String DEFAULT_MESSAGE = "An invalid configuration has been found.";
 
-    public TransactionalIdPatternResolver(String pattern, Map<String, String> defaultValues) {
-        super(pattern, DEFAULT_PLACEHOLDER_VALUE, defaultValues);
+    public RunnerConfigurationException(String configKey, Object configValue) {
+        this(configKey, configValue, DEFAULT_MESSAGE);
+    }
+
+    public RunnerConfigurationException(String configKey, Object configValue, String message) {
+        super(message + String.format(MESSAGE_DETAIL_FORMAT, configKey, configValue != null ? configValue : "null"));
     }
 }

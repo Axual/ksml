@@ -2,16 +2,16 @@ package io.axual.ksml.client.resolving;
 
 /*-
  * ========================LICENSE_START=================================
- * Extended Kafka clients for KSML
+ * axual-common
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2020 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,7 +20,6 @@ package io.axual.ksml.client.resolving;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.common.TopicCollection;
 import org.apache.kafka.common.TopicPartition;
 
 import java.util.Collection;
@@ -29,14 +28,31 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+
+/**
+ * A topic resolver can translate Kafka topic names from an application's internal representation to
+ * one found externally (or "physically") on Kafka clusters. The conversion from internal to
+ * external representation is done through {@link #resolveTopic(String)} and similar calls. The
+ * reverse is done through {link #unresolveTopic(String)} and similar calls.
+ */
 public interface TopicResolver extends Resolver {
+    /**
+     * Translates the internal representation of topic name to the external one.
+     *
+     * @param topic the application's internal topic name
+     * @return the external representation of the topic
+     */
+    default String resolveTopic(final String topic) {
+        return resolve(topic);
+    }
+
     /**
      * Translates the internal representation of topic pattern to the external one.
      *
      * @param pattern the application's internal topic pattern
      * @return the external representation of the topic pattern
      */
-    default Pattern resolve(final Pattern pattern) {
+    default Pattern resolveTopicPattern(final Pattern pattern) {
         // Wrap the pattern in brackets and resolve the resulting string as if it were a topic
         String resolvedRegex = resolve("(" + pattern.pattern() + ")");
         return Pattern.compile(resolvedRegex);
@@ -48,7 +64,7 @@ public interface TopicResolver extends Resolver {
      * @param topicPartition the application's internal topic partition
      * @return the external representation of the topic partition
      */
-    default TopicPartition resolve(final TopicPartition topicPartition) {
+    default TopicPartition resolveTopic(final TopicPartition topicPartition) {
         if (topicPartition == null) return null;
         return new TopicPartition(resolve(topicPartition.topic()), topicPartition.partition());
     }
@@ -59,7 +75,7 @@ public interface TopicResolver extends Resolver {
      * @param topics the application's internal topic names
      * @return the external representation of the topics
      */
-    default Set<String> resolve(Collection<String> topics) {
+    default Set<String> resolveTopics(Collection<String> topics) {
         if (topics == null) return new HashSet<>();
 
         Set<String> result = new HashSet<>(topics.size());
@@ -83,7 +99,7 @@ public interface TopicResolver extends Resolver {
 
         Set<TopicPartition> result = new HashSet<>(topicPartitions.size());
         for (TopicPartition partition : topicPartitions) {
-            result.add(resolve(partition));
+            result.add(resolveTopic(partition));
         }
         return result;
     }
@@ -96,27 +112,24 @@ public interface TopicResolver extends Resolver {
      *                          Keys
      * @return the map containing the external representation of the topic partitions as Keys
      */
-    default <V> Map<TopicPartition, V> resolve(Map<TopicPartition, V> topicPartitionMap) {
+    default <V> Map<TopicPartition, V> resolveTopics(Map<TopicPartition, V> topicPartitionMap) {
         if (topicPartitionMap == null) return new HashMap<>();
 
         Map<TopicPartition, V> result = new HashMap<>(topicPartitionMap.size());
         for (Map.Entry<TopicPartition, V> entry : topicPartitionMap.entrySet()) {
-            result.put(resolve(entry.getKey()), entry.getValue());
+            result.put(resolveTopic(entry.getKey()), entry.getValue());
         }
         return result;
     }
 
     /**
-     * Translates the internal representation of a topic partition map to the external one.
+     * Translates the external representation of topic name to the internal one.
      *
-     * @param topics the map containing the application's internal topic partitions as Keys
-     * @return the map containing the external representation of the topic partitions as Keys
+     * @param topic the external topic name
+     * @return the internal consumer topic name
      */
-    default TopicCollection resolve(TopicCollection topics) {
-        if (topics instanceof TopicCollection.TopicNameCollection topicNames) {
-            return TopicCollection.ofTopicNames(resolve(topicNames.topicNames()));
-        }
-        return topics;
+    default String unresolveTopic(final String topic) {
+        return unresolve(topic);
     }
 
     /**
@@ -125,10 +138,10 @@ public interface TopicResolver extends Resolver {
      * @param topicPartition the external topic partition
      * @return the internal consumer topic partition
      */
-    default TopicPartition unresolve(TopicPartition topicPartition) {
+    default TopicPartition unresolveTopic(TopicPartition topicPartition) {
         if (topicPartition == null) return null;
 
-        String unresolvedTopic = unresolve(topicPartition.topic());
+        String unresolvedTopic = unresolveTopic(topicPartition.topic());
         if (unresolvedTopic == null) return null;
         return new TopicPartition(unresolvedTopic, topicPartition.partition());
     }
@@ -139,12 +152,12 @@ public interface TopicResolver extends Resolver {
      * @param topics the external topic names
      * @return the internal consumer topic names
      */
-    default Set<String> unresolve(Collection<String> topics) {
+    default Set<String> unresolveTopics(Collection<String> topics) {
         if (topics == null) return new HashSet<>();
 
         Set<String> result = new HashSet<>(topics.size());
         for (String topic : topics) {
-            String unresolvedTopic = unresolve(topic);
+            String unresolvedTopic = unresolveTopic(topic);
             if (unresolvedTopic != null) {
                 result.add(unresolvedTopic);
             }
@@ -163,7 +176,7 @@ public interface TopicResolver extends Resolver {
 
         Set<TopicPartition> result = new HashSet<>(topicPartitions.size());
         for (TopicPartition partition : topicPartitions) {
-            TopicPartition unresolvedPartition = unresolve(partition);
+            TopicPartition unresolvedPartition = unresolveTopic(partition);
             if (unresolvedPartition != null) {
                 result.add(unresolvedPartition);
             }
@@ -179,12 +192,12 @@ public interface TopicResolver extends Resolver {
      *                          keys
      * @return the map containing the internal representation of the topic partitions as keys
      */
-    default <V> Map<TopicPartition, V> unresolve(Map<TopicPartition, V> topicPartitionMap) {
+    default <V> Map<TopicPartition, V> unresolveTopics(Map<TopicPartition, V> topicPartitionMap) {
         if (topicPartitionMap == null) return new HashMap<>();
 
         Map<TopicPartition, V> result = new HashMap<>(topicPartitionMap.size());
         for (Map.Entry<TopicPartition, V> entry : topicPartitionMap.entrySet()) {
-            TopicPartition unresolvedTopic = unresolve(entry.getKey());
+            TopicPartition unresolvedTopic = unresolveTopic(entry.getKey());
             if (unresolvedTopic != null) {
                 result.put(unresolvedTopic, entry.getValue());
             }

@@ -2,16 +2,16 @@ package io.axual.ksml.client.producer;
 
 /*-
  * ========================LICENSE_START=================================
- * Extended Kafka clients for KSML
+ * axual-client-proxy
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2020 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -40,7 +40,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class ResolvingProducer<K, V> extends ForwardingProducer<K, V> {
+public class ResolvingProducer<K, V> extends ProxyProducer<K, V> {
     private final ResolvingProducerConfig config;
 
     public ResolvingProducer(Map<String, Object> configs) {
@@ -64,10 +64,10 @@ public class ResolvingProducer<K, V> extends ForwardingProducer<K, V> {
         Map<TopicPartition, OffsetAndMetadata> newOffsets = new HashMap<>();
         for (Map.Entry<TopicPartition, OffsetAndMetadata> entry : offsets.entrySet()) {
             newOffsets
-                    .put(config.getTopicResolver().resolve(entry.getKey()), entry.getValue());
+                    .put(config.getTopicResolver().resolveTopic(entry.getKey()), entry.getValue());
         }
         super.sendOffsetsToTransaction(newOffsets,
-                config.getGroupResolver().resolve(consumerGroupId));
+                config.getGroupResolver().resolveGroup(consumerGroupId));
     }
 
     @Override
@@ -76,11 +76,11 @@ public class ResolvingProducer<K, V> extends ForwardingProducer<K, V> {
         Map<TopicPartition, OffsetAndMetadata> newOffsets = new HashMap<>();
         for (Map.Entry<TopicPartition, OffsetAndMetadata> entry : offsets.entrySet()) {
             newOffsets
-                    .put(config.getTopicResolver().resolve(entry.getKey()), entry.getValue());
+                    .put(config.getTopicResolver().resolveTopic(entry.getKey()), entry.getValue());
         }
 
         super.sendOffsetsToTransaction(newOffsets, new ConsumerGroupMetadata(
-                config.getGroupResolver().resolve(groupMetadata.groupId()),
+                config.getGroupResolver().resolveGroup(groupMetadata.groupId()),
                 groupMetadata.generationId(), groupMetadata.memberId(),
                 groupMetadata.groupInstanceId()));
     }
@@ -109,11 +109,11 @@ public class ResolvingProducer<K, V> extends ForwardingProducer<K, V> {
 
     @Override
     public List<PartitionInfo> partitionsFor(String topic) {
-        List<PartitionInfo> rawResult = super.partitionsFor(config.getTopicResolver().resolve(topic));
+        List<PartitionInfo> rawResult = super.partitionsFor(config.getTopicResolver().resolveTopic(topic));
         List<PartitionInfo> result = new ArrayList<>(rawResult.size());
         for (PartitionInfo info : rawResult) {
             result.add(new PartitionInfo(
-                    config.getTopicResolver().unresolve(info.topic()),
+                    config.getTopicResolver().unresolveTopic(info.topic()),
                     info.partition(),
                     info.leader(),
                     info.replicas(),
@@ -131,7 +131,7 @@ public class ResolvingProducer<K, V> extends ForwardingProducer<K, V> {
 
         // Return a ProducerRecord with a resolved topic name
         return new ProducerRecord<>(
-                resolver.resolve(producerRecord.topic()),
+                resolver.resolveTopic(producerRecord.topic()),
                 producerRecord.partition(),
                 producerRecord.timestamp(),
                 producerRecord.key(),

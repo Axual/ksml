@@ -2,7 +2,7 @@ package io.axual.ksml.client.resolving;
 
 /*-
  * ========================LICENSE_START=================================
- * Extended Kafka clients for KSML
+ * KSML Runner
  * %%
  * Copyright (C) 2021 - 2023 Axual B.V.
  * %%
@@ -31,25 +31,38 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+/**
+ * <p>The PatternContextConverter is used to convert patterned strings to a context map containing
+ * the fields according to the specified pattern. This is used for Kafka resources, like topics and groups. <br/>
+ * Kafka can only apply access control lists for literal or prefixed resources. The final part of the
+ * pattern should be field name of the resource type. If the pattern doesn't specify the type as a field name it will be automatically added at the end of the pattern</p>
+ *
+ * <p>A pattern definition is a string with delimited field names that are used to build to and from the context map.
+ * The final field name should be for the target resource type, which
+ * <br/>The following pattern is for a Kafka topic and has three fields, tenant, instance, environment, which are separated by two hyphens<br/>
+ * <pre>{tenant}--{instance}--{environment}--{topic}</pre></p>
+ * <p>The following pattern is functionally the same as the previous pattern<br/>
+ * <pre>{tenant}--{instance}--{environment}--</pre></p>
+ */
 @Slf4j
 public class PatternResolver implements Resolver {
     private static final String ALPHANUM_CHARACTERS = "a-zA-Z0-9_";
     private static final String DASH_CHARACTER = "-";
     private static final String DOT_CHARACTER = ".";
-    private static final String LITERAL_CHARACTERS = "$#-";
+    private static final String LITERAL_CHARACTERS = "$#.-";
+    private static final String NAME_CHARACTERS = ALPHANUM_CHARACTERS + DOT_CHARACTER;
+    private static final String PLACEHOLDER_NAME_REGEX = characterRegex(NAME_CHARACTERS, true);
+    private static final String FIELD_REGEX = characterRegex(ALPHANUM_CHARACTERS, true);
+    private static final String DEFAULT_FIELD_REGEX = characterRegex(ALPHANUM_CHARACTERS + DASH_CHARACTER, true);
     private static final String LITERAL_REGEX = characterRegex(LITERAL_CHARACTERS, true);
-    private static final String FIELD_NAME_CHARACTERS = ALPHANUM_CHARACTERS + DOT_CHARACTER;
-    private static final String FIELD_VALUE_CHARACTERS = ALPHANUM_CHARACTERS + DOT_CHARACTER;
-    private static final String FIELD_VALUE_REGEX = characterRegex(FIELD_VALUE_CHARACTERS, true);
-    private static final String DEFAULT_FIELD_VALUE_CHARACTERS = FIELD_VALUE_CHARACTERS + DASH_CHARACTER;
-    private static final String DEFAULT_FIELD_VALUE_REGEX = characterRegex(DEFAULT_FIELD_VALUE_CHARACTERS, true);
-    private static final String FIELD_NAME_PREFIX = "{";
-    private static final String FIELD_NAME_SUFFIX = "}";
-    private static final String FIELD_NAME_REGEX = escape(FIELD_NAME_PREFIX) + characterRegex(FIELD_NAME_CHARACTERS, true) + escape(FIELD_NAME_SUFFIX);
-    public static final String FIELD_NAME_OR_LITERAL_MATCH_REGEX = "(" + FIELD_NAME_REGEX + "|" + LITERAL_REGEX + ")";
-    private static final Pattern FIELD_NAME_OR_LITERAL_PATTERN = Pattern.compile(FIELD_NAME_OR_LITERAL_MATCH_REGEX);
-    private final Map<String, String> defaultFieldValues;
-    protected final String defaultFieldName;
+    private static final String FIELD_PREFIX = "{";
+    private static final String FIELD_SUFFIX = "}";
+    private static final String PLACEHOLDER_REGEX = escape(FIELD_PREFIX) + PLACEHOLDER_NAME_REGEX + escape(FIELD_SUFFIX);
+    public static final String PATTERN_REGEX = "(" + PLACEHOLDER_REGEX + "|" + LITERAL_REGEX + ")";
+    private static final Pattern PATTERN = Pattern.compile(PATTERN_REGEX);
+    private final Map<String, String> defaultValues;
+    protected final String defaultField;
     private final List<String> fields;
     private final String resolvePattern;
     private final Pattern unresolvePattern;
@@ -76,42 +89,42 @@ public class PatternResolver implements Resolver {
      * PatternContextConverter first("tenant}--{instance}--{environment}--", "topic");
      * }</pre>
      *
-     * @param pattern          the pattern to use
-     * @param defaultFieldName the resource type that the pattern should end with
+     * @param pattern      the pattern to use
+     * @param defaultField the resource type that the pattern should end with
      * @throws IllegalArgumentException thrown when a parameter is null, if pattern is invalid or if the defaultPlaceholderValue is empty
      */
-    public PatternResolver(final String pattern, final String defaultFieldName, Map<String, String> defaultFieldValues) {
+    public PatternResolver(final String pattern, final String defaultField, Map<String, String> defaultValues) {
         if (pattern == null) {
             throw new IllegalArgumentException("pattern cannot be null");
         }
 
-        if (defaultFieldName == null || defaultFieldName.trim().isEmpty()) {
-            throw new IllegalArgumentException("defaultField cannot be null, an empty string or only containing whitespace characters");
+        if (defaultField == null || defaultField.trim().isEmpty()) {
+            throw new IllegalArgumentException("defaultPlaceholderValue cannot be null, an empty string or only containing whitespace characters");
         }
 
-        if (defaultFieldName.contains(FIELD_NAME_PREFIX) || defaultFieldName.contains(FIELD_NAME_SUFFIX)) {
-            throw new IllegalArgumentException("defaultField cannot contain opening or closing braces");
+        if (defaultField.contains(FIELD_PREFIX) || defaultField.contains(FIELD_SUFFIX)) {
+            throw new IllegalArgumentException("defaultPlaceholderValue cannot contain opening or closing braces");
         }
 
-        PatternParseResult parseResult = parsePattern(pattern, defaultFieldName);
+        PatternParseResult parseResult = parsePattern(pattern, defaultField);
         this.resolvePattern = parseResult.resolvePattern;
         this.unresolvePattern = parseResult.unresolvePattern;
         this.fields = Collections.unmodifiableList(parseResult.fields);
 
-        this.defaultFieldName = defaultFieldName;
-        this.defaultFieldValues = Collections.unmodifiableMap(new HashMap<>(defaultFieldValues));
+        this.defaultField = defaultField;
+        this.defaultValues = Collections.unmodifiableMap(new HashMap<>(defaultValues));
     }
 
     /**
      * Translates the internal representation of a name to the external one.
      *
-     * @param defaultFieldValue the name to resolve
+     * @param name the name to resolve
      * @return the resolved name
      */
-    public String resolve(String defaultFieldValue) {
-        var resolveFields = new HashMap<>(defaultFieldValues);
-        resolveFields.put(defaultFieldName, defaultFieldValue);
-        return new StringSubstitutor(resolveFields, FIELD_NAME_PREFIX, FIELD_NAME_SUFFIX)
+    public String resolve(String name) {
+        var resolveFields = new HashMap<>(defaultValues);
+        resolveFields.put(defaultField, name);
+        return new StringSubstitutor(resolveFields, FIELD_PREFIX, FIELD_SUFFIX)
                 .setEnableUndefinedVariableException(true)
                 .replace(resolvePattern);
     }
@@ -124,7 +137,7 @@ public class PatternResolver implements Resolver {
      */
     @Override
     public String unresolve(String name) {
-        return unresolveContext(name).get(defaultFieldName);
+        return unresolveContext(name).get(defaultField);
     }
 
     /**
@@ -178,7 +191,7 @@ public class PatternResolver implements Resolver {
     }
 
     private static PatternParseResult parsePattern(final String pattern, final String defaultField) {
-        var matcher = FIELD_NAME_OR_LITERAL_PATTERN.matcher(pattern);
+        var matcher = PATTERN.matcher(pattern);
 
         var fields = new ArrayList<String>();
         var pat = new StringBuilder();
@@ -189,18 +202,18 @@ public class PatternResolver implements Resolver {
         while (matcher.find()) {
             count++;
             if (matcher.start() != pos) {
-                throw new IllegalArgumentException(String.format("Pattern contains faulty characters at position " + pos + ": %s", pattern));
+                throw new IllegalArgumentException(String.format("Pattern contains faulty characters at position: %s" + pos, pattern));
             }
             var element = matcher.group();
             pos += element.length();
-            if (element.startsWith(FIELD_NAME_PREFIX) && element.endsWith(FIELD_NAME_SUFFIX)) {
+            if (element.startsWith(FIELD_PREFIX) && element.endsWith(FIELD_SUFFIX)) {
                 // Treat the element as a placeholder
                 if (count > 0 && lastElementWasPlaceholder) {
                     throw new IllegalArgumentException(String.format("Two consecutive placeholders found in pattern: %s", pattern));
                 }
                 var field = element.substring(1, element.length() - 1);
                 fields.add(field);
-                pat.append("(").append(field.equals(defaultField) ? DEFAULT_FIELD_VALUE_REGEX : FIELD_VALUE_REGEX).append(")");
+                pat.append("(").append(field.equals(defaultField) ? DEFAULT_FIELD_REGEX : FIELD_REGEX).append(")");
                 lastElementWasPlaceholder = true;
             } else {
                 // Treat the element as a string literal

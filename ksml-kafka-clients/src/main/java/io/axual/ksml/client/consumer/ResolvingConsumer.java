@@ -2,16 +2,16 @@ package io.axual.ksml.client.consumer;
 
 /*-
  * ========================LICENSE_START=================================
- * Extended Kafka clients for KSML
+ * axual-client-proxy
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2020 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,19 +20,14 @@ package io.axual.ksml.client.consumer;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.client.resolving.GroupResolver;
-import io.axual.ksml.client.resolving.TopicResolver;
 import org.apache.kafka.clients.consumer.ConsumerGroupMetadata;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.consumer.LogTruncationException;
-import org.apache.kafka.clients.consumer.NoOffsetForPartitionException;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.clients.consumer.OffsetAndTimestamp;
 import org.apache.kafka.clients.consumer.OffsetCommitCallback;
-import org.apache.kafka.clients.consumer.OffsetOutOfRangeException;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 
@@ -48,40 +43,39 @@ import java.util.OptionalLong;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
-    private final TopicResolver topicResolver;
-    private final GroupResolver groupResolver;
+public class ResolvingConsumer<K, V> extends ProxyConsumer<K, V> {
+    private final ResolvingConsumerConfig config;
 
     public ResolvingConsumer(Map<String, Object> configs) {
-        var config = new ResolvingConsumerConfig(configs);
+        config = new ResolvingConsumerConfig(configs);
         initializeConsumer(new KafkaConsumer<>(config.getDownstreamConfigs()));
-        topicResolver = config.getTopicResolver();
-        groupResolver = config.getGroupResolver();
     }
 
     @Override
     public Set<TopicPartition> assignment() {
-        return topicResolver.unresolveTopicPartitions(super.assignment());
+        return config.getTopicResolver().unresolveTopicPartitions(super.assignment());
     }
 
     @Override
     public Set<String> subscription() {
-        return topicResolver.unresolve(super.subscription());
+        return config.getTopicResolver().unresolveTopics(super.subscription());
     }
 
     @Override
     public void subscribe(Collection<String> topics, ConsumerRebalanceListener listener) {
-        super.subscribe(topicResolver.resolve(topics), convertListener(listener));
+        super.subscribe(
+                config.getTopicResolver().resolveTopics(topics),
+                convertListener(listener));
     }
 
     @Override
     public void subscribe(Collection<String> topics) {
-        super.subscribe(topicResolver.resolve(topics));
+        super.subscribe(config.getTopicResolver().resolveTopics(topics));
     }
 
     @Override
     public void subscribe(Pattern pattern, ConsumerRebalanceListener listener) {
-        Pattern resolvedPattern = topicResolver.resolve(pattern);
+        Pattern resolvedPattern = config.getTopicResolver().resolveTopicPattern(pattern);
         super.subscribe(resolvedPattern, convertListener(listener));
     }
 
@@ -92,55 +86,31 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
 
     @Override
     public void assign(Collection<TopicPartition> partitions) {
-        super.assign(topicResolver.resolveTopicPartitions(partitions));
+        super.assign(config.getTopicResolver().resolveTopicPartitions(partitions));
     }
+
+    /**
+     * @deprecated
+     */
     @Deprecated
     @Override
     public ConsumerRecords<K, V> poll(long timeout) {
-        try {
-            return convertRecords(super.poll(timeout));
-        } catch (NoOffsetForPartitionException e) {
-            throw new NoOffsetForPartitionException(
-                    topicResolver.unresolveTopicPartitions(e.partitions()));
-        } catch (LogTruncationException e) {
-            throw new LogTruncationException(
-                    e.getMessage(),
-                    topicResolver.unresolve(e.offsetOutOfRangePartitions()),
-                    topicResolver.unresolve(e.divergentOffsets()));
-        } catch (OffsetOutOfRangeException e) {
-            throw new OffsetOutOfRangeException(
-                    e.getMessage(),
-                    topicResolver.unresolve(e.offsetOutOfRangePartitions()));
-        }
+        return convertRecords(super.poll(timeout));
     }
 
     @Override
     public ConsumerRecords<K, V> poll(Duration timeout) {
-        try {
-            return convertRecords(super.poll(timeout));
-        } catch (NoOffsetForPartitionException e) {
-            throw new NoOffsetForPartitionException(
-                    topicResolver.unresolveTopicPartitions(e.partitions()));
-        } catch (LogTruncationException e) {
-            throw new LogTruncationException(
-                    e.getMessage(),
-                    topicResolver.unresolve(e.offsetOutOfRangePartitions()),
-                    topicResolver.unresolve(e.divergentOffsets()));
-        } catch (OffsetOutOfRangeException e) {
-            throw new OffsetOutOfRangeException(
-                    e.getMessage(),
-                    topicResolver.unresolve(e.offsetOutOfRangePartitions()));
-        }
+        return convertRecords(super.poll(timeout));
     }
 
     @Override
     public void commitSync(Map<TopicPartition, OffsetAndMetadata> offsets) {
-        super.commitSync(topicResolver.resolve(offsets));
+        super.commitSync(config.getTopicResolver().resolveTopics(offsets));
     }
 
     @Override
     public void commitSync(Map<TopicPartition, OffsetAndMetadata> offsets, Duration timeout) {
-        super.commitSync(topicResolver.resolve(offsets), timeout);
+        super.commitSync(config.getTopicResolver().resolveTopics(offsets), timeout);
     }
 
     @Override
@@ -161,43 +131,43 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
     public void commitAsync(Map<TopicPartition, OffsetAndMetadata> offsets,
                             OffsetCommitCallback callback) {
         if (callback == null) {
-            super.commitAsync(topicResolver.resolve(offsets), null);
+            super.commitAsync(config.getTopicResolver().resolveTopics(offsets), null);
         } else {
-            super.commitAsync(topicResolver.resolve(offsets),
+            super.commitAsync(config.getTopicResolver().resolveTopics(offsets),
                     new ProxyOffsetCommitCallback(callback));
         }
     }
 
     @Override
     public void seek(TopicPartition partition, long offset) {
-        super.seek(topicResolver.resolve(partition), offset);
+        super.seek(config.getTopicResolver().resolveTopic(partition), offset);
     }
 
     @Override
     public void seek(TopicPartition topicPartition, OffsetAndMetadata offsetAndMetadata) {
-        Set<TopicPartition> resolvedTopicPartition = topicResolver
+        Set<TopicPartition> resolvedTopicPartition = config.getTopicResolver()
                 .resolveTopicPartitions(Collections.singleton(topicPartition));
         super.seek(resolvedTopicPartition.toArray(new TopicPartition[1])[0], offsetAndMetadata);
     }
 
     @Override
     public void seekToBeginning(Collection<TopicPartition> partitions) {
-        super.seekToBeginning(topicResolver.resolveTopicPartitions(partitions));
+        super.seekToBeginning(config.getTopicResolver().resolveTopicPartitions(partitions));
     }
 
     @Override
     public void seekToEnd(Collection<TopicPartition> partitions) {
-        super.seekToEnd(topicResolver.resolveTopicPartitions(partitions));
+        super.seekToEnd(config.getTopicResolver().resolveTopicPartitions(partitions));
     }
 
     @Override
     public long position(TopicPartition partition) {
-        return super.position(topicResolver.resolve(partition));
+        return super.position(config.getTopicResolver().resolveTopic(partition));
     }
 
     @Override
     public long position(TopicPartition topicPartition, Duration duration) {
-        return super.position(topicResolver.resolve(topicPartition), duration);
+        return super.position(config.getTopicResolver().resolveTopic(topicPartition), duration);
     }
 
     /**
@@ -206,7 +176,7 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
     @Deprecated
     @Override
     public OffsetAndMetadata committed(TopicPartition partition) {
-        return super.committed(topicResolver.resolve(partition));
+        return super.committed(config.getTopicResolver().resolveTopic(partition));
     }
 
     /**
@@ -215,38 +185,38 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
     @Deprecated
     @Override
     public OffsetAndMetadata committed(TopicPartition partition, Duration timeout) {
-        return super.committed(topicResolver.resolve(partition), timeout);
+        return super.committed(config.getTopicResolver().resolveTopic(partition), timeout);
     }
 
     @Override
     public Map<TopicPartition, OffsetAndMetadata> committed(Set<TopicPartition> partitions) {
-        return unresolveTopicPartitionOffsetAndMetadataMap(super.committed(topicResolver.resolveTopicPartitions(partitions)));
+        return unresolveTopicPartitionOffsetAndMetadataMap(super.committed(config.getTopicResolver().resolveTopicPartitions(partitions)));
     }
 
     @Override
     public Map<TopicPartition, OffsetAndMetadata> committed(Set<TopicPartition> partitions,
                                                             Duration timeout) {
-        return unresolveTopicPartitionOffsetAndMetadataMap(super.committed(topicResolver.resolveTopicPartitions(partitions), timeout));
+        return unresolveTopicPartitionOffsetAndMetadataMap(super.committed(config.getTopicResolver().resolveTopicPartitions(partitions), timeout));
     }
 
     @Override
     public ConsumerGroupMetadata groupMetadata() {
         ConsumerGroupMetadata groupMetadata = super.groupMetadata();
         return groupMetadata == null ? null : new ConsumerGroupMetadata(
-                groupResolver.unresolve(groupMetadata.groupId()),
+                config.getGroupResolver().unresolveGroup(groupMetadata.groupId()),
                 groupMetadata.generationId(), groupMetadata.memberId(), groupMetadata.groupInstanceId());
     }
 
     @Override
     public List<PartitionInfo> partitionsFor(String topic) {
-        return convertPartitionInfo(super.partitionsFor(topicResolver.resolve(topic)),
+        return convertPartitionInfo(super.partitionsFor(config.getTopicResolver().resolveTopic(topic)),
                 topic);
     }
 
     @Override
     public List<PartitionInfo> partitionsFor(String topic, Duration timeout) {
         return convertPartitionInfo(
-                super.partitionsFor(topicResolver.resolve(topic), timeout), topic);
+                super.partitionsFor(config.getTopicResolver().resolveTopic(topic), timeout), topic);
     }
 
     @Override
@@ -261,71 +231,71 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
 
     @Override
     public void pause(Collection<TopicPartition> partitions) {
-        super.pause(topicResolver.resolveTopicPartitions(partitions));
+        super.pause(config.getTopicResolver().resolveTopicPartitions(partitions));
     }
 
     @Override
     public void resume(Collection<TopicPartition> partitions) {
-        super.resume(topicResolver.resolveTopicPartitions(partitions));
+        super.resume(config.getTopicResolver().resolveTopicPartitions(partitions));
     }
 
     @Override
     public Set<TopicPartition> paused() {
-        return topicResolver.unresolveTopicPartitions(super.paused());
+        return config.getTopicResolver().unresolveTopicPartitions(super.paused());
     }
 
     @Override
     public Map<TopicPartition, OffsetAndTimestamp> offsetsForTimes(
             Map<TopicPartition, Long> timestampsToSearch) {
-        return topicResolver.unresolve(
+        return config.getTopicResolver().unresolveTopics(
                 super.offsetsForTimes(
-                        topicResolver.resolve(timestampsToSearch)));
+                        config.getTopicResolver().resolveTopics(timestampsToSearch)));
     }
 
     @Override
     public Map<TopicPartition, OffsetAndTimestamp> offsetsForTimes(
             Map<TopicPartition, Long> timestampsToSearch, Duration timeout) {
-        return topicResolver.unresolve(
+        return config.getTopicResolver().unresolveTopics(
                 super.offsetsForTimes(
-                        topicResolver.resolve(timestampsToSearch),
+                        config.getTopicResolver().resolveTopics(timestampsToSearch),
                         timeout));
     }
 
     @Override
     public Map<TopicPartition, Long> beginningOffsets(Collection<TopicPartition> partitions) {
-        return topicResolver.unresolve(
+        return config.getTopicResolver().unresolveTopics(
                 super.beginningOffsets(
-                        topicResolver.resolveTopicPartitions(partitions)));
+                        config.getTopicResolver().resolveTopicPartitions(partitions)));
     }
 
     @Override
     public Map<TopicPartition, Long> beginningOffsets(Collection<TopicPartition> partitions,
                                                       Duration timeout) {
-        return topicResolver.unresolve(
+        return config.getTopicResolver().unresolveTopics(
                 super.beginningOffsets(
-                        topicResolver.resolveTopicPartitions(partitions),
+                        config.getTopicResolver().resolveTopicPartitions(partitions),
                         timeout));
     }
 
     @Override
     public Map<TopicPartition, Long> endOffsets(Collection<TopicPartition> partitions) {
-        return topicResolver.unresolve(
+        return config.getTopicResolver().unresolveTopics(
                 super.endOffsets(
-                        topicResolver.resolveTopicPartitions(partitions)));
+                        config.getTopicResolver().resolveTopicPartitions(partitions)));
     }
 
     @Override
     public Map<TopicPartition, Long> endOffsets(Collection<TopicPartition> partitions,
                                                 Duration timeout) {
-        return topicResolver.unresolve(
+        return config.getTopicResolver().unresolveTopics(
                 super.endOffsets(
-                        topicResolver.resolveTopicPartitions(partitions),
+                        config.getTopicResolver().resolveTopicPartitions(partitions),
                         timeout));
     }
 
     @Override
     public OptionalLong currentLag(TopicPartition topicPartition) {
-        return super.currentLag(topicResolver.resolve(topicPartition));
+        return super.currentLag(config.getTopicResolver().resolveTopic(topicPartition));
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -344,7 +314,7 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
 
                 for (ConsumerRecord<K, V> consumerRecord : records.records(topicPartition)) {
                     partitionRecords.add(new ConsumerRecord<>(
-                            topicResolver.unresolve(consumerRecord.topic()),
+                            config.getTopicResolver().unresolveTopic(consumerRecord.topic()),
                             consumerRecord.partition(),
                             consumerRecord.offset(),
                             consumerRecord.timestamp(),
@@ -357,7 +327,7 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
                             Optional.empty()));
                 }
                 recordsByPartition
-                        .put(topicResolver.unresolve(topicPartition), partitionRecords);
+                        .put(config.getTopicResolver().unresolveTopic(topicPartition), partitionRecords);
             }
         }
 
@@ -375,10 +345,10 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
             List<PartitionInfo> resultInfos = new ArrayList<>(infos.size());
             for (PartitionInfo info : infos) {
                 resultInfos.add(
-                        new ResolvingPartitionInfo(topicResolver.unresolve(info.topic()),
+                        new ResolvingPartitionInfo(config.getTopicResolver().unresolveTopic(info.topic()),
                                 info.partition()));
             }
-            result.put(topicResolver.unresolve(topic), resultInfos);
+            result.put(config.getTopicResolver().unresolveTopic(topic), resultInfos);
         }
         return result;
     }
@@ -405,7 +375,7 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
                 topicPartitionOffsetAndMetadataMap.keySet()
                         .stream()
                         .collect(HashMap::new,
-                                (map, topicPartition) -> map.put(new TopicPartition(topicResolver.unresolve(topicPartition.topic()),
+                                (map, topicPartition) -> map.put(new TopicPartition(config.getTopicResolver().unresolveTopic(topicPartition.topic()),
                                                 topicPartition.partition()),
                                         topicPartitionOffsetAndMetadataMap.get(topicPartition)), HashMap::putAll);
 
@@ -420,12 +390,12 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
 
         @Override
         public void onPartitionsRevoked(Collection<TopicPartition> collection) {
-            listener.onPartitionsRevoked(topicResolver.unresolveTopicPartitions(collection));
+            listener.onPartitionsRevoked(config.getTopicResolver().unresolveTopicPartitions(collection));
         }
 
         @Override
         public void onPartitionsAssigned(Collection<TopicPartition> collection) {
-            listener.onPartitionsAssigned(topicResolver.unresolveTopicPartitions(collection));
+            listener.onPartitionsAssigned(config.getTopicResolver().unresolveTopicPartitions(collection));
         }
     }
 
@@ -438,7 +408,7 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
 
         @Override
         public void onComplete(Map<TopicPartition, OffsetAndMetadata> offsets, Exception e) {
-            callback.onComplete(topicResolver.unresolve(offsets), e);
+            callback.onComplete(config.getTopicResolver().unresolveTopics(offsets), e);
         }
     }
 }
