@@ -4,7 +4,7 @@ package io.axual.ksml.runner.config;
  * ========================LICENSE_START=================================
  * KSML Runner
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ package io.axual.ksml.runner.config;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import io.axual.ksml.runner.exception.ConfigException;
+import io.axual.ksml.runner.exception.RunnerConfigurationException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,15 +41,15 @@ public class KSMLRunnerConfig {
     @JsonProperty("kafka")
     private Map<String, String> kafkaConfig;
 
-    public void validate() throws ConfigException {
+    public void validate() throws RunnerConfigurationException {
         if (ksmlConfig == null) {
-            throw new ConfigException("ksml", ksmlConfig);
+            throw new RunnerConfigurationException("ksml", ksmlConfig);
         }
 
         ksmlConfig.validate();
 
         if (kafkaConfig == null) {
-            throw new ConfigException("kafka", kafkaConfig);
+            throw new RunnerConfigurationException("kafka", kafkaConfig);
         }
     }
 }

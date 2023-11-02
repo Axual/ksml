@@ -2,16 +2,16 @@ package io.axual.ksml.datagenerator.parser;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Generator
+ * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,7 +23,7 @@ package io.axual.ksml.datagenerator.parser;
 
 import io.axual.ksml.KSMLConfig;
 import io.axual.ksml.data.schema.SchemaLibrary;
-import io.axual.ksml.datagenerator.config.GeneratorConfig;
+import io.axual.ksml.datagenerator.config.ProducerConfig;
 import io.axual.ksml.datagenerator.definition.ProducerDefinition;
 import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.generator.YAMLDefinition;
@@ -55,19 +55,25 @@ import java.util.TreeMap;
 import static io.axual.ksml.datagenerator.dsl.ProducerDSL.PRODUCERS_DEFINITION;
 import static io.axual.ksml.dsl.KSMLDSL.FUNCTIONS_DEFINITION;
 import static io.axual.ksml.dsl.KSMLDSL.STREAMS_DEFINITION;
+
+/**
+ * Generate a Kafka Streams topology from a KSML configuration, using a Python interpreter.
+ *
+ * @see KSMLConfig
+ */
 public class ProducerDefinitionFileParser {
     private static final Logger LOG = LoggerFactory.getLogger(ProducerDefinitionFileParser.class);
-    private final GeneratorConfig config;
+    private final ProducerConfig config;
 
-    public ProducerDefinitionFileParser(GeneratorConfig config) {
+    public ProducerDefinitionFileParser(ProducerConfig config) {
         this.config = config;
     }
 
     private List<YAMLDefinition> readDefinitions() {
         try {
             // Parse source from file
-            LOG.info("Reading Producer Definition from source file(s): {}", config.getDefinitions());
-            return YAMLReader.readYAML(YAMLObjectMapper.INSTANCE, config.getConfigDirectory(), config.getDefinitions());
+            LOG.info("Reading Producer Definition from source file(s): {}", config.definitions);
+            return YAMLReader.readYAML(YAMLObjectMapper.INSTANCE, config.workingDirectory, config.definitions);
         } catch (IOException e) {
             LOG.info("Can not read YAML: {}", e.getMessage());
         }
@@ -77,10 +83,10 @@ public class ProducerDefinitionFileParser {
 
     public Map<String, ProducerDefinition> create(NotationLibrary notationLibrary, PythonContext pythonContext) {
         // Register schema loaders
-        SchemaLibrary.registerLoader(AvroNotation.NOTATION_NAME, new AvroSchemaLoader(config.getSchemaDirectory()));
-        SchemaLibrary.registerLoader(CsvNotation.NOTATION_NAME, new CsvSchemaLoader(config.getSchemaDirectory()));
-        SchemaLibrary.registerLoader(JsonNotation.NOTATION_NAME, new JsonSchemaLoader(config.getSchemaDirectory()));
-        SchemaLibrary.registerLoader(XmlNotation.NOTATION_NAME, new XmlSchemaLoader(config.getSchemaDirectory()));
+        SchemaLibrary.registerLoader(AvroNotation.NOTATION_NAME, new AvroSchemaLoader(config.workingDirectory));
+        SchemaLibrary.registerLoader(CsvNotation.NOTATION_NAME, new CsvSchemaLoader(config.workingDirectory));
+        SchemaLibrary.registerLoader(JsonNotation.NOTATION_NAME, new JsonSchemaLoader(config.workingDirectory));
+        SchemaLibrary.registerLoader(XmlNotation.NOTATION_NAME, new XmlSchemaLoader(config.workingDirectory));
 
         List<YAMLDefinition> definitions = readDefinitions();
         Map<String, ProducerDefinition> producers = new TreeMap<>();
@@ -138,7 +144,7 @@ public class ProducerDefinitionFileParser {
         new MapParser<>("function definition", new TypedFunctionDefinitionParser()).parse(node.get(FUNCTIONS_DEFINITION)).forEach(context::registerFunction);
         // Generate all the function code in the Python context
         for (var function : context.getFunctionDefinitions().entrySet()) {
-            PythonFunction.fromNamed(pythonContext, function.getKey(), function.getValue());
+            new PythonFunction(pythonContext, function.getKey(), function.getValue());
         }
 
         // Parse all defined message producers

@@ -2,9 +2,9 @@ package io.axual.ksml.datagenerator;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Generator
+ * KSML Example Producer
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,7 +80,6 @@ public class KSMLDataGenerator {
         try {
             final var mapper = new ObjectMapper(new YAMLFactory());
             config = mapper.readValue(configFile, DataGeneratorConfig.class);
-            config.validate();
         } catch (IOException e) {
             log.error("An exception occurred while reading the configuration", e);
             System.exit(2);
@@ -95,24 +94,15 @@ public class KSMLDataGenerator {
         // Read all producer definitions from the configured YAML files
         var notationLibrary = factory.getNotationLibrary();
         var context = new PythonContext(new DataObjectConverter(notationLibrary));
-        var producers = new ProducerDefinitionFileParser(config.getKsml()).create(notationLibrary, context);
+        var producers = new ProducerDefinitionFileParser(config.getProducer()).create(notationLibrary, context);
 
         // Load all functions into the Python context
 
         // Schedule all defined producers
         for (var entry : producers.entrySet()) {
             var target = entry.getValue().target();
-            var name = entry.getKey();
-            var gen = entry.getValue().generator();
-            final var generator = gen.name() != null
-                    ? PythonFunction.fromNamed(context, gen.name(), gen.definition())
-                    : PythonFunction.fromAnon(context, name, gen.definition(), "ksml.generator." + name);
-            var cond = entry.getValue().condition();
-            final var condition = (cond != null && cond.definition() != null)
-                    ? cond.name() != null
-                    ? PythonFunction.fromNamed(context, cond.name(), cond.definition())
-                    : PythonFunction.fromAnon(context, name, cond.definition(), "ksml.condition." + name)
-                    : null;
+            var generator = new PythonFunction(context, entry.getKey(), entry.getValue().generator());
+            var condition = entry.getValue().condition() != null ? new PythonFunction(context, entry.getKey() + "_producercondition", entry.getValue().condition()) : null;
             var keySerde = notationLibrary.get(target.keyType.notation()).getSerde(target.keyType.dataType(), true);
             var keySerializer = factory.wrapSerializer(keySerde.serializer());
             var valueSerde = notationLibrary.get(target.valueType.notation()).getSerde(target.valueType.dataType(), false);
