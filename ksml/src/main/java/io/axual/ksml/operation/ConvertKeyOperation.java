@@ -20,14 +20,13 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.streams.kstream.KeyValueMapper;
-import org.apache.kafka.streams.kstream.Named;
-
 import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.util.DataUtil;
+import org.apache.kafka.streams.kstream.KeyValueMapper;
+import org.apache.kafka.streams.kstream.Named;
 
 public class ConvertKeyOperation extends BaseOperation {
     private final DataObjectConverter mapper;
@@ -41,16 +40,27 @@ public class ConvertKeyOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
+        /*    Kafka Streams method signature:
+         *    <KR> KStream<KR, V> selectKey(
+         *          final KeyValueMapper<? super K, ? super V, ? extends KR> mapper,
+         *          final Named named)
+         */
+
+        final var k = streamDataTypeOf(input.keyType().userType(), true);
+        final var v = streamDataTypeOf(input.valueType().userType(), false);
+        final var kr = streamDataTypeOf(targetKeyType, true);
+
         // Set up the mapping function to convert the value
-        KeyValueMapper<Object, Object, Object> converter = (key, value) -> {
+        final KeyValueMapper<Object, Object, Object> converter = (key, value) -> {
             var keyAsData = DataUtil.asDataObject(key);
-            return mapper.convert(input.keyType().userType().notation(), keyAsData, targetKeyType);
+            return mapper.convert(k.userType().notation(), keyAsData, kr.userType());
         };
 
+        final var output = name != null
+                ? input.stream.selectKey(converter, Named.as(name))
+                : input.stream.selectKey(converter);
+
         // Inject the mapper into the topology
-        return new KStreamWrapper(
-                input.stream.selectKey(converter, Named.as(name)),
-                streamDataTypeOf(targetKeyType, true),
-                input.valueType());
+        return new KStreamWrapper(output, kr, v);
     }
 }

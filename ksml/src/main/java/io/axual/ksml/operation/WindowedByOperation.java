@@ -59,14 +59,16 @@ public class WindowedByOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KGroupedStreamWrapper input) {
+        final var k = input.keyType();
+        final var v = input.valueType();
         if (sessionWindows != null) {
-            return new SessionWindowedKStreamWrapper(input.groupedStream.windowedBy(sessionWindows), input.keyType(), input.valueType());
+            return new SessionWindowedKStreamWrapper(input.groupedStream.windowedBy(sessionWindows), k, v);
         }
         if (slidingWindows != null) {
-            return new TimeWindowedKStreamWrapper(input.groupedStream.windowedBy(slidingWindows), input.keyType(), input.valueType());
+            return new TimeWindowedKStreamWrapper(input.groupedStream.windowedBy(slidingWindows), k, v);
         }
         if (timeWindows != null) {
-            return new TimeWindowedKStreamWrapper(input.groupedStream.windowedBy(timeWindows), input.keyType(), input.valueType());
+            return new TimeWindowedKStreamWrapper(input.groupedStream.windowedBy(timeWindows), k, v);
         }
         throw new KSMLTopologyException("Operation " + name + ". Error applying WINDOW BY to " + input);
     }

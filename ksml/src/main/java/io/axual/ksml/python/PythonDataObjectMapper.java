@@ -74,12 +74,16 @@ public class PythonDataObjectMapper extends NativeDataObjectMapper {
         }
 
         // By default, try to decode a dict as a struct
-        if (expected == null || expected instanceof MapType || expected.isAssignableFrom(new StructType())) {
+        if (object.hasHashEntries() ) {
+            // TODO: Check if the following conditions should also make us go in this statement block
+            // expected == null || expected instanceof MapType || expected.isAssignableFrom(new StructType())
             var result = mapToNative(expected, object);
             if (result != null) return result;
         }
 
-        throw FatalError.dataError("Can not convert Python dataType to DataObject: " + object.getClass().getSimpleName());
+        throw FatalError.dataError("Can not convert Python dataType to DataObject: "
+                + object.getClass().getSimpleName()
+                + (expected != null ? ", expected: " + expected : ""));
     }
 
     private Object numberToNative(DataType expected, Value object) {

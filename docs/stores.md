@@ -23,11 +23,16 @@ stores:
 
 State store configurations are defined by the following tags:
 
-|Parameter|Value Type|Default|Description
-|:---|:---|:---|:---
-|`name`|`string`|_none_|The name of the state store. This field is not mandatory, but operations that use the state store configuration will require a name for their store. If the store configuration does not specify an explicit name, then the operation will default back to the operation's name, specified with its `name` attribute. If that name is unspecified, then an exception will be thrown. In general, it is considered good practice to always specify the store name explicitly with its definition.
-|`retention`|[Duration]|_infinite_|The retention time of entries kept in the state store. By default all entries are stored infinitely, but you may want to limit this to keep storage requirements under control.
-|`caching`|`boolean`|`true`|This parameter controls whether the state store caches entries. If you disable caching, then all changes to the state store will be emitted immediately. When cache is enabled then only some changes lead to updated aggregations/calculations, based on technical Kafka Streams configuration such as cache size and topic commit frequency.
+| Parameter     | Value Type | Default | Mandatory |Description
+|:--------------|:-----------|:--------|:----------|:---
+| `name`        | `string`   | _none_  | Optional  | The name of the state store. This field is not mandatory, but operations that use the state store configuration will require a name for their store. If the store configuration does not specify an explicit name, then the operation will default back to the operation's name, specified with its `name` attribute. If that name is unspecified, then an exception will be thrown. In general, it is considered good practice to always specify the store name explicitly with its definition.
+| `type`        | `string`   | _none_  | Mandatory | The type of the state store. Possible types are "_keyValue_", "_session_" and "_window_".
+| `persistent`  | `boolean`  | `false` | Optional  | True if the state store should be retained on disk. See [link] for more information on how Kafka Streams maintains state store state in a state directory. When this parameter is false or undefined, the state store is (re)built up in memory during upon KSML start.
+| `timestamped` | `boolean`  | `false` | Optional  | (Only relevant for keyValue and window stores) True if all messages in the state store need to be timestamped. This effectively changes the state store from type <key, value> to <key, timestamp+value>. The timestamp contains the last timestamp that updated the aggregated value in the window.
+| `keyType`     | `string`   | _none_  | Mandatory | The key type of the state store. See [Types](types.md) for more information.
+| `valueType`   | `string`   | _none_  | Mandatory | The value type of the state store. See [Types](types.md) for more information.
+| `caching`     | `boolean`  | `false` | Optional  | This parameter controls the internal state store caching. When _true_, the state store caches entries and does not emit every state change but only. When _false_ all changes to the state store will be emitted immediately.
+| `logging`     | `boolean`  | `false` | Optional  | This parameter determines whether state changes are written out to a changelog topic, or not. When _true_ all state store changes are produced to a changelog topic. When _false_ no changelog topic is written to.
 
 Example:
 ```yaml

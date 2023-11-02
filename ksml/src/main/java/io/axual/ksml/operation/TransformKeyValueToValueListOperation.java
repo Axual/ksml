@@ -21,14 +21,16 @@ package io.axual.ksml.operation;
  */
 
 
-import org.apache.kafka.streams.kstream.Named;
-
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.operation.processor.OperationProcessorSupplier;
+import io.axual.ksml.operation.processor.TransformKeyValueToValueListProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserKeyValueToValueListTransformer;
+import org.apache.kafka.streams.kstream.Named;
 
 public class TransformKeyValueToValueListOperation extends BaseOperation {
     private static final String MAPPER_NAME = "Mapper";
@@ -48,13 +50,22 @@ public class TransformKeyValueToValueListOperation extends BaseOperation {
          */
 
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
-        var k = input.keyType().userType().dataType();
-        var v = input.valueType().userType().dataType();
-        checkFunction(MAPPER_NAME, mapper, subOf(new ListType(DataType.UNKNOWN)), superOf(k), superOf(v));
+        final var k = input.keyType();
+        final var v = input.valueType();
+        final var vr = streamDataTypeOf(mapper.resultType, false);
+        final var mapperResultType = new UserType(new ListType(DataType.UNKNOWN));
+        checkFunction(MAPPER_NAME, mapper, subOf(mapperResultType), superOf(k), superOf(v));
 
-        return new KStreamWrapper(
-                input.stream.flatMapValues(new UserKeyValueToValueListTransformer(mapper), Named.as(name)),
-                input.keyType(),
-                streamDataTypeOf(mapper.resultType, false));
+        final var action = new UserKeyValueToValueListTransformer(mapper);
+        final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames);
+        final var supplier = new OperationProcessorSupplier<>(
+                name,
+                TransformKeyValueToValueListProcessor::new,
+                (stores, record) -> action.apply(stores, record.key(), record.value()),
+                storeNames);
+        final var output = name != null
+                ? input.stream.process(supplier, Named.as(name), storeNames)
+                : input.stream.process(supplier, storeNames);
+        return new KStreamWrapper(output, k, vr);
     }
 }

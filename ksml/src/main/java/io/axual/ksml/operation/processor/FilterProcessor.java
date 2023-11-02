@@ -1,10 +1,10 @@
-package io.axual.ksml.definition;
+package io.axual.ksml.operation.processor;
 
 /*-
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 Axual B.V.
+ * Copyright (C) 2021 - 2023 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,25 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
-import java.time.Duration;
+import io.axual.ksml.store.StateStores;
+import org.apache.kafka.streams.processor.api.Record;
 
-public record StoreDefinition(String name, Duration retention, Boolean caching) {
+public class FilterProcessor extends OperationProcessor {
+    public interface Predicate {
+        boolean test(StateStores stores, Record<Object, Object> record);
+    }
+
+    private final Predicate action;
+
+    public FilterProcessor(String name, Predicate action, String[] storeNames) {
+        super(name, storeNames);
+        this.action = action;
+    }
+
+    @Override
+    public void process(Record<Object, Object> record) {
+        if (action.test(stores, record)) {
+            context.forward(record);
+        }
+    }
 }

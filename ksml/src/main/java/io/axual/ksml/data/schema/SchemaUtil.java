@@ -105,7 +105,7 @@ public class SchemaUtil {
         if (schema instanceof UnionSchema unionSchema) {
             var types = new UserType[unionSchema.possibleSchemas().length];
             for (int index = 0; index < unionSchema.possibleSchemas().length; index++) {
-                types[index] = new UserType(UserType.DEFAULT_NOTATION, schemaToDataType(unionSchema.possibleSchemas()[index]));
+                types[index] = new UserType(schemaToDataType(unionSchema.possibleSchemas()[index]));
             }
             return new UnionType(types);
         }

@@ -40,7 +40,7 @@ public class RepartitionOperationParser extends OperationParser<RepartitionOpera
     public RepartitionOperation parse(YamlNode node) {
         if (node == null) return null;
         return new RepartitionOperation(
-                operationConfig(name),
+                parseConfig(node, name),
                 parseFunction(node, REPARTITION_PARTITIONER_ATTRIBUTE, new StreamPartitionerDefinitionParser()));
     }
 }

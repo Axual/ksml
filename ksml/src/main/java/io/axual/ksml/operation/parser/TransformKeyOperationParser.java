@@ -40,7 +40,7 @@ public class TransformKeyOperationParser extends OperationParser<TransformKeyOpe
     public TransformKeyOperation parse(YamlNode node) {
         if (node == null) return null;
         return new TransformKeyOperation(
-                operationConfig(name),
+                parseConfig(node, name),
                 parseFunction(node, TRANSFORMKEY_MAPPER_ATTRIBUTE, new KeyTransformerDefinitionParser()));
     }
 }

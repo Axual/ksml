@@ -44,7 +44,7 @@ public class FilterOperationParser extends OperationParser<FilterOperation> {
         UserFunction predicate = parseFunction(node, FILTER_PREDICATE_ATTRIBUTE, new PredicateDefinitionParser());
         if (predicate != null) {
             return new FilterOperation(
-                    operationConfig(name),
+                    parseConfig(node, name),
                     predicate);
         }
         throw new KSMLParseException(node, "Predicate not specified or function unknown");

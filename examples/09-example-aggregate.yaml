@@ -13,9 +13,19 @@ functions:
 
 stores:
   owner_count_aggregate:
-    name: ownerCount
+    type: window
+    keyType: windowed(string)
+    valueType: long
+    windowSize: 1m
     retention: 3m
-    caching: false
+  other:
+    type: keyValue
+    keyType: string
+    valueType: long
+  again:
+    type: session
+    keyType: string
+    valueType: long
 
 pipelines:
   main:
@@ -29,6 +39,8 @@ pipelines:
               return "no owner"
           expression: value["owner"]
           resultType: string
+          stores:
+            - owner_count_aggregate
       - type: windowedBy
         windowType: time
         duration: 20s
@@ -41,6 +53,10 @@ pipelines:
         aggregator:
           expression: aggregatedValue+1
           resultType: long
+        materialized:
+          name: bla
+          caching: false
+          logging: false
       - type: toStream
       - type: peek
         forEach: print_message

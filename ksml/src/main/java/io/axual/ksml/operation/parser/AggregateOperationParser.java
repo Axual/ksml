@@ -28,12 +28,7 @@ import io.axual.ksml.operation.AggregateOperation;
 import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 
-import static io.axual.ksml.dsl.KSMLDSL.AGGREGATE_ADDER_ATTRIBTUE;
-import static io.axual.ksml.dsl.KSMLDSL.AGGREGATE_AGGREGATOR_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.AGGREGATE_INITIALIZER_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.AGGREGATE_MERGER_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.AGGREGATE_SUBTRACTOR_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class AggregateOperationParser extends StoreOperationParser<AggregateOperation> {
     private final String name;

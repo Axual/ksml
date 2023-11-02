@@ -21,6 +21,7 @@ package io.axual.ksml.definition;
  */
 
 
+import io.axual.ksml.store.StateStoreRegistry;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 
@@ -41,7 +42,7 @@ public class GlobalTableDefinition extends BaseStreamDefinition {
     }
 
     @Override
-    public StreamWrapper addToBuilder(StreamsBuilder builder, String name, NotationLibrary notationLibrary) {
+    public StreamWrapper addToBuilder(StreamsBuilder builder, String name, NotationLibrary notationLibrary, StateStoreRegistry storeRegistry) {
         var streamKey = new StreamDataType(notationLibrary, keyType, true);
         var streamValue = new StreamDataType(notationLibrary, valueType, false);
         return new GlobalKTableWrapper(

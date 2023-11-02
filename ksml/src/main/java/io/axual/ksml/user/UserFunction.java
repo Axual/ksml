@@ -31,11 +31,13 @@ import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.KSMLDataException;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.store.StateStores;
 import org.apache.kafka.streams.KeyValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Base class for user-defined functions.
@@ -43,21 +45,27 @@ import java.util.Arrays;
  */
 public class UserFunction {
     private static final Logger LOG = LoggerFactory.getLogger(UserFunction.class);
+    private static final String[] TEMPLATE = new String[]{};
     public final String name;
     public final ParameterDefinition[] parameters;
     public final UserType resultType;
+    public final String[] storeNames;
 
-    public UserFunction(String name, ParameterDefinition[] parameters, UserType resultType) {
+    public UserFunction(String name, ParameterDefinition[] parameters, UserType resultType, List<String> storeNames) {
         this.name = name;
         this.parameters = parameters;
         this.resultType = resultType;
+        this.storeNames = storeNames != null ? storeNames.toArray(TEMPLATE) : TEMPLATE;
         LOG.info("Registered function '{}'", this);
     }
 
     @Override
     public String toString() {
         String[] params = Arrays.stream(parameters).map(p -> p.name() + ":" + (p.type() != null ? p.type() : "?")).toArray(String[]::new);
-        return name + "(" + String.join(", ", params) + ")" + (resultType != null ? " ==> " + resultType : "");
+        return name
+                + "(" + String.join(", ", params) + ")"
+                + (resultType != null ? " ==> " + resultType : "")
+                + (storeNames.length > 0 ? " using store" + (storeNames.length > 1 ? "s" : "") + " " + String.join(",", storeNames) : "");
     }
 
     protected void checkType(DataType expected, DataObject value) {
@@ -95,8 +103,12 @@ public class UserFunction {
      * @param parameters parameters for the function.
      * @return the result of the call.
      */
-    public DataObject call(DataObject... parameters) {
+    public DataObject call(StateStores stores, DataObject... parameters) {
         throw new KSMLExecutionException("Can not call the call() method of a UserFunction directly. Override this class and the call() method.");
+    }
+
+    public final DataObject call(DataObject... parameters) {
+        return call(null, parameters);
     }
 
     private KSMLTopologyException validateException(Object result, String expectedType) {

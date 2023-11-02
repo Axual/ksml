@@ -25,7 +25,11 @@ import io.axual.ksml.notation.binary.BinaryNotation;
 
 public record UserType(String notation, DataType dataType) {
     public static final String DEFAULT_NOTATION = BinaryNotation.NOTATION_NAME;
-    public static final UserType UNKNOWN = new UserType(DEFAULT_NOTATION, DataType.UNKNOWN);
+    public static final UserType UNKNOWN = new UserType(DataType.UNKNOWN);
+
+    public UserType(DataType dataType) {
+        this(DEFAULT_NOTATION, dataType);
+    }
 
     @Override
     public String toString() {

@@ -27,4 +27,5 @@ import lombok.AllArgsConstructor;
 public class OperationConfig {
     public final String name;
     public final NotationLibrary notationLibrary;
+    public String[] storeNames;
 }

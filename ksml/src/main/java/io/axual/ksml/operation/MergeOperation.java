@@ -36,14 +36,20 @@ public class MergeOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        var k = input.keyType().userType().dataType();
-        var v = input.valueType().userType().dataType();
-        checkType("Merge stream keyType", mergeStream.keyType().userType().dataType(), equalTo(k));
-        checkType("Merge stream valueType", mergeStream.valueType().userType().dataType(), equalTo(v));
+        /*
+         *    Kafka Streams method signature:
+         *    KStream<K, V> merge(
+         *          final KStream<K, V> stream,
+         *          final Named named);
+         */
 
-        return new KStreamWrapper(
-                input.stream.merge(mergeStream.stream, Named.as(name)),
-                input.keyType(),
-                input.valueType());
+        final var k = streamDataTypeOf(input.keyType().userType(), true);
+        final var v = streamDataTypeOf(input.valueType().userType(), false);
+        checkType("Merge stream keyType", mergeStream.keyType().userType(), equalTo(k));
+        checkType("Merge stream valueType", mergeStream.valueType().userType(), equalTo(v));
+        final var output = name != null
+                ? input.stream.merge(mergeStream.stream, Named.as(name))
+                : input.stream.merge(mergeStream.stream);
+        return new KStreamWrapper(output, k, v);
     }
 }

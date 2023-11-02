@@ -46,7 +46,7 @@ public class PythonFunctionTest {
     @ParameterizedTest
     @CsvSource({"1, 2, 3", "100,100,200", "100, -1, 99", "99, -100, -1"})
     void testAdditionExpression(Integer i1, Integer i2, Integer sum) {
-        FunctionDefinition adderDef = FunctionDefinition.as(params, resultType, "one + two", null, null);
+        FunctionDefinition adderDef = FunctionDefinition.as(params, resultType, "one + two", null, null, null);
         PythonFunction adder = new PythonFunction(context, "adder", adderDef);
 
         DataObject arg1 = new DataInteger(i1);
@@ -67,7 +67,7 @@ public class PythonFunctionTest {
                   return one + two
                     
                 """;
-        FunctionDefinition adderDef = FunctionDefinition.as(params, resultType, "myAddFunc(one, two)", pythonCode.split("\n"), null);
+        FunctionDefinition adderDef = FunctionDefinition.as(params, resultType, "myAddFunc(one, two)", pythonCode.split("\n"), null, null);
         PythonFunction adder = new PythonFunction(context, "adder", adderDef);
 
         DataObject arg1 = new DataInteger(i1);
@@ -88,7 +88,7 @@ public class PythonFunctionTest {
                   return one + two
                     
                 """;
-        FunctionDefinition adderDef = FunctionDefinition.as(params, resultType, "myAddFunc(one, two)", null, pythonCode.split("\n"));
+        FunctionDefinition adderDef = FunctionDefinition.as(params, resultType, "myAddFunc(one, two)", null, pythonCode.split("\n"), null);
         PythonFunction adder = new PythonFunction(context, "adder", adderDef);
 
         DataObject arg1 = new DataInteger(i1);

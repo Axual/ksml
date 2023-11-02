@@ -29,7 +29,7 @@ import io.axual.ksml.data.schema.UnionSchema;
 public class UnionSchemaParser extends BaseParser<UnionSchema> {
     @Override
     public UnionSchema parse(YamlNode node) {
-        var possibleTypes = new ListParser<>(new DataSchemaParser()).parse(node);
+        var possibleTypes = new ListParser<>("union type", new DataSchemaParser()).parse(node);
         return new UnionSchema(possibleTypes.toArray(new DataSchema[0]));
     }
 }

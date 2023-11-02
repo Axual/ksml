@@ -21,6 +21,7 @@ package io.axual.ksml.definition;
  */
 
 
+import io.axual.ksml.store.StateStoreRegistry;
 import org.apache.kafka.streams.StreamsBuilder;
 
 import io.axual.ksml.data.type.UserType;
@@ -44,5 +45,5 @@ public abstract class BaseStreamDefinition {
      * @param builder         the StreamsBuilder to add the stream to.
      * @param notationLibrary notation library  generator for the key and value types.
      */
-    public abstract StreamWrapper addToBuilder(StreamsBuilder builder, String name, NotationLibrary notationLibrary);
+    public abstract StreamWrapper addToBuilder(StreamsBuilder builder, String name, NotationLibrary notationLibrary, StateStoreRegistry storeRegistry);
 }

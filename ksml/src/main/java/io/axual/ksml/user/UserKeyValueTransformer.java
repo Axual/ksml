@@ -24,13 +24,14 @@ package io.axual.ksml.user;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.python.Invoker;
+import io.axual.ksml.store.StateStores;
 import io.axual.ksml.util.DataUtil;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 
 public class UserKeyValueTransformer extends Invoker implements KeyValueMapper<Object, Object, KeyValue<Object, Object>> {
-    private final DataType resultKeyType;
-    private final DataType resultValueType;
+    protected final DataType resultKeyType;
+    protected final DataType resultValueType;
 
     public UserKeyValueTransformer(UserFunction function) {
         super(function);
@@ -42,7 +43,12 @@ public class UserKeyValueTransformer extends Invoker implements KeyValueMapper<O
 
     @Override
     public KeyValue<Object, Object> apply(Object key, Object value) {
-        var result = function.call(DataUtil.asDataObject(key), DataUtil.asDataObject(value));
+        verifyNoStoresUsed();
+        return apply(null, key, value);
+    }
+
+    public KeyValue<Object, Object> apply(StateStores stores, Object key, Object value) {
+        var result = function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
         return function.convertToKeyValue(result, resultKeyType, resultValueType);
     }
 }

@@ -21,13 +21,15 @@ package io.axual.ksml.operation;
  */
 
 
-import org.apache.kafka.streams.kstream.Named;
-
+import io.axual.ksml.operation.processor.OperationProcessorSupplier;
+import io.axual.ksml.operation.processor.TransformValueProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserValueTransformer;
+import org.apache.kafka.streams.kstream.KTable;
+import org.apache.kafka.streams.kstream.Named;
 
 public class TransformValueOperation extends StoreOperation {
     private static final String MAPPER_NAME = "Mapper";
@@ -47,16 +49,22 @@ public class TransformValueOperation extends StoreOperation {
          */
 
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
-        var k = input.keyType().userType().dataType();
-        var v = input.valueType().userType().dataType();
-        var vr = mapper.resultType.dataType();
+        final var k = streamDataTypeOf(input.keyType().userType(), true);
+        final var v = streamDataTypeOf(input.valueType().userType(), false);
+        final var vr = streamDataTypeOf(mapper.resultType, false);
         checkFunction(MAPPER_NAME, mapper, equalTo(vr), superOf(k), superOf(v));
 
-        final var resultValueType = streamDataTypeOf(mapper.resultType, false);
-        return new KStreamWrapper(
-                input.stream.mapValues(new UserValueTransformer(this.mapper), Named.as(name)),
-                input.keyType(),
-                resultValueType);
+        final var action = new UserValueTransformer(mapper);
+        final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames);
+        final var supplier = new OperationProcessorSupplier<>(
+                name,
+                TransformValueProcessor::new,
+                (stores, record) -> action.apply(stores, record.key(), record.value()),
+                storeNames);
+        final var output = name != null
+                ? input.stream.process(supplier, Named.as(name), storeNames)
+                : input.stream.process(supplier, storeNames);
+        return new KStreamWrapper(output, k, vr);
     }
 
     @Override
@@ -69,18 +77,26 @@ public class TransformValueOperation extends StoreOperation {
          */
 
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
-        var k = input.keyType().userType().dataType();
-        var v = input.valueType().userType().dataType();
-        var vr = mapper.resultType.dataType();
+        final var k = streamDataTypeOf(input.keyType().userType(), true);
+        final var v = streamDataTypeOf(input.valueType().userType(), false);
+        final var vr = streamDataTypeOf(mapper.resultType, false);
         checkFunction(MAPPER_NAME, mapper, equalTo(vr), superOf(k), superOf(v));
+        final var kvStore = validateKeyValueStore(store, k, vr);
 
-        final var resultValueType = streamDataTypeOf(mapper.resultType, false);
-        return new KTableWrapper(
-                input.table.mapValues(
-                        new UserValueTransformer(mapper),
-                        Named.as(name),
-                        registerKeyValueStore(input.keyType(), resultValueType)),
-                input.keyType(),
-                resultValueType);
+        final var map = new UserValueTransformer(mapper);
+        final var named = name != null ? Named.as(name) : null;
+
+        if (kvStore != null) {
+            final var mat = materialize(kvStore);
+            final var output = named != null
+                    ? (KTable) input.table.mapValues(map, named, mat)
+                    : (KTable) input.table.mapValues(map, mat);
+            return new KTableWrapper(output, k, vr);
+        }
+
+        final var output = named != null
+                ? (KTable) input.table.mapValues(map, named)
+                : (KTable) input.table.mapValues(map);
+        return new KTableWrapper(output, k, vr);
     }
 }

@@ -49,7 +49,7 @@ public class PipelineDefinitionParser extends ContextAwareParser<PipelineDefinit
                 parseSource
                         ? new ReferenceOrInlineParser<>("source", PIPELINE_FROM_ATTRIBUTE, context.getStreamDefinitions()::get, new StreamDefinitionParser()).parse(node)
                         : null,
-                new ListParser<>(new PipelineOperationParser(context)).parse(node.get(PIPELINE_VIA_ATTRIBUTE, "step")),
+                new ListParser<>("pipeline operation", new PipelineOperationParser(context)).parse(node.get(PIPELINE_VIA_ATTRIBUTE, "step")),
                 parseSink ? new PipelineSinkOperationParser(context).parse(node) : null);
     }
 }

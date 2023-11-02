@@ -21,11 +21,10 @@ package io.axual.ksml.operation;
  */
 
 
-import org.apache.kafka.streams.kstream.Grouped;
-
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
+import org.apache.kafka.streams.kstream.Grouped;
 
 public class GroupByKeyOperation extends StoreOperation {
     public GroupByKeyOperation(StoreOperationConfig config) {
@@ -34,10 +33,18 @@ public class GroupByKeyOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        return new KGroupedStreamWrapper(
-                input.stream.groupByKey(
-                        registerGrouped(Grouped.with(store.name(), input.keyType().getSerde(), input.valueType().getSerde()))),
-                input.keyType(),
-                input.valueType());
+        /*    Kafka Streams method signature:
+         *    KGroupedStream<K, V> groupByKey(
+         *          final Grouped<K, V> grouped);
+         */
+
+        final var k = input.keyType();
+        final var v = input.valueType();
+
+        final var kvStore = validateKeyValueStore(store, k, v);
+        var grouped = Grouped.with(k.getSerde(), v.getSerde());
+        if (kvStore != null) grouped = grouped.withName(kvStore.name());
+        final var output = input.stream.groupByKey(grouped);
+        return new KGroupedStreamWrapper(output, k, v);
     }
 }

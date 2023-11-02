@@ -61,15 +61,15 @@ public class PythonContext {
         final var globalCode = String.join("\n", definition.globalCode) + "\n";
 
         // Prepare function (if any) and expression from the function definition
-        final var functionAndExpression = "def " + name + "_function(" + String.join(",", params) + "):\n" +
+        final var functionAndExpression = "def " + name + "_function(stores," + String.join(",", params) + "):\n" +
                 String.join("\n", functionCode) + "\n" +
                 "  return" + (definition.resultType != null && definition.resultType.dataType() != DataNull.DATATYPE ? " " + definition.expression : "") + "\n" +
                 "\n";
 
         // Prepare the actual caller for the code
         final var convertedParams = Arrays.stream(params).map(p -> "convert_to_python(" + p + ")").toList();
-        final var pyCallerCode = "def " + name + "_caller(" + String.join(",", params) + "):\n  " +
-                "  return convert_from_python(" + name + "_function(" + String.join(",", convertedParams) + "))\n";
+        final var pyCallerCode = "def " + name + "_caller(stores," + String.join(",", params) + "):\n  " +
+                "  return convert_from_python(" + name + "_function(convert_to_python(stores)," + String.join(",", convertedParams) + "))\n";
 
         final var pythonCodeTemplate = """
                 import polyglot

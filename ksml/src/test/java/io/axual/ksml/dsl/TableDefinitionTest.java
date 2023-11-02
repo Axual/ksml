@@ -20,8 +20,13 @@ package io.axual.ksml.dsl;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.definition.TableDefinition;
+import io.axual.ksml.notation.Notation;
+import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.notation.binary.BinaryNotation;
+import io.axual.ksml.parser.UserTypeParser;
+import io.axual.ksml.stream.KTableWrapper;
 import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,13 +34,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.HashMap;
-
-import io.axual.ksml.definition.TableDefinition;
-import io.axual.ksml.notation.Notation;
-import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.notation.binary.BinaryNotation;
-import io.axual.ksml.parser.UserTypeParser;
-import io.axual.ksml.stream.KTableWrapper;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -59,17 +57,17 @@ class TableDefinitionTest {
         notationLibrary.register(BinaryNotation.NOTATION_NAME, mockNotation);
 
         // given a TableDefinition
-        var tableDefinition = new TableDefinition("topic", "string", "string", false, null);
+        var tableDefinition = new TableDefinition("topic", "string", "string", null);
 
         // when it adds itself to Builder
-        var streamWrapper = tableDefinition.addToBuilder(builder, "name", notationLibrary);
+        var streamWrapper = tableDefinition.addToBuilder(builder, "name", notationLibrary, null);
 
         // it adds a ktable to the builder with key and value dataType, and returns a KTableWrapper instance
         final var stringType = UserTypeParser.parse("string");
         verify(mockNotation).getSerde(stringType.dataType(), true);
         verify(mockNotation).getSerde(stringType.dataType(), false);
 
-        verify(builder).table(eq("topic"), isA(Consumed.class), isA(Materialized.class));
+        verify(builder).table(eq("topic"), isA(Materialized.class));
         assertThat(streamWrapper, instanceOf(KTableWrapper.class));
     }
 }

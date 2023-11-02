@@ -1,10 +1,10 @@
-package io.axual.ksml.store;
+package io.axual.ksml.parser;
 
 /*-
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2022 Axual B.V.
+ * Copyright (C) 2021 - 2023 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,9 @@ package io.axual.ksml.store;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.streams.kstream.Grouped;
-
-public interface GroupedRegistry {
-    <K, V> void registerGrouped(Grouped<K, V> grouped);
+public class StringValueParser extends BaseParser<String> {
+    @Override
+    public String parse(YamlNode node) {
+        return parseStringValue(node);
+    }
 }

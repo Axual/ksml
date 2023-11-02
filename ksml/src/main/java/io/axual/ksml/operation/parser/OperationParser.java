@@ -23,14 +23,25 @@ package io.axual.ksml.operation.parser;
 import io.axual.ksml.operation.OperationConfig;
 import io.axual.ksml.operation.StreamOperation;
 import io.axual.ksml.parser.ContextAwareParser;
+import io.axual.ksml.parser.ListParser;
 import io.axual.ksml.parser.ParseContext;
+import io.axual.ksml.parser.StringValueParser;
+import io.axual.ksml.parser.YamlNode;
+
+import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public abstract class OperationParser<T extends StreamOperation> extends ContextAwareParser<T> {
+    private static final String[] TEMPLATE = new String[0];
+
     protected OperationParser(ParseContext context) {
         super(context);
     }
 
-    protected OperationConfig operationConfig(String name) {
-        return new OperationConfig(name, context.getNotationLibrary());
+    protected OperationConfig parseConfig(YamlNode node, String operationName) {
+        var storeNames = new ListParser<>("operation store", new StringValueParser()).parse(node.get(OPERATION_STORES_ATTRIBUTE));
+        return new OperationConfig(
+                operationName,
+                context.getNotationLibrary(),
+                storeNames != null ? storeNames.toArray(TEMPLATE) : null);
     }
 }

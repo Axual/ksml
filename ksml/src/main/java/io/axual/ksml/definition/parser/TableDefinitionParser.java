@@ -21,32 +21,28 @@ package io.axual.ksml.definition.parser;
  */
 
 
+import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.parser.BaseParser;
-import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.parser.YamlNode;
-import io.axual.ksml.store.StoreRegistry;
+import io.axual.ksml.store.StoreType;
 
-import static io.axual.ksml.dsl.KSMLDSL.KEYTYPE_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.QUERYABLE_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.TOPIC_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.VALUETYPE_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class TableDefinitionParser extends BaseParser<TableDefinition> {
-    private final StoreRegistry storeRegistry;
-
-    public TableDefinitionParser(StoreRegistry storeRegistry) {
-        this.storeRegistry = storeRegistry;
-    }
-
     @Override
     public TableDefinition parse(YamlNode node) {
         if (node == null) return null;
+
+        // Use the topic name as the default store name
+        var topic = parseString(node, TOPIC_ATTRIBUTE);
+        var store = new StateStoreDefinitionParser(topic, StoreType.KEYVALUE_STORE).parse(node.get(STORE_ATTRIBUTE));
+
+        // Create and return the table definition
         return new TableDefinition(
-                parseString(node, TOPIC_ATTRIBUTE),
-                UserTypeParser.parse(parseString(node, KEYTYPE_ATTRIBUTE)),
-                UserTypeParser.parse(parseString(node, VALUETYPE_ATTRIBUTE)),
-                parseBoolean(node, QUERYABLE_ATTRIBUTE),
-                storeRegistry);
+                topic,
+                parseString(node, KEYTYPE_ATTRIBUTE),
+                parseString(node, VALUETYPE_ATTRIBUTE),
+                store != null ? (KeyValueStateStoreDefinition) store : null);
     }
 }

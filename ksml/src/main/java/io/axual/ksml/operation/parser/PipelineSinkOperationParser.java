@@ -50,19 +50,19 @@ public class PipelineSinkOperationParser extends OperationParser<StreamOperation
     public StreamOperation parse(YamlNode node) {
         if (node == null) return null;
         if (node.get(PIPELINE_BRANCH_ATTRIBUTE) != null) {
-            return new BranchOperation(operationConfig(determineName("branch")), new ListParser<>(new BranchDefinitionParser(context)).parse(node.get(PIPELINE_BRANCH_ATTRIBUTE)));
+            return new BranchOperation(parseConfig(node, determineName("branch")), new ListParser<>("branch definition", new BranchDefinitionParser(context)).parse(node.get(PIPELINE_BRANCH_ATTRIBUTE)));
         }
         if (node.get(PIPELINE_FOREACH_ATTRIBUTE) != null) {
-            return new ForEachOperation(operationConfig(determineName("for_each")), parseFunction(node, PIPELINE_FOREACH_ATTRIBUTE, new ForEachActionDefinitionParser()));
+            return new ForEachOperation(parseConfig(node, determineName("for_each")), parseFunction(node, PIPELINE_FOREACH_ATTRIBUTE, new ForEachActionDefinitionParser()));
         }
         if (node.get(PIPELINE_TOTOPICNAMEEXTRACTOR_ATTRIBUTE) != null) {
-            return new ToTopicNameExtractorOperation(operationConfig(determineName("to_name_extract")), parseFunction(node, PIPELINE_TOTOPICNAMEEXTRACTOR_ATTRIBUTE, new TopicNameExtractorDefinitionParser()));
+            return new ToTopicNameExtractorOperation(parseConfig(node, determineName("to_name_extract")), parseFunction(node, PIPELINE_TOTOPICNAMEEXTRACTOR_ATTRIBUTE, new TopicNameExtractorDefinitionParser()));
         }
         if (node.get(PIPELINE_TO_ATTRIBUTE) != null) {
             final var def = new ReferenceOrInlineParser<>("stream", PIPELINE_TO_ATTRIBUTE, context.getStreamDefinitions()::get, new StreamDefinitionParser()).parse(node);
             if (def != null) {
                 context.registerTopic(def.topic);
-                return new ToOperation(operationConfig(determineName("to")), def);
+                return new ToOperation(parseConfig(node, determineName("to")), def);
             }
             throw new KSMLTopologyException("Target stream not found or not specified");
         }

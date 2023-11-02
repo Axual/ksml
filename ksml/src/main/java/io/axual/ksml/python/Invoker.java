@@ -21,12 +21,11 @@ package io.axual.ksml.python;
  */
 
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.user.UserFunction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Base class for stream operations.
@@ -67,5 +66,9 @@ public abstract class Invoker {
 
     protected void verifyResultType(DataType type) {
         verify(type.isAssignableFrom(function.resultType.dataType()), "Function returns " + function.resultType.dataType() + " instead of " + type);
+    }
+
+    protected void verifyNoStoresUsed() {
+        verify(function.storeNames.length == 0, getClass().getSimpleName() + " function uses state stores in a context where it can not: " + String.join(",", function.storeNames));
     }
 }

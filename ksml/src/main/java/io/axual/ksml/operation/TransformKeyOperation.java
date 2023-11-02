@@ -21,12 +21,13 @@ package io.axual.ksml.operation;
  */
 
 
-import org.apache.kafka.streams.kstream.Named;
-
+import io.axual.ksml.operation.processor.OperationProcessorSupplier;
+import io.axual.ksml.operation.processor.TransformKeyProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserKeyTransformer;
+import org.apache.kafka.streams.kstream.Named;
 
 public class TransformKeyOperation extends BaseOperation {
     private static final String MAPPER_NAME = "Mapper";
@@ -46,14 +47,21 @@ public class TransformKeyOperation extends BaseOperation {
          */
 
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
-        var k = input.keyType().userType().dataType();
-        var v = input.valueType().userType().dataType();
-        var kr = mapper.resultType.dataType();
+        final var k = input.keyType();
+        final var v = input.valueType();
+        final var kr = streamDataTypeOf(mapper.resultType, true);
         checkFunction(MAPPER_NAME, mapper, equalTo(kr), superOf(k), superOf(v));
 
-        return new KStreamWrapper(
-                input.stream.selectKey(new UserKeyTransformer(mapper), Named.as(name)),
-                streamDataTypeOf(mapper.resultType, true),
-                input.valueType());
+        final var action = new UserKeyTransformer(mapper);
+        final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames);
+        final var supplier = new OperationProcessorSupplier<>(
+                name,
+                TransformKeyProcessor::new,
+                (stores, record) -> action.apply(stores, record.key(), record.value()),
+                storeNames);
+        final var output = name != null
+                ? input.stream.process(supplier, Named.as(name), storeNames)
+                : input.stream.process(supplier, storeNames);
+        return new KStreamWrapper(output, kr, v);
     }
 }

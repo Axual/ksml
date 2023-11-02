@@ -28,18 +28,24 @@ import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.store.StateStores;
 import io.axual.ksml.user.UserFunction;
+import org.apache.kafka.streams.processor.StateStore;
 import org.graalvm.polyglot.Value;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static io.axual.ksml.data.type.UserType.DEFAULT_NOTATION;
 
 public class PythonFunction extends UserFunction {
     private static final PythonDataObjectMapper MAPPER = new PythonDataObjectMapper();
+    private static final Map<String, StateStore> EMPTY_STORES = new HashMap<>();
     private final DataObjectConverter converter;
     private final Value function;
 
     public PythonFunction(PythonContext context, String name, FunctionDefinition definition) {
-        super(name, definition.parameters, definition.resultType);
+        super(name, definition.parameters, definition.resultType, definition.storeNames);
         converter = context.getConverter();
         function = context.registerFunction(name, definition);
         if (function == null)
@@ -47,14 +53,14 @@ public class PythonFunction extends UserFunction {
     }
 
     @Override
-    public DataObject call(DataObject... parameters) {
+    public DataObject call(StateStores stores, DataObject... parameters) {
         // Validate that the defined parameter list matches the amount of passed in parameters
         if (this.parameters.length != parameters.length) {
             throw new KSMLTopologyException("Parameter list does not match function spec: expected " + this.parameters.length + ", got " + parameters.length);
         }
 
         // Check all parameters and copy them into the interpreter as prefixed globals
-        var arguments = convertParameters(parameters);
+        var arguments = convertParameters(stores, parameters);
 
         try {
             // Call the prepared function
@@ -81,11 +87,12 @@ public class PythonFunction extends UserFunction {
         }
     }
 
-    private Object[] convertParameters(DataObject... parameters) {
-        Object[] result = new Object[parameters.length];
+    private Object[] convertParameters(Map<String, StateStore> stores, DataObject... parameters) {
+        Object[] result = new Object[parameters.length + 1];
+        result[0] = stores != null ? stores : EMPTY_STORES;
         for (var index = 0; index < parameters.length; index++) {
             checkType(this.parameters[index], parameters[index]);
-            result[index] = MAPPER.fromDataObject(parameters[index]);
+            result[index + 1] = MAPPER.fromDataObject(parameters[index]);
         }
         return result;
     }

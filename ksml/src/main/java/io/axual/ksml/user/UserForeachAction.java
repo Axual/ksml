@@ -21,10 +21,10 @@ package io.axual.ksml.user;
  */
 
 
-import org.apache.kafka.streams.kstream.ForeachAction;
-
-import io.axual.ksml.util.DataUtil;
 import io.axual.ksml.python.Invoker;
+import io.axual.ksml.store.StateStores;
+import io.axual.ksml.util.DataUtil;
+import org.apache.kafka.streams.kstream.ForeachAction;
 
 public class UserForeachAction extends Invoker implements ForeachAction<Object, Object> {
 
@@ -36,6 +36,11 @@ public class UserForeachAction extends Invoker implements ForeachAction<Object, 
 
     @Override
     public void apply(Object key, Object value) {
-        function.call(DataUtil.asDataObject(key), DataUtil.asDataObject(value));
+        verifyNoStoresUsed();
+        apply(null, key, value);
+    }
+
+    public void apply(StateStores stores, Object key, Object value) {
+        function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
     }
 }

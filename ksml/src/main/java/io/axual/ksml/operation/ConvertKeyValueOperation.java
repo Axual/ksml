@@ -43,21 +43,33 @@ public class ConvertKeyValueOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
+        /*    Kafka Streams method signature:
+         *    <KR, VR> KStream<KR, VR> map(
+         *          final KeyValueMapper<? super K, ? super V, ? extends KeyValue<? extends KR, ? extends VR>> mapper,
+         *          final Named named)
+         */
+
+        final var k = input.keyType();
+        final var v = input.valueType();
+        final var kr = streamDataTypeOf(targetKeyType, true);
+        final var vr = streamDataTypeOf(targetValueType, false);
+
         // Set up the mapping function to convert the key and value
         KeyValueMapper<Object, Object, KeyValue<Object, Object>> converter = (key, value) -> {
             var keyAsData = DataUtil.asDataObject(key);
-            var convertedKey = mapper.convert(input.keyType().userType().notation(), keyAsData, targetKeyType);
+            var convertedKey = mapper.convert(k.userType().notation(), keyAsData, kr.userType());
 
             var valueAsData = DataUtil.asDataObject(value);
-            var convertedValue = mapper.convert(input.valueType().userType().notation(), valueAsData, targetValueType);
+            var convertedValue = mapper.convert(v.userType().notation(), valueAsData, vr.userType());
 
             return new KeyValue<>(convertedKey, convertedValue);
         };
 
+        final var output = name != null
+                ? input.stream.map(converter, Named.as(name))
+                : input.stream.map(converter);
+
         // Inject the mapper into the topology
-        return new KStreamWrapper(
-                input.stream.map(converter, Named.as(name)),
-                input.keyType(),
-                streamDataTypeOf(targetValueType, false));
+        return new KStreamWrapper(output, kr, vr);
     }
 }
