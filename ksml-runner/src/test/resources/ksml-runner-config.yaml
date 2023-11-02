@@ -4,11 +4,9 @@ ksml:
   definitions:
     - src/test/resources/example-definition.yaml
 
-backend:
-  type: kafka
-  config:
-    bootstrapUrl: broker:9093
-    applicationId: io.ksml.example.processor
-    schemaRegistryUrl: http://schema_registry:8081
-    streamsConfig:
-      acks: all
+kafka:
+  bootstrapUrl: broker:9093
+  applicationId: io.ksml.example.processor
+  schemaRegistryUrl: http://schema_registry:8081
+  streamsConfig:
+    acks: all

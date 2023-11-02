@@ -27,6 +27,7 @@ import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.rest.server.RestServer;
 import io.axual.ksml.runner.backend.Backend;
+import io.axual.ksml.runner.backend.KafkaBackend;
 import io.axual.ksml.runner.config.KSMLRunnerConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.state.HostInfo;
@@ -80,8 +81,7 @@ public class KSMLRunner {
             final var mapper = new ObjectMapper(new YAMLFactory());
             final KSMLRunnerConfig config = mapper.readValue(configPath, KSMLRunnerConfig.class);
             config.validate();
-            log.info("Using {} backend", config.getBackendConfig().getType());
-            try (final Backend backend = config.getConfiguredBackend()) {
+            try (final var backend = new KafkaBackend(config.getKsmlConfig(), config.getKafkaConfig())) {
                 var shutdownHook = new Thread(() -> {
                     try {
                         log.debug("In KSML shutdown hook");
@@ -93,9 +93,9 @@ public class KSMLRunner {
 
                 Runtime.getRuntime().addShutdownHook(shutdownHook);
 
-                if (Boolean.TRUE.equals(config.getKSMLRunnerKsmlConfig().getApplicationServerEnabled())) {
+                if (Boolean.TRUE.equals(config.getKsmlConfig().getApplicationServerEnabled())) {
                     // Run with the REST server
-                    HostInfo hostInfo = new HostInfo(config.getKSMLRunnerKsmlConfig().getApplicationServerHost(), config.getKSMLRunnerKsmlConfig().getApplicationServerPort());
+                    HostInfo hostInfo = new HostInfo(config.getKsmlConfig().getApplicationServerHost(), config.getKsmlConfig().getApplicationServerPort());
 
                     try (RestServer restServer = new RestServer(hostInfo)) {
                         restServer.start(backend.getQuerier());
@@ -111,10 +111,12 @@ public class KSMLRunner {
                 log.error("An exception occurred while running KSML", e);
                 System.exit(2);
             }
-        } catch (IOException e) {
+        } catch (
+                IOException e) {
             log.error("An exception occurred while reading the configuration", e);
             System.exit(2);
         }
+
     }
 
     private static void run(Backend backend) {

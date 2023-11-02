@@ -20,8 +20,11 @@ The submodules are as follows:
 * [`ksml`](ksml/) 
   the core component that can parse KSML definition files and convert them to a Kafka Streams topology
 
-* [`ksml-axual`](ksml-axual/) 
-  adaption of the KSML serde generator, intended for use with Axual Platform and/or Axual Cloud
+* [`ksml-query`](ksml-query/)
+  allows an active KSML application to be queries via REST for its internal state stores
+
+* [`ksml-kafka-clients`](ksml-kafka-clients/) 
+  extension of the standard Kafka clients, intended for use with Axual Platform and/or Axual Cloud
 
 * [`ksml-runner`](ksml-runner/) 
   standalone Java application for running KSML against plain Kafka and Axual Platform/Cloud deployments

@@ -20,15 +20,11 @@ package io.axual.ksml.datagenerator.factory;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.clients.admin.Admin;
-import org.apache.kafka.clients.producer.Producer;
-
 import io.axual.ksml.notation.NotationLibrary;
+import org.apache.kafka.clients.producer.Producer;
 
 public interface ClientFactory {
     Producer<byte[], byte[]> getProducer();
-
-    Admin getAdmin();
 
     NotationLibrary getNotationLibrary();
 }

@@ -23,7 +23,7 @@ package io.axual.ksml.datagenerator.parser;
 
 import io.axual.ksml.KSMLConfig;
 import io.axual.ksml.data.schema.SchemaLibrary;
-import io.axual.ksml.datagenerator.config.producer.DataGeneratorConfig;
+import io.axual.ksml.datagenerator.config.ProducerConfig;
 import io.axual.ksml.datagenerator.definition.ProducerDefinition;
 import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.generator.YAMLDefinition;
@@ -63,9 +63,9 @@ import static io.axual.ksml.dsl.KSMLDSL.STREAMS_DEFINITION;
  */
 public class ProducerDefinitionFileParser {
     private static final Logger LOG = LoggerFactory.getLogger(ProducerDefinitionFileParser.class);
-    private final DataGeneratorConfig config;
+    private final ProducerConfig config;
 
-    public ProducerDefinitionFileParser(DataGeneratorConfig config) {
+    public ProducerDefinitionFileParser(ProducerConfig config) {
         this.config = config;
     }
 

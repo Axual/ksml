@@ -1,0 +1,33 @@
+streams:
+  sensor_source:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+
+stores:
+  - name: last_sensor_data_store
+    keyType: string
+    valueType: json
+    persistent: false
+    type: keyValue
+    retention: 1h
+    caching: false
+    logging: false
+
+functions:
+  process_message:
+    type: forEach
+    code: |
+      store = stores["last_sensor_data_store"]
+      last_value = store.get(key)
+      if last_value != None:
+        print("Found last value: " + key + " = " + last_value)
+      store.put(key, value)
+      print("Storing new value: " + key + " = " + value)
+    stores:
+      - last_sensor_data_store
+
+pipelines:
+  process_message:
+    from: sensor_source_avro
+    forEach: process_message

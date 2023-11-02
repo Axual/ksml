@@ -11,12 +11,11 @@
 
     <artifactId>ksml-runner</artifactId>
     <name>KSML Runner</name>
-    <description>A command line runner for KSML with the default Kafka Backend</description>
+    <description>A command line runner for KSML</description>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <auto-service.version>1.0.1</auto-service.version>
         <logback.version>1.4.5</logback.version>
         <sonar.coverage.jacoco.xmlReportPaths>../ksml-reporting/target/site/jacoco-aggregate/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
@@ -24,18 +23,20 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-streams</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.axual.ksml</groupId>
             <artifactId>ksml</artifactId>
         </dependency>
         <dependency>
             <groupId>io.axual.ksml</groupId>
-            <artifactId>ksml-axual</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.kafka</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
+            <artifactId>ksml-query</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.axual.ksml</groupId>
+            <artifactId>ksml-kafka-clients</artifactId>
         </dependency>
 
         <dependency>
@@ -51,16 +52,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.auto.service</groupId>
-            <artifactId>auto-service-annotations</artifactId>
-            <version>${auto-service.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.axual.ksml</groupId>
-            <artifactId>ksml-query</artifactId>
         </dependency>
 
         <!-- TEST dependencies -->
