@@ -1,5 +1,4 @@
-workingDirectory: .
-configDirectory: foo/bar/wrong
+working.directory: .
+config.directory: foo/bar/wrong
 definitions:
 - src/test/resources/example-definition.yaml
-

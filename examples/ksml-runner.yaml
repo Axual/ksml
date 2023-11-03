@@ -1,6 +1,6 @@
 ksml:
-  workingDirectory: /tmp
-  configDirectory: /ksml
+  working.directory: /tmp
+  config.directory: /ksml
   definitions:
   - 01-example-inspect.yaml
 #  - 02-example-copy.yaml
@@ -16,11 +16,25 @@ ksml:
 #  - 12-example-bytemanipulation.yaml
 #  - 13-example-join.yaml
 
-backend:
-  type: kafka
-  config:
-    bootstrapUrl: broker:9093
-    applicationId: io.ksml.example.processor
-    schemaRegistryUrl: http://schema_registry:8081
-    streamsConfig:
-      acks: all
+kafka:
+  bootstrap.servers: localhost:9092
+  application.id: io.ksml.example.producer
+  schema.registry.url: http://localhost:8081
+  acks: all
+  security.protocol: SSL
+  ssl.protocol: TLSv1.3
+  ssl.enabled.protocols: TLSv1.3,TLSv1.2
+  ssl.endpoint.identification.algorithm: ""
+  ssl.keystore.type: JKS
+  ssl.truststore.type: JKS
+  ssl.key.password: xxx
+  ssl.keystore.password: xxx
+  ssl.keystore.location: /path/to/ksml.keystore.jks
+  ssl.truststore.password: xxx
+  ssl.truststore.location: /path/to/ksml.truststore.jks
+  topic.pattern: "{tenant}-{instance}-{environment}-{topic}"
+  group.id.pattern: "{tenant}-{instance}-{environment}-{group.id}"
+  transactional.id.pattern: "{tenant}-{instance}-{environment}-{transactional.id}"
+  tenant: "ksmldemo"
+  instance: "dta"
+  environment: "dev"
