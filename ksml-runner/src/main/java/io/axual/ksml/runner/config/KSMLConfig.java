@@ -36,13 +36,18 @@ public class KSMLConfig {
     private static final String DEFAULT_HOSTNAME = "0.0.0.0";
     private static final String DEFAULT_PORT = "8080";
 
+    @JsonProperty("application.server.enabled")
     private Boolean applicationServerEnabled;
+    @JsonProperty("application.server.host")
     private String applicationServerHost;
+    @JsonProperty("application.server.port")
     private String applicationServerPort;
+    @JsonProperty("working.directory")
     private String workingDirectory;
+    @JsonProperty("error.handling")
     private KSMLErrorHandlingConfig errorHandling;
 
-    @JsonProperty("configDirectory")
+    @JsonProperty("config.directory")
     private String configurationDirectory;
 
     private List<String> definitions;
