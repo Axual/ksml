@@ -21,11 +21,15 @@ package io.axual.ksml.datagenerator.config;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
 import java.util.List;
 
+@Data
 public class ProducerConfig {
     @JsonProperty("working.directory")
     public String workingDirectory;
+    @JsonProperty("config.directory")
+    private String configurationDirectory;
     public List<String> definitions;
 }

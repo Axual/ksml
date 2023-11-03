@@ -11,8 +11,8 @@
     </parent>
 
     <artifactId>ksml-kafka-clients</artifactId>
-    <name>Kafka clients for KSML</name>
-    <description>Client components for KSML
+    <name>Extended Kafka clients for KSML</name>
+    <description>Kafka client classes for KSML that allow pattern usage for topics, group ids and transactional ids.
     </description>
 
     <properties>

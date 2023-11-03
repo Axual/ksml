@@ -15,6 +15,7 @@ ksml:
 #  - 11-example-fieldmodification.yaml
 #  - 12-example-bytemanipulation.yaml
 #  - 13-example-join.yaml
+#  - 14-example-manual-state-store.yaml
 
 kafka:
   bootstrap.servers: localhost:9092

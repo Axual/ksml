@@ -106,7 +106,7 @@ services:
       - ksml
     working_dir: /ksml
     command:
-      - /ksml/ksml-data-generator-example.yaml
+      - /ksml/ksml-data-generator.yaml
     volumes:
     - ./examples:/ksml
     depends_on:

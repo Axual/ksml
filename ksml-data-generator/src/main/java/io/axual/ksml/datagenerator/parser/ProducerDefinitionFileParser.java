@@ -73,7 +73,7 @@ public class ProducerDefinitionFileParser {
         try {
             // Parse source from file
             LOG.info("Reading Producer Definition from source file(s): {}", config.definitions);
-            return YAMLReader.readYAML(YAMLObjectMapper.INSTANCE, config.workingDirectory, config.definitions);
+            return YAMLReader.readYAML(YAMLObjectMapper.INSTANCE, config.getConfigurationDirectory(), config.definitions);
         } catch (IOException e) {
             LOG.info("Can not read YAML: {}", e.getMessage());
         }
@@ -83,10 +83,10 @@ public class ProducerDefinitionFileParser {
 
     public Map<String, ProducerDefinition> create(NotationLibrary notationLibrary, PythonContext pythonContext) {
         // Register schema loaders
-        SchemaLibrary.registerLoader(AvroNotation.NOTATION_NAME, new AvroSchemaLoader(config.workingDirectory));
-        SchemaLibrary.registerLoader(CsvNotation.NOTATION_NAME, new CsvSchemaLoader(config.workingDirectory));
-        SchemaLibrary.registerLoader(JsonNotation.NOTATION_NAME, new JsonSchemaLoader(config.workingDirectory));
-        SchemaLibrary.registerLoader(XmlNotation.NOTATION_NAME, new XmlSchemaLoader(config.workingDirectory));
+        SchemaLibrary.registerLoader(AvroNotation.NOTATION_NAME, new AvroSchemaLoader(config.getConfigurationDirectory()));
+        SchemaLibrary.registerLoader(CsvNotation.NOTATION_NAME, new CsvSchemaLoader(config.getConfigurationDirectory()));
+        SchemaLibrary.registerLoader(JsonNotation.NOTATION_NAME, new JsonSchemaLoader(config.getConfigurationDirectory()));
+        SchemaLibrary.registerLoader(XmlNotation.NOTATION_NAME, new XmlSchemaLoader(config.getConfigurationDirectory()));
 
         List<YAMLDefinition> definitions = readDefinitions();
         Map<String, ProducerDefinition> producers = new TreeMap<>();

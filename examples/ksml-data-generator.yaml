@@ -1,5 +1,6 @@
 producer:
-  working.directory: ../examples
+  working.directory: examples
+  configuration.directory: examples
   definitions:
     - 00-example-generate-alertsettings.yaml
     - 00-example-generate-sensordata.yaml
