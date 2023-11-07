@@ -23,12 +23,10 @@ package io.axual.ksml.execution;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.streams.KafkaClientSupplier;
 import org.apache.kafka.streams.errors.DeserializationExceptionHandler;
 import org.apache.kafka.streams.errors.ProductionExceptionHandler;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
 import org.apache.kafka.streams.processor.ProcessorContext;
-import org.apache.kafka.streams.processor.internals.DefaultKafkaClientSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +42,6 @@ public class ExecutionContext {
     private Logger produceExceptionLogger;
     private Logger processExceptionLogger;
 
-    private KafkaClientSupplier kafkaClientSupplier = new DefaultKafkaClientSupplier();
     private SerdeWrapper<Object> serdeWrapper = null;
 
     private ExecutionContext() {
@@ -64,14 +61,6 @@ public class ExecutionContext {
     public void setProduceHandler(ErrorHandler produceHandler) {
         this.produceHandler = produceHandler;
         this.produceExceptionLogger = LoggerFactory.getLogger(produceHandler.loggerName());
-    }
-
-    public KafkaClientSupplier getKafkaClientSupplier() {
-        return kafkaClientSupplier;
-    }
-
-    public void setKafkaClientSupplier(KafkaClientSupplier supplier) {
-        this.kafkaClientSupplier = supplier;
     }
 
     public void setSerdeWrapper(SerdeWrapper<Object> serdeWrapper) {
