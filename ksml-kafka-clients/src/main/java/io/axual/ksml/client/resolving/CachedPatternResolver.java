@@ -72,7 +72,7 @@ public class CachedPatternResolver extends PatternResolver {
     public String unresolve(String name) {
         try {
             var context = unresolveCache.get(name);
-            if (context != null) return context.get(defaultField);
+            if (context != null) return context.get(defaultFieldName);
         } catch (ExecutionException e) {
             // Log and handle below as cache miss
             log.warn("Cache execution error while unresolving \"{}\"", name, e);

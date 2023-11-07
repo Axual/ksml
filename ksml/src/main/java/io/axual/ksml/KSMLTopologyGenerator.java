@@ -34,6 +34,7 @@ import io.axual.ksml.notation.xml.XmlSchemaLoader;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -46,7 +47,7 @@ public class KSMLTopologyGenerator implements TopologyGenerator {
     private final KSMLConfig config;
     private final Properties kafkaConfig = new Properties();
 
-    public KSMLTopologyGenerator(String applicationId, KSMLConfig ksmlConfig, Properties kafkaConfigs) {
+    public KSMLTopologyGenerator(String applicationId, KSMLConfig ksmlConfig, Map<String, Object> kafkaConfigs) {
         // Parse configuration
         this.applicationId = applicationId;
         this.config = ksmlConfig;
