@@ -60,7 +60,8 @@ public class GroupByOperation extends StoreOperation {
         final var kvStore = validateKeyValueStore(store, kr, v);
         final var mapper = new UserKeyTransformer(selector);
         var grouped = Grouped.with(kr.getSerde(), v.getSerde());
-        if (kvStore != null) grouped = grouped.withName(kvStore.name());
+        if (name != null) grouped = grouped.withName(name);
+        if (kvStore != null) grouped = grouped.withName(name);
         final var output = input.stream.groupBy(mapper, grouped);
         return new KGroupedStreamWrapper(output, kr, v);
     }
@@ -86,6 +87,7 @@ public class GroupByOperation extends StoreOperation {
             final var kvStore = validateKeyValueStore(store, kr, vr);
             final var mapper = new UserKeyValueTransformer(selector);
             var grouped = Grouped.with(kr.getSerde(), vr.getSerde());
+            if (name != null) grouped = grouped.withName(name);
             if (kvStore != null) grouped = grouped.withName(kvStore.name());
             final var output = input.table.groupBy(mapper, grouped);
             return new KGroupedTableWrapper(output, kr, vr);

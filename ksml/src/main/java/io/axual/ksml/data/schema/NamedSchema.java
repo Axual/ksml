@@ -58,8 +58,8 @@ public abstract class NamedSchema extends DataSchema {
         if (!(otherSchema instanceof NamedSchema otherNamedSchema)) return false;
         // Return true if the other named schema contains the same metadata
         return (Objects.equals(namespace, otherNamedSchema.namespace)
-                && Objects.equals(name, otherNamedSchema.name)
-                && Objects.equals(doc, otherNamedSchema.doc));
+                && Objects.equals(name, otherNamedSchema.name));
+//                && Objects.equals(doc, otherNamedSchema.doc));
     }
 
     @Override

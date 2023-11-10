@@ -30,6 +30,7 @@ pipelines:
       - type: count
         store:
           name: owner_count
+          type: window
           retention: 1h
           caching: false
       - type: toStream

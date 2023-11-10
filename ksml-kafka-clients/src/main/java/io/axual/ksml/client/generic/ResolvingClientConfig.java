@@ -41,8 +41,8 @@ public class ResolvingClientConfig {
 
     protected final Map<String, Object> configs;
     protected final Map<String, Object> downstreamConfigs;
-    protected final GroupResolver groupResolver;
-    protected final TopicResolver topicResolver;
+    public final GroupResolver groupResolver;
+    public final TopicResolver topicResolver;
 
     public ResolvingClientConfig(Map<String, ?> configs) {
         this.configs = Collections.unmodifiableMap(configs);

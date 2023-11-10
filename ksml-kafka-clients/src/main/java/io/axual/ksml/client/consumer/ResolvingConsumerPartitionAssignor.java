@@ -21,11 +21,16 @@ package io.axual.ksml.client.consumer;
  */
 
 import io.axual.ksml.client.resolving.TopicResolver;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerGroupMetadata;
 import org.apache.kafka.clients.consumer.ConsumerPartitionAssignor;
 import org.apache.kafka.common.Cluster;
 import org.apache.kafka.common.Configurable;
 import org.apache.kafka.common.PartitionInfo;
+import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.streams.processor.TaskId;
+import org.apache.kafka.streams.processor.internals.assignment.AssignmentInfo;
+import org.apache.kafka.streams.state.HostInfo;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -34,24 +39,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@Slf4j
 public class ResolvingConsumerPartitionAssignor implements ConsumerPartitionAssignor, Configurable {
-    private ConsumerPartitionAssignor proxiedObject = null;
+    private ConsumerPartitionAssignor backingAssignor = null;
     private TopicResolver resolver = null;
 
     @Override
     public void configure(Map<String, ?> configs) {
         ResolvingConsumerPartitionAssignorConfig config = new ResolvingConsumerPartitionAssignorConfig(new HashMap<>(configs));
-        proxiedObject = config.getBackingAssignor();
+        backingAssignor = config.getBackingAssignor();
         resolver = config.getTopicResolver();
     }
 
     @Override
     public ByteBuffer subscriptionUserData(Set<String> topics) {
-        return proxiedObject.subscriptionUserData(topics);
+        return backingAssignor.subscriptionUserData(topics);
     }
 
     @Override
     public GroupAssignment assign(Cluster cluster, GroupSubscription subscriptions) {
+        log.debug("Assigning: " + subscriptions.groupSubscription());
         Cluster unresolvedCluster = new Cluster(
                 cluster.clusterResource().clusterId(),
                 cluster.nodes(),
@@ -67,23 +74,35 @@ public class ResolvingConsumerPartitionAssignor implements ConsumerPartitionAssi
 
         GroupSubscription unresolvedGroupSubscriptions = new GroupSubscription(unresolvedSubscriptions);
 
-        GroupAssignment assignments = proxiedObject.assign(unresolvedCluster, unresolvedGroupSubscriptions);
+        log.debug("Assigning unresolved: " + unresolvedSubscriptions);
+        GroupAssignment assignments = backingAssignor.assign(unresolvedCluster, unresolvedGroupSubscriptions);
+        log.debug("Assigned unresolved: " + assignments.groupAssignment());
 
         Map<String, Assignment> result = new HashMap<>();
         for (Map.Entry<String, Assignment> assignmentEntry : assignments.groupAssignment().entrySet()) {
             result.put(assignmentEntry.getKey(), resolveAssignment(assignmentEntry.getValue()));
         }
+
+        log.debug("Assigned resolved: " + result);
         return new GroupAssignment(result);
     }
 
     @Override
     public void onAssignment(Assignment assignment, ConsumerGroupMetadata metadata) {
-        proxiedObject.onAssignment(unresolveAssignment(assignment), metadata);
+        try {
+            log.debug("Getting assignment: " + assignment);
+            var unresolvedAssignment = unresolveAssignment(assignment);
+            log.debug("Unresolved assignment: " + unresolvedAssignment);
+            backingAssignor.onAssignment(unresolvedAssignment, metadata);
+        } catch (Throwable t) {
+            log.error("Error during topic partition assignment", t);
+            throw t;
+        }
     }
 
     @Override
     public List<RebalanceProtocol> supportedProtocols() {
-        return proxiedObject.supportedProtocols();
+        return backingAssignor.supportedProtocols();
     }
 
     @Override
@@ -93,7 +112,7 @@ public class ResolvingConsumerPartitionAssignor implements ConsumerPartitionAssi
 
     @Override
     public String name() {
-        return proxiedObject.name();
+        return backingAssignor.name();
     }
 
     private List<PartitionInfo> unresolveClusterPartitions(Cluster proxiedCluster) {
@@ -120,10 +139,39 @@ public class ResolvingConsumerPartitionAssignor implements ConsumerPartitionAssi
     }
 
     private Assignment unresolveAssignment(Assignment assignment) {
-        return new Assignment(
-                new ArrayList<>(resolver.unresolveTopicPartitions(assignment.partitions())),
-                assignment.userData()
-        );
+        var userData = assignment.userData();
+        try {
+            var info = AssignmentInfo.decode(userData);
+
+            // Convert active tasks
+            var newActiveTasks = new ArrayList<TaskId>();
+            info.activeTasks().forEach(id -> newActiveTasks.add(new TaskId(id.subtopology(), id.partition(), id.topologyName())));
+
+            // Convert standby tasks
+            var newStandbyTasks = new HashMap<TaskId, Set<TopicPartition>>();
+            info.standbyTasks().forEach((id, topicPartitions) -> newStandbyTasks.put(new TaskId(id.subtopology(), id.partition(), id.topologyName()), resolver.unresolveTopicPartitions(topicPartitions)));
+
+            // Convert partitions by host
+            var newPartitionsByHost = new HashMap<HostInfo, Set<TopicPartition>>();
+            info.partitionsByHost().forEach((hostInfo, topicPartitions) -> newPartitionsByHost.put(hostInfo, resolver.unresolveTopicPartitions(topicPartitions)));
+
+            // Convert standby partitions by host
+            var newStandbyPartitionsByHost = new HashMap<HostInfo, Set<TopicPartition>>();
+            info.standbyPartitionByHost().forEach(((hostInfo, topicPartitions) -> newStandbyPartitionsByHost.put(hostInfo, resolver.unresolveTopicPartitions(topicPartitions))));
+
+            userData = new AssignmentInfo(
+                    info.version(),
+                    info.commonlySupportedVersion(),
+                    newActiveTasks,
+                    newStandbyTasks,
+                    newPartitionsByHost,
+                    newStandbyPartitionsByHost,
+                    info.errCode()).encode();
+        } catch (Exception e) {
+            // Ignore decoding exceptions
+        }
+
+        return new Assignment(new ArrayList<>(resolver.unresolveTopicPartitions(assignment.partitions())), userData);
     }
 
     private Subscription unresolveSubscription(Subscription subscription) {
