@@ -20,21 +20,15 @@ package org.apache.kafka.clients.admin;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.client.resolving.TopicResolver;
 import org.apache.kafka.common.KafkaFuture;
 import org.apache.kafka.common.Uuid;
 
+import java.util.HashMap;
 import java.util.Map;
 
-public class ExtendableDescribeTopicsResult extends DescribeTopicsResult {
-    public ExtendableDescribeTopicsResult(Map<Uuid, KafkaFuture<TopicDescription>> topicIdFutures, Map<String, KafkaFuture<TopicDescription>> nameFutures) {
+public class ExtendableDeleteTopicsResult extends DeleteTopicsResult {
+    public ExtendableDeleteTopicsResult(Map<Uuid, KafkaFuture<Void>> topicIdFutures, Map<String, KafkaFuture<Void>> nameFutures) {
         super(topicIdFutures, nameFutures);
-    }
-
-    /**
-     * @deprecated
-     */
-    @Deprecated
-    public ExtendableDescribeTopicsResult(Map<String, KafkaFuture<TopicDescription>> futures) {
-        super(futures);
     }
 }

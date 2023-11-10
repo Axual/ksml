@@ -6,33 +6,37 @@ streams:
     keyType: string
     valueType: avro:SensorData
 
+functions:
+  print_message:
+    type: forEach
+    code: "print('key=' + str(key) + ', value=' + str(value))"
+
 pipelines:
   main:
     from: sensor_source
     via:
       - type: groupBy
-        name: group_by_owner
+        name: ksml_sensordata_grouped
         mapper:
           code: |
-            if value == None or not "owner" in value:
+            if value == None:
               return "no owner"
           expression: value["owner"]
           resultType: string
-      - type: windowByTime
-        windowType: tumbling
+      - type: windowedBy
+        windowType: time
         duration: 20s
+        grace: 20s
       - type: count
         store:
           name: owner_count
-          type: windowStore
-          windowSize: 10m
+          type: window
           retention: 1h
           caching: false
       - type: toStream
       - type: convertKey
         into: avro:windowed(string)
       - type: peek
-        forEach:
-          code: log.info("key={}, value={}", key, value)
+        forEach: print_message
     to:
       topic: ksml_sensordata_count

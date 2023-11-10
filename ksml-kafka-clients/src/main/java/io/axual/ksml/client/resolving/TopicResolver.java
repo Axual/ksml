@@ -20,6 +20,7 @@ package io.axual.ksml.client.resolving;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.common.TopicCollection;
 import org.apache.kafka.common.TopicPartition;
 
 import java.util.Collection;
@@ -120,6 +121,19 @@ public interface TopicResolver extends Resolver {
             result.put(resolveTopic(entry.getKey()), entry.getValue());
         }
         return result;
+    }
+
+    /**
+     * Translates the internal representation of a topic partition map to the external one.
+     *
+     * @param topics the map containing the application's internal topic partitions as Keys
+     * @return the map containing the external representation of the topic partitions as Keys
+     */
+    default TopicCollection resolveTopics(TopicCollection topics) {
+        if (topics instanceof TopicCollection.TopicNameCollection topicNames) {
+            return TopicCollection.ofTopicNames(resolveTopics(topicNames.topicNames()));
+        }
+        return topics;
     }
 
     /**

@@ -2,16 +2,16 @@ package io.axual.ksml.client.admin;
 
 /*-
  * ========================LICENSE_START=================================
- * Extended Kafka clients for KSML
+ * axual-client-proxy
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2020 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -42,13 +42,13 @@ public class ResolvingListConsumerGroupOffsetsResult extends ExtendableListConsu
     private static Map<CoordinatorKey, KafkaFuture<Map<TopicPartition, OffsetAndMetadata>>> convertResult(final Map<CoordinatorKey, KafkaFuture<Map<TopicPartition, OffsetAndMetadata>>> futures, TopicResolver topicResolver, GroupResolver groupResolver) {
         var result = new HashMap<CoordinatorKey, KafkaFuture<Map<TopicPartition, OffsetAndMetadata>>>(futures.size());
         futures.forEach((coordinatorKey, future) -> {
-            final var newKey = CoordinatorKey.byGroupId(groupResolver.unresolve(coordinatorKey.idValue));
+            final var newKey = CoordinatorKey.byGroupId(groupResolver.unresolveGroup(coordinatorKey.idValue));
 
             final KafkaFutureImpl<Map<TopicPartition, OffsetAndMetadata>> wrappingFuture = new KafkaFutureImpl<>();
             future.whenComplete((offsets, throwable) -> {
                 if (offsets != null) {
                     var newOffsets = new HashMap<TopicPartition, OffsetAndMetadata>(offsets.size());
-                    offsets.forEach(((topicPartition, offsetAndMetadata) -> newOffsets.put(topicResolver.unresolve(topicPartition), offsetAndMetadata)));
+                    offsets.forEach(((topicPartition, offsetAndMetadata) -> newOffsets.put(topicResolver.unresolveTopic(topicPartition), offsetAndMetadata)));
                     wrappingFuture.complete(newOffsets);
                 } else {
                     wrappingFuture.completeExceptionally(throwable);

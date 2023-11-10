@@ -42,6 +42,7 @@ import org.apache.kafka.streams.StoreQueryParameters;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.StreamsMetadata;
+import org.apache.kafka.streams.TopologyConfig;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -83,7 +84,7 @@ public class KafkaBackend implements Backend {
                 .notationLibrary(new NotationLibrary(streamsConfig))
                 .build();
 
-        var applicationId = kafkaConfig != null ? kafkaConfig.get(StreamsConfig.APPLICATION_SERVER_CONFIG) : null;
+        var applicationId = kafkaConfig != null ? kafkaConfig.get(StreamsConfig.APPLICATION_ID_CONFIG) : null;
         if (applicationId == null) {
             applicationId = "ksmlApplicationId";
         }
@@ -93,7 +94,9 @@ public class KafkaBackend implements Backend {
                         new ResolvingSerializer<>(serde.serializer(), streamsConfig),
                         new ResolvingDeserializer<>(serde.deserializer(), streamsConfig)));
         var topologyGenerator = new KSMLTopologyGenerator(applicationId, ksmlConf, streamsConfig);
-        final var topology = topologyGenerator.create(new StreamsBuilder());
+
+        var topologyConfig = new TopologyConfig(applicationId, new StreamsConfig(streamsConfig), new Properties());
+        final var topology = topologyGenerator.create(new StreamsBuilder(topologyConfig));
         kafkaStreams = new KafkaStreams(topology, mapToProperties(streamsConfig));
         kafkaStreams.setUncaughtExceptionHandler(ExecutionContext.INSTANCE::uncaughtException);
     }

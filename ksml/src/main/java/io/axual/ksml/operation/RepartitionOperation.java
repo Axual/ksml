@@ -49,10 +49,9 @@ public class RepartitionOperation extends BaseOperation {
         final var k = input.keyType();
         final var v = input.valueType();
         checkFunction(PARTITIONER_NAME, partitioner, equalTo(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
-        final var repartitioned = Repartitioned.with(k.getSerde(), v.getSerde()).withStreamPartitioner(new UserStreamPartitioner(partitioner));
-        final var output = name != null
-                ? input.stream.repartition(repartitioned.withName(name))
-                : input.stream.repartition(repartitioned);
+        var repartitioned = Repartitioned.with(k.getSerde(), v.getSerde()).withStreamPartitioner(new UserStreamPartitioner(partitioner));
+        if (name != null) repartitioned = repartitioned.withName(name);
+        final var output = input.stream.repartition(repartitioned);
         return new KStreamWrapper(output, k, v);
     }
 }

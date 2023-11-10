@@ -21,20 +21,11 @@ package org.apache.kafka.clients.admin;
  */
 
 import org.apache.kafka.common.KafkaFuture;
-import org.apache.kafka.common.Uuid;
 
 import java.util.Map;
 
-public class ExtendableDescribeTopicsResult extends DescribeTopicsResult {
-    public ExtendableDescribeTopicsResult(Map<Uuid, KafkaFuture<TopicDescription>> topicIdFutures, Map<String, KafkaFuture<TopicDescription>> nameFutures) {
-        super(topicIdFutures, nameFutures);
-    }
-
-    /**
-     * @deprecated
-     */
-    @Deprecated
-    public ExtendableDescribeTopicsResult(Map<String, KafkaFuture<TopicDescription>> futures) {
-        super(futures);
+public class ExtendableListTopicsResult extends ListTopicsResult {
+    public ExtendableListTopicsResult(KafkaFuture<Map<String, TopicListing>> future) {
+        super(future);
     }
 }

@@ -20,21 +20,15 @@ package org.apache.kafka.clients.admin;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.clients.admin.internals.CoordinatorKey;
+import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.KafkaFuture;
-import org.apache.kafka.common.Uuid;
+import org.apache.kafka.common.TopicPartition;
 
 import java.util.Map;
 
-public class ExtendableDescribeTopicsResult extends DescribeTopicsResult {
-    public ExtendableDescribeTopicsResult(Map<Uuid, KafkaFuture<TopicDescription>> topicIdFutures, Map<String, KafkaFuture<TopicDescription>> nameFutures) {
-        super(topicIdFutures, nameFutures);
-    }
-
-    /**
-     * @deprecated
-     */
-    @Deprecated
-    public ExtendableDescribeTopicsResult(Map<String, KafkaFuture<TopicDescription>> futures) {
+public class ExtendableListConsumerGroupOffsetsResult extends ListConsumerGroupOffsetsResult {
+    public ExtendableListConsumerGroupOffsetsResult(final Map<CoordinatorKey, KafkaFuture<Map<TopicPartition, OffsetAndMetadata>>> futures) {
         super(futures);
     }
 }

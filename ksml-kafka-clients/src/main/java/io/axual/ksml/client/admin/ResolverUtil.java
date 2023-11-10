@@ -2,16 +2,16 @@ package io.axual.ksml.client.admin;
 
 /*-
  * ========================LICENSE_START=================================
- * Extended Kafka clients for KSML
+ * axual-client-proxy
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2020 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -40,8 +40,8 @@ public class ResolverUtil {
         var name = filter.patternFilter().name();
 
         switch (filter.patternFilter().resourceType()) {
-            case TOPIC -> name = topicResolver.resolve(name);
-            case GROUP -> name = groupResolver.resolve(name);
+            case TOPIC -> name = topicResolver.resolveTopic(name);
+            case GROUP -> name = groupResolver.resolveGroup(name);
         }
 
         return new AclBindingFilter(
@@ -58,8 +58,8 @@ public class ResolverUtil {
             String name = binding.pattern().name();
 
             switch (binding.pattern().resourceType()) {
-                case TOPIC -> name = topicResolver.unresolve(name);
-                case GROUP -> name = groupResolver.unresolve(name);
+                case TOPIC -> name = topicResolver.unresolveTopic(name);
+                case GROUP -> name = groupResolver.unresolveGroup(name);
             }
 
             result.add(
@@ -75,7 +75,7 @@ public class ResolverUtil {
 
     public static <T> Map<String, T> unresolveKeys(Map<String, T> map, TopicResolver resolver) {
         Map<String, T> result = new HashMap<>();
-        map.forEach((key, value) -> result.put(resolver.unresolve(key), value));
+        map.forEach((key, value) -> result.put(resolver.unresolveTopic(key), value));
         return result;
     }
 }
