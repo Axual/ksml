@@ -44,7 +44,7 @@ public interface ParseContext {
 
     Map<String, FunctionDefinition> getFunctionDefinitions();
 
-    UserFunction getUserFunction(FunctionDefinition definition, String name);
+    UserFunction getUserFunction(FunctionDefinition definition, String name, String loggerName);
 
     Map<String, StateStoreDefinition> getStoreDefinitions();
 

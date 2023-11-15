@@ -14,33 +14,32 @@ streams:
 
 functions:
   print_message:
-    type: forEach
-    code: "print('SOURCE key=' + str(key) + ', value=' + str(value))"
+    type: generic
+    code:
 
 pipelines:
   main:
     from: sensor_source
     via:
       - type: peek
-#        name: peek_and_print
-        forEach: print_message
+        name: peek_and_print
+        forEach:
+          code: log.info("SOURCE key={}, value={}", key, value)
     branch:
       - if:
-          expression: value != None and value['color'] == 'blue'
+          expression: value != None and value["color"] == "blue"
         to: sensor_blue
       - if:
-          expression: value != None and value['color'] == 'red'
+          expression: value != None and value["color"] == "red"
         to: sensor_red
       - forEach:
           code: |
-            print('Unknown color sensor: '+str(value))
+            log.warn("Unknown color: {}", value["color"])
   red_flow:
     from: sensor_red
     forEach:
-      type: forEach
-      code: "print('RED key=' + str(key) + ', value=' + str(value))"
+      code: log.info("RED FLOW key={}, value={}", key, value)
   blue_flow:
     from: sensor_blue
     forEach:
-      type: forEach
-      code: "print('BLUE key=' + str(key) + ', value=' + str(value))"
+      code: log.info("BLUE FLOW key={}, value={}", key, value)

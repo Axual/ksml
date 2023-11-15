@@ -20,7 +20,6 @@ package io.axual.ksml.generator;
  * =========================LICENSE_END==================================
  */
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import io.axual.ksml.KSMLConfig;
 import io.axual.ksml.definition.BaseStreamDefinition;

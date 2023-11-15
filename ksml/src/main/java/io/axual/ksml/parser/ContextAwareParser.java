@@ -50,7 +50,8 @@ public abstract class ContextAwareParser<T> extends BaseParser<T> {
         FunctionDefinition definition = new ReferenceOrInlineParser<>("function", childName, context.getFunctionDefinitions()::get, parser).parse(parent);
         if (allowNull || definition != null) {
             var functionName = parent.appendName(childName).getLongName();
-            UserFunction result = definition != null ? context.getUserFunction(definition, functionName) : null;
+            var loggerName = parent.appendName(childName).getDottedName();
+            UserFunction result = definition != null ? context.getUserFunction(definition, functionName, loggerName) : null;
             if (allowNull || result != null) {
                 return result;
             }

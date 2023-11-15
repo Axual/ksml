@@ -11,12 +11,13 @@ streams:
 functions:
   print_message:
     type: forEach
-    code: "print('key=' + str(key) + ', value=' + str(value))"
+    code: log.info("key={}, value={}", key, value)
 
   filter_message:
     type: predicate
     code: |
       if value == None:
+        log.warn("No value in message with key={}", key)
         return False
     expression: value["color"] == 'blue'
 

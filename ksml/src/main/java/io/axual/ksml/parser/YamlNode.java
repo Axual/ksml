@@ -9,9 +9,9 @@ package io.axual.ksml.parser;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,6 +23,7 @@ package io.axual.ksml.parser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import io.axual.ksml.exception.KSMLExecutionException;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -30,8 +31,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import io.axual.ksml.exception.KSMLExecutionException;
 
 // This class helps to track the location of syntax/parsing errors in the YAML by maintaining a
 // list of direct parents to a certain JsonNode.
@@ -56,6 +55,10 @@ public class YamlNode {
 
     private String getPathInternal(String separator) {
         return (parent != null ? parent.getPathInternal(separator) + separator : "") + name;
+    }
+
+    public String getDottedName() {
+        return getPathInternal(".");
     }
 
     public String getLongName() {

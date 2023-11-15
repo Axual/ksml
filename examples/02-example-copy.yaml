@@ -13,7 +13,7 @@ streams:
 functions:
   print_message:
     type: forEach
-    code: "print('key=' + str(key) + ', value=' + str(value))"
+    code: log.info("key={}, value={}", key, value)
 
 pipelines:
   # The main pipeline reads messages, outputs them and saves a copy in a target topic

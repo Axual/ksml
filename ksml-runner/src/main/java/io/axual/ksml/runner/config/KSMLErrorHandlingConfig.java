@@ -21,14 +21,12 @@ package io.axual.ksml.runner.config;
  */
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
 @Setter
 //@Getter
 public class KSMLErrorHandlingConfig {
-
     private ErrorHandlingConfig consume;
     private ErrorHandlingConfig produce;
     private ErrorHandlingConfig process;
@@ -74,9 +72,7 @@ public class KSMLErrorHandlingConfig {
     @Getter
     public static class ErrorHandlingConfig {
         private boolean log = true;
-        @JsonProperty("log.payload")
         private boolean logPayload = false;
-        @JsonProperty("logger.name")
         private String loggerName;
         private Handler handler = Handler.STOP;
 

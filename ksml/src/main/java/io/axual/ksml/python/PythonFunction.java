@@ -9,9 +9,9 @@ package io.axual.ksml.python;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,6 +32,8 @@ import io.axual.ksml.store.StateStores;
 import io.axual.ksml.user.UserFunction;
 import org.apache.kafka.streams.processor.StateStore;
 import org.graalvm.polyglot.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,13 +45,15 @@ public class PythonFunction extends UserFunction {
     private static final Map<String, StateStore> EMPTY_STORES = new HashMap<>();
     private final DataObjectConverter converter;
     private final Value function;
+    private final Logger log;
 
-    public PythonFunction(PythonContext context, String name, FunctionDefinition definition) {
+    public PythonFunction(PythonContext context, String name, String loggerName, FunctionDefinition definition) {
         super(name, definition.parameters, definition.resultType, definition.storeNames);
         converter = context.getConverter();
         function = context.registerFunction(name, definition);
         if (function == null)
             throw FatalError.executionError("Error in function: " + name);
+        log = LoggerFactory.getLogger(loggerName);
     }
 
     @Override
@@ -88,11 +92,12 @@ public class PythonFunction extends UserFunction {
     }
 
     private Object[] convertParameters(Map<String, StateStore> stores, DataObject... parameters) {
-        Object[] result = new Object[parameters.length + 1];
+        Object[] result = new Object[parameters.length + 2];
         result[0] = stores != null ? stores : EMPTY_STORES;
+        result[1] = log;
         for (var index = 0; index < parameters.length; index++) {
             checkType(this.parameters[index], parameters[index]);
-            result[index + 1] = MAPPER.fromDataObject(parameters[index]);
+            result[index + 2] = MAPPER.fromDataObject(parameters[index]);
         }
         return result;
     }
