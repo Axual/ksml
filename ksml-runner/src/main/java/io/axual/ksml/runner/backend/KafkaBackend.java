@@ -9,9 +9,9 @@ package io.axual.ksml.runner.backend;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -70,16 +70,16 @@ public class KafkaBackend implements Backend {
             streamsConfig.put(StreamsConfig.DEFAULT_CLIENT_SUPPLIER_CONFIG, KSMLClientSupplier.class.getCanonicalName());
         }
 
-        streamsConfig.put(StreamsConfig.STATE_DIR_CONFIG, ksmlConfig.getWorkingDirectory());
-        if (ksmlConfig.getApplicationServer() != null) {
-            streamsConfig.put(StreamsConfig.APPLICATION_SERVER_CONFIG, ksmlConfig.getApplicationServer());
+        streamsConfig.put(StreamsConfig.STATE_DIR_CONFIG, ksmlConfig.getStorageDirectory());
+        if (ksmlConfig.getApplicationServer() != null && ksmlConfig.getApplicationServer().isEnabled()) {
+            streamsConfig.put(StreamsConfig.APPLICATION_SERVER_CONFIG, ksmlConfig.getApplicationServer().getApplicationServer());
         }
 
         // set up a stream topology generator based on the provided KSML definition
         var ksmlConf = io.axual.ksml.KSMLConfig.builder()
                 .sourceType("file")
-                .workingDirectory(ksmlConfig.getWorkingDirectory())
-                .configDirectory(ksmlConfig.getConfigurationDirectory())
+                .configDirectory(ksmlConfig.getConfigDirectory())
+                .schemaDirectory(ksmlConfig.getSchemaDirectory())
                 .source(ksmlConfig.getDefinitions())
                 .notationLibrary(new NotationLibrary(streamsConfig))
                 .build();

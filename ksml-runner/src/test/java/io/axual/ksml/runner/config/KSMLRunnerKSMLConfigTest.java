@@ -67,6 +67,6 @@ class KSMLRunnerKSMLConfigTest {
 
         ksmlConfig.validate();
 
-        assertEquals(".", ksmlConfig.getConfigurationDirectory(), "config dir should default to working dir");
+        assertEquals(".", ksmlConfig.getConfigDirectory(), "config dir should default to working dir");
     }
 }
