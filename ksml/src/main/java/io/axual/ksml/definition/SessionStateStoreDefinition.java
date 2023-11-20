@@ -24,6 +24,7 @@ import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.store.StoreType;
 
 import java.time.Duration;
+import java.util.Objects;
 
 public class SessionStateStoreDefinition extends StateStoreDefinition {
     private final Duration retention;
@@ -35,5 +36,17 @@ public class SessionStateStoreDefinition extends StateStoreDefinition {
 
     public Duration retention() {
         return retention;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof SessionStateStoreDefinition def)) return false;
+        return (super.equals(other)
+                && Objects.equals(retention, def.retention));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), retention);
     }
 }

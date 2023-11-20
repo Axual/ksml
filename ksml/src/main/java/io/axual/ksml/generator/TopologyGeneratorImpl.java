@@ -36,7 +36,6 @@ import io.axual.ksml.definition.parser.TypedFunctionDefinitionParser;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.operation.StreamOperation;
-import io.axual.ksml.parser.ListParser;
 import io.axual.ksml.parser.MapParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.parser.topology.TopologyParseContext;
@@ -90,7 +89,7 @@ public class TopologyGeneratorImpl {
                 default -> throw new KSMLParseException(null, "Unknown KSML source dataType: " + config.sourceType());
             }
         } catch (IOException e) {
-            LOG.info("Can not read YAML: {}", e.getMessage());
+            LOG.error("Can not read YAML: {}", e.getMessage());
         }
 
         return new ArrayList<>();
@@ -184,11 +183,11 @@ public class TopologyGeneratorImpl {
 
         // Parse all defined streams
         new MapParser<>("stream definition", new StreamDefinitionParser()).parse(node.get(STREAMS_DEFINITION)).forEach(context::registerStreamDefinition);
-        new MapParser<>("table definition", new TableDefinitionParser()).parse(node.get(TABLES_DEFINITION)).forEach(context::registerStreamDefinition);
+        new MapParser<>("table definition", new TableDefinitionParser(context)).parse(node.get(TABLES_DEFINITION)).forEach(context::registerStreamDefinition);
         new MapParser<>("globalTable definition", new GlobalTableDefinitionParser()).parse(node.get(GLOBALTABLES_DEFINITION)).forEach(context::registerStreamDefinition);
 
         // Parse all defined stores
-        new ListParser<>("store definition", new StateStoreDefinitionParser()).parse(node.get(STORES_DEFINITION)).forEach(context::registerStateStore);
+        new MapParser<>("store definition", new StateStoreDefinitionParser()).parse(node.get(STORES_DEFINITION)).forEach(context::registerStateStore);
 
         // Parse all defined functions
         new MapParser<>("function definition", new TypedFunctionDefinitionParser()).parse(node.get(FUNCTIONS_DEFINITION)).forEach(context::registerFunction);

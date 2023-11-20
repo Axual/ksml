@@ -24,8 +24,9 @@ import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.store.StoreType;
 
 import java.time.Duration;
+import java.util.Objects;
 
-public class WindowStateStoreDefinition extends StateStoreDefinition {
+public final class WindowStateStoreDefinition extends StateStoreDefinition {
     private final Duration retention;
     private final Duration windowSize;
     private final Boolean retainDuplicates;
@@ -47,5 +48,19 @@ public class WindowStateStoreDefinition extends StateStoreDefinition {
 
     public boolean retainDuplicates() {
         return retainDuplicates != null && retainDuplicates;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof WindowStateStoreDefinition def)) return false;
+        return (super.equals(other)
+                && Objects.equals(retention, def.retention)
+                && Objects.equals(windowSize, def.windowSize)
+                && Objects.equals(retainDuplicates, def.retainDuplicates));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), retention, windowSize, retainDuplicates);
     }
 }

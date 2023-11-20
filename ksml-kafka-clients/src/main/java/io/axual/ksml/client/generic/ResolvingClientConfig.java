@@ -50,10 +50,14 @@ public class ResolvingClientConfig {
         var defaultContext = MapUtil.toStringValues(configs);
 
         var groupPattern = configs.get(GROUP_ID_PATTERN_CONFIG);
-        groupResolver = groupPattern != null ? new GroupPatternResolver(groupPattern.toString(), defaultContext) : null;
+        groupResolver = groupPattern != null
+                ? new GroupPatternResolver(groupPattern.toString(), defaultContext)
+                : new GroupPatternResolver("{group.id}", defaultContext);
 
         var topicPattern = configs.get(TOPIC_PATTERN_CONFIG);
-        topicResolver = topicPattern != null ? new TopicPatternResolver(topicPattern.toString(), defaultContext) : null;
+        topicResolver = topicPattern != null
+                ? new TopicPatternResolver(topicPattern.toString(), defaultContext)
+                : new TopicPatternResolver("{topic}", defaultContext);
     }
 
     public <T> T getConfiguredInstance(String key, Class<T> expectedClass) {

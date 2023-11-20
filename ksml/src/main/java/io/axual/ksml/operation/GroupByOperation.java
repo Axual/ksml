@@ -35,7 +35,7 @@ import io.axual.ksml.user.UserKeyValueTransformer;
 import org.apache.kafka.streams.kstream.Grouped;
 
 public class GroupByOperation extends StoreOperation {
-    private static final String SELECTOR_NAME = "Mapper";
+    private static final String SELECTOR_NAME = "Selector";
     private final UserFunction selector;
 
     public GroupByOperation(StoreOperationConfig config, UserFunction selector) {

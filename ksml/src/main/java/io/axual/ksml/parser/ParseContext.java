@@ -56,7 +56,7 @@ public interface ParseContext {
 
     void registerTopic(String topic);
 
-    void registerStateStore(StateStoreDefinition store);
+    void registerStateStore(String name, StateStoreDefinition store);
 
     void registerStateStoreAsCreated(StateStoreDefinition store);
 }

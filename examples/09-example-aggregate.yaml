@@ -6,15 +6,10 @@ streams:
     keyType: string
     valueType: avro:SensorData
 
-functions:
-  print_message:
-    type: forEach
-    code: "print('key=' + str(key) + ', value=' + str(value))"
-
 stores:
   owner_count_aggregate:
     type: window
-    keyType: windowed(string)
+    keyType: string
     valueType: long
     windowSize: 1m
     retention: 3m
@@ -26,6 +21,7 @@ stores:
     type: session
     keyType: string
     valueType: long
+    retention: 3d
 
 pipelines:
   main:
@@ -39,8 +35,6 @@ pipelines:
               return "no owner"
           expression: value["owner"]
           resultType: string
-          stores:
-            - owner_count_aggregate
       - type: windowedBy
         windowType: time
         duration: 20s
@@ -59,4 +53,5 @@ pipelines:
           logging: false
       - type: toStream
       - type: peek
-        forEach: print_message
+        forEach:
+          code: log.info("AGGREGATE key={}, value={}", key, value)

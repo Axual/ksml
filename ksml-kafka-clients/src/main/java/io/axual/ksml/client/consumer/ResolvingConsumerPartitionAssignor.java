@@ -63,7 +63,7 @@ public class ResolvingConsumerPartitionAssignor implements ConsumerPartitionAssi
                 cluster.clusterResource().clusterId(),
                 cluster.nodes(),
                 unresolveClusterPartitions(cluster),
-                resolver.unresolveTopics(cluster.unauthorizedTopics()),
+                resolver.unresolve(cluster.unauthorizedTopics()),
                 cluster.internalTopics(),
                 cluster.controller());
 
@@ -120,7 +120,7 @@ public class ResolvingConsumerPartitionAssignor implements ConsumerPartitionAssi
         for (String topic : proxiedCluster.topics()) {
             List<PartitionInfo> partitions = proxiedCluster.availablePartitionsForTopic(topic);
             for (PartitionInfo partition : partitions) {
-                result.add(new PartitionInfo(resolver.unresolveTopic(partition.topic()),
+                result.add(new PartitionInfo(resolver.unresolve(partition.topic()),
                         partition.partition(),
                         partition.leader(),
                         partition.replicas(),
@@ -176,7 +176,7 @@ public class ResolvingConsumerPartitionAssignor implements ConsumerPartitionAssi
 
     private Subscription unresolveSubscription(Subscription subscription) {
         return new Subscription(
-                new ArrayList<>(resolver.unresolveTopics(subscription.topics())),
+                new ArrayList<>(resolver.unresolve(subscription.topics())),
                 subscription.userData(),
                 new ArrayList<>(resolver.unresolveTopicPartitions(subscription.ownedPartitions()))
         );

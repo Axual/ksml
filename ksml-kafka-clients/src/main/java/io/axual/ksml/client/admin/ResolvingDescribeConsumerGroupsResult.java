@@ -41,12 +41,12 @@ public class ResolvingDescribeConsumerGroupsResult extends ExtendableDescribeCon
 
         futures.forEach((groupId, future) ->
                 describedGroups.put(
-                        groupResolver.unresolveGroup(groupId),
+                        groupResolver.unresolve(groupId),
                         future.thenApply(this::unresolvedConsumerGroupDescription)));
     }
 
     protected ConsumerGroupDescription unresolvedConsumerGroupDescription(ConsumerGroupDescription description) {
-        String unresolvedGroupId = groupResolver.unresolveGroup(description.groupId());
+        String unresolvedGroupId = groupResolver.unresolve(description.groupId());
         return new ConsumerGroupDescription(
                 unresolvedGroupId,
                 description.isSimpleConsumerGroup(),

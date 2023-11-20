@@ -129,7 +129,7 @@ public class ResolvingAdmin extends ForwardingAdmin {
 
     @Override
     public DeleteTopicsResult deleteTopics(TopicCollection topicCollection, DeleteTopicsOptions options) {
-        var result = super.deleteTopics(topicResolver.resolveTopics(topicCollection), options);
+        var result = super.deleteTopics(topicResolver.resolve(topicCollection), options);
         return new ResolvingDeleteTopicsResult(result.topicIdValues(), result.topicNameValues(), topicResolver);
     }
 
@@ -140,7 +140,7 @@ public class ResolvingAdmin extends ForwardingAdmin {
 
     @Override
     public DescribeTopicsResult describeTopics(TopicCollection topicCollection, DescribeTopicsOptions options) {
-        var result = super.describeTopics(topicResolver.resolveTopics(topicCollection), options);
+        var result = super.describeTopics(topicResolver.resolve(topicCollection), options);
         return new ResolvingDescribeTopicsResult(result.topicIdValues(), result.topicNameValues(), topicResolver);
     }
 
@@ -208,14 +208,14 @@ public class ResolvingAdmin extends ForwardingAdmin {
 
     @Override
     public DeleteRecordsResult deleteRecords(Map<TopicPartition, RecordsToDelete> recordsToDelete, DeleteRecordsOptions options) {
-        return super.deleteRecords(topicResolver.resolveTopics(recordsToDelete), options);
+        return super.deleteRecords(topicResolver.resolve(recordsToDelete), options);
     }
 
     @Override
     public DescribeConsumerGroupsResult describeConsumerGroups(Collection<String> groupIds,
                                                                DescribeConsumerGroupsOptions options) {
         return new ResolvingDescribeConsumerGroupsResult(
-                super.describeConsumerGroups(groupResolver.resolveGroups(groupIds), options).describedGroups(),
+                super.describeConsumerGroups(groupResolver.resolve(groupIds), options).describedGroups(),
                 groupResolver);
     }
 
@@ -228,14 +228,14 @@ public class ResolvingAdmin extends ForwardingAdmin {
     public ListConsumerGroupOffsetsResult listConsumerGroupOffsets(Map<String, ListConsumerGroupOffsetsSpec> groupSpecs, ListConsumerGroupOffsetsOptions options) {
         // Resolve the groupSpecs
         var newGroupSpecs = new HashMap<String, ListConsumerGroupOffsetsSpec>();
-        groupSpecs.forEach((groupId, spec) -> newGroupSpecs.put(groupResolver.resolveGroup(groupId), new ListConsumerGroupOffsetsSpec().topicPartitions(spec.topicPartitions())));
+        groupSpecs.forEach((groupId, spec) -> newGroupSpecs.put(groupResolver.resolve(groupId), new ListConsumerGroupOffsetsSpec().topicPartitions(spec.topicPartitions())));
 
         // Resolve the options
         if (options != null) {
             var newOptions = new ListConsumerGroupOffsetsOptions().requireStable(options.requireStable());
             if (options.topicPartitions() != null) {
                 var newTopicPartitions = new ArrayList<TopicPartition>(options.topicPartitions().size());
-                options.topicPartitions().forEach(tp -> newTopicPartitions.add(topicResolver.resolveTopic(tp)));
+                options.topicPartitions().forEach(tp -> newTopicPartitions.add(topicResolver.resolve(tp)));
                 newOptions.topicPartitions(newTopicPartitions);
             }
             options = newOptions;
@@ -255,7 +255,7 @@ public class ResolvingAdmin extends ForwardingAdmin {
     @Override
     public DeleteConsumerGroupsResult deleteConsumerGroups(Collection<String> groupIds, DeleteConsumerGroupsOptions options) {
         return new ResolvingDeleteConsumerGroupsResult(
-                super.deleteConsumerGroups(groupResolver.resolveGroups(groupIds), options).deletedGroups(),
+                super.deleteConsumerGroups(groupResolver.resolve(groupIds), options).deletedGroups(),
                 groupResolver);
     }
 
@@ -263,7 +263,7 @@ public class ResolvingAdmin extends ForwardingAdmin {
     public DeleteConsumerGroupOffsetsResult deleteConsumerGroupOffsets(String groupId, Set<TopicPartition> partitions, DeleteConsumerGroupOffsetsOptions options) {
         return new ResolvingDeleteConsumerGroupOffsetsResult(
                 super.deleteConsumerGroupOffsets(
-                        groupResolver.resolveGroup(groupId),
+                        groupResolver.resolve(groupId),
                         topicResolver.resolveTopicPartitions(partitions),
                         options),
                 topicResolver);
@@ -293,7 +293,7 @@ public class ResolvingAdmin extends ForwardingAdmin {
     @Override
     public RemoveMembersFromConsumerGroupResult removeMembersFromConsumerGroup(String groupId,
                                                                                RemoveMembersFromConsumerGroupOptions options) {
-        return super.removeMembersFromConsumerGroup(groupResolver.resolveGroup(groupId), options);
+        return super.removeMembersFromConsumerGroup(groupResolver.resolve(groupId), options);
     }
 
     @Override
@@ -301,7 +301,7 @@ public class ResolvingAdmin extends ForwardingAdmin {
                                                                      Map<TopicPartition, OffsetAndMetadata> offsets,
                                                                      AlterConsumerGroupOffsetsOptions options) {
         return new ResolvingAlterConsumerGroupOffsetsResult(
-                super.alterConsumerGroupOffsets(groupResolver.resolveGroup(groupId), topicResolver.resolveTopics(offsets), options),
+                super.alterConsumerGroupOffsets(groupResolver.resolve(groupId), topicResolver.resolve(offsets), options),
                 topicResolver);
     }
 
@@ -309,7 +309,7 @@ public class ResolvingAdmin extends ForwardingAdmin {
     public ListOffsetsResult listOffsets(Map<TopicPartition, OffsetSpec> topicPartitionOffsets,
                                          ListOffsetsOptions options) {
         return new ResolvingListOffsetsResult(
-                super.listOffsets(topicResolver.resolveTopics(topicPartitionOffsets), options),
+                super.listOffsets(topicResolver.resolve(topicPartitionOffsets), options),
                 topicResolver);
     }
 
@@ -336,8 +336,8 @@ public class ResolvingAdmin extends ForwardingAdmin {
         var resolvedTopics = new ArrayList<NewTopic>();
         for (var newTopic : newTopics) {
             resolvedTopics.add(newTopic.replicasAssignments() == null
-                    ? new NewTopic(topicResolver.resolveTopic(newTopic.name()), newTopic.numPartitions(), newTopic.replicationFactor())
-                    : new NewTopic(topicResolver.resolveTopic(newTopic.name()), newTopic.replicasAssignments()));
+                    ? new NewTopic(topicResolver.resolve(newTopic.name()), newTopic.numPartitions(), newTopic.replicationFactor())
+                    : new NewTopic(topicResolver.resolve(newTopic.name()), newTopic.replicasAssignments()));
         }
         return resolvedTopics;
     }

@@ -2,16 +2,16 @@ package io.axual.ksml.datagenerator.parser;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Generator
+ * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -45,16 +45,16 @@ public abstract class ContextAwareParser<T> extends BaseParser<T> {
     }
 
     protected <F extends FunctionDefinition> UserFunction parseFunction(YamlNode parent, String childName, BaseParser<F> parser, boolean allowNull) {
-        final var namedDefinition = new ReferenceOrInlineParser<>("function", childName, context.getFunctionDefinitions()::get, parser).parse(parent);
-        final var definition = namedDefinition != null ? namedDefinition.definition() : null;
-        if (definition == null) {
-            if (allowNull) return null;
-            throw new KSMLParseException(parent, "User function definition not found, add '" + childName + "' to specification");
+        FunctionDefinition definition = new ReferenceOrInlineParser<>("function", childName, context.getFunctionDefinitions()::get, parser).parse(parent);
+        if (allowNull || definition != null) {
+            var functionName = parent.appendName(childName).getLongName();
+            var loggerName = parent.appendName(childName).getDottedName();
+            UserFunction result = definition != null ? context.getUserFunction(definition, functionName, loggerName) : null;
+            if (allowNull || result != null) {
+                return result;
+            }
+            throw new KSMLParseException(parent, "Could not generate UserFunction for given definition: " + functionName);
         }
-        var childNode = parent.appendName(childName);
-        var functionName = childNode.getLongName();
-        return namedDefinition.name() != null
-                ? context.createNamedUserFunction(functionName, definition)
-                : context.createAnonUserFunction(functionName, definition, childNode);
+        throw new KSMLParseException(parent, "User function definition not found, add '" + childName + "' to specification");
     }
 }

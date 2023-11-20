@@ -1,6 +1,7 @@
-producer:
-  working.directory: examples
-  configuration.directory: examples
+ksml:
+  configDirectory: examples
+  schemaDirectory: examples
+  storageDirectory: /tmp
   definitions:
     - 00-example-generate-alertsettings.yaml
     - 00-example-generate-sensordata.yaml

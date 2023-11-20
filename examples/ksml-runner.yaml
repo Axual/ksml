@@ -1,6 +1,7 @@
 ksml:
-  working.directory: /tmp
-  config.directory: /ksml
+  configDirectory: /ksml
+  schemaDirectory: /ksml
+  storageDirectory: /tmp
   definitions:
   - 01-example-inspect.yaml
 #  - 02-example-copy.yaml
@@ -21,6 +22,7 @@ kafka:
   bootstrap.servers: localhost:9092
   application.id: io.ksml.example.producer
   schema.registry.url: http://localhost:8081
+  auto.offset.reset: earliest
   acks: all
   security.protocol: SSL
   ssl.protocol: TLSv1.3

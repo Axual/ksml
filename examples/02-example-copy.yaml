@@ -10,23 +10,23 @@ streams:
     keyType: string
     valueType: avro:SensorData
 
-functions:
-  print_message:
-    type: forEach
-    code: log.info("key={}, value={}", key, value)
-
 pipelines:
   # The main pipeline reads messages, outputs them and saves a copy in a target topic
   main:
     from: sensor_source
     via:
       - type: peek
-        name: peek_and_print
-        forEach: print_message
+        forEach:
+          code: log.info("MAIN key={}, value={}", key, value)
     to: sensor_copy
 
-  # The secondary pipeline achieves the same results, but by inlining the target topic definition
+  # The secondary pipeline does exactly the same, but by inlining the target topic definition instead of referencing
+  # an earlier definition
   secondary:
     from: sensor_source
+    via:
+      - type: peek
+        forEach:
+          code: log.info("SECONDARY key={}, value={}", key, value)
     to:
       topic: ksml_sensordata_copy

@@ -36,6 +36,6 @@ public class ResolvingDeleteConsumerGroupOffsetsResult extends ExtendableDeleteC
 
     @Override
     public KafkaFuture<Void> partitionResult(TopicPartition partition) {
-        return super.partitionResult(topicResolver.resolveTopic(partition));
+        return super.partitionResult(topicResolver.resolve(partition));
     }
 }

@@ -65,6 +65,9 @@ public class StoreOperation extends BaseOperation {
                     def.name(),
                     def.persistent(),
                     def.timestamped(),
+                    def.versioned(),
+                    def.historyRetention(),
+                    def.segmentInterval(),
                     keyType != null ? keyType : def.keyType(),
                     valueType != null ? valueType : def.valueType(),
                     def.caching(),
@@ -122,16 +125,16 @@ public class StoreOperation extends BaseOperation {
         validateStoreTypeWithStreamType("value", store.valueType(), valueType);
     }
 
-    private void validateStoreTypeWithStreamType(String nane, UserType storeType, UserType streamType) {
-        if (streamType == null) {
-            if (storeType == null) {
-                throw FatalError.executionError("State store '" + store.name() + "' does not have a defined " + name + " type");
+    private void validateStoreTypeWithStreamType(String keyOrValue, UserType storeKeyOrValueType, UserType streamKeyOrValueType) {
+        if (streamKeyOrValueType == null) {
+            if (storeKeyOrValueType == null) {
+                throw FatalError.executionError("State store '" + store.name() + "' does not have a defined " + keyOrValue + " type");
             }
             return;
         }
 
-        if (storeType != null && !storeType.dataType().isAssignableFrom(streamType.dataType())) {
-            throw FatalError.executionError("Incompatible " + name + " types for state store '" + store.name() + "': " + storeType + " and " + streamType);
+        if (storeKeyOrValueType != null && !storeKeyOrValueType.dataType().isAssignableFrom(streamKeyOrValueType.dataType())) {
+            throw FatalError.executionError("Incompatible " + keyOrValue + " types for state store '" + store.name() + "': " + storeKeyOrValueType + " and " + streamKeyOrValueType);
         }
     }
 

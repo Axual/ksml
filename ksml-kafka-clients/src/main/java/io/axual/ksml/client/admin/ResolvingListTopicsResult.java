@@ -43,7 +43,7 @@ public class ResolvingListTopicsResult extends ExtendableListTopicsResult {
         return super.namesToListings().thenApply(rawResult -> {
             Map<String, TopicListing> result = new HashMap<>();
             for (var entry : rawResult.entrySet()) {
-                var unresolvedTopic = entry.getValue().isInternal() ? entry.getKey() : resolver.unresolveTopic(entry.getKey());
+                var unresolvedTopic = entry.getValue().isInternal() ? entry.getKey() : resolver.unresolve(entry.getKey());
                 if (unresolvedTopic != null) {
                     result.put(unresolvedTopic, new TopicListing(unresolvedTopic, entry.getValue().topicId(), entry.getValue().isInternal()));
                 }

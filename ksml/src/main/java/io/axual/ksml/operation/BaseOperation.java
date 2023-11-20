@@ -39,7 +39,7 @@ import java.util.TreeSet;
 @Slf4j
 public class BaseOperation implements StreamOperation {
     private static final String ERROR_IN_TOPOLOGY = "Error in topology";
-    private static final String[] TEMPLATE = new String[]{};
+    private static final String[] TEMPLATE = new String[0];
 
     private static class NameValidator extends Named {
         // Satisfy compiler with dummy constructor
@@ -177,10 +177,6 @@ public class BaseOperation implements StreamOperation {
         }
     }
 
-    protected void checkTuple(String faultDescription, StreamDataType type, DataType... elements) {
-        checkTuple(faultDescription, type.userType(), elements);
-    }
-
     protected void checkTuple(String faultDescription, UserType type, DataType... elements) {
         checkTuple(faultDescription, type.dataType(), elements);
     }
@@ -208,7 +204,7 @@ public class BaseOperation implements StreamOperation {
     }
 
     protected String[] combineStoreNames(String[]... storeNameArrays) {
-        final var storeNames = new TreeSet<>();
+        final var storeNames = new TreeSet<String>();
         for (String[] storeNameArray : storeNameArrays) {
             if (storeNameArray != null) Collections.addAll(storeNames, storeNameArray);
         }

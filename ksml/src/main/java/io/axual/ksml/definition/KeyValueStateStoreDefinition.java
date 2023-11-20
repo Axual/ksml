@@ -23,8 +23,48 @@ package io.axual.ksml.definition;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.store.StoreType;
 
+import java.time.Duration;
+import java.util.Objects;
+
 public class KeyValueStateStoreDefinition extends StateStoreDefinition {
-    public KeyValueStateStoreDefinition(String name, Boolean persistent, Boolean timestamped, UserType keyType, UserType valueType, Boolean caching, Boolean logging) {
+    private final Boolean versioned;
+    private final Duration historyRetention;
+    private final Duration segmentInterval;
+
+    public KeyValueStateStoreDefinition(String name, UserType keyType, UserType valueType) {
+        this(name, false, false, false, Duration.ZERO, Duration.ZERO, keyType, valueType, false, false);
+    }
+
+    public KeyValueStateStoreDefinition(String name, Boolean persistent, Boolean timestamped, Boolean versioned, Duration historyRetention, Duration segmentInterval, UserType keyType, UserType valueType, Boolean caching, Boolean logging) {
         super(StoreType.KEYVALUE_STORE, name, persistent, timestamped, keyType, valueType, caching, logging);
+        this.versioned = versioned;
+        this.historyRetention = historyRetention;
+        this.segmentInterval = segmentInterval;
+    }
+
+    public boolean versioned() {
+        return versioned != null && versioned;
+    }
+
+    public Duration historyRetention() {
+        return historyRetention != null ? historyRetention : Duration.ZERO;
+    }
+
+    public Duration segmentInterval() {
+        return segmentInterval != null ? segmentInterval : Duration.ZERO;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof KeyValueStateStoreDefinition def)) return false;
+        return (super.equals(other)
+                && Objects.equals(versioned, def.versioned)
+                && Objects.equals(historyRetention, def.historyRetention)
+                && Objects.equals(segmentInterval, def.segmentInterval));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), versioned, historyRetention, segmentInterval);
     }
 }

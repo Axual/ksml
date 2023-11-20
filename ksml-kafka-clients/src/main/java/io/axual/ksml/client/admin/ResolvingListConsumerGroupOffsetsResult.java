@@ -42,13 +42,13 @@ public class ResolvingListConsumerGroupOffsetsResult extends ExtendableListConsu
     private static Map<CoordinatorKey, KafkaFuture<Map<TopicPartition, OffsetAndMetadata>>> convertResult(final Map<CoordinatorKey, KafkaFuture<Map<TopicPartition, OffsetAndMetadata>>> futures, TopicResolver topicResolver, GroupResolver groupResolver) {
         var result = new HashMap<CoordinatorKey, KafkaFuture<Map<TopicPartition, OffsetAndMetadata>>>(futures.size());
         futures.forEach((coordinatorKey, future) -> {
-            final var newKey = CoordinatorKey.byGroupId(groupResolver.unresolveGroup(coordinatorKey.idValue));
+            final var newKey = CoordinatorKey.byGroupId(groupResolver.unresolve(coordinatorKey.idValue));
 
             final KafkaFutureImpl<Map<TopicPartition, OffsetAndMetadata>> wrappingFuture = new KafkaFutureImpl<>();
             future.whenComplete((offsets, throwable) -> {
                 if (offsets != null) {
                     var newOffsets = new HashMap<TopicPartition, OffsetAndMetadata>(offsets.size());
-                    offsets.forEach(((topicPartition, offsetAndMetadata) -> newOffsets.put(topicResolver.unresolveTopic(topicPartition), offsetAndMetadata)));
+                    offsets.forEach(((topicPartition, offsetAndMetadata) -> newOffsets.put(topicResolver.unresolve(topicPartition), offsetAndMetadata)));
                     wrappingFuture.complete(newOffsets);
                 } else {
                     wrappingFuture.completeExceptionally(throwable);

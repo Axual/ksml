@@ -39,7 +39,7 @@ public class ResolvingCreateTopicsResult extends ExtendableCreateTopicsResult {
         super(result);
         this.topicResolver = resolver;
         this.values = new HashMap<>();
-        result.values().forEach((k, v) -> values.put(topicResolver.unresolveTopic(k), v));
+        result.values().forEach((k, v) -> values.put(topicResolver.unresolve(k), v));
     }
 
     @Override
@@ -49,21 +49,21 @@ public class ResolvingCreateTopicsResult extends ExtendableCreateTopicsResult {
 
     @Override
     public KafkaFuture<Config> config(String topic) {
-        return super.config(topicResolver.resolveTopic(topic));
+        return super.config(topicResolver.resolve(topic));
     }
 
     @Override
     public KafkaFuture<Uuid> topicId(String topic) {
-        return super.topicId(topicResolver.resolveTopic(topic));
+        return super.topicId(topicResolver.resolve(topic));
     }
 
     @Override
     public KafkaFuture<Integer> numPartitions(String topic) {
-        return super.numPartitions(topicResolver.resolveTopic(topic));
+        return super.numPartitions(topicResolver.resolve(topic));
     }
 
     @Override
     public KafkaFuture<Integer> replicationFactor(String topic) {
-        return super.replicationFactor(topicResolver.resolveTopic(topic));
+        return super.replicationFactor(topicResolver.resolve(topic));
     }
 }

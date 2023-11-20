@@ -40,8 +40,8 @@ public class ResolverUtil {
         var name = filter.patternFilter().name();
 
         switch (filter.patternFilter().resourceType()) {
-            case TOPIC -> name = topicResolver.resolveTopic(name);
-            case GROUP -> name = groupResolver.resolveGroup(name);
+            case TOPIC -> name = topicResolver.resolve(name);
+            case GROUP -> name = groupResolver.resolve(name);
         }
 
         return new AclBindingFilter(
@@ -58,8 +58,8 @@ public class ResolverUtil {
             String name = binding.pattern().name();
 
             switch (binding.pattern().resourceType()) {
-                case TOPIC -> name = topicResolver.unresolveTopic(name);
-                case GROUP -> name = groupResolver.unresolveGroup(name);
+                case TOPIC -> name = topicResolver.unresolve(name);
+                case GROUP -> name = groupResolver.unresolve(name);
             }
 
             result.add(
@@ -75,7 +75,7 @@ public class ResolverUtil {
 
     public static <T> Map<String, T> unresolveKeys(Map<String, T> map, TopicResolver resolver) {
         Map<String, T> result = new HashMap<>();
-        map.forEach((key, value) -> result.put(resolver.unresolveTopic(key), value));
+        map.forEach((key, value) -> result.put(resolver.unresolve(key), value));
         return result;
     }
 }

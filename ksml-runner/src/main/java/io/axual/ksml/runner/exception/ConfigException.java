@@ -1,10 +1,10 @@
-package io.axual.ksml.datagenerator.config;
+package io.axual.ksml.runner.exception;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Producer
+ * KSML Runner
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,16 @@ package io.axual.ksml.datagenerator.config;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
 
-import java.util.List;
+public class ConfigException extends RunnerException {
+    public static final String MESSAGE_DETAIL_FORMAT = "%nConfiguration Key   : '%s'%nConfiguration Value : '%s' ";
+    public static final String DEFAULT_MESSAGE = "An invalid configuration has been found.";
 
-@Data
-public class ProducerConfig {
-    @JsonProperty("working.directory")
-    public String workingDirectory;
-    @JsonProperty("config.directory")
-    private String configurationDirectory;
-    public List<String> definitions;
+    public ConfigException(String configKey, Object configValue) {
+        this(configKey, configValue, DEFAULT_MESSAGE);
+    }
+
+    public ConfigException(String configKey, Object configValue, String message) {
+        super(message + String.format(MESSAGE_DETAIL_FORMAT, configKey, configValue != null ? configValue : "null"));
+    }
 }

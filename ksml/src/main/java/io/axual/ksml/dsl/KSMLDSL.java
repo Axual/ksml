@@ -45,6 +45,9 @@ public class KSMLDSL {
     public static final String STORE_TYPE_ATTRIBUTE = "type";
     public static final String STORE_PERSISTENT_ATTRIBUTE = "persistent";
     public static final String STORE_TIMESTAMPED_ATTRIBUTE = "timestamped";
+    public static final String STORE_VERSIONED_ATTRIBUTE = "versioned";
+    public static final String STORE_HISTORY_RETENTION_ATTRIBUTE = "historyRetention";
+    public static final String STORE_SEGMENT_INTERVAL_ATTRIBUTE = "segmentInterval";
     public static final String STORE_KEYTYPE_ATTRIBUTE = "keyType";
     public static final String STORE_VALUETYPE_ATTRIBUTE = "valueType";
     public static final String STORE_RETENTION_ATTRIBUTE = "retention";
