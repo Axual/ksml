@@ -1,4 +1,4 @@
-working.directory: .
-config.directory: .
+storageDirectory: .
+configDirectory: .
 definitions:
   - src/test/resources/example-definition.yaml

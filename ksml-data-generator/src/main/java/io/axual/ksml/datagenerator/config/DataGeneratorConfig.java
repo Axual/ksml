@@ -28,6 +28,10 @@ import java.util.Map;
 @Slf4j
 @Data
 public class DataGeneratorConfig {
-    private ProducerConfig producer;
+    private GeneratorConfig ksml;
     private Map<String, String> kafka;
+
+    public void validate() {
+        ksml.validate();
+    }
 }

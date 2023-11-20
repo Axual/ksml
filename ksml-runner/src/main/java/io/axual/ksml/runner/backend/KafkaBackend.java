@@ -9,9 +9,9 @@ package io.axual.ksml.runner.backend;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -95,7 +95,8 @@ public class KafkaBackend implements Backend {
                         new ResolvingDeserializer<>(serde.deserializer(), streamsConfig)));
         var topologyGenerator = new KSMLTopologyGenerator(applicationId, ksmlConf, streamsConfig);
 
-        var topologyConfig = new TopologyConfig(applicationId, new StreamsConfig(streamsConfig), new Properties());
+//        var topologyConfig = new TopologyConfig(applicationId, new StreamsConfig(streamsConfig), new Properties());
+        var topologyConfig = new TopologyConfig(new StreamsConfig(streamsConfig));
         final var topology = topologyGenerator.create(new StreamsBuilder(topologyConfig));
         kafkaStreams = new KafkaStreams(topology, mapToProperties(streamsConfig));
         kafkaStreams.setUncaughtExceptionHandler(ExecutionContext.INSTANCE::uncaughtException);

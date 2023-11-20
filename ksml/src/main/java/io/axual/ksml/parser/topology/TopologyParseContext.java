@@ -9,9 +9,9 @@ package io.axual.ksml.parser.topology;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,6 +27,7 @@ import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.SessionStateStoreDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
+import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.definition.WindowStateStoreDefinition;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.generator.StreamDataType;
@@ -34,12 +35,12 @@ import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonFunction;
+import io.axual.ksml.store.StoreUtil;
 import io.axual.ksml.stream.BaseStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
-import org.apache.kafka.streams.state.Stores;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -95,6 +96,10 @@ public class TopologyParseContext implements ParseContext {
         }
         streamDefinitions.put(name, def);
         registerTopic(def.topic);
+        if (def instanceof TableDefinition tableDef) {
+            // Ensure the local state store is registered with the StreamBuilder
+            getStreamWrapper(tableDef);
+        }
     }
 
     public void registerFunction(String name, FunctionDefinition functionDefinition) {
@@ -117,16 +122,34 @@ public class TopologyParseContext implements ParseContext {
         new PythonFunction(pythonContext, name, "ksml.functions." + name, functionDefinition);
     }
 
-    public void registerStateStore(StateStoreDefinition store) {
+    public void registerStateStore(String name, StateStoreDefinition store) {
+        registerStateStore(name, store, false);
+    }
+
+    public void registerStateStore(String name, StateStoreDefinition store, boolean canBeDuplicate) {
+        // Check if the store is properly named
+        if (store.name() == null || store.name().isEmpty()) {
+            throw new KSMLTopologyException("StateStore does not have a name: " + store);
+        }
+        // Check if the name is equal to the store name (otherwise a parsing error occurred)
+        if (!store.name().equals(name)) {
+            throw new KSMLTopologyException("StateStore name mistmatch: this is a parsing error: " + store);
+        }
         // State stores can only be registered once. Duplicate names are a sign of faulty KSML definitions
         if (stateStoreDefinitions.containsKey(store.name())) {
-            throw new KSMLTopologyException("StateStore is not unique: " + store.name());
+            if (!canBeDuplicate) {
+                throw new KSMLTopologyException("StateStore is not unique: " + store.name());
+            }
+            if (!stateStoreDefinitions.get(store.name()).equals(store)) {
+                throw new KSMLTopologyException("StateStore definition conflicts earlier registration: " + store);
+            }
+        } else {
+            stateStoreDefinitions.put(store.name(), store);
         }
-        stateStoreDefinitions.put(store.name(), store);
     }
 
     public void registerStateStoreAsCreated(StateStoreDefinition store) {
-        registerStateStore(store);
+        registerStateStore(store.name(), store, true);
         markStateStoreCreated(store.name());
     }
 
@@ -203,36 +226,17 @@ public class TopologyParseContext implements ParseContext {
         final var valueType = new StreamDataType(notationLibrary, store.valueType(), false);
 
         if (store instanceof KeyValueStateStoreDefinition storeDef) {
-            var supplier = storeDef.persistent()
-                    ? (storeDef.timestamped()
-                    ? Stores.persistentTimestampedKeyValueStore(storeDef.name())
-                    : Stores.persistentKeyValueStore(storeDef.name()))
-                    : Stores.inMemoryKeyValueStore(storeDef.name());
-            var storeBuilder = Stores.keyValueStoreBuilder(supplier, keyType.getSerde(), valueType.getSerde());
-            storeBuilder = storeDef.caching() ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
-            storeBuilder = storeDef.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();
+            final var storeBuilder = StoreUtil.getStoreBuilder(storeDef, notationLibrary);
             builder.addStateStore(storeBuilder);
         }
 
         if (store instanceof SessionStateStoreDefinition storeDef) {
-            var supplier = storeDef.persistent()
-                    ? Stores.persistentSessionStore(storeDef.name(), storeDef.retention())
-                    : Stores.inMemorySessionStore(storeDef.name(), storeDef.retention());
-            var storeBuilder = Stores.sessionStoreBuilder(supplier, keyType.getSerde(), valueType.getSerde());
-            storeBuilder = storeDef.caching() ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
-            storeBuilder = storeDef.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();
+            final var storeBuilder = StoreUtil.getStoreBuilder(storeDef, notationLibrary);
             builder.addStateStore(storeBuilder);
         }
 
         if (store instanceof WindowStateStoreDefinition storeDef) {
-            var supplier = store.persistent()
-                    ? (storeDef.timestamped()
-                    ? Stores.persistentTimestampedWindowStore(storeDef.name(), storeDef.retention(), storeDef.windowSize(), storeDef.retainDuplicates())
-                    : Stores.persistentWindowStore(storeDef.name(), storeDef.retention(), storeDef.windowSize(), storeDef.retainDuplicates()))
-                    : Stores.inMemoryWindowStore(storeDef.name(), storeDef.retention(), storeDef.windowSize(), storeDef.retainDuplicates());
-            var storeBuilder = Stores.windowStoreBuilder(supplier, keyType.getSerde(), valueType.getSerde());
-            storeBuilder = storeDef.caching() ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
-            storeBuilder = storeDef.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();
+            final var storeBuilder = StoreUtil.getStoreBuilder(storeDef, notationLibrary);
             builder.addStateStore(storeBuilder);
         }
 

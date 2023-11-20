@@ -37,82 +37,82 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 
-public class ProxyProducer<K, V> implements Producer<K, V> {
-    private Producer<K, V> backingProducer;
+public class ForwardingProducer<K, V> implements Producer<K, V> {
+    private Producer<K, V> delegate;
 
-    public void initializeProducer(Producer<K, V> backingProducer) {
-        if (backingProducer == null) {
-            throw new UnsupportedOperationException("Backing producer can not be null");
+    public void initializeProducer(Producer<K, V> delegate) {
+        if (delegate == null) {
+            throw new UnsupportedOperationException("Delegate producer can not be null");
         }
-        if (this.backingProducer != null) {
-            throw new UnsupportedOperationException("Proxy producer already initialized");
+        if (this.delegate != null) {
+            throw new UnsupportedOperationException("ForwardingProducer already initialized");
         }
-        this.backingProducer = backingProducer;
+        this.delegate = delegate;
     }
 
     @Override
     public void initTransactions() {
-        backingProducer.initTransactions();
+        delegate.initTransactions();
     }
 
     @Override
     public void beginTransaction() throws ProducerFencedException {
-        backingProducer.beginTransaction();
+        delegate.beginTransaction();
     }
 
     @Override
     @Deprecated
     public void sendOffsetsToTransaction(Map<TopicPartition, OffsetAndMetadata> offsets, String consumerGroupId) throws ProducerFencedException {
-        backingProducer.sendOffsetsToTransaction(offsets, consumerGroupId);
+        delegate.sendOffsetsToTransaction(offsets, consumerGroupId);
     }
 
     @Override
     public void sendOffsetsToTransaction(Map<TopicPartition, OffsetAndMetadata> offsets, ConsumerGroupMetadata consumerGroupMetadata) throws ProducerFencedException {
-        backingProducer.sendOffsetsToTransaction(offsets, consumerGroupMetadata);
+        delegate.sendOffsetsToTransaction(offsets, consumerGroupMetadata);
     }
 
     @Override
     public void commitTransaction() throws ProducerFencedException {
-        backingProducer.commitTransaction();
+        delegate.commitTransaction();
     }
 
     @Override
     public void abortTransaction() throws ProducerFencedException {
-        backingProducer.abortTransaction();
+        delegate.abortTransaction();
     }
 
     @Override
     public Future<RecordMetadata> send(ProducerRecord<K, V> record) {
-        return backingProducer.send(record);
+        return delegate.send(record);
     }
 
     @Override
     public Future<RecordMetadata> send(ProducerRecord<K, V> record, Callback callback) {
-        return backingProducer.send(record, callback);
+        return delegate.send(record, callback);
     }
 
     @Override
     public void flush() {
-        backingProducer.flush();
+        delegate.flush();
     }
 
     @Override
     public List<PartitionInfo> partitionsFor(String topic) {
-        return backingProducer.partitionsFor(topic);
+        return delegate.partitionsFor(topic);
     }
 
     @Override
     public Map<MetricName, ? extends Metric> metrics() {
-        return backingProducer.metrics();
+        return delegate.metrics();
     }
 
     @Override
     public void close() {
-        backingProducer.close();
+        delegate.close();
     }
 
     @Override
     public void close(Duration duration) {
-        backingProducer.close(duration);
+        delegate.close(duration);
     }
 }

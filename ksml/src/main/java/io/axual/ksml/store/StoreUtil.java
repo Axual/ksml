@@ -30,8 +30,13 @@ import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.processor.StateStore;
+import org.apache.kafka.streams.state.KeyValueBytesStoreSupplier;
 import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.SessionBytesStoreSupplier;
 import org.apache.kafka.streams.state.SessionStore;
+import org.apache.kafka.streams.state.StoreBuilder;
+import org.apache.kafka.streams.state.Stores;
+import org.apache.kafka.streams.state.WindowBytesStoreSupplier;
 import org.apache.kafka.streams.state.WindowStore;
 
 import java.util.HashMap;
@@ -40,19 +45,92 @@ public class StoreUtil {
     private StoreUtil() {
     }
 
+    public static KeyValueBytesStoreSupplier getStoreSupplier(KeyValueStateStoreDefinition store) {
+        return store.persistent()
+                ? (store.versioned()
+                ? Stores.persistentVersionedKeyValueStore(store.name(), store.historyRetention(), store.segmentInterval())
+                : (store.timestamped()
+                ? Stores.persistentTimestampedKeyValueStore(store.name())
+                : Stores.persistentKeyValueStore(store.name())))
+                : Stores.inMemoryKeyValueStore(store.name());
+    }
+
+    public static StoreBuilder<?> getStoreBuilder(KeyValueStateStoreDefinition store, NotationLibrary notationLibrary) {
+        final var keyType = new StreamDataType(notationLibrary, store.keyType(), true);
+        final var valueType = new StreamDataType(notationLibrary, store.valueType(), false);
+        StoreBuilder<?> storeBuilder;
+        if (store.persistent()) {
+            if (store.versioned()) {
+                final var supplier = Stores.persistentVersionedKeyValueStore(store.name(), store.historyRetention(), store.segmentInterval());
+                storeBuilder = Stores.versionedKeyValueStoreBuilder(supplier, keyType.getSerde(), valueType.getSerde());
+            } else {
+                final var supplier = store.timestamped()
+                        ? Stores.persistentTimestampedKeyValueStore(store.name())
+                        : Stores.persistentKeyValueStore(store.name());
+                storeBuilder = Stores.keyValueStoreBuilder(supplier, keyType.getSerde(), valueType.getSerde());
+            }
+        } else {
+            final var supplier = Stores.inMemoryKeyValueStore(store.name());
+            storeBuilder = Stores.keyValueStoreBuilder(supplier, keyType.getSerde(), valueType.getSerde());
+        }
+        storeBuilder = store.caching() ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
+        storeBuilder = store.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();
+        return storeBuilder;
+    }
+
+    public static SessionBytesStoreSupplier getStoreSupplier(SessionStateStoreDefinition store) {
+        return store.persistent()
+                ? Stores.persistentSessionStore(store.name(), store.retention())
+                : Stores.inMemorySessionStore(store.name(), store.retention());
+    }
+
+    public static StoreBuilder<?> getStoreBuilder(SessionStateStoreDefinition store, NotationLibrary notationLibrary) {
+        final var keyType = new StreamDataType(notationLibrary, store.keyType(), true);
+        final var valueType = new StreamDataType(notationLibrary, store.valueType(), false);
+        final var supplier = store.persistent()
+                ? Stores.persistentSessionStore(store.name(), store.retention())
+                : Stores.inMemorySessionStore(store.name(), store.retention());
+        var storeBuilder = Stores.sessionStoreBuilder(supplier, keyType.getSerde(), valueType.getSerde());
+        storeBuilder = store.caching() ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
+        storeBuilder = store.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();
+        return storeBuilder;
+    }
+
+    public static WindowBytesStoreSupplier getStoreSupplier(WindowStateStoreDefinition store) {
+        return store.persistent()
+                ? (store.timestamped()
+                ? Stores.persistentTimestampedWindowStore(store.name(), store.retention(), store.windowSize(), store.retainDuplicates())
+                : Stores.persistentWindowStore(store.name(), store.retention(), store.windowSize(), store.retainDuplicates()))
+                : Stores.inMemoryWindowStore(store.name(), store.retention(), store.windowSize(), store.retainDuplicates());
+    }
+
+    public static StoreBuilder<?> getStoreBuilder(WindowStateStoreDefinition store, NotationLibrary notationLibrary) {
+        final var keyType = new StreamDataType(notationLibrary, store.keyType(), true);
+        final var valueType = new StreamDataType(notationLibrary, store.valueType(), false);
+        var supplier = store.persistent()
+                ? (store.timestamped()
+                ? Stores.persistentTimestampedWindowStore(store.name(), store.retention(), store.windowSize(), store.retainDuplicates())
+                : Stores.persistentWindowStore(store.name(), store.retention(), store.windowSize(), store.retainDuplicates()))
+                : Stores.inMemoryWindowStore(store.name(), store.retention(), store.windowSize(), store.retainDuplicates());
+        var storeBuilder = Stores.windowStoreBuilder(supplier, keyType.getSerde(), valueType.getSerde());
+        storeBuilder = store.caching() ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
+        storeBuilder = store.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();
+        return storeBuilder;
+    }
+
     public static <V> Materialized<Object, V, KeyValueStore<Bytes, byte[]>> materialize(KeyValueStateStoreDefinition store, NotationLibrary notationLibrary) {
-        Materialized<Object, V, KeyValueStore<Bytes, byte[]>> result = Materialized.as(store.name());
+        Materialized<Object, V, KeyValueStore<Bytes, byte[]>> result = Materialized.as(getStoreSupplier(store));
         return materialize(result, store, notationLibrary);
     }
 
     public static <V> Materialized<Object, V, SessionStore<Bytes, byte[]>> materialize(SessionStateStoreDefinition store, NotationLibrary notationLibrary) {
-        Materialized<Object, V, SessionStore<Bytes, byte[]>> mat = Materialized.as(store.name());
+        Materialized<Object, V, SessionStore<Bytes, byte[]>> mat = Materialized.as(getStoreSupplier(store));
         if (store.retention() != null) mat = mat.withRetention(store.retention());
         return materialize(mat, store, notationLibrary);
     }
 
     public static <V> Materialized<Object, V, WindowStore<Bytes, byte[]>> materialize(WindowStateStoreDefinition store, NotationLibrary notationLibrary) {
-        Materialized<Object, V, WindowStore<Bytes, byte[]>> mat = Materialized.as(store.name());
+        Materialized<Object, V, WindowStore<Bytes, byte[]>> mat = Materialized.as(getStoreSupplier(store));
         if (store.retention() != null) mat = mat.withRetention(store.retention());
         return materialize(mat, store, notationLibrary);
     }

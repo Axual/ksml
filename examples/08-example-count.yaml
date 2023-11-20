@@ -6,11 +6,6 @@ streams:
     keyType: string
     valueType: avro:SensorData
 
-functions:
-  print_message:
-    type: forEach
-    code: "print('key=' + str(key) + ', value=' + str(value))"
-
 pipelines:
   main:
     from: sensor_source
@@ -31,12 +26,14 @@ pipelines:
         store:
           name: owner_count
           type: window
+          windowSize: 10m
           retention: 1h
           caching: false
       - type: toStream
       - type: convertKey
         into: avro:windowed(string)
       - type: peek
-        forEach: print_message
+        forEach:
+          code: log.info("key={}, value={}", key, value)
     to:
       topic: ksml_sensordata_count

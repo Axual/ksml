@@ -40,7 +40,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class ResolvingProducer<K, V> extends ProxyProducer<K, V> {
+public class ResolvingProducer<K, V> extends ForwardingProducer<K, V> {
     private final ResolvingProducerConfig config;
 
     public ResolvingProducer(Map<String, Object> configs) {
@@ -64,10 +64,10 @@ public class ResolvingProducer<K, V> extends ProxyProducer<K, V> {
         Map<TopicPartition, OffsetAndMetadata> newOffsets = new HashMap<>();
         for (Map.Entry<TopicPartition, OffsetAndMetadata> entry : offsets.entrySet()) {
             newOffsets
-                    .put(config.getTopicResolver().resolveTopic(entry.getKey()), entry.getValue());
+                    .put(config.getTopicResolver().resolve(entry.getKey()), entry.getValue());
         }
         super.sendOffsetsToTransaction(newOffsets,
-                config.getGroupResolver().resolveGroup(consumerGroupId));
+                config.getGroupResolver().resolve(consumerGroupId));
     }
 
     @Override
@@ -76,11 +76,11 @@ public class ResolvingProducer<K, V> extends ProxyProducer<K, V> {
         Map<TopicPartition, OffsetAndMetadata> newOffsets = new HashMap<>();
         for (Map.Entry<TopicPartition, OffsetAndMetadata> entry : offsets.entrySet()) {
             newOffsets
-                    .put(config.getTopicResolver().resolveTopic(entry.getKey()), entry.getValue());
+                    .put(config.getTopicResolver().resolve(entry.getKey()), entry.getValue());
         }
 
         super.sendOffsetsToTransaction(newOffsets, new ConsumerGroupMetadata(
-                config.getGroupResolver().resolveGroup(groupMetadata.groupId()),
+                config.getGroupResolver().resolve(groupMetadata.groupId()),
                 groupMetadata.generationId(), groupMetadata.memberId(),
                 groupMetadata.groupInstanceId()));
     }
@@ -109,11 +109,11 @@ public class ResolvingProducer<K, V> extends ProxyProducer<K, V> {
 
     @Override
     public List<PartitionInfo> partitionsFor(String topic) {
-        List<PartitionInfo> rawResult = super.partitionsFor(config.getTopicResolver().resolveTopic(topic));
+        List<PartitionInfo> rawResult = super.partitionsFor(config.getTopicResolver().resolve(topic));
         List<PartitionInfo> result = new ArrayList<>(rawResult.size());
         for (PartitionInfo info : rawResult) {
             result.add(new PartitionInfo(
-                    config.getTopicResolver().unresolveTopic(info.topic()),
+                    config.getTopicResolver().unresolve(info.topic()),
                     info.partition(),
                     info.leader(),
                     info.replicas(),
@@ -131,7 +131,7 @@ public class ResolvingProducer<K, V> extends ProxyProducer<K, V> {
 
         // Return a ProducerRecord with a resolved topic name
         return new ProducerRecord<>(
-                resolver.resolveTopic(producerRecord.topic()),
+                resolver.resolve(producerRecord.topic()),
                 producerRecord.partition(),
                 producerRecord.timestamp(),
                 producerRecord.key(),

@@ -20,6 +20,13 @@ package io.axual.ksml.rest.server;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.rest.data.KeyValueBean;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.StoreQueryParameters;
@@ -28,16 +35,8 @@ import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 
 import java.util.List;
 
-import io.axual.ksml.rest.data.KeyValueBean;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
-@Path("state/keyvalue")
+@Path("state/keyValue")
 public class KeyValueStoreResource extends StoreResource {
     /**
      * Get all the key-value pairs available in a store

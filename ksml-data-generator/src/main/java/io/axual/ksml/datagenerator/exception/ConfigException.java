@@ -20,15 +20,15 @@ package io.axual.ksml.datagenerator.exception;
  * =========================LICENSE_END==================================
  */
 
-public class ConfigurationException extends RuntimeException {
+public class ConfigException extends RuntimeException {
     public static final String MESSAGE_DETAIL_FORMAT = "%nConfiguration Key   : '%s'%nConfiguration Value : '%s' ";
     public static final String DEFAULT_MESSAGE = "An invalid configuration has been found.";
 
-    public ConfigurationException(String configKey, Object configValue) {
+    public ConfigException(String configKey, Object configValue) {
         this(configKey, configValue, DEFAULT_MESSAGE);
     }
 
-    public ConfigurationException(String configKey, Object configValue, String message) {
+    public ConfigException(String configKey, Object configValue, String message) {
         super(message + String.format(MESSAGE_DETAIL_FORMAT, configKey, configValue));
     }
 }

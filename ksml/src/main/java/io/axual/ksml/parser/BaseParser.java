@@ -28,6 +28,16 @@ import java.util.function.Function;
 import java.util.function.ToLongFunction;
 
 public abstract class BaseParser<T> {
+    private String defaultName;
+
+    protected String getDefaultName() {
+        return defaultName;
+    }
+
+    public void setDefaultName(String defaultName) {
+        this.defaultName = defaultName;
+    }
+
     protected interface BooleanToStringConverter {
         String interpret(boolean value);
     }

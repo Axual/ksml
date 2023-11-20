@@ -1,3 +1,5 @@
+# This example shows how to route messages to a dynamic topic. The target topic is the result of an executed function.
+
 streams:
   sensor_source:
     topic: ksml_sensordata_avro
@@ -16,18 +18,13 @@ streams:
     keyType: string
     valueType: avro:SensorData
 
-functions:
-  print_message:
-    type: forEach
-    code: "print('key=' + str(key) + ', value=' + str(value))"
-
 pipelines:
   main:
     from: sensor_source
     via:
       - type: peek
-        name: peek_and_print
-        forEach: print_message
+        forEach:
+          code: log.info("key={}, value={}", key, value)
     toExtractor:
       code: |
         if key == 'sensor1':

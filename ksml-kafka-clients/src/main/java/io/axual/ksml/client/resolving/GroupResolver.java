@@ -35,37 +35,17 @@ import java.util.stream.Collectors;
 public interface GroupResolver extends Resolver {
 
     /**
-     * Translates the internal representation of consumer group id to the external one.
-     *
-     * @param group the internal consumer group id
-     * @return the external consumer group id
-     */
-    default String resolveGroup(final String group) {
-        return resolve(group);
-    }
-
-    /**
      * Translates a collection of group ids using the internal format to a collection of group ids
      * using the external format
      *
      * @param groups the internal consumer group ids to resolve
      * @return A set of external consumer group ids
      */
-    default Set<String> resolveGroups(final Collection<String> groups) {
+    default Set<String> resolve(final Collection<String> groups) {
         return groups == null ? Collections.emptySet() : groups.stream()
-                .map(this::resolveGroup)
+                .map(this::resolve)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
-    }
-
-    /**
-     * Translates the external representation of consumer group id to the internal one.
-     *
-     * @param group the external consumer group id
-     * @return the internal consumer group id
-     */
-    default String unresolveGroup(final String group) {
-        return unresolve(group);
     }
 
     /**
@@ -75,9 +55,9 @@ public interface GroupResolver extends Resolver {
      * @param groups the external consumer group ids to resolve
      * @return A set of internal consumer group ids
      */
-    default Set<String> unresolveGroups(final Collection<String> groups) {
+    default Set<String> unresolve(final Collection<String> groups) {
         return groups == null ? Collections.emptySet() : groups.stream()
-                .map(this::unresolveGroup)
+                .map(this::unresolve)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }

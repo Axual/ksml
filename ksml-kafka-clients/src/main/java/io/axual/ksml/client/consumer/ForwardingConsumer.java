@@ -40,258 +40,258 @@ import java.util.OptionalLong;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-public class ProxyConsumer<K, V> implements Consumer<K, V> {
-    private Consumer<K, V> backingConsumer;
+public class ForwardingConsumer<K, V> implements Consumer<K, V> {
+    private Consumer<K, V> delegate;
 
-    public void initializeConsumer(Consumer<K, V> backingConsumer) {
-        if (backingConsumer == null) {
-            throw new UnsupportedOperationException("Backing consumer can not be null");
+    public void initializeConsumer(Consumer<K, V> delegate) {
+        if (delegate == null) {
+            throw new UnsupportedOperationException("Delegate consumer can not be null");
         }
-        if (this.backingConsumer != null) {
-            throw new UnsupportedOperationException("Proxy consumer already initialized");
+        if (this.delegate != null) {
+            throw new UnsupportedOperationException("ForwardingConsumer already initialized");
         }
-        this.backingConsumer = backingConsumer;
+        this.delegate = delegate;
     }
 
     @Override
     public Set<TopicPartition> assignment() {
-        return backingConsumer.assignment();
+        return delegate.assignment();
     }
 
     @Override
     public Set<String> subscription() {
-        return backingConsumer.subscription();
+        return delegate.subscription();
     }
 
     @Override
     public void subscribe(Collection<String> topics) {
-        backingConsumer.subscribe(topics);
+        delegate.subscribe(topics);
     }
 
     @Override
     public void subscribe(Collection<String> topics, ConsumerRebalanceListener callback) {
-        backingConsumer.subscribe(topics, callback);
+        delegate.subscribe(topics, callback);
     }
 
     @Override
     public void assign(Collection<TopicPartition> partitions) {
-        backingConsumer.assign(partitions);
+        delegate.assign(partitions);
     }
 
     @Override
     public void subscribe(Pattern pattern, ConsumerRebalanceListener callback) {
-        backingConsumer.subscribe(pattern, callback);
+        delegate.subscribe(pattern, callback);
     }
 
     @Override
     public void subscribe(Pattern pattern) {
-        backingConsumer.subscribe(pattern);
+        delegate.subscribe(pattern);
     }
 
     @Override
     public void unsubscribe() {
-        backingConsumer.unsubscribe();
+        delegate.unsubscribe();
     }
 
     @Override
     public ConsumerRecords<K, V> poll(long timeout) {
-        return backingConsumer.poll(timeout);
+        return delegate.poll(timeout);
     }
 
     @Override
     public ConsumerRecords<K, V> poll(Duration timeout) {
-        return backingConsumer.poll(timeout);
+        return delegate.poll(timeout);
     }
 
     @Override
     public void commitSync() {
-        backingConsumer.commitSync();
+        delegate.commitSync();
     }
 
     @Override
     public void commitSync(Duration timeout) {
-        backingConsumer.commitSync(timeout);
+        delegate.commitSync(timeout);
     }
 
     @Override
     public void commitSync(Map<TopicPartition, OffsetAndMetadata> offsets) {
-        backingConsumer.commitSync(offsets);
+        delegate.commitSync(offsets);
     }
 
     @Override
     public void commitSync(Map<TopicPartition, OffsetAndMetadata> offsets, Duration timeout) {
-        backingConsumer.commitSync(offsets, timeout);
+        delegate.commitSync(offsets, timeout);
     }
 
     @Override
     public void commitAsync() {
-        backingConsumer.commitAsync();
+        delegate.commitAsync();
     }
 
     @Override
     public void commitAsync(OffsetCommitCallback callback) {
-        backingConsumer.commitAsync(callback);
+        delegate.commitAsync(callback);
     }
 
     @Override
     public void commitAsync(Map<TopicPartition, OffsetAndMetadata> offsets, OffsetCommitCallback callback) {
-        backingConsumer.commitAsync(offsets, callback);
+        delegate.commitAsync(offsets, callback);
     }
 
     @Override
     public void seek(TopicPartition partition, long offset) {
-        backingConsumer.seek(partition, offset);
+        delegate.seek(partition, offset);
     }
 
     @Override
     public void seek(TopicPartition partition, OffsetAndMetadata offsetAndMetadata) {
-        backingConsumer.seek(partition, offsetAndMetadata);
+        delegate.seek(partition, offsetAndMetadata);
     }
 
     @Override
     public void seekToBeginning(Collection<TopicPartition> partitions) {
-        backingConsumer.seekToBeginning(partitions);
+        delegate.seekToBeginning(partitions);
     }
 
     @Override
     public void seekToEnd(Collection<TopicPartition> partitions) {
-        backingConsumer.seekToEnd(partitions);
+        delegate.seekToEnd(partitions);
     }
 
     @Override
     public long position(TopicPartition partition) {
-        return backingConsumer.position(partition);
+        return delegate.position(partition);
     }
 
     @Override
     public long position(TopicPartition partition, Duration timeout) {
-        return backingConsumer.position(partition, timeout);
+        return delegate.position(partition, timeout);
     }
 
     @Override
     @Deprecated
     public OffsetAndMetadata committed(TopicPartition partition) {
-        return backingConsumer.committed(partition);
+        return delegate.committed(partition);
     }
 
     @Override
     @Deprecated
     public OffsetAndMetadata committed(TopicPartition partition, Duration timeout) {
-        return backingConsumer.committed(partition, timeout);
+        return delegate.committed(partition, timeout);
     }
 
     @Override
     public Map<TopicPartition, OffsetAndMetadata> committed(Set<TopicPartition> partitions) {
-        return backingConsumer.committed(partitions);
+        return delegate.committed(partitions);
     }
 
     @Override
     public Map<TopicPartition, OffsetAndMetadata> committed(Set<TopicPartition> partitions, Duration timeout) {
-        return backingConsumer.committed(partitions, timeout);
+        return delegate.committed(partitions, timeout);
     }
 
     @Override
     public Map<MetricName, ? extends Metric> metrics() {
-        return backingConsumer.metrics();
+        return delegate.metrics();
     }
 
     @Override
     public List<PartitionInfo> partitionsFor(String topic) {
-        return backingConsumer.partitionsFor(topic);
+        return delegate.partitionsFor(topic);
     }
 
     @Override
     public List<PartitionInfo> partitionsFor(String topic, Duration timeout) {
-        return backingConsumer.partitionsFor(topic, timeout);
+        return delegate.partitionsFor(topic, timeout);
     }
 
     @Override
     public Map<String, List<PartitionInfo>> listTopics() {
-        return backingConsumer.listTopics();
+        return delegate.listTopics();
     }
 
     @Override
     public Map<String, List<PartitionInfo>> listTopics(Duration timeout) {
-        return backingConsumer.listTopics(timeout);
+        return delegate.listTopics(timeout);
     }
 
     @Override
     public Set<TopicPartition> paused() {
-        return backingConsumer.paused();
+        return delegate.paused();
     }
 
     @Override
     public void pause(Collection<TopicPartition> partitions) {
-        backingConsumer.pause(partitions);
+        delegate.pause(partitions);
     }
 
     @Override
     public void resume(Collection<TopicPartition> partitions) {
-        backingConsumer.resume(partitions);
+        delegate.resume(partitions);
     }
 
     @Override
     public Map<TopicPartition, OffsetAndTimestamp> offsetsForTimes(Map<TopicPartition, Long> timestampsToSearch) {
-        return backingConsumer.offsetsForTimes(timestampsToSearch);
+        return delegate.offsetsForTimes(timestampsToSearch);
     }
 
     @Override
     public Map<TopicPartition, OffsetAndTimestamp> offsetsForTimes(Map<TopicPartition, Long> timestampsToSearch, Duration timeout) {
-        return backingConsumer.offsetsForTimes(timestampsToSearch, timeout);
+        return delegate.offsetsForTimes(timestampsToSearch, timeout);
     }
 
     @Override
     public Map<TopicPartition, Long> beginningOffsets(Collection<TopicPartition> partitions) {
-        return backingConsumer.beginningOffsets(partitions);
+        return delegate.beginningOffsets(partitions);
     }
 
     @Override
     public Map<TopicPartition, Long> beginningOffsets(Collection<TopicPartition> partitions, Duration timeout) {
-        return backingConsumer.beginningOffsets(partitions, timeout);
+        return delegate.beginningOffsets(partitions, timeout);
     }
 
     @Override
     public Map<TopicPartition, Long> endOffsets(Collection<TopicPartition> partitions) {
-        return backingConsumer.endOffsets(partitions);
+        return delegate.endOffsets(partitions);
     }
 
     @Override
     public Map<TopicPartition, Long> endOffsets(Collection<TopicPartition> partitions, Duration timeout) {
-        return backingConsumer.endOffsets(partitions, timeout);
+        return delegate.endOffsets(partitions, timeout);
     }
 
     @Override
     public OptionalLong currentLag(TopicPartition topicPartition) {
-        return backingConsumer.currentLag(topicPartition);
+        return delegate.currentLag(topicPartition);
     }
 
     @Override
     public ConsumerGroupMetadata groupMetadata() {
-        return backingConsumer.groupMetadata();
+        return delegate.groupMetadata();
     }
 
     @Override
     public void enforceRebalance() {
-        backingConsumer.enforceRebalance();
+        delegate.enforceRebalance();
     }
 
     @Override
     public void enforceRebalance(String reason) {
-        backingConsumer.enforceRebalance(reason);
+        delegate.enforceRebalance(reason);
     }
 
     @Override
     public void close() {
-        backingConsumer.close();
+        delegate.close();
     }
 
     @Override
     public void close(Duration timeout) {
-        backingConsumer.close(timeout);
+        delegate.close(timeout);
     }
 
     @Override
     public void wakeup() {
-        backingConsumer.wakeup();
+        delegate.wakeup();
     }
 }

@@ -34,7 +34,7 @@ public class ResolvingDeleteConsumerGroupsResult extends ExtendableDeleteConsume
         super(futures);
         this.unresolvedFutures = new HashMap<>(futures.size());
         futures.forEach((groupId, future) -> {
-            String unresolvedGroupId = groupResolver.unresolveGroup(groupId);
+            String unresolvedGroupId = groupResolver.unresolve(groupId);
             if (unresolvedGroupId != null) {
                 unresolvedFutures.put(unresolvedGroupId, future);
             }

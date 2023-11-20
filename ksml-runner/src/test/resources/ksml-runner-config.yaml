@@ -1,6 +1,5 @@
 ksml:
-  working.directory: .
-  config.directory: .
+  configDirectory: .
   definitions:
     - src/test/resources/example-definition.yaml
 

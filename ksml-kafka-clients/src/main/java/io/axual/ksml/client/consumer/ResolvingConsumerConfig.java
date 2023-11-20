@@ -33,7 +33,7 @@ public class ResolvingConsumerConfig extends ResolvingClientConfig {
         // Apply resolved group id to downstream consumer
         var configuredGroupId = configs.get(ConsumerConfig.GROUP_ID_CONFIG);
         if (configuredGroupId instanceof String groupId) {
-            downstreamConfigs.put(ConsumerConfig.GROUP_ID_CONFIG, groupResolver.resolveGroup(groupId));
+            downstreamConfigs.put(ConsumerConfig.GROUP_ID_CONFIG, groupResolver.resolve(groupId));
         }
 
         // Apply resolving partition assignment strategy to downstream consumer

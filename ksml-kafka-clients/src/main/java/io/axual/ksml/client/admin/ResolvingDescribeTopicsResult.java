@@ -53,6 +53,6 @@ public class ResolvingDescribeTopicsResult extends ExtendableDescribeTopicsResul
     }
 
     private static TopicDescription unresolveTopicDescription(TopicDescription td, TopicResolver resolver) {
-        return new TopicDescription(resolver.unresolveTopic(td.name()), td.isInternal(), td.partitions(), td.authorizedOperations());
+        return new TopicDescription(resolver.unresolve(td.name()), td.isInternal(), td.partitions(), td.authorizedOperations());
     }
 }

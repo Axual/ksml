@@ -35,12 +35,12 @@ public class ResolvingListOffsetsResult extends ExtendableListOffsetsResult {
     public ResolvingListOffsetsResult(ListOffsetsResult listOffsetsResult, TopicResolver topicResolver) {
         super(listOffsetsResult);
         this.topicResolver = topicResolver;
-        all = listOffsetsResult.all().thenApply(topicResolver::unresolveTopics);
+        all = listOffsetsResult.all().thenApply(topicResolver::unresolve);
     }
 
     @Override
     public KafkaFuture<ListOffsetsResultInfo> partitionResult(TopicPartition partition) {
-        return super.partitionResult(topicResolver.resolveTopic(partition));
+        return super.partitionResult(topicResolver.resolve(partition));
     }
 
     @Override

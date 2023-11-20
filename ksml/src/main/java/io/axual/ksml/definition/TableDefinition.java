@@ -30,6 +30,7 @@ import io.axual.ksml.store.StoreUtil;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.kstream.Consumed;
 
 public class TableDefinition extends BaseStreamDefinition {
     public final KeyValueStateStoreDefinition store;
@@ -48,11 +49,14 @@ public class TableDefinition extends BaseStreamDefinition {
         final var streamKey = new StreamDataType(notationLibrary, keyType, true);
         final var streamValue = new StreamDataType(notationLibrary, valueType, false);
 
-        final var def = store != null ? store : new KeyValueStateStoreDefinition(topic, false, false, keyType, valueType, false, false);
-        // Register the state store and mark as already created (by Kafka Streams framework, not by user)
-        if (storeRegistry != null) storeRegistry.registerStateStore(def);
+        if (store != null) {
+            // Register the state store and mark as already created (by Kafka Streams framework, not by user)
+            if (storeRegistry != null) storeRegistry.registerStateStore(store);
+            final var mat = StoreUtil.materialize(store, notationLibrary);
+            return new KTableWrapper(builder.table(topic, mat), streamKey, streamValue);
+        }
 
-        final var mat = StoreUtil.materialize(def, notationLibrary);
-        return new KTableWrapper(builder.table(topic, mat), streamKey, streamValue);
+        final var consumed = Consumed.as(name).withKeySerde(streamKey.getSerde()).withValueSerde(streamValue.getSerde());
+        return new KTableWrapper(builder.table(topic, consumed), streamKey, streamValue);
     }
 }

@@ -1,3 +1,8 @@
+# This example shows how to branch processing of messages from a simple stream. Here we fork processing of "blue
+# sensors" and "red sensors" into a separate branch each. All other sensors will be processed in a default branch.
+# Two separate pipelines act as validation of the branching logic, displaying what messages were sent to the blue
+# and red topics.
+
 streams:
   sensor_source:
     topic: ksml_sensordata_avro
@@ -12,17 +17,11 @@ streams:
     keyType: string
     valueType: avro:SensorData
 
-functions:
-  print_message:
-    type: generic
-    code:
-
 pipelines:
   main:
     from: sensor_source
     via:
       - type: peek
-        name: peek_and_print
         forEach:
           code: log.info("SOURCE key={}, value={}", key, value)
     branch:
@@ -35,10 +34,12 @@ pipelines:
       - forEach:
           code: |
             log.warn("Unknown color: {}", value["color"])
+
   red_flow:
     from: sensor_red
     forEach:
       code: log.info("RED FLOW key={}, value={}", key, value)
+
   blue_flow:
     from: sensor_blue
     forEach:

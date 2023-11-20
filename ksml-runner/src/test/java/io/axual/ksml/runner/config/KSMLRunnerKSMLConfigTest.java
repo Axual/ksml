@@ -27,7 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.axual.ksml.runner.exception.RunnerConfigurationException;
+import io.axual.ksml.runner.exception.ConfigException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -56,7 +56,7 @@ class KSMLRunnerKSMLConfigTest {
         final var yaml = getClass().getClassLoader().getResourceAsStream("ksml-config-wrong-configdir.yaml");
         final var ksmlConfig = objectMapper.readValue(yaml, KSMLConfig.class);
 
-        assertThrows(RunnerConfigurationException.class, ksmlConfig::validate, "should throw exception for wrong configdir");
+        assertThrows(ConfigException.class, ksmlConfig::validate, "should throw exception for wrong configdir");
     }
 
     @Test
@@ -67,6 +67,6 @@ class KSMLRunnerKSMLConfigTest {
 
         ksmlConfig.validate();
 
-        assertEquals(".", ksmlConfig.getConfigDirectory(), "config dir should default to working dir");
+        assertEquals(System.getProperty("user.dir"), ksmlConfig.getConfigDirectory(), "config dir should default to working dir");
     }
 }

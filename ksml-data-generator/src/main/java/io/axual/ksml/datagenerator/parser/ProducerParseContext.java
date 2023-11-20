@@ -71,8 +71,8 @@ public class ProducerParseContext implements ParseContext {
     }
 
     @Override
-    public UserFunction getUserFunction(FunctionDefinition definition, String name) {
-        return new PythonFunction(pythonContext, name, definition);
+    public UserFunction getUserFunction(FunctionDefinition definition, String name, String loggerName) {
+        return new PythonFunction(pythonContext, name, loggerName, definition);
     }
 
     @Override

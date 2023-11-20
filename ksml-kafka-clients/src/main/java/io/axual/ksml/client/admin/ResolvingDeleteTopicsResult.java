@@ -40,7 +40,7 @@ public class ResolvingDeleteTopicsResult extends ExtendableDeleteTopicsResult {
     public Map<String, KafkaFuture<Void>> topicNameValues() {
         var superResult = super.topicNameValues();
         var result = new HashMap<String, KafkaFuture<Void>>(superResult.size());
-        superResult.forEach((topicName, future) -> result.put(topicResolver.unresolveTopic(topicName), future));
+        superResult.forEach((topicName, future) -> result.put(topicResolver.unresolve(topicName), future));
         return result;
     }
 }

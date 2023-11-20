@@ -23,6 +23,8 @@ package io.axual.ksml.definition;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.store.StoreType;
 
+import java.util.Objects;
+
 public abstract class StateStoreDefinition {
     private final StoreType type;
     private final String name;
@@ -82,5 +84,23 @@ public abstract class StateStoreDefinition {
 
     public boolean logging() {
         return logging != null && logging;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof StateStoreDefinition def)) return false;
+        return (Objects.equals(type, def.type)
+                && Objects.equals(name, def.name)
+                && Objects.equals(persistent, def.persistent)
+                && Objects.equals(timestamped, def.timestamped)
+                && Objects.equals(keyType, def.keyType)
+                && Objects.equals(valueType, def.valueType)
+                && Objects.equals(caching, def.caching)
+                && Objects.equals(logging, def.logging));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), type, name, persistent, timestamped, keyType, valueType, caching, logging);
     }
 }

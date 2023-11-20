@@ -1,10 +1,10 @@
-package io.axual.ksml.runner.config;
+package io.axual.ksml.datagenerator.config;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Runner
+ * KSML Producer
  * %%
- * Copyright (C) 2021 Axual B.V.
+ * Copyright (C) 2021 - 2023 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,7 @@ package io.axual.ksml.runner.config;
  * =========================LICENSE_END==================================
  */
 
-
-import io.axual.ksml.runner.exception.ConfigException;
+import io.axual.ksml.datagenerator.exception.ConfigException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,27 +30,14 @@ import java.util.List;
 
 @Slf4j
 @Data
-public class KSMLConfig {
-    private static final String DEFAULT_HOSTNAME = "0.0.0.0";
-    private static final String DEFAULT_PORT = "8080";
-
-    private ApplicationServerConfig applicationServer;
+public class GeneratorConfig {
     private String configDirectory;
     private String schemaDirectory;
-    private String storageDirectory;
-    private KSMLErrorHandlingConfig errorHandling;
-
     private List<String> definitions;
 
-    public KSMLErrorHandlingConfig getErrorHandlingConfig() {
-        if (errorHandling == null) return new KSMLErrorHandlingConfig();
-        return errorHandling;
-    }
-
-    public void validate() throws ConfigException {
+    public void validate() {
         configDirectory = configDirectory != null ? configDirectory : System.getProperty("user.dir");
         schemaDirectory = schemaDirectory != null ? schemaDirectory : configDirectory;
-        storageDirectory = storageDirectory != null ? storageDirectory : System.getProperty("java.io.tmpdir");
 
         final var configPath = Paths.get(configDirectory);
         if (Files.notExists(configPath) || !Files.isDirectory(configPath)) {
@@ -65,20 +51,14 @@ public class KSMLConfig {
         }
         schemaDirectory = schemaPath.toAbsolutePath().normalize().toString();
 
-        final var storagePath = Paths.get(storageDirectory);
-        if (Files.notExists(storagePath) || !Files.isDirectory(storagePath)) {
-            throw new ConfigException("storage.directory", storagePath, "The provided storage path does not exist or is not a directory");
-        }
-        storageDirectory = storagePath.toAbsolutePath().normalize().toString();
-
         if (definitions == null || definitions.isEmpty()) {
             throw new ConfigException("definitionFile", definitions, "At least one KSML definition file must be specified");
         }
 
-        log.info("Using directories: config: {}, schema: {}, storage: {}", configDirectory, schemaDirectory, storageDirectory);
+        log.info("Using directories: config: {}, schema: {}", configDirectory, schemaDirectory);
 
         for (String definitionFile : definitions) {
-            final var definitionFilePath = Paths.get(getConfigDirectory(), definitionFile);
+            final var definitionFilePath = Paths.get(configDirectory, definitionFile);
             if (Files.notExists(definitionFilePath) || !Files.isRegularFile(definitionFilePath)) {
                 throw new ConfigException("definitionFile", definitionFilePath, "The provided KSML definition file does not exists or is not a regular file");
             }
