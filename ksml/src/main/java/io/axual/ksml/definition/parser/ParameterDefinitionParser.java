@@ -26,8 +26,7 @@ import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.parser.YamlNode;
 
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_PARAMETER_NAME;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_PARAMETER_TYPE;
+import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class ParameterDefinitionParser extends BaseParser<ParameterDefinition> {
     @Override
@@ -35,6 +34,8 @@ public class ParameterDefinitionParser extends BaseParser<ParameterDefinition> {
         if (node == null) return null;
         return new ParameterDefinition(
                 parseString(node, FUNCTION_PARAMETER_NAME),
-                UserTypeParser.parse(parseString(node, FUNCTION_PARAMETER_TYPE)).dataType());
+                UserTypeParser.parse(parseString(node, FUNCTION_PARAMETER_TYPE)).dataType(),
+                true,
+                parseString(node, FUNCTION_PARAMETER_DEFAULT_VALUE));
     }
 }

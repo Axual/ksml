@@ -25,6 +25,8 @@ import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLTopologyException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 public class FunctionDefinition {
@@ -94,14 +96,37 @@ public class FunctionDefinition {
         this.storeNames = definition.storeNames != null ? definition.storeNames : EMPTY_STRING_LIST;
     }
 
-    // Check if parameters were specified already. If so, then use the explicitly defined parameters. If not, use the default ones.
-    protected static ParameterDefinition[] getParameters(ParameterDefinition[] specified, ParameterDefinition[] defaultParams) {
-        if (specified == null || specified.length == 0) {
-            return defaultParams;
+    // Add explicitly named parameters to the default set of parameters. The default parameters take precedence in the
+    // ordering of all arguments.
+    protected static ParameterDefinition[] mergeParameters(ParameterDefinition[] fixedParams, ParameterDefinition[] specifiedParams) {
+        // First create the set of all named parameters to get the required size of the result array
+        final var paramNames = new HashSet<String>();
+        Arrays.stream(fixedParams).forEach(p -> paramNames.add(p.name()));
+        Arrays.stream(specifiedParams).forEach(p -> paramNames.add(p.name()));
+        final var result = new ParameterDefinition[paramNames.size()];
+
+        // From here on, the paramNames set becomes the set of parameters to still include in the result
+        // The index value is the cursor into the result array that we fill below
+        var index = 0;
+
+        // Copy every fixed parameter into the parameter array
+        for (final var param : fixedParams) {
+            result[index++] = param;
+            // Remove from the list of "to do parameters"
+            paramNames.remove(param.name());
         }
-        if (specified.length != defaultParams.length) {
-            throw new KSMLTopologyException("Specified parameter list does not contain " + defaultParams.length + " parameters");
+
+        // Copy every specified parameter into the result, unless it was included above as a fixed parameter
+        for (final var param : specifiedParams) {
+            // Only take non-fixed parameters into account
+            if (paramNames.contains(param.name())) {
+                result[index++] = param;
+                // Remove param name to prevent that doubly specified parameters lead to array overflows
+                paramNames.remove(param.name());
+            }
         }
-        return specified;
+
+        // Return the integrated parameter list
+        return result;
     }
 }

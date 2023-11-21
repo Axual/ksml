@@ -29,7 +29,7 @@ import static io.axual.ksml.definition.DefinitionConstants.STREAM_PARTITIONER_PA
 public class StreamPartitionerDefinition extends FunctionDefinition {
     public StreamPartitionerDefinition(FunctionDefinition definition) {
         super(definition
-                .withParameters(getParameters(definition.parameters, STREAM_PARTITIONER_PARAMETERS))
+                .withParameters(mergeParameters(STREAM_PARTITIONER_PARAMETERS, definition.parameters))
                 .withResult(new UserType(definition.resultType.notation(), DataInteger.DATATYPE)));
     }
 }

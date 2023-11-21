@@ -262,7 +262,7 @@ public class UserTypeParser {
             case "bytes" -> DataBytes.DATATYPE;
             case "string", "str" -> DataString.DATATYPE;
             case "struct" -> new StructType();
-            case UNKNOWN_TYPE -> DataType.UNKNOWN;
+            case "any", UNKNOWN_TYPE -> DataType.UNKNOWN;
             default -> throw new KSMLTopologyException("Can not derive dataType: " + type);
         };
     }
