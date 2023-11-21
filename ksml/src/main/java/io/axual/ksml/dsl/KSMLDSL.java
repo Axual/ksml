@@ -134,6 +134,7 @@ public class KSMLDSL {
     public static final String TRANSFORMVALUE_MAPPER_ATTRIBUTE = "mapper";
     public static final String FUNCTION_PARAMETER_NAME = "name";
     public static final String FUNCTION_PARAMETER_TYPE = "type";
+    public static final String FUNCTION_PARAMETER_DEFAULT_VALUE = "defaultValue";
     public static final String FUNCTION_TYPE = "type";
     public static final String FUNCTION_TYPE_AGGREGATOR = "aggregator";
     public static final String FUNCTION_TYPE_FOREACHACTION = "forEach";

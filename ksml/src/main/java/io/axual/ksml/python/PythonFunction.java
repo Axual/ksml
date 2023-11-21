@@ -43,6 +43,9 @@ import static io.axual.ksml.data.type.UserType.DEFAULT_NOTATION;
 public class PythonFunction extends UserFunction {
     private static final PythonDataObjectMapper MAPPER = new PythonDataObjectMapper();
     private static final Map<String, StateStore> EMPTY_STORES = new HashMap<>();
+    private static final String GLOBALVAR_LOG = "log";
+    private static final String GLOBALVAR_STORES = "stores";
+    private static final String[] GLOBALVARS = {GLOBALVAR_LOG, GLOBALVAR_STORES};
     private final DataObjectConverter converter;
     private final Value function;
     private final Logger log;
@@ -50,7 +53,7 @@ public class PythonFunction extends UserFunction {
     public PythonFunction(PythonContext context, String name, String loggerName, FunctionDefinition definition) {
         super(name, definition.parameters, definition.resultType, definition.storeNames);
         converter = context.getConverter();
-        function = context.registerFunction(name, definition);
+        function = context.registerFunction(name, GLOBALVARS, definition);
         if (function == null)
             throw FatalError.executionError("Error in function: " + name);
         log = LoggerFactory.getLogger(loggerName);
@@ -59,12 +62,18 @@ public class PythonFunction extends UserFunction {
     @Override
     public DataObject call(StateStores stores, DataObject... parameters) {
         // Validate that the defined parameter list matches the amount of passed in parameters
-        if (this.parameters.length != parameters.length) {
-            throw new KSMLTopologyException("Parameter list does not match function spec: expected " + this.parameters.length + ", got " + parameters.length);
+        if (this.fixedParameterCount > parameters.length) {
+            throw new KSMLTopologyException("Parameter list does not match function spec: minimally expected " + this.parameters.length + ", got " + parameters.length);
+        }
+        if (this.parameters.length < parameters.length) {
+            throw new KSMLTopologyException("Parameter list does not match function spec: maximally expected " + this.parameters.length + ", got " + parameters.length);
         }
 
         // Check all parameters and copy them into the interpreter as prefixed globals
-        var arguments = convertParameters(stores, parameters);
+        var globalVars = new HashMap<String, Object>();
+        globalVars.put(GLOBALVAR_LOG, log);
+        globalVars.put(GLOBALVAR_STORES, stores != null ? stores : EMPTY_STORES);
+        var arguments = convertParameters(globalVars, parameters);
 
         try {
             // Call the prepared function
@@ -91,13 +100,12 @@ public class PythonFunction extends UserFunction {
         }
     }
 
-    private Object[] convertParameters(Map<String, StateStore> stores, DataObject... parameters) {
-        Object[] result = new Object[parameters.length + 2];
-        result[0] = stores != null ? stores : EMPTY_STORES;
-        result[1] = log;
+    private Object[] convertParameters(Map<String, Object> globalVariables, DataObject... parameters) {
+        Object[] result = new Object[parameters.length + 1];
+        result[0] = globalVariables;
         for (var index = 0; index < parameters.length; index++) {
             checkType(this.parameters[index], parameters[index]);
-            result[index + 2] = MAPPER.fromDataObject(parameters[index]);
+            result[index + 1] = MAPPER.fromDataObject(parameters[index]);
         }
         return result;
     }

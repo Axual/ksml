@@ -167,12 +167,15 @@ public class BaseOperation implements StreamOperation {
         checkType(functionType + " resultType", (function.resultType != null ? function.resultType.dataType() : DataNull.DATATYPE), resultType);
 
         // Check if the number of parameters is as expected
-        if (function.parameters.length != parameters.length) {
-            throw topologyError(functionType + " is expected to take " + parameters.length + " parameters");
+        if (function.fixedParameterCount > parameters.length) {
+            throw topologyError(functionType + " is expected to take at least " + function.fixedParameterCount + " parameters");
+        }
+        if (function.parameters.length < parameters.length) {
+            throw topologyError(functionType + " is expected to take at most " + function.parameters.length + " parameters");
         }
 
         // Check if all parameters are of expected type
-        for (int index = 0; index < function.parameters.length; index++) {
+        for (int index = 0; index < parameters.length; index++) {
             checkType(functionType + " parameter " + (index + 1) + " (\"" + function.parameters[index].name() + "\")", function.parameters[index].type(), parameters[index]);
         }
     }

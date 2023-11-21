@@ -50,7 +50,8 @@ public abstract class Invoker {
     }
 
     protected void verifyParameterCount(int count) {
-        verify(function.parameters.length == count, "Function needs " + count + " parameters");
+        verify(function.fixedParameterCount <= count, "Function needs at least " + count + " parameters");
+        verify(function.parameters.length >= count, "Function needs at most " + count + " parameters");
     }
 
     protected void verifyNoResultReturned() {
