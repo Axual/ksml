@@ -1,30 +1,45 @@
 ksml:
-  configDirectory: examples
-  schemaDirectory: examples
-  storageDirectory: /tmp
+  # The examples directory is mounted to /ksml in the docker compose definition
+  configDirectory: /ksml # When not set defaults to the working directory
+  schemaDirectory: /ksml # When not set defaults to the config directory
   definitions:
     - 00-example-generate-alertsettings.yaml
     - 00-example-generate-sensordata.yaml
 
+# This setup connects to the Kafka broker and schema registry started with the example docker-compose file
+# These examples are intended to run from a inside a container on the same network
 kafka:
-  bootstrap.servers: localhost:9092
+  bootstrap.servers: broker:9093
   application.id: io.ksml.example.producer
-  schema.registry.url: http://localhost:8081
+  schema.registry.url: http://schema_registry:8081
+  security.protocol: PLAINTEXT
   acks: all
-  security.protocol: SSL
-  ssl.protocol: TLSv1.3
-  ssl.enabled.protocols: TLSv1.3,TLSv1.2
-  ssl.endpoint.identification.algorithm: ""
-  ssl.keystore.type: JKS
-  ssl.truststore.type: JKS
-  ssl.key.password: xxx
-  ssl.keystore.password: xxx
-  ssl.keystore.location: /path/to/ksml.keystore.jks
-  ssl.truststore.password: xxx
-  ssl.truststore.location: /path/to/ksml.truststore.jks
-  topic.pattern: "{tenant}-{instance}-{environment}-{topic}"
-  group.id.pattern: "{tenant}-{instance}-{environment}-{group.id}"
-  transactional.id.pattern: "{tenant}-{instance}-{environment}-{transactional.id}"
-  tenant: "ksmldemo"
-  instance: "dta"
-  environment: "dev"
+
+# These are Kafka SSL configuration properties. Check the documentation at1
+# Check the documentation at https://kafka.apache.org/documentation/#producerconfigs for more properties
+
+#  security.protocol: SSL
+#  ssl.protocol: TLSv1.3
+#  ssl.enabled.protocols: TLSv1.3,TLSv1.2
+#  ssl.endpoint.identification.algorithm: ""
+#  ssl.keystore.type: JKS
+#  ssl.truststore.type: JKS
+#  ssl.key.password: xxx
+#  ssl.keystore.password: xxx
+#  ssl.keystore.location: /path/to/ksml.keystore.jks
+#  ssl.truststore.password: xxx
+#  ssl.truststore.location: /path/to/ksml.truststore.jks
+
+# Use these configuration properties when connecting to a cluster using the Axual naming patterns.
+# These patterns are resolved into the actual name used on Kafka using the values in this configuration map
+# and the topic names specified in the definition YAML files
+
+
+#  tenant: "ksmldemo"
+#  instance: "dta"
+#  environment: "dev"
+#  topic.pattern: "{tenant}-{instance}-{environment}-{topic}"
+#  # Results in Kafka topic ksmldemo-dta-dev-<topic name from KSML definition YAML>
+#  group.id.pattern: "{tenant}-{instance}-{environment}-{group.id}"
+#  transactional.id.pattern: "{tenant}-{instance}-{environment}-{transactional.id}"
+
