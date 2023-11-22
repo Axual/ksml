@@ -9,9 +9,9 @@ package io.axual.ksml.user;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -50,14 +50,20 @@ public class UserFunction {
     public final ParameterDefinition[] parameters;
     public final int fixedParameterCount;
     public final UserType resultType;
+    public UserType appliedResultType;
     public final String[] storeNames;
 
     public UserFunction(String name, ParameterDefinition[] parameters, UserType resultType, List<String> storeNames) {
+        this(name, parameters, resultType, storeNames != null ? storeNames.toArray(TEMPLATE) : TEMPLATE);
+    }
+
+    public UserFunction(String name, ParameterDefinition[] parameters, UserType resultType, String[] storeNames) {
         this.name = name;
         this.parameters = parameters;
         this.fixedParameterCount = getFixedParameterCount(parameters);
         this.resultType = resultType;
-        this.storeNames = storeNames != null ? storeNames.toArray(TEMPLATE) : TEMPLATE;
+        this.appliedResultType = resultType;
+        this.storeNames = storeNames != null ? storeNames : TEMPLATE;
         LOG.info("Registered function '{}'", this);
     }
 

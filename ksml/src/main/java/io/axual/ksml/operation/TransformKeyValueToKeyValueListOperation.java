@@ -9,9 +9,9 @@ package io.axual.ksml.operation;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -53,12 +53,12 @@ public class TransformKeyValueToKeyValueListOperation extends BaseOperation {
          */
 
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
-        final var k = streamDataTypeOf(input.keyType().userType(), true);
-        final var v = streamDataTypeOf(input.valueType().userType(), false);
-        final var mapperResultType = new UserType(new ListType(new TupleType(DataType.UNKNOWN, DataType.UNKNOWN)));
-        checkFunction(MAPPER_NAME, mapper, subOf(mapperResultType), superOf(k), superOf(v));
+        final var k = input.keyType();
+        final var v = input.valueType();
+        final var mapperResultType = firstSpecificType(mapper, new UserType(new ListType(new TupleType(DataType.UNKNOWN, DataType.UNKNOWN))));
+        checkFunction(MAPPER_NAME, mapper, subOf(mapperResultType), mapperResultType, superOf(k), superOf(v));
 
-        if (mapper.resultType.dataType() instanceof ListType mapperResultListType &&
+        if (mapperResultType.dataType() instanceof ListType mapperResultListType &&
                 mapperResultListType.valueType() instanceof UserTupleType mapperResultListTupleValueType &&
                 mapperResultListTupleValueType.subTypeCount() == 2) {
             final var kr = streamDataTypeOf(mapperResultListTupleValueType.getUserType(0), true);

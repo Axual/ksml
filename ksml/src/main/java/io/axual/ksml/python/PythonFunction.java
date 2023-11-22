@@ -9,9 +9,9 @@ package io.axual.ksml.python;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -84,11 +84,11 @@ public class PythonFunction extends UserFunction {
             }
 
             // Check if the function is supposed to return a result value
-            if (resultType != null) {
+            if (appliedResultType != null) {
                 DataObject result = convertResult(pyResult);
                 logCall(parameters, result);
-                result = converter != null ? converter.convert(DEFAULT_NOTATION, result, resultType) : result;
-                checkType(resultType.dataType(), result);
+                result = converter != null ? converter.convert(DEFAULT_NOTATION, result, appliedResultType) : result;
+                checkType(appliedResultType.dataType(), result);
                 return result;
             } else {
                 logCall(parameters, null);
@@ -111,6 +111,6 @@ public class PythonFunction extends UserFunction {
     }
 
     private DataObject convertResult(Value pyResult) {
-        return MAPPER.toDataObject(resultType.dataType(), pyResult);
+        return MAPPER.toDataObject(appliedResultType.dataType(), pyResult);
     }
 }

@@ -9,9 +9,9 @@ package io.axual.ksml.operation;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -56,9 +56,9 @@ public class ReduceOperation extends StoreOperation {
          *          final Materialized<K, V, KeyValueStore<Bytes, byte[]>> materialized)
          */
 
-        final var k = streamDataTypeOf(input.keyType().userType(), true);
-        final var v = streamDataTypeOf(input.valueType().userType(), false);
-        checkFunction(REDUCER_NAME, reducer, equalTo(v), equalTo(v), equalTo(v));
+        final var k = input.keyType();
+        final var v = input.valueType();
+        checkFunction(REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
         final var kvStore = validateKeyValueStore(store, k, v);
 
         if (kvStore != null) {
@@ -83,10 +83,10 @@ public class ReduceOperation extends StoreOperation {
          *          final Materialized<K, V, KeyValueStore<Bytes, byte[]>> materialized)
          */
 
-        final var k = streamDataTypeOf(input.keyType().userType(), true);
-        final var v = streamDataTypeOf(input.valueType().userType(), false);
-        checkFunction(ADDER_NAME, adder, equalTo(v), equalTo(v), equalTo(v));
-        checkFunction(SUBTRACTOR_NAME, subtractor, equalTo(v), equalTo(v), equalTo(v));
+        final var k = input.keyType();
+        final var v = input.valueType();
+        checkFunction(ADDER_NAME, adder, v, equalTo(v), equalTo(v));
+        checkFunction(SUBTRACTOR_NAME, subtractor, v, equalTo(v), equalTo(v));
         final var kvStore = validateKeyValueStore(store, k, v);
 
         if (kvStore != null) {
@@ -110,10 +110,10 @@ public class ReduceOperation extends StoreOperation {
          *          final Materialized<K, V, KeyValueStore<Bytes, byte[]>> materialized)
          */
 
-        final var k = streamDataTypeOf(input.keyType().userType(), true);
-        final var v = streamDataTypeOf(input.valueType().userType(), false);
+        final var k = input.keyType();
+        final var v = input.valueType();
         final var windowedK = windowedTypeOf(k);
-        checkFunction(REDUCER_NAME, reducer, equalTo(v), equalTo(v), equalTo(v));
+        checkFunction(REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
 
         final var sessionStore = validateSessionStore(store, windowedK, v);
 
@@ -138,10 +138,10 @@ public class ReduceOperation extends StoreOperation {
          *          final Materialized<K, V, KeyValueStore<Bytes, byte[]>> materialized)
          */
 
-        final var k = streamDataTypeOf(input.keyType().userType(), true);
-        final var v = streamDataTypeOf(input.valueType().userType(), false);
+        final var k = input.keyType();
+        final var v = input.valueType();
         final var windowedK = windowedTypeOf(k);
-        checkFunction(REDUCER_NAME, reducer, equalTo(v), equalTo(v), equalTo(v));
+        checkFunction(REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
 
         final var windowStore = validateWindowStore(store, windowedK, v);
 

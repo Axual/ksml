@@ -47,8 +47,8 @@ public class BranchOperation extends BaseOperation {
          *          final Predicate<? super K, ? super V>... predicates)
          */
 
-        final var k = streamDataTypeOf(input.keyType().userType(), true);
-        final var v = streamDataTypeOf(input.valueType().userType(), false);
+        final var k = input.keyType();
+        final var v = input.valueType();
 
         // Prepare the branch predicates to pass into the KStream
         @SuppressWarnings("unchecked") final var predicates = new Predicate[branches.size()];

@@ -9,9 +9,9 @@ package io.axual.ksml.operation;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -49,8 +49,8 @@ public class TransformKeyOperation extends BaseOperation {
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var kr = streamDataTypeOf(mapper.resultType, true);
-        checkFunction(MAPPER_NAME, mapper, equalTo(kr), superOf(k), superOf(v));
+        final var kr = streamDataTypeOf(firstSpecificType(mapper, k), true);
+        checkFunction(MAPPER_NAME, mapper, kr, superOf(k), superOf(v));
 
         final var action = new UserKeyTransformer(mapper);
         final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames);

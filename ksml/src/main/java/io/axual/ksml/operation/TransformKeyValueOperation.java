@@ -9,9 +9,9 @@ package io.axual.ksml.operation;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,6 +23,7 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.UserTupleType;
+import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.operation.processor.OperationProcessorSupplier;
 import io.axual.ksml.operation.processor.TransformKeyValueProcessor;
@@ -52,9 +53,9 @@ public class TransformKeyValueOperation extends BaseOperation {
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var kvTuple = mapper.resultType;
+        final var kvTuple = firstSpecificType(mapper, new UserType(new UserTupleType(k.userType(), v.userType())));
         checkTuple(MAPPER_NAME + " resultType", kvTuple, DataType.UNKNOWN, DataType.UNKNOWN);
-        checkFunction(MAPPER_NAME, mapper, equalTo(kvTuple), superOf(k), superOf(v));
+        checkFunction(MAPPER_NAME, mapper, kvTuple, superOf(k), superOf(v));
 
         if (kvTuple.dataType() instanceof UserTupleType userTupleType && userTupleType.subTypeCount() == 2) {
             final var kr = streamDataTypeOf(userTupleType.getUserType(0), true);
@@ -71,6 +72,6 @@ public class TransformKeyValueOperation extends BaseOperation {
                     : input.stream.process(supplier, storeNames);
             return new KStreamWrapper(output, kr, vr);
         }
-        throw new KSMLExecutionException("ResultType of keyValueTransformer not correctly specified");
+        throw new KSMLExecutionException("ResultType of keyValueTransformer not defined as a tuple of key and value");
     }
 }
