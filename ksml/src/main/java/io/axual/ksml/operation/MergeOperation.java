@@ -43,8 +43,8 @@ public class MergeOperation extends BaseOperation {
          *          final Named named);
          */
 
-        final var k = streamDataTypeOf(input.keyType().userType(), true);
-        final var v = streamDataTypeOf(input.valueType().userType(), false);
+        final var k = input.keyType();
+        final var v = input.valueType();
         checkType("Merge stream keyType", mergeStream.keyType().userType(), equalTo(k));
         checkType("Merge stream valueType", mergeStream.valueType().userType(), equalTo(v));
         final var output = name != null

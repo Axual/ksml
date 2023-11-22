@@ -9,9 +9,9 @@ package io.axual.ksml.definition;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -60,6 +60,13 @@ public class FunctionDefinition {
         return new FunctionDefinition(parameters, resultType, resultType != null ? expression : null, code, globalCode, storeNames);
     }
 
+    public FunctionDefinition withDefaultExpression(String expression) {
+        if (this.expression == null) {
+            return new FunctionDefinition(parameters, resultType, expression, code, globalCode, storeNames);
+        }
+        return this;
+    }
+
     public FunctionDefinition withAResult() {
         var type = getClass().getSimpleName();
         if (DEFINITION_LITERAL.equals(type.substring(type.length() - DEFINITION_LITERAL.length()))) {
@@ -69,8 +76,10 @@ public class FunctionDefinition {
     }
 
     public FunctionDefinition withAResult(String functionType) {
+        if (expression == null)
+            throw new KSMLTopologyException("Function type requires a result expression: " + functionType);
         if (resultType == null)
-            throw new KSMLTopologyException("Function type requires a result: " + functionType);
+            throw new KSMLTopologyException("Function type requires a result type: " + functionType);
         return this;
     }
 

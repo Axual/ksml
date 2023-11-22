@@ -9,9 +9,9 @@ package io.axual.ksml.user;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,15 +30,12 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 
 public class UserKeyValueTransformer extends Invoker implements KeyValueMapper<Object, Object, KeyValue<Object, Object>> {
-    protected final DataType resultKeyType;
-    protected final DataType resultValueType;
+    private final static DataType EXPECTED_RESULT_TYPE = new TupleType(DataType.UNKNOWN, DataType.UNKNOWN);
 
     public UserKeyValueTransformer(UserFunction function) {
         super(function);
         verifyParameterCount(2);
-        verifyResultReturned(new TupleType(DataType.UNKNOWN, DataType.UNKNOWN));
-        resultKeyType = ((TupleType) function.resultType.dataType()).subType(0);
-        resultValueType = ((TupleType) function.resultType.dataType()).subType(1);
+        verifyResultType(EXPECTED_RESULT_TYPE);
     }
 
     @Override
@@ -48,7 +45,10 @@ public class UserKeyValueTransformer extends Invoker implements KeyValueMapper<O
     }
 
     public KeyValue<Object, Object> apply(StateStores stores, Object key, Object value) {
-        var result = function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
-        return function.convertToKeyValue(result, resultKeyType, resultValueType);
+        verifyAppliedResultType(EXPECTED_RESULT_TYPE);
+        final var kr = ((TupleType) function.appliedResultType.dataType()).subType(0);
+        final var vr = ((TupleType) function.appliedResultType.dataType()).subType(1);
+        final var result = function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
+        return function.convertToKeyValue(result, kr, vr);
     }
 }

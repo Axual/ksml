@@ -46,8 +46,8 @@ public class ConvertKeyOperation extends BaseOperation {
          *          final Named named)
          */
 
-        final var k = streamDataTypeOf(input.keyType().userType(), true);
-        final var v = streamDataTypeOf(input.valueType().userType(), false);
+        final var k = input.keyType();
+        final var v = input.valueType();
         final var kr = streamDataTypeOf(targetKeyType, true);
 
         // Set up the mapping function to convert the value

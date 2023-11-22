@@ -9,9 +9,9 @@ package io.axual.ksml.user;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,11 +31,12 @@ public class UserReducer extends Invoker implements Reducer<Object> {
         super(function);
         verifyParameterCount(2);
         verify(function.parameters[0].type().equals(function.parameters[1].type()), "Reducer should take two parameters of the same dataType");
-        verify(function.parameters[0].type().equals(function.resultType.dataType()), "Reducer should return same dataType as its parameters");
+        verifyResultType(function.parameters[0].type());
     }
 
     @Override
     public DataObject apply(Object value1, Object value2) {
+        verifyAppliedResultType(function.parameters[0].type());
         return function.call(DataUtil.asDataObject(value1), DataUtil.asDataObject(value2));
     }
 }

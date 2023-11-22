@@ -9,9 +9,9 @@ package io.axual.ksml.user;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,10 +33,12 @@ import org.apache.kafka.streams.kstream.ValueMapperWithKey;
 import java.util.ArrayList;
 
 public class UserKeyValueToValueListTransformer extends Invoker implements ValueMapperWithKey<Object, Object, Iterable<Object>> {
+    private final static DataType EXPECTED_RESULT_TYPE = new ListType(DataType.UNKNOWN);
+
     public UserKeyValueToValueListTransformer(UserFunction function) {
         super(function);
         verifyParameterCount(2);
-        verifyResultReturned(new ListType(DataType.UNKNOWN));
+        verifyResultType(EXPECTED_RESULT_TYPE);
     }
 
     @Override
@@ -46,9 +48,10 @@ public class UserKeyValueToValueListTransformer extends Invoker implements Value
     }
 
     public Iterable<Object> apply(StateStores stores, Object key, Object value) {
-        var result = function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
+        verifyAppliedResultType(EXPECTED_RESULT_TYPE);
+        final var result = function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
         if (result instanceof DataList list) {
-            var newList = new ArrayList<>();
+            final var newList = new ArrayList<>();
             list.forEach(newList::add);
             return newList;
         }

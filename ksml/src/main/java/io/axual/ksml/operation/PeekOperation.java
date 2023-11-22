@@ -9,9 +9,9 @@ package io.axual.ksml.operation;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,6 +22,7 @@ package io.axual.ksml.operation;
 
 
 import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.operation.processor.OperationProcessorSupplier;
 import io.axual.ksml.operation.processor.PeekProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
@@ -49,7 +50,7 @@ public class PeekOperation extends BaseOperation {
 
         final var k = input.keyType();
         final var v = input.valueType();
-        checkFunction(FOREACHACTION_NAME, forEachAction, equalTo(DataNull.DATATYPE), superOf(k), superOf(v));
+        checkFunction(FOREACHACTION_NAME, forEachAction, new UserType(DataNull.DATATYPE), superOf(k), superOf(v));
 
         final var action = new UserForeachAction(forEachAction);
         final var storeNames = combineStoreNames(this.storeNames, forEachAction.storeNames);

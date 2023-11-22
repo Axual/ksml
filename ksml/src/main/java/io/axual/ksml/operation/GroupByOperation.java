@@ -9,9 +9,9 @@ package io.axual.ksml.operation;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,6 +23,7 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.UserTupleType;
+import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.KGroupedTableWrapper;
@@ -54,8 +55,8 @@ public class GroupByOperation extends StoreOperation {
         checkNotNull(selector, SELECTOR_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var kr = streamDataTypeOf(selector.resultType, true);
-        checkFunction(SELECTOR_NAME, selector, equalTo(kr), superOf(k), superOf(v));
+        final var kr = streamDataTypeOf(firstSpecificType(selector, k.userType()), true);
+        checkFunction(SELECTOR_NAME, selector, kr, superOf(k), superOf(v));
 
         final var kvStore = validateKeyValueStore(store, kr, v);
         final var mapper = new UserKeyTransformer(selector);
@@ -77,11 +78,11 @@ public class GroupByOperation extends StoreOperation {
         checkNotNull(selector, SELECTOR_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var selectorResultType = selector.resultType;
-        checkTuple(SELECTOR_NAME + " resultType", selectorResultType, DataType.UNKNOWN, DataType.UNKNOWN);
-        checkFunction(SELECTOR_NAME, selector, equalTo(selectorResultType), superOf(k), superOf(v));
+        final var krAndVr = firstSpecificType(selector, new UserType(new UserTupleType(k.userType(), v.userType())));
+        checkTuple(SELECTOR_NAME + " resultType", krAndVr, DataType.UNKNOWN, DataType.UNKNOWN);
+        checkFunction(SELECTOR_NAME, selector, krAndVr, superOf(k), superOf(v));
 
-        if (selectorResultType.dataType() instanceof UserTupleType userTupleType && userTupleType.subTypeCount() == 2) {
+        if (krAndVr.dataType() instanceof UserTupleType userTupleType && userTupleType.subTypeCount() == 2) {
             final var kr = streamDataTypeOf(userTupleType.getUserType(0), true);
             final var vr = streamDataTypeOf(userTupleType.getUserType(1), false);
             final var kvStore = validateKeyValueStore(store, kr, vr);

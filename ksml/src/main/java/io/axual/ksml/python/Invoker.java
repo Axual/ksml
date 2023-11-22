@@ -9,9 +9,9 @@ package io.axual.ksml.python;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,7 +21,9 @@ package io.axual.ksml.python;
  */
 
 
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.user.UserFunction;
 import org.slf4j.Logger;
@@ -54,19 +56,31 @@ public abstract class Invoker {
         verify(function.parameters.length >= count, "Function needs at most " + count + " parameters");
     }
 
-    protected void verifyNoResultReturned() {
-        if (function.resultType != null) {
-            LOG.warn("Function {} used as {}: Function return value will be ignored", function.name, getClass().getSimpleName());
+    protected void verifyNoResult() {
+        verifyNoResultInternal(function.resultType);
+    }
+
+    protected void verifyNoAppliedResult() {
+        verifyNoResultInternal(function.appliedResultType);
+    }
+
+    private void verifyNoResultInternal(UserType type) {
+        if (type != null && type.dataType() != DataNull.DATATYPE) {
+            LOG.warn("Function {} used as {}: Function return value of type " + type + " will be ignored", function.name, getClass().getSimpleName());
         }
     }
 
-    protected void verifyResultReturned(DataType expected) {
-        verify(function.resultType != null, "Function does not return a result");
-        verify(expected.isAssignableFrom(function.resultType.dataType()), "Function returns incompatible dataType: " + function.resultType.dataType() + ", expected " + expected);
+    protected void verifyResultType(DataType expected) {
+        verifyTypeInternal(function.resultType, expected);
     }
 
-    protected void verifyResultType(DataType type) {
-        verify(type.isAssignableFrom(function.resultType.dataType()), "Function returns " + function.resultType.dataType() + " instead of " + type);
+    protected void verifyAppliedResultType(DataType expected) {
+        verifyTypeInternal(function.appliedResultType, expected);
+    }
+
+    private void verifyTypeInternal(UserType type, DataType expected) {
+        verify(type != null, "Function does not return a result, while " + expected + " was expected");
+        verify(expected.isAssignableFrom(type.dataType()), "Function does not return expected " + expected + ". but " + type.dataType() + " instead");
     }
 
     protected void verifyNoStoresUsed() {

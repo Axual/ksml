@@ -9,9 +9,9 @@ package io.axual.ksml.operation;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -63,7 +63,6 @@ public class LeftJoinOperation extends StoreOperation {
         checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var vr = streamDataTypeOf(valueJoiner.resultType, false);
 
         if (joinStream instanceof KStreamWrapper kStreamWrapper) {
             /*    Kafka Streams method signature:
@@ -75,8 +74,9 @@ public class LeftJoinOperation extends StoreOperation {
              */
 
             final var vo = kStreamWrapper.valueType();
+            final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
             checkType("Join stream keyType", kStreamWrapper.keyType(), equalTo(k));
-            checkFunction(VALUEJOINER_NAME, valueJoiner, equalTo(vr), superOf(v), superOf(vo));
+            checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vo));
             var joined = StreamJoined.with(k.getSerde(), v.getSerde(), vr.getSerde());
             if (name != null) joined = joined.withName(name);
             if (store != null) {
@@ -101,8 +101,9 @@ public class LeftJoinOperation extends StoreOperation {
              */
 
             final var vt = kTableWrapper.valueType();
+            final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vt, v), false);
             checkType("Join table keyType", kTableWrapper.keyType(), equalTo(k));
-            checkFunction(VALUEJOINER_NAME, valueJoiner, equalTo(vr), superOf(v), superOf(vt));
+            checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vt));
             var joined = Joined.with(k.getSerde(), v.getSerde(), vr.getSerde());
             if (name != null) joined = joined.withName(name);
             final var output = (KStream) input.stream.leftJoin(
@@ -119,7 +120,6 @@ public class LeftJoinOperation extends StoreOperation {
         checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var vr = streamDataTypeOf(valueJoiner.resultType, false);
 
         if (joinStream instanceof KTableWrapper kTableWrapper) {
             /*    Kafka Streams method signature:
@@ -130,9 +130,10 @@ public class LeftJoinOperation extends StoreOperation {
              *          final Materialized<K, VR, KeyValueStore<Bytes, byte[]>> materialized)
              */
 
-            final var vo = kTableWrapper.valueType().userType();
+            final var vo = kTableWrapper.valueType();
+            final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
             checkType("Join table keyType", kTableWrapper.keyType(), equalTo(k));
-            checkFunction(VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(v), superOf(vo));
+            checkFunction(VALUEJOINER_NAME, valueJoiner, subOf(vr), vr, superOf(v), superOf(vo));
             final var kvStore = validateKeyValueStore(store, k, vr);
             if (kvStore != null) {
                 final var mat = materialize(kvStore);

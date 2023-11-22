@@ -45,7 +45,7 @@ public class CountOperation extends StoreOperation {
          *          final Materialized<K, Long, KeyValueStore<Bytes, byte[]>> materialized)
          */
 
-        final var k = streamDataTypeOf(input.keyType().userType(), true);
+        final var k = input.keyType();
         final var vr = streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
         final var kvStore = validateKeyValueStore(store, k, vr);
         final var output = kvStore != null
@@ -65,7 +65,7 @@ public class CountOperation extends StoreOperation {
          *          final Materialized<K, Long, KeyValueStore<Bytes, byte[]>> materialized)
          */
 
-        final var k = streamDataTypeOf(input.keyType().userType(), true);
+        final var k = input.keyType();
         final var vr = streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
         final var kvStore = validateKeyValueStore(store, k, vr);
         final var output = kvStore != null
@@ -85,7 +85,7 @@ public class CountOperation extends StoreOperation {
          *          final Materialized<K, Long, SessionStore<Bytes, byte[]>> materialized)
          */
 
-        final var k = streamDataTypeOf(input.keyType().userType(), true);
+        final var k = input.keyType();
         final var vr = streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
         final var sessionStore = validateSessionStore(store, k, vr);
         final var output = sessionStore != null
@@ -105,7 +105,7 @@ public class CountOperation extends StoreOperation {
          *          final Materialized<K, Long, WindowStore<Bytes, byte[]>> materialized)
          */
 
-        final var k = streamDataTypeOf(input.keyType().userType(), true);
+        final var k = input.keyType();
         final var vr = streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
         final var windowedK = windowedTypeOf(k);
         final var windowStore = validateWindowStore(store, k, vr);

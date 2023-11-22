@@ -9,9 +9,9 @@ package io.axual.ksml.user;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,6 +21,7 @@ package io.axual.ksml.user;
  */
 
 
+import io.axual.ksml.data.type.DataType;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.streams.processor.RecordContext;
 import org.apache.kafka.streams.processor.TopicNameExtractor;
@@ -49,15 +50,18 @@ import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_HEADER_SCHEMA
 
 @Slf4j
 public class UserTopicNameExtractor extends Invoker implements TopicNameExtractor<Object, Object> {
+    private final static DataType EXPECTED_RESULT_TYPE = DataString.DATATYPE;
+
     public UserTopicNameExtractor(UserFunction function) {
         super(function);
         verifyParameterCount(3);
-        verifyResultType(DataString.DATATYPE);
+        verifyResultType(EXPECTED_RESULT_TYPE);
     }
 
     @Override
     public String extract(Object key, Object value, RecordContext recordContext) {
-        var result = function.call(
+        verifyAppliedResultType(EXPECTED_RESULT_TYPE);
+        final var result = function.call(
                 DataUtil.asDataObject(key),
                 DataUtil.asDataObject(value),
                 convertRecordContext(recordContext));
