@@ -17,16 +17,20 @@ pipelines:
     via:
       - type: peek
         forEach:
-          code: log.info("MAIN key={}, value={}", key, value)
+          code: log.info("MAIN PIPELINE - key={}, value={}", key, value)
     to: sensor_copy
 
-  # The secondary pipeline does exactly the same, but by inlining the target topic definition instead of referencing
+  # The secondary pipeline does exactly the same, but by inlining the source and target topics instead of referencing
   # an earlier definition
   secondary:
-    from: sensor_source
+    from:
+      topic: ksml_sensordata_avro
+      keyType: string
+      valueType: avro:SensorData
     via:
       - type: peek
         forEach:
-          code: log.info("SECONDARY key={}, value={}", key, value)
+          code: log.info("SECONDARY PIPELINE - key={}, value={}", key, value)
     to:
       topic: ksml_sensordata_copy
+      # No need to explicitly reference key/value types, since they are derived from previous steps in the pipeline

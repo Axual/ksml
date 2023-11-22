@@ -23,7 +23,7 @@ pipelines:
     via:
       - type: peek
         forEach:
-          code: log.info("SOURCE key={}, value={}", key, value)
+          code: log.info("SOURCE MESSAGE - key={}, value={}", key, value)
     branch:
       - if:
           expression: value != None and value["color"] == "blue"
@@ -33,14 +33,14 @@ pipelines:
         to: sensor_red
       - forEach:
           code: |
-            log.warn("Unknown color: {}", value["color"])
-
-  red_flow:
-    from: sensor_red
-    forEach:
-      code: log.info("RED FLOW key={}, value={}", key, value)
+            log.warn("UNKNOWN COLOR - {}", value["color"])
 
   blue_flow:
     from: sensor_blue
     forEach:
-      code: log.info("BLUE FLOW key={}, value={}", key, value)
+      code: log.info("FOUND BLUE SENSOR - key={}, value={}", key, value)
+
+  red_flow:
+    from: sensor_red
+    forEach:
+      code: log.info("FOUND RED SENSOR - key={}, value={}", key, value)

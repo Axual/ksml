@@ -11,6 +11,10 @@ streams:
     topic: ksml_sensordata_avro
     keyType: string
     valueType: avro:SensorData
+  sensor_target:
+    topic: ksml_sensordata_xml
+    keyType: string
+    valueType: xml:SensorData
 
 pipelines:
   # The main pipeline reads messages, converts to json, outputs them, and saves to a target topic
@@ -23,42 +27,42 @@ pipelines:
         name: convert_avro_to_json
       - type: peek
         forEach:
-          code: log.info("AVRO TO JSON key={}, value={}", key, value)
+          code: log.info("AVRO TO JSON - key={}, value={}", key, value)
       # Convert from JSON to String
       - type: convertValue
         into: string
         name: convert_json_to_string
       - type: peek
         forEach:
-          code: log.info("JSON TO STRING key={}, value={}", key, value)
+          code: log.info("JSON TO STRING - key={}, value={}", key, value)
       # Convert back from String to JSON
       - type: convertValue
         into: json
         name: convert_string_to_json
       - type: peek
         forEach:
-          code: log.info("STRING TO JSON key={}, value={}", key, value)
+          code: log.info("STRING TO JSON - key={}, value={}", key, value)
       # Change notation from JSON to XML
       - type: convertValue
         into: xml
         name: convert_json_to_xml
       - type: peek
         forEach:
-          code: log.info("JSON TO XML key={}, value={}", key, value)
+          code: log.info("JSON TO XML - key={}, value={}", key, value)
       # Convert from XML to String
       - type: convertValue
         into: string
         name: convert_xml_to_string
       - type: peek
         forEach:
-          code: log.info("XML TO STRING key={}, value={}", key, value)
+          code: log.info("XML TO STRING - key={}, value={}", key, value)
       # Convert back from String to XML
       - type: convertValue
         into: xml
         name: convert_string_to_xml
       - type: peek
         forEach:
-          code: log.info("STRING TO XML key={}, value={}", key, value)
+          code: log.info("STRING TO XML - key={}, value={}", key, value)
     to:
       topic: ksml_sensordata_xml
 
@@ -66,7 +70,4 @@ pipelines:
   # data types (conversion is done implicitly on writing to the target topic)
   alternate_to_xml:
     from: sensor_source
-    to:
-      topic: ksml_sensordata_xml
-      keyType: string
-      valueType: xml
+    to: sensor_target

@@ -24,7 +24,7 @@ pipelines:
     via:
       - type: peek
         forEach:
-          code: log.info("key={}, value={}", key, value)
+          code: log.info("SOURCE MESSAGE - key={}, value={}", key, value)
     toExtractor:
       code: |
         if key == 'sensor1':
@@ -33,3 +33,18 @@ pipelines:
           return 'ksml_sensordata_sensor2'
         else:
           return 'ksml_sensordata_sensor0'
+
+  sensor0_flow:
+    from: sensor_0
+    forEach:
+      code: log.info("SENSOR0 - key={}, value={}", key, value)
+
+  sensor1_flow:
+    from: sensor_1
+    forEach:
+      code: log.info("SENSOR1 - key={}, value={}", key, value)
+
+  sensor2_flow:
+    from: sensor_2
+    forEach:
+      code: log.info("SENSOR2 - key={}, value={}", key, value)

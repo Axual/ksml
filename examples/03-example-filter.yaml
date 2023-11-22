@@ -32,5 +32,5 @@ pipelines:
         predicate: filter_message
       - type: peek
         forEach:
-          code: log.info("key={}, value={}", key, value)
+          code: log.info("MESSAGE ACCEPTED - key={}, value={}", key, value)
     to: sensor_filtered
