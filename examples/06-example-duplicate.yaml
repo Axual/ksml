@@ -10,8 +10,8 @@ functions:
     code: |
       if key == None:
         return []
-    expression: [(key+'-COPY1',value),(key+'-COPY2',value)]
-    resultType: [(string,avro:SensorData)]
+    expression: "[(key+'-COPY1',value),(key+'-COPY2',value)]"
+    resultType: "[(string,avro:SensorData)]"
 
 pipelines:
   main:
