@@ -23,7 +23,7 @@ tables:
 
 functions:
   alert_join:
-    type: valueJoiner
+    type: joinValues
     code: |
       log.info('JOINING\n\t value1={}\n\t value2={}', value1, value2)
       sensordata=value1
@@ -88,15 +88,23 @@ pipelines:
     from: sensor_transformed
     via:
       - name: alert_joining
+        type: innerJoin # just "join" could also still be used here?
+        withTable:
+          topic: ksml_sensoralert_settings
+          keyType: string
+          valueType: avro:SensorAlertSettings
+          queryable: false
+        using: alert_join
+      - name: alert_joining
         type: join
-        table: sensor_alert_settings
-        valueJoiner: alert_join
+        with: sensor_alert_settings
+        using: alert_join
       - name: watch_join
         type: peek
         forEach:
           code: log.info("JOIN - key={}, value={}", key, value)
       - name: expand_alerts
-        type: transformKeyValueToKeyValueList
+        type: transformKvToKvList
         mapper: alert_split
     to: sensor_alerts
 

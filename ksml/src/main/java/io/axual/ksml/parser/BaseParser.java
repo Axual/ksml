@@ -9,9 +9,9 @@ package io.axual.ksml.parser;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,6 +22,7 @@ package io.axual.ksml.parser;
 
 
 import io.axual.ksml.exception.KSMLParseException;
+import io.axual.ksml.execution.FatalError;
 
 import java.time.Duration;
 import java.util.function.Function;
@@ -64,7 +65,15 @@ public abstract class BaseParser<T> {
     }
 
     protected Duration parseDuration(YamlNode parent, String childName) {
-        return parseDuration(parent, childName, null);
+        return parseDuration(parent, childName, (Duration) null);
+    }
+
+    protected Duration parseDuration(YamlNode parent, String childName, String errorMessageIfNull) {
+        final var result = parseDuration(parent, childName, (Duration) null);
+        if (result == null && errorMessageIfNull != null) {
+            throw FatalError.parseError(parent, errorMessageIfNull);
+        }
+        return result;
     }
 
     protected Duration parseDuration(YamlNode parent, String childName, Duration valueIfNull) {

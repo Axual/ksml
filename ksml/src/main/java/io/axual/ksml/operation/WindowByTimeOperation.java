@@ -9,9 +9,9 @@ package io.axual.ksml.operation;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,38 +21,25 @@ package io.axual.ksml.operation;
  */
 
 
-import org.apache.kafka.streams.kstream.SessionWindows;
+import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.stream.KGroupedStreamWrapper;
+import io.axual.ksml.stream.StreamWrapper;
+import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
 import org.apache.kafka.streams.kstream.SlidingWindows;
 import org.apache.kafka.streams.kstream.TimeWindows;
 
-import io.axual.ksml.exception.KSMLTopologyException;
-import io.axual.ksml.stream.KGroupedStreamWrapper;
-import io.axual.ksml.stream.SessionWindowedKStreamWrapper;
-import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
-
-public class WindowedByOperation extends BaseOperation {
-    private final SessionWindows sessionWindows;
+public class WindowByTimeOperation extends BaseOperation {
     private final SlidingWindows slidingWindows;
     private final TimeWindows timeWindows;
 
-    public WindowedByOperation(OperationConfig config, SessionWindows sessionWindows) {
+    public WindowByTimeOperation(OperationConfig config, SlidingWindows slidingWindows) {
         super(config);
-        this.sessionWindows = sessionWindows;
-        this.slidingWindows = null;
-        this.timeWindows = null;
-    }
-
-    public WindowedByOperation(OperationConfig config, SlidingWindows slidingWindows) {
-        super(config);
-        this.sessionWindows = null;
         this.slidingWindows = slidingWindows;
         this.timeWindows = null;
     }
 
-    public WindowedByOperation(OperationConfig config, TimeWindows timeWindows) {
+    public WindowByTimeOperation(OperationConfig config, TimeWindows timeWindows) {
         super(config);
-        this.sessionWindows = null;
         this.slidingWindows = null;
         this.timeWindows = timeWindows;
     }
@@ -61,9 +48,6 @@ public class WindowedByOperation extends BaseOperation {
     public StreamWrapper apply(KGroupedStreamWrapper input) {
         final var k = input.keyType();
         final var v = input.valueType();
-        if (sessionWindows != null) {
-            return new SessionWindowedKStreamWrapper(input.groupedStream.windowedBy(sessionWindows), k, v);
-        }
         if (slidingWindows != null) {
             return new TimeWindowedKStreamWrapper(input.groupedStream.windowedBy(slidingWindows), k, v);
         }

@@ -62,7 +62,7 @@ public class AggregateOperation extends StoreOperation {
          *          final Initializer<VR> initializer,
          *          final Aggregator<? super K, ? super V, VR> aggregator,
          *          final Named named,
-         *          final Materialized<K, VR, SessionStore<Bytes, byte[]>> materialized)
+         *          final Materialized<K, VR, KeyValueStore<Bytes, byte[]>> materialized)
          */
 
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
@@ -98,7 +98,7 @@ public class AggregateOperation extends StoreOperation {
          *          final Aggregator<? super K, ? super V, VR> adder,
          *          final Aggregator<? super K, ? super V, VR> subtractor,
          *          final Named named,
-         *          final Materialized<K, VR, SessionStore<Bytes, byte[]>> materialized)
+         *          final Materialized<K, VR, KeyValueStore<Bytes, byte[]>> materialized)
          */
 
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
@@ -176,7 +176,7 @@ public class AggregateOperation extends StoreOperation {
          *          final Initializer<VR> initializer,
          *          final Aggregator<? super K, ? super V, VR> aggregator,
          *          final Named named,
-         *          final Materialized<K, VR, SessionStore<Bytes, byte[]>> materialized)
+         *          final Materialized<K, VR, WindowStore<Bytes, byte[]>> materialized)
          */
 
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());

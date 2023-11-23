@@ -46,13 +46,14 @@ pipelines:
     via:
       - type: peek
         forEach:
-          code: log.info("INPUT key={}, value={}", key, value)
+          code: log.info("INPUT - key={}, value={}", key, value)
       - type: transformValue
         mapper: replace_owner
       - type: transformValue
         mapper: remove_color
     to: sensor_target
+
   validate:
     from: sensor_target
     forEach:
-      code: log.info("OUTPUT key={}, value={}", key, value)
+      code: log.info("OUTPUT - key={}, value={}", key, value)
