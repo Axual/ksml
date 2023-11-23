@@ -22,20 +22,8 @@ tables:
     queryable: false
 
 functions:
-  print_join_message:
-    type: forEach
-    code: "print('JOIN key=' + str(key) + ', value=' + str(value))"
-
-  print_output_message:
-    type: forEach
-    code: "print('OUTPUT key=' + str(key) + ', value=' + str(value))"
-
-  filter_nulls:
-    type: predicate
-    expression: value == None
-
   alert_join:
-    type: valueJoiner
+    type: joinValues
     code: |
       print('JOINING\n\t value1=' + str(value1) + '\n\t value2=' + str(value2))
       sensordata=value1
@@ -65,7 +53,7 @@ functions:
     resultType: "[(json,json)]"
     code: |
       newRecords=[]
-      if value != None and len( value["alerts"]) > 0 :
+      if value != None and len(value["alerts"]) > 0 :
         sensordata = value["sensordata"]
         new_key={
           "name" : sensordata["name"],
@@ -86,8 +74,9 @@ pipelines:
     from: sensor_source
     via:
       - name: filter_nulls
-        type: filterNot
-        predicate: filter_nulls
+        type: filter
+        predicate:
+          expression: value != None
       - name: rekey_sensordata
         type: transformKeyValue
         mapper:
@@ -99,17 +88,27 @@ pipelines:
     from: sensor_transformed
     via:
       - name: alert_joining
+        type: innerJoin # just "join" could also still be used here?
+        withTable:
+          topic: ksml_sensoralert_settings
+          keyType: string
+          valueType: avro:SensorAlertSettings
+          queryable: false
+        using: alert_join
+      - name: alert_joining
         type: join
-        table: sensor_alert_settings
-        valueJoiner: alert_join
+        with: sensor_alert_settings
+        using: alert_join
       - name: watch_join
         type: peek
-        forEach: print_join_message
+        forEach:
+          code: log.info("JOIN - key={}, value={}", key, value)
       - name: expand_alerts
-        type: transformKeyValueToKeyValueList
+        type: transformKvToKvList
         mapper: alert_split
     to: sensor_alerts
 
   verify:
     from: sensor_alerts
-    forEach: print_output_message
+    forEach:
+      code: log.info("OUTPUT - key={}, value={}", key, value)

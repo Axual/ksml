@@ -20,19 +20,12 @@ streams:
     valueType: bytes
 
 functions:
-  print_input_message:
-    type: forEach
-    code: "print('INPUT key=' + str(key) + ', value=' + str(value))"
-
-  print_output_message:
-    type: forEach
-    code: "print('OUTPUT key=' + str(key) + ', value=' + str(value))"
-
   replace_schema_id:
     type: valueTransformer
     globalCode: |
       newSchemaId = 0x01020304
     code: |
+      global newSchemaId
       if value != None:
         if value[0] == 0 and len(value) >= 5:
           value[1] = (newSchemaId & 0xff000000) >> 24
@@ -50,10 +43,13 @@ pipelines:
     from: sensor_source
     via:
      - type: peek
-       forEach: print_input_message
+       forEach:
+         code: log.info("INPUT - key={}, value={}", key, value)
      - type: transformValue
        mapper: replace_schema_id
     to: sensor_target
+
   validate:
     from: sensor_target
-    forEach: print_output_message
+    forEach:
+      code: log.info("OUTPUT - key={}, value={}", key, value)

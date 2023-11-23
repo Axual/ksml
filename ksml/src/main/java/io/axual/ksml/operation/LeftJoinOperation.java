@@ -77,7 +77,7 @@ public class LeftJoinOperation extends StoreOperation {
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
             checkType("Join stream keyType", kStreamWrapper.keyType(), equalTo(k));
             checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vo));
-            var joined = StreamJoined.with(k.getSerde(), v.getSerde(), vr.getSerde());
+            var joined = StreamJoined.with(k.getSerde(), v.getSerde(), vo.getSerde());
             if (name != null) joined = joined.withName(name);
             if (store != null) {
                 if (store.name() != null) joined = joined.withStoreName(store.name());
@@ -104,7 +104,7 @@ public class LeftJoinOperation extends StoreOperation {
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vt, v), false);
             checkType("Join table keyType", kTableWrapper.keyType(), equalTo(k));
             checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vt));
-            var joined = Joined.with(k.getSerde(), v.getSerde(), vr.getSerde());
+            var joined = Joined.with(k.getSerde(), v.getSerde(), vt.getSerde());
             if (name != null) joined = joined.withName(name);
             final var output = (KStream) input.stream.leftJoin(
                     kTableWrapper.table,

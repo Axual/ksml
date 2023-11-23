@@ -69,7 +69,7 @@ public class OuterJoinOperation extends StoreOperation {
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
             checkType("Join stream keyType", otherStream.keyType().userType().dataType(), equalTo(k));
             checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vo));
-            var joined = StreamJoined.with(k.getSerde(), v.getSerde(), vr.getSerde());
+            var joined = StreamJoined.with(k.getSerde(), v.getSerde(), vo.getSerde());
             if (name != null) joined = joined.withName(name);
             if (store != null) {
                 if (store.name() != null) joined = joined.withStoreName(store.name());

@@ -89,7 +89,7 @@ public class JoinOperation extends StoreOperation {
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
             checkType("Join stream keyType", vo, equalTo(k));
             checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vo));
-            var joined = StreamJoined.with(k.getSerde(), v.getSerde(), vr.getSerde());
+            var joined = StreamJoined.with(k.getSerde(), v.getSerde(), vo.getSerde());
             if (name != null) joined = joined.withName(name);
             if (store != null) {
                 if (store.name() != null) joined = joined.withStoreName(store.name());
@@ -112,7 +112,7 @@ public class JoinOperation extends StoreOperation {
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vt, v), false);
             checkType("Join table keyType", otherTable.keyType(), equalTo(k));
             checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vt));
-            var joined = Joined.with(k.getSerde(), v.getSerde(), vr.getSerde());
+            var joined = Joined.with(k.getSerde(), v.getSerde(), vt.getSerde());
             if (name != null) joined = joined.withName(name);
             final var output = (KStream) input.stream.join(otherTable.table, new UserValueJoiner(valueJoiner), joined);
             return new KStreamWrapper(output, k, vr);

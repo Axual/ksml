@@ -29,10 +29,9 @@ pipelines:
       code: |
         if key == 'sensor1':
           return 'ksml_sensordata_sensor1'
-        elif key == 'sensor2':
+        if key == 'sensor2':
           return 'ksml_sensordata_sensor2'
-        else:
-          return 'ksml_sensordata_sensor0'
+        return 'ksml_sensordata_sensor0'
 
   sensor0_flow:
     from: sensor_0
