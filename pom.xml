@@ -72,16 +72,17 @@
         <jupiter.version>5.7.1</jupiter.version>
         <logback.version>1.4.5</logback.version>
         <lombok.version>1.18.24</lombok.version>
-        <maven.compiler.version>3.8.1</maven.compiler.version>
-        <maven.enforcer.version>3.0.0</maven.enforcer.version>
-        <maven.exec.version>3.0.0</maven.exec.version>
-        <maven.jar.version>3.2.0</maven.jar.version>
-        <maven.javadoc.version>3.3.0</maven.javadoc.version>
-        <maven.surefire.version>2.22.2</maven.surefire.version>
-        <maven.failsafe.version>2.22.2</maven.failsafe.version>
-        <maven.install.version>3.0.0-M1</maven.install.version>
-        <maven.license.plugin.version>1.9</maven.license.plugin.version>
-        <maven.jacoco.plugin.version>0.8.8</maven.jacoco.plugin.version>
+        <maven.compiler.version>3.11.0</maven.compiler.version>
+        <maven.dependency.version>3.6.1</maven.dependency.version>
+        <maven.enforcer.version>3.4.1</maven.enforcer.version>
+        <maven.exec.version>3.1.1</maven.exec.version>
+        <maven.jar.version>3.3.0</maven.jar.version>
+        <maven.javadoc.version>3.6.2</maven.javadoc.version>
+        <maven.surefire.version>3.2.2</maven.surefire.version>
+        <maven.failsafe.version>3.2.2</maven.failsafe.version>
+        <maven.install.version>3.1.1</maven.install.version>
+        <maven.license.plugin.version>2.3.0</maven.license.plugin.version>
+        <maven.jacoco.plugin.version>0.8.11</maven.jacoco.plugin.version>
         <opencsv.version>5.8</opencsv.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -351,7 +352,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.5.0</version>
+                    <version>${maven.dependency.version}</version>
                     <executions>
                         <execution>
                             <goals>
@@ -442,6 +443,7 @@
                             <includes>**/*.java</includes>
                         </includes>
                         <skipUpdateLicense>false</skipUpdateLicense>
+                        <trimHeaderLine>true</trimHeaderLine>
                     </configuration>
                     <executions>
                         <execution>
