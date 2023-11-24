@@ -34,12 +34,8 @@ public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition
     public FunctionDefinition parse(YamlNode node) {
         if (node == null) return null;
 
-        final String type = parseString(node, FUNCTION_TYPE);
-        if (type == null) {
-            throw new KSMLParseException(node, "Function type not specified");
-        }
-
-        BaseParser<? extends FunctionDefinition> parser = getParser(node, type);
+        final var type = parseString(node, FUNCTION_TYPE);
+        final var parser = getParser(node, type);
         if (parser != null) {
             try {
                 return parser.parse(node.appendName(type));
@@ -52,6 +48,7 @@ public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition
     }
 
     private BaseParser<? extends FunctionDefinition> getParser(YamlNode node, String type) {
+        if (type == null) return new FunctionDefinitionParser();
         return switch (type) {
             case FUNCTION_TYPE_AGGREGATOR -> new AggregatorDefinitionParser();
             case FUNCTION_TYPE_FOREACHACTION -> new ForEachActionDefinitionParser();
@@ -69,13 +66,7 @@ public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition
             case FUNCTION_TYPE_TOPICNAMEEXTRACTOR -> new TopicNameExtractorDefinitionParser();
             case FUNCTION_TYPE_VALUETRANSFORMER -> new ValueTransformerDefinitionParser();
             case FUNCTION_TYPE_GENERIC -> new FunctionDefinitionParser();
-            default -> {
-                if (!type.isEmpty()) {
-                    throw FatalError.parseError(node, "Unknown function type: " + type);
-                }
-                // Treat undefined function types as "generic"
-                yield new FunctionDefinitionParser();
-            }
+            default -> throw FatalError.parseError(node, "Unknown function type: " + type);
         };
     }
 }

@@ -9,9 +9,9 @@ package io.axual.ksml.definition.parser;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -41,13 +41,13 @@ public class BaseStreamDefinitionParser extends ContextAwareParser<BaseStreamDef
     public BaseStreamDefinition parse(YamlNode node) {
         if (node == null) return null;
         if (parseString(node, STREAM_DEFINITION) != null) {
-            return new ReferenceOrInlineParser<>("stream", STREAM_DEFINITION, context.getStreamDefinitions()::get, new StreamDefinitionParser()).parse(node);
+            return new ReferenceOrInlineParser<>("stream", STREAM_DEFINITION, context.getStreamDefinitions()::get, new StreamDefinitionParser()).parseDefinition(node);
         }
         if (parseString(node, TABLE_DEFINITION) != null) {
-            return new ReferenceOrInlineParser<>("table", TABLE_DEFINITION, context.getStreamDefinitions()::get, new TableDefinitionParser(context)).parse(node);
+            return new ReferenceOrInlineParser<>("table", TABLE_DEFINITION, context.getStreamDefinitions()::get, new TableDefinitionParser(context)).parseDefinition(node);
         }
         if (parseString(node, GLOBALTABLE_DEFINITION) != null) {
-            return new ReferenceOrInlineParser<>("globalTable", GLOBALTABLE_DEFINITION, context.getStreamDefinitions()::get, new GlobalTableDefinitionParser()).parse(node);
+            return new ReferenceOrInlineParser<>("globalTable", GLOBALTABLE_DEFINITION, context.getStreamDefinitions()::get, new GlobalTableDefinitionParser()).parseDefinition(node);
         }
         throw new KSMLParseException(node, "Stream definition missing");
     }

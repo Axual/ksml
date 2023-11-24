@@ -9,9 +9,9 @@ package io.axual.ksml.operation.parser;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -59,7 +59,7 @@ public class PipelineSinkOperationParser extends OperationParser<StreamOperation
             return new ToTopicNameExtractorOperation(parseConfig(node, determineName("to_name_extract")), parseFunction(node, PIPELINE_TOTOPICNAMEEXTRACTOR_ATTRIBUTE, new TopicNameExtractorDefinitionParser()));
         }
         if (node.get(PIPELINE_TO_ATTRIBUTE) != null) {
-            final var def = new ReferenceOrInlineParser<>("stream", PIPELINE_TO_ATTRIBUTE, context.getStreamDefinitions()::get, new StreamDefinitionParser()).parse(node);
+            final var def = new ReferenceOrInlineParser<>("stream", PIPELINE_TO_ATTRIBUTE, context.getStreamDefinitions()::get, new StreamDefinitionParser()).parseDefinition(node);
             if (def != null) {
                 context.registerTopic(def.topic);
                 return new ToOperation(parseConfig(node, determineName("to")), def);

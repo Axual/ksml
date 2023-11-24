@@ -9,9 +9,9 @@ package io.axual.ksml.datagenerator;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -103,9 +103,16 @@ public class KSMLDataGenerator {
         for (var entry : producers.entrySet()) {
             var target = entry.getValue().target();
             var name = entry.getKey();
-            var generator = new PythonFunction(context, name, name, entry.getValue().generator());
-            var conditionName = name + "_producercondition";
-            var condition = entry.getValue().condition() != null ? new PythonFunction(context, conditionName, conditionName, entry.getValue().condition()) : null;
+            var gen = entry.getValue().generator();
+            final var generator = gen.name() != null
+                    ? PythonFunction.fromNamed(context, gen.name(), gen.definition())
+                    : PythonFunction.fromAnon(context, name, gen.definition(), "ksml.generator." + name);
+            var cond = entry.getValue().condition();
+            final var condition = (cond != null && cond.definition() != null)
+                    ? cond.name() != null
+                    ? PythonFunction.fromNamed(context, cond.name(), cond.definition())
+                    : PythonFunction.fromAnon(context, name, cond.definition(), "ksml.condition." + name)
+                    : null;
             var keySerde = notationLibrary.get(target.keyType.notation()).getSerde(target.keyType.dataType(), true);
             var keySerializer = factory.wrapSerializer(keySerde.serializer());
             var valueSerde = notationLibrary.get(target.valueType.notation()).getSerde(target.valueType.dataType(), false);

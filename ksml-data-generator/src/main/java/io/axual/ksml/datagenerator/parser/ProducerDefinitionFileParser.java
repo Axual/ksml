@@ -9,9 +9,9 @@ package io.axual.ksml.datagenerator.parser;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -144,7 +144,7 @@ public class ProducerDefinitionFileParser {
         new MapParser<>("function definition", new TypedFunctionDefinitionParser()).parse(node.get(FUNCTIONS_DEFINITION)).forEach(context::registerFunction);
         // Generate all the function code in the Python context
         for (var function : context.getFunctionDefinitions().entrySet()) {
-            new PythonFunction(pythonContext, function.getKey(), function.getKey(), function.getValue());
+            PythonFunction.fromNamed(pythonContext, function.getKey(), function.getValue());
         }
 
         // Parse all defined message producers
