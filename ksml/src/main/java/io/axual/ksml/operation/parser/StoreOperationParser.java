@@ -44,6 +44,6 @@ public abstract class StoreOperationParser<T extends StoreOperation> extends Ope
     }
 
     private StateStoreDefinition parseStoreInlineOrReference(YamlNode parent, String childName, BaseParser<StateStoreDefinition> parser) {
-        return new ReferenceOrInlineParser<>("state store", childName, context.getStoreDefinitions()::get, parser).parse(parent);
+        return new ReferenceOrInlineParser<>("state store", childName, context.getStoreDefinitions()::get, parser).parseDefinition(parent);
     }
 }
