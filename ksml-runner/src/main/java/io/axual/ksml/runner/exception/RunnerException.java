@@ -1,8 +1,8 @@
-package io.axual.ksml.datagenerator.config;
+package io.axual.ksml.runner.exception;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Generator
+ * KSML Runner
  * %%
  * Copyright (C) 2021 - 2023 Axual B.V.
  * %%
@@ -20,18 +20,12 @@ package io.axual.ksml.datagenerator.config;
  * =========================LICENSE_END==================================
  */
 
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+public class RunnerException extends RuntimeException {
+    public RunnerException(String message) {
+        super(message);
+    }
 
-import java.util.Map;
-
-@Slf4j
-@Data
-public class DataGeneratorConfig {
-    private GeneratorConfig ksml;
-    private Map<String, String> kafka;
-
-    public void validate() {
-        ksml.validate();
+    public RunnerException(String message, Throwable t) {
+        super(message, t);
     }
 }

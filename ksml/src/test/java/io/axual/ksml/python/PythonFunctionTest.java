@@ -4,14 +4,14 @@ package io.axual.ksml.python;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2022 Axual B.V.
+ * Copyright (C) 2021 - 2023 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -39,10 +39,6 @@ public class PythonFunctionTest {
     ParameterDefinition two = new ParameterDefinition("two", DataInteger.DATATYPE);
     ParameterDefinition[] params = new ParameterDefinition[]{one, two};
     UserType resultType = new UserType(BinaryNotation.NOTATION_NAME, DataInteger.DATATYPE);
-
-    /**
-     * Test addition in Python expression.
-     */
     @ParameterizedTest
     @CsvSource({"1, 2, 3", "100,100,200", "100, -1, 99", "99, -100, -1"})
     void testAdditionExpression(Integer i1, Integer i2, Integer sum) {

@@ -1,8 +1,8 @@
-package io.axual.ksml.datagenerator.config;
+package io.axual.ksml.execution;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Generator
+ * KSML
  * %%
  * Copyright (C) 2021 - 2023 Axual B.V.
  * %%
@@ -20,18 +20,8 @@ package io.axual.ksml.datagenerator.config;
  * =========================LICENSE_END==================================
  */
 
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.serialization.Serde;
 
-import java.util.Map;
-
-@Slf4j
-@Data
-public class DataGeneratorConfig {
-    private GeneratorConfig ksml;
-    private Map<String, String> kafka;
-
-    public void validate() {
-        ksml.validate();
-    }
+public interface SerdeWrapper<T> {
+    Serde<T> wrap(Serde<T> serde);
 }
