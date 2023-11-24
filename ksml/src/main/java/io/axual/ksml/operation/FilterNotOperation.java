@@ -21,14 +21,16 @@ package io.axual.ksml.operation;
  */
 
 
-import org.apache.kafka.streams.kstream.Named;
-
 import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.operation.processor.FilterNotProcessor;
+import io.axual.ksml.operation.processor.OperationProcessorSupplier;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserPredicate;
+import org.apache.kafka.streams.kstream.Named;
 
 public class FilterNotOperation extends BaseOperation {
     private static final String PREDICATE_NAME = "Predicate";
@@ -47,11 +49,21 @@ public class FilterNotOperation extends BaseOperation {
          *          final Named named)
          */
 
-        var k = input.keyType().userType().dataType();
-        var v = input.valueType().userType().dataType();
-        checkFunction(PREDICATE_NAME, predicate, equalTo(DataBoolean.DATATYPE), superOf(k), superOf(v));
+        final var k = input.keyType();
+        final var v = input.valueType();
+        checkFunction(PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k), superOf(v));
 
-        return new KStreamWrapper(input.stream.filterNot(new UserPredicate(predicate), Named.as(name)), input.keyType(), input.valueType());
+        final var action = new UserPredicate(predicate);
+        final var storeNames = combineStoreNames(this.storeNames, predicate.storeNames);
+        final var supplier = new OperationProcessorSupplier<>(
+                name,
+                FilterNotProcessor::new,
+                (stores, record) -> action.test(stores, record.key(), record.value()),
+                storeNames);
+        final var output = name != null
+                ? input.stream.process(supplier, Named.as(name), storeNames)
+                : input.stream.process(supplier, storeNames);
+        return new KStreamWrapper(output, k, v);
     }
 
     @Override
@@ -62,10 +74,12 @@ public class FilterNotOperation extends BaseOperation {
          *          final Named named)
          */
 
-        var k = input.keyType().userType().dataType();
-        var v = input.valueType().userType().dataType();
-        checkFunction(PREDICATE_NAME, predicate, equalTo(DataBoolean.DATATYPE), superOf(k), superOf(v));
-
-        return new KTableWrapper(input.table.filterNot(new UserPredicate(predicate), Named.as(name)), input.keyType(), input.valueType());
+        final var k = input.keyType();
+        final var v = input.valueType();
+        checkFunction(PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k), superOf(v));
+        final var output = name != null
+                ? input.table.filterNot(new UserPredicate(predicate), Named.as(name))
+                : input.table.filterNot(new UserPredicate(predicate));
+        return new KTableWrapper(output, k, v);
     }
 }

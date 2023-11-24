@@ -20,8 +20,8 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.definition.StoreDefinition;
-import io.axual.ksml.definition.parser.StoreDefinitionParser;
+import io.axual.ksml.definition.StateStoreDefinition;
+import io.axual.ksml.definition.parser.StateStoreDefinitionParser;
 import io.axual.ksml.operation.StoreOperation;
 import io.axual.ksml.operation.StoreOperationConfig;
 import io.axual.ksml.parser.BaseParser;
@@ -35,21 +35,15 @@ public abstract class StoreOperationParser<T extends StoreOperation> extends Ope
     }
 
     protected StoreOperationConfig storeOperationConfig(String name, YamlNode node, String childName) {
-        final var storeDefinition = parseStoreInlineOrReference(node, childName, new StoreDefinitionParser());
-
+        final var store = parseStoreInlineOrReference(node, childName, new StateStoreDefinitionParser());
         return new StoreOperationConfig(
                 name,
                 context.getNotationLibrary(),
-                new StoreDefinition(
-                        storeDefinition != null && storeDefinition.name() != null ? storeDefinition.name() : name,
-                        storeDefinition != null && storeDefinition.retention() != null ? storeDefinition.retention() : null,
-                        storeDefinition == null || storeDefinition.caching() == null || storeDefinition.caching()
-                ),
-                context::registerGrouped,
-                context::registerStore);
+                store,
+                context::registerStateStoreAsCreated);
     }
 
-    private <S extends StoreDefinition> StoreDefinition parseStoreInlineOrReference(YamlNode parent, String childName, BaseParser<S> parser) {
-        return new ReferenceOrInlineParser<>("store", childName, context.getStoreDefinitions()::get, parser).parse(parent);
+    private StateStoreDefinition parseStoreInlineOrReference(YamlNode parent, String childName, BaseParser<StateStoreDefinition> parser) {
+        return new ReferenceOrInlineParser<>("state store", childName, context.getStoreDefinitions()::get, parser).parseDefinition(parent);
     }
 }

@@ -22,8 +22,10 @@ package io.axual.ksml.datagenerator.definition;
 
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.StreamDefinition;
+import io.axual.ksml.parser.NamedDefinition;
 
 import java.time.Duration;
 
-public record ProducerDefinition(FunctionDefinition generator, Duration interval, FunctionDefinition condition, StreamDefinition target) {
+public record ProducerDefinition(NamedDefinition<FunctionDefinition> generator, Duration interval,
+                                 NamedDefinition<FunctionDefinition> condition, StreamDefinition target) {
 }

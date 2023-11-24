@@ -9,9 +9,9 @@ package io.axual.ksml.generator;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,12 +20,19 @@ package io.axual.ksml.generator;
  * =========================LICENSE_END==================================
  */
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import io.axual.ksml.KSMLConfig;
 import io.axual.ksml.definition.BaseStreamDefinition;
-import io.axual.ksml.definition.PipelineDefinition;
-import io.axual.ksml.definition.parser.*;
+import io.axual.ksml.definition.KeyValueStateStoreDefinition;
+import io.axual.ksml.definition.SessionStateStoreDefinition;
+import io.axual.ksml.definition.StateStoreDefinition;
+import io.axual.ksml.definition.WindowStateStoreDefinition;
+import io.axual.ksml.definition.parser.GlobalTableDefinitionParser;
+import io.axual.ksml.definition.parser.PipelineDefinitionParser;
+import io.axual.ksml.definition.parser.StateStoreDefinitionParser;
+import io.axual.ksml.definition.parser.StreamDefinitionParser;
+import io.axual.ksml.definition.parser.TableDefinitionParser;
+import io.axual.ksml.definition.parser.TypedFunctionDefinitionParser;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.operation.StreamOperation;
@@ -40,9 +47,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static io.axual.ksml.dsl.KSMLDSL.*;
+import static io.axual.ksml.store.StoreType.*;
 
 /**
  * Generate a Kafka Streams topology from a KSML configuration, using a Python interpreter.
@@ -76,7 +89,7 @@ public class TopologyGeneratorImpl {
                 default -> throw new KSMLParseException(null, "Unknown KSML source dataType: " + config.sourceType());
             }
         } catch (IOException e) {
-            LOG.info("Can not read YAML: {}", e.getMessage());
+            LOG.error("Can not read YAML: {}", e.getMessage());
         }
 
         return new ArrayList<>();
@@ -114,11 +127,18 @@ public class TopologyGeneratorImpl {
         }
     }
 
-    public void appendStores(StringBuilder builder, String description, Map<String, TopologyParseContext.StoreDescriptor> stores) {
+    public void appendStores(StringBuilder builder, String description, Map<String, StateStoreDefinition> stores) {
         if (stores.size() > 0) {
             builder.append(description).append(":\n");
         }
         for (var entry : stores.entrySet()) {
+            final var storeType = entry.getValue() instanceof KeyValueStateStoreDefinition
+                    ? KEYVALUE_STORE
+                    : entry.getValue() instanceof SessionStateStoreDefinition
+                    ? SESSION_STORE
+                    : entry.getValue() instanceof WindowStateStoreDefinition
+                    ? WINDOW_STORE
+                    : null;
             builder
                     .append("  ")
                     .append(entry.getKey())
@@ -128,15 +148,11 @@ public class TopologyGeneratorImpl {
                     .append(entry.getValue().keyType())
                     .append(", value=")
                     .append(entry.getValue().valueType())
-                    .append(", retention=")
-                    .append(entry.getValue().store().retention() != null ? entry.getValue().store().retention() : "null")
-                    .append(", caching=")
-                    .append(entry.getValue().store().caching() != null ? entry.getValue().store().caching() : "null")
                     .append(", url_path=/state/")
                     .append(switch (entry.getValue().type()) {
-                        case KEYVALUE_STORE -> "keyvalue";
+                        case KEYVALUE_STORE -> "keyValue";
                         case SESSION_STORE -> "session";
-                        case WINDOW_STORE -> "windowed";
+                        case WINDOW_STORE -> "window";
                     })
                     .append("/")
                     .append(entry.getKey())
@@ -166,20 +182,19 @@ public class TopologyGeneratorImpl {
         TopologyParseContext context = new TopologyParseContext(builder, config.notationLibrary(), namePrefix);
 
         // Parse all defined streams
-        Map<String, BaseStreamDefinition> streamDefinitions = new HashMap<>();
         new MapParser<>("stream definition", new StreamDefinitionParser()).parse(node.get(STREAMS_DEFINITION)).forEach(context::registerStreamDefinition);
-        new MapParser<>("table definition", new TableDefinitionParser(context::registerStore)).parse(node.get(TABLES_DEFINITION)).forEach(context::registerStreamDefinition);
+        new MapParser<>("table definition", new TableDefinitionParser(context)).parse(node.get(TABLES_DEFINITION)).forEach(context::registerStreamDefinition);
         new MapParser<>("globalTable definition", new GlobalTableDefinitionParser()).parse(node.get(GLOBALTABLES_DEFINITION)).forEach(context::registerStreamDefinition);
+
+        // Parse all defined stores
+        new MapParser<>("store definition", new StateStoreDefinitionParser()).parse(node.get(STORES_DEFINITION)).forEach(context::registerStateStore);
 
         // Parse all defined functions
         new MapParser<>("function definition", new TypedFunctionDefinitionParser()).parse(node.get(FUNCTIONS_DEFINITION)).forEach(context::registerFunction);
 
-        // Parse all defined stores
-        new MapParser<>("store definition", new StoreDefinitionParser()).parse(node.get(STORES_DEFINITION)).forEach(context::registerStore);
-
         // Parse all defined pipelines
-        final MapParser<PipelineDefinition> mapParser = new MapParser<>("pipeline definition", new PipelineDefinitionParser(context));
-        final Map<String, PipelineDefinition> pipelineDefinitionMap = mapParser.parse(node.get(PIPELINES_DEFINITION));
+        final var mapParser = new MapParser<>("pipeline definition", new PipelineDefinitionParser(context));
+        final var pipelineDefinitionMap = mapParser.parse(node.get(PIPELINES_DEFINITION));
         pipelineDefinitionMap.forEach((name, pipeline) -> {
             BaseStreamDefinition definition = pipeline.source();
             StreamWrapper cursor = context.getStreamWrapper(definition);
@@ -197,15 +212,15 @@ public class TopologyGeneratorImpl {
         });
 
         // Build the result topology
-        var topology = context.build();
+        final var topology = context.build();
 
         // Derive all input, intermediate and output topics
-        var knownTopics = context.getRegisteredTopics();
-        var topologyInputs = new HashSet<String>();
-        var topologyOutputs = new HashSet<String>();
-        var inputTopics = new HashSet<String>();
-        var outputTopics = new HashSet<String>();
-        var intermediateTopics = new HashSet<String>();
+        final var knownTopics = context.getRegisteredTopics();
+        final var topologyInputs = new HashSet<String>();
+        final var topologyOutputs = new HashSet<String>();
+        final var inputTopics = new HashSet<String>();
+        final var outputTopics = new HashSet<String>();
+        final var intermediateTopics = new HashSet<String>();
 
         analyzeTopology(topology, topologyInputs, topologyOutputs);
 
@@ -231,11 +246,11 @@ public class TopologyGeneratorImpl {
                 inputTopics,
                 intermediateTopics,
                 outputTopics,
-                context.stores());
+                context.getStoreDefinitions());
     }
 
     private static void analyzeTopology(Topology topology, Set<String> inputTopics, Set<String> outputTopics) {
-        var description = topology.describe();
+        final var description = topology.describe();
         for (int index = 0; index < description.subtopologies().size(); index++) {
             for (var subTopology : description.subtopologies()) {
                 for (var node : subTopology.nodes()) {

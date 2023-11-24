@@ -23,14 +23,11 @@ package io.axual.ksml.parser;
 
 import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.definition.StoreDefinition;
-import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.store.StoreType;
 import io.axual.ksml.stream.BaseStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
-import org.apache.kafka.streams.kstream.Grouped;
 
 import java.util.Map;
 import java.util.Set;
@@ -47,17 +44,21 @@ public interface ParseContext {
 
     Map<String, FunctionDefinition> getFunctionDefinitions();
 
-    UserFunction getUserFunction(FunctionDefinition definition, String name);
+    UserFunction createAnonUserFunction(String name, FunctionDefinition definition, YamlNode node);
 
-    Map<String, StoreDefinition> getStoreDefinitions();
+    UserFunction createNamedUserFunction(String name, FunctionDefinition definition);
+
+    Map<String, StateStoreDefinition> getStoreDefinitions();
 
     Map<String, AtomicInteger> getTypeInstanceCounters();
 
     NotationLibrary getNotationLibrary();
 
     Set<String> getRegisteredTopics();
-    void registerTopic(String topic);
-    <K, V> void registerGrouped(Grouped<K, V> grouped);
 
-    void registerStore(StoreType type, StoreDefinition store, StreamDataType keyType, StreamDataType valueType);
+    void registerTopic(String topic);
+
+    void registerStateStore(String name, StateStoreDefinition store);
+
+    void registerStateStoreAsCreated(StateStoreDefinition store);
 }

@@ -23,37 +23,19 @@ package io.axual.ksml.definition.parser;
 
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.exception.KSMLParseException;
+import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.YamlNode;
 
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_AGGREGATOR;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_FOREACHACTION;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_INITIALIZER;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_KEYTRANSFORMER;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_KEYVALUEMAPPER;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_KEYVALUETOVALUELISTTRANSFORMER;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_KEYVALUETRANSFORMER;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_MERGER;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_PREDICATE;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_REDUCER;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_STREAMPARTITIONER;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_TOPICNAMEEXTRACTOR;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_VALUEJOINER;
-import static io.axual.ksml.dsl.KSMLDSL.FUNCTION_TYPE_VALUETRANSFORMER;
+import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition> {
     @Override
     public FunctionDefinition parse(YamlNode node) {
         if (node == null) return null;
 
-        final String type = parseString(node, FUNCTION_TYPE);
-        if (type == null) {
-            throw new KSMLParseException(node, "Function type not specified");
-        }
-
-        BaseParser<? extends FunctionDefinition> parser = getParser(type);
+        final var type = parseString(node, FUNCTION_TYPE);
+        final var parser = getParser(node, type);
         if (parser != null) {
             try {
                 return parser.parse(node.appendName(type));
@@ -65,7 +47,8 @@ public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition
         return new FunctionDefinitionParser().parse(node.appendName("generic"));
     }
 
-    private BaseParser<? extends FunctionDefinition> getParser(String type) {
+    private BaseParser<? extends FunctionDefinition> getParser(YamlNode node, String type) {
+        if (type == null) return new FunctionDefinitionParser();
         return switch (type) {
             case FUNCTION_TYPE_AGGREGATOR -> new AggregatorDefinitionParser();
             case FUNCTION_TYPE_FOREACHACTION -> new ForEachActionDefinitionParser();
@@ -73,8 +56,7 @@ public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition
             case FUNCTION_TYPE_KEYTRANSFORMER -> new KeyTransformerDefinitionParser();
             case FUNCTION_TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER ->
                     new KeyValueToKeyValueListTransformerDefinitionParser();
-            case FUNCTION_TYPE_KEYVALUETOVALUELISTTRANSFORMER ->
-                    new KeyValueToValueListTransformerDefinitionParser();
+            case FUNCTION_TYPE_KEYVALUETOVALUELISTTRANSFORMER -> new KeyValueToValueListTransformerDefinitionParser();
             case FUNCTION_TYPE_KEYVALUEMAPPER, FUNCTION_TYPE_KEYVALUETRANSFORMER ->
                     new KeyValueTransformerDefinitionParser();
             case FUNCTION_TYPE_MERGER -> new MergerDefinitionParser();
@@ -83,7 +65,8 @@ public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition
             case FUNCTION_TYPE_STREAMPARTITIONER -> new StreamPartitionerDefinitionParser();
             case FUNCTION_TYPE_TOPICNAMEEXTRACTOR -> new TopicNameExtractorDefinitionParser();
             case FUNCTION_TYPE_VALUETRANSFORMER -> new ValueTransformerDefinitionParser();
-            default -> null;
+            case FUNCTION_TYPE_GENERIC -> new FunctionDefinitionParser();
+            default -> throw FatalError.parseError(node, "Unknown function type: " + type);
         };
     }
 }

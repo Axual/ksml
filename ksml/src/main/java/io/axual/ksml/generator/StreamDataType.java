@@ -21,6 +21,7 @@ package io.axual.ksml.generator;
  */
 
 
+import io.axual.ksml.execution.ExecutionContext;
 import org.apache.kafka.common.serialization.Serde;
 
 import io.axual.ksml.data.type.DataType;
@@ -71,6 +72,7 @@ public record StreamDataType(NotationLibrary notationLibrary, UserType userType,
     public Serde<Object> getSerde() {
         if (userType.dataType() instanceof UnionType unionType)
             return new UnionSerde(notationLibrary, cookUnion(unionType), isKey);
-        return notationLibrary.get(userType.notation()).getSerde(userType.dataType(), isKey);
+        var serde = notationLibrary.get(userType.notation()).getSerde(userType.dataType(), isKey);
+        return ExecutionContext.INSTANCE.wrapSerde(serde);
     }
 }

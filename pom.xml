@@ -49,23 +49,24 @@
 
     <modules>
         <module>ksml</module>
-        <module>ksml-axual</module>
         <module>ksml-query</module>
+        <module>ksml-kafka-clients</module>
         <module>ksml-runner</module>
         <module>ksml-data-generator</module>
         <module>ksml-reporting</module>
     </modules>
 
     <properties>
-        <apache.avro.version>1.11.1</apache.avro.version>
-        <apache.kafka.version>3.3.2</apache.kafka.version>
-        <axual.version>6.0.4</axual.version>
+        <apache.avro.version>1.11.3</apache.avro.version>
+        <apache.commons.text.version>1.10.0</apache.commons.text.version>
+        <apache.kafka.version>3.6.0</apache.kafka.version>
+        <auto-service.version>1.0.1</auto-service.version>
         <commons.logging.version>1.1</commons.logging.version>
         <confluent.version>7.3.1</confluent.version>
         <graalvm.version>22.3.0</graalvm.version>
         <gson.version>2.9.1</gson.version>
         <hamcrest.version>2.1</hamcrest.version>
-        <jackson.version>2.14.1</jackson.version>
+        <jackson.version>2.15.2</jackson.version>
         <java.source.version>17</java.source.version>
         <java.target.version>17</java.target.version>
         <jupiter.version>5.7.1</jupiter.version>
@@ -81,7 +82,7 @@
         <maven.install.version>3.0.0-M1</maven.install.version>
         <maven.license.plugin.version>1.9</maven.license.plugin.version>
         <maven.jacoco.plugin.version>0.8.8</maven.jacoco.plugin.version>
-        <opencsv.version>5.7.1</opencsv.version>
+        <opencsv.version>5.8</opencsv.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <slf4j.version>2.0.6</slf4j.version>
@@ -133,7 +134,7 @@
             </dependency>
             <dependency>
                 <groupId>io.axual.ksml</groupId>
-                <artifactId>ksml-axual</artifactId>
+                <artifactId>ksml-kafka-clients</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -158,11 +159,26 @@
                 <version>${apache.avro.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-text</artifactId>
+                <version>${apache.commons.text.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka-clients</artifactId>
+                <version>${apache.kafka.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka-streams</artifactId>
                 <version>${apache.kafka.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>io.axual.common</groupId>
+                <artifactId>axual-common</artifactId>
+                <version>${axual.version}</version>
+            </dependency>
             <dependency>
                 <groupId>io.confluent</groupId>
                 <artifactId>kafka-avro-serializer</artifactId>
@@ -226,16 +242,6 @@
             </dependency>
 
             <dependency>
-                <groupId>io.axual.client</groupId>
-                <artifactId>axual-client-proxy</artifactId>
-                <version>${axual.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.axual.streams</groupId>
-                <artifactId>axual-streams</artifactId>
-                <version>${axual.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${slf4j.version}</version>
@@ -260,6 +266,11 @@
                 <artifactId>lombok</artifactId>
                 <version>${lombok.version}</version>
                 <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.google.auto.service</groupId>
+                <artifactId>auto-service-annotations</artifactId>
+                <version>${auto-service.version}</version>
             </dependency>
             <dependency>
                 <groupId>ch.qos.logback</groupId>

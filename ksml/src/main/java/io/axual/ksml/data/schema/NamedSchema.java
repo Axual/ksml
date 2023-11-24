@@ -56,10 +56,8 @@ public abstract class NamedSchema extends DataSchema {
     public boolean isAssignableFrom(DataSchema otherSchema) {
         if (!super.isAssignableFrom(otherSchema)) return false;
         if (!(otherSchema instanceof NamedSchema otherNamedSchema)) return false;
-        // Return true if the other named schema contains the same metadata
-        return (Objects.equals(namespace, otherNamedSchema.namespace)
-                && Objects.equals(name, otherNamedSchema.name)
-                && Objects.equals(doc, otherNamedSchema.doc));
+        // Return true if the other named schema has the same name (ignore namespace and doc)
+        return Objects.equals(name, otherNamedSchema.name);
     }
 
     @Override

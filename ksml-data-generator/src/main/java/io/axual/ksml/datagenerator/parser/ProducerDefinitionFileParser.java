@@ -23,7 +23,7 @@ package io.axual.ksml.datagenerator.parser;
 
 import io.axual.ksml.KSMLConfig;
 import io.axual.ksml.data.schema.SchemaLibrary;
-import io.axual.ksml.datagenerator.config.producer.DataGeneratorConfig;
+import io.axual.ksml.datagenerator.config.GeneratorConfig;
 import io.axual.ksml.datagenerator.definition.ProducerDefinition;
 import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.generator.YAMLDefinition;
@@ -63,17 +63,17 @@ import static io.axual.ksml.dsl.KSMLDSL.STREAMS_DEFINITION;
  */
 public class ProducerDefinitionFileParser {
     private static final Logger LOG = LoggerFactory.getLogger(ProducerDefinitionFileParser.class);
-    private final DataGeneratorConfig config;
+    private final GeneratorConfig config;
 
-    public ProducerDefinitionFileParser(DataGeneratorConfig config) {
+    public ProducerDefinitionFileParser(GeneratorConfig config) {
         this.config = config;
     }
 
     private List<YAMLDefinition> readDefinitions() {
         try {
             // Parse source from file
-            LOG.info("Reading Producer Definition from source file(s): {}", config.definitions);
-            return YAMLReader.readYAML(YAMLObjectMapper.INSTANCE, config.workingDirectory, config.definitions);
+            LOG.info("Reading Producer Definition from source file(s): {}", config.getDefinitions());
+            return YAMLReader.readYAML(YAMLObjectMapper.INSTANCE, config.getConfigDirectory(), config.getDefinitions());
         } catch (IOException e) {
             LOG.info("Can not read YAML: {}", e.getMessage());
         }
@@ -83,10 +83,10 @@ public class ProducerDefinitionFileParser {
 
     public Map<String, ProducerDefinition> create(NotationLibrary notationLibrary, PythonContext pythonContext) {
         // Register schema loaders
-        SchemaLibrary.registerLoader(AvroNotation.NOTATION_NAME, new AvroSchemaLoader(config.workingDirectory));
-        SchemaLibrary.registerLoader(CsvNotation.NOTATION_NAME, new CsvSchemaLoader(config.workingDirectory));
-        SchemaLibrary.registerLoader(JsonNotation.NOTATION_NAME, new JsonSchemaLoader(config.workingDirectory));
-        SchemaLibrary.registerLoader(XmlNotation.NOTATION_NAME, new XmlSchemaLoader(config.workingDirectory));
+        SchemaLibrary.registerLoader(AvroNotation.NOTATION_NAME, new AvroSchemaLoader(config.getSchemaDirectory()));
+        SchemaLibrary.registerLoader(CsvNotation.NOTATION_NAME, new CsvSchemaLoader(config.getSchemaDirectory()));
+        SchemaLibrary.registerLoader(JsonNotation.NOTATION_NAME, new JsonSchemaLoader(config.getSchemaDirectory()));
+        SchemaLibrary.registerLoader(XmlNotation.NOTATION_NAME, new XmlSchemaLoader(config.getSchemaDirectory()));
 
         List<YAMLDefinition> definitions = readDefinitions();
         Map<String, ProducerDefinition> producers = new TreeMap<>();
@@ -144,7 +144,7 @@ public class ProducerDefinitionFileParser {
         new MapParser<>("function definition", new TypedFunctionDefinitionParser()).parse(node.get(FUNCTIONS_DEFINITION)).forEach(context::registerFunction);
         // Generate all the function code in the Python context
         for (var function : context.getFunctionDefinitions().entrySet()) {
-            new PythonFunction(pythonContext, function.getKey(), function.getValue());
+            PythonFunction.fromNamed(pythonContext, function.getKey(), function.getValue());
         }
 
         // Parse all defined message producers

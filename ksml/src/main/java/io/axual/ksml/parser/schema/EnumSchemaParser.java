@@ -38,7 +38,7 @@ public class EnumSchemaParser extends BaseParser<EnumSchema> {
                 parseString(node, NAMED_SCHEMA_NAMESPACE_FIELD),
                 parseString(node, NAMED_SCHEMA_NAME_FIELD),
                 parseString(node, NAMED_SCHEMA_DOC_FIELD),
-                new ListParser<>(new SymbolParser()).parse(node.get(ENUM_SCHEMA_POSSIBLEVALUES_FIELD)),
+                new ListParser<>("enumeration symbol", new SymbolParser()).parse(node.get(ENUM_SCHEMA_POSSIBLEVALUES_FIELD)),
                 parseString(node, ENUM_SCHEMA_DEFAULTVALUE_FIELD));
     }
 }

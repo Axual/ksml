@@ -76,8 +76,22 @@ public class DataSchema {
         return type.toString();
     }
 
-    public boolean isAssignableFrom(DataSchema schema) {
-        return schema != null && type == schema.type;
+    public boolean isAssignableFrom(DataSchema otherSchema) {
+        if (otherSchema == null) return false;
+
+        // Assignable if non of the union's possible types conflict
+        if (otherSchema instanceof UnionSchema otherUnion) {
+            for (var possibleSchema : otherUnion.possibleSchemas()) {
+                if (!this.isAssignableFrom(possibleSchema)) return false;
+            }
+            return true;
+        }
+
+        if (type == otherSchema.type) return true;
+        if (type == Type.STRING && otherSchema.type == Type.NULL) return true; // Allow assigning from NULL values
+        if (type == Type.STRING && otherSchema.type == Type.ENUM) return true; // ENUMs are convertable to String
+        if (type == Type.ENUM && otherSchema.type == Type.STRING) return true; // Strings are convertable to ENUM
+        return false;
     }
 
     @Override

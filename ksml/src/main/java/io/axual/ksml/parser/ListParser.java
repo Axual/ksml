@@ -21,23 +21,32 @@ package io.axual.ksml.parser;
  */
 
 
+import io.axual.ksml.execution.FatalError;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ListParser<V> extends BaseParser<List<V>> {
     private final BaseParser<V> valueParser;
+    private final String whatToParse;
 
-    public ListParser(BaseParser<V> valueParser) {
+    public ListParser(String whatToParse, BaseParser<V> valueParser) {
         this.valueParser = valueParser;
+        this.whatToParse = whatToParse;
     }
 
     @Override
     public List<V> parse(YamlNode node) {
         List<V> result = new ArrayList<>();
         if (node != null) {
+            var index = 0;
             for (YamlNode childNode : node.getChildren()) {
-                result.add(valueParser.parse(childNode));
+                try {
+                    index++;
+                    result.add(valueParser.parse(childNode));
+                } catch (RuntimeException e) {
+                    throw FatalError.parseError(node, "Error in " + whatToParse + " entry " + index, e);
+                }
             }
         }
         return result;

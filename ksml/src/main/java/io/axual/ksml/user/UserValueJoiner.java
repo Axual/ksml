@@ -28,14 +28,17 @@ import io.axual.ksml.util.DataUtil;
 import org.apache.kafka.streams.kstream.ValueJoiner;
 
 public class UserValueJoiner extends Invoker implements ValueJoiner<Object, Object, DataObject> {
+    private final static DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
+
     public UserValueJoiner(UserFunction function) {
         super(function);
         verifyParameterCount(2);
-        verifyResultReturned(DataType.UNKNOWN);
+        verifyResultType(EXPECTED_RESULT_TYPE);
     }
 
     @Override
     public DataObject apply(Object key, Object value) {
+        verifyAppliedResultType(EXPECTED_RESULT_TYPE);
         return function.call(DataUtil.asDataObject(key), DataUtil.asDataObject(value));
     }
 }

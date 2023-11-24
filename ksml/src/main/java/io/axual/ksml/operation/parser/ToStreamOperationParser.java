@@ -40,7 +40,7 @@ public class ToStreamOperationParser extends OperationParser<ToStreamOperation> 
     public ToStreamOperation parse(YamlNode node) {
         if (node == null) return null;
         return new ToStreamOperation(
-                operationConfig(name),
+                parseConfig(node, name),
                 parseOptionalFunction(node, TO_STREAM_MAPPER_ATTRIBUTE, new KeyTransformerDefinitionParser()));
     }
 }

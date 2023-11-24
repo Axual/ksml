@@ -5,16 +5,12 @@ streams:
     valueType: avro:SensorData
 
 functions:
-  print_message:
-    type: forEach
-    code: "print('key=' + str(key) + ', value=' + str(value))"
-
-  doubleEveryRecord:
+  double_this_record:
     type: keyValueToKeyValueListTransformer
     code: |
       if key == None:
         return []
-    expression: "[(key+'-1',value),(key+'-2',value)]"
+    expression: "[(key+'-COPY1',value),(key+'-COPY2',value)]"
     resultType: "[(string,avro:SensorData)]"
 
 pipelines:
@@ -22,16 +18,6 @@ pipelines:
     from: sensor_source
     via:
       - type: transformKeyValueToKeyValueList
-        name: double_transform
-        mapper: doubleEveryRecord
-      - type: peek
-        name: peek_and_print
-        forEach: print_message
-    toExtractor:
-      code: |
-        if key == 'sensor1':
-          return 'ksml_sensordata_sensor1'
-        elif key == 'sensor2':
-          return 'ksml_sensordata_sensor2'
-        else:
-          return 'ksml_sensordata_sensor0'
+        mapper: double_this_record
+    forEach:
+      code: log.info("GOT MESSAGE - key={}, value={}", key, value)

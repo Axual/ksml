@@ -25,6 +25,7 @@ import io.axual.ksml.definition.BaseStreamDefinition;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.parser.BaseStreamDefinitionParser;
 import io.axual.ksml.exception.KSMLParseException;
+import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
 
@@ -38,7 +39,11 @@ public abstract class ContextAwareParser<T> extends BaseParser<T> {
     }
 
     protected <F extends FunctionDefinition> UserFunction parseFunction(YamlNode parent, String childName, BaseParser<F> parser) {
-        return parseFunction(parent, childName, parser, false);
+        final var result = parseFunction(parent, childName, parser, true);
+        if (result == null) {
+            throw FatalError.parseError(parent, "Mandatory attribute \"" + childName + "\" is missing in the definition");
+        }
+        return result;
     }
 
     protected <F extends FunctionDefinition> UserFunction parseOptionalFunction(YamlNode parent, String childName, BaseParser<F> parser) {
@@ -47,20 +52,20 @@ public abstract class ContextAwareParser<T> extends BaseParser<T> {
     }
 
     protected <F extends FunctionDefinition> UserFunction parseFunction(YamlNode parent, String childName, BaseParser<F> parser, boolean allowNull) {
-        FunctionDefinition definition = new ReferenceOrInlineParser<>("function", childName, context.getFunctionDefinitions()::get, parser).parse(parent);
-        if (allowNull || definition != null) {
-            var functionName = parent.appendName(childName).getLongName();
-            UserFunction result = definition != null ? context.getUserFunction(definition, functionName) : null;
-            if (allowNull || result != null) {
-                return result;
-            }
+        final var namedDefinition = new ReferenceOrInlineParser<>("function", childName, context.getFunctionDefinitions()::get, parser).parse(parent);
+        final var childNode = parent.appendName(childName);
+        final var functionName = childNode.getLongName();
+        if (namedDefinition == null || namedDefinition.definition() == null) {
+            if (allowNull) return null;
             throw new KSMLParseException(parent, "Could not generate UserFunction for given definition: " + functionName);
         }
-        throw new KSMLParseException(parent, "User function definition not found, add '" + childName + "' to specification");
+        return namedDefinition.name() != null
+                ? context.createNamedUserFunction(functionName, namedDefinition.definition())
+                : context.createAnonUserFunction(functionName, namedDefinition.definition(), childNode);
     }
 
     protected <S extends BaseStreamDefinition> BaseStreamDefinition parseStreamInlineOrReference(YamlNode parent, String childName, BaseParser<S> parser) {
-        return new ReferenceOrInlineParser<>("stream", childName, context.getStreamDefinitions()::get, parser).parse(parent);
+        return new ReferenceOrInlineParser<>("stream", childName, context.getStreamDefinitions()::get, parser).parseDefinition(parent);
     }
 
     protected BaseStreamDefinition parseBaseStreamDefinition(YamlNode parent, String childName) {

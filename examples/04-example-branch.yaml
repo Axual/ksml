@@ -1,3 +1,8 @@
+# This example shows how to branch processing of messages from a simple stream. Here we fork processing of "blue
+# sensors" and "red sensors" into a separate branch each. All other sensors will be processed in a default branch.
+# Two separate pipelines act as validation of the branching logic, displaying what messages were sent to the blue
+# and red topics.
+
 streams:
   sensor_source:
     topic: ksml_sensordata_avro
@@ -12,35 +17,29 @@ streams:
     keyType: string
     valueType: avro:SensorData
 
-functions:
-  print_message:
-    type: forEach
-    code: "print('SOURCE key=' + str(key) + ', value=' + str(value))"
-
 pipelines:
   main:
     from: sensor_source
     via:
       - type: peek
-#        name: peek_and_print
-        forEach: print_message
+        forEach:
+          code: log.info("SOURCE MESSAGE - key={}, value={}", key, value)
     branch:
       - if:
-          expression: value != None and value['color'] == 'blue'
+          expression: value != None and value["color"] == "blue"
         to: sensor_blue
       - if:
-          expression: value != None and value['color'] == 'red'
+          expression: value != None and value["color"] == "red"
         to: sensor_red
       - forEach:
-          code: |
-            print('Unknown color sensor: '+str(value))
-  red_flow:
-    from: sensor_red
-    forEach:
-      type: forEach
-      code: "print('RED key=' + str(key) + ', value=' + str(value))"
+          code: log.warn("UNKNOWN COLOR - {}", value["color"])
+
   blue_flow:
     from: sensor_blue
     forEach:
-      type: forEach
-      code: "print('BLUE key=' + str(key) + ', value=' + str(value))"
+      code: log.info("FOUND BLUE SENSOR - key={}, value={}", key, value)
+
+  red_flow:
+    from: sensor_red
+    forEach:
+      code: log.info("FOUND RED SENSOR - key={}, value={}", key, value)

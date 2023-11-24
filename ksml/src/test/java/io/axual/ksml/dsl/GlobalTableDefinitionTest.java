@@ -20,6 +20,12 @@ package io.axual.ksml.dsl;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.definition.GlobalTableDefinition;
+import io.axual.ksml.notation.Notation;
+import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.notation.binary.BinaryNotation;
+import io.axual.ksml.parser.UserTypeParser;
+import io.axual.ksml.stream.GlobalKTableWrapper;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.junit.jupiter.api.Test;
@@ -28,13 +34,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.HashMap;
-
-import io.axual.ksml.definition.GlobalTableDefinition;
-import io.axual.ksml.notation.Notation;
-import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.notation.binary.BinaryNotation;
-import io.axual.ksml.parser.UserTypeParser;
-import io.axual.ksml.stream.GlobalKTableWrapper;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -61,7 +60,7 @@ class GlobalTableDefinitionTest {
         var tableDefinition = new GlobalTableDefinition("topic", "string", "string");
 
         // when it adds itself to Builder
-        var streamWrapper = tableDefinition.addToBuilder(builder, "name", notationLibrary);
+        var streamWrapper = tableDefinition.addToBuilder(builder, "name", notationLibrary, null);
 
         // it adds a ktable to the builder with key and value dataType, and returns a KTableWrapper instance
         final var stringType = UserTypeParser.parse("string");

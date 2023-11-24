@@ -21,64 +21,148 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.data.type.WindowedType;
+import io.axual.ksml.definition.KeyValueStateStoreDefinition;
+import io.axual.ksml.definition.SessionStateStoreDefinition;
+import io.axual.ksml.definition.StateStoreDefinition;
+import io.axual.ksml.definition.WindowStateStoreDefinition;
+import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.store.StateStoreRegistry;
+import io.axual.ksml.store.StoreType;
+import io.axual.ksml.store.StoreUtil;
 import org.apache.kafka.common.utils.Bytes;
-import org.apache.kafka.streams.kstream.Grouped;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.SessionStore;
 import org.apache.kafka.streams.state.WindowStore;
 
-import io.axual.ksml.data.type.WindowedType;
-import io.axual.ksml.definition.StoreDefinition;
-import io.axual.ksml.generator.StreamDataType;
-import io.axual.ksml.store.GroupedRegistry;
-import io.axual.ksml.store.StoreRegistry;
-import io.axual.ksml.store.StoreType;
-import io.axual.ksml.store.StoreUtil;
-
 public class StoreOperation extends BaseOperation {
-    protected final StoreDefinition store;
-    protected final GroupedRegistry groupedRegistry;
-    protected final StoreRegistry storeRegistry;
+    protected final StateStoreDefinition store;
+    protected final StateStoreRegistry stateStoreRegistry;
 
     public StoreOperation(StoreOperationConfig config) {
         super(config);
-        store = new StoreDefinition(
-                config.store.name() == null ? name : config.store.name(),
-                config.store.retention(),
-                config.store.caching()
-        );
-        this.groupedRegistry = config.groupedRegistry;
-        this.storeRegistry = config.storeRegistry;
+        this.store = config.store;
+        this.stateStoreRegistry = config.stateStoreRegistry;
     }
 
     @Override
     public String toString() {
-        return super.toString() + " [storeName=\"" + store.name() + "\"]";
+        return super.toString() + (store != null && store.name() != null ? " [storeName=\"" + store.name() + "\"]" : "");
     }
 
-    protected <K, V> Grouped<K, V> registerGrouped(Grouped<K, V> grouped) {
-        groupedRegistry.registerGrouped(grouped);
-        return grouped;
+    protected KeyValueStateStoreDefinition validateKeyValueStore(StateStoreDefinition store, StreamDataType keyType, StreamDataType valueType) {
+        return validateKeyValueStore(store, keyType.userType(), valueType.userType());
     }
 
-    protected <V> Materialized<Object, V, KeyValueStore<Bytes, byte[]>> registerKeyValueStore(StreamDataType keyType, StreamDataType valueType) {
-        storeRegistry.registerStore(StoreType.KEYVALUE_STORE, store, keyType, valueType);
-        return StoreUtil.createKeyValueStore(store, keyType, valueType);
+    protected KeyValueStateStoreDefinition validateKeyValueStore(StateStoreDefinition store, UserType keyType, UserType valueType) {
+        if (store == null) return null;
+        validateStore(store, keyType, valueType);
+        if (store instanceof KeyValueStateStoreDefinition def) {
+            return new KeyValueStateStoreDefinition(
+                    def.name(),
+                    def.persistent(),
+                    def.timestamped(),
+                    def.versioned(),
+                    def.historyRetention(),
+                    def.segmentInterval(),
+                    keyType != null ? keyType : def.keyType(),
+                    valueType != null ? valueType : def.valueType(),
+                    def.caching(),
+                    def.logging());
+        }
+        throw FatalError.executionError(this + " requires a  state store of type 'keyValue'");
     }
 
-    protected <V> Materialized<Object, V, SessionStore<Bytes, byte[]>> registerSessionStore(StreamDataType keyType, StreamDataType valueType) {
-        storeRegistry.registerStore(StoreType.SESSION_STORE, store, keyType, valueType);
-        return StoreUtil.createSessionStore(store, keyType, valueType);
+    protected SessionStateStoreDefinition validateSessionStore(StateStoreDefinition store, StreamDataType keyType, StreamDataType valueType) {
+        return validateSessionStore(store, keyType.userType(), valueType.userType());
     }
 
-    protected <V> Materialized<Object, V, WindowStore<Bytes, byte[]>> registerWindowStore(StreamDataType keyType, StreamDataType valueType) {
-        storeRegistry.registerStore(StoreType.WINDOW_STORE, store, keyType, valueType);
-        return StoreUtil.createWindowStore(store, keyType, valueType);
+    protected SessionStateStoreDefinition validateSessionStore(StateStoreDefinition store, UserType keyType, UserType valueType) {
+        if (store == null) return null;
+        validateStore(store, keyType, valueType);
+        if (store instanceof SessionStateStoreDefinition def) {
+            return new SessionStateStoreDefinition(
+                    def.name(),
+                    def.persistent(),
+                    def.timestamped(),
+                    def.retention(),
+                    keyType != null ? keyType : def.keyType(),
+                    valueType != null ? valueType : def.valueType(),
+                    def.caching(),
+                    def.logging());
+        }
+        throw FatalError.executionError(this + " requires a  state store of type 'session'");
     }
 
-    protected StreamDataType windowedTypeOf(StreamDataType type) {
-        var windowedType = new WindowedType(type.userType().dataType());
-        return streamDataTypeOf(type.userType().notation(), windowedType, type.isKey());
+    protected WindowStateStoreDefinition validateWindowStore(StateStoreDefinition store, StreamDataType keyType, StreamDataType valueType) {
+        return validateWindowStore(store, keyType.userType(), valueType.userType());
+    }
+
+    protected WindowStateStoreDefinition validateWindowStore(StateStoreDefinition store, UserType keyType, UserType valueType) {
+        if (store == null) return null;
+        validateStore(store, keyType, valueType);
+        if (store instanceof WindowStateStoreDefinition def) {
+            return new WindowStateStoreDefinition(
+                    def.name(),
+                    def.persistent(),
+                    def.timestamped(),
+                    def.retention(),
+                    def.windowSize(),
+                    def.retainDuplicates(),
+                    keyType != null ? keyType : def.keyType(),
+                    valueType != null ? valueType : def.valueType(),
+                    def.caching(),
+                    def.logging());
+        }
+        throw FatalError.executionError(this + " requires a  state store of type 'window'");
+    }
+
+    private void validateStore(StateStoreDefinition store, UserType keyType, UserType valueType) {
+        validateStoreTypeWithStreamType("key", store.keyType(), keyType);
+        validateStoreTypeWithStreamType("value", store.valueType(), valueType);
+    }
+
+    private void validateStoreTypeWithStreamType(String keyOrValue, UserType storeKeyOrValueType, UserType streamKeyOrValueType) {
+        if (streamKeyOrValueType == null) {
+            if (storeKeyOrValueType == null) {
+                throw FatalError.executionError("State store '" + store.name() + "' does not have a defined " + keyOrValue + " type");
+            }
+            return;
+        }
+
+        if (storeKeyOrValueType != null && !storeKeyOrValueType.dataType().isAssignableFrom(streamKeyOrValueType.dataType())) {
+            throw FatalError.executionError("Incompatible " + keyOrValue + " types for state store '" + store.name() + "': " + storeKeyOrValueType + " and " + streamKeyOrValueType);
+        }
+    }
+
+    private void storeTypeError(StateStoreDefinition store, StoreType expected) {
+        FatalError.executionError(toString() + " operation requires a " + expected + " state store, but got one of type " + store);
+    }
+
+    protected StreamDataType windowedTypeOf(StreamDataType keyType) {
+        return streamDataTypeOf(windowedTypeOf(keyType.userType()), true);
+    }
+
+    protected UserType windowedTypeOf(UserType keyType) {
+        var windowedType = new WindowedType(keyType.dataType());
+        return new UserType(keyType.notation(), windowedType);
+    }
+
+    protected <V> Materialized<Object, V, KeyValueStore<Bytes, byte[]>> materialize(KeyValueStateStoreDefinition store) {
+        stateStoreRegistry.registerStateStore(store);
+        return StoreUtil.materialize(store, notationLibrary);
+    }
+
+    protected <V> Materialized<Object, V, SessionStore<Bytes, byte[]>> materialize(SessionStateStoreDefinition store) {
+        stateStoreRegistry.registerStateStore(store);
+        return StoreUtil.materialize(store, notationLibrary);
+    }
+
+    protected <V> Materialized<Object, V, WindowStore<Bytes, byte[]>> materialize(WindowStateStoreDefinition store) {
+        stateStoreRegistry.registerStateStore(store);
+        return StoreUtil.materialize(store, notationLibrary);
     }
 }

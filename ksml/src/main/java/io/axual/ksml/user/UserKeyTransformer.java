@@ -24,18 +24,27 @@ package io.axual.ksml.user;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.python.Invoker;
+import io.axual.ksml.store.StateStores;
 import io.axual.ksml.util.DataUtil;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 
 public class UserKeyTransformer extends Invoker implements KeyValueMapper<Object, Object, Object> {
+    private final static DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
+
     public UserKeyTransformer(UserFunction function) {
         super(function);
         verifyParameterCount(2);
-        verifyResultReturned(DataType.UNKNOWN);
+        verifyResultType(EXPECTED_RESULT_TYPE);
     }
 
     @Override
     public DataObject apply(Object key, Object value) {
-        return function.call(DataUtil.asDataObject(key), DataUtil.asDataObject(value));
+        verifyNoStoresUsed();
+        return apply(null, key, value);
+    }
+
+    public DataObject apply(StateStores stores, Object key, Object value) {
+        verifyAppliedResultType(EXPECTED_RESULT_TYPE);
+        return function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
     }
 }

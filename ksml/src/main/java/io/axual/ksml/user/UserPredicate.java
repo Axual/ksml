@@ -21,22 +21,32 @@ package io.axual.ksml.user;
  */
 
 
-import org.apache.kafka.streams.kstream.Predicate;
-
 import io.axual.ksml.data.object.DataBoolean;
-import io.axual.ksml.util.DataUtil;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;
+import io.axual.ksml.store.StateStores;
+import io.axual.ksml.util.DataUtil;
+import org.apache.kafka.streams.kstream.Predicate;
 
 public class UserPredicate extends Invoker implements Predicate<Object, Object> {
+    private final static DataType EXPECTED_RESULT_TYPE = DataBoolean.DATATYPE;
+
     public UserPredicate(UserFunction function) {
         super(function);
         verifyParameterCount(2);
-        verifyResultType(DataBoolean.DATATYPE);
+        verifyResultType(EXPECTED_RESULT_TYPE);
     }
 
+    @Override
     public boolean test(Object key, Object value) {
-        var result = function.call(DataUtil.asDataObject(key), DataUtil.asDataObject(value));
+        verifyNoStoresUsed();
+        return test(null, key, value);
+    }
+
+    public boolean test(StateStores stores, Object key, Object value) {
+        verifyAppliedResultType(EXPECTED_RESULT_TYPE);
+        final var result = function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
         if (result instanceof DataBoolean dataBoolean) {
             return dataBoolean.value();
         }

@@ -21,10 +21,10 @@ package io.axual.ksml.parser;
  */
 
 
+import io.axual.ksml.execution.FatalError;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import io.axual.ksml.execution.FatalError;
 
 public class MapParser<V> extends BaseParser<Map<String, V>> {
     private final BaseParser<V> valueParser;
@@ -41,7 +41,9 @@ public class MapParser<V> extends BaseParser<Map<String, V>> {
         if (node != null) {
             for (YamlNode child : node.getChildren()) {
                 try {
-                    result.put(child.getName(), valueParser.parse(child));
+                    var name = child.getName();
+                    valueParser.setDefaultName(name);
+                    result.put(name, valueParser.parse(child));
                 } catch (RuntimeException e) {
                     throw FatalError.parseError(node, "Error in " + whatToParse + " \"" + child.getName() + "\"", e);
                 }

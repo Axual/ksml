@@ -31,11 +31,12 @@ public class UserReducer extends Invoker implements Reducer<Object> {
         super(function);
         verifyParameterCount(2);
         verify(function.parameters[0].type().equals(function.parameters[1].type()), "Reducer should take two parameters of the same dataType");
-        verify(function.parameters[0].type().equals(function.resultType.dataType()), "Reducer should return same dataType as its parameters");
+        verifyResultType(function.parameters[0].type());
     }
 
     @Override
     public DataObject apply(Object value1, Object value2) {
+        verifyAppliedResultType(function.parameters[0].type());
         return function.call(DataUtil.asDataObject(value1), DataUtil.asDataObject(value2));
     }
 }

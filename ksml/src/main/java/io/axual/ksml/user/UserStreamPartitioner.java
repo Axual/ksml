@@ -21,6 +21,7 @@ package io.axual.ksml.user;
  */
 
 
+import io.axual.ksml.data.type.DataType;
 import org.apache.kafka.streams.processor.StreamPartitioner;
 
 import io.axual.ksml.data.object.DataInteger;
@@ -30,16 +31,18 @@ import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;
 
 public class UserStreamPartitioner extends Invoker implements StreamPartitioner<Object, Object> {
+    private final static DataType EXPECTED_RESULT_TYPE = DataInteger.DATATYPE;
 
     public UserStreamPartitioner(UserFunction function) {
         super(function);
         verifyParameterCount(4);
-        verifyResultType(DataInteger.DATATYPE);
+        verifyResultType(EXPECTED_RESULT_TYPE);
     }
 
     @Override
     public Integer partition(String topic, Object key, Object value, int numPartitions) {
-        var result = function.call(new DataString(topic), DataUtil.asDataObject(key), DataUtil.asDataObject(value), new DataInteger(numPartitions));
+        verifyAppliedResultType(EXPECTED_RESULT_TYPE);
+        final var result = function.call(new DataString(topic), DataUtil.asDataObject(key), DataUtil.asDataObject(value), new DataInteger(numPartitions));
         if (result instanceof DataInteger dataInteger) {
             return dataInteger.value();
         }

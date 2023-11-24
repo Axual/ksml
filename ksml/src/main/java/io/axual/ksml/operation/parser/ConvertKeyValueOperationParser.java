@@ -43,7 +43,7 @@ public class ConvertKeyValueOperationParser extends OperationParser<ConvertKeyVa
         if (node == null) return null;
         UserType target = UserTypeParser.parse(parseString(node, CONVERT_INTO_ATTRIBUTE));
         if (target.dataType() instanceof UserTupleType userTupleType && userTupleType.subTypeCount() == 2) {
-            return new ConvertKeyValueOperation(operationConfig(name), userTupleType.getUserType(0), userTupleType.getUserType(1));
+            return new ConvertKeyValueOperation(parseConfig(node, name), userTupleType.getUserType(0), userTupleType.getUserType(1));
         }
         throw FatalError.parseError(node, "The type to convert to should be a tuple consisting of two subtypes. For example '(string,avro:SomeSchema)");
     }

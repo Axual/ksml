@@ -22,14 +22,12 @@ package io.axual.ksml.runner.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class KSMLRunnerConfigTest {
@@ -49,8 +47,7 @@ class KSMLRunnerConfigTest {
 
         ksmlRunnerConfig.validate();
 
-        assertNotNull(ksmlRunnerConfig.getKSMLRunnerKsmlConfig());
-        assertNotNull(ksmlRunnerConfig.getBackendConfig());
-        assertEquals("kafka", ksmlRunnerConfig.getBackendConfig().getType());
+        assertNotNull(ksmlRunnerConfig.getKsmlConfig());
+        assertNotNull(ksmlRunnerConfig.getKafkaConfig());
     }
 }

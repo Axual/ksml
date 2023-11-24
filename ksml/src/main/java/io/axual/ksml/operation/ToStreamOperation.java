@@ -47,18 +47,17 @@ public class ToStreamOperation extends BaseOperation {
          *          final Named named)
          */
 
-        var k = input.keyType().userType().dataType();
-        var v = input.valueType().userType().dataType();
-        var kr = mapper != null ? mapper.resultType.dataType() : k;
-        if (mapper != null) checkFunction(MAPPER_NAME, mapper, equalTo(kr), superOf(k), superOf(v));
+        final var k = input.keyType();
+        final var v = input.valueType();
+        final var kr = mapper != null ? streamDataTypeOf(firstSpecificType(mapper, k), true) : k;
+        if (mapper != null) checkFunction(MAPPER_NAME, mapper, kr, superOf(k), superOf(v));
 
-        KeyValueMapper<Object, Object, Object> userMapper = mapper != null
+        final KeyValueMapper<Object, Object, Object> userMapper = mapper != null
                 ? new UserKeyTransformer(mapper)
                 : (key, value) -> DataUtil.asDataObject(key);
-
-        return new KStreamWrapper(
-                input.table.toStream(userMapper, Named.as(name)),
-                input.keyType(),
-                input.valueType());
+        final var output = name != null
+                ? input.table.toStream(userMapper, Named.as(name))
+                : input.table.toStream(userMapper);
+        return new KStreamWrapper(output, kr, v);
     }
 }

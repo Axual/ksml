@@ -23,6 +23,7 @@ package io.axual.ksml.parser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import io.axual.ksml.exception.KSMLExecutionException;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -30,8 +31,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import io.axual.ksml.exception.KSMLExecutionException;
 
 // This class helps to track the location of syntax/parsing errors in the YAML by maintaining a
 // list of direct parents to a certain JsonNode.
@@ -56,6 +55,10 @@ public class YamlNode {
 
     private String getPathInternal(String separator) {
         return (parent != null ? parent.getPathInternal(separator) + separator : "") + name;
+    }
+
+    public String getDottedName() {
+        return getPathInternal(".");
     }
 
     public String getLongName() {

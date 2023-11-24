@@ -40,7 +40,7 @@ public class TransformKeyValueToKeyValueListOperationParser extends OperationPar
     public TransformKeyValueToKeyValueListOperation parse(YamlNode node) {
         if (node == null) return null;
         return new TransformKeyValueToKeyValueListOperation(
-                operationConfig(name),
+                parseConfig(node, name),
                 parseFunction(node, TRANSFORMKEYVALUETOKEYVALUELIST_MAPPER_ATTRIBUTE, new KeyValueToKeyValueListTransformerDefinitionParser()));
     }
 }

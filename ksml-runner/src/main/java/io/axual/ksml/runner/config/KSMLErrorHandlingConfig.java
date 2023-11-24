@@ -27,7 +27,6 @@ import lombok.Setter;
 @Setter
 //@Getter
 public class KSMLErrorHandlingConfig {
-
     private ErrorHandlingConfig consume;
     private ErrorHandlingConfig produce;
     private ErrorHandlingConfig process;

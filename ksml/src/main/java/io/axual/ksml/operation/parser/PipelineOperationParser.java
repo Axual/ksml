@@ -79,7 +79,8 @@ public class PipelineOperationParser extends ContextAwareParser<StreamOperation>
             case OPERATION_REPARTITION_TYPE -> new RepartitionOperationParser(name, context);
             case OPERATION_SUPPRESS_TYPE -> new SuppressOperationParser(name, context);
             case OPERATION_TOSTREAM_TYPE -> new ToStreamOperationParser(name, context);
-            case OPERATION_WINDOWEDBY_TYPE -> new WindowedByOperationParser(name, context);
+            case OPERATION_WINDOWBYTIME_TYPE -> new WindowByTimeOperationParser(name,context);
+            case OPERATION_WINDOWBYSESSION_TYPE -> new WindowBySessionOperationParser(name,context);
             default -> null;
         };
     }

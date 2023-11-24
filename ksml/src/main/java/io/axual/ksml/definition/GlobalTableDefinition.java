@@ -21,15 +21,15 @@ package io.axual.ksml.definition;
  */
 
 
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.kstream.Consumed;
-
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.parser.UserTypeParser;
+import io.axual.ksml.store.StateStoreRegistry;
 import io.axual.ksml.stream.GlobalKTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.kstream.Consumed;
 
 public class GlobalTableDefinition extends BaseStreamDefinition {
     public GlobalTableDefinition(String topic, String keyType, String valueType) {
@@ -41,12 +41,10 @@ public class GlobalTableDefinition extends BaseStreamDefinition {
     }
 
     @Override
-    public StreamWrapper addToBuilder(StreamsBuilder builder, String name, NotationLibrary notationLibrary) {
-        var streamKey = new StreamDataType(notationLibrary, keyType, true);
-        var streamValue = new StreamDataType(notationLibrary, valueType, false);
-        return new GlobalKTableWrapper(
-                builder.globalTable(topic, Consumed.with(streamKey.getSerde(), streamValue.getSerde()).withName(name)),
-                streamKey,
-                streamValue);
+    public StreamWrapper addToBuilder(StreamsBuilder builder, String name, NotationLibrary notationLibrary, StateStoreRegistry storeRegistry) {
+        final var streamKey = new StreamDataType(notationLibrary, keyType, true);
+        final var streamValue = new StreamDataType(notationLibrary, valueType, false);
+        final var consumed = Consumed.as(name).withKeySerde(streamKey.getSerde()).withValueSerde(streamValue.getSerde());
+        return new GlobalKTableWrapper(builder.globalTable(topic, consumed), streamKey, streamValue);
     }
 }

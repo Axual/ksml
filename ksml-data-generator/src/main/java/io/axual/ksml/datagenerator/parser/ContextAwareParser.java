@@ -45,15 +45,16 @@ public abstract class ContextAwareParser<T> extends BaseParser<T> {
     }
 
     protected <F extends FunctionDefinition> UserFunction parseFunction(YamlNode parent, String childName, BaseParser<F> parser, boolean allowNull) {
-        FunctionDefinition definition = new ReferenceOrInlineParser<>("function", childName, context.getFunctionDefinitions()::get, parser).parse(parent);
-        if (allowNull || definition != null) {
-            var functionName = parent.appendName(childName).getLongName();
-            UserFunction result = definition != null ? context.getUserFunction(definition, functionName) : null;
-            if (allowNull || result != null) {
-                return result;
-            }
-            throw new KSMLParseException(parent, "Could not generate UserFunction for given definition: " + functionName);
+        final var namedDefinition = new ReferenceOrInlineParser<>("function", childName, context.getFunctionDefinitions()::get, parser).parse(parent);
+        final var definition = namedDefinition != null ? namedDefinition.definition() : null;
+        if (definition == null) {
+            if (allowNull) return null;
+            throw new KSMLParseException(parent, "User function definition not found, add '" + childName + "' to specification");
         }
-        throw new KSMLParseException(parent, "User function definition not found, add '" + childName + "' to specification");
+        var childNode = parent.appendName(childName);
+        var functionName = childNode.getLongName();
+        return namedDefinition.name() != null
+                ? context.createNamedUserFunction(functionName, definition)
+                : context.createAnonUserFunction(functionName, definition, childNode);
     }
 }

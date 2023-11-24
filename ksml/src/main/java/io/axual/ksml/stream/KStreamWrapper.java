@@ -21,10 +21,9 @@ package io.axual.ksml.stream;
  */
 
 
-import org.apache.kafka.streams.kstream.KStream;
-
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.operation.StreamOperation;
+import org.apache.kafka.streams.kstream.KStream;
 
 public class KStreamWrapper extends BaseStreamWrapper {
     public final KStream<Object, Object> stream;

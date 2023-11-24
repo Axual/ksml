@@ -40,7 +40,7 @@ public class TransformKeyValueOperationParser extends OperationParser<TransformK
     public TransformKeyValueOperation parse(YamlNode node) {
         if (node == null) return null;
         return new TransformKeyValueOperation(
-                operationConfig(name),
+                parseConfig(node, name),
                 parseFunction(node, TRANSFORMKEYVALUE_MAPPER_ATTRIBUTE, new KeyValueTransformerDefinitionParser()));
     }
 }

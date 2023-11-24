@@ -12,14 +12,6 @@ streams:
     valueType: avro:SensorDataNoColor
 
 functions:
-  print_input_message:
-    type: forEach
-    code: "print('INPUT key=' + str(key) + ', value=' + str(value))"
-
-  print_output_message:
-    type: forEach
-    code: "print('OUTPUT key=' + str(key) + ', value=' + str(value))"
-
   # This function changes the "owner" field and returns the modified version
   replace_owner:
     type: valueTransformer
@@ -52,13 +44,16 @@ pipelines:
   main:
     from: sensor_source
     via:
-     - type: peek
-       forEach: print_input_message
-     - type: transformValue
-       mapper: replace_owner
-     - type: transformValue
-       mapper: remove_color
+      - type: peek
+        forEach:
+          code: log.info("INPUT - key={}, value={}", key, value)
+      - type: transformValue
+        mapper: replace_owner
+      - type: transformValue
+        mapper: remove_color
     to: sensor_target
+
   validate:
     from: sensor_target
-    forEach: print_output_message
+    forEach:
+      code: log.info("OUTPUT - key={}, value={}", key, value)

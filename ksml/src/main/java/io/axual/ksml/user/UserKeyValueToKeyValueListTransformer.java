@@ -28,6 +28,7 @@ import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;
+import io.axual.ksml.store.StateStores;
 import io.axual.ksml.util.DataUtil;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
@@ -36,30 +37,35 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class UserKeyValueToKeyValueListTransformer extends Invoker implements KeyValueMapper<Object, Object, Iterable<KeyValue<Object, Object>>> {
-    private final DataType resultKeyType;
-    private final DataType resultValueType;
+    private final static DataType EXPECTED_RESULT_TYPE = new ListType(new TupleType(DataType.UNKNOWN, DataType.UNKNOWN));
 
     public UserKeyValueToKeyValueListTransformer(UserFunction function) {
         super(function);
         verifyParameterCount(2);
-        verifyResultReturned(new ListType(new TupleType(DataType.UNKNOWN, DataType.UNKNOWN)));
-
-        // If the above check worked, then we can safely perform the following cast
-        var tupleType = (TupleType) ((ListType) function.resultType.dataType()).valueType();
-        resultKeyType = tupleType.subType(0);
-        resultValueType = tupleType.subType(1);
+        verifyResultType(EXPECTED_RESULT_TYPE);
     }
 
     @Override
     public Iterable<KeyValue<Object, Object>> apply(Object key, Object value) {
-        var result = function.call(DataUtil.asDataObject(key), DataUtil.asDataObject(value));
+        verifyNoStoresUsed();
+        return apply(null, key, value);
+    }
+
+    public Iterable<KeyValue<Object, Object>> apply(StateStores stores, Object key, Object value) {
+        verifyAppliedResultType(EXPECTED_RESULT_TYPE);
+        // If the above check worked, then we can safely perform the following cast
+        final var tupleType = (TupleType) ((ListType) function.appliedResultType.dataType()).valueType();
+        final var kr = tupleType.subType(0);
+        final var vr = tupleType.subType(1);
+
+        final var result = function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
         if (result == null) return Collections.emptyList();
 
         // We need to convert the resulting messages to KeyValue tuples as per the method signature
         if (result instanceof DataList list) {
-            var convertedResult = new ArrayList<KeyValue<Object, Object>>();
+            final var convertedResult = new ArrayList<KeyValue<Object, Object>>();
             for (DataObject element : list) {
-                var convertedKeyValue = function.convertToKeyValue(element, resultKeyType, resultValueType);
+                final var convertedKeyValue = function.convertToKeyValue(element, kr, vr);
                 convertedResult.add(convertedKeyValue);
             }
             return convertedResult;

@@ -1,4 +1,2 @@
-workingDirectory: .
 definitions:
 - src/test/resources/example-definition.yaml
-

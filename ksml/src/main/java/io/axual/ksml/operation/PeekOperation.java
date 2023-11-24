@@ -21,14 +21,15 @@ package io.axual.ksml.operation;
  */
 
 
-
-import org.apache.kafka.streams.kstream.Named;
-
 import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.operation.processor.OperationProcessorSupplier;
+import io.axual.ksml.operation.processor.PeekProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserForeachAction;
 import io.axual.ksml.user.UserFunction;
+import org.apache.kafka.streams.kstream.Named;
 
 public class PeekOperation extends BaseOperation {
     private static final String FOREACHACTION_NAME = "ForEachAction";
@@ -47,10 +48,20 @@ public class PeekOperation extends BaseOperation {
          *          final Named named)
          */
 
-        var k = input.keyType().userType().dataType();
-        var v = input.valueType().userType().dataType();
-        checkFunction(FOREACHACTION_NAME, forEachAction, equalTo(DataNull.DATATYPE), superOf(k), superOf(v));
+        final var k = input.keyType();
+        final var v = input.valueType();
+        checkFunction(FOREACHACTION_NAME, forEachAction, new UserType(DataNull.DATATYPE), superOf(k), superOf(v));
 
-        return new KStreamWrapper(input.stream.peek(new UserForeachAction(forEachAction), Named.as(name)), input.keyType(), input.valueType());
+        final var action = new UserForeachAction(forEachAction);
+        final var storeNames = combineStoreNames(this.storeNames, forEachAction.storeNames);
+        final var supplier = new OperationProcessorSupplier<>(
+                name,
+                PeekProcessor::new,
+                (stores, record) -> action.apply(stores, record.key(), record.value()),
+                storeNames);
+        final var output = name != null
+                ? input.stream.process(supplier, Named.as(name), storeNames)
+                : input.stream.process(supplier, storeNames);
+        return new KStreamWrapper(output, k, v);
     }
 }

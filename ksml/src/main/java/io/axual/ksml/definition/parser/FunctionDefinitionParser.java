@@ -25,20 +25,26 @@ import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.ListParser;
+import io.axual.ksml.parser.StringValueParser;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class FunctionDefinitionParser extends BaseParser<FunctionDefinition> {
+    public FunctionDefinitionParser() {
+        super(value -> value ? "True" : "False");
+    }
+
     @Override
     public FunctionDefinition parse(YamlNode node) {
         if (node == null) return null;
         return FunctionDefinition.as(
-                new ListParser<>(new ParameterDefinitionParser()).parse(node.get(FUNCTION_PARAMETERS_ATTRIBUTE)).toArray(new ParameterDefinition[0]),
+                new ListParser<>("function parameter", new ParameterDefinitionParser()).parse(node.get(FUNCTION_PARAMETERS_ATTRIBUTE)).toArray(new ParameterDefinition[0]),
                 UserTypeParser.parse(parseString(node, FUNCTION_RESULTTYPE_ATTRIBUTE)),
                 parseString(node, FUNCTION_EXPRESSION_ATTRIBUTE),
                 parseMultilineText(node, FUNCTION_CODE_ATTRIBUTE),
-                parseMultilineText(node, FUNCTION_GLOBALCODE_ATTRIBUTE));
+                parseMultilineText(node, FUNCTION_GLOBALCODE_ATTRIBUTE),
+                new ListParser<>("function store", new StringValueParser()).parse(node.get(FUNCTION_STORES_ATTRIBUTE)));
     }
 }

@@ -21,18 +21,16 @@ package io.axual.ksml.operation;
  */
 
 
-import org.apache.kafka.streams.kstream.KTable;
-import org.apache.kafka.streams.kstream.Named;
-
 import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.type.UserType;
-import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.KGroupedTableWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.SessionWindowedKStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
+import org.apache.kafka.streams.kstream.KTable;
+import org.apache.kafka.streams.kstream.Named;
 
 public class CountOperation extends StoreOperation {
     public CountOperation(StoreOperationConfig config) {
@@ -41,49 +39,82 @@ public class CountOperation extends StoreOperation {
 
     @Override
     public StreamWrapper apply(KGroupedStreamWrapper input) {
-        final StreamDataType resultValueType = streamDataTypeOf(UserType.DEFAULT_NOTATION, DataLong.DATATYPE, false);
+        /*    Kafka Streams method signature:
+         *    KTable<K, Long> count(
+         *          final Named named,
+         *          final Materialized<K, Long, KeyValueStore<Bytes, byte[]>> materialized)
+         */
 
-        return new KTableWrapper(
-                (KTable) input.groupedStream.count(
-                        Named.as(name),
-                        registerKeyValueStore(input.keyType(), resultValueType)),
-                input.keyType(),
-                resultValueType);
+        final var k = input.keyType();
+        final var vr = streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
+        final var kvStore = validateKeyValueStore(store, k, vr);
+        final var output = kvStore != null
+                ? (KTable) input.groupedStream.count(
+                Named.as(name),
+                materialize(kvStore))
+                : (KTable) input.groupedStream.count(
+                Named.as(name));
+        return new KTableWrapper(output, k, vr);
     }
 
     @Override
     public StreamWrapper apply(KGroupedTableWrapper input) {
-        final StreamDataType resultValueType = streamDataTypeOf(UserType.DEFAULT_NOTATION, DataLong.DATATYPE, false);
+        /*    Kafka Streams method signature:
+         *    KTable<K, Long> count(
+         *          final Named named,
+         *          final Materialized<K, Long, KeyValueStore<Bytes, byte[]>> materialized)
+         */
 
-        return new KTableWrapper(
-                (KTable) input.groupedTable.count(
-                        Named.as(name),
-                        registerKeyValueStore(input.keyType(), resultValueType)),
-                input.keyType(),
-                resultValueType);
+        final var k = input.keyType();
+        final var vr = streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
+        final var kvStore = validateKeyValueStore(store, k, vr);
+        final var output = kvStore != null
+                ? (KTable) input.groupedTable.count(
+                Named.as(name),
+                materialize(kvStore))
+                : (KTable) input.groupedTable.count(
+                Named.as(name));
+        return new KTableWrapper(output, k, vr);
     }
 
     @Override
     public StreamWrapper apply(SessionWindowedKStreamWrapper input) {
-        final StreamDataType resultValueType = streamDataTypeOf(UserType.DEFAULT_NOTATION, DataLong.DATATYPE, false);
+        /*    Kafka Streams method signature:
+         *    KTable<Windowed<K>, Long> count(
+         *          final Named named,
+         *          final Materialized<K, Long, SessionStore<Bytes, byte[]>> materialized)
+         */
 
-        return new KTableWrapper(
-                (KTable) input.sessionWindowedKStream.count(
-                        Named.as(name),
-                        registerSessionStore(input.keyType(), resultValueType)),
-                windowedTypeOf(input.keyType()),
-                resultValueType);
+        final var k = input.keyType();
+        final var vr = streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
+        final var sessionStore = validateSessionStore(store, k, vr);
+        final var output = sessionStore != null
+                ? (KTable) input.sessionWindowedKStream.count(
+                Named.as(name),
+                materialize(sessionStore))
+                : (KTable) input.sessionWindowedKStream.count(
+                Named.as(name));
+        return new KTableWrapper(output, k, vr);
     }
 
     @Override
     public StreamWrapper apply(TimeWindowedKStreamWrapper input) {
-        StreamDataType resultValueType = streamDataTypeOf(UserType.DEFAULT_NOTATION, DataLong.DATATYPE, false);
+        /*    Kafka Streams method signature:
+         *    KTable<Windowed<K>, Long> count(
+         *          final Named named,
+         *          final Materialized<K, Long, WindowStore<Bytes, byte[]>> materialized)
+         */
 
-        return new KTableWrapper(
-                (KTable) input.timeWindowedKStream.count(
-                        Named.as(name),
-                        registerWindowStore(input.keyType(), resultValueType)),
-                windowedTypeOf(input.keyType()),
-                resultValueType);
+        final var k = input.keyType();
+        final var vr = streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
+        final var windowedK = windowedTypeOf(k);
+        final var windowStore = validateWindowStore(store, k, vr);
+        final var output = windowStore != null
+                ? (KTable) input.timeWindowedKStream.count(
+                Named.as(name),
+                materialize(windowStore))
+                : (KTable) input.timeWindowedKStream.count(
+                Named.as(name));
+        return new KTableWrapper(output, windowedK, vr);
     }
 }

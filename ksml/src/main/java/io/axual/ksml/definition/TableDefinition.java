@@ -21,57 +21,42 @@ package io.axual.ksml.definition;
  */
 
 
-import org.apache.kafka.common.utils.Bytes;
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.kstream.Consumed;
-import org.apache.kafka.streams.kstream.Materialized;
-import org.apache.kafka.streams.state.KeyValueStore;
-
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.parser.UserTypeParser;
-import io.axual.ksml.store.StoreRegistry;
-import io.axual.ksml.store.StoreType;
+import io.axual.ksml.store.StateStoreRegistry;
 import io.axual.ksml.store.StoreUtil;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.kstream.Consumed;
 
 public class TableDefinition extends BaseStreamDefinition {
-    private final boolean queryable;
-    private final StoreRegistry storeRegistry;
+    public final KeyValueStateStoreDefinition store;
 
-    public TableDefinition(String topic, String keyType, String valueType, boolean queryable, StoreRegistry storeRegistry) {
-        this(topic, UserTypeParser.parse(keyType), UserTypeParser.parse(valueType), queryable, storeRegistry);
+    public TableDefinition(String topic, String keyType, String valueType, KeyValueStateStoreDefinition store) {
+        this(topic, UserTypeParser.parse(keyType), UserTypeParser.parse(valueType), store);
     }
 
-    public TableDefinition(String topic, UserType keyType, UserType valueType, boolean queryable, StoreRegistry storeRegistry) {
+    public TableDefinition(String topic, UserType keyType, UserType valueType, KeyValueStateStoreDefinition store) {
         super(topic, keyType, valueType);
-        this.queryable = queryable;
-        this.storeRegistry = storeRegistry;
+        this.store = store;
     }
 
     @Override
-    public StreamWrapper addToBuilder(StreamsBuilder builder, String name, NotationLibrary notationLibrary) {
-        var streamKey = new StreamDataType(notationLibrary, keyType, true);
-        var streamValue = new StreamDataType(notationLibrary, valueType, false);
+    public StreamWrapper addToBuilder(StreamsBuilder builder, String name, NotationLibrary notationLibrary, StateStoreRegistry storeRegistry) {
+        final var streamKey = new StreamDataType(notationLibrary, keyType, true);
+        final var streamValue = new StreamDataType(notationLibrary, valueType, false);
 
-        if (queryable) {
-            var store = new StoreDefinition(name, null, null);
-            storeRegistry.registerStore(StoreType.KEYVALUE_STORE, store, streamKey, streamValue);
-            var mat = StoreUtil.createKeyValueStore(store, streamKey, streamValue);
+        if (store != null) {
+            // Register the state store and mark as already created (by Kafka Streams framework, not by user)
+            if (storeRegistry != null) storeRegistry.registerStateStore(store);
+            final var mat = StoreUtil.materialize(store, notationLibrary);
             return new KTableWrapper(builder.table(topic, mat), streamKey, streamValue);
         }
 
-        var keySerde = streamKey.getSerde();
-        var valueSerde = streamValue.getSerde();
-
-        var materialized = Materialized
-                .<Object, Object, KeyValueStore<Bytes, byte[]>>as(name)
-                .withKeySerde(keySerde)
-                .withValueSerde(valueSerde)
-                .withStoreType(Materialized.StoreType.IN_MEMORY);
-        var consumed = Consumed.with(keySerde, valueSerde).withName(name);
-        return new KTableWrapper(builder.table(topic, consumed, materialized), streamKey, streamValue);
+        final var consumed = Consumed.as(name).withKeySerde(streamKey.getSerde()).withValueSerde(streamValue.getSerde());
+        return new KTableWrapper(builder.table(topic, consumed), streamKey, streamValue);
     }
 }

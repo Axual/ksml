@@ -20,8 +20,20 @@ package io.axual.ksml.store;
  * =========================LICENSE_END==================================
  */
 
+import static io.axual.ksml.dsl.KSMLDSL.*;
+
 public enum StoreType {
-    KEYVALUE_STORE,
-    SESSION_STORE,
-    WINDOW_STORE
+    KEYVALUE_STORE(STORE_TYPE_KEYVALUE),
+    SESSION_STORE(STORE_TYPE_SESSION),
+    WINDOW_STORE(STORE_TYPE_WINDOW);
+
+    private final String externalName;
+
+    StoreType(String externalName) {
+        this.externalName = externalName;
+    }
+
+    public String externalName() {
+        return externalName;
+    }
 }

@@ -40,7 +40,7 @@ public class FilterNotOperationParser extends OperationParser<FilterNotOperation
     public FilterNotOperation parse(YamlNode node) {
         if (node == null) return null;
         return new FilterNotOperation(
-                operationConfig(name),
+                parseConfig(node, name),
                 parseFunction(node, FILTERNOT_PREDICATE_ATTRIBUTE, new PredicateDefinitionParser())
         );
     }

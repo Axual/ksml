@@ -21,36 +21,19 @@ package io.axual.ksml.operation;
  */
 
 
-import org.apache.kafka.streams.kstream.Named;
-
-import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.UserForeachAction;
 import io.axual.ksml.user.UserFunction;
 
-public class ForEachOperation extends BaseOperation {
-    private static final String FOREACHACTION_NAME = "ForEachAction";
-    private final UserFunction forEachAction;
+public class ForEachOperation extends PeekOperation {
 
     public ForEachOperation(OperationConfig config, UserFunction forEachAction) {
-        super(config);
-        this.forEachAction = forEachAction;
+        super(config, forEachAction);
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input) {
-        /*    Kafka Streams method signature:
-         *    KTable<K, V> filterNot(
-         *          final Predicate<? super K, ? super V> predicate
-         *          final Named named)
-         */
-
-        var k = input.keyType().userType().dataType();
-        var v = input.valueType().userType().dataType();
-        checkFunction(FOREACHACTION_NAME, forEachAction, equalTo(DataNull.DATATYPE), superOf(k), superOf(v));
-
-        input.stream.foreach(new UserForeachAction(forEachAction), Named.as(name));
+        super.apply(input);
         return null;
     }
 }

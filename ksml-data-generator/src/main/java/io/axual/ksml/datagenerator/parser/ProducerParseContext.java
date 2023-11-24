@@ -25,6 +25,7 @@ import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonFunction;
 import io.axual.ksml.user.UserFunction;
@@ -71,8 +72,13 @@ public class ProducerParseContext implements ParseContext {
     }
 
     @Override
-    public UserFunction getUserFunction(FunctionDefinition definition, String name) {
-        return new PythonFunction(pythonContext, name, definition);
+    public UserFunction createAnonUserFunction(String name, FunctionDefinition definition, YamlNode node) {
+        return PythonFunction.fromAnon(pythonContext, name, definition, node.getDottedName());
+    }
+
+    @Override
+    public UserFunction createNamedUserFunction(String name, FunctionDefinition definition) {
+        return PythonFunction.fromNamed(pythonContext, name, definition);
     }
 
     @Override

@@ -40,7 +40,7 @@ public class PeekOperationParser extends OperationParser<PeekOperation> {
     public PeekOperation parse(YamlNode node) {
         if (node == null) return null;
         return new PeekOperation(
-                operationConfig(name),
+                parseConfig(node, name),
                 parseFunction(node, PEEK_FOREACH_ATTRIBUTE, new ForEachActionDefinitionParser()));
     }
 }

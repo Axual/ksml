@@ -44,20 +44,21 @@ public class ToOperation extends BaseOperation {
          *          final Produced<K, V> produced)
          */
 
-        var k = input.keyType().userType().dataType();
-        var v = input.valueType().userType().dataType();
+        final var k = input.keyType();
+        final var v = input.valueType();
+        final var kr = target.keyType.dataType() != DataType.UNKNOWN
+                ? streamDataTypeOf(target.keyType, true)
+                : k;
+        final var vr = target.valueType.dataType() != DataType.UNKNOWN
+                ? streamDataTypeOf(target.valueType, false)
+                : v;
         // Perform a dataType check to see if the key/value data types received matches the stream definition's types
         checkType("Target topic keyType", target.keyType.dataType(), superOf(k));
         checkType("Target topic valueType", target.valueType.dataType(), superOf(v));
 
-        var keySerde = target.keyType.dataType() != DataType.UNKNOWN
-                ? streamDataTypeOf(target.keyType, true).getSerde()
-                : input.keyType().getSerde();
-        var valueSerde = target.valueType.dataType() != DataType.UNKNOWN
-                ? streamDataTypeOf(target.valueType, false).getSerde()
-                : input.valueType().getSerde();
-
-        input.stream.to(target.topic, Produced.with(keySerde, valueSerde).withName(name));
+        var produced = Produced.with(kr.getSerde(), vr.getSerde());
+        if (name != null) produced = produced.withName(name);
+        input.stream.to(target.topic, produced);
         return null;
     }
 }

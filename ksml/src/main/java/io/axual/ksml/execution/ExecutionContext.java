@@ -9,9 +9,9 @@ package io.axual.ksml.execution;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,6 +22,7 @@ package io.axual.ksml.execution;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.errors.DeserializationExceptionHandler;
 import org.apache.kafka.streams.errors.ProductionExceptionHandler;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
@@ -41,6 +42,8 @@ public class ExecutionContext {
     private Logger produceExceptionLogger;
     private Logger processExceptionLogger;
 
+    private SerdeWrapper<Object> serdeWrapper = null;
+
     private ExecutionContext() {
         // do nothing
     }
@@ -58,6 +61,14 @@ public class ExecutionContext {
     public void setProduceHandler(ErrorHandler produceHandler) {
         this.produceHandler = produceHandler;
         this.produceExceptionLogger = LoggerFactory.getLogger(produceHandler.loggerName());
+    }
+
+    public void setSerdeWrapper(SerdeWrapper<Object> serdeWrapper) {
+        this.serdeWrapper = serdeWrapper;
+    }
+
+    public Serde<Object> wrapSerde(Serde<Object> serde) {
+        return serdeWrapper != null ? serdeWrapper.wrap(serde) : serde;
     }
 
     public static final String DATA_MASK = "*****";

@@ -21,14 +21,14 @@ package io.axual.ksml.operation;
  */
 
 
-import org.apache.kafka.streams.kstream.Produced;
-
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserTopicNameExtractor;
+import org.apache.kafka.streams.kstream.Produced;
 
 import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA;
 
@@ -49,11 +49,14 @@ public class ToTopicNameExtractorOperation extends BaseOperation {
          *          final Produced<K, V> produced)
          */
 
-        var k = input.keyType().userType().dataType();
-        var v = input.valueType().userType().dataType();
-        checkFunction(TOPICNAMEEXTRACTOR_NAME, topicNameExtractor, equalTo(DataString.DATATYPE), superOf(k), superOf(v), superOf(new StructType(RECORD_CONTEXT_SCHEMA)));
-
-        input.stream.to(new UserTopicNameExtractor(topicNameExtractor), Produced.with(input.keyType().getSerde(), input.valueType().getSerde()).withName(name));
+        final var k = input.keyType();
+        final var v = input.valueType();
+        final var topicNameType = new UserType(DataString.DATATYPE);
+        final var recordContextType = new UserType(new StructType(RECORD_CONTEXT_SCHEMA));
+        checkFunction(TOPICNAMEEXTRACTOR_NAME, topicNameExtractor, topicNameType, superOf(k), superOf(v), superOf(recordContextType));
+        var produced = Produced.with(input.keyType().getSerde(), input.valueType().getSerde());
+        if (name != null) produced = produced.withName(name);
+        input.stream.to(new UserTopicNameExtractor(topicNameExtractor), produced);
         return null;
     }
 }

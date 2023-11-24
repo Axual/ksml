@@ -34,6 +34,7 @@ import io.axual.ksml.notation.xml.XmlSchemaLoader;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -46,7 +47,7 @@ public class KSMLTopologyGenerator implements TopologyGenerator {
     private final KSMLConfig config;
     private final Properties kafkaConfig = new Properties();
 
-    public KSMLTopologyGenerator(String applicationId, KSMLConfig ksmlConfig, Properties kafkaConfigs) {
+    public KSMLTopologyGenerator(String applicationId, KSMLConfig ksmlConfig, Map<String, Object> kafkaConfigs) {
         // Parse configuration
         this.applicationId = applicationId;
         this.config = ksmlConfig;
@@ -56,10 +57,10 @@ public class KSMLTopologyGenerator implements TopologyGenerator {
     @Override
     public Topology create(StreamsBuilder streamsBuilder) {
         // Register schema loaders
-        SchemaLibrary.registerLoader(AvroNotation.NOTATION_NAME, new AvroSchemaLoader(config.configDirectory()));
-        SchemaLibrary.registerLoader(CsvNotation.NOTATION_NAME, new CsvSchemaLoader(config.configDirectory()));
-        SchemaLibrary.registerLoader(JsonNotation.NOTATION_NAME, new JsonSchemaLoader(config.configDirectory()));
-        SchemaLibrary.registerLoader(XmlNotation.NOTATION_NAME, new XmlSchemaLoader(config.configDirectory()));
+        SchemaLibrary.registerLoader(AvroNotation.NOTATION_NAME, new AvroSchemaLoader(config.schemaDirectory()));
+        SchemaLibrary.registerLoader(CsvNotation.NOTATION_NAME, new CsvSchemaLoader(config.schemaDirectory()));
+        SchemaLibrary.registerLoader(JsonNotation.NOTATION_NAME, new JsonSchemaLoader(config.schemaDirectory()));
+        SchemaLibrary.registerLoader(XmlNotation.NOTATION_NAME, new XmlSchemaLoader(config.schemaDirectory()));
 
         // Create the topology generator
         var generator = new TopologyGeneratorImpl(config);

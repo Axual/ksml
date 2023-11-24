@@ -20,6 +20,12 @@ package io.axual.ksml.dsl;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.definition.StreamDefinition;
+import io.axual.ksml.notation.Notation;
+import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.notation.binary.BinaryNotation;
+import io.axual.ksml.parser.UserTypeParser;
+import io.axual.ksml.stream.KStreamWrapper;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.junit.jupiter.api.Test;
@@ -28,13 +34,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.HashMap;
-
-import io.axual.ksml.definition.StreamDefinition;
-import io.axual.ksml.notation.Notation;
-import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.notation.binary.BinaryNotation;
-import io.axual.ksml.parser.UserTypeParser;
-import io.axual.ksml.stream.KStreamWrapper;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -61,7 +60,7 @@ class StreamDefinitionTest {
         var streamDefinition = new StreamDefinition("topic", "string", "string");
 
         // when it adds itself to Builder
-        var streamWrapper = streamDefinition.addToBuilder(builder, "name", notationLibrary);
+        var streamWrapper = streamDefinition.addToBuilder(builder, "name", notationLibrary, null);
 
         // it adds a ktable to the builder with key and value dataType, and returns a KTableWrapper instance
         final var stringType = UserTypeParser.parse("string");

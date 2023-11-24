@@ -21,19 +21,22 @@ package io.axual.ksml.datagenerator.parser;
  */
 
 
-import java.util.Map;
-
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.user.UserFunction;
+
+import java.util.Map;
 
 public interface ParseContext {
     Map<String, StreamDefinition> getStreamDefinitions();
 
     Map<String, FunctionDefinition> getFunctionDefinitions();
 
-    UserFunction getUserFunction(FunctionDefinition definition, String name);
+    UserFunction createAnonUserFunction(String name, FunctionDefinition definition, YamlNode node);
+
+    UserFunction createNamedUserFunction(String name, FunctionDefinition definition);
 
     NotationLibrary getNotationLibrary();
 }
