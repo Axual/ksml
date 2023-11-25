@@ -52,6 +52,7 @@
                 <version>${maven.license.plugin.version}</version>
                 <configuration>
                     <licenseName>${license.licensename}</licenseName>
+                    <thirdPartyFilename>NOTICE.txt</thirdPartyFilename>
                     <verbose>false</verbose>
                     <processStartTag>
                         ========================LICENSE_START=================================
@@ -86,7 +87,6 @@
                     <execution>
                         <id>generate-license-headers</id>
                         <goals>
-                            <goal>remove-file-header</goal>
                             <goal>update-file-header</goal>
                         </goals>
                         <phase>process-sources</phase>
