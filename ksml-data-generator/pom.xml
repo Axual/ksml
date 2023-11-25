@@ -7,11 +7,11 @@
     <parent>
         <groupId>io.axual.ksml</groupId>
         <artifactId>ksml-parent</artifactId>
-        <version>0.1.1-SNAPSHOT</version>
+        <version>0.2.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>ksml-data-generator</artifactId>
-    <version>0.1.1-SNAPSHOT</version>
+    <version>0.2.0-SNAPSHOT</version>
     <name>KSML Data Generator</name>
 
     <properties>
@@ -49,9 +49,10 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>1.9</version>
+                <version>${maven.license.plugin.version}</version>
                 <configuration>
                     <licenseName>${license.licensename}</licenseName>
+                    <thirdPartyFilename>NOTICE.txt</thirdPartyFilename>
                     <verbose>false</verbose>
                     <processStartTag>
                         ========================LICENSE_START=================================
@@ -63,6 +64,7 @@
                         <includes>**/*.java</includes>
                     </includes>
                     <skipUpdateLicense>false</skipUpdateLicense>
+                    <trimHeaderLine>true</trimHeaderLine>
                 </configuration>
                 <executions>
                     <execution>
@@ -91,10 +93,11 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.10.1</version>
+                <version>${maven.compiler.plugin.version}</version>
                 <configuration>
                     <release>17</release>
                     <annotationProcessorPaths>
@@ -110,18 +113,18 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.2</version>
+                <version>${maven.surefire.plugin.version}</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.22.2</version>
+                <version>${maven.failsafe.plugin.version}</version>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.2.0</version>
+                <version>${maven.jar.plugin.version}</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -136,7 +139,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>${maven.dependency.plugin.version}</version>
                 <executions>
                     <execution>
                         <id>copy-dependencies</id>
