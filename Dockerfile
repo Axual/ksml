@@ -11,7 +11,7 @@
 
 
 # Step 1: Create the common base image with the ksml user and group and the required packages
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.8-1072.1696517598 AS base
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.9-1029 AS base
 ENV LANG=en_US.UTF-8
 
 # Environment variable for Connect Build and Runtime
@@ -20,10 +20,10 @@ ENV PATH=/opt/graal/bin:$PATH \
     	KSML_INSTALL="/opt/ksml"
 
 RUN set -eux \
-        && microdnf install -y curl tar unzip gzip zlib openssl-devel gcc gcc-c++ make patch glibc-langpack-en libxcrypt shadow-utils \
+        && microdnf install -y procps curl tar unzip gzip zlib openssl-devel gcc gcc-c++ make patch glibc-langpack-en libxcrypt shadow-utils \
 	&& groupadd --gid 1024 ksml \
-        && useradd -g ksml -u 1024 -d $KSML_HOME -ms /bin/sh -f -1 ksml \
-        && chown -R ksml:0 $KSML_HOME /opt                               \
+        && useradd -g ksml -u 1024 -d "$KSML_HOME" -ms /bin/sh -f -1 ksml \
+        && chown -R ksml:0 "$KSML_HOME" /opt                               \
         && chmod -R g=u /home /opt
 
 
@@ -60,16 +60,16 @@ RUN set -eux \
 FROM graal-builder AS builder
 ARG TARGETARCH
 ADD . /project_dir
+WORKDIR /project_dir
 RUN \
   --mount=type=cache,target=/root/.m2/repo/$TARGETARCH,id=mvnRepo_$TARGETARCH \
-  cd /project_dir \
-  && /opt/maven/bin/mvn -Dmaven.repo.local="/root/.m2/repo/$TARGETARCH" dependency:go-offline --no-transfer-progress \
+  /opt/maven/bin/mvn -Dmaven.repo.local="/root/.m2/repo/$TARGETARCH" dependency:go-offline --no-transfer-progress \
     && /opt/maven/bin/mvn -Dmaven.repo.local="/root/.m2/repo/$TARGETARCH" --no-transfer-progress package
 
 
 # Step 4: Build the basic graalvm image stage
 FROM base AS ksml-graal
-MAINTAINER Axual <maintainer@axual.io>
+LABEL io.axual.ksml.authors="maintainer@axual.io"
 ENV JAVA_HOME=/opt/graalvm
 COPY --chown=ksml:0 --from=graal-builder /opt/graal/ /opt/graal/
 
