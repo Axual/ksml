@@ -2,16 +2,16 @@ package io.axual.ksml.client.resolving;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Runner
+ * Extended Kafka clients for KSML
  * %%
  * Copyright (C) 2021 - 2023 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,20 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-/**
- * <p>The PatternContextConverter is used to convert patterned strings to a context map containing
- * the fields according to the specified pattern. This is used for Kafka resources, like topics and groups. <br/>
- * Kafka can only apply access control lists for literal or prefixed resources. The final part of the
- * pattern should be field name of the resource type. If the pattern doesn't specify the type as a field name it will be automatically added at the end of the pattern</p>
- *
- * <p>A pattern definition is a string with delimited field names that are used to build to and from the context map.
- * The final field name should be for the target resource type, which
- * <br/>The following pattern is for a Kafka topic and has three fields, tenant, instance, environment, which are separated by two hyphens<br/>
- * <pre>{tenant}--{instance}--{environment}--{topic}</pre></p>
- * <p>The following pattern is functionally the same as the previous pattern<br/>
- * <pre>{tenant}--{instance}--{environment}--</pre></p>
- */
 @Slf4j
 public class PatternResolver implements Resolver {
     private static final String ALPHANUM_CHARACTERS = "a-zA-Z0-9_";
