@@ -1,12 +1,12 @@
 
-Lists of 90 third-party dependencies.
+Lists of 88 third-party dependencies.
      (Eclipse Public License - v 1.0) (GNU Lesser General Public License) Logback Classic Module (ch.qos.logback:logback-classic:1.4.11 - http://logback.qos.ch/logback-classic)
      (Eclipse Public License - v 1.0) (GNU Lesser General Public License) Logback Core Module (ch.qos.logback:logback-core:1.4.11 - http://logback.qos.ch/logback-core)
      (MIT License) minimal-json (com.eclipsesource.minimal-json:minimal-json:0.9.5 - https://github.com/ralfstx/minimal-json)
      (The Apache Software License, Version 2.0) Jackson-annotations (com.fasterxml.jackson.core:jackson-annotations:2.13.5 - http://github.com/FasterXML/jackson)
      (The Apache Software License, Version 2.0) Jackson-annotations (com.fasterxml.jackson.core:jackson-annotations:2.14.1 - https://github.com/FasterXML/jackson)
      (The Apache Software License, Version 2.0) Jackson-annotations (com.fasterxml.jackson.core:jackson-annotations:2.16.0 - https://github.com/FasterXML/jackson)
-     (The Apache Software License, Version 2.0) Jackson-core (com.fasterxml.jackson.core:jackson-core:2.14.2 - https://github.com/FasterXML/jackson-core)
+     (The Apache Software License, Version 2.0) Jackson-core (com.fasterxml.jackson.core:jackson-core:2.13.5 - https://github.com/FasterXML/jackson-core)
      (The Apache Software License, Version 2.0) Jackson-core (com.fasterxml.jackson.core:jackson-core:2.16.0 - https://github.com/FasterXML/jackson-core)
      (The Apache Software License, Version 2.0) jackson-databind (com.fasterxml.jackson.core:jackson-databind:2.13.5 - http://github.com/FasterXML/jackson)
      (The Apache Software License, Version 2.0) jackson-databind (com.fasterxml.jackson.core:jackson-databind:2.16.0 - https://github.com/FasterXML/jackson)
@@ -51,7 +51,6 @@ Lists of 90 third-party dependencies.
      (Eclipse Distribution License - v 1.0) Jakarta SOAP with Attachments API (jakarta.xml.soap:jakarta.xml.soap-api:3.0.1 - https://github.com/jakartaee/saaj-api)
      (Apache-2.0) Apache Avro (org.apache.avro:avro:1.11.3 - https://avro.apache.org)
      (Apache License, Version 2.0) Apache Commons Collections (org.apache.commons:commons-collections4:4.4 - https://commons.apache.org/proper/commons-collections/)
-     (Apache License, Version 2.0) Apache Commons Compress (org.apache.commons:commons-compress:1.21 - https://commons.apache.org/proper/commons-compress/)
      (Apache License, Version 2.0) Apache Commons Compress (org.apache.commons:commons-compress:1.22 - https://commons.apache.org/proper/commons-compress/)
      (Apache-2.0) Apache Commons Lang (org.apache.commons:commons-lang3:3.13.0 - https://commons.apache.org/proper/commons-lang/)
      (Apache-2.0) Apache Commons Text (org.apache.commons:commons-text:1.11.0 - https://commons.apache.org/proper/commons-text)
@@ -88,5 +87,4 @@ Lists of 90 third-party dependencies.
      (Apache License 2.0) (GNU General Public License, version 2) RocksDB JNI (org.rocksdb:rocksdbjni:7.9.2 - https://rocksdb.org)
      (MIT License) SLF4J API Module (org.slf4j:slf4j-api:2.0.6 - http://www.slf4j.org)
      (Apache-2.0) snappy-java (org.xerial.snappy:snappy-java:1.1.10.4 - https://github.com/xerial/snappy-java)
-     (Apache License, Version 2.0) SnakeYAML (org.yaml:snakeyaml:2.0 - https://bitbucket.org/snakeyaml/snakeyaml)
      (Apache License, Version 2.0) SnakeYAML (org.yaml:snakeyaml:2.2 - https://bitbucket.org/snakeyaml/snakeyaml)
