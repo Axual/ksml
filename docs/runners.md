@@ -11,38 +11,41 @@
 
 ## Introduction
 
-The core of KSML is a library that allows KSML Definition files to be parsed and translated into Kafka Streams topologies. Because we wanted to keep KSML low-overhead, KSML does not run these topologies itself. Two runners were created to execute the generated topologies:
-
-|Type|Description
-|:---|:---
-|Kafka|Runs the topology against a Kafka backend, using plain Kafka configuration parameters.
-|Axual|Runs the topology against an Axual backend, a multi-tenant Kafka platform by Axual, which requires slightly different configuration.
-
-Examples of runner configurations are shown below.
+The core of KSML is a library that allows KSML definition files to be parsed and translated into Kafka Streams topologies.
+To keep the core small, the logic to actually run the topology is kept separate. This allows for other programs to
+include KSML parsing/interpreting as a library.
+A standalone runner connects the topology to a standard Kafka Streams implementation and execute it.
 
 ## Generic configuration
 
-The configuration file passed to the KSML runner is in YAML format and should contain at least the following:
+The configuration file passed to the KSML runner is in YAML format. It contains two main sections.
+
+* ksml: section to instruct which definitions files to run, and how to run them.
+* kafka: the normal properties that define how to connect to Kafka.
+
+An example of a runner configuration is shown below.
 
 ```yaml
 ksml:
-  applicationServerEnabled: true               # true if you want to enable REST querying of state stores
-  applicationServerHost: 0.0.0.0               # by default listen on all interfaces
-  applicationServerPort: 8080                  # port to listen on
-  workingDirectory: <absolute/relative path>   # working directory
-  configDirectory: .                           # config directory
-  errorHandling:                               # how to handle errors
-    consume:
+  configDirectory: <absolute/relative path>    # directory where ksml definitions are located
+  schemaDirectory: <absolute/relative path>    # (optional) directory containing schema definitions, default is same as configDirectory
+  storageDirectory: <absolute/relative path>   # (optional) storage directory for local state stores, default is same as configDirectory
+  applicationServer:                           # (optional) default is to not run the application server
+    enabled: true                             # true if you want to enable REST querying of state stores
+    host: 0.0.0.0                             # by default listen on all interfaces
+    port: 8080                                # port to listen on
+  errorHandling:                               # (optional) how to handle errors
+    consume:                                   # (optional) how to handle message consumption errors
       log: true                                # log errors
       logPayload: true                         # log message payloads upon error
       loggerName: ConsumeError                 # logger name
       handler: continueOnFail                  # continue or stop on error
-    process:
+    process:                                   # (optional) how to handle message processing errors
       log: true                                # log errors
       logPayload: true                         # log message payloads upon error
       loggerName: ProcessError                 # logger name
       handler: stopOnFail                      # continue or stop on error
-    produce:
+    produce:                                   # (optional) how to handle message production errors
       log: true                                # log errors
       logPayload: true                         # log message payloads upon error
       loggerName: ProduceError                 # logger name
@@ -52,45 +55,12 @@ ksml:
       - definition2.yaml
       - <more here...>
 
-backend:
-  type: <backend type>
-  config:
-    <backend specific configuration>
-```
-
-### Kafka backend
-
-The default KSML runner uses a Kafka backend, which requires the following structure and parameters:
-
-```yaml
-backend:
-  type: kafka
-  config:
-    bootstrapUrl: localhost:9092
-    applicationId: io.ksml.example.processor
-    schemaRegistryUrl: http://localhost:8083
-```
-
-### Axual backend
-
-The Axual backend takes the following structure and parameters:
-
-```yaml
-backend:
-  type: axual
-  config:
-    tenant: <tenant>
-    environment: <environment>
-    endpoint: <axual discovery endpoint url>
-    applicationId: io.axual.ksml.example.processor
-    applicationVersion: 0.0.1
-    sslConfig:
-      enableHostnameVerification: false
-      keystoreLocation: <path to keystore.jks>
-      keystorePassword: <password>
-      keyPassword: <password>
-      truststoreLocation: <path to truststore.jks>
-      truststorePassword: <password>
+kafka:
+  application.id: my.app.id
+  bootstrap.servers: kafka:9093
+  schema.registry.url: http://localhost:8083
+  acks: all
+  ...
 ```
 
 ## Starting a container
