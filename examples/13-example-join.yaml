@@ -23,9 +23,9 @@ tables:
 
 functions:
   alert_join:
-    type: joinValues
+    type: valueJoiner
     code: |
-      print('JOINING\n\t value1=' + str(value1) + '\n\t value2=' + str(value2))
+      log.info('JOINING\n\t value1={}\n\t value2={}', value1, value2)
       sensordata=value1
       del sensordata["@type"]
       del sensordata["@schema"]
@@ -35,7 +35,7 @@ functions:
       if value2 != None and value2["alertSettings"] != None:
         for setting in value2["alertSettings"]:
           if setting["type"] == sensordata["type"] and setting["unit"] == sensordata["unit"] and ( (setting["alertBelow"] != None and setting["alertBelow"] > sensordata["value"]) or (setting["alertAbove"]!=None and setting["alertAbove"] < sensordata["value"]) ):
-            print('Triggered alert '+ setting["name"] )
+            log.info('Triggered alert {}', setting["name"] )
             del setting["@type"]
             del setting["@schema"]
             triggeredAlertSettings.append(setting)
@@ -44,7 +44,7 @@ functions:
         "sensordata" : sensordata,
         "alerts" : triggeredAlertSettings
       }
-      print('JOINED sensordata=' + str(new_value["sensordata"]) +', alerts='+str(new_value["alerts"]))
+      log.info('JOINED sensordata= {} alerts= {}' new_value["sensordata"], new_value["alerts"])
     expression: new_value
     resultType: json
 
@@ -66,7 +66,7 @@ functions:
             "sensordata" : sensordata
           }
           newRecords.append([new_key,new_value])
-      print("Returning "+str(len(newRecords))+" records")
+      log.info("Returning {} records", len(newRecords))
     expression: newRecords
 
 pipelines:
@@ -88,23 +88,15 @@ pipelines:
     from: sensor_transformed
     via:
       - name: alert_joining
-        type: innerJoin # just "join" could also still be used here?
-        withTable:
-          topic: ksml_sensoralert_settings
-          keyType: string
-          valueType: avro:SensorAlertSettings
-          queryable: false
-        using: alert_join
-      - name: alert_joining
         type: join
-        with: sensor_alert_settings
-        using: alert_join
+        table: sensor_alert_settings
+        valueJoiner: alert_join
       - name: watch_join
         type: peek
         forEach:
           code: log.info("JOIN - key={}, value={}", key, value)
       - name: expand_alerts
-        type: transformKvToKvList
+        type: transformKeyValueToKeyValueList
         mapper: alert_split
     to: sensor_alerts
 

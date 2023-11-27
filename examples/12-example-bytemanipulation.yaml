@@ -33,7 +33,7 @@ functions:
           value[3] = (newSchemaId & 0xff00) >> 8
           value[4] = newSchemaId & 0xff
         else:
-          print("Value does not contain a schema id: "+str(value))
+          log.info("Value does not contain a schema id: {}", value)
           value = None
     expression: value
     resultType: bytes

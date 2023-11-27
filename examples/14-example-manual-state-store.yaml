@@ -21,9 +21,9 @@ functions:
       store = stores["last_sensor_data_store"]
       last_value = store.get(key)
       if last_value != None:
-        print("Found last value: " + key + " = " + last_value)
+        log.info("Found last value: {} = {}", key, last_value)
       store.put(key, value)
-      print("Storing new value: " + key + " = " + value)
+      log.info("Storing new value: {} = {}", key, value)
     stores:
       - last_sensor_data_store
 
