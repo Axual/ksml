@@ -4,33 +4,30 @@
 
 ### Table of Contents
 1. [Introduction](#introduction)
-2. [Generic configuration](#generic-configuration)
-    * [Kafka backend](#kafka-backend)
-    * [Axual backend](#axual-backend)
+2. [Configuration](#configuration)
+   - [Namespace support](#using-with-axual-platform-or-other-namespaced-kafka-clusters)
 3. [Starting a container](#starting-a-container)
 
 ## Introduction
 
-The core of KSML is a library that allows KSML Definition files to be parsed and translated into Kafka Streams topologies. Because we wanted to keep KSML low-overhead, KSML does not run these topologies itself. Two runners were created to execute the generated topologies:
-
-|Type|Description
-|:---|:---
-|Kafka|Runs the topology against a Kafka backend, using plain Kafka configuration parameters.
-|Axual|Runs the topology against an Axual backend, a multi-tenant Kafka platform by Axual, which requires slightly different configuration.
+The core of KSML is a library that allows KSML Definition files to be parsed and translated into Kafka Streams topologies. Because we wanted to keep KSML low-overhead, KSML does not run these topologies itself. A runner was created to execute the generated topologies.
+This runner supports plain Kafka connections, and contains an advanced configurations that helps running against Kafka clusters using namespacing. 
 
 Examples of runner configurations are shown below.
 
-## Generic configuration
+## Configuration
 
 The configuration file passed to the KSML runner is in YAML format and should contain at least the following:
 
 ```yaml
 ksml:
-  applicationServerEnabled: true               # true if you want to enable REST querying of state stores
-  applicationServerHost: 0.0.0.0               # by default listen on all interfaces
-  applicationServerPort: 8080                  # port to listen on
-  workingDirectory: <absolute/relative path>   # working directory
-  configDirectory: .                           # config directory
+  applicationServer:                           # The application server is currently only offering REST querying of state stores
+    enabled: true                              # true if you want to enable REST querying of state stores
+    host: 0.0.0.0                              # by default listen on all interfaces
+    port: 8080                                 # port to listen on
+  configDirectory: /ksml/config                # Location of the KSML definitions. Default is the current working directory
+  schemaDirectory: /ksml/schemas               # Location of the schema definitions. Default is the config directory
+  storageDirectory: /ksml/data                 # Where the stateful data is written. Defaults is the default JVM temp directory
   errorHandling:                               # how to handle errors
     consume:
       log: true                                # log errors
@@ -52,46 +49,47 @@ ksml:
       - definition2.yaml
       - <more here...>
 
-backend:
-  type: <backend type>
-  config:
-    <backend specific configuration>
+kafka: # Kafka streams configuration options 
+  application.id: io.ksml.example.processor
+  
+  bootstrap.servers: broker-1:9092,broker-2:9092
+  security.protocol: SSL
+  ssl.protocol: TLSv1.3
+  ssl.enabled.protocols: TLSv1.3,TLSv1.2
+  ssl.endpoint.identification.algorithm: ""
+  ssl.truststore.location: /ksml/config/truststore.jks
+  ssl.truststore.password: password-for-truststore
+  
+  # Schema Registry client configuration, needed when schema registry is used
+  schema.registry.url: http://schema-registry:8083
+  schema.registry.ssl.truststore.location: /ksml/config/truststore.jks
+  schema.registry.ssl.truststore.password: password-for-truststore
 ```
 
-### Kafka backend
+### Using with Axual platform or other namespaced Kafka clusters
 
-The default KSML runner uses a Kafka backend, which requires the following structure and parameters:
+A special mode for connecting to clusters that use namespaced Kafka resources is available. This mode
+can be activated by specifying the namespace pattern to use. This pattern will be resolved to a complete
+name by KSML using the provided configuration options.
+
+The following config will resolve the backing topic of a stream or table
 
 ```yaml
-backend:
-  type: kafka
-  config:
-    bootstrapUrl: localhost:9092
-    applicationId: io.ksml.example.processor
-    schemaRegistryUrl: http://localhost:8083
+kafka:
+  # The patterns for topics, groups and transactional ids.
+  # Each field between the curly braces must be specified in the configuration, except the topic,
+  # group.id and transactional.id fields, which is used to identify the place where the resource name
+  # is used
+  topic.pattern: "{tenant}-{instance}-{environment}-{topic}"                       
+  group.id.pattern: "{tenant}-{instance}-{environment}-{group.id}"
+  transactional.id.pattern: "{tenant}-{instance}-{environment}-{transactional.id}"
+
+  # Additional configuration options used for resolving the pattern to values
+  tenant: "ksmldemo"
+  instance: "dta"
+  environment: "dev"
 ```
 
-### Axual backend
-
-The Axual backend takes the following structure and parameters:
-
-```yaml
-backend:
-  type: axual
-  config:
-    tenant: <tenant>
-    environment: <environment>
-    endpoint: <axual discovery endpoint url>
-    applicationId: io.axual.ksml.example.processor
-    applicationVersion: 0.0.1
-    sslConfig:
-      enableHostnameVerification: false
-      keystoreLocation: <path to keystore.jks>
-      keystorePassword: <password>
-      keyPassword: <password>
-      truststoreLocation: <path to truststore.jks>
-      truststorePassword: <password>
-```
 
 ## Starting a container
 To start a container the KSML definitions and Runner configuration files need to be available in a directory mounted inside the docker container.
@@ -102,11 +100,11 @@ If no arguments are given, the runner will look for this file in the home direct
 ```
 ## -w sets the current working directory in the container
 
-docker run --rm -ti -v /path/to/local/ksml/directory:/ksml -w /ksml axual/ksml-axual:latest
+docker run --rm -ti -v /path/to/local/ksml/directory:/ksml -w /ksml axual/ksml-axual:snapshot
 
 ## or
 
-docker run --rm -ti -v /path/to/local/ksml/directory:/ksml -w /ksml axual/ksml-axual:latest /ksml/ksml-runner.yaml
+docker run --rm -ti -v /path/to/local/ksml/directory:/ksml -w /ksml axual/ksml-axual:snapshot /ksml/ksml-runner.yaml
 ```
 
 or, if the runner configuration is in a different file, like **_my-runner.yaml_**.
