@@ -21,26 +21,45 @@
     </properties>
 
     <dependencies>
+        <!-- Compile dependencies for GraalVM polyglot and truffle -->
         <dependency>
             <groupId>org.graalvm.polyglot</groupId>
             <artifactId>polyglot</artifactId>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.graalvm.truffle</groupId>
             <artifactId>truffle-api</artifactId>
+            <scope>compile</scope>
         </dependency>
 
-        <!-- runtime dependencies for GraalVM Python -->
+        <!-- Compile dependencies for GraalVM Python -->
         <dependency>
-            <groupId>org.graalvm.polyglot</groupId>
-            <artifactId>python-community</artifactId>
+            <groupId>org.graalvm.python</groupId>
+            <artifactId>python-language</artifactId>
             <version>23.1.1</version>
-            <type>pom</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.python</groupId>
+            <artifactId>python-resources</artifactId>
+            <version>23.1.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.truffle</groupId>
+            <artifactId>truffle-runtime</artifactId>
+            <version>23.1.1</version>
+            <scope>compile</scope>
         </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -198,11 +217,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>21</source>
-                    <target>21</target>
-                    <compilerArgs>--enable-preview</compilerArgs>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

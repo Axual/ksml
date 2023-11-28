@@ -54,6 +54,7 @@
         <module>ksml-runner</module>
         <module>ksml-data-generator</module>
         <module>ksml-reporting</module>
+        <module>graalpy-module-collection</module>
     </modules>
 
     <properties>
@@ -84,6 +85,7 @@
         <!-- project and java version settings -->
         <java.source.version>21</java.source.version>
         <java.target.version>21</java.target.version>
+        <java.release.version>21</java.release.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
@@ -514,6 +516,14 @@
                 <configuration>
                     <source>${java.source.version}</source>
                     <target>${java.target.version}</target>
+                    <release>${java.release.version}</release>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
 
