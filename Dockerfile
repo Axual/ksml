@@ -30,7 +30,7 @@ RUN set -eux \
 # Step 2: Download Graal and Maven into the base image
 FROM base AS graal-builder
 ARG TARGETARCH
-ARG GRAALVM_JDK_VERSION=17.0.8
+ARG GRAALVM_JDK_VERSION=21.0.1
 ARG MAVEN_VERSION=3.9.5
 
 RUN set -eux \
@@ -50,11 +50,10 @@ RUN set -eux \
     && mkdir -p /opt/maven \
     && MVN_PKG=https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
     && curl --fail --silent --location --retry 3 ${MVN_PKG} | gunzip | tar x -C /opt/maven --strip-components=1 \
+#   && GRAALVM_PKG=https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-21.0.1/graalvm-community-jdk-21.0.1_linux-x64_bin.tar.gz
     && GRAALVM_PKG=https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-${GRAALVM_JDK_VERSION}/graalvm-community-jdk-${GRAALVM_JDK_VERSION}_linux-${JAVA_ARCH}_bin.tar.gz \
     && mkdir -p /opt/graal \
-    && curl --fail --silent --location --retry 3 ${GRAALVM_PKG} | gunzip | tar x -C /opt/graal --strip-components=1 \
-    && gu -A install python
-
+    && curl --fail --silent --location --retry 3 ${GRAALVM_PKG} | gunzip | tar x -C /opt/graal --strip-components=1
 
 # Step 3: Build the KSML Project, cache the M2 repository location
 FROM graal-builder AS builder
@@ -75,8 +74,9 @@ COPY --chown=ksml:0 --from=graal-builder /opt/graal/ /opt/graal/
 
 WORKDIR /home/ksml
 USER ksml
-RUN graalpy -m venv graalenv && \
-    echo "source $HOME/graalenv/bin/activate" >> ~/.bashrc
+#There is no more GraalPy command here and no venv
+#RUN graalpy -m venv graalenv && \
+#    echo "source $HOME/graalenv/bin/activate" >> ~/.bashrc
 
 
 # Step 5: Create the KSML Runner image

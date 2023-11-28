@@ -62,7 +62,9 @@
         <apache.commons.text.version>1.11.0</apache.commons.text.version>
         <apache.kafka.version>3.6.0</apache.kafka.version>
         <confluent.version>7.5.2</confluent.version>
-        <graalvm.version>22.3.4</graalvm.version>
+        <graalvm.version>23.1.0</graalvm.version>
+        <graalvm.polyglot.version>23.1.1</graalvm.polyglot.version>
+        <graalvm.python.version>23.1.1</graalvm.python.version>
         <guava.version>32.0.1-jre</guava.version>
         <jackson.version>2.16.0</jackson.version>
         <jakarta.soap.version>3.0.1</jakarta.soap.version>
@@ -80,8 +82,8 @@
         <mockito-junit-jupiter.version>5.7.0</mockito-junit-jupiter.version>
 
         <!-- project and java version settings -->
-        <java.source.version>17</java.source.version>
-        <java.target.version>17</java.target.version>
+        <java.source.version>21</java.source.version>
+        <java.target.version>21</java.target.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
@@ -148,9 +150,27 @@
             </dependency>
 
             <dependency>
-                <groupId>org.graalvm.sdk</groupId>
-                <artifactId>graal-sdk</artifactId>
-                <version>${graalvm.version}</version>
+                <groupId>org.graalvm.polyglot</groupId>
+                <artifactId>polyglot</artifactId>
+                <version>${graalvm.polyglot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.python</groupId>
+                <artifactId>python-language</artifactId>
+                <version>${graalvm.python.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.python</groupId>
+                <artifactId>python-resources</artifactId>
+                <version>${graalvm.python.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.truffle</groupId>
+                <artifactId>truffle-runtime</artifactId>
+                <version>${graalvm.python.version}</version>
+                <scope>runtime</scope>
             </dependency>
             <dependency>
                 <groupId>org.graalvm.truffle</groupId>
