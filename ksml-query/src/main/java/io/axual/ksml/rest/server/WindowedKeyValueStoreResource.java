@@ -20,6 +20,14 @@ package io.axual.ksml.rest.server;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.rest.data.KeyValueBean;
+import io.axual.ksml.rest.data.WindowedKeyValueBean;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.KeyValue;
@@ -31,20 +39,9 @@ import org.apache.kafka.streams.state.ReadOnlyWindowStore;
 import java.time.Instant;
 import java.util.List;
 
-import io.axual.ksml.notation.binary.NativeDataObjectMapper;
-import io.axual.ksml.rest.data.KeyValueBean;
-import io.axual.ksml.rest.data.WindowedKeyValueBean;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
 @Path("state/windowed")
 public class WindowedKeyValueStoreResource extends StoreResource {
-    final NativeDataObjectMapper mapper = new NativeDataObjectMapper();
     @GET()
     @Path("/{storeName}/all")
     @Produces(MediaType.APPLICATION_JSON)

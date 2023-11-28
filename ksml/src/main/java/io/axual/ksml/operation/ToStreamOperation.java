@@ -21,6 +21,7 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
@@ -40,7 +41,7 @@ public class ToStreamOperation extends BaseOperation {
     }
 
     @Override
-    public StreamWrapper apply(KTableWrapper input) {
+    public StreamWrapper apply(KTableWrapper input, TopologyBuildContext context) {
         final var k = input.keyType();
         final var v = input.valueType();
         final var kr = mapper != null ? streamDataTypeOf(firstSpecificType(mapper, k), true) : k;

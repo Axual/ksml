@@ -158,7 +158,7 @@ public class BaseOperation implements StreamOperation {
 
     // Returns the most specific type in the sequence by traversing the array and checking for DataType.UNKNOWNs. The
     // result is the first non-UNKNOWN, or otherwise the last entry in the array.
-    private UserType firstSpecificType(UserType... types) {
+    protected UserType firstSpecificType(UserType... types) {
         for (int index = 0; index < types.length - 1; index++) {
             if (types[index].dataType() != DataType.UNKNOWN) return types[index];
         }

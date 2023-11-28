@@ -21,6 +21,7 @@ package io.axual.ksml.stream;
  */
 
 
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.operation.StreamOperation;
 import org.apache.kafka.streams.kstream.KStream;
@@ -34,7 +35,7 @@ public class KStreamWrapper extends BaseStreamWrapper {
     }
 
     @Override
-    public StreamWrapper apply(StreamOperation operation) {
-        return operation.apply(this);
+    public StreamWrapper apply(StreamOperation operation, TopologyBuildContext context) {
+        return operation.apply(this, context);
     }
 }

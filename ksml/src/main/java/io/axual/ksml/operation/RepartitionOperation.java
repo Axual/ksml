@@ -24,6 +24,7 @@ package io.axual.ksml.operation;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
@@ -40,7 +41,11 @@ public class RepartitionOperation extends BaseOperation {
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
+        /*    Kafka Streams method signature:
+         *    KStream<K, V> repartition(
+         *          final Repartitioned<K, V> repartitioned)
+         */
         checkNotNull(partitioner, "Partitioner must be defined");
         final var k = input.keyType();
         final var v = input.valueType();

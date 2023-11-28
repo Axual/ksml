@@ -24,6 +24,7 @@ package io.axual.ksml.operation;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
@@ -42,7 +43,7 @@ public class ToTopicNameExtractorOperation extends BaseOperation {
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
         final var k = input.keyType();
         final var v = input.valueType();
         final var topicNameType = new UserType(DataString.DATATYPE);

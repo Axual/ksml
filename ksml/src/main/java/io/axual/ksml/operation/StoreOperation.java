@@ -24,6 +24,7 @@ package io.axual.ksml.operation;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
+import io.axual.ksml.definition.Ref;
 import io.axual.ksml.definition.SessionStateStoreDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.WindowStateStoreDefinition;
@@ -39,13 +40,11 @@ import org.apache.kafka.streams.state.SessionStore;
 import org.apache.kafka.streams.state.WindowStore;
 
 public class StoreOperation extends BaseOperation {
-    protected final StateStoreDefinition store;
-    protected final StateStoreRegistry stateStoreRegistry;
+    protected final Ref<StateStoreDefinition> store;
 
     public StoreOperation(StoreOperationConfig config) {
         super(config);
         this.store = config.store;
-        this.stateStoreRegistry = config.stateStoreRegistry;
     }
 
     @Override

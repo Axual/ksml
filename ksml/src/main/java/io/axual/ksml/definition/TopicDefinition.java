@@ -1,4 +1,4 @@
-package io.axual.ksml.parser;
+package io.axual.ksml.definition;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,5 +20,15 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
-public record NamedDefinition<T>(String name, T definition) {
+
+import io.axual.ksml.data.type.UserType;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@AllArgsConstructor
+@Getter
+public class TopicDefinition {
+    private final String topic;
+    private final UserType keyType;
+    private final UserType valueType;
 }

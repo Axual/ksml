@@ -20,17 +20,14 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.definition.Ref;
 import io.axual.ksml.definition.StateStoreDefinition;
-import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.store.StateStoreRegistry;
 
 public class StoreOperationConfig extends OperationConfig {
-    public final StateStoreDefinition store;
-    public final StateStoreRegistry stateStoreRegistry;
+    public final Ref<StateStoreDefinition> store;
 
-    public StoreOperationConfig(String name, NotationLibrary notationLibrary, StateStoreDefinition store, StateStoreRegistry stateStoreRegistry) {
-        super(name, notationLibrary, null);
+    public StoreOperationConfig(String name, Ref<StateStoreDefinition> store) {
+        super(name, null);
         this.store = store;
-        this.stateStoreRegistry = stateStoreRegistry;
     }
 }

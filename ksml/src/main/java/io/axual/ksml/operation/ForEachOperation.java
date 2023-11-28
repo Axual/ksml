@@ -21,6 +21,7 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
@@ -32,8 +33,8 @@ public class ForEachOperation extends PeekOperation {
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
-        super.apply(input);
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
+        super.apply(input, context);
         return null;
     }
 }

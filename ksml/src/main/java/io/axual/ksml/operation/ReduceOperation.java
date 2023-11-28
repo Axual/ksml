@@ -21,6 +21,7 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.KGroupedTableWrapper;
 import io.axual.ksml.stream.KTableWrapper;
@@ -48,11 +49,11 @@ public class ReduceOperation extends StoreOperation {
     }
 
     @Override
-    public StreamWrapper apply(KGroupedStreamWrapper input) {
+    public StreamWrapper apply(KGroupedStreamWrapper input, TopologyBuildContext context) {
         final var k = input.keyType();
         final var v = input.valueType();
         checkFunction(REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
-        final var kvStore = validateKeyValueStore(store, k, v);
+        final var kvStore = validateKeyValueStore(context.lookupStore(store), k, v);
 
         if (kvStore != null) {
             final var mat = materialize(kvStore);
@@ -67,7 +68,7 @@ public class ReduceOperation extends StoreOperation {
     }
 
     @Override
-    public StreamWrapper apply(KGroupedTableWrapper input) {
+    public StreamWrapper apply(KGroupedTableWrapper input, TopologyBuildContext context) {
         /*    Kafka Streams method signature:
          *    KTable<K, V> reduce(
          *          final Reducer<V> adder,
@@ -80,7 +81,7 @@ public class ReduceOperation extends StoreOperation {
         final var v = input.valueType();
         checkFunction(ADDER_NAME, adder, v, equalTo(v), equalTo(v));
         checkFunction(SUBTRACTOR_NAME, subtractor, v, equalTo(v), equalTo(v));
-        final var kvStore = validateKeyValueStore(store, k, v);
+        final var kvStore = validateKeyValueStore(context.lookupStore(store), k, v);
 
         if (kvStore != null) {
             final var mat = materialize(kvStore);
@@ -95,7 +96,7 @@ public class ReduceOperation extends StoreOperation {
     }
 
     @Override
-    public StreamWrapper apply(SessionWindowedKStreamWrapper input) {
+    public StreamWrapper apply(SessionWindowedKStreamWrapper input, TopologyBuildContext context) {
         /*    Kafka Streams method signature:
          *    KTable<Windowed<K>, V> reduce(
          *          final Reducer<V> reducer,
@@ -108,7 +109,7 @@ public class ReduceOperation extends StoreOperation {
         final var windowedK = windowedTypeOf(k);
         checkFunction(REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
 
-        final var sessionStore = validateSessionStore(store, windowedK, v);
+        final var sessionStore = validateSessionStore(context.lookupStore(store), windowedK, v);
 
         if (sessionStore != null) {
             final var mat = materialize(sessionStore);
@@ -123,7 +124,7 @@ public class ReduceOperation extends StoreOperation {
     }
 
     @Override
-    public StreamWrapper apply(TimeWindowedKStreamWrapper input) {
+    public StreamWrapper apply(TimeWindowedKStreamWrapper input, TopologyBuildContext context) {
         /*    Kafka Streams method signature:
          *    KTable<Windowed<K>, V> reduce(
          *          final Reducer<V> reducer,
@@ -136,7 +137,7 @@ public class ReduceOperation extends StoreOperation {
         final var windowedK = windowedTypeOf(k);
         checkFunction(REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
 
-        final var windowStore = validateWindowStore(store, windowedK, v);
+        final var windowStore = validateWindowStore(context.lookupStore(store), windowedK, v);
 
         if (windowStore != null) {
             final var mat = materialize(windowStore);

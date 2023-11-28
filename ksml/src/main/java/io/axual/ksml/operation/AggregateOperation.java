@@ -21,6 +21,7 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.KGroupedTableWrapper;
 import io.axual.ksml.stream.KTableWrapper;
@@ -56,14 +57,22 @@ public class AggregateOperation extends StoreOperation {
     }
 
     @Override
-    public StreamWrapper apply(KGroupedStreamWrapper input) {
+    public StreamWrapper apply(KGroupedStreamWrapper input, TopologyBuildContext context) {
+        /*    Kafka Streams method signature:
+         *    <VR> KTable<K, VR> aggregate(
+         *          final Initializer<VR> initializer,
+         *          final Aggregator<? super K, ? super V, VR> aggregator,
+         *          final Named named,
+         *          final Materialized<K, VR, KeyValueStore<Bytes, byte[]>> materialized)
+         */
+
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(initializer, aggregator), false);
         checkFunction(INITIALIZER_NAME, initializer, vr);
         checkFunction(AGGREGATOR_NAME, aggregator, vr, superOf(k), superOf(v), superOf(vr));
-        final var kvStore = validateKeyValueStore(store, k, vr);
+        final var kvStore = validateKeyValueStore(context.lookupStore(store), k, vr);
 
         final var init = new UserInitializer(initializer);
         final var aggr = new UserAggregator(aggregator);
@@ -83,7 +92,7 @@ public class AggregateOperation extends StoreOperation {
     }
 
     @Override
-    public StreamWrapper apply(KGroupedTableWrapper input) {
+    public StreamWrapper apply(KGroupedTableWrapper input, TopologyBuildContext context) {
         /*    Kafka Streams method signature:
          *    <VR> KTable<K, VR> aggregate(
          *          final Initializer<VR> initializer,
@@ -100,7 +109,7 @@ public class AggregateOperation extends StoreOperation {
         checkFunction(INITIALIZER_NAME, initializer, vr);
         checkFunction(ADDER_NAME, adder, vr, superOf(k), superOf(v), superOf(vr));
         checkFunction(SUBTRACTOR_NAME, subtractor, vr, superOf(k), superOf(vr), superOf(vr));
-        final var kvStore = validateKeyValueStore(store, k, vr);
+        final var kvStore = validateKeyValueStore(context.lookupStore(store), k, vr);
 
         final var init = new UserInitializer(initializer);
         final var add = new UserAggregator(adder);
@@ -122,7 +131,7 @@ public class AggregateOperation extends StoreOperation {
     }
 
     @Override
-    public StreamWrapper apply(SessionWindowedKStreamWrapper input) {
+    public StreamWrapper apply(SessionWindowedKStreamWrapper input, TopologyBuildContext context) {
         /*    Kafka Streams method signature:
          *    <VR> KTable<Windowed<K>, VR> aggregate(
          *          final Initializer<VR> initializer,
@@ -139,7 +148,7 @@ public class AggregateOperation extends StoreOperation {
         checkFunction(INITIALIZER_NAME, initializer, vr);
         checkFunction(AGGREGATOR_NAME, aggregator, vr, superOf(k), superOf(v), superOf(vr));
         checkFunction(MERGER_NAME, merger, vr, superOf(k), equalTo(vr), superOf(vr));
-        final var sessionStore = validateSessionStore(store, k, vr);
+        final var sessionStore = validateSessionStore(context.lookupStore(store), k, vr);
 
         final var init = new UserInitializer(initializer);
         final var aggr = new UserAggregator(aggregator);
@@ -161,7 +170,7 @@ public class AggregateOperation extends StoreOperation {
     }
 
     @Override
-    public StreamWrapper apply(TimeWindowedKStreamWrapper input) {
+    public StreamWrapper apply(TimeWindowedKStreamWrapper input, TopologyBuildContext context) {
         /*
          *    Kafka Streams method signature:
          *    <VR> KTable<Windowed<K>, VR> aggregate(
@@ -177,7 +186,7 @@ public class AggregateOperation extends StoreOperation {
         final var vr = streamDataTypeOf(firstSpecificType(initializer, aggregator), false);
         checkFunction(INITIALIZER_NAME, initializer, vr);
         checkFunction(AGGREGATOR_NAME, aggregator, vr, superOf(k), superOf(v), superOf(vr));
-        final var windowStore = validateWindowStore(store, k, vr);
+        final var windowStore = validateWindowStore(context.lookupStore(store), k, vr);
 
         final var init = new UserInitializer(initializer);
         final var aggr = new UserAggregator(aggregator);

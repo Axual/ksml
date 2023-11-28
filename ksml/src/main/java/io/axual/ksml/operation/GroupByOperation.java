@@ -25,6 +25,7 @@ import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.UserTupleType;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.KGroupedTableWrapper;
 import io.axual.ksml.stream.KStreamWrapper;
@@ -45,14 +46,20 @@ public class GroupByOperation extends StoreOperation {
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
+        /*    Kafka Streams method signature:
+         *    <KR> KGroupedStream<KR, V> groupBy(
+         *          final KeyValueMapper<? super K, ? super V, KR> keySelector,
+         *          final Grouped<KR, V> grouped)
+         */
+
         checkNotNull(selector, SELECTOR_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
         final var kr = streamDataTypeOf(firstSpecificType(selector, k.userType()), true);
         checkFunction(SELECTOR_NAME, selector, kr, superOf(k), superOf(v));
 
-        final var kvStore = validateKeyValueStore(store, kr, v);
+        final var kvStore = validateKeyValueStore(context.lookupStore(store), kr, v);
         final var mapper = new UserKeyTransformer(selector);
         var grouped = Grouped.with(kr.getSerde(), v.getSerde());
         if (name != null) grouped = grouped.withName(name);
@@ -62,7 +69,7 @@ public class GroupByOperation extends StoreOperation {
     }
 
     @Override
-    public StreamWrapper apply(KTableWrapper input) {
+    public StreamWrapper apply(KTableWrapper input, TopologyBuildContext context) {
         /*    Kafka Streams method signature:
          *    <KR, VR> KGroupedTable<KR, VR> groupBy(
          *          final KeyValueMapper<? super K, ? super V, KeyValue<KR, VR>> selector,
@@ -79,7 +86,7 @@ public class GroupByOperation extends StoreOperation {
         if (krAndVr.dataType() instanceof UserTupleType userTupleType && userTupleType.subTypeCount() == 2) {
             final var kr = streamDataTypeOf(userTupleType.getUserType(0), true);
             final var vr = streamDataTypeOf(userTupleType.getUserType(1), false);
-            final var kvStore = validateKeyValueStore(store, kr, vr);
+            final var kvStore = validateKeyValueStore(context.lookupStore(store), kr, vr);
             final var mapper = new UserKeyValueTransformer(selector);
             var grouped = Grouped.with(kr.getSerde(), vr.getSerde());
             if (name != null) grouped = grouped.withName(name);

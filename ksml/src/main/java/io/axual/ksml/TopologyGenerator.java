@@ -21,9 +21,171 @@ package io.axual.ksml;
  */
 
 
+import com.fasterxml.jackson.databind.JsonNode;
+import io.axual.ksml.data.mapper.DataObjectConverter;
+import io.axual.ksml.definition.StateStoreDefinition;
+import io.axual.ksml.definition.TableDefinition;
+import io.axual.ksml.definition.parser.TopologySpecificationParser;
+import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.generator.TopologyAnalyzer;
+import io.axual.ksml.generator.TopologySpecification;
+import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.operation.StreamOperation;
+import io.axual.ksml.operation.ToOperation;
+import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.python.PythonContext;
+import io.axual.ksml.python.PythonFunction;
+import io.axual.ksml.stream.StreamWrapper;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public interface TopologyGenerator {
-    Topology create(StreamsBuilder streamsBuilder);
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+public class TopologyGenerator {
+    private static final Logger LOG = LoggerFactory.getLogger(TopologyGenerator.class);
+    private final String applicationId;
+    private final NotationLibrary notationLibrary;
+
+    public TopologyGenerator(String applicationId, NotationLibrary notationLibrary) {
+        // Parse configuration
+        this.applicationId = applicationId;
+        this.notationLibrary = notationLibrary;
+    }
+
+    public Topology create(StreamsBuilder streamsBuilder, Map<String, JsonNode> definitions) {
+        final var knownTopics = new HashSet<String>();
+        final var parser = new TopologySpecificationParser();
+
+        for (final var definition : definitions.entrySet()) {
+            final var specification = parser.parse(YamlNode.fromRoot(definition.getValue(), definition.getKey()));
+            final var context = new TopologyBuildContext(streamsBuilder, specification, notationLibrary, definition.getKey());
+            generate(specification, context);
+        }
+
+        var topology = streamsBuilder.build();
+        var analysis = TopologyAnalyzer.analyze(topology, applicationId, knownTopics);
+
+        StringBuilder summary = new StringBuilder("\n\n");
+        summary.append(topology != null ? topology.describe() : "null");
+        summary.append("\n");
+
+        appendTopics(summary, "Input topics", analysis.inputTopics());
+        appendTopics(summary, "Intermediate topics", analysis.intermediateTopics());
+        appendTopics(summary, "Output topics", analysis.outputTopics());
+
+        appendStores(summary, "Registered state stores", analysis.stores());
+
+        LOG.info("\n{}\n", summary);
+
+        return topology;
+    }
+
+    public void appendTopics(StringBuilder builder, String description, Set<String> topics) {
+        if (topics.size() > 0) {
+            builder.append(description).append(":\n  ");
+            builder.append(String.join("\n  ", topics));
+            builder.append("\n");
+        }
+    }
+
+    public void appendStores(StringBuilder builder, String description, Map<String, StateStoreDefinition> stores) {
+        if (stores.size() > 0) {
+            builder.append(description).append(":\n");
+        }
+        for (var entry : stores.entrySet()) {
+            builder
+                    .append("  ")
+                    .append(entry.getKey())
+                    .append(" (")
+                    .append(entry.getValue().type())
+                    .append("): key=")
+                    .append(entry.getValue().keyType())
+                    .append(", value=")
+                    .append(entry.getValue().valueType())
+                    .append(", url_path=/state/")
+                    .append(switch (entry.getValue().type()) {
+                        case KEYVALUE_STORE -> "keyValue";
+                        case SESSION_STORE -> "session";
+                        case WINDOW_STORE -> "window";
+                    })
+                    .append("/")
+                    .append(entry.getKey())
+                    .append("/");
+        }
+    }
+
+    private String getPrefix(String source) {
+        // The source contains the full path to the source YAML file. We generate a prefix for
+        // naming Kafka Streams Processor nodes by just taking the filename (eg. everything after
+        // the last slash in the file path) and removing the file extension if it exists.
+        while (source.contains("/")) {
+            source = source.substring(source.indexOf("/") + 1);
+        }
+        if (source.contains(".")) {
+            source = source.substring(0, source.lastIndexOf("."));
+        }
+        if (!source.isEmpty()) source += "_";
+        return source;
+    }
+
+    private void generate(TopologySpecification specification, TopologyBuildContext context) {
+        // Register all topics
+        final var knownTopics = new HashSet<String>();
+        specification.getTopicDefinitions().forEach((name, def) -> knownTopics.add(def.getTopic()));
+
+        // Ensure that local state store in tables are registered with the StreamBuilder
+        specification.getTopicDefinitions().forEach((name, def) -> {
+            if (def instanceof TableDefinition tableDef) {
+                context.getStreamWrapper(tableDef);
+                if (tableDef.getStore() != null) {
+                    // Register the state store and mark as already created (by Kafka Streams framework, not by user)
+                    specification.registerStateStore(tableDef.getStore().name(), tableDef.getStore());
+                    context.createdStateStores().add(tableDef.getStore().name());
+                }
+            }
+        });
+
+        // Add source and target topics to the set of known topics
+        specification.getPipelineDefinitions().forEach((name, def) -> {
+            final var source = context.lookupTopic(def.source(), "stream");
+            knownTopics.add(source.getTopic());
+            if (def.sink() instanceof ToOperation toOperation) {
+                final var sink = context.lookupTopic(toOperation.output, "topic");
+                knownTopics.add(sink.getTopic());
+            }
+        });
+
+        // If there are any uncreated state stores needed, create them first
+        specification.getStateStoreDefinitions().forEach((name, store) -> {
+            if (!context.createdStateStores().contains(name)) {
+                context.createUserStateStore(store);
+            }
+        });
+
+        final var pythonContext = new PythonContext(new DataObjectConverter(notationLibrary));
+        // Preload the function into the Python context
+        specification.getFunctionDefinitions().forEach((name, func) -> {
+            PythonFunction.fromNamed(pythonContext, name, func);
+        });
+
+        specification.getPipelineDefinitions().forEach((name, pipeline) -> {
+            final var source = context.lookupTopic(pipeline.source(), "topic");
+            StreamWrapper cursor = context.getStreamWrapper(source);
+            LOG.info("Generating Kafka Streams topology:");
+            LOG.info("  {}", cursor);
+            for (StreamOperation operation : pipeline.chain()) {
+                LOG.info("    ==> {}", operation);
+                cursor = cursor.apply(operation, context);
+                LOG.info("  {}", cursor);
+            }
+            if (pipeline.sink() != null) {
+                LOG.info("    ==> {}", pipeline.sink());
+                cursor.apply(pipeline.sink(), context);
+            }
+        });
+    }
 }

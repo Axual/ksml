@@ -21,33 +21,15 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.store.StateStoreRegistry;
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.kstream.Consumed;
-
 import io.axual.ksml.data.type.UserType;
-import io.axual.ksml.generator.StreamDataType;
-import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.parser.UserTypeParser;
-import io.axual.ksml.stream.KStreamWrapper;
-import io.axual.ksml.stream.StreamWrapper;
 
-public class StreamDefinition extends BaseStreamDefinition {
+public class StreamDefinition extends TopicDefinition {
     public StreamDefinition(String topic, String keyType, String valueType) {
         this(topic, UserTypeParser.parse(keyType), UserTypeParser.parse(valueType));
     }
 
     public StreamDefinition(String topic, UserType keyType, UserType valueType) {
         super(topic, keyType, valueType);
-    }
-
-    @Override
-    public StreamWrapper addToBuilder(StreamsBuilder builder, String name, NotationLibrary notationLibrary, StateStoreRegistry storeRegistry) {
-        var streamKey = new StreamDataType(notationLibrary, keyType, true);
-        var streamValue = new StreamDataType(notationLibrary, valueType, false);
-        return new KStreamWrapper(
-                builder.stream(topic, Consumed.with(streamKey.getSerde(), streamValue.getSerde()).withName(name)),
-                streamKey,
-                streamValue);
     }
 }

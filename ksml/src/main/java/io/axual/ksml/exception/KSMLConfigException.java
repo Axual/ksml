@@ -21,12 +21,14 @@ package io.axual.ksml.exception;
  */
 
 
-public class KSMLConfigException extends KSMLExecutionException {
+public class KSMLConfigException extends KSMLException {
+    private static final String ACTIVITY = "Configuration";
+
     public KSMLConfigException(String message) {
-        super(message);
+        super(ACTIVITY, message);
     }
 
     public KSMLConfigException(String message, Throwable cause) {
-        super(message, cause);
+        super(ACTIVITY, message, cause);
     }
 }

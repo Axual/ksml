@@ -23,6 +23,7 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.processor.OperationProcessorSupplier;
 import io.axual.ksml.operation.processor.PeekProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
@@ -41,7 +42,7 @@ public class PeekOperation extends BaseOperation {
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
         final var k = input.keyType();
         final var v = input.valueType();
         checkFunction(FOREACHACTION_NAME, forEachAction, new UserType(DataNull.DATATYPE), superOf(k), superOf(v));

@@ -56,12 +56,5 @@ public class GeneratorConfig {
         }
 
         log.info("Using directories: config: {}, schema: {}", configDirectory, schemaDirectory);
-
-        for (String definitionFile : definitions) {
-            final var definitionFilePath = Paths.get(configDirectory, definitionFile);
-            if (Files.notExists(definitionFilePath) || !Files.isRegularFile(definitionFilePath)) {
-                throw new ConfigException("definitionFile", definitionFilePath, "The provided KSML definition file does not exists or is not a regular file");
-            }
-        }
     }
 }

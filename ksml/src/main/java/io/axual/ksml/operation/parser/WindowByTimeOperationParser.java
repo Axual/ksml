@@ -24,7 +24,6 @@ package io.axual.ksml.operation.parser;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.operation.WindowByTimeOperation;
-import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 import org.apache.kafka.streams.kstream.SlidingWindows;
 import org.apache.kafka.streams.kstream.TimeWindows;
@@ -34,8 +33,7 @@ import static io.axual.ksml.dsl.KSMLDSL.*;
 public class WindowByTimeOperationParser extends OperationParser<WindowByTimeOperation> {
     private final String name;
 
-    protected WindowByTimeOperationParser(String name, ParseContext context) {
-        super(context);
+    protected WindowByTimeOperationParser(String name) {
         this.name = name;
     }
 

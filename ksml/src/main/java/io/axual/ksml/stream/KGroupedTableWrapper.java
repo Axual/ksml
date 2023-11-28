@@ -21,6 +21,7 @@ package io.axual.ksml.stream;
  */
 
 
+import io.axual.ksml.generator.TopologyBuildContext;
 import org.apache.kafka.streams.kstream.KGroupedTable;
 
 import io.axual.ksml.generator.StreamDataType;
@@ -35,7 +36,7 @@ public class KGroupedTableWrapper extends BaseStreamWrapper {
     }
 
     @Override
-    public StreamWrapper apply(StreamOperation operation) {
-        return operation.apply(this);
+    public StreamWrapper apply(StreamOperation operation, TopologyBuildContext context) {
+        return operation.apply(this, context);
     }
 }

@@ -24,7 +24,6 @@ package io.axual.ksml.operation.parser;
 import io.axual.ksml.definition.parser.ValueJoinerDefinitionParser;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.operation.LeftJoinOperation;
-import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
@@ -37,8 +36,7 @@ import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
 public class LeftJoinOperationParser extends StoreOperationParser<LeftJoinOperation> {
     private final String name;
 
-    public LeftJoinOperationParser(String name, ParseContext context) {
-        super(context);
+    public LeftJoinOperationParser(String name) {
         this.name = name;
     }
 

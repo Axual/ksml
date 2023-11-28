@@ -24,7 +24,7 @@ functions:
     expression: True
 
 pipelines:
-  main:
+  filter_pipeline:
     from: sensor_source
     via:
       - type: filter

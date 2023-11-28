@@ -21,38 +21,41 @@ package io.axual.ksml.operation;
  */
 
 
-import org.apache.kafka.streams.kstream.Produced;
-
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.definition.BaseStreamDefinition;
+import io.axual.ksml.definition.TopicDefinition;
+import io.axual.ksml.definition.Ref;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
+import org.apache.kafka.streams.kstream.Produced;
 
 public class ToOperation extends BaseOperation {
-    private final BaseStreamDefinition target;
+    public final Ref<TopicDefinition> output;
 
-    public ToOperation(OperationConfig config, BaseStreamDefinition target) {
+    public ToOperation(OperationConfig config, Ref<TopicDefinition> output) {
         super(config);
-        this.target = target;
+        this.output = output;
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
+        /*    Kafka Streams method signature:
+         *    void to(
+         *          final String topic,
+         *          final Produced<K, V> produced)
+         */
+
+        final var target = context.lookupTopic(output, "target");
         final var k = input.keyType();
         final var v = input.valueType();
-        final var kr = target.keyType.dataType() != DataType.UNKNOWN
-                ? streamDataTypeOf(target.keyType, true)
-                : k;
-        final var vr = target.valueType.dataType() != DataType.UNKNOWN
-                ? streamDataTypeOf(target.valueType, false)
-                : v;
+        final var kr = streamDataTypeOf(firstSpecificType(target.getKeyType(), k.userType()), true);
+        final var vr = streamDataTypeOf(firstSpecificType(target.getValueType(), v.userType()), false);
         // Perform a dataType check to see if the key/value data types received matches the stream definition's types
-        checkType("Target topic keyType", target.keyType.dataType(), superOf(k));
-        checkType("Target topic valueType", target.valueType.dataType(), superOf(v));
+        checkType("Target topic keyType", target.getKeyType().dataType(), superOf(k));
+        checkType("Target topic valueType", target.getValueType().dataType(), superOf(v));
 
         var produced = Produced.with(kr.getSerde(), vr.getSerde());
         if (name != null) produced = produced.withName(name);
-        input.stream.to(target.topic, produced);
+        input.stream.to(target.getTopic(), produced);
         return null;
     }
 }

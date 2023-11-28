@@ -24,7 +24,7 @@ package io.axual.ksml.datagenerator.parser;
 import io.axual.ksml.datagenerator.definition.ProducerDefinition;
 import io.axual.ksml.definition.parser.PredicateDefinitionParser;
 import io.axual.ksml.definition.parser.StreamDefinitionParser;
-import io.axual.ksml.parser.ReferenceOrInlineParser;
+import io.axual.ksml.parser.ReferenceOrInlineDefinitionParser;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.datagenerator.dsl.ProducerDSL.*;
@@ -38,9 +38,9 @@ public class ProducerDefinitionParser extends ContextAwareParser<ProducerDefinit
     public ProducerDefinition parse(YamlNode node) {
         if (node == null) return null;
         return new ProducerDefinition(
-                new ReferenceOrInlineParser<>("generator", GENERATOR_ATTRIBUTE, context.getFunctionDefinitions()::get, new GeneratorDefinitionParser()).parse(node),
+                new ReferenceOrInlineDefinitionParser<>("generator", GENERATOR_ATTRIBUTE, context.getFunctionDefinitions()::get, new GeneratorDefinitionParser()).parse(node),
                 parseDuration(node, INTERVAL_ATTRIBUTE),
-                new ReferenceOrInlineParser<>("condition", CONDITION_ATTRIBUTE, context.getFunctionDefinitions()::get, new PredicateDefinitionParser()).parse(node),
-                new ReferenceOrInlineParser<>("to", TARGET_ATTRIBUTE, context.getStreamDefinitions()::get, new StreamDefinitionParser()).parseDefinition(node));
+                new ReferenceOrInlineDefinitionParser<>("condition", CONDITION_ATTRIBUTE, context.getFunctionDefinitions()::get, new PredicateDefinitionParser()).parse(node),
+                new ReferenceOrInlineDefinitionParser<>("to", TARGET_ATTRIBUTE, context.getStreamDefinitions()::get, new StreamDefinitionParser()).parseDefinition(node));
     }
 }

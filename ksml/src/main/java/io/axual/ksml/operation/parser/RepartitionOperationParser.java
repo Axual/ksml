@@ -23,7 +23,6 @@ package io.axual.ksml.operation.parser;
 
 import io.axual.ksml.definition.parser.StreamPartitionerDefinitionParser;
 import io.axual.ksml.operation.RepartitionOperation;
-import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.REPARTITION_PARTITIONER_ATTRIBUTE;
@@ -31,8 +30,7 @@ import static io.axual.ksml.dsl.KSMLDSL.REPARTITION_PARTITIONER_ATTRIBUTE;
 public class RepartitionOperationParser extends OperationParser<RepartitionOperation> {
     private final String name;
 
-    protected RepartitionOperationParser(String name, ParseContext context) {
-        super(context);
+    protected RepartitionOperationParser(String name) {
         this.name = name;
     }
 

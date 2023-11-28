@@ -23,6 +23,7 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.processor.FilterNotProcessor;
 import io.axual.ksml.operation.processor.OperationProcessorSupplier;
 import io.axual.ksml.stream.KStreamWrapper;
@@ -42,7 +43,13 @@ public class FilterNotOperation extends BaseOperation {
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
+        /*    Kafka Streams method signature:
+         *    KStream<K, V> filterNot(
+         *          final Predicate<? super K, ? super V> predicate
+         *          final Named named)
+         */
+
         final var k = input.keyType();
         final var v = input.valueType();
         checkFunction(PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k), superOf(v));
@@ -61,7 +68,7 @@ public class FilterNotOperation extends BaseOperation {
     }
 
     @Override
-    public StreamWrapper apply(KTableWrapper input) {
+    public StreamWrapper apply(KTableWrapper input, TopologyBuildContext context) {
         /*    Kafka Streams method signature:
          *    KTable<K, V> filterNot(
          *          final Predicate<? super K, ? super V> predicate

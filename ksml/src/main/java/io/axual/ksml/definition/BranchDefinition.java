@@ -21,7 +21,5 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.user.UserFunction;
-
-public record BranchDefinition(UserFunction predicate, PipelineDefinition pipeline) {
+public record BranchDefinition(Ref<FunctionDefinition> predicate, PipelineDefinition pipeline) {
 }

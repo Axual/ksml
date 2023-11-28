@@ -21,7 +21,7 @@ package io.axual.ksml;
  */
 
 
-import io.axual.ksml.generator.TopologyGeneratorImpl;
+import io.axual.ksml.generator.TopologyBuilder;
 import io.axual.ksml.notation.NotationLibrary;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TopologyDescription;
@@ -38,13 +38,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.fail;
 
-public class KSMLTopologyGeneratorBasicTest {
+public class TopologyGeneratorBasicTest {
 
     @BeforeAll
     public static void checkGraalVM() {
@@ -59,7 +58,7 @@ public class KSMLTopologyGeneratorBasicTest {
         final URI uri = ClassLoader.getSystemResource("pipelines/" + nr + "-demo.yaml").toURI();
         final Path path = Paths.get(uri);
         String pipeDefinition = Files.readString(path);
-        TopologyGeneratorImpl topologyGenerator = new TopologyGeneratorImpl(KSMLConfig.builder()
+        TopologyBuilder topologyGenerator = new TopologyBuilder(KSMLConfig.builder()
                 .sourceType("content")
                 .source(pipeDefinition)
                 .notationLibrary(new NotationLibrary(new HashMap<>()))

@@ -22,6 +22,7 @@ package io.axual.ksml.operation;
 
 
 import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
@@ -45,7 +46,7 @@ public class WindowByTimeOperation extends BaseOperation {
     }
 
     @Override
-    public StreamWrapper apply(KGroupedStreamWrapper input) {
+    public StreamWrapper apply(KGroupedStreamWrapper input, TopologyBuildContext context) {
         final var k = input.keyType();
         final var v = input.valueType();
         if (slidingWindows != null) {

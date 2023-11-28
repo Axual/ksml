@@ -28,7 +28,6 @@ import io.axual.ksml.datagenerator.definition.ProducerDefinition;
 import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.generator.YAMLDefinition;
 import io.axual.ksml.generator.YAMLObjectMapper;
-import io.axual.ksml.generator.YAMLReader;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.notation.avro.AvroNotation;
 import io.axual.ksml.notation.avro.AvroSchemaLoader;
@@ -61,18 +60,6 @@ public class ProducerDefinitionFileParser {
 
     public ProducerDefinitionFileParser(GeneratorConfig config) {
         this.config = config;
-    }
-
-    private List<YAMLDefinition> readDefinitions() {
-        try {
-            // Parse source from file
-            LOG.info("Reading Producer Definition from source file(s): {}", config.getDefinitions());
-            return YAMLReader.readYAML(YAMLObjectMapper.INSTANCE, config.getConfigDirectory(), config.getDefinitions());
-        } catch (IOException e) {
-            LOG.info("Can not read YAML: {}", e.getMessage());
-        }
-
-        return new ArrayList<>();
     }
 
     public Map<String, ProducerDefinition> create(NotationLibrary notationLibrary, PythonContext pythonContext) {

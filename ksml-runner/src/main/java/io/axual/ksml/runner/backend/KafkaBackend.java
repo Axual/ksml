@@ -21,16 +21,33 @@ package io.axual.ksml.runner.backend;
  */
 
 
-import io.axual.ksml.KSMLTopologyGenerator;
+import io.axual.ksml.TopologyGenerator;
 import io.axual.ksml.client.generic.ResolvingClientConfig;
 import io.axual.ksml.client.producer.ResolvingProducerConfig;
 import io.axual.ksml.client.serde.ResolvingDeserializer;
 import io.axual.ksml.client.serde.ResolvingSerializer;
+import io.axual.ksml.data.schema.SchemaLibrary;
+import io.axual.ksml.execution.ErrorHandler;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.execution.ExecutionErrorHandler;
 import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.notation.avro.AvroNotation;
+import io.axual.ksml.notation.avro.AvroSchemaLoader;
+import io.axual.ksml.notation.binary.BinaryNotation;
+import io.axual.ksml.notation.csv.CsvDataObjectConverter;
+import io.axual.ksml.notation.csv.CsvNotation;
+import io.axual.ksml.notation.csv.CsvSchemaLoader;
+import io.axual.ksml.notation.json.JsonDataObjectConverter;
+import io.axual.ksml.notation.json.JsonNotation;
+import io.axual.ksml.notation.json.JsonSchemaLoader;
+import io.axual.ksml.notation.soap.SOAPDataObjectConverter;
+import io.axual.ksml.notation.soap.SOAPNotation;
+import io.axual.ksml.notation.xml.XmlDataObjectConverter;
+import io.axual.ksml.notation.xml.XmlNotation;
+import io.axual.ksml.notation.xml.XmlSchemaLoader;
 import io.axual.ksml.rest.server.StreamsQuerier;
 import io.axual.ksml.runner.config.KSMLConfig;
+import io.axual.ksml.runner.config.KSMLErrorHandlingConfig;
 import io.axual.ksml.runner.streams.KSMLClientSupplier;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
@@ -75,14 +92,35 @@ public class KafkaBackend implements Backend {
             streamsConfig.put(StreamsConfig.APPLICATION_SERVER_CONFIG, ksmlConfig.getApplicationServer().getApplicationServer());
         }
 
+        if (ksmlConfig.getErrorHandling() != null) {
+            ExecutionContext.INSTANCE.setConsumeHandler(getErrorHandler(ksmlConfig.getErrorHandling().getConsume(), "ConsumeError"));
+            ExecutionContext.INSTANCE.setProduceHandler(getErrorHandler(ksmlConfig.getErrorHandling().getProduce(), "ProduceError"));
+            ExecutionContext.INSTANCE.setProcessHandler(getErrorHandler(ksmlConfig.getErrorHandling().getProcess(), "ProcessError"));
+        }
+
+        // Set up the notation library
+        final var notationLibrary = new NotationLibrary();
+        notationLibrary.register(AvroNotation.NOTATION_NAME, new AvroNotation(streamsConfig), null);
+        notationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(), null);
+        notationLibrary.register(CsvNotation.NOTATION_NAME, new CsvNotation(), new CsvDataObjectConverter());
+        notationLibrary.register(JsonNotation.NOTATION_NAME, new JsonNotation(), new JsonDataObjectConverter());
+        notationLibrary.register(SOAPNotation.NOTATION_NAME, new SOAPNotation(), new SOAPDataObjectConverter());
+        notationLibrary.register(XmlNotation.NOTATION_NAME, new XmlNotation(), new XmlDataObjectConverter());
+
         // set up a stream topology generator based on the provided KSML definition
         var ksmlConf = io.axual.ksml.KSMLConfig.builder()
                 .sourceType("file")
                 .configDirectory(ksmlConfig.getConfigDirectory())
                 .schemaDirectory(ksmlConfig.getSchemaDirectory())
                 .source(ksmlConfig.getDefinitions())
-                .notationLibrary(new NotationLibrary(streamsConfig))
+                .notationLibrary(notationLibrary)
                 .build();
+
+        // Register schema loaders
+        SchemaLibrary.registerLoader(AvroNotation.NOTATION_NAME, new AvroSchemaLoader(ksmlConf.schemaDirectory()));
+        SchemaLibrary.registerLoader(CsvNotation.NOTATION_NAME, new CsvSchemaLoader(ksmlConf.schemaDirectory()));
+        SchemaLibrary.registerLoader(JsonNotation.NOTATION_NAME, new JsonSchemaLoader(ksmlConf.schemaDirectory()));
+        SchemaLibrary.registerLoader(XmlNotation.NOTATION_NAME, new XmlSchemaLoader(ksmlConf.schemaDirectory()));
 
         var applicationId = kafkaConfig != null ? kafkaConfig.get(StreamsConfig.APPLICATION_ID_CONFIG) : null;
         if (applicationId == null) {
@@ -93,13 +131,27 @@ public class KafkaBackend implements Backend {
                 serde -> new Serdes.WrapperSerde<>(
                         new ResolvingSerializer<>(serde.serializer(), streamsConfig),
                         new ResolvingDeserializer<>(serde.deserializer(), streamsConfig)));
-        var topologyGenerator = new KSMLTopologyGenerator(applicationId, ksmlConf, streamsConfig);
+        final var topologyGenerator = new TopologyGenerator(applicationId, ksmlConf);
+//        final var topologyConfig = new TopologyConfig(applicationId, new StreamsConfig(streamsConfig), new Properties());
+        final var topologyConfig = new TopologyConfig(new StreamsConfig(streamsConfig));
+        final var streamsBuilder = new StreamsBuilder(topologyConfig);
+        final var topology = topologyGenerator.create(streamsBuilder, notationLibrary, ksmlConfig.getDefinitions());
 
-//        var topologyConfig = new TopologyConfig(applicationId, new StreamsConfig(streamsConfig), new Properties());
-        var topologyConfig = new TopologyConfig(new StreamsConfig(streamsConfig));
-        final var topology = topologyGenerator.create(new StreamsBuilder(topologyConfig));
         kafkaStreams = new KafkaStreams(topology, mapToProperties(streamsConfig));
         kafkaStreams.setUncaughtExceptionHandler(ExecutionContext.INSTANCE::uncaughtException);
+    }
+
+    private ErrorHandler getErrorHandler(KSMLErrorHandlingConfig.ErrorHandlingConfig config, String loggerName) {
+        if (config == null) return new ErrorHandler(true, false, loggerName, ErrorHandler.HandlerType.STOP_ON_FAIL);
+        final var handlerType = switch (config.getHandler()) {
+            case CONTINUE -> ErrorHandler.HandlerType.CONTINUE_ON_FAIL;
+            case STOP -> ErrorHandler.HandlerType.STOP_ON_FAIL;
+        };
+        return new ErrorHandler(
+                config.isLog(),
+                config.isLogPayload(),
+                config.getLoggerName() != null ? config.getLoggerName() : loggerName,
+                handlerType);
     }
 
     private Properties mapToProperties(Map<String, Object> configs) {

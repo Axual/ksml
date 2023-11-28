@@ -20,12 +20,10 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.notation.NotationLibrary;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class OperationConfig {
     public final String name;
-    public final NotationLibrary notationLibrary;
     public String[] storeNames;
 }

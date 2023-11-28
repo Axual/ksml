@@ -24,8 +24,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.Getter;
 import lombok.Setter;
 
-@Setter
-//@Getter
+@Getter
 public class KSMLErrorHandlingConfig {
     private ErrorHandlingConfig consume;
     private ErrorHandlingConfig produce;
@@ -87,8 +86,8 @@ public class KSMLErrorHandlingConfig {
                 }
 
                 return switch (value) {
-                    case "continueOnFail" -> CONTINUE;
-                    case "stopOnFail" -> STOP;
+                    case "continue", "continueOnFail" -> CONTINUE;
+                    case "stop", "stopOnFail" -> STOP;
                     default -> null;
                 };
             }

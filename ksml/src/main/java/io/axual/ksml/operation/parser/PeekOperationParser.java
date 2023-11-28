@@ -23,7 +23,6 @@ package io.axual.ksml.operation.parser;
 
 import io.axual.ksml.definition.parser.ForEachActionDefinitionParser;
 import io.axual.ksml.operation.PeekOperation;
-import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.PEEK_FOREACH_ATTRIBUTE;
@@ -31,8 +30,7 @@ import static io.axual.ksml.dsl.KSMLDSL.PEEK_FOREACH_ATTRIBUTE;
 public class PeekOperationParser extends OperationParser<PeekOperation> {
     private final String name;
 
-    protected PeekOperationParser(String name, ParseContext context) {
-        super(context);
+    protected PeekOperationParser(String name) {
         this.name = name;
     }
 

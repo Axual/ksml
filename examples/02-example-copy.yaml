@@ -12,7 +12,7 @@ streams:
 
 pipelines:
   # The main pipeline reads messages, outputs them and saves a copy in a target topic
-  main:
+  main_copy_pipeline:
     from: sensor_source
     via:
       - type: peek
@@ -22,7 +22,7 @@ pipelines:
 
   # The secondary pipeline does exactly the same, but by inlining the source and target topics instead of referencing
   # an earlier definition
-  secondary:
+  secondary_copy_pipeline:
     from:
       topic: ksml_sensordata_avro
       keyType: string

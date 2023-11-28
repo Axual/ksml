@@ -22,6 +22,7 @@ package io.axual.ksml.operation;
 
 
 import io.axual.ksml.definition.BranchDefinition;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserPredicate;
@@ -40,14 +41,17 @@ public class BranchOperation extends BaseOperation {
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
         final var k = input.keyType();
         final var v = input.valueType();
 
         // Prepare the branch predicates to pass into the KStream
         @SuppressWarnings("unchecked") final var predicates = new Predicate[branches.size()];
         for (var index = 0; index < branches.size(); index++) {
-            predicates[index] = getBranchPredicate(branches.get(index));
+            final var branch = branches.get(index);
+            predicates[index] = branch.predicate() != null
+                    ? new UserPredicate(context.createUserFunction("predicate", branch.predicate()))
+                    : (key, value) -> true;
         }
 
         // Pass the predicates to KStream and get resulting KStream branches back
@@ -59,20 +63,13 @@ public class BranchOperation extends BaseOperation {
         for (var index = 0; index < output.length; index++) {
             StreamWrapper branchCursor = new KStreamWrapper(output[index], k, v);
             for (StreamOperation operation : branches.get(index).pipeline().chain()) {
-                branchCursor = branchCursor.apply(operation);
+                branchCursor = branchCursor.apply(operation, context);
             }
             if (branches.get(index).pipeline().sink() != null) {
-                branchCursor.apply(branches.get(index).pipeline().sink());
+                branchCursor.apply(branches.get(index).pipeline().sink(), context);
             }
         }
 
         return null;
-    }
-
-    private static Predicate<Object, Object> getBranchPredicate(BranchDefinition definition) {
-        if (definition.predicate() != null) {
-            return new UserPredicate(definition.predicate());
-        }
-        return (k, v) -> true;
     }
 }

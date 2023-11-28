@@ -21,6 +21,7 @@ package io.axual.ksml.stream;
  */
 
 
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.operation.StreamOperation;
 
@@ -29,7 +30,7 @@ public interface StreamWrapper {
 
     StreamDataType valueType();
 
-    default StreamWrapper apply(StreamOperation operation) {
+    default StreamWrapper apply(StreamOperation operation, TopologyBuildContext context) {
         throw new UnsupportedOperationException("Can not apply " + operation.getClass().getSimpleName() + " to " + getClass().getSimpleName());
     }
 }

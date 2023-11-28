@@ -21,6 +21,7 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
@@ -32,11 +33,11 @@ public class GroupByKeyOperation extends StoreOperation {
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
         final var k = input.keyType();
         final var v = input.valueType();
 
-        final var kvStore = validateKeyValueStore(store, k, v);
+        final var kvStore = validateKeyValueStore(context.lookupStore(store), k, v);
         var grouped = Grouped.with(k.getSerde(), v.getSerde());
         if (name != null) grouped = grouped.withName(name);
         if (kvStore != null) grouped = grouped.withName(kvStore.name());

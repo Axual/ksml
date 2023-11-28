@@ -25,7 +25,6 @@ import io.axual.ksml.definition.parser.AggregatorDefinitionParser;
 import io.axual.ksml.definition.parser.InitializerDefinitionParser;
 import io.axual.ksml.definition.parser.MergerDefinitionParser;
 import io.axual.ksml.operation.AggregateOperation;
-import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.*;
@@ -33,8 +32,7 @@ import static io.axual.ksml.dsl.KSMLDSL.*;
 public class AggregateOperationParser extends StoreOperationParser<AggregateOperation> {
     private final String name;
 
-    protected AggregateOperationParser(String name, ParseContext context) {
-        super(context);
+    protected AggregateOperationParser(String name) {
         this.name = name;
     }
 

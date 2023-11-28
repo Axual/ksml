@@ -21,44 +21,32 @@ package io.axual.ksml.parser;
  */
 
 
-import io.axual.ksml.exception.KSMLParseException;
-
-import java.util.function.Function;
+import io.axual.ksml.definition.Ref;
 
 // Certain KSML resources (like streams, tables and functions) can be referenced from pipelines,
 // or they can be defined inline. This parser distinguishes between the two.
-public class ReferenceOrInlineParser<T, F extends T> extends BaseParser<NamedDefinition<T>> {
+public class ReferenceOrInlineDefinitionParser<T, F extends T> extends BaseParser<Ref<T>> {
     private final String resourceType;
     private final String childName;
-    private final Function<String, T> lookup;
     private final BaseParser<F> inlineParser;
 
-    public ReferenceOrInlineParser(String resourceType, String childName, Function<String, T> lookup, BaseParser<F> inlineParser) {
+    public ReferenceOrInlineDefinitionParser(String resourceType, String childName, BaseParser<F> inlineParser) {
         this.resourceType = resourceType;
         this.childName = childName;
-        this.lookup = lookup;
         this.inlineParser = inlineParser;
     }
 
     @Override
-    public NamedDefinition<T> parse(YamlNode node) {
+    public Ref<T> parse(YamlNode node) {
         if (node == null) return null;
+
         // Check if the node is a text node --> parse as direct reference
         if (node.childIsText(childName)) {
             final var resourceToFind = parseString(node, childName);
-            final var resource = lookup.apply(resourceToFind);
-            if (resource == null) {
-                throw new KSMLParseException(node, "Unknown " + resourceType + " \"" + resourceToFind + "\"");
-            }
-            return new NamedDefinition<>(resourceToFind, resource);
+            return new Ref<>(resourceToFind, node.get(childName), null);
         }
 
         // Parse as inline definition using the supplied inline parser
-        return new NamedDefinition<>(null, inlineParser.parse(node.get(childName)));
-    }
-
-    public T parseDefinition(YamlNode node) {
-        final var result = parse(node);
-        return result != null ? result.definition() : null;
+        return new Ref<>(null, node, inlineParser.parse(node.get(childName)));
     }
 }

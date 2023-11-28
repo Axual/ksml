@@ -26,7 +26,6 @@ import io.axual.ksml.notation.NotationLibrary;
 import lombok.Builder;
 import org.apache.kafka.common.annotation.InterfaceStability;
 
-import java.util.HashMap;
 @InterfaceStability.Evolving
 public record KSMLConfig(String sourceType, String configDirectory, String schemaDirectory,
                          Object source, NotationLibrary notationLibrary, ErrorHandler consumeErrorHandler,
@@ -38,9 +37,6 @@ public record KSMLConfig(String sourceType, String configDirectory, String schem
         this.configDirectory = configDirectory;
         this.schemaDirectory = schemaDirectory;
         this.source = source;
-        this.notationLibrary = notationLibrary != null ? notationLibrary : new NotationLibrary(new HashMap<>());
-        this.consumeErrorHandler = consumeErrorHandler != null ? consumeErrorHandler : new ErrorHandler(true, false, "ConsumeError", ErrorHandler.HandlerType.STOP_ON_FAIL);
-        this.produceErrorHandler = produceErrorHandler != null ? produceErrorHandler : new ErrorHandler(true, false, "ProduceError", ErrorHandler.HandlerType.STOP_ON_FAIL);
-        this.processErrorHandler = processErrorHandler != null ? processErrorHandler : new ErrorHandler(true, false, "ProcessError", ErrorHandler.HandlerType.STOP_ON_FAIL);
+        this.notationLibrary = notationLibrary != null ? notationLibrary : new NotationLibrary();
     }
 }

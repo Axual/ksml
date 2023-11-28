@@ -24,7 +24,6 @@ package io.axual.ksml.operation.parser;
 import io.axual.ksml.definition.parser.PredicateDefinitionParser;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.operation.FilterOperation;
-import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.user.UserFunction;
 
@@ -33,8 +32,7 @@ import static io.axual.ksml.dsl.KSMLDSL.FILTER_PREDICATE_ATTRIBUTE;
 public class FilterOperationParser extends OperationParser<FilterOperation> {
     private final String name;
 
-    protected FilterOperationParser(String name, ParseContext context) {
-        super(context);
+    protected FilterOperationParser(String name) {
         this.name = name;
     }
 

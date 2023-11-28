@@ -24,20 +24,15 @@ package io.axual.ksml.definition.parser;
 import io.axual.ksml.definition.PipelineDefinition;
 import io.axual.ksml.operation.parser.PipelineOperationParser;
 import io.axual.ksml.operation.parser.PipelineSinkOperationParser;
-import io.axual.ksml.parser.ContextAwareParser;
+import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.ListParser;
-import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.parser.ReferenceOrInlineParser;
+import io.axual.ksml.parser.ReferenceOrInlineDefinitionParser;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.PIPELINE_FROM_ATTRIBUTE;
 import static io.axual.ksml.dsl.KSMLDSL.PIPELINE_VIA_ATTRIBUTE;
 
-public class PipelineDefinitionParser extends ContextAwareParser<PipelineDefinition> {
-    public PipelineDefinitionParser(ParseContext context) {
-        super(context);
-    }
-
+public class PipelineDefinitionParser extends BaseParser<PipelineDefinition> {
     @Override
     public PipelineDefinition parse(YamlNode node) {
         return parse(node, true, true);
@@ -45,11 +40,11 @@ public class PipelineDefinitionParser extends ContextAwareParser<PipelineDefinit
 
     public PipelineDefinition parse(YamlNode node, boolean parseSource, boolean parseSink) {
         if (node == null) return null;
-        return new PipelineDefinition(
-                parseSource
-                        ? new ReferenceOrInlineParser<>("source", PIPELINE_FROM_ATTRIBUTE, context.getStreamDefinitions()::get, new StreamDefinitionParser()).parseDefinition(node)
-                        : null,
-                new ListParser<>("pipeline operation", new PipelineOperationParser(context)).parse(node.get(PIPELINE_VIA_ATTRIBUTE, "step")),
-                parseSink ? new PipelineSinkOperationParser(context).parse(node) : null);
+        final var source = parseSource
+                ? new ReferenceOrInlineDefinitionParser<>("source", PIPELINE_FROM_ATTRIBUTE, new TopicDefinitionParser()).parse(node)
+                : null;
+        final var operations = new ListParser<>("pipeline operation", new PipelineOperationParser()).parse(node.get(PIPELINE_VIA_ATTRIBUTE, "step"));
+        final var sink = parseSink ? new PipelineSinkOperationParser().parse(node) : null;
+        return new PipelineDefinition(source, operations, sink);
     }
 }

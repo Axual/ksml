@@ -27,6 +27,7 @@ import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.UserTupleType;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLExecutionException;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.processor.OperationProcessorSupplier;
 import io.axual.ksml.operation.processor.TransformKeyValueToKeyValueListProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
@@ -45,7 +46,7 @@ public class TransformKeyValueToKeyValueListOperation extends BaseOperation {
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();

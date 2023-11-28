@@ -21,16 +21,6 @@ package io.axual.ksml.notation;
  */
 
 import io.axual.ksml.execution.FatalError;
-import io.axual.ksml.notation.avro.AvroNotation;
-import io.axual.ksml.notation.binary.BinaryNotation;
-import io.axual.ksml.notation.csv.CsvDataObjectConverter;
-import io.axual.ksml.notation.csv.CsvNotation;
-import io.axual.ksml.notation.json.JsonDataObjectConverter;
-import io.axual.ksml.notation.json.JsonNotation;
-import io.axual.ksml.notation.soap.SOAPDataObjectConverter;
-import io.axual.ksml.notation.soap.SOAPNotation;
-import io.axual.ksml.notation.xml.XmlDataObjectConverter;
-import io.axual.ksml.notation.xml.XmlNotation;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -40,15 +30,6 @@ public class NotationLibrary {
     }
 
     private final Map<String, NotationEntry> notationEntries = new HashMap<>();
-
-    public NotationLibrary(Map<String, Object> configs) {
-        register(AvroNotation.NOTATION_NAME, new AvroNotation(configs), null);
-        register(BinaryNotation.NOTATION_NAME, new BinaryNotation(), null);
-        register(CsvNotation.NOTATION_NAME, new CsvNotation(), new CsvDataObjectConverter());
-        register(JsonNotation.NOTATION_NAME, new JsonNotation(), new JsonDataObjectConverter());
-        register(SOAPNotation.NOTATION_NAME, new SOAPNotation(), new SOAPDataObjectConverter());
-        register(XmlNotation.NOTATION_NAME, new XmlNotation(), new XmlDataObjectConverter());
-    }
 
     public void register(String name, Notation notation) {
         register(name, notation, null);

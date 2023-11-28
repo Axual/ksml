@@ -21,27 +21,17 @@ package io.axual.ksml.operation.parser;
  */
 
 
-import org.apache.kafka.streams.kstream.Suppressed;
-
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.operation.SuppressOperation;
-import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
+import org.apache.kafka.streams.kstream.Suppressed;
 
-import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_BUFFERFULLSTRATEGY;
-import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_BUFFERFULLSTRATEGY_EMIT;
-import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_BUFFER_MAXBYTES;
-import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_BUFFER_MAXRECORDS;
-import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_DURATION_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_UNTILTIMELIMIT;
-import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_UNTILWINDOWCLOSES;
-import static io.axual.ksml.dsl.KSMLDSL.SUPPRESS_UNTIL_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class SuppressOperationParser extends OperationParser<SuppressOperation> {
     private final String name;
 
-    protected SuppressOperationParser(String name, ParseContext context) {
-        super(context);
+    protected SuppressOperationParser(String name) {
         this.name = name;
     }
 

@@ -21,7 +21,6 @@ package io.axual.ksml.definition.parser;
  */
 
 
-
 import io.axual.ksml.definition.KeyTransformerDefinition;
 import io.axual.ksml.parser.YamlNode;
 

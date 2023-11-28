@@ -20,6 +20,7 @@ package io.axual.ksml.execution;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.exception.KSMLTopologyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,6 +74,10 @@ public class FatalError {
 
     public static <T> T schemaError(String message, Class<T> returnType) {
         throw schemaError(message);
+    }
+
+    public static RuntimeException topologyError(String message) {
+        return reportAndExit(new KSMLTopologyException(message));
     }
 
     public static RuntimeException reportAndExit(RuntimeException e) {

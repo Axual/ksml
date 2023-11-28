@@ -22,6 +22,7 @@ package io.axual.ksml.operation;
 
 
 import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.BaseStreamWrapper;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
@@ -59,21 +60,31 @@ public class LeftJoinOperation extends StoreOperation {
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
         checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
 
         if (joinStream instanceof KStreamWrapper kStreamWrapper) {
+            /*    Kafka Streams method signature:
+             *    <VO, VR> KStream<K, VR> leftJoin(
+             *          final KStream<K, VO> otherStream,
+             *          final ValueJoiner<? super V, ? super VO, ? extends VR> joiner,
+             *          final JoinWindows windows,
+             *          final StreamJoined<K, V, VO> streamJoined)
+             */
+
             final var vo = kStreamWrapper.valueType();
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
             checkType("Join stream keyType", kStreamWrapper.keyType(), equalTo(k));
             checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vo));
+            final var windowStore = validateWindowStore(context.lookupStore(store), k, vr);
+
             var joined = StreamJoined.with(k.getSerde(), v.getSerde(), vo.getSerde());
             if (name != null) joined = joined.withName(name);
-            if (store != null) {
-                if (store.name() != null) joined = joined.withStoreName(store.name());
-                joined = store.logging() ? joined.withLoggingEnabled(new HashMap<>()) : joined.withLoggingDisabled();
+            if (windowStore != null) {
+                if (windowStore.name() != null) joined = joined.withStoreName(windowStore.name());
+                joined = windowStore.logging() ? joined.withLoggingEnabled(new HashMap<>()) : joined.withLoggingDisabled();
             }
 
             final var output = (KStream) input.stream.leftJoin(
@@ -96,8 +107,10 @@ public class LeftJoinOperation extends StoreOperation {
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vt, v), false);
             checkType("Join table keyType", kTableWrapper.keyType(), equalTo(k));
             checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vt));
+
             var joined = Joined.with(k.getSerde(), v.getSerde(), vt.getSerde());
             if (name != null) joined = joined.withName(name);
+
             final var output = (KStream) input.stream.leftJoin(
                     kTableWrapper.table,
                     new UserValueJoiner(valueJoiner),
@@ -108,7 +121,7 @@ public class LeftJoinOperation extends StoreOperation {
     }
 
     @Override
-    public StreamWrapper apply(KTableWrapper input) {
+    public StreamWrapper apply(KTableWrapper input, TopologyBuildContext context) {
         checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
@@ -126,7 +139,7 @@ public class LeftJoinOperation extends StoreOperation {
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
             checkType("Join table keyType", kTableWrapper.keyType(), equalTo(k));
             checkFunction(VALUEJOINER_NAME, valueJoiner, subOf(vr), vr, superOf(v), superOf(vo));
-            final var kvStore = validateKeyValueStore(store, k, vr);
+            final var kvStore = validateKeyValueStore(context.lookupStore(store), k, vr);
             if (kvStore != null) {
                 final var mat = materialize(kvStore);
                 final var output = name != null

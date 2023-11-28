@@ -21,6 +21,7 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.processor.OperationProcessorSupplier;
 import io.axual.ksml.operation.processor.TransformValueProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
@@ -41,7 +42,7 @@ public class TransformValueOperation extends StoreOperation {
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
@@ -62,7 +63,7 @@ public class TransformValueOperation extends StoreOperation {
     }
 
     @Override
-    public StreamWrapper apply(KTableWrapper input) {
+    public StreamWrapper apply(KTableWrapper input, TopologyBuildContext context) {
         /*    Kafka Streams method signature:
          *    <VR> KTable<K, VR> mapValues(
          *          final ValueMapperWithKey<? super K, ? super V, ? extends VR> mapper,
@@ -75,7 +76,7 @@ public class TransformValueOperation extends StoreOperation {
         final var v = input.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(mapper, v.userType()), false);
         checkFunction(MAPPER_NAME, mapper, vr, superOf(k), superOf(v));
-        final var kvStore = validateKeyValueStore(store, k, vr);
+        final var kvStore = validateKeyValueStore(context.lookupStore(store), k, vr);
 
         final var map = new UserValueTransformer(mapper);
         final var named = name != null ? Named.as(name) : null;

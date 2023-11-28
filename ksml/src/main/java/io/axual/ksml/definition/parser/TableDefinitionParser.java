@@ -25,19 +25,14 @@ import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.exception.KSMLParseException;
-import io.axual.ksml.parser.ContextAwareParser;
-import io.axual.ksml.parser.ParseContext;
+import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.store.StoreType;
 
 import static io.axual.ksml.dsl.KSMLDSL.*;
 
-public class TableDefinitionParser extends ContextAwareParser<TableDefinition> {
-    public TableDefinitionParser(ParseContext context) {
-        super(context);
-    }
-
+public class TableDefinitionParser extends BaseParser<TableDefinition> {
     @Override
     public TableDefinition parse(YamlNode node) {
         if (node == null) return null;
@@ -77,7 +72,6 @@ public class TableDefinitionParser extends ContextAwareParser<TableDefinition> {
         }
 
         // Create and return the table definition with the state store
-        context.registerStateStore(kvStore.name(), kvStore);
         return new TableDefinition(topic, keyType, valueType, kvStore);
     }
 }

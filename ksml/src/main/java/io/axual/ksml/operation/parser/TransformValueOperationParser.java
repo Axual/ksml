@@ -23,7 +23,6 @@ package io.axual.ksml.operation.parser;
 
 import io.axual.ksml.definition.parser.ValueTransformerDefinitionParser;
 import io.axual.ksml.operation.TransformValueOperation;
-import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.*;
@@ -31,8 +30,7 @@ import static io.axual.ksml.dsl.KSMLDSL.*;
 public class TransformValueOperationParser extends StoreOperationParser<TransformValueOperation> {
     private final String name;
 
-    protected TransformValueOperationParser(String name, ParseContext context) {
-        super(context);
+    protected TransformValueOperationParser(String name) {
         this.name = name;
     }
 

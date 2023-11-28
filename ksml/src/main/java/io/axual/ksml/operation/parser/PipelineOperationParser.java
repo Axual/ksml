@@ -23,18 +23,12 @@ package io.axual.ksml.operation.parser;
 
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.parser.BaseParser;
-import io.axual.ksml.parser.ContextAwareParser;
-import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.operation.StreamOperation;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.*;
 
-public class PipelineOperationParser extends ContextAwareParser<StreamOperation> {
-    public PipelineOperationParser(ParseContext context) {
-        super(context);
-    }
-
+public class PipelineOperationParser extends BaseParser<StreamOperation> {
     @Override
     public StreamOperation parse(YamlNode node) {
         if (node == null) return null;

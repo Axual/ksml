@@ -20,30 +20,22 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.definition.Ref;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.parser.StateStoreDefinitionParser;
 import io.axual.ksml.operation.StoreOperation;
 import io.axual.ksml.operation.StoreOperationConfig;
 import io.axual.ksml.parser.BaseParser;
-import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.parser.ReferenceOrInlineParser;
+import io.axual.ksml.parser.ReferenceOrInlineDefinitionParser;
 import io.axual.ksml.parser.YamlNode;
 
 public abstract class StoreOperationParser<T extends StoreOperation> extends OperationParser<T> {
-    protected StoreOperationParser(ParseContext context) {
-        super(context);
-    }
-
     protected StoreOperationConfig storeOperationConfig(String name, YamlNode node, String childName) {
-        final var store = parseStoreInlineOrReference(node, childName, new StateStoreDefinitionParser());
-        return new StoreOperationConfig(
-                name,
-                context.getNotationLibrary(),
-                store,
-                context::registerStateStoreAsCreated);
+        final var store = parseStore(node, childName, new StateStoreDefinitionParser());
+        return new StoreOperationConfig(name, store);
     }
 
-    private StateStoreDefinition parseStoreInlineOrReference(YamlNode parent, String childName, BaseParser<StateStoreDefinition> parser) {
-        return new ReferenceOrInlineParser<>("state store", childName, context.getStoreDefinitions()::get, parser).parseDefinition(parent);
+    private Ref<StateStoreDefinition> parseStore(YamlNode parent, String childName, BaseParser<StateStoreDefinition> parser) {
+        return new ReferenceOrInlineDefinitionParser<>("state store", childName, parser).parse(parent);
     }
 }

@@ -24,7 +24,6 @@ import io.axual.ksml.data.type.UserTupleType;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.operation.ConvertKeyValueOperation;
-import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.parser.YamlNode;
 
@@ -33,8 +32,7 @@ import static io.axual.ksml.dsl.KSMLDSL.CONVERT_INTO_ATTRIBUTE;
 public class ConvertKeyValueOperationParser extends OperationParser<ConvertKeyValueOperation> {
     private final String name;
 
-    protected ConvertKeyValueOperationParser(String name, ParseContext context) {
-        super(context);
+    protected ConvertKeyValueOperationParser(String name) {
         this.name = name;
     }
 

@@ -21,16 +21,22 @@ package io.axual.ksml.runner.config;
  */
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.axual.ksml.generator.YAMLObjectMapper;
+import io.axual.ksml.notation.binary.JsonNodeNativeMapper;
 import io.axual.ksml.runner.exception.ConfigException;
-import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
-@Data
+@Getter
 public class KSMLConfig {
     private static final String DEFAULT_HOSTNAME = "0.0.0.0";
     private static final String DEFAULT_PORT = "8080";
@@ -39,13 +45,40 @@ public class KSMLConfig {
     private String configDirectory;
     private String schemaDirectory;
     private String storageDirectory;
-    private KSMLErrorHandlingConfig errorHandling;
 
-    private List<String> definitions;
+    @JsonProperty("errorHandling")
+    private KSMLErrorHandlingConfig errorHandling;
+    @JsonProperty("definitions")
+    private Map<String, Object> definitions;
 
     public KSMLErrorHandlingConfig getErrorHandlingConfig() {
         if (errorHandling == null) return new KSMLErrorHandlingConfig();
         return errorHandling;
+    }
+
+    public Map<String, JsonNode> getDefinitions() {
+        final var result = new HashMap<String, JsonNode>();
+        for (Map.Entry<String, Object> definition : definitions.entrySet()) {
+            if (definition.getValue() instanceof String definitionFile) {
+                final var definitionFilePath = Paths.get(configDirectory, definitionFile);
+                if (Files.notExists(definitionFilePath) || !Files.isRegularFile(definitionFilePath)) {
+                    throw new ConfigException("definitionFile", definitionFilePath, "The provided KSML definition file does not exists or is not a regular file");
+                }
+                try {
+                    log.info("Reading Producer Definition from source file: {}", definitionFilePath.toFile());
+                    final var def = YAMLObjectMapper.INSTANCE.readValue(definitionFilePath.toFile(), JsonNode.class);
+                    result.put(definition.getKey(), def);
+                } catch (IOException e) {
+                    log.error("Could not read KSML definition from file: {}", definitionFilePath);
+                }
+            }
+            if (definition.getValue() instanceof Map<?, ?> definitionMap) {
+                final var mapper = new JsonNodeNativeMapper();
+                final var root = mapper.fromNative(definitionMap);
+                result.put(definition.getKey(), root);
+            }
+        }
+        return result;
     }
 
     public void validate() throws ConfigException {
@@ -76,12 +109,5 @@ public class KSMLConfig {
         }
 
         log.info("Using directories: config: {}, schema: {}, storage: {}", configDirectory, schemaDirectory, storageDirectory);
-
-        for (String definitionFile : definitions) {
-            final var definitionFilePath = Paths.get(getConfigDirectory(), definitionFile);
-            if (Files.notExists(definitionFilePath) || !Files.isRegularFile(definitionFilePath)) {
-                throw new ConfigException("definitionFile", definitionFilePath, "The provided KSML definition file does not exists or is not a regular file");
-            }
-        }
     }
 }

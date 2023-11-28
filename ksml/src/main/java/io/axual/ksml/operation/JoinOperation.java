@@ -21,7 +21,12 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.definition.Ref;
+import io.axual.ksml.definition.TopicDefinition;
+import io.axual.ksml.definition.TypedRef;
 import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.GlobalKTableWrapper;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
@@ -41,12 +46,12 @@ import java.util.HashMap;
 public class JoinOperation extends StoreOperation {
     private static final String KEYSELECTOR_NAME = "Mapper";
     private static final String VALUEJOINER_NAME = "ValueJoiner";
-    private final StreamWrapper joinStream;
-    private final UserFunction keyValueMapper;
-    private final UserFunction valueJoiner;
+    private final TypedRef joinStream;
+    private final Ref<FunctionDefinition> keyValueMapper;
+    private final Ref<FunctionDefinition> valueJoiner;
     private final JoinWindows joinWindows;
 
-    public JoinOperation(StoreOperationConfig config, KStreamWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
+    public JoinOperation(StoreOperationConfig config, TypedRef joinStream, Ref<FunctionDefinition> valueJoiner, Duration joinWindowDuration) {
         super(config);
         this.joinStream = joinStream;
         this.keyValueMapper = null;
@@ -54,7 +59,7 @@ public class JoinOperation extends StoreOperation {
         this.joinWindows = JoinWindows.ofTimeDifferenceWithNoGrace(joinWindowDuration);
     }
 
-    public JoinOperation(StoreOperationConfig config, KTableWrapper joinStream, UserFunction valueJoiner) {
+    public JoinOperation(StoreOperationConfig config, TypedRef joinStream, Ref<FunctionDefinition> valueJoiner) {
         super(config);
         this.joinStream = joinStream;
         this.keyValueMapper = null;
@@ -62,7 +67,7 @@ public class JoinOperation extends StoreOperation {
         this.joinWindows = null;
     }
 
-    public JoinOperation(StoreOperationConfig config, GlobalKTableWrapper joinStream, UserFunction keyValueMapper, UserFunction valueJoiner) {
+    public JoinOperation(StoreOperationConfig config, TypedRef joinStream, Ref<FunctionDefinition> keyValueMapper, Ref<FunctionDefinition> valueJoiner) {
         super(config);
         this.joinStream = joinStream;
         this.keyValueMapper = keyValueMapper;
@@ -71,22 +76,34 @@ public class JoinOperation extends StoreOperation {
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
         checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
 
-        if (joinStream instanceof KStreamWrapper otherStream) {
+        if (joinStream.type() == TypedRef.TopicType.STREAM) {
+            /*    Kafka Streams method signature:
+             *    <VO, VR> KStream<K, VR> join(
+             *          final KStream<K, VO> otherStream,
+             *          final ValueJoiner<? super V, ? super VO, ? extends VR> joiner,
+             *          final JoinWindows windows,
+             *          final StreamJoined<K, V, VO> streamJoined)
+             */
+
+            final var otherStream = context.getStreamWrapper(joinStream.ref(), "join stream");
             final var vo = otherStream.valueType();
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
             checkType("Join stream keyType", vo, equalTo(k));
             checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vo));
+            final var windowStore = validateWindowStore(context.lookupStore(store), k, vr);
+
             var joined = StreamJoined.with(k.getSerde(), v.getSerde(), vo.getSerde());
             if (name != null) joined = joined.withName(name);
-            if (store != null) {
-                if (store.name() != null) joined = joined.withStoreName(store.name());
-                joined = store.logging() ? joined.withLoggingEnabled(new HashMap<>()) : joined.withLoggingDisabled();
+            if (windowStore != null) {
+                if (windowStore.name() != null) joined = joined.withStoreName(windowStore.name());
+                joined = windowStore.logging() ? joined.withLoggingEnabled(new HashMap<>()) : joined.withLoggingDisabled();
             }
+
             final var joiner = new UserValueJoiner(valueJoiner);
             final var output = (KStream) input.stream.join(otherStream.stream, joiner, joinWindows, joined);
             return new KStreamWrapper(output, k, vr);
@@ -143,7 +160,7 @@ public class JoinOperation extends StoreOperation {
     }
 
     @Override
-    public StreamWrapper apply(KTableWrapper input) {
+    public StreamWrapper apply(KTableWrapper input, TopologyBuildContext context) {
         checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
@@ -161,7 +178,7 @@ public class JoinOperation extends StoreOperation {
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
             checkType("Join table keyType", kTableWrapper.keyType(), equalTo(k));
             checkFunction(VALUEJOINER_NAME, valueJoiner, subOf(vr), vr, superOf(v), superOf(vo));
-            final var kvStore = validateKeyValueStore(store, k, vr);
+            final var kvStore = validateKeyValueStore(context.lookupStore(store), k, vr);
             if (kvStore != null) {
                 final var mat = materialize(kvStore);
                 final var output = name != null

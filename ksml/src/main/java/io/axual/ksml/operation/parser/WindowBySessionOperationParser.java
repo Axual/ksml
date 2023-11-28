@@ -22,7 +22,6 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.operation.WindowBySessionOperation;
-import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 import org.apache.kafka.streams.kstream.SessionWindows;
 
@@ -32,8 +31,7 @@ import static io.axual.ksml.dsl.KSMLDSL.WINDOWEDBY_WINDOWTYPE_SESSION_INACTIVITY
 public class WindowBySessionOperationParser extends OperationParser<WindowBySessionOperation> {
     private final String name;
 
-    protected WindowBySessionOperationParser(String name, ParseContext context) {
-        super(context);
+    protected WindowBySessionOperationParser(String name) {
         this.name = name;
     }
 

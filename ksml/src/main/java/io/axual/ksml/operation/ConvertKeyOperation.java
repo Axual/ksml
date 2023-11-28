@@ -22,6 +22,7 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.util.DataUtil;
@@ -39,7 +40,7 @@ public class ConvertKeyOperation extends BaseOperation {
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
         final var k = input.keyType();
         final var v = input.valueType();
         final var kr = streamDataTypeOf(targetKeyType, true);

@@ -24,7 +24,7 @@ package io.axual.ksml.datagenerator.parser;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.parser.BaseParser;
-import io.axual.ksml.parser.ReferenceOrInlineParser;
+import io.axual.ksml.parser.ReferenceOrInlineDefinitionParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.user.UserFunction;
 
@@ -45,7 +45,7 @@ public abstract class ContextAwareParser<T> extends BaseParser<T> {
     }
 
     protected <F extends FunctionDefinition> UserFunction parseFunction(YamlNode parent, String childName, BaseParser<F> parser, boolean allowNull) {
-        final var namedDefinition = new ReferenceOrInlineParser<>("function", childName, context.getFunctionDefinitions()::get, parser).parse(parent);
+        final var namedDefinition = new ReferenceOrInlineDefinitionParser<>("function", childName, context.getFunctionDefinitions()::get, parser).parse(parent);
         final var definition = namedDefinition != null ? namedDefinition.definition() : null;
         if (definition == null) {
             if (allowNull) return null;

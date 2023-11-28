@@ -21,51 +21,40 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.definition.TypedRef;
 import io.axual.ksml.definition.parser.KeyTransformerDefinitionParser;
 import io.axual.ksml.definition.parser.ValueJoinerDefinitionParser;
+import io.axual.ksml.definition.parser.WithTopicDefinitionParser;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.operation.JoinOperation;
-import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
-import io.axual.ksml.stream.GlobalKTableWrapper;
-import io.axual.ksml.stream.KStreamWrapper;
-import io.axual.ksml.stream.KTableWrapper;
-import io.axual.ksml.stream.StreamWrapper;
 
-import static io.axual.ksml.dsl.KSMLDSL.JOIN_MAPPER_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.JOIN_VALUEJOINER_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.JOIN_WINDOW_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class JoinOperationParser extends StoreOperationParser<JoinOperation> {
     private final String name;
 
-    public JoinOperationParser(String name, ParseContext context) {
-        super(context);
+    public JoinOperationParser(String name) {
         this.name = name;
     }
 
     @Override
     public JoinOperation parse(YamlNode node) {
         if (node == null) return null;
-        StreamWrapper joinStream = parseAndGetStreamWrapper(node);
-        if (joinStream instanceof KStreamWrapper kStreamWrapper) {
-            return new JoinOperation(
+        TypedRef joinStream = new WithTopicDefinitionParser().parse(node);
+        switch (joinStream.type()) {
+            case STREAM -> new JoinOperation(
                     storeOperationConfig(name, node, STORE_ATTRIBUTE),
-                    kStreamWrapper,
+                    joinStream,
                     parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()),
                     parseDuration(node, JOIN_WINDOW_ATTRIBUTE));
-        }
-        if (joinStream instanceof KTableWrapper kTableWrapper) {
-            return new JoinOperation(
+            case TABLE -> new JoinOperation(
                     storeOperationConfig(name, node, STORE_ATTRIBUTE),
-                    kTableWrapper,
+                    joinStream,
                     parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()));
-        }
-        if (joinStream instanceof GlobalKTableWrapper globalKTableWrapper) {
-            return new JoinOperation(
+            case GLOBALTABLE -> new JoinOperation(
                     storeOperationConfig(name, node, STORE_ATTRIBUTE),
-                    globalKTableWrapper,
+                    joinStream,
                     parseFunction(node, JOIN_MAPPER_ATTRIBUTE, new KeyTransformerDefinitionParser()),
                     parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()));
         }

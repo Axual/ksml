@@ -21,23 +21,17 @@ package io.axual.ksml.definition.parser;
  */
 
 
-
 import io.axual.ksml.definition.BranchDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.parser.ContextAwareParser;
-import io.axual.ksml.parser.ParseContext;
+import io.axual.ksml.parser.PipelineHelperParser;
 import io.axual.ksml.parser.YamlNode;
 
-public class BranchDefinitionParser extends ContextAwareParser<BranchDefinition> {
-    public BranchDefinitionParser(ParseContext context) {
-        super(context);
-    }
-
+public class BranchDefinitionParser extends PipelineHelperParser<BranchDefinition> {
     @Override
     public BranchDefinition parse(YamlNode node) {
         if (node == null) return null;
         return new BranchDefinition(
                 parseFunction(node, KSMLDSL.BRANCH_PREDICATE_ATTRIBUTE, new PredicateDefinitionParser(), true),
-                new PipelineDefinitionParser(context).parse(node, false, true));
+                new PipelineDefinitionParser().parse(node, false, true));
     }
 }

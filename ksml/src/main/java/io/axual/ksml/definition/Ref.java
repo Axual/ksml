@@ -1,4 +1,4 @@
-package io.axual.ksml.generator;
+package io.axual.ksml.definition;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,12 +20,7 @@ package io.axual.ksml.generator;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.definition.StateStoreDefinition;
-import org.apache.kafka.streams.Topology;
+import io.axual.ksml.parser.YamlNode;
 
-import java.util.Map;
-import java.util.Set;
-
-public record GeneratedTopology(Topology topology, Set<String> inputTopics, Set<String> intermediateTopics,
-                                Set<String> outputTopics, Map<String, StateStoreDefinition> stores) {
+public record Ref<T>(String name, YamlNode referer, T definition) {
 }

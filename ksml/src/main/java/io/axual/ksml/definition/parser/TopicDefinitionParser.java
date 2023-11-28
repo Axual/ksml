@@ -1,4 +1,4 @@
-package io.axual.ksml.definition;
+package io.axual.ksml.definition.parser;
 
 /*-
  * ========================LICENSE_START=================================
@@ -21,22 +21,20 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.store.StateStoreRegistry;
-import org.apache.kafka.streams.StreamsBuilder;
+import io.axual.ksml.definition.TopicDefinition;
+import io.axual.ksml.parser.BaseParser;
+import io.axual.ksml.parser.UserTypeParser;
+import io.axual.ksml.parser.YamlNode;
 
-import io.axual.ksml.data.type.UserType;
-import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.stream.StreamWrapper;
+import static io.axual.ksml.dsl.KSMLDSL.*;
 
-public abstract class BaseStreamDefinition {
-    public final String topic;
-    public final UserType keyType;
-    public final UserType valueType;
-
-    BaseStreamDefinition(String topic, UserType keyType, UserType valueType) {
-        this.topic = topic;
-        this.keyType = keyType;
-        this.valueType = valueType;
+public class TopicDefinitionParser extends BaseParser<TopicDefinition> {
+    @Override
+    public TopicDefinition parse(YamlNode node) {
+        if (node == null) return null;
+        return new TopicDefinition(
+                parseString(node, TOPIC_ATTRIBUTE),
+                UserTypeParser.parse(parseString(node, KEYTYPE_ATTRIBUTE)),
+                UserTypeParser.parse(parseString(node, VALUETYPE_ATTRIBUTE)));
     }
-    public abstract StreamWrapper addToBuilder(StreamsBuilder builder, String name, NotationLibrary notationLibrary, StateStoreRegistry storeRegistry);
 }

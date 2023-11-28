@@ -23,7 +23,6 @@ package io.axual.ksml.operation.parser;
 
 import io.axual.ksml.definition.parser.KeyValueMapperDefinitionParser;
 import io.axual.ksml.operation.GroupByOperation;
-import io.axual.ksml.parser.ParseContext;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.GROUPBY_MAPPER_ATTRIBUTE;
@@ -32,8 +31,7 @@ import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
 public class GroupByOperationParser extends StoreOperationParser<GroupByOperation> {
     private final String name;
 
-    protected GroupByOperationParser(String name, ParseContext context) {
-        super(context);
+    protected GroupByOperationParser(String name) {
         this.name = name;
     }
 
