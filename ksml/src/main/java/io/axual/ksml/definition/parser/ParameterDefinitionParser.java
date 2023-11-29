@@ -22,6 +22,7 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.ParameterDefinition;
+import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.parser.YamlNode;
@@ -32,10 +33,12 @@ public class ParameterDefinitionParser extends BaseParser<ParameterDefinition> {
     @Override
     public ParameterDefinition parse(YamlNode node) {
         if (node == null) return null;
-        return new ParameterDefinition(
-                parseString(node, FUNCTION_PARAMETER_NAME),
-                UserTypeParser.parse(parseString(node, FUNCTION_PARAMETER_TYPE)).dataType(),
-                true,
-                parseString(node, FUNCTION_PARAMETER_DEFAULT_VALUE));
+        final var name = parseString(node, FUNCTION_PARAMETER_NAME);
+        final var type = UserTypeParser.parse(parseString(node, FUNCTION_PARAMETER_TYPE)).dataType();
+        final var defaultValue = parseString(node, FUNCTION_PARAMETER_DEFAULT_VALUE);
+        if (name == null || name.isEmpty()) {
+            throw FatalError.parseError(node, "Parameter name undefined");
+        }
+        return new ParameterDefinition(name, type, true, defaultValue);
     }
 }

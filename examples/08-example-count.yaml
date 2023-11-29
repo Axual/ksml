@@ -11,7 +11,7 @@ pipelines:
     from: sensor_source
     via:
       - type: groupBy
-        name: group_by_owner
+        name: group_by_owner_before_count
         mapper:
           code: |
             if value == None or not "owner" in value:
@@ -23,7 +23,7 @@ pipelines:
         duration: 20s
       - type: count
         store:
-          name: owner_count
+          name: owner_count_count
           type: windowStore
           windowSize: 10m
           retention: 1h

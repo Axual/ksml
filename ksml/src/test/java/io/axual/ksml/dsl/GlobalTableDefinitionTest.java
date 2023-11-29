@@ -58,7 +58,7 @@ class GlobalTableDefinitionTest {
 
         // given a TableDefinition
         var tableDefinition = new GlobalTableDefinition("topic", "string", "string");
-        var resources = new TopologyResources();
+        var resources = new TopologyResources("test");
 
         var context = new TopologyBuildContext(builder, resources, notationLibrary, "");
         // when it adds itself to Builder

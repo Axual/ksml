@@ -45,9 +45,8 @@ public class UserKeyValueTransformer extends Invoker implements KeyValueMapper<O
     }
 
     public KeyValue<Object, Object> apply(StateStores stores, Object key, Object value) {
-        verifyAppliedResultType(EXPECTED_RESULT_TYPE);
-        final var kr = ((TupleType) function.appliedResultType.dataType()).subType(0);
-        final var vr = ((TupleType) function.appliedResultType.dataType()).subType(1);
+        final var kr = ((TupleType) function.resultType.dataType()).subType(0);
+        final var vr = ((TupleType) function.resultType.dataType()).subType(1);
         final var result = function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
         return function.convertToKeyValue(result, kr, vr);
     }

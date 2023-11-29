@@ -52,9 +52,8 @@ public class UserKeyValueToKeyValueListTransformer extends Invoker implements Ke
     }
 
     public Iterable<KeyValue<Object, Object>> apply(StateStores stores, Object key, Object value) {
-        verifyAppliedResultType(EXPECTED_RESULT_TYPE);
         // If the above check worked, then we can safely perform the following cast
-        final var tupleType = (TupleType) ((ListType) function.appliedResultType.dataType()).valueType();
+        final var tupleType = (TupleType) ((ListType) function.resultType.dataType()).valueType();
         final var kr = tupleType.subType(0);
         final var vr = tupleType.subType(1);
 

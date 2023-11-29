@@ -21,11 +21,11 @@ package io.axual.ksml.operation.processor;
  */
 
 import io.axual.ksml.store.StateStores;
-import org.apache.kafka.streams.processor.api.Record;
+import org.apache.kafka.streams.processor.api.FixedKeyRecord;
 
-public class TransformKeyValueToValueListProcessor extends OperationProcessor {
+public class TransformKeyValueToValueListProcessor extends FixedKeyOperationProcessor {
     public interface TransformKeyValueToValueListAction {
-        Iterable<Object> apply(StateStores stores, Record<Object, Object> record);
+        Iterable<Object> apply(StateStores stores, FixedKeyRecord<Object, Object> record);
     }
 
     private final TransformKeyValueToValueListAction action;
@@ -36,7 +36,7 @@ public class TransformKeyValueToValueListProcessor extends OperationProcessor {
     }
 
     @Override
-    public void process(Record<Object, Object> record) {
+    public void process(FixedKeyRecord<Object, Object> record) {
         var vList = action.apply(stores, record);
         if (vList != null) {
             for (var v : vList) {

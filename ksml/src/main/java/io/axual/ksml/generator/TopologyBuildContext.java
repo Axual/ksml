@@ -53,6 +53,7 @@ import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.SessionStore;
 import org.apache.kafka.streams.state.WindowStore;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -103,18 +104,22 @@ public class TopologyBuildContext {
 
     public <V> Materialized<Object, V, KeyValueStore<Bytes, byte[]>> materialize(KeyValueStateStoreDefinition store) {
         resources.register(store.name(), store);
+        createdStateStores.add(store.name());
         return StoreUtil.materialize(store, notationLibrary);
     }
 
     public <V> Materialized<Object, V, SessionStore<Bytes, byte[]>> materialize(SessionStateStoreDefinition store) {
         resources.register(store.name(), store);
+        createdStateStores.add(store.name());
         return StoreUtil.materialize(store, notationLibrary);
     }
 
     public <V> Materialized<Object, V, WindowStore<Bytes, byte[]>> materialize(WindowStateStoreDefinition store) {
         resources.register(store.name(), store);
+        createdStateStores.add(store.name());
         return StoreUtil.materialize(store, notationLibrary);
     }
+
     public void createUserStateStore(StateStoreDefinition store) {
         if (store instanceof KeyValueStateStoreDefinition storeDef) {
             final var storeBuilder = StoreUtil.getStoreBuilder(storeDef, notationLibrary);
@@ -142,7 +147,8 @@ public class TopologyBuildContext {
         if (topic instanceof StreamDefinition) return getStreamWrapper(topic, KStreamWrapper.class);
         if (topic instanceof TableDefinition) return getStreamWrapper(topic, KTableWrapper.class);
         if (topic instanceof GlobalTableDefinition) return getStreamWrapper(topic, GlobalKTableWrapper.class);
-        throw FatalError.topologyError("Unknown topic type: " + topic.getClass());
+        // Anonymous topics are assumed to be Streams, so treat as if the topic was a stream definition
+        return getStreamWrapper(new StreamDefinition(topic.topic, topic.keyType, topic.valueType));
     }
 
     public KStreamWrapper getStreamWrapper(StreamDefinition stream) {
@@ -161,10 +167,10 @@ public class TopologyBuildContext {
         // We do not know the name of the StreamWrapper here, only its definition (which may be inlined in KSML), so we
         // perform a lookup based on the topic name. If we find it, we return that StreamWrapper. If not, we create it,
         // register it and return it here.
-        var result = streamWrappers.get(definition.getTopic());
+        var result = streamWrappers.get(definition.topic());
         if (result == null) {
-            result = buildWrapper(definition.getTopic(), definition);
-            streamWrappers.put(definition.getTopic(), result);
+            result = buildWrapper(definition.topic(), definition);
+            streamWrappers.put(definition.topic(), result);
         }
         if (!resultClass.isInstance(result)) {
             throw new KSMLTopologyException("Stream is of incorrect dataType " + result.getClass().getSimpleName() + " where " + resultClass.getSimpleName() + " expected");
@@ -174,32 +180,35 @@ public class TopologyBuildContext {
 
     private StreamWrapper buildWrapper(String name, TopicDefinition def) {
         if (def instanceof StreamDefinition streamDefinition) {
-            var streamKey = new StreamDataType(notationLibrary, streamDefinition.getKeyType(), true);
-            var streamValue = new StreamDataType(notationLibrary, streamDefinition.getValueType(), false);
+            var streamKey = new StreamDataType(notationLibrary, streamDefinition.keyType(), true);
+            var streamValue = new StreamDataType(notationLibrary, streamDefinition.valueType(), false);
             return new KStreamWrapper(
-                    builder.stream(streamDefinition.getTopic(), Consumed.with(streamKey.getSerde(), streamValue.getSerde()).withName(name)),
+                    builder.stream(streamDefinition.topic(), Consumed.with(streamKey.getSerde(), streamValue.getSerde()).withName(name)),
                     streamKey,
                     streamValue);
         }
 
         if (def instanceof TableDefinition tableDefinition) {
-            final var streamKey = new StreamDataType(notationLibrary, tableDefinition.getKeyType(), true);
-            final var streamValue = new StreamDataType(notationLibrary, tableDefinition.getValueType(), false);
+            final var streamKey = new StreamDataType(notationLibrary, tableDefinition.keyType(), true);
+            final var streamValue = new StreamDataType(notationLibrary, tableDefinition.valueType(), false);
 
-            if (tableDefinition.getStore() != null) {
-                final var mat = StoreUtil.materialize(tableDefinition.getStore(), notationLibrary);
-                return new KTableWrapper(builder.table(tableDefinition.getTopic(), mat), streamKey, streamValue);
+            if (tableDefinition.store() != null) {
+                final var mat = StoreUtil.materialize(tableDefinition.store(), notationLibrary);
+                return new KTableWrapper(builder.table(tableDefinition.topic(), mat), streamKey, streamValue);
             }
 
+            // Set up dummy materialization for tables, mapping to the topic itself
+            final var store = new KeyValueStateStoreDefinition(tableDefinition.topic, false, false, false, Duration.ofSeconds(900), Duration.ofSeconds(60), streamKey.userType(), streamValue.userType(), false, false);
+            final var mat = StoreUtil.materialize(store, notationLibrary);
             final var consumed = Consumed.as(name).withKeySerde(streamKey.getSerde()).withValueSerde(streamValue.getSerde());
-            return new KTableWrapper(builder.table(tableDefinition.getTopic(), consumed), streamKey, streamValue);
+            return new KTableWrapper(builder.table(tableDefinition.topic(), consumed, mat), streamKey, streamValue);
         }
 
         if (def instanceof GlobalTableDefinition globalTableDefinition) {
-            final var streamKey = new StreamDataType(notationLibrary, globalTableDefinition.getKeyType(), true);
-            final var streamValue = new StreamDataType(notationLibrary, globalTableDefinition.getValueType(), false);
+            final var streamKey = new StreamDataType(notationLibrary, globalTableDefinition.keyType(), true);
+            final var streamValue = new StreamDataType(notationLibrary, globalTableDefinition.valueType(), false);
             final var consumed = Consumed.as(name).withKeySerde(streamKey.getSerde()).withValueSerde(streamValue.getSerde());
-            return new GlobalKTableWrapper(builder.globalTable(globalTableDefinition.getTopic(), consumed), streamKey, streamValue);
+            return new GlobalKTableWrapper(builder.globalTable(globalTableDefinition.topic(), consumed), streamKey, streamValue);
         }
 
         throw FatalError.topologyError("Unknown stream type: " + def.getClass().getSimpleName());

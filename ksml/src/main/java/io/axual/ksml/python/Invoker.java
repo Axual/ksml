@@ -54,10 +54,6 @@ public abstract class Invoker {
         verifyNoResultInternal(function.resultType);
     }
 
-    protected void verifyNoAppliedResult() {
-        verifyNoResultInternal(function.appliedResultType);
-    }
-
     private void verifyNoResultInternal(UserType type) {
         if (type != null && type.dataType() != DataNull.DATATYPE) {
             LOG.warn("Function {} used as {}: Function return value of type " + type + " will be ignored", function.name, getClass().getSimpleName());
@@ -66,10 +62,6 @@ public abstract class Invoker {
 
     protected void verifyResultType(DataType expected) {
         verifyTypeInternal(function.resultType, expected);
-    }
-
-    protected void verifyAppliedResultType(DataType expected) {
-        verifyTypeInternal(function.appliedResultType, expected);
     }
 
     private void verifyTypeInternal(UserType type, DataType expected) {

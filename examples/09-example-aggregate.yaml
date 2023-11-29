@@ -7,7 +7,7 @@ streams:
     valueType: avro:SensorData
 
 stores:
-  owner_count:
+  owner_count_aggregate:
     type: windowStore
     keyType: string
     valueType: long
@@ -20,7 +20,7 @@ pipelines:
     from: sensor_source
     via:
       - type: groupBy
-        name: group_by_owner
+        name: group_by_owner_before_aggregate
         mapper:
           code: |
             if value == None or not "owner" in value:
@@ -31,7 +31,7 @@ pipelines:
         windowType: tumbling
         duration: 20s
       - type: aggregate
-        store: owner_count
+        store: owner_count_aggregate
         initializer:
           expression: 0
           resultType: long

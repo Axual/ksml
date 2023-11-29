@@ -21,7 +21,7 @@ package io.axual.ksml.runner.backend;
  */
 
 
-public interface Runner extends AutoCloseable, Runnable {
+public interface Runner extends Runnable {
     enum State {
         STARTING,
         STARTED,
@@ -31,4 +31,11 @@ public interface Runner extends AutoCloseable, Runnable {
     }
 
     State getState();
+
+    default boolean isRunning() {
+        final var state = getState();
+        return state == State.STARTING || state == State.STARTED || state == State.STOPPING;
+    }
+
+    void stop();
 }

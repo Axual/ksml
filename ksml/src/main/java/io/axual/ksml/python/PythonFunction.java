@@ -94,11 +94,11 @@ public class PythonFunction extends UserFunction {
             }
 
             // Check if the function is supposed to return a result value
-            if (appliedResultType != null) {
-                DataObject result = convertResult(pyResult);
+            if (resultType != null) {
+                DataObject result = MAPPER.toDataObject(resultType.dataType(), pyResult);
                 logCall(parameters, result);
-                result = converter != null ? converter.convert(DEFAULT_NOTATION, result, appliedResultType) : result;
-                checkType(appliedResultType.dataType(), result);
+                result = converter != null ? converter.convert(DEFAULT_NOTATION, result, resultType) : result;
+                checkType(resultType.dataType(), result);
                 return result;
             } else {
                 logCall(parameters, null);
@@ -118,10 +118,6 @@ public class PythonFunction extends UserFunction {
             result[index + 1] = MAPPER.fromDataObject(parameters[index]);
         }
         return result;
-    }
-
-    private DataObject convertResult(Value pyResult) {
-        return MAPPER.toDataObject(appliedResultType.dataType(), pyResult);
     }
 
     private String generatePythonCode(String name, String loggerName, FunctionDefinition definition) {

@@ -42,10 +42,12 @@ public class TopologySpecification extends TopologyResources {
         pipelines.put(name, pipelineDefinition);
     }
 
-    public TopologySpecification() {
+    public TopologySpecification(String name) {
+        super(name);
     }
 
     public TopologySpecification(TopologyResources resources) {
+        super(resources.name());
         resources.functions().forEach(this::register);
         resources.stateStores().forEach(this::register);
         resources.topics().forEach(this::register);

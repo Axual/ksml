@@ -31,6 +31,7 @@ import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserValueJoiner;
+import io.axual.ksml.user.UserValueJoinerWithKey;
 import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.Joined;
 import org.apache.kafka.streams.kstream.KStream;
@@ -71,7 +72,7 @@ public class LeftJoinOperation extends StoreOperation {
             /*    Kafka Streams method signature:
              *    <VO, VR> KStream<K, VR> leftJoin(
              *          final KStream<K, VO> otherStream,
-             *          final ValueJoiner<? super V, ? super VO, ? extends VR> joiner,
+             *          final ValueJoinerWithKey<? super K, ? super V, ? super VO, ? extends VR> joiner,
              *          final JoinWindows windows,
              *          final StreamJoined<K, V, VO> streamJoined)
              */
@@ -80,7 +81,7 @@ public class LeftJoinOperation extends StoreOperation {
             final var vo = otherStream.valueType();
             final var vr = context.streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
             checkType("Join stream keyType", otherStream.keyType(), equalTo(k));
-            final var joiner = checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vo));
+            final var joiner = checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vo));
             final var windowStore = validateWindowStore(store, k, vr);
 
             var joined = StreamJoined.with(k.getSerde(), v.getSerde(), vo.getSerde());
@@ -90,7 +91,7 @@ public class LeftJoinOperation extends StoreOperation {
                 joined = windowStore.logging() ? joined.withLoggingEnabled(new HashMap<>()) : joined.withLoggingDisabled();
             }
 
-            final var userJoiner = new UserValueJoiner(context.createUserFunction(joiner));
+            final var userJoiner = new UserValueJoinerWithKey(context.createUserFunction(joiner));
             final var output = (KStream) input.stream.leftJoin(otherStream.stream, userJoiner, JoinWindows.ofTimeDifferenceWithNoGrace(joinWindowsDuration), joined);
             return new KStreamWrapper(output, k, vr);
         }
@@ -99,7 +100,7 @@ public class LeftJoinOperation extends StoreOperation {
             /*    Kafka Streams method signature:
              *    <VT, VR> KStream<K, VR> leftJoin(
              *          final KTable<K, VT> table,
-             *          final ValueJoiner<? super V, ? super VT, ? extends VR> joiner,
+             *          final ValueJoinerWithKey<? super K, ? super V, ? super VT, ? extends VR> joiner,
              *          final Joined<K, V, VT> joined)
              */
 
@@ -107,12 +108,12 @@ public class LeftJoinOperation extends StoreOperation {
             final var vt = otherTable.valueType();
             final var vr = context.streamDataTypeOf(firstSpecificType(valueJoiner, vt, v), false);
             checkType("Join table keyType", otherTable.keyType(), equalTo(k));
-            final var joiner = checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vt));
+            final var joiner = checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vt));
 
             var joined = Joined.with(k.getSerde(), v.getSerde(), vt.getSerde());
             if (name != null) joined = joined.withName(name);
 
-            final var userJoiner = new UserValueJoiner(context.createUserFunction(joiner));
+            final var userJoiner = new UserValueJoinerWithKey(context.createUserFunction(joiner));
             final var output = (KStream) input.stream.leftJoin(otherTable.table, userJoiner, joined);
             return new KStreamWrapper(output, k, vr);
         }

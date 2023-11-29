@@ -10,6 +10,8 @@ functions:
   generate_sensor_alertsetting_message:
     type: generator
     globalCode: |
+      sensorCities = [ "Amsterdam", "Xanten", "Utrecht", "Alkmaar", "Leiden" ]
+
       def generateHumidityAlert(city, upperBoundary, lowerBoundary):
         result = {}
         result["name"] = "Humidity alert for " + city
@@ -30,6 +32,7 @@ functions:
 
     code: |
       global sensorCities
+      import random
 
       settings = []
 

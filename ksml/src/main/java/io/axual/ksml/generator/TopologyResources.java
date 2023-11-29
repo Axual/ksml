@@ -30,12 +30,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TopologyResources {
+    private final String name;
     // All registered user functions
     private final Map<String, FunctionDefinition> functions = new HashMap<>();
     // All registered state stores
     private final Map<String, StateStoreDefinition> stateStores = new HashMap<>();
     // All registered KStreams, KTables and KGlobalTables
     private final Map<String, TopicDefinition> topics = new HashMap<>();
+
+    public TopologyResources(String name) {
+        this.name = name;
+    }
+
+    public String name() {
+        return name;
+    }
 
     public void register(String name, FunctionDefinition functionDefinition) {
         if (functions.containsKey(name)) {
@@ -56,7 +65,7 @@ public class TopologyResources {
     }
 
     public void register(String name, StateStoreDefinition store) {
-        register(name, store, false);
+        register(name, store, true);
     }
 
     public void register(String name, StateStoreDefinition store, boolean canBeDuplicate) {

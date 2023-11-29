@@ -41,7 +41,7 @@ public class AvroNotation implements Notation {
     private static final AvroDataMapper mapper = new AvroDataMapper();
     private final Map<String, Object> configs = new HashMap<>();
 
-    public AvroNotation(Map<String, Object> configs) {
+    public AvroNotation(Map<String, ?> configs) {
         this.configs.putAll(configs);
     }
 

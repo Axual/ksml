@@ -40,7 +40,6 @@ public class UserForeachAction extends Invoker implements ForeachAction<Object, 
     }
 
     public void apply(StateStores stores, Object key, Object value) {
-        verifyNoAppliedResult();
         function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
     }
 }

@@ -48,7 +48,6 @@ public class UserKeyValueToValueListTransformer extends Invoker implements Value
     }
 
     public Iterable<Object> apply(StateStores stores, Object key, Object value) {
-        verifyAppliedResultType(EXPECTED_RESULT_TYPE);
         final var result = function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
         if (result instanceof DataList list) {
             final var newList = new ArrayList<>();

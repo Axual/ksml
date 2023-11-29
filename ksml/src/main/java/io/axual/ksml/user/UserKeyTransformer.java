@@ -44,7 +44,6 @@ public class UserKeyTransformer extends Invoker implements KeyValueMapper<Object
     }
 
     public DataObject apply(StateStores stores, Object key, Object value) {
-        verifyAppliedResultType(EXPECTED_RESULT_TYPE);
         return function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
     }
 }

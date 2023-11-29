@@ -60,7 +60,6 @@ public class UserTopicNameExtractor extends Invoker implements TopicNameExtracto
 
     @Override
     public String extract(Object key, Object value, RecordContext recordContext) {
-        verifyAppliedResultType(EXPECTED_RESULT_TYPE);
         final var result = function.call(
                 DataUtil.asDataObject(key),
                 DataUtil.asDataObject(value),

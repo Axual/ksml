@@ -30,11 +30,11 @@ import static io.axual.ksml.dsl.KSMLDSL.*;
 public class TopologyResourcesParser extends BaseParser<TopologyResources> {
     @Override
     public TopologyResources parse(YamlNode node) {
-        // Set up an index for the topology resources
-        final var result = new TopologyResources();
-
         // If there is nothing to parse, return immediately
-        if (node == null) return result;
+        if (node == null) return new TopologyResources("empty");
+
+        // Set up an index for the topology resources
+        final var result = new TopologyResources(node.getName());
 
         // Parse all defined streams
         new MapParser<>("stream definition", new StreamDefinitionParser()).parse(node.get(STREAMS_DEFINITION)).forEach(result::register);

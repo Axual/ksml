@@ -25,7 +25,7 @@ import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
-import io.axual.ksml.operation.processor.OperationProcessorSupplier;
+import io.axual.ksml.operation.processor.FixedKeyOperationProcessorSupplier;
 import io.axual.ksml.operation.processor.PeekProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
@@ -48,14 +48,14 @@ public class PeekOperation extends BaseOperation {
         final var action = checkFunction(FOREACHACTION_NAME, forEachAction, new UserType(DataNull.DATATYPE), superOf(k), superOf(v));
         final var userAction = new UserForeachAction(context.createUserFunction(action));
         final var storeNames = combineStoreNames(this.storeNames, forEachAction.storeNames.toArray(TEMPLATE));
-        final var supplier = new OperationProcessorSupplier<>(
+        final var supplier = new FixedKeyOperationProcessorSupplier<>(
                 name,
                 PeekProcessor::new,
                 (stores, record) -> userAction.apply(stores, record.key(), record.value()),
                 storeNames);
         final var output = name != null
-                ? input.stream.process(supplier, Named.as(name), storeNames)
-                : input.stream.process(supplier, storeNames);
+                ? input.stream.processValues(supplier, Named.as(name), storeNames)
+                : input.stream.processValues(supplier, storeNames);
         return new KStreamWrapper(output, k, v);
     }
 }

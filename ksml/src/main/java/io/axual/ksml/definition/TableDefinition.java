@@ -23,9 +23,7 @@ package io.axual.ksml.definition;
 
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.parser.UserTypeParser;
-import lombok.Getter;
 
-@Getter
 public class TableDefinition extends TopicDefinition {
     private final KeyValueStateStoreDefinition store;
 
@@ -36,5 +34,9 @@ public class TableDefinition extends TopicDefinition {
     public TableDefinition(String topic, UserType keyType, UserType valueType, KeyValueStateStoreDefinition store) {
         super(topic, keyType, valueType);
         this.store = store;
+    }
+
+    public KeyValueStateStoreDefinition store() {
+        return store;
     }
 }

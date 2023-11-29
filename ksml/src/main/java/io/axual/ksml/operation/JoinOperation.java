@@ -33,6 +33,7 @@ import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserKeyTransformer;
 import io.axual.ksml.user.UserValueJoiner;
+import io.axual.ksml.user.UserValueJoinerWithKey;
 import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.Joined;
 import org.apache.kafka.streams.kstream.KStream;
@@ -84,7 +85,7 @@ public class JoinOperation extends StoreOperation {
             /*    Kafka Streams method signature:
              *    <VO, VR> KStream<K, VR> join(
              *          final KStream<K, VO> otherStream,
-             *          final ValueJoiner<? super V, ? super VO, ? extends VR> joiner,
+             *          final ValueJoinerWithKey<? super K, ? super V, ? super VO, ? extends VR> joiner,
              *          final JoinWindows windows,
              *          final StreamJoined<K, V, VO> streamJoined)
              */
@@ -93,7 +94,7 @@ public class JoinOperation extends StoreOperation {
             final var vo = otherStream.valueType();
             final var vr = context.streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
             checkType("Join stream keyType", vo, equalTo(k));
-            final var joiner = checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vo));
+            final var joiner = checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vo));
             final var windowStore = validateWindowStore(store, k, vr);
 
             var joined = StreamJoined.with(k.getSerde(), v.getSerde(), vo.getSerde());
@@ -103,7 +104,7 @@ public class JoinOperation extends StoreOperation {
                 joined = windowStore.logging() ? joined.withLoggingEnabled(new HashMap<>()) : joined.withLoggingDisabled();
             }
 
-            final var userJoiner = new UserValueJoiner(context.createUserFunction(joiner));
+            final var userJoiner = new UserValueJoinerWithKey(context.createUserFunction(joiner));
             final var output = (KStream) input.stream.join(otherStream.stream, userJoiner, joinWindows, joined);
             return new KStreamWrapper(output, k, vr);
         }
@@ -112,7 +113,7 @@ public class JoinOperation extends StoreOperation {
             /*    Kafka Streams method signature:
              *    <VT, VR> KStream<K, VR> join(
              *          final KTable<K, VT> table,
-             *          final ValueJoiner<? super V, ? super VT, ? extends VR> joiner,
+             *          final ValueJoinerWithKey<? super K, ? super V, ? super VT, ? extends VR> joiner,
              *          final Joined<K, V, VT> joined)
              */
 
@@ -120,12 +121,12 @@ public class JoinOperation extends StoreOperation {
             final var vt = otherTable.valueType();
             final var vr = context.streamDataTypeOf(firstSpecificType(valueJoiner, vt, v), false);
             checkType("Join table keyType", otherTable.keyType(), equalTo(k));
-            final var joiner = checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vt));
+            final var joiner = checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vt));
 
             var joined = Joined.with(k.getSerde(), v.getSerde(), vt.getSerde());
             if (name != null) joined = joined.withName(name);
 
-            final var userJoiner = new UserValueJoiner(context.createUserFunction(joiner));
+            final var userJoiner = new UserValueJoinerWithKey(context.createUserFunction(joiner));
             final var output = (KStream) input.stream.join(otherTable.table, userJoiner, joined);
             return new KStreamWrapper(output, k, vr);
         }
@@ -135,7 +136,7 @@ public class JoinOperation extends StoreOperation {
              *    <GK, GV, RV> KStream<K, RV> join(
              *          final GlobalKTable<GK, GV> globalTable,
              *          final KeyValueMapper<? super K, ? super V, ? extends GK> keySelector,
-             *          final ValueJoiner<? super V, ? super GV, ? extends RV> joiner,
+             *          final ValueJoinerWithKey<? super K, ? super V, ? super GV, ? extends RV> joiner,
              *          final Named named)
              */
 
@@ -146,9 +147,9 @@ public class JoinOperation extends StoreOperation {
             final var rv = context.streamDataTypeOf(firstSpecificType(valueJoiner, gv, v), false);
             checkType("Join globalKTable keyType", otherGlobalKTable.keyType(), equalTo(k));
             final var sel = checkFunction(KEYSELECTOR_NAME, keyValueMapper, subOf(gk), gk, superOf(k), superOf(v));
-            final var joiner = checkFunction(VALUEJOINER_NAME, valueJoiner, rv, superOf(v), superOf(gv));
+            final var joiner = checkFunction(VALUEJOINER_NAME, valueJoiner, rv, superOf(k), superOf(v), superOf(gv));
             final var userSel = new UserKeyTransformer(context.createUserFunction(sel));
-            final var userJoiner = new UserValueJoiner(context.createUserFunction(joiner));
+            final var userJoiner = new UserValueJoinerWithKey(context.createUserFunction(joiner));
             final var output = name != null
                     ? (KStream) input.stream.join(otherGlobalKTable.globalTable, userSel, userJoiner, Named.as(name))
                     : (KStream) input.stream.join(otherGlobalKTable.globalTable, userSel, userJoiner);

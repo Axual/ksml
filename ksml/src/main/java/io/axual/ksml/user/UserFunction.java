@@ -45,7 +45,6 @@ public class UserFunction {
     public final ParameterDefinition[] parameters;
     public final int fixedParameterCount;
     public final UserType resultType;
-    public UserType appliedResultType;
     public final String[] storeNames;
 
     public UserFunction(String name, ParameterDefinition[] parameters, UserType resultType, List<String> storeNames) {
@@ -57,7 +56,6 @@ public class UserFunction {
         this.parameters = parameters;
         this.fixedParameterCount = getFixedParameterCount(parameters);
         this.resultType = resultType;
-        this.appliedResultType = resultType;
         this.storeNames = storeNames != null ? storeNames : TEMPLATE;
         LOG.info("Registered function '{}'", this);
     }

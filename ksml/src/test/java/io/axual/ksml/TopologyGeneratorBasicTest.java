@@ -21,9 +21,11 @@ package io.axual.ksml;
  */
 
 import com.google.common.collect.ImmutableMap;
+import io.axual.ksml.definition.parser.TopologySpecificationParser;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.notation.binary.JsonNodeNativeMapper;
 import io.axual.ksml.notation.json.JsonStringMapper;
+import io.axual.ksml.parser.YamlNode;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TopologyDescription;
 import org.graalvm.home.Version;
@@ -57,7 +59,8 @@ public class TopologyGeneratorBasicTest {
         final var uri = ClassLoader.getSystemResource("pipelines/" + nr + "-demo.yaml").toURI();
         final var path = Paths.get(uri);
         final var definition = new JsonStringMapper().fromString(Files.readString(path));
-        final var definitions = ImmutableMap.of("definition", new JsonNodeNativeMapper().fromNative(definition));
+        final var definitions = ImmutableMap.of("definition",
+                new TopologySpecificationParser().parse(YamlNode.fromRoot(new JsonNodeNativeMapper().fromNative(definition), "test")));
         var topologyGenerator = new TopologyGenerator("some.app.id", new NotationLibrary());
         final var topology = topologyGenerator.create(new StreamsBuilder(), definitions);
         final TopologyDescription description = topology.describe();

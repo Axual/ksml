@@ -56,7 +56,16 @@ public class TopologyResourceParser<T, F extends T> extends BaseParser<TopologyR
         }
 
         // Parse as anonymous inline definition using the supplied inline parser
-        return new TopologyResource<>(null, inlineParser.parse(node.get(childName)));
+        final var childNode = node.get(childName);
+        if (childNode != null) {
+            final var name = childNode.getLongName();
+            inlineParser.setDefaultName(name);
+            return new TopologyResource<>(name, inlineParser.parse(childNode));
+        }
+
+        final var name = node.appendName(childName).getLongName();
+        inlineParser.setDefaultName(name);
+        return new TopologyResource<>(name, inlineParser.parse(null));
     }
 
     public T parseDefinition(YamlNode node) {

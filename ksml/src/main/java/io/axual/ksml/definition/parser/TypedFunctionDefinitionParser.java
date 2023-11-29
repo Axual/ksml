@@ -38,7 +38,8 @@ public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition
         final var parser = getParser(node, type);
         if (parser != null) {
             try {
-                return parser.parse(node.appendName(type));
+                parser.setDefaultName(getDefaultName());
+                return parser.parse(node);
             } catch (RuntimeException e) {
                 throw new KSMLParseException(node, "Error parsing typed function");
             }
@@ -52,6 +53,8 @@ public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition
         return switch (type) {
             case FUNCTION_TYPE_AGGREGATOR -> new AggregatorDefinitionParser();
             case FUNCTION_TYPE_FOREACHACTION -> new ForEachActionDefinitionParser();
+            case FUNCTION_TYPE_GENERATOR -> new GeneratorDefinitionParser();
+            case FUNCTION_TYPE_GENERIC -> new FunctionDefinitionParser();
             case FUNCTION_TYPE_INITIALIZER -> new InitializerDefinitionParser();
             case FUNCTION_TYPE_KEYTRANSFORMER -> new KeyTransformerDefinitionParser();
             case FUNCTION_TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER ->
@@ -61,11 +64,11 @@ public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition
                     new KeyValueTransformerDefinitionParser();
             case FUNCTION_TYPE_MERGER -> new MergerDefinitionParser();
             case FUNCTION_TYPE_PREDICATE -> new PredicateDefinitionParser();
-            case FUNCTION_TYPE_VALUEJOINER, FUNCTION_TYPE_REDUCER -> new ReducerDefinitionParser();
+            case FUNCTION_TYPE_REDUCER -> new ReducerDefinitionParser();
             case FUNCTION_TYPE_STREAMPARTITIONER -> new StreamPartitionerDefinitionParser();
             case FUNCTION_TYPE_TOPICNAMEEXTRACTOR -> new TopicNameExtractorDefinitionParser();
+            case FUNCTION_TYPE_VALUEJOINER -> new ValueJoinerDefinitionParser();
             case FUNCTION_TYPE_VALUETRANSFORMER -> new ValueTransformerDefinitionParser();
-            case FUNCTION_TYPE_GENERIC -> new FunctionDefinitionParser();
             default -> throw FatalError.parseError(node, "Unknown function type: " + type);
         };
     }

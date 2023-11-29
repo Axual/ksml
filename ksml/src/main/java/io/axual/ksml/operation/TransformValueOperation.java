@@ -23,7 +23,7 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
-import io.axual.ksml.operation.processor.OperationProcessorSupplier;
+import io.axual.ksml.operation.processor.FixedKeyOperationProcessorSupplier;
 import io.axual.ksml.operation.processor.TransformValueProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
@@ -51,14 +51,14 @@ public class TransformValueOperation extends StoreOperation {
 
         final var userMap = new UserValueTransformer(context.createUserFunction(map));
         final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames.toArray(TEMPLATE));
-        final var supplier = new OperationProcessorSupplier<>(
+        final var supplier = new FixedKeyOperationProcessorSupplier<>(
                 name,
                 TransformValueProcessor::new,
                 (stores, record) -> userMap.apply(stores, record.key(), record.value()),
                 storeNames);
         final var output = name != null
-                ? input.stream.process(supplier, Named.as(name), storeNames)
-                : input.stream.process(supplier, storeNames);
+                ? input.stream.processValues(supplier, Named.as(name), storeNames)
+                : input.stream.processValues(supplier, storeNames);
         return new KStreamWrapper(output, k, vr);
     }
 

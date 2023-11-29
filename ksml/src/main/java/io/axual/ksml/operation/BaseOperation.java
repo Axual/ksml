@@ -220,7 +220,9 @@ public class BaseOperation implements StreamOperation {
 
     private FunctionDefinition applySpecificResult(FunctionDefinition function, UserType appliedResultType) {
         // If the given result type is more specific than the current result type, then adopt the specific result type
-        return function.resultType.dataType().isAssignableFrom(appliedResultType) ? function.withResult(appliedResultType) : function;
+        return function.resultType != null && function.resultType.dataType().isAssignableFrom(appliedResultType)
+                ? function.withResult(appliedResultType)
+                : function;
     }
 
     protected FunctionDefinition checkFunction(String functionType, FunctionDefinition function, StreamDataType appliedResultType, TypeComparator... parameters) {

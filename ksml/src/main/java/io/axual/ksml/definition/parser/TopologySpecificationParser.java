@@ -20,15 +20,13 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.definition.ProducerDefinition;
-import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.generator.TopologySpecification;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.MapParser;
 import io.axual.ksml.parser.YamlNode;
 
-import static io.axual.ksml.dsl.KSMLDSL.*;
 import static io.axual.ksml.dsl.KSMLDSL.PIPELINES_DEFINITION;
+import static io.axual.ksml.dsl.KSMLDSL.PRODUCERS_DEFINITION;
 
 public class TopologySpecificationParser extends BaseParser<TopologySpecification> {
     @Override
@@ -45,7 +43,7 @@ public class TopologySpecificationParser extends BaseParser<TopologySpecificatio
         // Parse all defined pipelines
         new MapParser<>("pipeline definition", new PipelineDefinitionParser(resources)).parse(node.get(PIPELINES_DEFINITION)).forEach(result::register);
         // Parse all defined producers
-        new MapParser<>("producer definition", new ProducerDefinitionParser(resources)).parse(node.get(PIPELINES_DEFINITION)).forEach(result::register);
+        new MapParser<>("producer definition", new ProducerDefinitionParser(resources)).parse(node.get(PRODUCERS_DEFINITION)).forEach(result::register);
 
         return result;
     }

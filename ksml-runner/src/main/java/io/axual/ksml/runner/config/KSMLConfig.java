@@ -45,9 +45,6 @@ public class KSMLConfig {
     private String schemaDirectory;
     private String storageDirectory;
 
-    @JsonProperty("numTasks")
-    private Integer numTasks;
-
     @JsonProperty("errorHandling")
     private KSMLErrorHandlingConfig errorHandling;
     @JsonProperty("definitions")
@@ -91,7 +88,7 @@ public class KSMLConfig {
                     throw new ConfigException("definitionFile", definitionFilePath, "The provided KSML definition file does not exists or is not a regular file");
                 }
                 try {
-                    log.info("Reading Producer Definition from source file: {}", definitionFilePath.toFile());
+                    log.info("Reading KSML definition from source file: {}", definitionFilePath.toFile());
                     final var def = YAMLObjectMapper.INSTANCE.readValue(definitionFilePath.toFile(), JsonNode.class);
                     result.put(definition.getKey(), def);
                 } catch (IOException e) {
