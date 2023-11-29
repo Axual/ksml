@@ -1,10 +1,14 @@
 package io.axual.ksml.runner.backend;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonFunction;
+import io.axual.ksml.runner.config.KSMLConfig;
+import io.axual.ksml.runner.streams.KSMLClientSupplier;
+import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.utils.Utils;
@@ -18,34 +22,15 @@ import java.util.Map;
 
 import static org.apache.kafka.clients.producer.ProducerConfig.*;
 
-public class ProducerRunner implements Runner {
-    private static final Logger log = LoggerFactory.getLogger(ProducerRunner.class);
-    private static final String DEFAULT_CONFIG_FILE_SHORT = "ksml-data-generator.yaml";
+public class KafkaProducerRunner implements Runner {
+    private static final Logger log = LoggerFactory.getLogger(KafkaProducerRunner.class);
     private static final IntervalSchedule<ExecutableProducer> schedule = new IntervalSchedule<>();
+    private final Map<String, JsonNode> definitions;
+    private final Producer<byte[],byte[]> producer;
 
-    public ProducerRunner() {
-        var configFileName = DEFAULT_CONFIG_FILE_SHORT;
-
-        if (args.length > 0) {
-            configFileName = args[0];
-        }
-
-        final var configFile = new File(configFileName);
-        if (!configFile.exists()) {
-            log.error("Configuration file '{}' not found", configFile);
-            System.exit(1);
-        }
-
-        final DataGeneratorConfig config;
-        try {
-            final var mapper = new ObjectMapper(new YAMLFactory());
-            config = mapper.readValue(configFile, DataGeneratorConfig.class);
-            config.validate();
-        } catch (IOException e) {
-            log.error("An exception occurred while reading the configuration", e);
-            System.exit(2);
-            return;
-        }
+    public KafkaProducerRunner(Map<String, JsonNode> definitions, Map<String,Object> kafkaConfigs) {
+        this.definitions = definitions;
+        producer = new KafkaProducer<byte[], byte[]>(kafkaConfigs);
     }
 
     private static Map<String, String> getGenericConfigs() {
@@ -65,7 +50,7 @@ public class ProducerRunner implements Runner {
         log.info("Initializing Kafka backend");
         final var configs = new HashMap<>(getGenericConfigs());
         configs.putAll(config.getKafka());
-        final var factory = new KafkaClientFactory(configs);
+        final var factory = new KSMLClientSupplier(configs);
 
         // Read all producer definitions from the configured YAML files
         var notationLibrary = factory.getNotationLibrary();

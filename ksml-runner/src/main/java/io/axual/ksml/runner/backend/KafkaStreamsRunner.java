@@ -46,6 +46,7 @@ import io.axual.ksml.notation.xml.XmlDataObjectConverter;
 import io.axual.ksml.notation.xml.XmlNotation;
 import io.axual.ksml.notation.xml.XmlSchemaLoader;
 import io.axual.ksml.rest.server.StreamsQuerier;
+import io.axual.ksml.runner.config.ApplicationServerConfig;
 import io.axual.ksml.runner.config.KSMLConfig;
 import io.axual.ksml.runner.config.KSMLErrorHandlingConfig;
 import io.axual.ksml.runner.streams.KSMLClientSupplier;
@@ -75,30 +76,15 @@ public class KafkaStreamsRunner implements Runner {
     public KafkaStreamsRunner(KSMLConfig ksmlConfig, Map<String, String> kafkaConfig) {
         log.info("Constructing Kafka Backend");
 
-        HashMap<String, Object> streamsConfig = kafkaConfig != null ? new HashMap<>(kafkaConfig) : new HashMap<>();
-        // Explicit configs can overwrite those from the map
-        streamsConfig.put(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE);
-        streamsConfig.put(StreamsConfig.DEFAULT_PRODUCTION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class);
-        streamsConfig.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class);
-        if (streamsConfig.containsKey(ResolvingClientConfig.GROUP_ID_PATTERN_CONFIG)
-                || streamsConfig.containsKey(ResolvingClientConfig.TOPIC_PATTERN_CONFIG)
-                || streamsConfig.containsKey(ResolvingProducerConfig.TRANSACTIONAL_ID_PATTERN_CONFIG)) {
-            log.info("Using resolving clients for Kafka");
-            streamsConfig.put(StreamsConfig.DEFAULT_CLIENT_SUPPLIER_CONFIG, KSMLClientSupplier.class.getCanonicalName());
+        final var streamsConfig = getStreamsConfig(kafkaConfig, ksmlConfig.getStorageDirectory(), ksmlConfig.getApplicationServerConfig());
+
+        if (ksmlConfig.getErrorHandlingConfig() != null) {
+            ExecutionContext.INSTANCE.setConsumeHandler(getErrorHandler(ksmlConfig.getErrorHandlingConfig().getConsume(), "ConsumeError"));
+            ExecutionContext.INSTANCE.setProduceHandler(getErrorHandler(ksmlConfig.getErrorHandlingConfig().getProduce(), "ProduceError"));
+            ExecutionContext.INSTANCE.setProcessHandler(getErrorHandler(ksmlConfig.getErrorHandlingConfig().getProcess(), "ProcessError"));
         }
 
-        streamsConfig.put(StreamsConfig.STATE_DIR_CONFIG, ksmlConfig.getStorageDirectory());
-        if (ksmlConfig.getApplicationServer() != null && ksmlConfig.getApplicationServer().isEnabled()) {
-            streamsConfig.put(StreamsConfig.APPLICATION_SERVER_CONFIG, ksmlConfig.getApplicationServer().getApplicationServer());
-        }
-
-        if (ksmlConfig.getErrorHandling() != null) {
-            ExecutionContext.INSTANCE.setConsumeHandler(getErrorHandler(ksmlConfig.getErrorHandling().getConsume(), "ConsumeError"));
-            ExecutionContext.INSTANCE.setProduceHandler(getErrorHandler(ksmlConfig.getErrorHandling().getProduce(), "ProduceError"));
-            ExecutionContext.INSTANCE.setProcessHandler(getErrorHandler(ksmlConfig.getErrorHandling().getProcess(), "ProcessError"));
-        }
-
-        // Set up the notation library
+        // Set up the notation library with all known notations
         final var notationLibrary = new NotationLibrary();
         notationLibrary.register(AvroNotation.NOTATION_NAME, new AvroNotation(streamsConfig), null);
         notationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(), null);
@@ -134,6 +120,27 @@ public class KafkaStreamsRunner implements Runner {
         }
     }
 
+    private Map<String, Object> getStreamsConfig(Map<String, String> initialConfigs, String storageDirectory, ApplicationServerConfig appServer) {
+        final Map<String, Object> result = initialConfigs != null ? new HashMap<>(initialConfigs) : new HashMap<>();
+        // Explicit configs can overwrite those from the map
+        result.put(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE);
+        result.put(StreamsConfig.DEFAULT_PRODUCTION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class);
+        result.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class);
+        if (result.containsKey(ResolvingClientConfig.GROUP_ID_PATTERN_CONFIG)
+                || result.containsKey(ResolvingClientConfig.TOPIC_PATTERN_CONFIG)
+                || result.containsKey(ResolvingProducerConfig.TRANSACTIONAL_ID_PATTERN_CONFIG)) {
+            log.info("Using resolving clients for Kafka");
+            result.put(StreamsConfig.DEFAULT_CLIENT_SUPPLIER_CONFIG, KSMLClientSupplier.class.getCanonicalName());
+        }
+
+        result.put(StreamsConfig.STATE_DIR_CONFIG, storageDirectory);
+        if (appServer != null && appServer.isEnabled()) {
+            result.put(StreamsConfig.APPLICATION_SERVER_CONFIG, appServer.getApplicationServer());
+        }
+
+        return result;
+    }
+
     private ErrorHandler getErrorHandler(KSMLErrorHandlingConfig.ErrorHandlingConfig config, String loggerName) {
         if (config == null) return new ErrorHandler(true, false, loggerName, ErrorHandler.HandlerType.STOP_ON_FAIL);
         final var handlerType = switch (config.getHandler()) {
@@ -148,13 +155,14 @@ public class KafkaStreamsRunner implements Runner {
     }
 
     private Properties mapToProperties(Map<String, Object> configs) {
-        var result = new Properties();
-        configs.entrySet().stream().forEach(entry -> result.put(entry.getKey(), entry.getValue()));
+        final var result = new Properties();
+        result.putAll(configs);
         return result;
     }
 
     @Override
     public State getState() {
+        if (kafkaStreams == null) return State.STOPPED;
         return switch (kafkaStreams.state()) {
             case CREATED, REBALANCING -> State.STARTING;
             case RUNNING -> State.STARTED;
@@ -185,21 +193,26 @@ public class KafkaStreamsRunner implements Runner {
 
     @Override
     public void close() {
-        kafkaStreams.close();
+        final var state = getState();
+        if (state != State.STOPPED && state != State.FAILED) {
+            kafkaStreams.close();
+        }
     }
 
     @Override
     public void run() {
-        log.info("Starting Kafka Streams backend");
-        kafkaStreams.start();
-        Utils.sleep(1000);
-        while (!stopRunning.get()) {
-            final var state = getState();
-            if (state == State.STOPPED || state == State.FAILED) {
-                log.info("Streams implementation has stopped, stopping Kafka Backend");
-                break;
+        if (kafkaStreams != null) {
+            log.info("Starting Kafka Streams backend");
+            kafkaStreams.start();
+            Utils.sleep(1000);
+            while (!stopRunning.get()) {
+                final var state = getState();
+                if (state == State.STOPPED || state == State.FAILED) {
+                    log.info("Streams implementation has stopped, stopping Kafka Backend");
+                    break;
+                }
+                Utils.sleep(200);
             }
-            Utils.sleep(200);
         }
     }
 }

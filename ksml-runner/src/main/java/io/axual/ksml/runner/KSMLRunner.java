@@ -26,9 +26,11 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.rest.server.RestServer;
-import io.axual.ksml.runner.backend.Runner;
+import io.axual.ksml.runner.backend.KafkaProducerRunner;
 import io.axual.ksml.runner.backend.KafkaStreamsRunner;
+import io.axual.ksml.runner.backend.Runner;
 import io.axual.ksml.runner.config.KSMLRunnerConfig;
+import io.axual.ksml.runner.exception.ConfigException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.state.HostInfo;
 
@@ -71,52 +73,70 @@ public class KSMLRunner {
         }
 
         log.info("Starting {} {}", name, version);
-        final var configPath = new File(args.length == 0 ? DEFAULT_CONFIG_FILE_SHORT : args[0]);
-        if (!configPath.exists()) {
-            log.error("Configuration file '{}' not found", configPath);
+        final var configFile = new File(args.length == 0 ? DEFAULT_CONFIG_FILE_SHORT : args[0]);
+        if (!configFile.exists()) {
+            log.error("Configuration file '{}' not found", configFile);
             System.exit(1);
         }
 
-        try {
-            final var mapper = new ObjectMapper(new YAMLFactory());
-            final KSMLRunnerConfig config = mapper.readValue(configPath, KSMLRunnerConfig.class);
-            config.validate();
-            try (final var backend = new KafkaStreamsRunner(config.getKsmlConfig(), config.getKafkaConfig())) {
-                var shutdownHook = new Thread(() -> {
-                    try {
-                        log.debug("In KSML shutdown hook");
-                        backend.close();
-                    } catch (Exception e) {
-                        log.error("Could not properly close the KSML backend", e);
-                    }
-                });
+        final var config = readConfiguration(configFile);
+        final var definitions = config.getKsmlConfig().getDefinitions();
+        if (definitions == null || definitions.isEmpty()) {
+            throw new ConfigException("definitions", definitions, "No KSML definitions found in configuration");
+        }
 
-                Runtime.getRuntime().addShutdownHook(shutdownHook);
+        try (final var kafkaProducerBackend = new KafkaProducerRunner(config.getKsmlConfig(), config.getKafkaConfig());
+             final var kafkaStreamsBackend = new KafkaStreamsRunner(config.getKsmlConfig(), config.getKafkaConfig())) {
+            var shutdownHook = new Thread(() -> {
+                try {
+                    log.debug("In KSML shutdown hook");
+                    kafkaStreamsBackend.close();
+                    kafkaProducerBackend.close();
+                } catch (Exception e) {
+                    log.error("Could not properly close the KSML backend", e);
+                }
+            });
 
-                if (config.getKsmlConfig().getApplicationServer() != null && config.getKsmlConfig().getApplicationServer().isEnabled()) {
+            Runtime.getRuntime().addShutdownHook(shutdownHook);
+            try {
+                final var appServer = config.getKsmlConfig().getApplicationServerConfig();
+                if (appServer != null && appServer.isEnabled()) {
                     // Run with the REST server
-                    HostInfo hostInfo = new HostInfo(config.getKsmlConfig().getApplicationServer().getHost(), config.getKsmlConfig().getApplicationServer().getPort());
-
+                    HostInfo hostInfo = new HostInfo(appServer.getHost(), appServer.getPort());
                     try (RestServer restServer = new RestServer(hostInfo)) {
-                        restServer.start(backend.getQuerier());
-                        run(backend);
+                        restServer.start(kafkaStreamsBackend.getQuerier());
+                        run(kafkaStreamsBackend);
                     }
                 } else {
                     // Run without the REST server
-                    run(backend);
+                    run(kafkaStreamsBackend);
                 }
-
+            } finally {
                 Runtime.getRuntime().removeShutdownHook(shutdownHook);
-            } catch (Exception e) {
-                log.error("An exception occurred while running KSML", e);
-                System.exit(2);
             }
-        } catch (
-                IOException e) {
-            log.error("An exception occurred while reading the configuration", e);
+        } catch (Exception e) {
+            log.error("An exception occurred while running KSML", e);
             System.exit(2);
         }
+    }
 
+    private static KSMLRunnerConfig readConfiguration(File configFile) {
+        final var mapper = new ObjectMapper(new YAMLFactory());
+        try {
+            final var config = mapper.readValue(configFile, KSMLRunnerConfig.class);
+            if (config != null) {
+                if (config.getKsmlConfig() == null) {
+                    throw new ConfigException("Section \"ksml\" is missing in configuration");
+                }
+                if (config.getKafkaConfig() == null) {
+                    throw new ConfigException("Section \"kafka\" is missing in configuration");
+                }
+                return config;
+            }
+        } catch (IOException e) {
+            //Ignore
+        }
+        throw new ConfigException("No configuration found");
     }
 
     private static void run(Runner runner) {
