@@ -1,4 +1,4 @@
-package io.axual.ksml.datagenerator.config;
+package io.axual.ksml.definition;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,18 +20,8 @@ package io.axual.ksml.datagenerator.config;
  * =========================LICENSE_END==================================
  */
 
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import java.time.Duration;
 
-import java.util.Map;
-
-@Slf4j
-@Data
-public class DataGeneratorConfig {
-    private GeneratorConfig ksml;
-    private Map<String, String> kafka;
-
-    public void validate() {
-        ksml.validate();
-    }
+public record ProducerDefinition(FunctionDefinition generator, Duration interval, FunctionDefinition condition,
+                                 TopicDefinition target) {
 }

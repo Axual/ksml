@@ -20,22 +20,33 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.OperationConfig;
 import io.axual.ksml.operation.StreamOperation;
+import io.axual.ksml.parser.ContextAwareParser;
 import io.axual.ksml.parser.ListParser;
-import io.axual.ksml.parser.PipelineHelperParser;
 import io.axual.ksml.parser.StringValueParser;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.OPERATION_STORES_ATTRIBUTE;
 
-public abstract class OperationParser<T extends StreamOperation> extends PipelineHelperParser<T> {
+public abstract class OperationParser<T extends StreamOperation> extends ContextAwareParser<T> {
     private static final String[] TEMPLATE = new String[0];
+    protected final String name;
 
-    protected OperationConfig parseConfig(YamlNode node, String operationName) {
-        var storeNames = new ListParser<>("state store names", new StringValueParser()).parse(node.get(OPERATION_STORES_ATTRIBUTE));
+    public OperationParser(String name, TopologyResources resources) {
+        super(resources);
+        this.name = name;
+    }
+
+    protected OperationConfig operationConfig(YamlNode node) {
+        return operationConfig(node, null);
+    }
+
+    protected OperationConfig operationConfig(YamlNode node, String typeName) {
+        final var storeNames = new ListParser<>("state store names", new StringValueParser()).parse(node.get(OPERATION_STORES_ATTRIBUTE));
         return new OperationConfig(
-                operationName,
+                name != null ? name : determineName(typeName),
                 storeNames != null ? storeNames.toArray(TEMPLATE) : null);
     }
 }

@@ -24,18 +24,18 @@ package io.axual.ksml.operation;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserStreamPartitioner;
 import org.apache.kafka.streams.kstream.Repartitioned;
 
 public class RepartitionOperation extends BaseOperation {
     private static final String PARTITIONER_NAME = "Partitioner";
-    private final UserFunction partitioner;
+    private final FunctionDefinition partitioner;
 
-    public RepartitionOperation(OperationConfig config, UserFunction partitioner) {
+    public RepartitionOperation(OperationConfig config, FunctionDefinition partitioner) {
         super(config);
         this.partitioner = partitioner;
     }
@@ -49,8 +49,9 @@ public class RepartitionOperation extends BaseOperation {
         checkNotNull(partitioner, "Partitioner must be defined");
         final var k = input.keyType();
         final var v = input.valueType();
-        checkFunction(PARTITIONER_NAME, partitioner, new UserType(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
-        var repartitioned = Repartitioned.with(k.getSerde(), v.getSerde()).withStreamPartitioner(new UserStreamPartitioner(partitioner));
+        final var part = checkFunction(PARTITIONER_NAME, partitioner, new UserType(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
+        final var userPart = new UserStreamPartitioner(context.createUserFunction(part));
+        var repartitioned = Repartitioned.with(k.getSerde(), v.getSerde()).withStreamPartitioner(userPart);
         if (name != null) repartitioned = repartitioned.withName(name);
         final var output = input.stream.repartition(repartitioned);
         return new KStreamWrapper(output, k, v);

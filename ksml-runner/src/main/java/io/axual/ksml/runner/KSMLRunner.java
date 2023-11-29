@@ -26,8 +26,8 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.rest.server.RestServer;
-import io.axual.ksml.runner.backend.Backend;
-import io.axual.ksml.runner.backend.KafkaBackend;
+import io.axual.ksml.runner.backend.Runner;
+import io.axual.ksml.runner.backend.KafkaStreamsRunner;
 import io.axual.ksml.runner.config.KSMLRunnerConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.state.HostInfo;
@@ -81,7 +81,7 @@ public class KSMLRunner {
             final var mapper = new ObjectMapper(new YAMLFactory());
             final KSMLRunnerConfig config = mapper.readValue(configPath, KSMLRunnerConfig.class);
             config.validate();
-            try (final var backend = new KafkaBackend(config.getKsmlConfig(), config.getKafkaConfig())) {
+            try (final var backend = new KafkaStreamsRunner(config.getKsmlConfig(), config.getKafkaConfig())) {
                 var shutdownHook = new Thread(() -> {
                     try {
                         log.debug("In KSML shutdown hook");
@@ -119,9 +119,9 @@ public class KSMLRunner {
 
     }
 
-    private static void run(Backend backend) {
+    private static void run(Runner runner) {
         var executorService = Executors.newFixedThreadPool(5);
-        Future<?> backendFuture = executorService.submit(backend);
+        Future<?> backendFuture = executorService.submit(runner);
 
         try {
             backendFuture.get();

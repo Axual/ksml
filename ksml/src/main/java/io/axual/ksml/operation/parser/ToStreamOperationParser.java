@@ -22,23 +22,22 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.definition.parser.KeyTransformerDefinitionParser;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ToStreamOperation;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.TO_STREAM_MAPPER_ATTRIBUTE;
 
 public class ToStreamOperationParser extends OperationParser<ToStreamOperation> {
-    private final String name;
-
-    protected ToStreamOperationParser(String name) {
-        this.name = name;
+    public ToStreamOperationParser(String name, TopologyResources resources) {
+        super(name, resources);
     }
 
     @Override
     public ToStreamOperation parse(YamlNode node) {
         if (node == null) return null;
         return new ToStreamOperation(
-                parseConfig(node, name),
+                operationConfig(node),
                 parseOptionalFunction(node, TO_STREAM_MAPPER_ATTRIBUTE, new KeyTransformerDefinitionParser()));
     }
 }

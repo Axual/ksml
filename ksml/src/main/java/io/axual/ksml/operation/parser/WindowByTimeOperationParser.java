@@ -23,6 +23,7 @@ package io.axual.ksml.operation.parser;
 
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.WindowByTimeOperation;
 import io.axual.ksml.parser.YamlNode;
 import org.apache.kafka.streams.kstream.SlidingWindows;
@@ -31,10 +32,8 @@ import org.apache.kafka.streams.kstream.TimeWindows;
 import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class WindowByTimeOperationParser extends OperationParser<WindowByTimeOperation> {
-    private final String name;
-
-    protected WindowByTimeOperationParser(String name) {
-        this.name = name;
+    public WindowByTimeOperationParser(String name, TopologyResources resources) {
+        super(name, resources);
     }
 
     @Override
@@ -59,7 +58,7 @@ public class WindowByTimeOperationParser extends OperationParser<WindowByTimeOpe
         final var timeWindows = (grace != null && grace.toMillis() > 0)
                 ? TimeWindows.ofSizeAndGrace(duration, grace)
                 : TimeWindows.ofSizeWithNoGrace(duration);
-        return new WindowByTimeOperation(parseConfig(node, name), timeWindows);
+        return new WindowByTimeOperation(operationConfig(node), timeWindows);
     }
 
     private WindowByTimeOperation parseHoppingWindow(YamlNode node) {
@@ -73,7 +72,7 @@ public class WindowByTimeOperationParser extends OperationParser<WindowByTimeOpe
         final var timeWindows = (grace != null && grace.toMillis() > 0)
                 ? TimeWindows.ofSizeAndGrace(duration, grace).advanceBy(advanceBy)
                 : TimeWindows.ofSizeWithNoGrace(duration).advanceBy(advanceBy);
-        return new WindowByTimeOperation(parseConfig(node, name), timeWindows);
+        return new WindowByTimeOperation(operationConfig(node), timeWindows);
     }
 
     private WindowByTimeOperation parseSlidingWindow(YamlNode node) {
@@ -82,6 +81,6 @@ public class WindowByTimeOperationParser extends OperationParser<WindowByTimeOpe
         final var slidingWindows = (grace != null && grace.toMillis() > 0)
                 ? SlidingWindows.ofTimeDifferenceAndGrace(timeDifference, grace)
                 : SlidingWindows.ofTimeDifferenceWithNoGrace(timeDifference);
-        return new WindowByTimeOperation(parseConfig(node, name), slidingWindows);
+        return new WindowByTimeOperation(operationConfig(node), slidingWindows);
     }
 }

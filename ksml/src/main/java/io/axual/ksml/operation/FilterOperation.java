@@ -23,21 +23,21 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.processor.FilterProcessor;
 import io.axual.ksml.operation.processor.OperationProcessorSupplier;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserPredicate;
 import org.apache.kafka.streams.kstream.Named;
 
 public class FilterOperation extends BaseOperation {
     private static final String PREDICATE_NAME = "Predicate";
-    private final UserFunction predicate;
+    private final FunctionDefinition predicate;
 
-    public FilterOperation(OperationConfig config, UserFunction predicate) {
+    public FilterOperation(OperationConfig config, FunctionDefinition predicate) {
         super(config);
         this.predicate = predicate;
     }
@@ -52,14 +52,13 @@ public class FilterOperation extends BaseOperation {
 
         final var k = input.keyType();
         final var v = input.valueType();
-        checkFunction(PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k), superOf(v));
-
-        final var action = new UserPredicate(predicate);
-        final var storeNames = combineStoreNames(this.storeNames, predicate.storeNames);
+        final var pred = checkFunction(PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k), superOf(v));
+        final var userPred = new UserPredicate(context.createUserFunction(pred));
+        final var storeNames = combineStoreNames(this.storeNames, predicate.storeNames.toArray(TEMPLATE));
         final var supplier = new OperationProcessorSupplier<>(
                 name,
                 FilterProcessor::new,
-                (stores, record) -> action.test(stores, record.key(), record.value()),
+                (stores, record) -> userPred.test(stores, record.key(), record.value()),
                 storeNames);
         final var output = name != null
                 ? input.stream.process(supplier, Named.as(name), storeNames)
@@ -77,10 +76,11 @@ public class FilterOperation extends BaseOperation {
 
         final var k = input.keyType();
         final var v = input.valueType();
-        checkFunction(PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k), superOf(v));
+        final var pred = checkFunction(PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k), superOf(v));
+        final var userPred = new UserPredicate(context.createUserFunction(pred));
         final var output = name != null
-                ? input.table.filter(new UserPredicate(predicate), Named.as(name))
-                : input.table.filter(new UserPredicate(predicate));
+                ? input.table.filter(userPred, Named.as(name))
+                : input.table.filter(userPred);
         return new KTableWrapper(output, k, v);
     }
 }

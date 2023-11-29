@@ -50,7 +50,7 @@ public class BranchOperation extends BaseOperation {
         for (var index = 0; index < branches.size(); index++) {
             final var branch = branches.get(index);
             predicates[index] = branch.predicate() != null
-                    ? new UserPredicate(context.createUserFunction("predicate", branch.predicate()))
+                    ? new UserPredicate(context.createUserFunction(branch.predicate()))
                     : (key, value) -> true;
         }
 

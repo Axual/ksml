@@ -1,8 +1,8 @@
-package io.axual.ksml.datagenerator.definition;
+package io.axual.ksml.runner.backend;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Generator
+ * KSML Runner
  * %%
  * Copyright (C) 2021 - 2023 Axual B.V.
  * %%
@@ -20,19 +20,15 @@ package io.axual.ksml.datagenerator.definition;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.UserTupleType;
-import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.exception.KSMLTopologyException;
 
-import static io.axual.ksml.definition.DefinitionConstants.NO_PARAMETERS;
-
-public class GeneratorDefinition extends FunctionDefinition {
-    public GeneratorDefinition(FunctionDefinition definition) {
-        super(definition
-                .withParameters(NO_PARAMETERS)
-                .withAResult());
-        if (definition.resultType == null || !(definition.resultType.dataType() instanceof UserTupleType)) {
-            throw new KSMLTopologyException("ResultType of generator function should be a tuple (keyType,valueType)");
-        }
+public interface Runner extends AutoCloseable, Runnable {
+    enum State {
+        STARTING,
+        STARTED,
+        STOPPING,
+        STOPPED,
+        FAILED
     }
+
+    State getState();
 }

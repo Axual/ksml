@@ -21,43 +21,48 @@ package io.axual.ksml.operation.parser;
  */
 
 
-import io.axual.ksml.definition.TypedRef;
+import io.axual.ksml.definition.GlobalTableDefinition;
+import io.axual.ksml.definition.StreamDefinition;
+import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.definition.parser.KeyTransformerDefinitionParser;
 import io.axual.ksml.definition.parser.ValueJoinerDefinitionParser;
 import io.axual.ksml.definition.parser.WithTopicDefinitionParser;
 import io.axual.ksml.exception.KSMLParseException;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.JoinOperation;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class JoinOperationParser extends StoreOperationParser<JoinOperation> {
-    private final String name;
-
-    public JoinOperationParser(String name) {
-        this.name = name;
+    public JoinOperationParser(String name, TopologyResources resources) {
+        super(name, resources);
     }
 
     @Override
     public JoinOperation parse(YamlNode node) {
         if (node == null) return null;
-        TypedRef joinStream = new WithTopicDefinitionParser().parse(node);
-        switch (joinStream.type()) {
-            case STREAM -> new JoinOperation(
-                    storeOperationConfig(name, node, STORE_ATTRIBUTE),
+        final var joinTopic = new WithTopicDefinitionParser(resources).parse(node);
+        if (joinTopic instanceof StreamDefinition joinStream) {
+            return new JoinOperation(
+                    storeOperationConfig(node, STORE_ATTRIBUTE),
                     joinStream,
                     parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()),
                     parseDuration(node, JOIN_WINDOW_ATTRIBUTE));
-            case TABLE -> new JoinOperation(
-                    storeOperationConfig(name, node, STORE_ATTRIBUTE),
-                    joinStream,
+        }
+        if (joinTopic instanceof TableDefinition joinTable) {
+            return new JoinOperation(
+                    storeOperationConfig(node, STORE_ATTRIBUTE),
+                    joinTable,
                     parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()));
-            case GLOBALTABLE -> new JoinOperation(
-                    storeOperationConfig(name, node, STORE_ATTRIBUTE),
-                    joinStream,
+        }
+        if (joinTopic instanceof GlobalTableDefinition globalTableDefinition) {
+            return new JoinOperation(
+                    storeOperationConfig(node, STORE_ATTRIBUTE),
+                    globalTableDefinition,
                     parseFunction(node, JOIN_MAPPER_ATTRIBUTE, new KeyTransformerDefinitionParser()),
                     parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()));
         }
-        throw new KSMLParseException(node, "Stream not specified");
+        throw new KSMLParseException(node, "Join stream not specified");
     }
 }

@@ -5,8 +5,8 @@
 ### Table of Contents
 1. [Introduction](#introduction)
 2. [Generic configuration](#generic-configuration)
-    * [Kafka backend](#kafka-backend)
-    * [Axual backend](#axual-backend)
+    * [Kafka runner](#kafka-runner)
+    * [Axual runner](#axual-runner)
 3. [Starting a container](#starting-a-container)
 
 ## Introduction

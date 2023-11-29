@@ -21,21 +21,20 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.GroupByKeyOperation;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
 
 public class GroupByKeyOperationParser extends StoreOperationParser<GroupByKeyOperation> {
-    private final String name;
-
-    protected GroupByKeyOperationParser(String name) {
-        this.name = name;
+    public GroupByKeyOperationParser(String name, TopologyResources resources) {
+        super(name, resources);
     }
 
     @Override
     public GroupByKeyOperation parse(YamlNode node) {
         if (node == null) return null;
-        return new GroupByKeyOperation(storeOperationConfig(name, node, STORE_ATTRIBUTE));
+        return new GroupByKeyOperation(storeOperationConfig(node, STORE_ATTRIBUTE));
     }
 }

@@ -23,20 +23,20 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.processor.OperationProcessorSupplier;
 import io.axual.ksml.operation.processor.PeekProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserForeachAction;
-import io.axual.ksml.user.UserFunction;
 import org.apache.kafka.streams.kstream.Named;
 
 public class PeekOperation extends BaseOperation {
     private static final String FOREACHACTION_NAME = "ForEachAction";
-    private final UserFunction forEachAction;
+    private final FunctionDefinition forEachAction;
 
-    public PeekOperation(OperationConfig config, UserFunction forEachAction) {
+    public PeekOperation(OperationConfig config, FunctionDefinition forEachAction) {
         super(config);
         this.forEachAction = forEachAction;
     }
@@ -45,14 +45,13 @@ public class PeekOperation extends BaseOperation {
     public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
         final var k = input.keyType();
         final var v = input.valueType();
-        checkFunction(FOREACHACTION_NAME, forEachAction, new UserType(DataNull.DATATYPE), superOf(k), superOf(v));
-
-        final var action = new UserForeachAction(forEachAction);
-        final var storeNames = combineStoreNames(this.storeNames, forEachAction.storeNames);
+        final var action = checkFunction(FOREACHACTION_NAME, forEachAction, new UserType(DataNull.DATATYPE), superOf(k), superOf(v));
+        final var userAction = new UserForeachAction(context.createUserFunction(action));
+        final var storeNames = combineStoreNames(this.storeNames, forEachAction.storeNames.toArray(TEMPLATE));
         final var supplier = new OperationProcessorSupplier<>(
                 name,
                 PeekProcessor::new,
-                (stores, record) -> action.apply(stores, record.key(), record.value()),
+                (stores, record) -> userAction.apply(stores, record.key(), record.value()),
                 storeNames);
         final var output = name != null
                 ? input.stream.process(supplier, Named.as(name), storeNames)

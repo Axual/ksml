@@ -22,6 +22,7 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.definition.parser.ReducerDefinitionParser;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ReduceOperation;
 import io.axual.ksml.parser.YamlNode;
 
@@ -31,17 +32,15 @@ import static io.axual.ksml.dsl.KSMLDSL.REDUCE_SUBTRACTOR_ATTRIBUTE;
 import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
 
 public class ReduceOperationParser extends StoreOperationParser<ReduceOperation> {
-    private final String name;
-
-    protected ReduceOperationParser(String name) {
-        this.name = name;
+    public ReduceOperationParser(String name, TopologyResources resources) {
+        super(name, resources);
     }
 
     @Override
     public ReduceOperation parse(YamlNode node) {
         if (node == null) return null;
         return new ReduceOperation(
-                storeOperationConfig(name, node, STORE_ATTRIBUTE),
+                storeOperationConfig(node, STORE_ATTRIBUTE),
                 parseFunction(node, REDUCE_REDUCER_ATTRIBUTE, new ReducerDefinitionParser()),
                 parseFunction(node, REDUCE_ADDER_ATTRIBUTE, new ReducerDefinitionParser()),
                 parseFunction(node, REDUCE_SUBTRACTOR_ATTRIBUTE, new ReducerDefinitionParser()));

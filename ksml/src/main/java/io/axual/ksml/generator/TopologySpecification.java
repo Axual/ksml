@@ -1,84 +1,76 @@
 package io.axual.ksml.generator;
 
+/*-
+ * ========================LICENSE_START=================================
+ * KSML
+ * %%
+ * Copyright (C) 2021 - 2023 Axual B.V.
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =========================LICENSE_END==================================
+ */
+
+import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.definition.PipelineDefinition;
-import io.axual.ksml.definition.TopicDefinition;
-import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.definition.StateStoreDefinition;
+import io.axual.ksml.definition.ProducerDefinition;
 import io.axual.ksml.exception.KSMLTopologyException;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class TopologySpecification {
-    // All registered user functions
-    private final Map<String, FunctionDefinition> functionDefinitions = new HashMap<>();
+public class TopologySpecification extends TopologyResources {
     // All registered pipelines
-    private final Map<String, PipelineDefinition> pipelineDefinitions = new HashMap<>();
-    // All registered state stores
-    private final Map<String, StateStoreDefinition> stateStoreDefinitions = new HashMap<>();
+    private final Map<String, PipelineDefinition> pipelines = new HashMap<>();
+    // All registered producers
+    private final Map<String, ProducerDefinition> producers = new HashMap<>();
     // All registered KStreams, KTables and KGlobalTables
-    private final Map<String, TopicDefinition> topicDefinitions = new HashMap<>();
 
-    public void registerFunction(String name, FunctionDefinition functionDefinition) {
-        if (functionDefinitions.containsKey(name)) {
-            throw new KSMLTopologyException("Function definition must be unique: " + name);
-        }
-        functionDefinitions.put(name, functionDefinition);
-    }
-
-    public Map<String, FunctionDefinition> getFunctionDefinitions() {
-        return functionDefinitions;
-    }
-
-    public void registerPipeline(String name, PipelineDefinition pipelineDefinition) {
-        if (pipelineDefinitions.containsKey(name)) {
+    public void register(String name, PipelineDefinition pipelineDefinition) {
+        if (pipelines.containsKey(name)) {
             throw new KSMLTopologyException("Pipeline definition must be unique: " + name);
         }
-        pipelineDefinitions.put(name, pipelineDefinition);
+        pipelines.put(name, pipelineDefinition);
     }
 
-    public Map<String, PipelineDefinition> getPipelineDefinitions() {
-        return pipelineDefinitions;
+    public TopologySpecification() {
     }
 
-    public void registerStateStore(String name, StateStoreDefinition store) {
-        registerStateStore(name, store, false);
+    public TopologySpecification(TopologyResources resources) {
+        resources.functions().forEach(this::register);
+        resources.stateStores().forEach(this::register);
+        resources.topics().forEach(this::register);
     }
 
-    public void registerStateStore(String name, StateStoreDefinition store, boolean canBeDuplicate) {
-        // Check if the store is properly named
-        if (store.name() == null || store.name().isEmpty()) {
-            throw new KSMLTopologyException("StateStore does not have a name: " + store);
+    public PipelineDefinition pipeline(String name) {
+        return pipelines.get(name);
+    }
+
+    public Map<String, PipelineDefinition> pipelines() {
+        return ImmutableMap.copyOf(pipelines);
+    }
+
+    public void register(String name, ProducerDefinition producerDefinition) {
+        if (pipelines.containsKey(name)) {
+            throw new KSMLTopologyException("Pipeline definition must be unique: " + name);
         }
-        // Check if the name is equal to the store name (otherwise a parsing error occurred)
-        if (!store.name().equals(name)) {
-            throw new KSMLTopologyException("StateStore name mistmatch: this is a parsing error: " + store);
-        }
-        // State stores can only be registered once. Duplicate names are a sign of faulty KSML definitions
-        if (stateStoreDefinitions.containsKey(store.name())) {
-            if (!canBeDuplicate) {
-                throw new KSMLTopologyException("StateStore is not unique: " + store.name());
-            }
-            if (!stateStoreDefinitions.get(store.name()).equals(store)) {
-                throw new KSMLTopologyException("StateStore definition conflicts earlier registration: " + store);
-            }
-        } else {
-            stateStoreDefinitions.put(store.name(), store);
-        }
+        producers.put(name, producerDefinition);
     }
 
-    public Map<String, StateStoreDefinition> getStateStoreDefinitions() {
-        return stateStoreDefinitions;
+    public ProducerDefinition producer(String name) {
+        return producers.get(name);
     }
 
-    public void registerTopicDefinition(String name, TopicDefinition def) {
-        if (topicDefinitions.containsKey(name)) {
-            throw new KSMLTopologyException("Topic definition must be unique: " + name);
-        }
-        topicDefinitions.put(name, def);
-    }
-
-    public Map<String, TopicDefinition> getTopicDefinitions() {
-        return topicDefinitions;
+    public Map<String, ProducerDefinition> producers() {
+        return ImmutableMap.copyOf(producers);
     }
 }

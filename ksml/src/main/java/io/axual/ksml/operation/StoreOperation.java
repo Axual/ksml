@@ -22,25 +22,16 @@ package io.axual.ksml.operation;
 
 
 import io.axual.ksml.data.type.UserType;
-import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
-import io.axual.ksml.definition.Ref;
 import io.axual.ksml.definition.SessionStateStoreDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.WindowStateStoreDefinition;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.generator.StreamDataType;
-import io.axual.ksml.store.StateStoreRegistry;
 import io.axual.ksml.store.StoreType;
-import io.axual.ksml.store.StoreUtil;
-import org.apache.kafka.common.utils.Bytes;
-import org.apache.kafka.streams.kstream.Materialized;
-import org.apache.kafka.streams.state.KeyValueStore;
-import org.apache.kafka.streams.state.SessionStore;
-import org.apache.kafka.streams.state.WindowStore;
 
 public class StoreOperation extends BaseOperation {
-    protected final Ref<StateStoreDefinition> store;
+    protected final StateStoreDefinition store;
 
     public StoreOperation(StoreOperationConfig config) {
         super(config);
@@ -139,29 +130,5 @@ public class StoreOperation extends BaseOperation {
 
     private void storeTypeError(StateStoreDefinition store, StoreType expected) {
         FatalError.executionError(toString() + " operation requires a " + expected + " state store, but got one of type " + store);
-    }
-
-    protected StreamDataType windowedTypeOf(StreamDataType keyType) {
-        return streamDataTypeOf(windowedTypeOf(keyType.userType()), true);
-    }
-
-    protected UserType windowedTypeOf(UserType keyType) {
-        var windowedType = new WindowedType(keyType.dataType());
-        return new UserType(keyType.notation(), windowedType);
-    }
-
-    protected <V> Materialized<Object, V, KeyValueStore<Bytes, byte[]>> materialize(KeyValueStateStoreDefinition store) {
-        stateStoreRegistry.registerStateStore(store);
-        return StoreUtil.materialize(store, notationLibrary);
-    }
-
-    protected <V> Materialized<Object, V, SessionStore<Bytes, byte[]>> materialize(SessionStateStoreDefinition store) {
-        stateStoreRegistry.registerStateStore(store);
-        return StoreUtil.materialize(store, notationLibrary);
-    }
-
-    protected <V> Materialized<Object, V, WindowStore<Bytes, byte[]>> materialize(WindowStateStoreDefinition store) {
-        stateStoreRegistry.registerStateStore(store);
-        return StoreUtil.materialize(store, notationLibrary);
     }
 }

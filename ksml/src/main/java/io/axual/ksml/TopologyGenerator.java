@@ -26,8 +26,8 @@ import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.definition.parser.TopologySpecificationParser;
-import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.generator.TopologyAnalyzer;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.generator.TopologySpecification;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.operation.StreamOperation;
@@ -57,13 +57,15 @@ public class TopologyGenerator {
     }
 
     public Topology create(StreamsBuilder streamsBuilder, Map<String, JsonNode> definitions) {
+        if (definitions.size() == 0) return null;
+
         final var knownTopics = new HashSet<String>();
         final var parser = new TopologySpecificationParser();
 
         for (final var definition : definitions.entrySet()) {
-            final var specification = parser.parse(YamlNode.fromRoot(definition.getValue(), definition.getKey()));
-            final var context = new TopologyBuildContext(streamsBuilder, specification, notationLibrary, definition.getKey());
-            generate(specification, context);
+            final var resources = parser.parse(YamlNode.fromRoot(definition.getValue(), definition.getKey()));
+            final var context = new TopologyBuildContext(streamsBuilder, resources, notationLibrary, definition.getKey());
+            generate(resources, context);
         }
 
         var topology = streamsBuilder.build();
@@ -135,32 +137,30 @@ public class TopologyGenerator {
     private void generate(TopologySpecification specification, TopologyBuildContext context) {
         // Register all topics
         final var knownTopics = new HashSet<String>();
-        specification.getTopicDefinitions().forEach((name, def) -> knownTopics.add(def.getTopic()));
+        specification.topics().forEach((name, def) -> knownTopics.add(def.getTopic()));
 
         // Ensure that local state store in tables are registered with the StreamBuilder
-        specification.getTopicDefinitions().forEach((name, def) -> {
+        specification.topics().forEach((name, def) -> {
             if (def instanceof TableDefinition tableDef) {
                 context.getStreamWrapper(tableDef);
                 if (tableDef.getStore() != null) {
                     // Register the state store and mark as already created (by Kafka Streams framework, not by user)
-                    specification.registerStateStore(tableDef.getStore().name(), tableDef.getStore());
+                    specification.register(tableDef.getStore().name(), tableDef.getStore());
                     context.createdStateStores().add(tableDef.getStore().name());
                 }
             }
         });
 
         // Add source and target topics to the set of known topics
-        specification.getPipelineDefinitions().forEach((name, def) -> {
-            final var source = context.lookupTopic(def.source(), "stream");
-            knownTopics.add(source.getTopic());
+        specification.pipelines().forEach((name, def) -> {
+            if (def.source() != null) knownTopics.add(def.source().getTopic());
             if (def.sink() instanceof ToOperation toOperation) {
-                final var sink = context.lookupTopic(toOperation.output, "topic");
-                knownTopics.add(sink.getTopic());
+                knownTopics.add(toOperation.target.getTopic());
             }
         });
 
         // If there are any uncreated state stores needed, create them first
-        specification.getStateStoreDefinitions().forEach((name, store) -> {
+        specification.stateStores().forEach((name, store) -> {
             if (!context.createdStateStores().contains(name)) {
                 context.createUserStateStore(store);
             }
@@ -168,20 +168,23 @@ public class TopologyGenerator {
 
         final var pythonContext = new PythonContext(new DataObjectConverter(notationLibrary));
         // Preload the function into the Python context
-        specification.getFunctionDefinitions().forEach((name, func) -> {
+        specification.functions().forEach((name, func) -> {
             PythonFunction.fromNamed(pythonContext, name, func);
         });
 
-        specification.getPipelineDefinitions().forEach((name, pipeline) -> {
-            final var source = context.lookupTopic(pipeline.source(), "topic");
-            StreamWrapper cursor = context.getStreamWrapper(source);
+        // For each pipeline, generate the topology
+        specification.pipelines().forEach((name, pipeline) -> {
+            // Use a cursor to keep track of where we are in the topology
+            StreamWrapper cursor = context.getStreamWrapper(pipeline.source());
             LOG.info("Generating Kafka Streams topology:");
             LOG.info("  {}", cursor);
+            // For each operation, advance the cursor by applying the operation
             for (StreamOperation operation : pipeline.chain()) {
                 LOG.info("    ==> {}", operation);
                 cursor = cursor.apply(operation, context);
                 LOG.info("  {}", cursor);
             }
+            // Finally, at the end, apply the sink operation
             if (pipeline.sink() != null) {
                 LOG.info("    ==> {}", pipeline.sink());
                 cursor.apply(pipeline.sink(), context);

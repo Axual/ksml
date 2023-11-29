@@ -23,6 +23,7 @@ package io.axual.ksml.operation.parser;
 import io.axual.ksml.data.type.UserTupleType;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ConvertKeyValueOperation;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.parser.YamlNode;
@@ -30,10 +31,8 @@ import io.axual.ksml.parser.YamlNode;
 import static io.axual.ksml.dsl.KSMLDSL.CONVERT_INTO_ATTRIBUTE;
 
 public class ConvertKeyValueOperationParser extends OperationParser<ConvertKeyValueOperation> {
-    private final String name;
-
-    protected ConvertKeyValueOperationParser(String name) {
-        this.name = name;
+    public ConvertKeyValueOperationParser(String name, TopologyResources resources) {
+        super(name, resources);
     }
 
     @Override
@@ -41,7 +40,7 @@ public class ConvertKeyValueOperationParser extends OperationParser<ConvertKeyVa
         if (node == null) return null;
         UserType target = UserTypeParser.parse(parseString(node, CONVERT_INTO_ATTRIBUTE));
         if (target.dataType() instanceof UserTupleType userTupleType && userTupleType.subTypeCount() == 2) {
-            return new ConvertKeyValueOperation(parseConfig(node, name), userTupleType.getUserType(0), userTupleType.getUserType(1));
+            return new ConvertKeyValueOperation(operationConfig(node), userTupleType.getUserType(0), userTupleType.getUserType(1));
         }
         throw FatalError.parseError(node, "The type to convert to should be a tuple consisting of two subtypes. For example '(string,avro:SomeSchema)");
     }

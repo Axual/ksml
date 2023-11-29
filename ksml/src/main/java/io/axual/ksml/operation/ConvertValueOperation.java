@@ -20,23 +20,19 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.generator.TopologyBuildContext;
-import org.apache.kafka.streams.kstream.Named;
-import org.apache.kafka.streams.kstream.ValueMapper;
-
-import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.util.DataUtil;
+import org.apache.kafka.streams.kstream.Named;
+import org.apache.kafka.streams.kstream.ValueMapper;
 
 public class ConvertValueOperation extends BaseOperation {
-    private final DataObjectConverter mapper;
     private final UserType targetValueType;
 
     public ConvertValueOperation(OperationConfig config, UserType targetValueType) {
         super(config);
-        this.mapper = new DataObjectConverter(notationLibrary);
         this.targetValueType = targetValueType;
     }
 
@@ -44,11 +40,12 @@ public class ConvertValueOperation extends BaseOperation {
     public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
         final var k = input.keyType();
         final var v = input.valueType();
-        final var vr = streamDataTypeOf(targetValueType, false);
+        final var vr = context.streamDataTypeOf(targetValueType, false);
+        final var mapper = context.getDataObjectConverter();
 
         // Set up the mapping function to convert the value
         ValueMapper<Object, Object> converter = value -> {
-            var valueAsData = DataUtil.asDataObject(value);
+            final var valueAsData = DataUtil.asDataObject(value);
             return mapper.convert(v.userType().notation(), valueAsData, vr.userType());
         };
 

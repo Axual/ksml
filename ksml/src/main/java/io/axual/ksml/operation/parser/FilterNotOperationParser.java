@@ -22,23 +22,22 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.definition.parser.PredicateDefinitionParser;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.FilterNotOperation;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.FILTERNOT_PREDICATE_ATTRIBUTE;
 
 public class FilterNotOperationParser extends OperationParser<FilterNotOperation> {
-    private final String name;
-
-    protected FilterNotOperationParser(String name) {
-        this.name = name;
+    public FilterNotOperationParser(String name, TopologyResources resources) {
+        super(name, resources);
     }
 
     @Override
     public FilterNotOperation parse(YamlNode node) {
         if (node == null) return null;
         return new FilterNotOperation(
-                parseConfig(node, name),
+                operationConfig(node),
                 parseFunction(node, FILTERNOT_PREDICATE_ATTRIBUTE, new PredicateDefinitionParser())
         );
     }

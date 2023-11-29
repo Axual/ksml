@@ -21,20 +21,20 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.processor.OperationProcessorSupplier;
 import io.axual.ksml.operation.processor.TransformKeyProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserKeyTransformer;
 import org.apache.kafka.streams.kstream.Named;
 
 public class TransformKeyOperation extends BaseOperation {
     private static final String MAPPER_NAME = "Mapper";
-    private final UserFunction mapper;
+    private final FunctionDefinition mapper;
 
-    public TransformKeyOperation(OperationConfig config, UserFunction mapper) {
+    public TransformKeyOperation(OperationConfig config, FunctionDefinition mapper) {
         super(config);
         this.mapper = mapper;
     }
@@ -44,15 +44,14 @@ public class TransformKeyOperation extends BaseOperation {
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var kr = streamDataTypeOf(firstSpecificType(mapper, k), true);
-        checkFunction(MAPPER_NAME, mapper, kr, superOf(k), superOf(v));
-
-        final var action = new UserKeyTransformer(mapper);
-        final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames);
+        final var kr = context.streamDataTypeOf(firstSpecificType(mapper, k), true);
+        final var map = checkFunction(MAPPER_NAME, mapper, kr, superOf(k), superOf(v));
+        final var userMap = new UserKeyTransformer(context.createUserFunction(map));
+        final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames.toArray(TEMPLATE));
         final var supplier = new OperationProcessorSupplier<>(
                 name,
                 TransformKeyProcessor::new,
-                (stores, record) -> action.apply(stores, record.key(), record.value()),
+                (stores, record) -> userMap.apply(stores, record.key(), record.value()),
                 storeNames);
         final var output = name != null
                 ? input.stream.process(supplier, Named.as(name), storeNames)

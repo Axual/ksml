@@ -22,6 +22,7 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.definition.parser.KeyValueMapperDefinitionParser;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.GroupByOperation;
 import io.axual.ksml.parser.YamlNode;
 
@@ -29,17 +30,15 @@ import static io.axual.ksml.dsl.KSMLDSL.GROUPBY_MAPPER_ATTRIBUTE;
 import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
 
 public class GroupByOperationParser extends StoreOperationParser<GroupByOperation> {
-    private final String name;
-
-    protected GroupByOperationParser(String name) {
-        this.name = name;
+    public GroupByOperationParser(String name, TopologyResources resources) {
+        super(name, resources);
     }
 
     @Override
     public GroupByOperation parse(YamlNode node) {
         if (node == null) return null;
         return new GroupByOperation(
-                storeOperationConfig(name, node, STORE_ATTRIBUTE),
+                storeOperationConfig(node, STORE_ATTRIBUTE),
                 parseFunction(node, GROUPBY_MAPPER_ATTRIBUTE, new KeyValueMapperDefinitionParser())
         );
     }

@@ -24,10 +24,10 @@ package io.axual.ksml.operation;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserTopicNameExtractor;
 import org.apache.kafka.streams.kstream.Produced;
 
@@ -35,9 +35,9 @@ import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA;
 
 public class ToTopicNameExtractorOperation extends BaseOperation {
     private static final String TOPICNAMEEXTRACTOR_NAME = "TopicNameExtractor";
-    private final UserFunction topicNameExtractor;
+    private final FunctionDefinition topicNameExtractor;
 
-    public ToTopicNameExtractorOperation(OperationConfig config, UserFunction topicNameExtractor) {
+    public ToTopicNameExtractorOperation(OperationConfig config, FunctionDefinition topicNameExtractor) {
         super(config);
         this.topicNameExtractor = topicNameExtractor;
     }
@@ -48,10 +48,11 @@ public class ToTopicNameExtractorOperation extends BaseOperation {
         final var v = input.valueType();
         final var topicNameType = new UserType(DataString.DATATYPE);
         final var recordContextType = new UserType(new StructType(RECORD_CONTEXT_SCHEMA));
-        checkFunction(TOPICNAMEEXTRACTOR_NAME, topicNameExtractor, topicNameType, superOf(k), superOf(v), superOf(recordContextType));
+        final var extractor = checkFunction(TOPICNAMEEXTRACTOR_NAME, topicNameExtractor, topicNameType, superOf(k), superOf(v), superOf(recordContextType));
+        final var userExtractor = new UserTopicNameExtractor(context.createUserFunction(extractor));
         var produced = Produced.with(input.keyType().getSerde(), input.valueType().getSerde());
         if (name != null) produced = produced.withName(name);
-        input.stream.to(new UserTopicNameExtractor(topicNameExtractor), produced);
+        input.stream.to(userExtractor, produced);
         return null;
     }
 }

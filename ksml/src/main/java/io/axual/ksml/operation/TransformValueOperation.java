@@ -21,22 +21,22 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.processor.OperationProcessorSupplier;
 import io.axual.ksml.operation.processor.TransformValueProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserValueTransformer;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Named;
 
 public class TransformValueOperation extends StoreOperation {
     private static final String MAPPER_NAME = "Mapper";
-    private final UserFunction mapper;
+    private final FunctionDefinition mapper;
 
-    public TransformValueOperation(StoreOperationConfig config, UserFunction mapper) {
+    public TransformValueOperation(StoreOperationConfig config, FunctionDefinition mapper) {
         super(config);
         this.mapper = mapper;
     }
@@ -46,15 +46,15 @@ public class TransformValueOperation extends StoreOperation {
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var vr = streamDataTypeOf(firstSpecificType(mapper, v.userType()), false);
-        checkFunction(MAPPER_NAME, mapper, vr, superOf(k), superOf(v));
+        final var vr = context.streamDataTypeOf(firstSpecificType(mapper, v.userType()), false);
+        final var map = checkFunction(MAPPER_NAME, mapper, vr, superOf(k), superOf(v));
 
-        final var action = new UserValueTransformer(mapper);
-        final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames);
+        final var userMap = new UserValueTransformer(context.createUserFunction(map));
+        final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames.toArray(TEMPLATE));
         final var supplier = new OperationProcessorSupplier<>(
                 name,
                 TransformValueProcessor::new,
-                (stores, record) -> action.apply(stores, record.key(), record.value()),
+                (stores, record) -> userMap.apply(stores, record.key(), record.value()),
                 storeNames);
         final var output = name != null
                 ? input.stream.process(supplier, Named.as(name), storeNames)
@@ -74,24 +74,24 @@ public class TransformValueOperation extends StoreOperation {
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var vr = streamDataTypeOf(firstSpecificType(mapper, v.userType()), false);
-        checkFunction(MAPPER_NAME, mapper, vr, superOf(k), superOf(v));
-        final var kvStore = validateKeyValueStore(context.lookupStore(store), k, vr);
+        final var vr = context.streamDataTypeOf(firstSpecificType(mapper, v.userType()), false);
+        final var map = checkFunction(MAPPER_NAME, mapper, vr, superOf(k), superOf(v));
+        final var kvStore = validateKeyValueStore(store, k, vr);
 
-        final var map = new UserValueTransformer(mapper);
+        final var userMap = new UserValueTransformer(context.createUserFunction(map));
         final var named = name != null ? Named.as(name) : null;
 
         if (kvStore != null) {
-            final var mat = materialize(kvStore);
+            final var mat = context.materialize(kvStore);
             final var output = named != null
-                    ? (KTable) input.table.mapValues(map, named, mat)
-                    : (KTable) input.table.mapValues(map, mat);
+                    ? (KTable) input.table.mapValues(userMap, named, mat)
+                    : (KTable) input.table.mapValues(userMap, mat);
             return new KTableWrapper(output, k, vr);
         }
 
         final var output = named != null
-                ? (KTable) input.table.mapValues(map, named)
-                : (KTable) input.table.mapValues(map);
+                ? (KTable) input.table.mapValues(userMap, named)
+                : (KTable) input.table.mapValues(userMap);
         return new KTableWrapper(output, k, vr);
     }
 }

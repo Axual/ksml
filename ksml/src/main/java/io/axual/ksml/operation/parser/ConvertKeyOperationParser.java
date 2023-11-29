@@ -21,6 +21,7 @@ package io.axual.ksml.operation.parser;
  */
 
 import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ConvertKeyOperation;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.parser.YamlNode;
@@ -28,16 +29,14 @@ import io.axual.ksml.parser.YamlNode;
 import static io.axual.ksml.dsl.KSMLDSL.CONVERT_INTO_ATTRIBUTE;
 
 public class ConvertKeyOperationParser extends OperationParser<ConvertKeyOperation> {
-    private final String name;
-
-    protected ConvertKeyOperationParser(String name) {
-        this.name = name;
+    public ConvertKeyOperationParser(String name, TopologyResources resources) {
+        super(name, resources);
     }
 
     @Override
     public ConvertKeyOperation parse(YamlNode node) {
         if (node == null) return null;
         UserType target = UserTypeParser.parse(parseString(node, CONVERT_INTO_ATTRIBUTE));
-        return new ConvertKeyOperation(parseConfig(node, name), target);
+        return new ConvertKeyOperation(operationConfig(node), target);
     }
 }

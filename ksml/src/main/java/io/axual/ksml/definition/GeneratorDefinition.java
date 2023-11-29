@@ -1,4 +1,4 @@
-package io.axual.ksml.datagenerator.definition;
+package io.axual.ksml.definition;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,12 +20,18 @@ package io.axual.ksml.datagenerator.definition;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.definition.StreamDefinition;
-import io.axual.ksml.definition.Ref;
+import io.axual.ksml.data.type.UserTupleType;
+import io.axual.ksml.exception.KSMLTopologyException;
 
-import java.time.Duration;
+import static io.axual.ksml.definition.DefinitionConstants.NO_PARAMETERS;
 
-public record ProducerDefinition(Ref<FunctionDefinition> generator, Duration interval,
-                                 Ref<FunctionDefinition> condition, StreamDefinition target) {
+public class GeneratorDefinition extends FunctionDefinition {
+    public GeneratorDefinition(FunctionDefinition definition) {
+        super(definition
+                .withParameters(NO_PARAMETERS)
+                .withAResult());
+        if (definition.resultType == null || !(definition.resultType.dataType() instanceof UserTupleType)) {
+            throw new KSMLTopologyException("ResultType of generator function should be a tuple (keyType,valueType)");
+        }
+    }
 }

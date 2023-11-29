@@ -21,32 +21,46 @@ package io.axual.ksml.parser;
  */
 
 
-import io.axual.ksml.definition.Ref;
+import io.axual.ksml.definition.TopologyResource;
+import io.axual.ksml.execution.FatalError;
+
+import java.util.function.Function;
 
 // Certain KSML resources (like streams, tables and functions) can be referenced from pipelines,
 // or they can be defined inline. This parser distinguishes between the two.
-public class ReferenceOrInlineDefinitionParser<T, F extends T> extends BaseParser<Ref<T>> {
+public class TopologyResourceParser<T, F extends T> extends BaseParser<TopologyResource<T>> {
     private final String resourceType;
     private final String childName;
+    private final Function<String, T> lookup;
     private final BaseParser<F> inlineParser;
 
-    public ReferenceOrInlineDefinitionParser(String resourceType, String childName, BaseParser<F> inlineParser) {
+    public TopologyResourceParser(String resourceType, String childName, Function<String, T> lookup, BaseParser<F> inlineParser) {
         this.resourceType = resourceType;
         this.childName = childName;
+        this.lookup = lookup;
         this.inlineParser = inlineParser;
     }
 
     @Override
-    public Ref<T> parse(YamlNode node) {
+    public TopologyResource<T> parse(YamlNode node) {
         if (node == null) return null;
 
         // Check if the node is a text node --> parse as direct reference
         if (node.childIsText(childName)) {
             final var resourceToFind = parseString(node, childName);
-            return new Ref<>(resourceToFind, node.get(childName), null);
+            final var resource = lookup.apply(resourceToFind);
+            if (resource == null) {
+                throw FatalError.parseError(node, "Unknown " + resourceType + " \"" + resourceToFind + "\"");
+            }
+            return new TopologyResource<>(resourceToFind, resource);
         }
 
-        // Parse as inline definition using the supplied inline parser
-        return new Ref<>(null, node, inlineParser.parse(node.get(childName)));
+        // Parse as anonymous inline definition using the supplied inline parser
+        return new TopologyResource<>(null, inlineParser.parse(node.get(childName)));
+    }
+
+    public T parseDefinition(YamlNode node) {
+        final var result = parse(node);
+        return result != null ? result.definition() : null;
     }
 }

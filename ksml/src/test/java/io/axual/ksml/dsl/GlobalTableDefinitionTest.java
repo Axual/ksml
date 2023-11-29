@@ -21,6 +21,8 @@ package io.axual.ksml.dsl;
  */
 
 import io.axual.ksml.definition.GlobalTableDefinition;
+import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.notation.Notation;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.notation.binary.BinaryNotation;
@@ -32,8 +34,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.HashMap;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -47,7 +47,7 @@ class GlobalTableDefinitionTest {
     @Mock
     private StreamsBuilder builder;
 
-    private final NotationLibrary notationLibrary = new NotationLibrary(new HashMap<>());
+    private final NotationLibrary notationLibrary = new NotationLibrary();
 
     @Mock
     Notation mockNotation;
@@ -58,9 +58,11 @@ class GlobalTableDefinitionTest {
 
         // given a TableDefinition
         var tableDefinition = new GlobalTableDefinition("topic", "string", "string");
+        var resources = new TopologyResources();
 
+        var context = new TopologyBuildContext(builder, resources, notationLibrary, "");
         // when it adds itself to Builder
-        var streamWrapper = tableDefinition.addToBuilder(builder, "name", notationLibrary, null);
+        var streamWrapper = context.getStreamWrapper(tableDefinition);
 
         // it adds a ktable to the builder with key and value dataType, and returns a KTableWrapper instance
         final var stringType = UserTypeParser.parse("string");

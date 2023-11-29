@@ -22,23 +22,22 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.definition.parser.ForEachActionDefinitionParser;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.PeekOperation;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.PEEK_FOREACH_ATTRIBUTE;
 
 public class PeekOperationParser extends OperationParser<PeekOperation> {
-    private final String name;
-
-    protected PeekOperationParser(String name) {
-        this.name = name;
+    public PeekOperationParser(String name, TopologyResources resources) {
+        super(name, resources);
     }
 
     @Override
     public PeekOperation parse(YamlNode node) {
         if (node == null) return null;
         return new PeekOperation(
-                parseConfig(node, name),
+                operationConfig(node),
                 parseFunction(node, PEEK_FOREACH_ATTRIBUTE, new ForEachActionDefinitionParser()));
     }
 }

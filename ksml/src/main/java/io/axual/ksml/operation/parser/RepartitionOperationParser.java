@@ -22,23 +22,22 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.definition.parser.StreamPartitionerDefinitionParser;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.RepartitionOperation;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.REPARTITION_PARTITIONER_ATTRIBUTE;
 
 public class RepartitionOperationParser extends OperationParser<RepartitionOperation> {
-    private final String name;
-
-    protected RepartitionOperationParser(String name) {
-        this.name = name;
+    public RepartitionOperationParser(String name, TopologyResources resources) {
+        super(name, resources);
     }
 
     @Override
     public RepartitionOperation parse(YamlNode node) {
         if (node == null) return null;
         return new RepartitionOperation(
-                parseConfig(node, name),
+                operationConfig(node),
                 parseFunction(node, REPARTITION_PARTITIONER_ATTRIBUTE, new StreamPartitionerDefinitionParser()));
     }
 }

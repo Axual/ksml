@@ -1,8 +1,8 @@
-package io.axual.ksml.runner.backend;
+package io.axual.ksml.definition;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Runner
+ * KSML
  * %%
  * Copyright (C) 2021 - 2023 Axual B.V.
  * %%
@@ -20,31 +20,5 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
-
-import org.apache.kafka.streams.KafkaStreams;
-
-import io.axual.ksml.rest.server.StreamsQuerier;
-
-public interface Backend extends AutoCloseable, Runnable {
-    enum State {
-        STARTING,
-        STARTED,
-        STOPPING,
-        STOPPED,
-        FAILED
-    }
-
-    State getState();
-
-    StreamsQuerier getQuerier();
-
-    default State convertStreamsState(KafkaStreams.State state) {
-        return switch (state) {
-            case CREATED, REBALANCING -> State.STARTING;
-            case RUNNING -> State.STARTED;
-            case PENDING_SHUTDOWN -> State.STOPPING;
-            case NOT_RUNNING -> State.STOPPED;
-            case PENDING_ERROR, ERROR -> State.FAILED;
-        };
-    }
+public record TopologyResource<T>(String name, T definition) {
 }

@@ -1,4 +1,4 @@
-package io.axual.ksml.datagenerator.parser;
+package io.axual.ksml.definition.parser;
 
 /*-
  * ========================LICENSE_START=================================
@@ -21,26 +21,26 @@ package io.axual.ksml.datagenerator.parser;
  */
 
 
-import io.axual.ksml.datagenerator.definition.ProducerDefinition;
-import io.axual.ksml.definition.parser.PredicateDefinitionParser;
-import io.axual.ksml.definition.parser.StreamDefinitionParser;
-import io.axual.ksml.parser.ReferenceOrInlineDefinitionParser;
+import io.axual.ksml.definition.ProducerDefinition;
+import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.parser.ContextAwareParser;
+import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.parser.YamlNode;
 
-import static io.axual.ksml.datagenerator.dsl.ProducerDSL.*;
+import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class ProducerDefinitionParser extends ContextAwareParser<ProducerDefinition> {
-    public ProducerDefinitionParser(ParseContext context) {
-        super(context);
+    public ProducerDefinitionParser(TopologyResources resources) {
+        super(resources);
     }
 
     @Override
     public ProducerDefinition parse(YamlNode node) {
         if (node == null) return null;
         return new ProducerDefinition(
-                new ReferenceOrInlineDefinitionParser<>("generator", GENERATOR_ATTRIBUTE, context.getFunctionDefinitions()::get, new GeneratorDefinitionParser()).parse(node),
-                parseDuration(node, INTERVAL_ATTRIBUTE),
-                new ReferenceOrInlineDefinitionParser<>("condition", CONDITION_ATTRIBUTE, context.getFunctionDefinitions()::get, new PredicateDefinitionParser()).parse(node),
-                new ReferenceOrInlineDefinitionParser<>("to", TARGET_ATTRIBUTE, context.getStreamDefinitions()::get, new StreamDefinitionParser()).parseDefinition(node));
+                new TopologyResourceParser<>("generator", PRODUCER_GENERATOR_ATTRIBUTE, resources::function, new GeneratorDefinitionParser()).parseDefinition(node),
+                parseDuration(node, PRODUCER_INTERVAL_ATTRIBUTE),
+                new TopologyResourceParser<>("condition", PRODUCER_CONDITION_ATTRIBUTE, resources::function, new PredicateDefinitionParser()).parseDefinition(node),
+                new TopologyResourceParser<>("to", PRODUCER_TARGET_ATTRIBUTE, resources::topic, new TopicDefinitionParser()).parseDefinition(node));
     }
 }

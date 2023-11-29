@@ -1,4 +1,4 @@
-package io.axual.ksml.datagenerator.parser;
+package io.axual.ksml.definition.parser;
 
 /*-
  * ========================LICENSE_START=================================
@@ -24,7 +24,7 @@ package io.axual.ksml.datagenerator.parser;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.parser.FunctionDefinitionParser;
 import io.axual.ksml.parser.YamlNode;
-import io.axual.ksml.datagenerator.definition.GeneratorDefinition;
+import io.axual.ksml.definition.GeneratorDefinition;
 
 public class GeneratorDefinitionParser extends FunctionDefinitionParser {
     @Override

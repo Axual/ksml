@@ -1,17 +1,38 @@
 package io.axual.ksml.generator;
 
+/*-
+ * ========================LICENSE_START=================================
+ * KSML
+ * %%
+ * Copyright (C) 2021 - 2023 Axual B.V.
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =========================LICENSE_END==================================
+ */
+
 import io.axual.ksml.data.mapper.DataObjectConverter;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.GlobalTableDefinition;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
-import io.axual.ksml.definition.Ref;
 import io.axual.ksml.definition.SessionStateStoreDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.definition.WindowStateStoreDefinition;
-import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.notation.NotationLibrary;
@@ -24,19 +45,22 @@ import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserFunction;
+import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
+import org.apache.kafka.streams.kstream.Materialized;
+import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.SessionStore;
+import org.apache.kafka.streams.state.WindowStore;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 
 public class TopologyBuildContext {
     private final StreamsBuilder builder;
-    private final TopologySpecification specification;
+    private final TopologyResources resources;
     private final PythonContext pythonContext;
     private final NotationLibrary notationLibrary;
     private final String namePrefix;
@@ -47,43 +71,50 @@ public class TopologyBuildContext {
 
     // All wrapped KStreams, KTables and KGlobalTables
     private final Map<String, StreamWrapper> streamWrappers = new HashMap<>();
-    private final Map<String, AtomicInteger> typeInstanceCounters = new HashMap<>();
 
-    public TopologyBuildContext(StreamsBuilder builder, TopologySpecification specification, NotationLibrary notationLibrary, String namePrefix) {
+    public TopologyBuildContext(StreamsBuilder builder, TopologyResources resources, NotationLibrary notationLibrary, String namePrefix) {
         this.builder = builder;
-        this.specification = specification;
+        this.resources = resources;
         this.notationLibrary = notationLibrary;
         this.namePrefix = namePrefix;
         this.pythonContext = new PythonContext(new DataObjectConverter(notationLibrary));
     }
 
-    private <T> T lookup(Ref<T> ref, Function<String, T> lookup, String description, boolean allowNull) {
-        if (ref.definition() != null) return ref.definition();
-        if (ref.name() == null) {
-            if (allowNull) return null;
-            throw new KSMLParseException(ref.referer(), "Missing " + description + " in specification");
-        }
-        final var result = lookup.apply(ref.name());
-        if (result != null) return result;
-        throw new KSMLParseException(ref.referer(), "Unknown " + description + " \"" + ref.name() + "\"");
+    public DataObjectConverter getDataObjectConverter() {
+        return new DataObjectConverter(notationLibrary);
     }
 
-    public FunctionDefinition lookupFunction(Ref<FunctionDefinition> ref, String functionType) {
-        return lookup(ref, specification.getFunctionDefinitions()::get, functionType + " function definition", false);
+    public StreamDataType streamDataTypeOf(String notationName, DataType dataType, boolean isKey) {
+        return streamDataTypeOf(new UserType(notationName, dataType), isKey);
     }
 
-    public <T extends TopicDefinition> T lookupTopic(Ref<T> ref, String streamType) {
-        return lookup(ref, ((Map<String, T>) specification.getTopicDefinitions())::get, (streamType != null ? streamType : "topic") + " definition", false);
+    public StreamDataType streamDataTypeOf(UserType userType, boolean isKey) {
+        return new StreamDataType(notationLibrary, userType, isKey);
     }
 
-    public StreamDefinition lookupStream(Ref<StreamDefinition> ref) {
-        return lookupTopic(ref, "stream");
+    public StreamDataType windowedTypeOf(StreamDataType keyType) {
+        return streamDataTypeOf(windowedTypeOf(keyType.userType()), true);
     }
 
-    public StateStoreDefinition lookupStore(Ref<StateStoreDefinition> ref) {
-        return lookup(ref, specification.getStateStoreDefinitions()::get, "state store", true);
+    public UserType windowedTypeOf(UserType keyType) {
+        var windowedType = new WindowedType(keyType.dataType());
+        return new UserType(keyType.notation(), windowedType);
     }
 
+    public <V> Materialized<Object, V, KeyValueStore<Bytes, byte[]>> materialize(KeyValueStateStoreDefinition store) {
+        resources.register(store.name(), store);
+        return StoreUtil.materialize(store, notationLibrary);
+    }
+
+    public <V> Materialized<Object, V, SessionStore<Bytes, byte[]>> materialize(SessionStateStoreDefinition store) {
+        resources.register(store.name(), store);
+        return StoreUtil.materialize(store, notationLibrary);
+    }
+
+    public <V> Materialized<Object, V, WindowStore<Bytes, byte[]>> materialize(WindowStateStoreDefinition store) {
+        resources.register(store.name(), store);
+        return StoreUtil.materialize(store, notationLibrary);
+    }
     public void createUserStateStore(StateStoreDefinition store) {
         if (store instanceof KeyValueStateStoreDefinition storeDef) {
             final var storeBuilder = StoreUtil.getStoreBuilder(storeDef, notationLibrary);
@@ -107,6 +138,25 @@ public class TopologyBuildContext {
         return createdStateStores;
     }
 
+    public BaseStreamWrapper getStreamWrapper(TopicDefinition topic) {
+        if (topic instanceof StreamDefinition) return getStreamWrapper(topic, KStreamWrapper.class);
+        if (topic instanceof TableDefinition) return getStreamWrapper(topic, KTableWrapper.class);
+        if (topic instanceof GlobalTableDefinition) return getStreamWrapper(topic, GlobalKTableWrapper.class);
+        throw FatalError.topologyError("Unknown topic type: " + topic.getClass());
+    }
+
+    public KStreamWrapper getStreamWrapper(StreamDefinition stream) {
+        return getStreamWrapper(stream, KStreamWrapper.class);
+    }
+
+    public KTableWrapper getStreamWrapper(TableDefinition table) {
+        return getStreamWrapper(table, KTableWrapper.class);
+    }
+
+    public GlobalKTableWrapper getStreamWrapper(GlobalTableDefinition globalTable) {
+        return getStreamWrapper(globalTable, GlobalKTableWrapper.class);
+    }
+
     public <T extends BaseStreamWrapper> T getStreamWrapper(TopicDefinition definition, Class<T> resultClass) {
         // We do not know the name of the StreamWrapper here, only its definition (which may be inlined in KSML), so we
         // perform a lookup based on the topic name. If we find it, we return that StreamWrapper. If not, we create it,
@@ -114,15 +164,12 @@ public class TopologyBuildContext {
         var result = streamWrappers.get(definition.getTopic());
         if (result == null) {
             result = buildWrapper(definition.getTopic(), definition);
+            streamWrappers.put(definition.getTopic(), result);
         }
         if (!resultClass.isInstance(result)) {
             throw new KSMLTopologyException("Stream is of incorrect dataType " + result.getClass().getSimpleName() + " where " + resultClass.getSimpleName() + " expected");
         }
         return (T) result;
-    }
-
-    public BaseStreamWrapper getStreamWrapper(Ref<? extends TopicDefinition> definition, String type) {
-        return getStreamWrapper(lookupTopic(definition, type), BaseStreamWrapper.class);
     }
 
     private StreamWrapper buildWrapper(String name, TopicDefinition def) {
@@ -158,11 +205,8 @@ public class TopologyBuildContext {
         throw FatalError.topologyError("Unknown stream type: " + def.getClass().getSimpleName());
     }
 
-    public UserFunction createUserFunction(String name, Ref<FunctionDefinition> ref) {
-        if (ref.definition() != null) {
-            return PythonFunction.fromAnon(pythonContext, name, ref.definition(), ref.referer().getDottedName());
-        }
-        return PythonFunction.fromNamed(pythonContext, ref.name(), lookupFunction(ref, "function"));
+    public UserFunction createUserFunction(FunctionDefinition definition) {
+        return PythonFunction.fromNamed(pythonContext, definition.name, definition);
     }
 
     //

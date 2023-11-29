@@ -22,23 +22,22 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.definition.parser.KeyValueToKeyValueListTransformerDefinitionParser;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.TransformKeyValueToKeyValueListOperation;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.TRANSFORMKEYVALUETOKEYVALUELIST_MAPPER_ATTRIBUTE;
 
 public class TransformKeyValueToKeyValueListOperationParser extends OperationParser<TransformKeyValueToKeyValueListOperation> {
-    private final String name;
-
-    protected TransformKeyValueToKeyValueListOperationParser(String name) {
-        this.name = name;
+    public TransformKeyValueToKeyValueListOperationParser(String name, TopologyResources resources) {
+        super(name, resources);
     }
 
     @Override
     public TransformKeyValueToKeyValueListOperation parse(YamlNode node) {
         if (node == null) return null;
         return new TransformKeyValueToKeyValueListOperation(
-                parseConfig(node, name),
+                operationConfig(node),
                 parseFunction(node, TRANSFORMKEYVALUETOKEYVALUELIST_MAPPER_ATTRIBUTE, new KeyValueToKeyValueListTransformerDefinitionParser()));
     }
 }

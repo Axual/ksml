@@ -5,8 +5,8 @@
 ### Table of Contents
 1. [Introduction](#introduction)
 2. [Generic configuration](#generic-configuration)
-    * [Kafka backend](#kafka-backend)
-    * [Axual backend](#axual-backend)
+    * [Kafka runner](#kafka-runner)
+    * [Axual runner](#axual-runner)
 3. [Starting a container](#starting-a-container)
 
 ## Introduction
@@ -53,7 +53,7 @@ To start a container which executes the example KSML definitions, type
 This will start the KSML docker container. You should see the following typical output:
 
 ```
-2021-05-11T07:20:22,844Z [system] [pool-1-thread-1] INFO  i.a.k.r.backend.kafka.KafkaBackend - Starting Kafka Backend
+2021-05-11T07:20:22,844Z [system] [pool-1-thread-1] INFO  i.a.k.r.runner.kafka.KafkaBackend - Starting Kafka Backend
 key=sensor0, value={'owner': 'Evan', 'color': 'blue', 'city': 'Leiden', '@type': 'io.axual.ksml.example.SensorData', 'type': 'STATE', 'unit': 'state', 'name': 'sensor0', 'value': 'off', 'timestamp': 1620717212876L}
 key=sensor1, value={'owner': 'Alice', 'color': 'red', 'city': 'Alkmaar', '@type': 'io.axual.ksml.example.SensorData', 'type': 'TEMPERATURE', 'unit': 'F', 'name': 'sensor1', 'value': '811', 'timestamp': 1620717213896L}
 key=sensor2, value={'owner': 'Charlie', 'color': 'white', 'city': 'Leiden', '@type': 'io.axual.ksml.example.SensorData', 'type': 'STATE', 'unit': 'state', 'name': 'sensor2', 'value': 'on', 'timestamp': 1620717214404L}

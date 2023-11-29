@@ -21,32 +21,29 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.definition.parser.ValueJoinerDefinitionParser;
+import io.axual.ksml.definition.parser.WithTopicDefinitionParser;
 import io.axual.ksml.exception.KSMLParseException;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.OuterJoinOperation;
 import io.axual.ksml.parser.YamlNode;
-import io.axual.ksml.stream.KStreamWrapper;
-import io.axual.ksml.stream.StreamWrapper;
 
-import static io.axual.ksml.dsl.KSMLDSL.JOIN_VALUEJOINER_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.JOIN_WINDOW_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class OuterJoinOperationParser extends StoreOperationParser<OuterJoinOperation> {
-    private final String name;
-
-    public OuterJoinOperationParser(String name) {
-        this.name = name;
+    public OuterJoinOperationParser(String name, TopologyResources resources) {
+        super(name, resources);
     }
 
     @Override
     public OuterJoinOperation parse(YamlNode node) {
         if (node == null) return null;
-        StreamWrapper joinStream = parseAndGetStreamWrapper(node);
-        if (joinStream instanceof KStreamWrapper kStreamWrapper) {
+        final var joinTopic = new WithTopicDefinitionParser(resources).parse(node);
+        if (joinTopic instanceof StreamDefinition joinStream) {
             return new OuterJoinOperation(
-                    storeOperationConfig(name, node, STORE_ATTRIBUTE),
-                    kStreamWrapper,
+                    storeOperationConfig(node, STORE_ATTRIBUTE),
+                    joinStream,
                     parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()),
                     parseDuration(node, JOIN_WINDOW_ATTRIBUTE));
         }

@@ -25,10 +25,9 @@ import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.generator.StreamDataType;
-import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.user.UserFunction;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.errors.TopologyException;
 import org.apache.kafka.streams.kstream.Named;
@@ -40,7 +39,7 @@ import java.util.TreeSet;
 @Slf4j
 public class BaseOperation implements StreamOperation {
     private static final String ERROR_IN_TOPOLOGY = "Error in topology";
-    private static final String[] TEMPLATE = new String[0];
+    protected static final String[] TEMPLATE = new String[0];
 
     private static class NameValidator extends Named {
         // Satisfy compiler with dummy constructor
@@ -60,7 +59,6 @@ public class BaseOperation implements StreamOperation {
     }
 
     protected final String name;
-    protected final NotationLibrary notationLibrary;
     protected final String[] storeNames;
 
     public BaseOperation(OperationConfig config) {
@@ -71,7 +69,6 @@ public class BaseOperation implements StreamOperation {
         } else {
             name = config.name;
         }
-        notationLibrary = config.notationLibrary;
         storeNames = config.storeNames;
     }
 
@@ -114,45 +111,45 @@ public class BaseOperation implements StreamOperation {
 
     // Returns the first specific function result type in the sequence of functions, starting from the left. When
     // reaching the end of the list of functions, UNKNOWN is returned.
-    protected UserType firstSpecificType(UserFunction func1, UserFunction func2, UserFunction func3) {
+    protected UserType firstSpecificType(FunctionDefinition func1, FunctionDefinition func2, FunctionDefinition func3) {
         return firstSpecificType(func1, func2, func3, UserType.UNKNOWN);
     }
 
     // Returns the first specific function result type in the sequence of functions, starting from the left. When
     // reaching the end of the list of functions, sequence is continued with the list of stream data types.
-    protected UserType firstSpecificType(UserFunction func1, UserFunction func2, UserFunction func3, StreamDataType... streamDataTypes) {
+    protected UserType firstSpecificType(FunctionDefinition func1, FunctionDefinition func2, FunctionDefinition func3, StreamDataType... streamDataTypes) {
         return firstSpecificType(func1, func2, func3, toUserTypes(streamDataTypes));
     }
 
     // Returns the first specific function result type in the sequence of functions, starting from the left. When
     // reaching the end of the list of functions, UNKNOWN is returned.
-    protected UserType firstSpecificType(UserFunction func1, UserFunction func2) {
+    protected UserType firstSpecificType(FunctionDefinition func1, FunctionDefinition func2) {
         return firstSpecificType(func1, func2, UserType.UNKNOWN);
     }
 
     // Returns the first specific function result type in the sequence of functions, starting from the left. When
     // reaching the end of the list of functions, sequence is continued with the list of user types.
-    protected UserType firstSpecificType(UserFunction func1, UserFunction func2, UserFunction func3, UserType... userTypes) {
+    protected UserType firstSpecificType(FunctionDefinition func1, FunctionDefinition func2, FunctionDefinition func3, UserType... userTypes) {
         return firstSpecificType(func1, func2, arrayFrom(func3.resultType, userTypes));
     }
 
     // Returns the first specific function result type in the sequence of functions, starting from the left. When
     // reaching the end of the list of functions, sequence is continued with the list of stream data types.
-    protected UserType firstSpecificType(UserFunction func1, UserFunction func2, StreamDataType... streamDataTypes) {
+    protected UserType firstSpecificType(FunctionDefinition func1, FunctionDefinition func2, StreamDataType... streamDataTypes) {
         return firstSpecificType(func1, func2, toUserTypes(streamDataTypes));
     }
 
-    protected UserType firstSpecificType(UserFunction func1, UserFunction func2, UserType... userTypes) {
+    protected UserType firstSpecificType(FunctionDefinition func1, FunctionDefinition func2, UserType... userTypes) {
         return firstSpecificType(func1, arrayFrom(func2.resultType, userTypes));
     }
 
     // Returns the first specific function result type in the sequence of functions, starting from the left. When
     // reaching the end of the list of functions, sequence is continued with the list of stream data types.
-    protected UserType firstSpecificType(UserFunction function, StreamDataType... streamDataTypes) {
+    protected UserType firstSpecificType(FunctionDefinition function, StreamDataType... streamDataTypes) {
         return firstSpecificType(function, toUserTypes(streamDataTypes));
     }
 
-    protected UserType firstSpecificType(UserFunction function, UserType... userTypes) {
+    protected UserType firstSpecificType(FunctionDefinition function, UserType... userTypes) {
         return firstSpecificType(arrayFrom(function.resultType, userTypes));
     }
 
@@ -221,19 +218,24 @@ public class BaseOperation implements StreamOperation {
         }
     }
 
-    protected void checkFunction(String functionType, UserFunction function, StreamDataType appliedResultType, TypeComparator... parameters) {
-        checkFunction(functionType, function, superOf(appliedResultType), appliedResultType, parameters);
+    private FunctionDefinition applySpecificResult(FunctionDefinition function, UserType appliedResultType) {
+        // If the given result type is more specific than the current result type, then adopt the specific result type
+        return function.resultType.dataType().isAssignableFrom(appliedResultType) ? function.withResult(appliedResultType) : function;
     }
 
-    protected void checkFunction(String functionType, UserFunction function, TypeComparator resultType, StreamDataType appliedResultType, TypeComparator... parameters) {
-        checkFunction(functionType, function, resultType, appliedResultType.userType(), parameters);
+    protected FunctionDefinition checkFunction(String functionType, FunctionDefinition function, StreamDataType appliedResultType, TypeComparator... parameters) {
+        return checkFunction(functionType, function, superOf(appliedResultType), appliedResultType, parameters);
     }
 
-    protected void checkFunction(String functionType, UserFunction function, UserType appliedResultType, TypeComparator... parameters) {
-        checkFunction(functionType, function, superOf(appliedResultType), appliedResultType, parameters);
+    protected FunctionDefinition checkFunction(String functionType, FunctionDefinition function, TypeComparator resultType, StreamDataType appliedResultType, TypeComparator... parameters) {
+        return checkFunction(functionType, function, resultType, appliedResultType.userType(), parameters);
     }
 
-    protected void checkFunction(String functionType, UserFunction function, TypeComparator resultType, UserType appliedResultType, TypeComparator... parameters) {
+    protected FunctionDefinition checkFunction(String functionType, FunctionDefinition function, UserType appliedResultType, TypeComparator... parameters) {
+        return checkFunction(functionType, function, superOf(appliedResultType), appliedResultType, parameters);
+    }
+
+    protected FunctionDefinition checkFunction(String functionType, FunctionDefinition function, TypeComparator resultType, UserType appliedResultType, TypeComparator... parameters) {
         // Check if the function is defined
         if (function == null) {
             throw topologyError(functionType + " is not defined");
@@ -242,11 +244,12 @@ public class BaseOperation implements StreamOperation {
         // Check if the resultType of the function is as expected
         checkType(functionType + " resultType", (function.resultType != null ? function.resultType.dataType() : DataNull.DATATYPE), resultType);
         // Update the applied result type of the function
-        function.appliedResultType = appliedResultType;
+        function = applySpecificResult(function, appliedResultType);
 
         // Check if the number of parameters is as expected
-        if (function.fixedParameterCount > parameters.length) {
-            throw topologyError(functionType + " is expected to take at least " + function.fixedParameterCount + " parameters");
+        int fixedParamCount = Arrays.stream(function.parameters).map(p -> p.isOptional() ? 0 : 1).reduce(Integer::sum).orElse(0);
+        if (fixedParamCount > parameters.length) {
+            throw topologyError(functionType + " is expected to take at least " + fixedParamCount + " parameters");
         }
         if (function.parameters.length < parameters.length) {
             throw topologyError(functionType + " is expected to take at most " + function.parameters.length + " parameters");
@@ -256,6 +259,8 @@ public class BaseOperation implements StreamOperation {
         for (int index = 0; index < parameters.length; index++) {
             checkType(functionType + " parameter " + (index + 1) + " (\"" + function.parameters[index].name() + "\")", function.parameters[index].type(), parameters[index]);
         }
+
+        return function;
     }
 
     protected void checkTuple(String faultDescription, UserType type, DataType... elements) {
@@ -274,14 +279,6 @@ public class BaseOperation implements StreamOperation {
                 throw new KSMLTopologyException(ERROR_IN_TOPOLOGY + ": " + faultDescription + " tuple element " + index + " is expected to be (subclass) of type " + elements[index]);
             }
         }
-    }
-
-    protected StreamDataType streamDataTypeOf(String notationName, DataType dataType, boolean isKey) {
-        return streamDataTypeOf(new UserType(notationName, dataType), isKey);
-    }
-
-    protected StreamDataType streamDataTypeOf(UserType userType, boolean isKey) {
-        return new StreamDataType(notationLibrary, userType, isKey);
     }
 
     protected String[] combineStoreNames(String[]... storeNameArrays) {

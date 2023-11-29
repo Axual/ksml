@@ -20,9 +20,10 @@ package io.axual.ksml;
  * =========================LICENSE_END==================================
  */
 
-
-import io.axual.ksml.generator.TopologyBuilder;
+import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.notation.binary.JsonNodeNativeMapper;
+import io.axual.ksml.notation.json.JsonStringMapper;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TopologyDescription;
 import org.graalvm.home.Version;
@@ -35,9 +36,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.net.URI;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -55,16 +54,12 @@ public class TopologyGeneratorBasicTest {
     @ParameterizedTest
     @ValueSource(ints = {1, 2, 3, 4, 5})
     void parseAndCheckOuput(int nr) throws Exception {
-        final URI uri = ClassLoader.getSystemResource("pipelines/" + nr + "-demo.yaml").toURI();
-        final Path path = Paths.get(uri);
-        String pipeDefinition = Files.readString(path);
-        TopologyBuilder topologyGenerator = new TopologyBuilder(KSMLConfig.builder()
-                .sourceType("content")
-                .source(pipeDefinition)
-                .notationLibrary(new NotationLibrary(new HashMap<>()))
-                .build());
-
-        final var topology = topologyGenerator.create("some.app.id", new StreamsBuilder());
+        final var uri = ClassLoader.getSystemResource("pipelines/" + nr + "-demo.yaml").toURI();
+        final var path = Paths.get(uri);
+        final var definition = new JsonStringMapper().fromString(Files.readString(path));
+        final var definitions = ImmutableMap.of("definition", new JsonNodeNativeMapper().fromNative(definition));
+        var topologyGenerator = new TopologyGenerator("some.app.id", new NotationLibrary());
+        final var topology = topologyGenerator.create(new StreamsBuilder(), definitions);
         final TopologyDescription description = topology.describe();
         System.out.println(description);
 

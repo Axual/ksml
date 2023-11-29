@@ -22,6 +22,7 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.exception.KSMLParseException;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.SuppressOperation;
 import io.axual.ksml.parser.YamlNode;
 import org.apache.kafka.streams.kstream.Suppressed;
@@ -29,10 +30,8 @@ import org.apache.kafka.streams.kstream.Suppressed;
 import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class SuppressOperationParser extends OperationParser<SuppressOperation> {
-    private final String name;
-
-    protected SuppressOperationParser(String name) {
-        this.name = name;
+    public SuppressOperationParser(String name, TopologyResources resources) {
+        super(name, resources);
     }
 
     @Override
@@ -55,12 +54,12 @@ public class SuppressOperationParser extends OperationParser<SuppressOperation> 
     private SuppressOperation parseSuppressUntilTimeLimit(YamlNode node) {
         var duration = parseDuration(node, SUPPRESS_DURATION_ATTRIBUTE);
         var bufferConfig = parseBufferConfig(node);
-        return SuppressOperation.create(parseConfig(node, name), Suppressed.untilTimeLimit(duration, bufferConfig));
+        return SuppressOperation.create(operationConfig(node), Suppressed.untilTimeLimit(duration, bufferConfig));
     }
 
     private SuppressOperation parseSuppressUntilWindowClose(YamlNode node) {
         var bufferConfig = parseStrictBufferConfig(node);
-        return SuppressOperation.createWindowed(parseConfig(node, name), Suppressed.untilWindowCloses(bufferConfig));
+        return SuppressOperation.createWindowed(operationConfig(node), Suppressed.untilWindowCloses(bufferConfig));
     }
 
     private Suppressed.EagerBufferConfig parseBufferConfig(YamlNode node) {

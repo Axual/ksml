@@ -32,6 +32,7 @@ public class KSMLDSL {
     public static final String AGGREGATE_SUBTRACTOR_ATTRIBUTE = "subtractor";
     public static final String BRANCH_PREDICATE_ATTRIBUTE = "if";
     public static final String CONVERT_INTO_ATTRIBUTE = "into";
+    public static final String FUNCTION_NAME_ATTRIBUTE = "name";
     public static final String FUNCTION_PARAMETERS_ATTRIBUTE = "parameters";
     public static final String FUNCTION_CODE_ATTRIBUTE = "code";
     public static final String FUNCTION_GLOBALCODE_ATTRIBUTE = "globalCode";
@@ -140,6 +141,7 @@ public class KSMLDSL {
     public static final String FUNCTION_TYPE = "type";
     public static final String FUNCTION_TYPE_AGGREGATOR = "aggregator";
     public static final String FUNCTION_TYPE_FOREACHACTION = "forEach";
+    public static final String FUNCTION_TYPE_GENERATOR = "generator";
     public static final String FUNCTION_TYPE_GENERIC = "generic";
     public static final String FUNCTION_TYPE_INITIALIZER = "initializer";
     public static final String FUNCTION_TYPE_KEYTRANSFORMER = "keyTransformer";
@@ -181,4 +183,9 @@ public class KSMLDSL {
     public static final String FUNCTIONS_DEFINITION = "functions";
     public static final String STORES_DEFINITION = "stores";
     public static final String PIPELINES_DEFINITION = "pipelines";
+    public static final String PRODUCERS_DEFINITION = "producers";
+    public static final String PRODUCER_GENERATOR_ATTRIBUTE = "generator";
+    public static final String PRODUCER_INTERVAL_ATTRIBUTE = "interval";
+    public static final String PRODUCER_CONDITION_ATTRIBUTE = "condition";
+    public static final String PRODUCER_TARGET_ATTRIBUTE = "to";
 }

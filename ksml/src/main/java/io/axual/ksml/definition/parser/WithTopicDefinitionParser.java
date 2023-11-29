@@ -21,32 +21,31 @@ package io.axual.ksml.definition.parser;
  */
 
 
-import io.axual.ksml.definition.TypedRef;
+import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.exception.KSMLParseException;
-import io.axual.ksml.parser.BaseParser;
-import io.axual.ksml.parser.ReferenceOrInlineDefinitionParser;
+import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.parser.ContextAwareParser;
+import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.*;
 
-public class WithTopicDefinitionParser extends BaseParser<TypedRef> {
+public class WithTopicDefinitionParser extends ContextAwareParser<TopicDefinition> {
+    public WithTopicDefinitionParser(TopologyResources resources) {
+        super(resources);
+    }
+
     @Override
-    public TypedRef parse(YamlNode node) {
+    public TopicDefinition parse(YamlNode node) {
         if (node == null) return null;
-        if (parseString(node, WITH_STREAM_DEFINITION) != null) {
-            return new TypedRef(
-                    TypedRef.TopicType.STREAM,
-                    new ReferenceOrInlineDefinitionParser<>("stream", WITH_STREAM_DEFINITION, new StreamDefinitionParser()).parse(node));
+        if (node.get(WITH_STREAM_DEFINITION) != null) {
+            return new TopologyResourceParser<>("stream", WITH_STREAM_DEFINITION, resources::topic, new StreamDefinitionParser()).parseDefinition(node);
         }
         if (parseString(node, WITH_TABLE_DEFINITION) != null) {
-            return new TypedRef(
-                    TypedRef.TopicType.TABLE,
-                    new ReferenceOrInlineDefinitionParser<>("table", WITH_TABLE_DEFINITION, new TableDefinitionParser()).parse(node));
+            return new TopologyResourceParser<>("table", WITH_TABLE_DEFINITION, resources::topic, new TableDefinitionParser()).parseDefinition(node);
         }
         if (parseString(node, WITH_GLOBALTABLE_DEFINITION) != null) {
-            return new TypedRef(
-                    TypedRef.TopicType.GLOBALTABLE,
-                    new ReferenceOrInlineDefinitionParser<>("globalTable", WITH_GLOBALTABLE_DEFINITION, new GlobalTableDefinitionParser()).parse(node));
+            return new TopologyResourceParser<>("globalTable", WITH_GLOBALTABLE_DEFINITION, resources::topic, new GlobalTableDefinitionParser()).parseDefinition(node);
         }
         throw new KSMLParseException(node, "Stream definition missing");
     }

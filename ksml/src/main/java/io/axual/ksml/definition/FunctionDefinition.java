@@ -33,6 +33,7 @@ public class FunctionDefinition {
     private static final String DEFINITION_LITERAL = "Definition";
     private static final String[] EMPTY_STRING_ARRAY = new String[]{};
     private static final List<String> EMPTY_STRING_LIST = new ArrayList<>();
+    public final String name;
     public final ParameterDefinition[] parameters;
     public final UserType resultType;
     public final String expression;
@@ -40,29 +41,29 @@ public class FunctionDefinition {
     public final String[] globalCode;
     public final List<String> storeNames;
 
-    public static FunctionDefinition as(ParameterDefinition[] parameters, UserType result, String expression, String[] code, String[] globalCode, List<String> storeNames) {
-        return new FunctionDefinition(parameters, result, expression, code, globalCode, storeNames);
+    public static FunctionDefinition as(String name, ParameterDefinition[] parameters, UserType resultType, String expression, String[] code, String[] globalCode, List<String> storeNames) {
+        return new FunctionDefinition(name, parameters, resultType, expression, code, globalCode, storeNames);
     }
 
     public FunctionDefinition withCode(String expression, String[] code, String[] globalCode, List<String> storeNames) {
-        return new FunctionDefinition(parameters, resultType, expression, code, globalCode, storeNames);
+        return new FunctionDefinition(name, parameters, resultType, expression, code, globalCode, storeNames);
     }
 
     public FunctionDefinition withParameters(ParameterDefinition[] parameters) {
-        return new FunctionDefinition(parameters, resultType, expression, code, globalCode, storeNames);
+        return new FunctionDefinition(name, parameters, resultType, expression, code, globalCode, storeNames);
     }
 
     public FunctionDefinition withoutResult() {
         return withResult(null);
     }
 
-    public FunctionDefinition withResult(UserType resultType) {
-        return new FunctionDefinition(parameters, resultType, resultType != null ? expression : null, code, globalCode, storeNames);
+    public FunctionDefinition withResult(UserType type) {
+        return new FunctionDefinition(name, parameters, type, type != null ? expression : null, code, globalCode, storeNames);
     }
 
     public FunctionDefinition withDefaultExpression(String expression) {
         if (this.expression == null) {
-            return new FunctionDefinition(parameters, resultType, expression, code, globalCode, storeNames);
+            return new FunctionDefinition(name, parameters, resultType, expression, code, globalCode, storeNames);
         }
         return this;
     }
@@ -84,10 +85,11 @@ public class FunctionDefinition {
     }
 
     public FunctionDefinition withStoreNames(List<String> storeNames) {
-        return new FunctionDefinition(parameters, resultType, expression, code, globalCode, storeNames);
+        return new FunctionDefinition(name, parameters, resultType, expression, code, globalCode, storeNames);
     }
 
-    private FunctionDefinition(ParameterDefinition[] parameters, UserType resultType, String expression, String[] code, String[] globalCode, List<String> storeNames) {
+    private FunctionDefinition(String name, ParameterDefinition[] parameters, UserType resultType, String expression, String[] code, String[] globalCode, List<String> storeNames) {
+        this.name = name;
         this.parameters = parameters;
         this.resultType = resultType;
         this.expression = expression;
@@ -97,6 +99,7 @@ public class FunctionDefinition {
     }
 
     protected FunctionDefinition(FunctionDefinition definition) {
+        this.name = definition.name;
         this.parameters = definition.parameters;
         this.resultType = definition.resultType;
         this.expression = definition.expression;

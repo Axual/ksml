@@ -1,36 +1,10 @@
-package io.axual.ksml.datagenerator;
-
-/*-
- * ========================LICENSE_START=================================
- * KSML Data Generator
- * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =========================LICENSE_END==================================
- */
+package io.axual.ksml.runner.backend;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.axual.ksml.data.mapper.DataObjectConverter;
-import io.axual.ksml.datagenerator.config.DataGeneratorConfig;
-import io.axual.ksml.datagenerator.execution.ExecutableProducer;
-import io.axual.ksml.datagenerator.execution.IntervalSchedule;
-import io.axual.ksml.datagenerator.factory.KafkaClientFactory;
-import io.axual.ksml.datagenerator.parser.ProducerDefinitionFileParser;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonFunction;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.utils.Utils;
@@ -44,26 +18,12 @@ import java.util.Map;
 
 import static org.apache.kafka.clients.producer.ProducerConfig.*;
 
-@Slf4j
-public class KSMLDataGenerator {
-    private static final Logger LOG = LoggerFactory.getLogger(KSMLDataGenerator.class);
+public class ProducerRunner implements Runner {
+    private static final Logger log = LoggerFactory.getLogger(ProducerRunner.class);
     private static final String DEFAULT_CONFIG_FILE_SHORT = "ksml-data-generator.yaml";
     private static final IntervalSchedule<ExecutableProducer> schedule = new IntervalSchedule<>();
 
-    private static Map<String, String> getGenericConfigs() {
-        Map<String, String> configs = new HashMap<>();
-        configs.put(ACKS_CONFIG, "1");
-        configs.put(RETRIES_CONFIG, "0");
-        configs.put(RETRY_BACKOFF_MS_CONFIG, "1000");
-        configs.put(RECONNECT_BACKOFF_MAX_MS_CONFIG, "1000");
-        configs.put(MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, "10");
-        configs.put(KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getCanonicalName());
-        configs.put(VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getCanonicalName());
-        configs.put("specific.avro.reader", "true");
-        return configs;
-    }
-
-    public static void main(String[] args) {
+    public ProducerRunner() {
         var configFileName = DEFAULT_CONFIG_FILE_SHORT;
 
         if (args.length > 0) {
@@ -86,7 +46,22 @@ public class KSMLDataGenerator {
             System.exit(2);
             return;
         }
+    }
 
+    private static Map<String, String> getGenericConfigs() {
+        Map<String, String> configs = new HashMap<>();
+        configs.put(ACKS_CONFIG, "1");
+        configs.put(RETRIES_CONFIG, "0");
+        configs.put(RETRY_BACKOFF_MS_CONFIG, "1000");
+        configs.put(RECONNECT_BACKOFF_MAX_MS_CONFIG, "1000");
+        configs.put(MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, "10");
+        configs.put(KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getCanonicalName());
+        configs.put(VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getCanonicalName());
+        configs.put("specific.avro.reader", "true");
+        return configs;
+    }
+
+    public void run() {
         log.info("Initializing Kafka backend");
         final var configs = new HashMap<>(getGenericConfigs());
         configs.putAll(config.getKafka());
@@ -119,7 +94,7 @@ public class KSMLDataGenerator {
             var valueSerializer = factory.wrapSerializer(valueSerde.serializer());
             var ep = new ExecutableProducer(notationLibrary, generator, condition, target.topic, target.keyType, target.valueType, keySerializer, valueSerializer);
             schedule.schedule(entry.getValue().interval().toMillis(), ep);
-            LOG.info("Scheduled producers: {}", entry.getKey());
+            log.info("Scheduled producers: {}", entry.getKey());
         }
 
         try (final Producer<byte[], byte[]> producer = factory.getProducer()) {
@@ -134,7 +109,7 @@ public class KSMLDataGenerator {
                     }
                     Utils.sleep(10);
                 } catch (Exception e) {
-                    LOG.info("Interrupted: {}", e.getMessage());
+                    log.info("Interrupted: {}", e.getMessage());
                     e.printStackTrace();
                     interrupted = true;
                 }

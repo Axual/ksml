@@ -20,32 +20,32 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.definition.ProducerDefinition;
 import io.axual.ksml.generator.TopologyResources;
-import io.axual.ksml.generator.TopologySpecification;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.MapParser;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.*;
-import static io.axual.ksml.dsl.KSMLDSL.PIPELINES_DEFINITION;
 
-public class TopologySpecificationParser extends BaseParser<TopologySpecification> {
+public class TopologyResourcesParser extends BaseParser<TopologyResources> {
     @Override
-    public TopologySpecification parse(YamlNode node) {
+    public TopologyResources parse(YamlNode node) {
+        // Set up an index for the topology resources
+        final var result = new TopologyResources();
+
         // If there is nothing to parse, return immediately
-        if (node == null) return null;
+        if (node == null) return result;
 
-        // Parse the underlying resources first
-        final var resources = new TopologyResourcesParser().parse(node);
+        // Parse all defined streams
+        new MapParser<>("stream definition", new StreamDefinitionParser()).parse(node.get(STREAMS_DEFINITION)).forEach(result::register);
+        new MapParser<>("table definition", new TableDefinitionParser()).parse(node.get(TABLES_DEFINITION)).forEach(result::register);
+        new MapParser<>("globalTable definition", new GlobalTableDefinitionParser()).parse(node.get(GLOBALTABLES_DEFINITION)).forEach(result::register);
 
-        // Set up an index for the topology specification
-        final var result = new TopologySpecification(resources);
+        // Parse all defined state stores
+        new MapParser<>("state store definition", new StateStoreDefinitionParser()).parse(node.get(STORES_DEFINITION)).forEach(result::register);
 
-        // Parse all defined pipelines
-        new MapParser<>("pipeline definition", new PipelineDefinitionParser(resources)).parse(node.get(PIPELINES_DEFINITION)).forEach(result::register);
-        // Parse all defined producers
-        new MapParser<>("producer definition", new ProducerDefinitionParser(resources)).parse(node.get(PIPELINES_DEFINITION)).forEach(result::register);
+        // Parse all defined functions
+        new MapParser<>("function definition", new TypedFunctionDefinitionParser()).parse(node.get(FUNCTIONS_DEFINITION)).forEach(result::register);
 
         return result;
     }

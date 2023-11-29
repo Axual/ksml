@@ -68,11 +68,11 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
-public class KafkaBackend implements Backend {
+public class KafkaStreamsRunner implements Runner {
     private final KafkaStreams kafkaStreams;
     private final AtomicBoolean stopRunning = new AtomicBoolean(false);
 
-    public KafkaBackend(KSMLConfig ksmlConfig, Map<String, String> kafkaConfig) {
+    public KafkaStreamsRunner(KSMLConfig ksmlConfig, Map<String, String> kafkaConfig) {
         log.info("Constructing Kafka Backend");
 
         HashMap<String, Object> streamsConfig = kafkaConfig != null ? new HashMap<>(kafkaConfig) : new HashMap<>();
@@ -107,20 +107,11 @@ public class KafkaBackend implements Backend {
         notationLibrary.register(SOAPNotation.NOTATION_NAME, new SOAPNotation(), new SOAPDataObjectConverter());
         notationLibrary.register(XmlNotation.NOTATION_NAME, new XmlNotation(), new XmlDataObjectConverter());
 
-        // set up a stream topology generator based on the provided KSML definition
-        var ksmlConf = io.axual.ksml.KSMLConfig.builder()
-                .sourceType("file")
-                .configDirectory(ksmlConfig.getConfigDirectory())
-                .schemaDirectory(ksmlConfig.getSchemaDirectory())
-                .source(ksmlConfig.getDefinitions())
-                .notationLibrary(notationLibrary)
-                .build();
-
         // Register schema loaders
-        SchemaLibrary.registerLoader(AvroNotation.NOTATION_NAME, new AvroSchemaLoader(ksmlConf.schemaDirectory()));
-        SchemaLibrary.registerLoader(CsvNotation.NOTATION_NAME, new CsvSchemaLoader(ksmlConf.schemaDirectory()));
-        SchemaLibrary.registerLoader(JsonNotation.NOTATION_NAME, new JsonSchemaLoader(ksmlConf.schemaDirectory()));
-        SchemaLibrary.registerLoader(XmlNotation.NOTATION_NAME, new XmlSchemaLoader(ksmlConf.schemaDirectory()));
+        SchemaLibrary.registerLoader(AvroNotation.NOTATION_NAME, new AvroSchemaLoader(ksmlConfig.getSchemaDirectory()));
+        SchemaLibrary.registerLoader(CsvNotation.NOTATION_NAME, new CsvSchemaLoader(ksmlConfig.getSchemaDirectory()));
+        SchemaLibrary.registerLoader(JsonNotation.NOTATION_NAME, new JsonSchemaLoader(ksmlConfig.getSchemaDirectory()));
+        SchemaLibrary.registerLoader(XmlNotation.NOTATION_NAME, new XmlSchemaLoader(ksmlConfig.getSchemaDirectory()));
 
         var applicationId = kafkaConfig != null ? kafkaConfig.get(StreamsConfig.APPLICATION_ID_CONFIG) : null;
         if (applicationId == null) {
@@ -131,14 +122,16 @@ public class KafkaBackend implements Backend {
                 serde -> new Serdes.WrapperSerde<>(
                         new ResolvingSerializer<>(serde.serializer(), streamsConfig),
                         new ResolvingDeserializer<>(serde.deserializer(), streamsConfig)));
-        final var topologyGenerator = new TopologyGenerator(applicationId, ksmlConf);
-//        final var topologyConfig = new TopologyConfig(applicationId, new StreamsConfig(streamsConfig), new Properties());
         final var topologyConfig = new TopologyConfig(new StreamsConfig(streamsConfig));
         final var streamsBuilder = new StreamsBuilder(topologyConfig);
-        final var topology = topologyGenerator.create(streamsBuilder, notationLibrary, ksmlConfig.getDefinitions());
-
-        kafkaStreams = new KafkaStreams(topology, mapToProperties(streamsConfig));
-        kafkaStreams.setUncaughtExceptionHandler(ExecutionContext.INSTANCE::uncaughtException);
+        final var topologyGenerator = new TopologyGenerator(applicationId, notationLibrary);
+        final var topology = topologyGenerator.create(streamsBuilder, ksmlConfig.getDefinitions());
+        if (topology != null) {
+            kafkaStreams = new KafkaStreams(topology, mapToProperties(streamsConfig));
+            kafkaStreams.setUncaughtExceptionHandler(ExecutionContext.INSTANCE::uncaughtException);
+        } else {
+            kafkaStreams = null;
+        }
     }
 
     private ErrorHandler getErrorHandler(KSMLErrorHandlingConfig.ErrorHandlingConfig config, String loggerName) {
@@ -162,10 +155,15 @@ public class KafkaBackend implements Backend {
 
     @Override
     public State getState() {
-        return convertStreamsState(kafkaStreams.state());
+        return switch (kafkaStreams.state()) {
+            case CREATED, REBALANCING -> State.STARTING;
+            case RUNNING -> State.STARTED;
+            case PENDING_SHUTDOWN -> State.STOPPING;
+            case NOT_RUNNING -> State.STOPPED;
+            case PENDING_ERROR, ERROR -> State.FAILED;
+        };
     }
 
-    @Override
     public StreamsQuerier getQuerier() {
         return new StreamsQuerier() {
             @Override
@@ -192,7 +190,7 @@ public class KafkaBackend implements Backend {
 
     @Override
     public void run() {
-        log.info("Starting Kafka Backend");
+        log.info("Starting Kafka Streams backend");
         kafkaStreams.start();
         Utils.sleep(1000);
         while (!stopRunning.get()) {

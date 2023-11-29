@@ -24,23 +24,22 @@ package io.axual.ksml.operation.parser;
 import io.axual.ksml.definition.parser.AggregatorDefinitionParser;
 import io.axual.ksml.definition.parser.InitializerDefinitionParser;
 import io.axual.ksml.definition.parser.MergerDefinitionParser;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.AggregateOperation;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class AggregateOperationParser extends StoreOperationParser<AggregateOperation> {
-    private final String name;
-
-    protected AggregateOperationParser(String name) {
-        this.name = name;
+    public AggregateOperationParser(String name, TopologyResources resources) {
+        super(name, resources);
     }
 
     @Override
     public AggregateOperation parse(YamlNode node) {
         if (node == null) return null;
         return new AggregateOperation(
-                storeOperationConfig(name, node, STORE_ATTRIBUTE),
+                storeOperationConfig(node, STORE_ATTRIBUTE),
                 parseOptionalFunction(node, AGGREGATE_INITIALIZER_ATTRIBUTE, new InitializerDefinitionParser()),
                 parseOptionalFunction(node, AGGREGATE_AGGREGATOR_ATTRIBUTE, new AggregatorDefinitionParser()),
                 parseOptionalFunction(node, AGGREGATE_MERGER_ATTRIBUTE, new MergerDefinitionParser()),

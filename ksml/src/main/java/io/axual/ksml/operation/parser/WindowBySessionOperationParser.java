@@ -21,6 +21,7 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.WindowBySessionOperation;
 import io.axual.ksml.parser.YamlNode;
 import org.apache.kafka.streams.kstream.SessionWindows;
@@ -29,10 +30,8 @@ import static io.axual.ksml.dsl.KSMLDSL.WINDOWEDBY_WINDOWTYPE_SESSION_GRACE;
 import static io.axual.ksml.dsl.KSMLDSL.WINDOWEDBY_WINDOWTYPE_SESSION_INACTIVITYGAP;
 
 public class WindowBySessionOperationParser extends OperationParser<WindowBySessionOperation> {
-    private final String name;
-
-    protected WindowBySessionOperationParser(String name) {
-        this.name = name;
+    public WindowBySessionOperationParser(String name, TopologyResources resources) {
+        super(name, resources);
     }
 
     @Override
@@ -43,6 +42,6 @@ public class WindowBySessionOperationParser extends OperationParser<WindowBySess
         final var sessionWindows = (grace != null && grace.toMillis() > 0)
                 ? SessionWindows.ofInactivityGapAndGrace(duration, grace)
                 : SessionWindows.ofInactivityGapWithNoGrace(duration);
-        return new WindowBySessionOperation(parseConfig(node, name), sessionWindows);
+        return new WindowBySessionOperation(operationConfig(node), sessionWindows);
     }
 }
