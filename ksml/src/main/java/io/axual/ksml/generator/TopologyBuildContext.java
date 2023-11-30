@@ -197,7 +197,7 @@ public class TopologyBuildContext {
                 return new KTableWrapper(builder.table(tableDefinition.topic(), mat), streamKey, streamValue);
             }
 
-            // Set up dummy materialization for tables, mapping to the topic itself
+            // Set up dummy materialization for tables, mapping to the topic itself so we don't require an extra state store topic
             final var store = new KeyValueStateStoreDefinition(tableDefinition.topic, false, false, false, Duration.ofSeconds(900), Duration.ofSeconds(60), streamKey.userType(), streamValue.userType(), false, false);
             final var mat = StoreUtil.materialize(store, notationLibrary);
             final var consumed = Consumed.as(name).withKeySerde(streamKey.getSerde()).withValueSerde(streamValue.getSerde());
