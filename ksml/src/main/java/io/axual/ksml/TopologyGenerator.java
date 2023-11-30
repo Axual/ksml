@@ -158,6 +158,13 @@ public class TopologyGenerator {
             context.createUserFunction(func);
         });
 
+        // If there are any uncreated state stores needed, create them first
+        specification.stateStores().forEach((name, store) -> {
+            if (!context.createdStateStores().contains(name)) {
+                context.createUserStateStore(store);
+            }
+        });
+
         // For each pipeline, generate the topology
         specification.pipelines().forEach((name, pipeline) -> {
             // Use a cursor to keep track of where we are in the topology
@@ -174,13 +181,6 @@ public class TopologyGenerator {
             if (pipeline.sink() != null) {
                 LOG.info("    ==> {}", pipeline.sink());
                 cursor.apply(pipeline.sink(), context);
-            }
-        });
-
-        // If there are any uncreated state stores needed, create them first
-        specification.stateStores().forEach((name, store) -> {
-            if (!context.createdStateStores().contains(name)) {
-                context.createUserStateStore(store);
             }
         });
     }
