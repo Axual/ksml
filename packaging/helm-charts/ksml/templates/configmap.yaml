@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "ksml.fullname" . }}-ksml-config
+  name: {{ include "ksml.fullname" . }}-config
   labels:
     {{- include "ksml.labels" . | nindent 4 }}
 data:
