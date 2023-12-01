@@ -1,0 +1,20 @@
+apiVersion: v2
+name: ksml
+description: "KSML: Kafka Streams for Low Code Environments"
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+icon: https://avatars.githubusercontent.com/u/26816390?s=48&v=4
+keywords:
+  - kafka
+  - streams
+  - axual
+  - messaging
+  - event
+home: https://ksml.io
+sources:
+  - https://github.com/Axual/ksml
+maintainers:
+  - name: jeroenvandisseldorp
+  - name: richard-axual
+  - name: xsreality
