@@ -52,8 +52,8 @@ pipelines:
       - type: transformValue
         mapper: remove_color
     to: sensor_target
-
-  validate:
-    from: sensor_target
-    forEach:
-      code: log.info("OUTPUT - key={}, value={}", key, value)
+#
+#  validate:
+#    from: sensor_target
+#    forEach:
+#      code: log.info("OUTPUT - key={}, value={}", key, value)

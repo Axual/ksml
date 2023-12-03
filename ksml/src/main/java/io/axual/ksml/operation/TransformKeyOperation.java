@@ -47,7 +47,7 @@ public class TransformKeyOperation extends BaseOperation {
         final var kr = context.streamDataTypeOf(firstSpecificType(mapper, k), true);
         final var map = checkFunction(MAPPER_NAME, mapper, kr, superOf(k), superOf(v));
         final var userMap = new UserKeyTransformer(context.createUserFunction(map));
-        final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames.toArray(TEMPLATE));
+        final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames().toArray(TEMPLATE));
         final var supplier = new OperationProcessorSupplier<>(
                 name,
                 TransformKeyProcessor::new,

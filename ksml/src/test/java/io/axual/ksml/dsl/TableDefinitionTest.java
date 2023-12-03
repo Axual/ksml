@@ -67,8 +67,8 @@ class TableDefinitionTest {
         var streamWrapper = context.getStreamWrapper(tableDefinition);
 
         // it adds a KTable to the StreamsBuilder with key and value dataType, and returns a KTableWrapper instance
-        verify(mockNotation).getSerde(stringType.dataType(), true);
-        verify(mockNotation).getSerde(stringType.dataType(), false);
+        verify(mockNotation).serde(stringType.dataType(), true);
+        verify(mockNotation).serde(stringType.dataType(), false);
 
         verify(builder).table(eq("topic"), isA(Materialized.class));
         assertThat(streamWrapper, instanceOf(KTableWrapper.class));

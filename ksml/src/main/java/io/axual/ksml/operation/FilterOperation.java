@@ -54,7 +54,7 @@ public class FilterOperation extends BaseOperation {
         final var v = input.valueType();
         final var pred = checkFunction(PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k), superOf(v));
         final var userPred = new UserPredicate(context.createUserFunction(pred));
-        final var storeNames = combineStoreNames(this.storeNames, predicate.storeNames.toArray(TEMPLATE));
+        final var storeNames = combineStoreNames(this.storeNames, predicate.storeNames().toArray(TEMPLATE));
         final var supplier = new FixedKeyOperationProcessorSupplier<>(
                 name,
                 FilterProcessor::new,

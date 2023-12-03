@@ -72,7 +72,7 @@ public record StreamDataType(NotationLibrary notationLibrary, UserType userType,
     public Serde<Object> getSerde() {
         if (userType.dataType() instanceof UnionType unionType)
             return new UnionSerde(notationLibrary, cookUnion(unionType), isKey);
-        var serde = notationLibrary.get(userType.notation()).getSerde(userType.dataType(), isKey);
+        var serde = notationLibrary.get(userType.notation()).serde(userType.dataType(), isKey);
         return ExecutionContext.INSTANCE.wrapSerde(serde);
     }
 }

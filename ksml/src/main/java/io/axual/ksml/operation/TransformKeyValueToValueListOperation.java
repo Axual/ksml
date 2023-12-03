@@ -52,7 +52,7 @@ public class TransformKeyValueToValueListOperation extends BaseOperation {
         final var map = checkFunction(MAPPER_NAME, mapper, subOf(mapperResultType), vr, superOf(k), superOf(v));
 
         final var userMap = new UserKeyValueToValueListTransformer(context.createUserFunction(map));
-        final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames.toArray(TEMPLATE));
+        final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames().toArray(TEMPLATE));
         final var supplier = new FixedKeyOperationProcessorSupplier<>(
                 name,
                 TransformKeyValueToValueListProcessor::new,

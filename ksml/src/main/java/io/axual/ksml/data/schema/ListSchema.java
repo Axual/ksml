@@ -20,18 +20,17 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
+@Getter
+@EqualsAndHashCode
 public class ListSchema extends DataSchema {
     private final DataSchema valueSchema;
 
     public ListSchema(DataSchema valueSchema) {
         super(Type.LIST);
         this.valueSchema = valueSchema;
-    }
-
-    public DataSchema valueSchema() {
-        return valueSchema;
     }
 
     @Override
@@ -43,20 +42,5 @@ public class ListSchema extends DataSchema {
         // This schema is assignable from the other schema when the value schema is assignable from
         // the otherSchema's value schema.
         return valueSchema.isAssignableFrom(otherListSchema.valueSchema);
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (!super.equals(other)) return false;
-        if (this == other) return true;
-        if (other.getClass() != getClass()) return false;
-
-        // Compare all schema relevant fields
-        return (Objects.equals(valueSchema, ((ListSchema) other).valueSchema));
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), valueSchema);
     }
 }

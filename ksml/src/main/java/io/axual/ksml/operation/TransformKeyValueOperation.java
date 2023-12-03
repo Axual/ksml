@@ -56,7 +56,7 @@ public class TransformKeyValueOperation extends BaseOperation {
             final var kr = context.streamDataTypeOf(userTupleType.getUserType(0), true);
             final var vr = context.streamDataTypeOf(userTupleType.getUserType(1), false);
             final var userMap = new UserKeyValueTransformer(context.createUserFunction(map));
-            final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames.toArray(TEMPLATE));
+            final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames().toArray(TEMPLATE));
             final var supplier = new OperationProcessorSupplier<>(
                     name,
                     TransformKeyValueProcessor::new,

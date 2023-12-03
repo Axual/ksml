@@ -20,8 +20,9 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode
 public class AnySchema extends DataSchema {
     public static final AnySchema INSTANCE = new AnySchema();
 
@@ -33,17 +34,5 @@ public class AnySchema extends DataSchema {
     public boolean isAssignableFrom(DataSchema otherSchema) {
         // This schema is assumed to be assignable from any other schema (except null).
         return otherSchema != null;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (!super.equals(other)) return false;
-        if (this == other) return true;
-        return other.getClass() == getClass();
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode());
     }
 }

@@ -58,10 +58,10 @@ public class CsvNotation extends StringNotation {
     }
 
     @Override
-    public Serde<Object> getSerde(DataType type, boolean isKey) {
+    public Serde<Object> serde(DataType type, boolean isKey) {
         // CSV types should ways be Lists, Structs or the union of them both
         if (type instanceof ListType || type instanceof StructType || DEFAULT_TYPE.equals(type))
-            return super.getSerde(type, isKey);
+            return super.serde(type, isKey);
         // Other types can not be serialized as XML
         throw noSerdeFor(type);
     }

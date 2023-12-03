@@ -30,7 +30,7 @@ public class KeyValueToKeyValueListTransformerDefinitionParser extends FunctionD
     public KeyValueToKeyValueListTransformerDefinition parse(YamlNode node) {
         if (node == null) return null;
         var transformer = super.parse(node);
-        if (transformer.resultType != null) {
+        if (transformer.resultType() != null) {
             return new KeyValueToKeyValueListTransformerDefinition(transformer);
         }
         throw new KSMLParseException(node, "Result dataType not correctly specified");

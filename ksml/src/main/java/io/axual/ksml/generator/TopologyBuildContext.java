@@ -55,9 +55,7 @@ import org.apache.kafka.streams.state.WindowStore;
 
 import java.time.Duration;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class TopologyBuildContext {
     private final StreamsBuilder builder;
@@ -65,10 +63,6 @@ public class TopologyBuildContext {
     private final PythonContext pythonContext;
     private final NotationLibrary notationLibrary;
     private final String namePrefix;
-
-    // The names of all state stores that were created, either through explicit creation or through the use of a
-    // Materialized parameter in any of the Kafka Streams operations.
-    private final Set<String> createdStateStores = new HashSet<>();
 
     // All wrapped KStreams, KTables and KGlobalTables
     private final Map<String, StreamWrapper> streamWrappers = new HashMap<>();
@@ -104,20 +98,22 @@ public class TopologyBuildContext {
 
     public <V> Materialized<Object, V, KeyValueStore<Bytes, byte[]>> materialize(KeyValueStateStoreDefinition store) {
         resources.register(store.name(), store);
-        createdStateStores.add(store.name());
-        return StoreUtil.materialize(store, notationLibrary);
+        return StoreUtil.<V>materialize(store, notationLibrary, getTopicName(store)).materialized();
     }
 
     public <V> Materialized<Object, V, SessionStore<Bytes, byte[]>> materialize(SessionStateStoreDefinition store) {
         resources.register(store.name(), store);
-        createdStateStores.add(store.name());
-        return StoreUtil.materialize(store, notationLibrary);
+        return StoreUtil.<V>materialize(store, notationLibrary, getTopicName(store)).materialized();
     }
 
     public <V> Materialized<Object, V, WindowStore<Bytes, byte[]>> materialize(WindowStateStoreDefinition store) {
         resources.register(store.name(), store);
-        createdStateStores.add(store.name());
-        return StoreUtil.materialize(store, notationLibrary);
+        return StoreUtil.<V>materialize(store, notationLibrary, getTopicName(store)).materialized();
+    }
+
+    private static String getTopicName(StateStoreDefinition store) {
+        if (store.logging()) return store.name();
+        return null;
     }
 
     public void createUserStateStore(StateStoreDefinition store) {
@@ -135,12 +131,6 @@ public class TopologyBuildContext {
             final var storeBuilder = StoreUtil.getStoreBuilder(storeDef, notationLibrary);
             builder.addStateStore(storeBuilder);
         }
-
-        createdStateStores.add(store.name());
-    }
-
-    public Set<String> createdStateStores() {
-        return createdStateStores;
     }
 
     public BaseStreamWrapper getStreamWrapper(TopicDefinition topic) {
@@ -193,15 +183,15 @@ public class TopologyBuildContext {
             final var streamValue = new StreamDataType(notationLibrary, tableDefinition.valueType(), false);
 
             if (tableDefinition.store() != null) {
-                final var mat = StoreUtil.materialize(tableDefinition.store(), notationLibrary);
-                return new KTableWrapper(builder.table(tableDefinition.topic(), mat), streamKey, streamValue);
+                final var mat = StoreUtil.materialize(tableDefinition.store(), notationLibrary, tableDefinition.topic);
+                return new KTableWrapper(builder.table(tableDefinition.topic(), mat.materialized()), streamKey, streamValue);
             }
 
             // Set up dummy materialization for tables, mapping to the topic itself so we don't require an extra state store topic
             final var store = new KeyValueStateStoreDefinition(tableDefinition.topic, false, false, false, Duration.ofSeconds(900), Duration.ofSeconds(60), streamKey.userType(), streamValue.userType(), false, false);
-            final var mat = StoreUtil.materialize(store, notationLibrary);
-            final var consumed = Consumed.as(name).withKeySerde(streamKey.getSerde()).withValueSerde(streamValue.getSerde());
-            return new KTableWrapper(builder.table(tableDefinition.topic(), consumed, mat), streamKey, streamValue);
+            final var mat = StoreUtil.materialize(store, notationLibrary, tableDefinition.topic);
+            final var consumed = Consumed.as(name).withKeySerde(mat.keySerde()).withValueSerde(mat.valueSerde());
+            return new KTableWrapper(builder.table(tableDefinition.topic(), consumed, mat.materialized()), streamKey, streamValue);
         }
 
         if (def instanceof GlobalTableDefinition globalTableDefinition) {
@@ -215,35 +205,6 @@ public class TopologyBuildContext {
     }
 
     public UserFunction createUserFunction(FunctionDefinition definition) {
-        return PythonFunction.fromNamed(pythonContext, definition.name, definition);
+        return PythonFunction.fromNamed(pythonContext, definition.name(), definition);
     }
-
-    //
-//
-//    @Override
-//    public String getNamePrefix() {
-//        return namePrefix;
-//    }
-//
-//
-//    @Override
-//    public Map<String, AtomicInteger> getTypeInstanceCounters() {
-//        return typeInstanceCounters;
-//    }
-//
-//    @Override
-//    public NotationLibrary getNotationLibrary() {
-//        return notationLibrary;
-//    }
-//
-//    public Topology build() {
-//        // Create all state stores that were defined, but not yet implicitly created (eg. through using Materialized)
-//        for (Map.Entry<String, StateStoreDefinition> entry : stateStoreDefinitions.entrySet()) {
-//            if (!createdStateStores.contains(entry.getKey())) {
-//                createUserStateStore(entry.getValue());
-//                createdStateStores.add(entry.getKey());
-//            }
-//        }
-//        return builder.build();
-//    }
 }

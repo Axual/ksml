@@ -48,7 +48,7 @@ public class CountOperation extends StoreOperation {
 
         final var k = input.keyType();
         final var vr = context.streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
-        final var kvStore = validateKeyValueStore(store, k, vr);
+        final var kvStore = validateKeyValueStore(store(), k, vr);
         final var output = kvStore != null
                 ? (KTable) input.groupedStream.count(
                 Named.as(name),
@@ -68,7 +68,7 @@ public class CountOperation extends StoreOperation {
 
         final var k = input.keyType();
         final var vr = context.streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
-        final var kvStore = validateKeyValueStore(store, k, vr);
+        final var kvStore = validateKeyValueStore(store(), k, vr);
         final var output = kvStore != null
                 ? (KTable) input.groupedTable.count(
                 Named.as(name),
@@ -88,7 +88,7 @@ public class CountOperation extends StoreOperation {
 
         final var k = input.keyType();
         final var vr = context.streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
-        final var sessionStore = validateSessionStore(store, k, vr);
+        final var sessionStore = validateSessionStore(store(), k, vr);
         final var output = sessionStore != null
                 ? (KTable) input.sessionWindowedKStream.count(
                 Named.as(name),
@@ -109,7 +109,7 @@ public class CountOperation extends StoreOperation {
         final var k = input.keyType();
         final var vr = context.streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
         final var windowedK = context.windowedTypeOf(k);
-        final var windowStore = validateWindowStore(store, k, vr);
+        final var windowStore = validateWindowStore(store(), k, vr);
         final var output = windowStore != null
                 ? (KTable) input.timeWindowedKStream.count(
                 Named.as(name),

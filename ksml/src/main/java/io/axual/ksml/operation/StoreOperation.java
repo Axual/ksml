@@ -28,10 +28,11 @@ import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.WindowStateStoreDefinition;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.generator.StreamDataType;
-import io.axual.ksml.store.StoreType;
+import lombok.Getter;
 
+@Getter
 public class StoreOperation extends BaseOperation {
-    protected final StateStoreDefinition store;
+    private final StateStoreDefinition store;
 
     public StoreOperation(StoreOperationConfig config) {
         super(config);
@@ -126,9 +127,5 @@ public class StoreOperation extends BaseOperation {
         if (storeKeyOrValueType != null && !storeKeyOrValueType.dataType().isAssignableFrom(streamKeyOrValueType.dataType())) {
             throw FatalError.executionError("Incompatible " + keyOrValue + " types for state store '" + store.name() + "': " + storeKeyOrValueType + " and " + streamKeyOrValueType);
         }
-    }
-
-    private void storeTypeError(StateStoreDefinition store, StoreType expected) {
-        FatalError.executionError(toString() + " operation requires a " + expected + " state store, but got one of type " + store);
     }
 }

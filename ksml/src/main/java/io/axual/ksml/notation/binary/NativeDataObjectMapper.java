@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+// Maps DataObjects to/from native Java structures
 public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     public static final String STRUCT_SCHEMA_FIELD = DataStruct.META_ATTRIBUTE_CHAR + "schema";
     public static final String STRUCT_TYPE_FIELD = DataStruct.META_ATTRIBUTE_CHAR + "type";

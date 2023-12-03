@@ -59,8 +59,8 @@ public class PythonFunction extends UserFunction {
     }
 
     private PythonFunction(PythonContext context, String name, FunctionDefinition definition, String loggerName) {
-        super(name, definition.parameters, definition.resultType, definition.storeNames);
-        converter = context.getConverter();
+        super(name, definition.parameters(), definition.resultType(), definition.storeNames());
+        converter = context.converter();
         final var pyCode = generatePythonCode(name, loggerName, definition);
         function = context.registerFunction(pyCode, name + "_caller");
         if (function == null) {
@@ -122,18 +122,18 @@ public class PythonFunction extends UserFunction {
 
     private String generatePythonCode(String name, String loggerName, FunctionDefinition definition) {
         // Prepend two spaces of indentation before the function code
-        String[] functionCode = Arrays.stream(definition.code).map(line -> "  " + line).toArray(String[]::new);
+        String[] functionCode = Arrays.stream(definition.code()).map(line -> "  " + line).toArray(String[]::new);
 
         // Prepare a list of parameters for the function definition
-        String[] defParams = Arrays.stream(definition.parameters).map(p -> p.name() + (p.isOptional() ? "=None" : "")).toArray(String[]::new);
+        String[] defParams = Arrays.stream(definition.parameters()).map(p -> p.name() + (p.isOptional() ? "=None" : "")).toArray(String[]::new);
         // Prepare a list of parameters for the function calling
-        String[] callParams = Arrays.stream(definition.parameters).map(ParameterDefinition::name).toArray(String[]::new);
+        String[] callParams = Arrays.stream(definition.parameters()).map(ParameterDefinition::name).toArray(String[]::new);
 
         // prepare globalCode from the function definition
-        final var globalCode = String.join("\n", definition.globalCode) + "\n";
+        final var globalCode = String.join("\n", definition.globalCode()) + "\n";
 
         // Code to include all global variables
-        final var assignStores = definition.storeNames.stream()
+        final var assignStores = definition.storeNames().stream()
                 .map(storeName -> "  " + storeName + " = stores[\"" + storeName + "\"]\n")
                 .collect(Collectors.joining());
         // Code to copy / initialize all global variables
@@ -144,7 +144,7 @@ public class PythonFunction extends UserFunction {
                 "  stores = convert_to_python(globalVars[\"stores\"])\n" +
                         "  loggerBridge = globalVars[\"loggerBridge\"]\n";
         // Code to initialize optional parameters with default values
-        final var initializeOptionalParams = Arrays.stream(definition.parameters)
+        final var initializeOptionalParams = Arrays.stream(definition.parameters())
                 .filter(ParameterDefinition::isOptional)
                 .filter(p -> p.defaultValue() != null)
                 .map(p -> "  if " + p.name() + " == None:\n    " + p.name() + " = " + (p.type() == DataString.DATATYPE ? QUOTE : "") + p.defaultValue() + (p.type() == DataString.DATATYPE ? QUOTE : "") + "\n")
@@ -157,7 +157,7 @@ public class PythonFunction extends UserFunction {
                 assignStores +
                 initializeOptionalParams +
                 String.join("\n", functionCode) + "\n" +
-                "  return" + (definition.resultType != null && definition.resultType.dataType() != DataNull.DATATYPE ? " " + definition.expression : "") + "\n" +
+                "  return" + (definition.resultType() != null && definition.resultType().dataType() != DataNull.DATATYPE ? " " + definition.expression() : "") + "\n" +
                 "\n";
 
         // Prepare the actual caller for the code

@@ -21,8 +21,11 @@ package io.axual.ksml.data.type;
  */
 
 
+import lombok.Getter;
+
 import java.util.Objects;
 
+@Getter
 public class SimpleType implements DataType {
     private final Class<?> containerClass;
 

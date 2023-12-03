@@ -20,28 +20,16 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
+@Getter
+@EqualsAndHashCode
 public class FixedType extends SimpleType {
     private final int size;
 
     public FixedType(int size) {
         super(byte[].class);
         this.size = size;
-    }
-
-    public int size() {
-        return size;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (!super.equals(other)) return false;
-        return size == ((FixedType) other).size;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), size);
     }
 }

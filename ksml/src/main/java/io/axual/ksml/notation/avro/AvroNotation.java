@@ -23,6 +23,7 @@ package io.axual.ksml.notation.avro;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.notation.Notation;
 import io.axual.ksml.util.DataUtil;
@@ -51,7 +52,7 @@ public class AvroNotation implements Notation {
     }
 
     @Override
-    public Serde<Object> getSerde(DataType type, boolean isKey) {
+    public Serde<Object> serde(DataType type, boolean isKey) {
         if (type instanceof MapType) {
             var result = new AvroSerde();
             result.configure(configs, isKey);
@@ -65,10 +66,22 @@ public class AvroNotation implements Notation {
         private final Deserializer<Object> deserializer = new KafkaAvroDeserializer();
 
         private final Serializer<Object> wrapSerializer =
-                (topic, data) -> serializer.serialize(topic, mapper.fromDataObject(DataUtil.asDataObject(data)));
+                (topic, data) -> {
+                    try {
+                        return serializer.serialize(topic, mapper.fromDataObject(DataUtil.asDataObject(data)));
+                    } catch (Exception e) {
+                        throw new KSMLExecutionException("Error serializing AVRO message to topic " + topic, e);
+                    }
+                };
 
         private final Deserializer<Object> wrapDeserializer =
-                (topic, data) -> mapper.toDataObject(deserializer.deserialize(topic, data));
+                (topic, data) -> {
+                    try {
+                        return mapper.toDataObject(deserializer.deserialize(topic, data));
+                    } catch (Exception e) {
+                        throw new KSMLExecutionException("Error deserializing AVRO message from topic " + topic, e);
+                    }
+                };
 
         @Override
         public void configure(Map<String, ?> configs, boolean isKey) {

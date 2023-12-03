@@ -59,7 +59,7 @@ public class GroupByOperation extends StoreOperation {
         final var kr = context.streamDataTypeOf(firstSpecificType(selector, k.userType()), true);
         final var sel = checkFunction(SELECTOR_NAME, selector, kr, superOf(k), superOf(v));
 
-        final var kvStore = validateKeyValueStore(store, kr, v);
+        final var kvStore = validateKeyValueStore(store(), kr, v);
         final var userSel = new UserKeyTransformer(context.createUserFunction(sel));
         var grouped = Grouped.with(kr.getSerde(), v.getSerde());
         if (name != null) grouped = grouped.withName(name);
@@ -86,7 +86,7 @@ public class GroupByOperation extends StoreOperation {
         if (krAndVr.dataType() instanceof UserTupleType userTupleType && userTupleType.subTypeCount() == 2) {
             final var kr = context.streamDataTypeOf(userTupleType.getUserType(0), true);
             final var vr = context.streamDataTypeOf(userTupleType.getUserType(1), false);
-            final var kvStore = validateKeyValueStore(store, kr, vr);
+            final var kvStore = validateKeyValueStore(store(), kr, vr);
             final var userSel = new UserKeyValueTransformer(context.createUserFunction(sel));
             var grouped = Grouped.with(kr.getSerde(), vr.getSerde());
             if (name != null) grouped = grouped.withName(name);

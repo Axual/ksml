@@ -20,8 +20,13 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+
 import java.util.Objects;
 
+@Getter
+@EqualsAndHashCode
 public abstract class NamedSchema extends DataSchema {
     private final String namespace;
     private final String name;
@@ -58,22 +63,5 @@ public abstract class NamedSchema extends DataSchema {
         if (!(otherSchema instanceof NamedSchema otherNamedSchema)) return false;
         // Return true if the other named schema has the same name (ignore namespace and doc)
         return Objects.equals(name, otherNamedSchema.name);
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (this == other) return true;
-        if (other == null || getClass() != other.getClass()) return false;
-        if (!super.equals(other)) return false;
-
-        // Compare all schema relevant fields
-        if (!Objects.equals(namespace, ((NamedSchema) other).namespace)) return false;
-        if (!Objects.equals(name, ((NamedSchema) other).name)) return false;
-        return Objects.equals(doc, ((NamedSchema) other).doc);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), namespace, name, doc);
     }
 }

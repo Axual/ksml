@@ -20,9 +20,11 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Arrays;
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
+@Getter
+@EqualsAndHashCode
 public class EnumType extends SimpleType {
     private final String[] symbols;
 
@@ -31,24 +33,8 @@ public class EnumType extends SimpleType {
         this.symbols = symbols;
     }
 
-    public String[] symbols() {
-        return symbols;
-    }
-
     @Override
     public String schemaName() {
         return "Enum";
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (!super.equals(other)) return false;
-        if (getClass() != other.getClass()) return false;
-        return Arrays.equals(symbols, ((EnumType) other).symbols);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), Arrays.hashCode(symbols));
     }
 }

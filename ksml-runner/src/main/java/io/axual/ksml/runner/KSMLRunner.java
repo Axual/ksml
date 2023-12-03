@@ -109,7 +109,9 @@ public class KSMLRunner {
             }
 
             final var config = readConfiguration(configFile);
-            final var definitions = config.getKsmlConfig().getDefinitions();
+            final var ksmlConfig = config.getKsmlConfig();
+            log.info("Using directories: config: {}, schema: {}, storage: {}", ksmlConfig.getConfigDirectory(), ksmlConfig.getSchemaDirectory(), ksmlConfig.getStorageDirectory());
+            final var definitions = ksmlConfig.getDefinitions();
             if (definitions == null || definitions.isEmpty()) {
                 throw new ConfigException("definitions", definitions, "No KSML definitions found in configuration");
             }
@@ -124,13 +126,13 @@ public class KSMLRunner {
             notationLibrary.register(XmlNotation.NOTATION_NAME, new XmlNotation(), new XmlDataObjectConverter());
 
             // Register schema loaders
-            final var schemaDirectory = config.getKsmlConfig().getSchemaDirectory();
+            final var schemaDirectory = ksmlConfig.getSchemaDirectory();
             SchemaLibrary.registerLoader(AvroNotation.NOTATION_NAME, new AvroSchemaLoader(schemaDirectory));
             SchemaLibrary.registerLoader(CsvNotation.NOTATION_NAME, new CsvSchemaLoader(schemaDirectory));
             SchemaLibrary.registerLoader(JsonNotation.NOTATION_NAME, new JsonSchemaLoader(schemaDirectory));
             SchemaLibrary.registerLoader(XmlNotation.NOTATION_NAME, new XmlSchemaLoader(schemaDirectory));
 
-            final var errorHandling = config.getKsmlConfig().getErrorHandlingConfig();
+            final var errorHandling = ksmlConfig.getErrorHandlingConfig();
             if (errorHandling != null) {
                 ExecutionContext.INSTANCE.setConsumeHandler(getErrorHandler(errorHandling.getConsume(), "ConsumeError"));
                 ExecutionContext.INSTANCE.setProduceHandler(getErrorHandler(errorHandling.getProduce(), "ProduceError"));
@@ -155,9 +157,9 @@ public class KSMLRunner {
                     .kafkaConfig(config.getKafkaConfig())
                     .build());
             final var streams = pipelineSpecs.isEmpty() ? null : new KafkaStreamsRunner(KafkaStreamsRunner.Config.builder()
-                    .storageDirectory(config.getKsmlConfig().getStorageDirectory())
+                    .storageDirectory(ksmlConfig.getStorageDirectory())
                     .notationLibrary(notationLibrary)
-                    .appServer(config.getKsmlConfig().getApplicationServerConfig())
+                    .appServer(ksmlConfig.getApplicationServerConfig())
                     .definitions(pipelineSpecs)
                     .kafkaConfig(config.getKafkaConfig())
                     .build());
@@ -180,50 +182,54 @@ public class KSMLRunner {
                     final var streamsFuture = streams == null ? null : executorService.submit(streams);
                     RestServer restServer = null;
 
-                    // Allow the runner(s) to start
-                    Utils.sleep(2000);
+                    try {
+                        // Allow the runner(s) to start
+                        Utils.sleep(2000);
 
-                    final var appServer = config.getKsmlConfig().getApplicationServerConfig();
-                    if (streamsFuture != null && appServer != null && appServer.isEnabled()) {
-                        // Run with the REST server
-                        HostInfo hostInfo = new HostInfo(appServer.getHost(), appServer.getPort());
-                        restServer = new RestServer(hostInfo);
-                        restServer.start(streams.getQuerier());
-                    }
-
-                    while (producerFuture == null || !producerFuture.isDone() || streamsFuture == null || !streamsFuture.isDone()) {
-                        final var producerError = producer != null && producer.getState() == Runner.State.FAILED;
-                        final var streamsError = streams != null && streams.getState() == Runner.State.FAILED;
-
-                        // If either runner has an error, stop all runners
-                        if (producerError || streamsError) {
-                            if (producer != null) producer.stop();
-                            if (streams != null) streams.stop();
-                            if (producer != null) {
-                                try {
-                                    producerFuture.get(5, TimeUnit.SECONDS);
-                                } catch (TimeoutException | ExecutionException | InterruptedException e) {
-                                    // Ignore
-                                }
-                            }
-                            if (streams != null) {
-                                try {
-                                    streamsFuture.get(5, TimeUnit.SECONDS);
-                                } catch (TimeoutException | ExecutionException | InterruptedException e) {
-                                    // Ignore
-                                }
-                            }
-                            executorService.shutdown();
-                            try {
-                                if (!executorService.awaitTermination(2000, TimeUnit.MILLISECONDS)) {
-                                    executorService.shutdownNow();
-                                }
-                            } catch (InterruptedException e) {
-                                executorService.shutdownNow();
-                                throw FatalError.reportAndExit(new KSMLExecutionException("Exception caught while shutting down", e));
-                            }
-                            break;
+                        final var appServer = ksmlConfig.getApplicationServerConfig();
+                        if (streamsFuture != null && appServer != null && appServer.isEnabled()) {
+                            // Run with the REST server
+                            HostInfo hostInfo = new HostInfo(appServer.getHost(), appServer.getPort());
+                            restServer = new RestServer(hostInfo);
+                            restServer.start(streams.getQuerier());
                         }
+
+                        while (producerFuture == null || !producerFuture.isDone() || streamsFuture == null || !streamsFuture.isDone()) {
+                            final var producerError = producer != null && producer.getState() == Runner.State.FAILED;
+                            final var streamsError = streams != null && streams.getState() == Runner.State.FAILED;
+
+                            // If either runner has an error, stop all runners
+                            if (producerError || streamsError) {
+                                if (producer != null) producer.stop();
+                                if (streams != null) streams.stop();
+                                if (producer != null) {
+                                    try {
+                                        producerFuture.get(5, TimeUnit.SECONDS);
+                                    } catch (TimeoutException | ExecutionException | InterruptedException e) {
+                                        // Ignore
+                                    }
+                                }
+                                if (streams != null) {
+                                    try {
+                                        streamsFuture.get(5, TimeUnit.SECONDS);
+                                    } catch (TimeoutException | ExecutionException | InterruptedException e) {
+                                        // Ignore
+                                    }
+                                }
+                                executorService.shutdown();
+                                try {
+                                    if (!executorService.awaitTermination(2000, TimeUnit.MILLISECONDS)) {
+                                        executorService.shutdownNow();
+                                    }
+                                } catch (InterruptedException e) {
+                                    executorService.shutdownNow();
+                                    throw FatalError.reportAndExit(new KSMLExecutionException("Exception caught while shutting down", e));
+                                }
+                                break;
+                            }
+                        }
+                    } finally {
+                        if (restServer != null) restServer.close();
                     }
                 } finally {
                     Runtime.getRuntime().removeShutdownHook(shutdownHook);

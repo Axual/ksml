@@ -46,8 +46,7 @@ class KSMLRunnerKSMLConfigTest {
     void shouldValidateConfig() throws Exception {
         final var yaml = getClass().getClassLoader().getResourceAsStream("ksml-config.yaml");
         final var ksmlConfig = objectMapper.readValue(yaml, KSMLConfig.class);
-
-        ksmlConfig.validate();
+        ksmlConfig.getConfigDirectory();
     }
 
     @Test
@@ -55,8 +54,7 @@ class KSMLRunnerKSMLConfigTest {
     void shouldThrowOnWrongConfigdir() throws Exception {
         final var yaml = getClass().getClassLoader().getResourceAsStream("ksml-config-wrong-configdir.yaml");
         final var ksmlConfig = objectMapper.readValue(yaml, KSMLConfig.class);
-
-        assertThrows(ConfigException.class, ksmlConfig::validate, "should throw exception for wrong configdir");
+        assertThrows(ConfigException.class, ksmlConfig::getConfigDirectory, "should throw exception for wrong configdir");
     }
 
     @Test
@@ -64,9 +62,6 @@ class KSMLRunnerKSMLConfigTest {
     void shouldDefaultConfigToWorkdir() throws Exception {
         final var yaml = getClass().getClassLoader().getResourceAsStream("ksml-config-no-configdir.yaml");
         final var ksmlConfig = objectMapper.readValue(yaml, KSMLConfig.class);
-
-        ksmlConfig.validate();
-
         assertEquals(System.getProperty("user.dir"), ksmlConfig.getConfigDirectory(), "config dir should default to working dir");
     }
 }

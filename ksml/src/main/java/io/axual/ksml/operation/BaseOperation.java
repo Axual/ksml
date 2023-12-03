@@ -130,7 +130,7 @@ public class BaseOperation implements StreamOperation {
     // Returns the first specific function result type in the sequence of functions, starting from the left. When
     // reaching the end of the list of functions, sequence is continued with the list of user types.
     protected UserType firstSpecificType(FunctionDefinition func1, FunctionDefinition func2, FunctionDefinition func3, UserType... userTypes) {
-        return firstSpecificType(func1, func2, arrayFrom(func3.resultType, userTypes));
+        return firstSpecificType(func1, func2, arrayFrom(func3.resultType(), userTypes));
     }
 
     // Returns the first specific function result type in the sequence of functions, starting from the left. When
@@ -140,7 +140,7 @@ public class BaseOperation implements StreamOperation {
     }
 
     protected UserType firstSpecificType(FunctionDefinition func1, FunctionDefinition func2, UserType... userTypes) {
-        return firstSpecificType(func1, arrayFrom(func2.resultType, userTypes));
+        return firstSpecificType(func1, arrayFrom(func2.resultType(), userTypes));
     }
 
     // Returns the first specific function result type in the sequence of functions, starting from the left. When
@@ -150,7 +150,7 @@ public class BaseOperation implements StreamOperation {
     }
 
     protected UserType firstSpecificType(FunctionDefinition function, UserType... userTypes) {
-        return firstSpecificType(arrayFrom(function.resultType, userTypes));
+        return firstSpecificType(arrayFrom(function.resultType(), userTypes));
     }
 
     // Returns the most specific type in the sequence by traversing the array and checking for DataType.UNKNOWNs. The
@@ -220,7 +220,7 @@ public class BaseOperation implements StreamOperation {
 
     private FunctionDefinition applySpecificResult(FunctionDefinition function, UserType appliedResultType) {
         // If the given result type is more specific than the current result type, then adopt the specific result type
-        return function.resultType != null && function.resultType.dataType().isAssignableFrom(appliedResultType)
+        return function.resultType() != null && function.resultType().dataType().isAssignableFrom(appliedResultType)
                 ? function.withResult(appliedResultType)
                 : function;
     }
@@ -244,22 +244,22 @@ public class BaseOperation implements StreamOperation {
         }
 
         // Check if the resultType of the function is as expected
-        checkType(functionType + " resultType", (function.resultType != null ? function.resultType.dataType() : DataNull.DATATYPE), resultType);
+        checkType(functionType + " resultType", (function.resultType() != null ? function.resultType().dataType() : DataNull.DATATYPE), resultType);
         // Update the applied result type of the function
         function = applySpecificResult(function, appliedResultType);
 
         // Check if the number of parameters is as expected
-        int fixedParamCount = Arrays.stream(function.parameters).map(p -> p.isOptional() ? 0 : 1).reduce(Integer::sum).orElse(0);
+        int fixedParamCount = Arrays.stream(function.parameters()).map(p -> p.isOptional() ? 0 : 1).reduce(Integer::sum).orElse(0);
         if (fixedParamCount > parameters.length) {
             throw topologyError(functionType + " is expected to take at least " + fixedParamCount + " parameters");
         }
-        if (function.parameters.length < parameters.length) {
-            throw topologyError(functionType + " is expected to take at most " + function.parameters.length + " parameters");
+        if (function.parameters().length < parameters.length) {
+            throw topologyError(functionType + " is expected to take at most " + function.parameters().length + " parameters");
         }
 
         // Check if all parameters are of expected type
         for (int index = 0; index < parameters.length; index++) {
-            checkType(functionType + " parameter " + (index + 1) + " (\"" + function.parameters[index].name() + "\")", function.parameters[index].type(), parameters[index]);
+            checkType(functionType + " parameter " + (index + 1) + " (\"" + function.parameters()[index].name() + "\")", function.parameters()[index].type(), parameters[index]);
         }
 
         return function;

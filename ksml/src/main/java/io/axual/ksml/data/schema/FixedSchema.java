@@ -20,18 +20,17 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
+@Getter
+@EqualsAndHashCode
 public class FixedSchema extends NamedSchema {
     private final int size;
 
     public FixedSchema(String namespace, String name, String doc, int size) {
         super(Type.FIXED, namespace, name, doc);
         this.size = size;
-    }
-
-    public int size() {
-        return size;
     }
 
     @Override
@@ -41,16 +40,5 @@ public class FixedSchema extends NamedSchema {
         // This schema is assignable from the other schema when the maximum size is greater or
         // equal than the other schema's maximum size.
         return size >= otherFixedSchema.size;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (!super.equals(other)) return false;
-        return size == ((FixedSchema) other).size;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), size);
     }
 }

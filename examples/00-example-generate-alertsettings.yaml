@@ -51,14 +51,14 @@ functions:
 
       if city in ("Alkmaar","Leiden"):
         settings.append(generateHumidityAlert(city, "72","70"))
-        settings.append(generateHumidityAlert(city, "72","70"))
-        settings.append(generateHumidityAlert(city, "72","70"))
-        settings.append(generateHumidityAlert(city, "72","70"))
-        settings.append(generateHumidityAlert(city, "72","70"))
-        settings.append(generateHumidityAlert(city, "72","70"))
-        settings.append(generateTemperatureAlert(city, "25","0","C"))
-        settings.append(generateTemperatureAlert(city, "25","0","C"))
-        settings.append(generateTemperatureAlert(city, "25","0","C"))
+        settings.append(generateHumidityAlert(city, "74","68"))
+        settings.append(generateHumidityAlert(city, "76","66"))
+        settings.append(generateHumidityAlert(city, "78","64"))
+        settings.append(generateHumidityAlert(city, "80","62"))
+        settings.append(generateHumidityAlert(city, "82","60"))
+        settings.append(generateTemperatureAlert(city, "25","20","C"))
+        settings.append(generateTemperatureAlert(city, "27","15","C"))
+        settings.append(generateTemperatureAlert(city, "29","10","C"))
 
       result = dict()
       result["city"] = city

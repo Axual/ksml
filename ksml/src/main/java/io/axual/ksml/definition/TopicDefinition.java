@@ -23,22 +23,14 @@ package io.axual.ksml.definition;
 
 import io.axual.ksml.data.type.UserType;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 @AllArgsConstructor
+@Getter
+@EqualsAndHashCode
 public class TopicDefinition {
     public final String topic;
     public final UserType keyType;
     public final UserType valueType;
-
-    public String topic() {
-        return topic;
-    }
-
-    public UserType keyType() {
-        return keyType;
-    }
-
-    public UserType valueType() {
-        return valueType;
-    }
 }

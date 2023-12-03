@@ -23,7 +23,11 @@ package io.axual.ksml.data.object;
 import io.axual.ksml.data.value.Tuple;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
+@Getter
+@EqualsAndHashCode
 public class DataTuple extends Tuple<DataObject> implements DataObject {
     private final DataType type;
 
@@ -38,23 +42,6 @@ public class DataTuple extends Tuple<DataObject> implements DataObject {
             result[index] = elements[index].type();
         }
         return result;
-    }
-
-    @Override
-    public DataType type() {
-        return type;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (!super.equals(other)) return false;
-        if (!(other instanceof DataTuple)) return false;
-        return type.equals(((DataTuple) other).type);
-    }
-
-    @Override
-    public int hashCode() {
-        return type.hashCode() + 31 * super.hashCode();
     }
 
     @Override

@@ -47,7 +47,7 @@ public class PeekOperation extends BaseOperation {
         final var v = input.valueType();
         final var action = checkFunction(FOREACHACTION_NAME, forEachAction, new UserType(DataNull.DATATYPE), superOf(k), superOf(v));
         final var userAction = new UserForeachAction(context.createUserFunction(action));
-        final var storeNames = combineStoreNames(this.storeNames, forEachAction.storeNames.toArray(TEMPLATE));
+        final var storeNames = combineStoreNames(this.storeNames, forEachAction.storeNames().toArray(TEMPLATE));
         final var supplier = new FixedKeyOperationProcessorSupplier<>(
                 name,
                 PeekProcessor::new,

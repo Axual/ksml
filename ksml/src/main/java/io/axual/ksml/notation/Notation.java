@@ -27,5 +27,5 @@ import io.axual.ksml.data.type.DataType;
 public interface Notation {
     String name();
 
-    Serde<Object> getSerde(DataType type, boolean isKey);
+    Serde<Object> serde(DataType type, boolean isKey);
 }

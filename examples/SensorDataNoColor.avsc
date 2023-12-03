@@ -1,7 +1,7 @@
 {
   "namespace": "io.axual.ksml.example",
   "doc": "Emulated sensor data with a few additional attributes",
-  "name": "SensorData",
+  "name": "SensorDataNoColor",
   "type": "record",
   "fields": [
     {

@@ -45,14 +45,14 @@ public class BinaryNotation implements Notation {
     }
 
     @Override
-    public Serde<Object> getSerde(DataType type, boolean isKey) {
+    public Serde<Object> serde(DataType type, boolean isKey) {
         if (type instanceof SimpleType) {
             if (type.containerClass() == Null.class)
                 return new BinarySerde(Serdes.serdeFrom(new NullSerializer(), new NullDeserializer()));
             return new BinarySerde((Serde<Object>) Serdes.serdeFrom(type.containerClass()));
         }
         // If not a simple dataType, then rely on JSON encoding
-        return jsonNotation.getSerde(type, isKey);
+        return jsonNotation.serde(type, isKey);
     }
 
     private static class BinarySerde implements Serde<Object> {

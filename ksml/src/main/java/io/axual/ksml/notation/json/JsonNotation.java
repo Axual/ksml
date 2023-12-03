@@ -28,10 +28,13 @@ import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.notation.Notation;
 import io.axual.ksml.notation.string.StringNotation;
+import io.axual.ksml.serde.JsonSerde;
 import org.apache.kafka.common.serialization.Serde;
 
-public class JsonNotation extends StringNotation {
+public class JsonNotation implements Notation {
     public static final String NOTATION_NAME = "JSON";
     public static final DataType DEFAULT_TYPE = new UnionType(
             new UserType(JsonNotation.NOTATION_NAME, new StructType()),
@@ -39,31 +42,17 @@ public class JsonNotation extends StringNotation {
 
     private static final JsonDataObjectMapper MAPPER = new JsonDataObjectMapper();
 
-    public JsonNotation() {
-        super(new DataObjectMapper<>() {
-            @Override
-            public DataObject toDataObject(DataType expected, String value) {
-                return MAPPER.toDataObject(expected, value);
-            }
-
-            @Override
-            public String fromDataObject(DataObject value) {
-                return MAPPER.fromDataObject(value);
-            }
-        });
-    }
-
     @Override
     public String name() {
         return NOTATION_NAME;
     }
 
     @Override
-    public Serde<Object> getSerde(DataType type, boolean isKey) {
+    public Serde<Object> serde(DataType type, boolean isKey) {
         // JSON types can either be Map (or Struct), or List, or the union type of both Struct and List
         if (type instanceof MapType || type instanceof ListType || JsonNotation.DEFAULT_TYPE.isAssignableFrom(type))
-            return super.getSerde(type, isKey);
+            return new JsonSerde(type);
         // Other types can not be serialized as JSON
-        throw noSerdeFor(type);
+        throw FatalError.executionError(name() + " serde not found for data type: " + type);
     }
 }

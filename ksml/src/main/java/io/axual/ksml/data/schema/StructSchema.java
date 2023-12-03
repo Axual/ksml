@@ -21,13 +21,14 @@ package io.axual.ksml.data.schema;
  */
 
 import com.google.common.collect.Lists;
+import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
+@EqualsAndHashCode
 public class StructSchema extends NamedSchema {
     private final List<DataField> fields = new ArrayList<>();
     private final Map<String, DataField> fieldsByName = new HashMap<>();
@@ -73,20 +74,5 @@ public class StructSchema extends NamedSchema {
             if (field.defaultValue() == null && otherField == null) return false;
         }
         return true;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (this == other) return true;
-        if (other == null || getClass() != other.getClass()) return false;
-        if (!super.equals(other)) return false;
-
-        // Compare all schema relevant fields, note: explicitly do not compare the doc field
-        return fields.equals(((StructSchema) other).fields);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), fields);
     }
 }

@@ -23,6 +23,8 @@ package io.axual.ksml.data.object;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.exception.KSMLExecutionException;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import java.util.Comparator;
 import java.util.Iterator;
@@ -31,6 +33,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.BiConsumer;
 
+@Getter
+@EqualsAndHashCode
 public class DataStruct implements DataObject {
     public static final String META_ATTRIBUTE_CHAR = "@";
     // To make external representations look nice, we base Structs on sorted maps. Sorting is done
@@ -125,23 +129,6 @@ public class DataStruct implements DataObject {
 
     public int size() {
         return contents.size();
-    }
-
-    @Override
-    public StructType type() {
-        return type;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (!super.equals(other)) return false;
-        if (!(other instanceof DataStruct)) return false;
-        return type.equals(((DataStruct) other).type);
-    }
-
-    @Override
-    public int hashCode() {
-        return type.hashCode() + super.hashCode() * 31;
     }
 
     @Override

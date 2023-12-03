@@ -23,11 +23,11 @@ package io.axual.ksml;
 
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.TableDefinition;
-import io.axual.ksml.definition.parser.TopologySpecificationParser;
 import io.axual.ksml.generator.TopologyAnalyzer;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.generator.TopologySpecification;
 import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.operation.StoreOperation;
 import io.axual.ksml.operation.StreamOperation;
 import io.axual.ksml.operation.ToOperation;
 import io.axual.ksml.stream.StreamWrapper;
@@ -52,10 +52,9 @@ public class TopologyGenerator {
     }
 
     public Topology create(StreamsBuilder streamsBuilder, Map<String, TopologySpecification> definitions) {
-        if (definitions.size() == 0) return null;
+        if (definitions.isEmpty()) return null;
 
         final var knownTopics = new HashSet<String>();
-        final var parser = new TopologySpecificationParser();
 
         definitions.forEach((name, definition) -> {
             final var context = new TopologyBuildContext(streamsBuilder, definition, notationLibrary, name);
@@ -133,18 +132,6 @@ public class TopologyGenerator {
         final var knownTopics = new HashSet<String>();
         specification.topics().forEach((name, def) -> knownTopics.add(def.topic()));
 
-        // Ensure that local state store in tables are registered with the StreamBuilder
-        specification.topics().forEach((name, def) -> {
-            if (def instanceof TableDefinition tableDef) {
-                context.getStreamWrapper(tableDef);
-                if (tableDef.store() != null) {
-                    // Register the state store and mark as already created (by Kafka Streams framework, not by user)
-                    specification.register(tableDef.store().name(), tableDef.store());
-                    context.createdStateStores().add(tableDef.store().name());
-                }
-            }
-        });
-
         // Add source and target topics to the set of known topics
         specification.pipelines().forEach((name, def) -> {
             if (def.source() != null) knownTopics.add(def.source().topic());
@@ -158,9 +145,34 @@ public class TopologyGenerator {
             context.createUserFunction(func);
         });
 
-        // If there are any uncreated state stores needed, create them first
+        // Figure out which state stores to create manually. Mechanism:
+        // 1. run through all pipelines and scan for StoreOperations, don't create the stores referenced
+        // 2. run through all stores and create the remaining ones manually
+        final var kafkaStreamsCreatedStores = new HashSet<String>();
+
+        // Ensure that local state store in tables are registered with the StreamBuilder
+        specification.topics().forEach((name, def) -> {
+            if (def instanceof TableDefinition tableDef) {
+                context.getStreamWrapper(tableDef);
+                if (tableDef.store() != null) {
+                    // Register the state store and mark as already created (by Kafka Streams framework, not by user)
+                    specification.register(tableDef.store().name(), tableDef.store());
+                    kafkaStreamsCreatedStores.add(tableDef.store().name());
+                }
+            }
+        });
+
+        // Filter out all state stores that Kafka Streams will set up later as part of the topology
+        specification.pipelines().forEach((name, pipeline) -> {
+            pipeline.chain().forEach(operation -> {
+                if (operation instanceof StoreOperation storeOperation && storeOperation.store() != null)
+                    kafkaStreamsCreatedStores.add(storeOperation.store().name());
+            });
+        });
+
+        // Create all not-automatically-created stores
         specification.stateStores().forEach((name, store) -> {
-            if (!context.createdStateStores().contains(name)) {
+            if (!kafkaStreamsCreatedStores.contains(name)) {
                 context.createUserStateStore(store);
             }
         });

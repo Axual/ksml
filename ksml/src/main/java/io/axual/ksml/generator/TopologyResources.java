@@ -50,8 +50,8 @@ public class TopologyResources {
         if (functions.containsKey(name)) {
             throw new KSMLTopologyException("Function definition must be unique: " + name);
         }
-        if (functionDefinition.name != null && !name.equals(functionDefinition.name)) {
-            throw new KSMLTopologyException("Function name inconsistently defined: " + name + " and " + functionDefinition.name);
+        if (functionDefinition.name() != null && !name.equals(functionDefinition.name())) {
+            throw new KSMLTopologyException("Function name inconsistently defined: " + name + " and " + functionDefinition.name());
         }
         functions.put(name, functionDefinition);
     }

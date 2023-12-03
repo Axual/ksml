@@ -30,7 +30,7 @@ public class GeneratorDefinition extends FunctionDefinition {
         super(definition
                 .withParameters(NO_PARAMETERS)
                 .withAResult());
-        if (definition.resultType == null || !(definition.resultType.dataType() instanceof UserTupleType)) {
+        if (definition.resultType() == null || !(definition.resultType().dataType() instanceof UserTupleType)) {
             throw new KSMLTopologyException("ResultType of generator function should be a tuple (keyType,valueType)");
         }
     }

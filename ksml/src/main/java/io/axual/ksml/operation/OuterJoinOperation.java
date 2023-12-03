@@ -73,7 +73,7 @@ public class OuterJoinOperation extends StoreOperation {
             final var vr = context.streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
             checkType("Join stream keyType", otherStream.keyType().userType().dataType(), equalTo(k));
             final var joiner = checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vo));
-            final var windowStore = validateWindowStore(store, k, vr);
+            final var windowStore = validateWindowStore(store(), k, vr);
             var joined = StreamJoined.with(k.getSerde(), v.getSerde(), vo.getSerde());
             if (name != null) joined = joined.withName(name);
             if (windowStore != null) {
@@ -110,7 +110,7 @@ public class OuterJoinOperation extends StoreOperation {
             checkType("Join table keyType", otherTable.keyType().userType(), equalTo(k));
             final var joiner = checkFunction(VALUEJOINER_NAME, valueJoiner, subOf(vr), vr, superOf(v), superOf(vo));
             final var userJoiner = new UserValueJoiner(context.createUserFunction(joiner));
-            final var kvStore = validateKeyValueStore(store, k, vr);
+            final var kvStore = validateKeyValueStore(store(), k, vr);
 
             if (kvStore != null) {
                 final var mat = context.materialize(kvStore);

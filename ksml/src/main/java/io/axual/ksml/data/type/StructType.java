@@ -21,9 +21,11 @@ package io.axual.ksml.data.type;
  */
 
 import io.axual.ksml.data.schema.StructSchema;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
-import java.util.Objects;
-
+@Getter
+@EqualsAndHashCode
 public class StructType extends MapType {
     private static final String DEFAULT_NAME = "Struct";
     private final String name;
@@ -34,7 +36,7 @@ public class StructType extends MapType {
     }
 
     public StructType(StructSchema schema) {
-        this(schema != null ? getName(schema.name()) : null, schema);
+        this(null, schema);
     }
 
     public StructType(String name) {
@@ -43,21 +45,13 @@ public class StructType extends MapType {
 
     private StructType(String name, StructSchema schema) {
         super(DataType.UNKNOWN);
-        this.name = name != null && !name.isEmpty() ? name : DEFAULT_NAME;
+        this.name = name != null && !name.isEmpty() ? name : schema != null ? schema.name() : DEFAULT_NAME;
         this.schema = schema;
-    }
-
-    private static String getName(String name) {
-        return name;
     }
 
     @Override
     public String toString() {
         return name;
-    }
-
-    public StructSchema schema() {
-        return schema;
     }
 
     @Override
@@ -71,17 +65,5 @@ public class StructType extends MapType {
         if (!(type instanceof StructType structType)) return false;
         if (schema == null) return true;
         return schema.isAssignableFrom(structType.schema);
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (!super.equals(other)) return false;
-        if (!(other instanceof StructType otherStruct)) return false;
-        return Objects.equals(name, otherStruct.name) && Objects.equals(schema, otherStruct.schema);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), name);
     }
 }

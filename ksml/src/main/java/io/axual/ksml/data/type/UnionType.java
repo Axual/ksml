@@ -20,9 +20,12 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+
 import java.util.Arrays;
 import java.util.Objects;
 
+@Getter
 public class UnionType extends ComplexType {
     private static final String UNION_NAME = "Union";
     private final UserType[] possibleTypes;

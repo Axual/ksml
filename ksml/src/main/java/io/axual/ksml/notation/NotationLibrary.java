@@ -45,7 +45,7 @@ public class NotationLibrary {
         throw FatalError.dataError("Data notation is not registered in the NotationLibrary: " + (notation != null ? notation : "null"));
     }
 
-    public NotationConverter getConverter(String notation) {
+    public NotationConverter converter(String notation) {
         var result = notation != null ? notationEntries.get(notation) : null;
         if (result != null) return result.converter;
         throw FatalError.dataError("Data type notation not found: " + notation);

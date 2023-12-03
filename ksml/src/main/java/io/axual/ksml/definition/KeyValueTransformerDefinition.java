@@ -29,9 +29,9 @@ import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_PARAMETERS;
 public class KeyValueTransformerDefinition extends FunctionDefinition {
     public KeyValueTransformerDefinition(FunctionDefinition definition) {
         super(definition
-                .withParameters(mergeParameters(KEY_VALUE_PARAMETERS, definition.parameters))
+                .withParameters(mergeParameters(KEY_VALUE_PARAMETERS, definition.parameters()))
                 .withDefaultExpression("(key,value)"));
-        if (resultType == null || !(resultType.dataType() instanceof UserTupleType)) {
+        if (resultType() == null || !(resultType().dataType() instanceof UserTupleType)) {
             throw new KSMLTopologyException("ResultType of keyValueTransformer not correctly specified");
         }
     }

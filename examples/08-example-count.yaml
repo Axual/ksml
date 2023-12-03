@@ -11,7 +11,7 @@ pipelines:
     from: sensor_source
     via:
       - type: groupBy
-        name: group_by_owner_before_count
+        name: group_by_owner
         mapper:
           code: |
             if value == None or not "owner" in value:

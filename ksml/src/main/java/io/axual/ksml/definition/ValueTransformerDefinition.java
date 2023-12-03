@@ -27,7 +27,7 @@ import static io.axual.ksml.definition.DefinitionConstants.PARAM_VALUE;
 public class ValueTransformerDefinition extends FunctionDefinition {
     public ValueTransformerDefinition(FunctionDefinition definition) {
         super(definition
-                .withParameters(mergeParameters(KEY_VALUE_PARAMETERS, definition.parameters))
+                .withParameters(mergeParameters(KEY_VALUE_PARAMETERS, definition.parameters()))
                 .withDefaultExpression(PARAM_VALUE)
                 .withAResult());
     }

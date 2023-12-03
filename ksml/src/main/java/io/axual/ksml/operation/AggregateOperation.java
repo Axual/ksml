@@ -72,7 +72,7 @@ public class AggregateOperation extends StoreOperation {
         final var vr = context.streamDataTypeOf(firstSpecificType(initializer, aggregator), false);
         final var init = checkFunction(INITIALIZER_NAME, initializer, vr);
         final var aggr = checkFunction(AGGREGATOR_NAME, aggregator, vr, superOf(k), superOf(v), superOf(vr));
-        final var kvStore = validateKeyValueStore(store, k, vr);
+        final var kvStore = validateKeyValueStore(store(), k, vr);
 
         final var userInit = new UserInitializer(context.createUserFunction(init));
         final var userAggr = new UserAggregator(context.createUserFunction(aggr));
@@ -109,7 +109,7 @@ public class AggregateOperation extends StoreOperation {
         final var init = checkFunction(INITIALIZER_NAME, initializer, vr);
         final var add = checkFunction(ADDER_NAME, adder, vr, superOf(k), superOf(v), superOf(vr));
         final var sub = checkFunction(SUBTRACTOR_NAME, subtractor, vr, superOf(k), superOf(vr), superOf(vr));
-        final var kvStore = validateKeyValueStore(store, k, vr);
+        final var kvStore = validateKeyValueStore(store(), k, vr);
 
         final var userInit = new UserInitializer(context.createUserFunction(init));
         final var userAdd = new UserAggregator(context.createUserFunction(add));
@@ -148,7 +148,7 @@ public class AggregateOperation extends StoreOperation {
         final var init = checkFunction(INITIALIZER_NAME, initializer, vr);
         final var aggr = checkFunction(AGGREGATOR_NAME, aggregator, vr, superOf(k), superOf(v), superOf(vr));
         final var merg = checkFunction(MERGER_NAME, merger, vr, superOf(k), equalTo(vr), superOf(vr));
-        final var sessionStore = validateSessionStore(store, k, vr);
+        final var sessionStore = validateSessionStore(store(), k, vr);
 
         final var userInit = new UserInitializer(context.createUserFunction(init));
         final var userAggr = new UserAggregator(context.createUserFunction(aggr));
@@ -186,7 +186,7 @@ public class AggregateOperation extends StoreOperation {
         final var vr = context.streamDataTypeOf(firstSpecificType(initializer, aggregator), false);
         final var init = checkFunction(INITIALIZER_NAME, initializer, vr);
         final var aggr = checkFunction(AGGREGATOR_NAME, aggregator, vr, superOf(k), superOf(v), superOf(vr));
-        final var windowStore = validateWindowStore(store, k, vr);
+        final var windowStore = validateWindowStore(store(), k, vr);
 
         final var userInit = new UserInitializer(context.createUserFunction(init));
         final var userAggr = new UserAggregator(context.createUserFunction(aggr));

@@ -24,12 +24,8 @@ import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.notation.Notation;
-import io.axual.ksml.util.DataUtil;
-import org.apache.kafka.common.serialization.Deserializer;
+import io.axual.ksml.serde.StringSerde;
 import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serializer;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 
 public abstract class StringNotation implements Notation {
     private final DataObjectMapper<String> mapper;
@@ -39,38 +35,11 @@ public abstract class StringNotation implements Notation {
     }
 
     @Override
-    public Serde<Object> getSerde(DataType type, boolean isKey) {
-        return new StringSerde(type);
+    public Serde<Object> serde(DataType type, boolean isKey) {
+        return new StringSerde(mapper, type);
     }
 
     protected RuntimeException noSerdeFor(DataType type) {
         return FatalError.executionError(name() + " serde not found for data type: " + type);
-    }
-
-    private class StringSerde implements Serde<Object> {
-        private final DataType expectedDataType;
-
-        public StringSerde(DataType expectedDataType) {
-            this.expectedDataType = expectedDataType;
-        }
-
-        private final StringSerializer serializer = new StringSerializer();
-        private final StringDeserializer deserializer = new StringDeserializer();
-
-        @Override
-        public Serializer<Object> serializer() {
-            return (topic, data) -> {
-                var str = mapper.fromDataObject(DataUtil.asDataObject(data));
-                return serializer.serialize(topic, str);
-            };
-        }
-
-        @Override
-        public Deserializer<Object> deserializer() {
-            return (topic, data) -> {
-                String str = deserializer.deserialize(topic, data);
-                return mapper.toDataObject(expectedDataType, str);
-            };
-        }
     }
 }

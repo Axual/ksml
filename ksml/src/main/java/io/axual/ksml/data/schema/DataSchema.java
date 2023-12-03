@@ -21,10 +21,12 @@ package io.axual.ksml.data.schema;
  */
 
 import io.axual.ksml.exception.KSMLExecutionException;
-
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 // Generic internal schema class
+@Getter
+@EqualsAndHashCode
 public class DataSchema {
     public enum Type {
         ANY,
@@ -67,10 +69,6 @@ public class DataSchema {
         this.type = type;
     }
 
-    public Type type() {
-        return type;
-    }
-
     @Override
     public String toString() {
         return type.toString();
@@ -92,19 +90,5 @@ public class DataSchema {
         if (type == Type.STRING && otherSchema.type == Type.ENUM) return true; // ENUMs are convertable to String
         if (type == Type.ENUM && otherSchema.type == Type.STRING) return true; // Strings are convertable to ENUM
         return false;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (this == other) return true;
-        if (other == null || getClass() != other.getClass()) return false;
-
-        // Compare all schema relevant fields
-        return Objects.equals(type, ((DataSchema) other).type);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(type);
     }
 }

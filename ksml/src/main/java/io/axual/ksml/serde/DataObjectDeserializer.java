@@ -25,40 +25,44 @@ import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.SchemaUtil;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.util.DataUtil;
+import io.axual.ksml.execution.FatalError;
 import lombok.Getter;
-import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.serialization.Deserializer;
 
 import java.util.List;
 
 @Getter
-public class DataObjectSerializer implements Serializer<Object> {
+public class DataObjectDeserializer implements Deserializer<Object> {
     private static final String FIELD_NAME = "data";
     private final DataType expectedType;
-    private final StructSchema wrapperSchema;
     private final DataType wrapperType;
-    private final Serializer<Object> jsonSerializer;
+    private final Deserializer<Object> jsonDeserializer;
 
-    public DataObjectSerializer(DataType type) {
+    public DataObjectDeserializer(DataType type) {
         expectedType = type;
         final var dataObjectSchema = SchemaUtil.dataTypeToSchema(expectedType);
         final var wrapperField = new DataField(FIELD_NAME, dataObjectSchema, "", null, DataField.Order.ASCENDING);
-        wrapperSchema = new StructSchema("io.axual.ksml.data", "DataObject", "", List.of(wrapperField));
+        final var wrapperSchema = new StructSchema("io.axual.ksml.data", "DataObject", "", List.of(wrapperField));
         wrapperType = SchemaUtil.schemaToDataType(wrapperSchema);
-        try (final var jsonSerde = new JsonSerde(wrapperType)) {
-            jsonSerializer = jsonSerde.serializer();
+        try (final var serde = new JsonSerde(wrapperType)) {
+            jsonDeserializer = serde.deserializer();
         }
     }
 
     @Override
-    public byte[] serialize(String topic, Object data) {
-        final var dataObject = DataUtil.asDataObject(data);
-        if (!expectedType.isAssignableFrom(dataObject.type())) {
-            throw new KSMLExecutionException("Incorrect type passed in: expected=" + expectedType + ", got " + dataObject.type());
+    public Object deserialize(String topic, byte[] data) {
+        final var wrapper = jsonDeserializer.deserialize(topic, data);
+        if (wrapper == null) {
+            throw FatalError.executionError("Retrieved unexpected null wrapper from state store " + topic);
         }
-        final var wrapper = new DataStruct(wrapperSchema);
-        wrapper.put(FIELD_NAME, dataObject);
-        return jsonSerializer.serialize(topic, wrapper);
+        if (!(wrapper instanceof DataStruct wrapperStruct) || !wrapperType.isAssignableFrom(wrapperType)) {
+            throw FatalError.executionError("Incorrect type deserialized from " + topic + ": " + wrapper);
+        }
+
+        final var result = wrapperStruct.get(FIELD_NAME);
+        if (result != null && !expectedType.isAssignableFrom(result)) {
+            throw FatalError.executionError("Wrong type retrieved from state store: expected " + expectedType + ", got " + result.type());
+        }
+        return result;
     }
 }

@@ -57,9 +57,9 @@ public class SOAPNotation extends StringNotation {
     }
 
     @Override
-    public Serde<Object> getSerde(DataType type, boolean isKey) {
+    public Serde<Object> serde(DataType type, boolean isKey) {
         // SOAP types should ways be Maps (or Structs)
-        if (type instanceof MapType) return super.getSerde(type, isKey);
+        if (type instanceof MapType) return super.serde(type, isKey);
         // Other types can not be serialized as SOAP
         throw noSerdeFor(type);
     }

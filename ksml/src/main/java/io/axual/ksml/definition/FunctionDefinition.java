@@ -23,23 +23,25 @@ package io.axual.ksml.definition;
 
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLTopologyException;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
+@Getter
 public class FunctionDefinition {
     private static final String DEFINITION_LITERAL = "Definition";
     private static final String[] EMPTY_STRING_ARRAY = new String[]{};
     private static final List<String> EMPTY_STRING_LIST = new ArrayList<>();
-    public final String name;
-    public final ParameterDefinition[] parameters;
-    public final UserType resultType;
-    public final String expression;
-    public final String[] code;
-    public final String[] globalCode;
-    public final List<String> storeNames;
+    private final String name;
+    private final ParameterDefinition[] parameters;
+    private final UserType resultType;
+    private final String expression;
+    private final String[] code;
+    private final String[] globalCode;
+    private final List<String> storeNames;
 
     public static FunctionDefinition as(String name, ParameterDefinition[] parameters, UserType resultType, String expression, String[] code, String[] globalCode, List<String> storeNames) {
         return new FunctionDefinition(name, parameters, resultType, expression, code, globalCode, storeNames);

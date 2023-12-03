@@ -49,6 +49,8 @@ public class KSMLConfig {
     private KSMLErrorHandlingConfig errorHandling;
     @JsonProperty("definitions")
     private Map<String, Object> definitions;
+    @JsonProperty("schemas")
+    private Map<String, Object> schemas;
 
     private String getDirectory(String configVariable, String directory) {
         final var configPath = Paths.get(directory);
@@ -81,31 +83,28 @@ public class KSMLConfig {
 
     public Map<String, JsonNode> getDefinitions() {
         final var result = new HashMap<String, JsonNode>();
-        for (Map.Entry<String, Object> definition : definitions.entrySet()) {
-            if (definition.getValue() instanceof String definitionFile) {
-                final var definitionFilePath = Paths.get(configDirectory, definitionFile);
-                if (Files.notExists(definitionFilePath) || !Files.isRegularFile(definitionFilePath)) {
-                    throw new ConfigException("definitionFile", definitionFilePath, "The provided KSML definition file does not exists or is not a regular file");
+        if (definitions != null) {
+            for (Map.Entry<String, Object> definition : definitions.entrySet()) {
+                if (definition.getValue() instanceof String definitionFile) {
+                    final var definitionFilePath = Paths.get(configDirectory, definitionFile);
+                    if (Files.notExists(definitionFilePath) || !Files.isRegularFile(definitionFilePath)) {
+                        throw new ConfigException("definitionFile", definitionFilePath, "The provided KSML definition file does not exists or is not a regular file");
+                    }
+                    try {
+                        log.info("Reading KSML definition from source file: {}", definitionFilePath.toFile());
+                        final var def = YAMLObjectMapper.INSTANCE.readValue(definitionFilePath.toFile(), JsonNode.class);
+                        result.put(definition.getKey(), def);
+                    } catch (IOException e) {
+                        log.error("Could not read KSML definition from file: {}", definitionFilePath);
+                    }
                 }
-                try {
-                    log.info("Reading KSML definition from source file: {}", definitionFilePath.toFile());
-                    final var def = YAMLObjectMapper.INSTANCE.readValue(definitionFilePath.toFile(), JsonNode.class);
-                    result.put(definition.getKey(), def);
-                } catch (IOException e) {
-                    log.error("Could not read KSML definition from file: {}", definitionFilePath);
+                if (definition.getValue() instanceof Map<?, ?> definitionMap) {
+                    final var mapper = new JsonNodeNativeMapper();
+                    final var root = mapper.fromNative(definitionMap);
+                    result.put(definition.getKey(), root);
                 }
-            }
-            if (definition.getValue() instanceof Map<?, ?> definitionMap) {
-                final var mapper = new JsonNodeNativeMapper();
-                final var root = mapper.fromNative(definitionMap);
-                result.put(definition.getKey(), root);
             }
         }
         return result;
-    }
-
-    public void validate() throws ConfigException {
-
-        log.info("Using directories: config: {}, schema: {}, storage: {}", configDirectory, schemaDirectory, storageDirectory);
     }
 }

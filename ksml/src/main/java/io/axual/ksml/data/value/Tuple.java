@@ -21,10 +21,12 @@ package io.axual.ksml.data.value;
  */
 
 
+import lombok.EqualsAndHashCode;
+
 import java.util.List;
-import java.util.Objects;
 
 // This class implements a Tuple with any number of elements
+@EqualsAndHashCode
 public class Tuple<T> {
     private final List<T> elements;
 
@@ -43,19 +45,6 @@ public class Tuple<T> {
 
     public int size() {
         return elements.size();
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (this == other) return true;
-        if (other == null || getClass() != other.getClass()) return false;
-        Tuple<?> o = (Tuple<?>) other;
-        return elements.equals(o.elements);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(elements);
     }
 
     @Override

@@ -20,9 +20,9 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Arrays;
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode
 public class UserTupleType extends TupleType {
     private final UserType[] userTypes;
 
@@ -35,7 +35,7 @@ public class UserTupleType extends TupleType {
     public String toString() {
         var subTypeStr = new StringBuilder();
         for (UserType subType : userTypes) {
-            subTypeStr.append(subTypeStr.length() > 0 ? ", " : "").append(subType);
+            subTypeStr.append(!subTypeStr.isEmpty() ? ", " : "").append(subType);
         }
         return containerName() + "<" + subTypeStr + ">";
     }
@@ -59,16 +59,5 @@ public class UserTupleType extends TupleType {
             result[index] = userTypes[index].dataType();
         }
         return result;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (!super.equals(other)) return false;
-        return Arrays.equals(userTypes, ((UserTupleType) other).userTypes);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), Arrays.hashCode(userTypes));
     }
 }

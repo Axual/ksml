@@ -22,31 +22,18 @@ package io.axual.ksml.definition;
 
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.store.StoreType;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import java.time.Duration;
-import java.util.Objects;
 
+@Getter
+@EqualsAndHashCode
 public class SessionStateStoreDefinition extends StateStoreDefinition {
     private final Duration retention;
 
     public SessionStateStoreDefinition(String name, Boolean persistent, Boolean timestamped, Duration retention, UserType keyType, UserType valueType, Boolean caching, Boolean logging) {
         super(StoreType.SESSION_STORE, name, persistent, timestamped, keyType, valueType, caching, logging);
-        this.retention = retention;
-    }
-
-    public Duration retention() {
-        return retention;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (!(other instanceof SessionStateStoreDefinition def)) return false;
-        return (super.equals(other)
-                && Objects.equals(retention, def.retention));
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), retention);
+        this.retention = retention != null ? retention : Duration.ZERO;
     }
 }

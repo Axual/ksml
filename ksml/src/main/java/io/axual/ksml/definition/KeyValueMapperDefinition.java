@@ -27,7 +27,7 @@ import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_PARAMETERS;
 public class KeyValueMapperDefinition extends FunctionDefinition {
     public KeyValueMapperDefinition(FunctionDefinition definition) {
         super(definition
-                .withParameters(mergeParameters(KEY_VALUE_PARAMETERS, definition.parameters))
+                .withParameters(mergeParameters(KEY_VALUE_PARAMETERS, definition.parameters()))
                 .withAResult());
     }
 }

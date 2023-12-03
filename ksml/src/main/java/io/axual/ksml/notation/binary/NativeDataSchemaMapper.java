@@ -36,7 +36,7 @@ import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.parser.schema.DataSchemaParser;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static io.axual.ksml.dsl.DataSchemaDSL.*;
@@ -47,21 +47,20 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
 
     @Override
     public DataSchema toDataSchema(String name, Object value) {
-        var json = JSON_NODE_MAPPER.fromNative(value);
-        var root = YamlNode.fromRoot(json, "Schema");
-        return PARSER.parse(root);
+        final var json = JSON_NODE_MAPPER.fromNative(value);
+        return PARSER.parse(YamlNode.fromRoot(json, "Schema"));
     }
 
     @Override
     public Object fromDataSchema(DataSchema schema) {
         if (schema instanceof UnionSchema unionSchema) {
-            var result = new ArrayList<>();
+            final var result = new ArrayList<>();
             for (DataSchema possibleSchema : unionSchema.possibleSchemas())
                 result.add(convertSchema(possibleSchema));
             return result;
         }
 
-        var result = new HashMap<String, Object>();
+        final var result = new LinkedHashMap<String, Object>();
         result.put(DATA_SCHEMA_TYPE_FIELD, schema.type().toString().toLowerCase());
         if (schema instanceof NamedSchema namedSchema)
             writeNamedSchemaToMap(result, namedSchema);
@@ -114,7 +113,7 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
     }
 
     private Map<String, Object> convertField(DataField field) {
-        var result = new HashMap<String, Object>();
+        final var result = new LinkedHashMap<String, Object>();
         result.put(DATA_FIELD_NAME_FIELD, field.name());
         result.put(DATA_FIELD_DOC_FIELD, field.doc());
         result.put(DATA_FIELD_SCHEMA_FIELD, convertSchema(field.schema()));

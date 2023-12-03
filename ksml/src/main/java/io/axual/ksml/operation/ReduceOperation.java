@@ -54,7 +54,7 @@ public class ReduceOperation extends StoreOperation {
         final var v = input.valueType();
         final var red = checkFunction(REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
         final var userRed = new UserReducer(context.createUserFunction(red));
-        final var kvStore = validateKeyValueStore(store, k, v);
+        final var kvStore = validateKeyValueStore(store(), k, v);
 
         if (kvStore != null) {
             final var mat = context.materialize(kvStore);
@@ -84,7 +84,7 @@ public class ReduceOperation extends StoreOperation {
         final var sub = checkFunction(SUBTRACTOR_NAME, subtractor, v, equalTo(v), equalTo(v));
         final var userAdd = new UserReducer(context.createUserFunction(add));
         final var userSub = new UserReducer(context.createUserFunction(sub));
-        final var kvStore = validateKeyValueStore(store, k, v);
+        final var kvStore = validateKeyValueStore(store(), k, v);
 
         if (kvStore != null) {
             final var mat = context.materialize(kvStore);
@@ -112,7 +112,7 @@ public class ReduceOperation extends StoreOperation {
         final var windowedK = context.windowedTypeOf(k);
         final var red = checkFunction(REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
         final var userRed = new UserReducer(context.createUserFunction(red));
-        final var sessionStore = validateSessionStore(store, windowedK, v);
+        final var sessionStore = validateSessionStore(store(), windowedK, v);
 
         if (sessionStore != null) {
             final var mat = context.materialize(sessionStore);
@@ -140,7 +140,7 @@ public class ReduceOperation extends StoreOperation {
         final var windowedK = context.windowedTypeOf(k);
         final var red = checkFunction(REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
         final var userRed = new UserReducer(context.createUserFunction(red));
-        final var windowStore = validateWindowStore(store, windowedK, v);
+        final var windowStore = validateWindowStore(store(), windowedK, v);
 
         if (windowStore != null) {
             final var mat = context.materialize(windowStore);

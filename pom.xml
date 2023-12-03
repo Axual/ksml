@@ -52,8 +52,8 @@
         <module>ksml-query</module>
         <module>ksml-kafka-clients</module>
         <module>ksml-runner</module>
-        <module>ksml-data-generator</module>
         <module>ksml-reporting</module>
+        <module>graalpy-module-collection</module>
     </modules>
 
     <properties>
@@ -62,7 +62,9 @@
         <apache.commons.text.version>1.11.0</apache.commons.text.version>
         <apache.kafka.version>3.6.0</apache.kafka.version>
         <confluent.version>7.5.2</confluent.version>
-        <graalvm.version>22.3.4</graalvm.version>
+        <graalvm.version>23.1.1</graalvm.version>
+        <graalvm.polyglot.version>23.1.1</graalvm.polyglot.version>
+        <graalvm.python.version>23.1.1</graalvm.python.version>
         <guava.version>32.0.1-jre</guava.version>
         <jackson.version>2.16.0</jackson.version>
         <jakarta.soap.version>3.0.1</jakarta.soap.version>
@@ -80,8 +82,9 @@
         <mockito-junit-jupiter.version>5.7.0</mockito-junit-jupiter.version>
 
         <!-- project and java version settings -->
-        <java.source.version>17</java.source.version>
-        <java.target.version>17</java.target.version>
+        <java.source.version>21</java.source.version>
+        <java.target.version>21</java.target.version>
+        <java.release.version>21</java.release.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
@@ -123,11 +126,6 @@
             <!-- project dependencies -->
             <dependency>
                 <groupId>io.axual.ksml</groupId>
-                <artifactId>ksml-data-generator</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.axual.ksml</groupId>
                 <artifactId>ksml</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -148,8 +146,23 @@
             </dependency>
 
             <dependency>
-                <groupId>org.graalvm.sdk</groupId>
-                <artifactId>graal-sdk</artifactId>
+                <groupId>org.graalvm.polyglot</groupId>
+                <artifactId>polyglot</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.python</groupId>
+                <artifactId>python-language</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.python</groupId>
+                <artifactId>python-resources</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.truffle</groupId>
+                <artifactId>truffle-runtime</artifactId>
                 <version>${graalvm.version}</version>
             </dependency>
             <dependency>
@@ -494,6 +507,14 @@
                 <configuration>
                     <source>${java.source.version}</source>
                     <target>${java.target.version}</target>
+                    <release>${java.release.version}</release>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
 

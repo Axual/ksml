@@ -20,10 +20,14 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
+@Getter
+@EqualsAndHashCode
 public class EnumSchema extends NamedSchema {
     private final List<String> symbols;
     private final String defaultValue;
@@ -38,14 +42,6 @@ public class EnumSchema extends NamedSchema {
         this.defaultValue = defaultValue;
     }
 
-    public List<String> symbols() {
-        return symbols;
-    }
-
-    public String defaultValue() {
-        return defaultValue;
-    }
-
     @Override
     public boolean isAssignableFrom(DataSchema otherSchema) {
         if (!super.isAssignableFrom(otherSchema)) return false;
@@ -56,21 +52,5 @@ public class EnumSchema extends NamedSchema {
             if (!symbols.contains(symbol)) return false;
         }
         return true;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (this == other) return true;
-        if (other == null || getClass() != other.getClass()) return false;
-        if (!super.equals(other)) return false;
-
-        // Compare all schema relevant fields
-        if (!Objects.equals(symbols, ((EnumSchema) other).symbols)) return false;
-        return Objects.equals(defaultValue, ((EnumSchema) other).defaultValue);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), symbols, defaultValue);
     }
 }

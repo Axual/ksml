@@ -21,29 +21,52 @@ package io.axual.ksml.python;
  */
 
 import io.axual.ksml.data.mapper.DataObjectConverter;
+import io.axual.ksml.execution.FatalError;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.PolyglotAccess;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.io.IOAccess;
 
 @Slf4j
 public class PythonContext {
     private static final String PYTHON = "python";
-    private final Context context = Context.newBuilder(PYTHON)
-            .allowNativeAccess(true)
-            .allowPolyglotAccess(PolyglotAccess.ALL)
-            .allowHostAccess(HostAccess.ALL)
-            .allowHostClassLookup(name -> name.equals("java.util.ArrayList") || name.equals("java.util.HashMap") || name.equals("java.util.TreeMap"))
-            .build();
+    private final Context context;
+    @Getter
     private final DataObjectConverter converter;
 
     public PythonContext(DataObjectConverter converter) {
         this.converter = converter;
+        context = setupPythonContext();
     }
 
-    public DataObjectConverter getConverter() {
+    private Context setupPythonContext() {
+        log.debug("Setting up new Python context");
+        try {
+//            final var venvExe = getClass().
+//                    getClassLoader().
+//                    getResource(Paths.get("venv", "bin", "graalpy").toString());
+//            if (venvExe == null) throw FatalError.executionError("Could not set up Python execution path");
+            final var result = Context.newBuilder(PYTHON)
+                    .allowIO(IOAccess.ALL)
+                    .allowNativeAccess(true)
+                    .allowPolyglotAccess(PolyglotAccess.ALL)
+                    .allowHostAccess(HostAccess.ALL)
+                    .allowHostClassLookup(name -> name.equals("java.util.ArrayList") || name.equals("java.util.HashMap") || name.equals("java.util.TreeMap"))
+//                    .option("python.Executable", venvExe.getPath())
+                    .build();
+//            result.eval(PYTHON, "import site");
+            return result;
+        } catch (Exception e) {
+            log.error("Error setting up a new Python context", e);
+            throw FatalError.executionError("Could not setup a new Python context", e);
+        }
+    }
+
+    public DataObjectConverter converter() {
         return converter;
     }
 

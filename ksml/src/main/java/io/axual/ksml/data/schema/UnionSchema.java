@@ -20,19 +20,17 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Arrays;
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
+@Getter
+@EqualsAndHashCode
 public class UnionSchema extends DataSchema {
     private final DataSchema[] possibleSchemas;
 
     public UnionSchema(DataSchema... possibleSchemas) {
         super(Type.UNION);
         this.possibleSchemas = possibleSchemas;
-    }
-
-    public DataSchema[] possibleSchemas() {
-        return possibleSchemas;
     }
 
     @Override
@@ -60,20 +58,5 @@ public class UnionSchema extends DataSchema {
             if (possibleSchema.isAssignableFrom(otherSchema)) return true;
         }
         return false;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (this == other) return true;
-        if (other == null || getClass() != other.getClass()) return false;
-        if (!super.equals(other)) return false;
-
-        // Compare all schema relevant fields
-        return Arrays.equals(possibleSchemas, ((UnionSchema) other).possibleSchemas);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), Arrays.hashCode(possibleSchemas));
     }
 }
