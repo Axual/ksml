@@ -22,8 +22,7 @@ package io.axual.ksml.runner.backend;
 
 import io.axual.ksml.client.producer.ResolvingProducer;
 import io.axual.ksml.client.serde.ResolvingSerializer;
-import io.axual.ksml.data.mapper.DataObjectConverter;
-import io.axual.ksml.generator.TopologySpecification;
+import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonFunction;
@@ -49,8 +48,7 @@ public class KafkaProducerRunner implements Runner {
     private final Config config;
 
     @Builder
-    public record Config(Map<String, TopologySpecification> definitions, Map<String, String> kafkaConfig,
-                         NotationLibrary notationLibrary) {
+    public record Config(Map<String, TopologyDefinition> definitions, Map<String, String> kafkaConfig) {
     }
 
     public KafkaProducerRunner(Config config) {
@@ -76,7 +74,7 @@ public class KafkaProducerRunner implements Runner {
         try {
             config.definitions.forEach((defName, definition) -> {
                 // Set up the Python context for this definition
-                final var context = new PythonContext(new DataObjectConverter(config.notationLibrary));
+                final var context = new PythonContext();
                 // Pre-register all functions in the Python context
                 definition.functions().forEach((name, function) -> {
                     PythonFunction.fromNamed(context, name, function);
@@ -94,11 +92,11 @@ public class KafkaProducerRunner implements Runner {
                             ? PythonFunction.fromNamed(context, cond.name(), cond)
                             : PythonFunction.fromAnon(context, name, cond, "ksml.condition." + name)
                             : null;
-                    var keySerde = config.notationLibrary.get(target.keyType().notation()).serde(target.keyType().dataType(), true);
+                    var keySerde = NotationLibrary.get(target.keyType().notation()).serde(target.keyType().dataType(), true);
                     var keySerializer = new ResolvingSerializer<>(keySerde.serializer(), config.kafkaConfig);
-                    var valueSerde = config.notationLibrary.get(target.valueType().notation()).serde(target.valueType().dataType(), false);
+                    var valueSerde = NotationLibrary.get(target.valueType().notation()).serde(target.valueType().dataType(), false);
                     var valueSerializer = new ResolvingSerializer<>(valueSerde.serializer(), config.kafkaConfig);
-                    var ep = new ExecutableProducer(config.notationLibrary, generator, condition, target.topic, target.keyType, target.valueType, keySerializer, valueSerializer);
+                    var ep = new ExecutableProducer(generator, condition, target.topic, target.keyType, target.valueType, keySerializer, valueSerializer);
                     schedule.schedule(producer.interval().toMillis(), ep);
                     log.info("Scheduled producer: {}", name);
                 });

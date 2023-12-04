@@ -20,14 +20,17 @@ package io.axual.ksml.serde;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
 
-public class ByteSerializer implements Serializer<Byte> {
+@Getter
+public class ByteSerde implements Serde<Object> {
     private static final byte[] EMPTY = new byte[0];
-
-    @Override
-    public byte[] serialize(String topic, Byte data) {
+    private final Serializer<Object> serializer = (topic, data) -> {
         if (data == null) return EMPTY;
-        return new byte[]{data};
-    }
+        return new byte[]{(Byte) data};
+    };
+    private final Deserializer<Object> deserializer = (topic, data) -> data != null && data.length > 0 ? (Byte) data[0] : null;
 }

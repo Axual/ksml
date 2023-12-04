@@ -27,7 +27,6 @@ import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.execution.FatalError;
-import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.notation.binary.NativeDataObjectMapper;
 import io.axual.ksml.user.UserFunction;
 import org.apache.kafka.clients.producer.Producer;
@@ -52,15 +51,14 @@ public class ExecutableProducer {
     private final NativeDataObjectMapper nativeMapper = new NativeDataObjectMapper();
     private final DataObjectConverter dataObjectConverter;
 
-    public ExecutableProducer(NotationLibrary notationLibrary,
-                              UserFunction generator,
+    public ExecutableProducer(UserFunction generator,
                               UserFunction condition,
                               String topic,
                               UserType keyType,
                               UserType valueType,
                               Serializer<Object> keySerializer,
                               Serializer<Object> valueSerializer) {
-        this.dataObjectConverter = new DataObjectConverter(notationLibrary);
+        this.dataObjectConverter = new DataObjectConverter();
         this.generator = generator;
         this.condition = condition;
         this.topic = topic;

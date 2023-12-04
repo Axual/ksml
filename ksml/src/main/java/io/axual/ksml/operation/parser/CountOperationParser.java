@@ -28,8 +28,8 @@ import io.axual.ksml.parser.YamlNode;
 import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
 
 public class CountOperationParser extends StoreOperationParser<CountOperation> {
-    public CountOperationParser(String name, TopologyResources resources) {
-        super(name, resources);
+    public CountOperationParser(String prefix, String name, TopologyResources resources) {
+        super(prefix, name, resources);
     }
 
     @Override

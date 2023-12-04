@@ -29,8 +29,8 @@ import io.axual.ksml.parser.YamlNode;
 import static io.axual.ksml.dsl.KSMLDSL.PEEK_FOREACH_ATTRIBUTE;
 
 public class PeekOperationParser extends OperationParser<PeekOperation> {
-    public PeekOperationParser(String name, TopologyResources resources) {
-        super(name, resources);
+    public PeekOperationParser(String prefix, String name, TopologyResources resources) {
+        super(prefix, name, resources);
     }
 
     @Override

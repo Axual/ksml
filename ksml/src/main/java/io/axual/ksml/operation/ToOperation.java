@@ -51,7 +51,7 @@ public class ToOperation extends BaseOperation {
         checkType("Target topic keyType", target.keyType().dataType(), superOf(k));
         checkType("Target topic valueType", target.valueType().dataType(), superOf(v));
 
-        var produced = Produced.with(kt.getSerde(), vt.getSerde());
+        var produced = Produced.with(kt.serde(), vt.serde());
         if (name != null) produced = produced.withName(name);
         input.stream.to(target.topic(), produced);
         return null;

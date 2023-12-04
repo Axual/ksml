@@ -38,7 +38,7 @@ public class GroupByKeyOperation extends StoreOperation {
         final var v = input.valueType();
 
         final var kvStore = validateKeyValueStore(store(), k, v);
-        var grouped = Grouped.with(k.getSerde(), v.getSerde());
+        var grouped = Grouped.with(k.serde(), v.serde());
         if (name != null) grouped = grouped.withName(name);
         if (kvStore != null) grouped = grouped.withName(kvStore.name());
         final var output = input.stream.groupByKey(grouped);

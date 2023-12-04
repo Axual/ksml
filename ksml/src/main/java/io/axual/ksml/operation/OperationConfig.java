@@ -20,10 +20,12 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import lombok.AllArgsConstructor;
-
-@AllArgsConstructor
 public class OperationConfig {
     public final String name;
-    public String[] storeNames;
+    public final String[] storeNames;
+
+    public OperationConfig(String prefix, String name, String[] storeNames) {
+        this.name = prefix + "_" + name;
+        this.storeNames = storeNames;
+    }
 }

@@ -94,11 +94,12 @@ public class UnionSerde implements Serde<Object> {
         }
     }
 
-    public UnionSerde(NotationLibrary notationLibrary, UnionType type, boolean isKey) {
+    public UnionSerde(UnionType type, boolean isKey) {
         for (int index = 0; index < type.possibleTypes().length; index++) {
             var possibleType = type.possibleTypes()[index];
-            var serde = notationLibrary.get(possibleType.notation()).serde(possibleType.dataType(), isKey);
-            possibleTypes.add(new PossibleType(possibleType.dataType(), serde.serializer(), serde.deserializer()));
+            try (final var serde = NotationLibrary.get(possibleType.notation()).serde(possibleType.dataType(), isKey)) {
+                possibleTypes.add(new PossibleType(possibleType.dataType(), serde.serializer(), serde.deserializer()));
+            }
         }
     }
 

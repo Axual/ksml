@@ -84,7 +84,7 @@ public class LeftJoinOperation extends StoreOperation {
             final var joiner = checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vo));
             final var windowStore = validateWindowStore(store(), k, vr);
 
-            var joined = StreamJoined.with(k.getSerde(), v.getSerde(), vo.getSerde());
+            var joined = StreamJoined.with(k.serde(), v.serde(), vo.serde());
             if (name != null) joined = joined.withName(name);
             if (windowStore != null) {
                 if (windowStore.name() != null) joined = joined.withStoreName(windowStore.name());
@@ -110,7 +110,7 @@ public class LeftJoinOperation extends StoreOperation {
             checkType("Join table keyType", otherTable.keyType(), equalTo(k));
             final var joiner = checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vt));
 
-            var joined = Joined.with(k.getSerde(), v.getSerde(), vt.getSerde());
+            var joined = Joined.with(k.serde(), v.serde(), vt.serde());
             if (name != null) joined = joined.withName(name);
 
             final var userJoiner = new UserValueJoinerWithKey(context.createUserFunction(joiner));

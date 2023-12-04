@@ -50,7 +50,7 @@ public class ToTopicNameExtractorOperation extends BaseOperation {
         final var recordContextType = new UserType(new StructType(RECORD_CONTEXT_SCHEMA));
         final var extractor = checkFunction(TOPICNAMEEXTRACTOR_NAME, topicNameExtractor, topicNameType, superOf(k), superOf(v), superOf(recordContextType));
         final var userExtractor = new UserTopicNameExtractor(context.createUserFunction(extractor));
-        var produced = Produced.with(input.keyType().getSerde(), input.valueType().getSerde());
+        var produced = Produced.with(input.keyType().serde(), input.valueType().serde());
         if (name != null) produced = produced.withName(name);
         input.stream.to(userExtractor, produced);
         return null;

@@ -29,8 +29,8 @@ import io.axual.ksml.parser.YamlNode;
 import static io.axual.ksml.dsl.KSMLDSL.TRANSFORMKEY_MAPPER_ATTRIBUTE;
 
 public class TransformKeyOperationParser extends OperationParser<TransformKeyOperation> {
-    public TransformKeyOperationParser(String name, TopologyResources resources) {
-        super(name, resources);
+    public TransformKeyOperationParser(String prefix, String name, TopologyResources resources) {
+        super(prefix, name, resources);
     }
 
     @Override

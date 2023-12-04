@@ -33,9 +33,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class ContextAwareParser<T> extends BaseParser<T> {
     private static final Map<String, AtomicInteger> typeInstanceCounters = new HashMap<>();
+    // Name prefix for all functions and operations
+    protected final String prefix;
     protected final TopologyResources resources;
 
-    protected ContextAwareParser(TopologyResources resources) {
+    protected ContextAwareParser(String prefix, TopologyResources resources) {
+        this.prefix = prefix;
         this.resources = resources;
     }
 

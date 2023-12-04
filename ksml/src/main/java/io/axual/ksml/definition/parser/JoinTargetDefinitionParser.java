@@ -30,22 +30,22 @@ import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.*;
 
-public class WithTopicDefinitionParser extends ContextAwareParser<TopicDefinition> {
-    public WithTopicDefinitionParser(TopologyResources resources) {
-        super(resources);
+public class JoinTargetDefinitionParser extends ContextAwareParser<TopicDefinition> {
+    public JoinTargetDefinitionParser(String prefix, TopologyResources resources) {
+        super(prefix, resources);
     }
 
     @Override
     public TopicDefinition parse(YamlNode node) {
         if (node == null) return null;
-        if (node.get(WITH_STREAM_DEFINITION) != null) {
-            return new TopologyResourceParser<>("stream", WITH_STREAM_DEFINITION, resources::topic, new StreamDefinitionParser()).parseDefinition(node);
+        if (node.get(JOIN_WITH_STREAM_DEFINITION) != null) {
+            return new TopologyResourceParser<>("stream", JOIN_WITH_STREAM_DEFINITION, resources::topic, new StreamDefinitionParser()).parseDefinition(node);
         }
-        if (parseString(node, WITH_TABLE_DEFINITION) != null) {
-            return new TopologyResourceParser<>("table", WITH_TABLE_DEFINITION, resources::topic, new TableDefinitionParser()).parseDefinition(node);
+        if (parseString(node, JOIN_WITH_TABLE_DEFINITION) != null) {
+            return new TopologyResourceParser<>("table", JOIN_WITH_TABLE_DEFINITION, resources::topic, new TableDefinitionParser()).parseDefinition(node);
         }
-        if (parseString(node, WITH_GLOBALTABLE_DEFINITION) != null) {
-            return new TopologyResourceParser<>("globalTable", WITH_GLOBALTABLE_DEFINITION, resources::topic, new GlobalTableDefinitionParser()).parseDefinition(node);
+        if (parseString(node, JOIN_WITH_GLOBALTABLE_DEFINITION) != null) {
+            return new TopologyResourceParser<>("globalTable", JOIN_WITH_GLOBALTABLE_DEFINITION, resources::topic, new GlobalTableDefinitionParser()).parseDefinition(node);
         }
         throw new KSMLParseException(node, "Stream definition missing");
     }

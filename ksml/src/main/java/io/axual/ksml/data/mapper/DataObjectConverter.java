@@ -35,12 +35,6 @@ import static io.axual.ksml.data.type.UserType.DEFAULT_NOTATION;
 // data objects like Enums, Lists and Structs too, recursively going through sub-elements if
 // necessary.
 public class DataObjectConverter {
-    private final NotationLibrary notationLibrary;
-
-    public DataObjectConverter(NotationLibrary notationLibrary) {
-        this.notationLibrary = notationLibrary;
-    }
-
     public DataObject convert(String sourceNotation, DataObject value, UserType targetType) {
         return convert(sourceNotation, value, targetType, false);
     }
@@ -126,26 +120,23 @@ public class DataObjectConverter {
     }
 
     private DataObject applyNotationConverters(String sourceNotation, DataObject value, UserType targetType) {
-        // If we have a notation library, then we can check if the notations have converters to translate the value
-        if (notationLibrary != null) {
-            // If the value is a union, then dig down to its real value
-            while (value instanceof DataUnion valueUnion) {
-                value = valueUnion.value();
-            }
+        // If the value is a union, then dig down to its real value
+        while (value instanceof DataUnion valueUnion) {
+            value = valueUnion.value();
+        }
 
-            // First we see if the target notation is able to interpret the source value
-            var targetConverter = notationLibrary.converter(targetType.notation());
-            if (targetConverter != null) {
-                var target = targetConverter.convert(value, targetType);
-                if (target != null && targetType.dataType().isAssignableFrom(target.type())) return target;
-            }
+        // First we see if the target notation is able to interpret the source value
+        var targetConverter = NotationLibrary.converter(targetType.notation());
+        if (targetConverter != null) {
+            var target = targetConverter.convert(value, targetType);
+            if (target != null && targetType.dataType().isAssignableFrom(target.type())) return target;
+        }
 
-            // If the target notation was not able to convert, then try the source notation
-            var sourceConverter = notationLibrary.converter(sourceNotation);
-            if (sourceConverter != null) {
-                var target = sourceConverter.convert(value, targetType);
-                if (target != null && targetType.dataType().isAssignableFrom(target.type())) return target;
-            }
+        // If the target notation was not able to convert, then try the source notation
+        var sourceConverter = NotationLibrary.converter(sourceNotation);
+        if (sourceConverter != null) {
+            var target = sourceConverter.convert(value, targetType);
+            if (target != null && targetType.dataType().isAssignableFrom(target.type())) return target;
         }
 
         return value;

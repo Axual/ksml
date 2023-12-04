@@ -29,8 +29,8 @@ import io.axual.ksml.parser.YamlNode;
 import static io.axual.ksml.dsl.KSMLDSL.FILTERNOT_PREDICATE_ATTRIBUTE;
 
 public class FilterNotOperationParser extends OperationParser<FilterNotOperation> {
-    public FilterNotOperationParser(String name, TopologyResources resources) {
-        super(name, resources);
+    public FilterNotOperationParser(String prefix, String name, TopologyResources resources) {
+        super(prefix, name, resources);
     }
 
     @Override

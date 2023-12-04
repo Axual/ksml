@@ -39,15 +39,15 @@ import io.axual.ksml.parser.YamlNode;
 import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class PipelineSinkOperationParser extends OperationParser<StreamOperation> {
-    public PipelineSinkOperationParser(String name, TopologyResources resources) {
-        super(name, resources);
+    public PipelineSinkOperationParser(String prefix, String name, TopologyResources resources) {
+        super(prefix, name, resources);
     }
 
     @Override
     public StreamOperation parse(YamlNode node) {
         if (node == null) return null;
         if (node.get(PIPELINE_BRANCH_ATTRIBUTE) != null) {
-            return new BranchOperation(operationConfig(node, determineName("branch")), new ListParser<>("branch definition", new BranchDefinitionParser(resources)).parse(node.get(PIPELINE_BRANCH_ATTRIBUTE)));
+            return new BranchOperation(operationConfig(node, determineName("branch")), new ListParser<>("branch definition", new BranchDefinitionParser(prefix, resources)).parse(node.get(PIPELINE_BRANCH_ATTRIBUTE)));
         }
         if (node.get(PIPELINE_FOREACH_ATTRIBUTE) != null) {
             return new ForEachOperation(operationConfig(node, determineName("for_each")), parseFunction(node, PIPELINE_FOREACH_ATTRIBUTE, new ForEachActionDefinitionParser()));

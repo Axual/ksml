@@ -30,6 +30,19 @@ import java.util.function.ToLongFunction;
 
 public abstract class BaseParser<T> {
     private String defaultName;
+    private final BooleanToStringConverter booleanToStringConverter;
+
+    protected interface BooleanToStringConverter {
+        String interpret(boolean value);
+    }
+
+    public BaseParser() {
+        booleanToStringConverter = value -> value ? "true" : "false";
+    }
+
+    protected BaseParser(BooleanToStringConverter handler) {
+        this.booleanToStringConverter = handler;
+    }
 
     protected String getDefaultName() {
         return defaultName;
@@ -37,20 +50,6 @@ public abstract class BaseParser<T> {
 
     public void setDefaultName(String defaultName) {
         this.defaultName = defaultName;
-    }
-
-    protected interface BooleanToStringConverter {
-        String interpret(boolean value);
-    }
-
-    private final BooleanToStringConverter booleanToStringConverter;
-
-    public BaseParser() {
-        booleanToStringConverter = value -> value ? "true" : "false";
-    }
-
-    public BaseParser(BooleanToStringConverter handler) {
-        this.booleanToStringConverter = handler;
     }
 
     public abstract T parse(YamlNode node);

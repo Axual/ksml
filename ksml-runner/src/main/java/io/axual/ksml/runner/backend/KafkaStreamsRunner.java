@@ -26,8 +26,7 @@ import io.axual.ksml.client.generic.ResolvingClientConfig;
 import io.axual.ksml.client.producer.ResolvingProducerConfig;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.execution.ExecutionErrorHandler;
-import io.axual.ksml.generator.TopologySpecification;
-import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.rest.server.StreamsQuerier;
 import io.axual.ksml.runner.config.ApplicationServerConfig;
 import io.axual.ksml.runner.streams.KSMLClientSupplier;
@@ -55,11 +54,10 @@ public class KafkaStreamsRunner implements Runner {
     private final AtomicBoolean stopRunning = new AtomicBoolean(false);
 
     @Builder
-    public record Config(Map<String, TopologySpecification> definitions,
+    public record Config(Map<String, TopologyDefinition> definitions,
                          String storageDirectory,
                          ApplicationServerConfig appServer,
-                         Map<String, String> kafkaConfig,
-                         NotationLibrary notationLibrary) {
+                         Map<String, String> kafkaConfig) {
     }
 
     public KafkaStreamsRunner(Config config) {
@@ -75,7 +73,7 @@ public class KafkaStreamsRunner implements Runner {
         final var streamsConfig = new StreamsConfig(streamsProps);
         final var topologyConfig = new TopologyConfig(streamsConfig);
         final var streamsBuilder = new StreamsBuilder(topologyConfig);
-        final var topologyGenerator = new TopologyGenerator(applicationId, config.notationLibrary);
+        final var topologyGenerator = new TopologyGenerator(applicationId);
         final var topology = topologyGenerator.create(streamsBuilder, config.definitions);
         kafkaStreams = new KafkaStreams(topology, mapToProperties(streamsProps));
         kafkaStreams.setUncaughtExceptionHandler(ExecutionContext.INSTANCE::uncaughtException);

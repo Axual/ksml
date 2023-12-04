@@ -29,8 +29,8 @@ import io.axual.ksml.parser.YamlNode;
 import static io.axual.ksml.dsl.KSMLDSL.TO_STREAM_MAPPER_ATTRIBUTE;
 
 public class ToStreamOperationParser extends OperationParser<ToStreamOperation> {
-    public ToStreamOperationParser(String name, TopologyResources resources) {
-        super(name, resources);
+    public ToStreamOperationParser(String prefix, String name, TopologyResources resources) {
+        super(prefix, name, resources);
     }
 
     @Override

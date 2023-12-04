@@ -34,8 +34,8 @@ public abstract class OperationParser<T extends StreamOperation> extends Context
     private static final String[] TEMPLATE = new String[0];
     protected final String name;
 
-    public OperationParser(String name, TopologyResources resources) {
-        super(resources);
+    public OperationParser(String prefix, String name, TopologyResources resources) {
+        super(prefix, resources);
         this.name = name;
     }
 
@@ -46,6 +46,7 @@ public abstract class OperationParser<T extends StreamOperation> extends Context
     protected OperationConfig operationConfig(YamlNode node, String typeName) {
         final var storeNames = new ListParser<>("state store names", new StringValueParser()).parse(node.get(OPERATION_STORES_ATTRIBUTE));
         return new OperationConfig(
+                prefix,
                 name != null ? name : determineName(typeName),
                 storeNames != null ? storeNames.toArray(TEMPLATE) : null);
     }

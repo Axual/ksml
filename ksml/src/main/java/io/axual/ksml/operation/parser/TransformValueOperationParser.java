@@ -29,8 +29,8 @@ import io.axual.ksml.parser.YamlNode;
 import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class TransformValueOperationParser extends StoreOperationParser<TransformValueOperation> {
-    public TransformValueOperationParser(String name, TopologyResources resources) {
-        super(name, resources);
+    public TransformValueOperationParser(String prefix, String name, TopologyResources resources) {
+        super(prefix, name, resources);
     }
 
     @Override

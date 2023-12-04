@@ -26,12 +26,12 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.axual.ksml.client.serde.ResolvingDeserializer;
 import io.axual.ksml.client.serde.ResolvingSerializer;
 import io.axual.ksml.data.schema.SchemaLibrary;
-import io.axual.ksml.definition.parser.TopologySpecificationParser;
+import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.execution.ErrorHandler;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.execution.FatalError;
-import io.axual.ksml.generator.TopologySpecification;
+import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.notation.avro.AvroNotation;
 import io.axual.ksml.notation.avro.AvroSchemaLoader;
@@ -117,13 +117,12 @@ public class KSMLRunner {
             }
 
             // Set up the notation library with all known notations
-            final var notationLibrary = new NotationLibrary();
-            notationLibrary.register(AvroNotation.NOTATION_NAME, new AvroNotation(config.getKafkaConfig()), null);
-            notationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(), null);
-            notationLibrary.register(CsvNotation.NOTATION_NAME, new CsvNotation(), new CsvDataObjectConverter());
-            notationLibrary.register(JsonNotation.NOTATION_NAME, new JsonNotation(), new JsonDataObjectConverter());
-            notationLibrary.register(SOAPNotation.NOTATION_NAME, new SOAPNotation(), new SOAPDataObjectConverter());
-            notationLibrary.register(XmlNotation.NOTATION_NAME, new XmlNotation(), new XmlDataObjectConverter());
+            NotationLibrary.register(AvroNotation.NOTATION_NAME, new AvroNotation(config.getKafkaConfig()), null);
+            NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(), null);
+            NotationLibrary.register(CsvNotation.NOTATION_NAME, new CsvNotation(), new CsvDataObjectConverter());
+            NotationLibrary.register(JsonNotation.NOTATION_NAME, new JsonNotation(), new JsonDataObjectConverter());
+            NotationLibrary.register(SOAPNotation.NOTATION_NAME, new SOAPNotation(), new SOAPDataObjectConverter());
+            NotationLibrary.register(XmlNotation.NOTATION_NAME, new XmlNotation(), new XmlDataObjectConverter());
 
             // Register schema loaders
             final var schemaDirectory = ksmlConfig.getSchemaDirectory();
@@ -143,22 +142,20 @@ public class KSMLRunner {
                             new ResolvingSerializer<>(serde.serializer(), config.getKafkaConfig()),
                             new ResolvingDeserializer<>(serde.deserializer(), config.getKafkaConfig())));
 
-            final Map<String, TopologySpecification> producerSpecs = new HashMap<>();
-            final Map<String, TopologySpecification> pipelineSpecs = new HashMap<>();
+            final Map<String, TopologyDefinition> producerSpecs = new HashMap<>();
+            final Map<String, TopologyDefinition> pipelineSpecs = new HashMap<>();
             definitions.forEach((name, definition) -> {
-                final var specification = new TopologySpecificationParser().parse(YamlNode.fromRoot(definition, name));
-                if (specification.producers().size() > 0) producerSpecs.put(name, specification);
-                if (specification.pipelines().size() > 0) pipelineSpecs.put(name, specification);
+                final var specification = new TopologyDefinitionParser(name).parse(YamlNode.fromRoot(definition, name));
+                if (!specification.producers().isEmpty()) producerSpecs.put(name, specification);
+                if (!specification.pipelines().isEmpty()) pipelineSpecs.put(name, specification);
             });
 
             final var producer = producerSpecs.isEmpty() ? null : new KafkaProducerRunner(KafkaProducerRunner.Config.builder()
                     .definitions(producerSpecs)
-                    .notationLibrary(notationLibrary)
                     .kafkaConfig(config.getKafkaConfig())
                     .build());
             final var streams = pipelineSpecs.isEmpty() ? null : new KafkaStreamsRunner(KafkaStreamsRunner.Config.builder()
                     .storageDirectory(ksmlConfig.getStorageDirectory())
-                    .notationLibrary(notationLibrary)
                     .appServer(ksmlConfig.getApplicationServerConfig())
                     .definitions(pipelineSpecs)
                     .kafkaConfig(config.getKafkaConfig())
@@ -168,8 +165,8 @@ public class KSMLRunner {
                 var shutdownHook = new Thread(() -> {
                     try {
                         log.debug("In KSML shutdown hook");
-                        producer.stop();
-                        streams.stop();
+                        if (producer != null) producer.stop();
+                        if (streams != null) streams.stop();
                     } catch (Exception e) {
                         log.error("Could not properly shut down KSML", e);
                     }

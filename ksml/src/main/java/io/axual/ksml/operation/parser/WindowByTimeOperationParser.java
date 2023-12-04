@@ -32,8 +32,8 @@ import org.apache.kafka.streams.kstream.TimeWindows;
 import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class WindowByTimeOperationParser extends OperationParser<WindowByTimeOperation> {
-    public WindowByTimeOperationParser(String name, TopologyResources resources) {
-        super(name, resources);
+    public WindowByTimeOperationParser(String prefix, String name, TopologyResources resources) {
+        super(prefix, name, resources);
     }
 
     @Override

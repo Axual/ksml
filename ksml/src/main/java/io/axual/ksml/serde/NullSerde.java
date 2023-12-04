@@ -20,15 +20,19 @@ package io.axual.ksml.serde;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.common.serialization.Deserializer;
-
 import io.axual.ksml.data.value.Null;
 import io.axual.ksml.exception.KSMLExecutionException;
+import lombok.Getter;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serializer;
 
-public class NullDeserializer implements Deserializer<Object> {
-    @Override
-    public Object deserialize(String s, byte[] bytes) {
-        if (bytes == null || bytes.length == 0) return Null.NULL;
+@Getter
+public class NullSerde implements Serde<Object> {
+    private static final byte[] SERIALIZED_NULL = new byte[0];
+    private final Serializer<Object> serializer = (topic, data) -> SERIALIZED_NULL;
+    private final Deserializer<Object> deserializer = (topic, data) -> {
+        if (data == null || data.length == 0) return Null.NULL;
         throw new KSMLExecutionException("Can only deserialize empty byte arrays as DataNull");
-    }
+    };
 }

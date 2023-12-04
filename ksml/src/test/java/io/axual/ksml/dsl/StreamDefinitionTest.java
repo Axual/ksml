@@ -47,20 +47,18 @@ class StreamDefinitionTest {
     @Mock
     private StreamsBuilder builder;
 
-    private final NotationLibrary notationLibrary = new NotationLibrary();
-
     @Mock
     Notation mockNotation;
 
     @Test
     void testStreamDefinition() {
-        notationLibrary.register(BinaryNotation.NOTATION_NAME, mockNotation);
+        NotationLibrary.register(BinaryNotation.NOTATION_NAME, mockNotation);
 
         // given a StreamDefinition
         var streamDefinition = new StreamDefinition("topic", "string", "string");
         var resources = new TopologyResources("test");
 
-        var context = new TopologyBuildContext(builder, resources, notationLibrary, "");
+        var context = new TopologyBuildContext(builder, resources, "");
         // when it adds itself to Builder
         var streamWrapper = context.getStreamWrapper(streamDefinition);
 

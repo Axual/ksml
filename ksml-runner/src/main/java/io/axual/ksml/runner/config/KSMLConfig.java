@@ -44,6 +44,8 @@ public class KSMLConfig {
     private String configDirectory;
     private String schemaDirectory;
     private String storageDirectory;
+    private boolean enableProducers;
+    private boolean enablePipelines;
 
     @JsonProperty("errorHandling")
     private KSMLErrorHandlingConfig errorHandling;

@@ -48,21 +48,19 @@ class TableDefinitionTest {
     @Mock
     private StreamsBuilder builder;
 
-    private final NotationLibrary notationLibrary = new NotationLibrary();
-
     @Mock
     Notation mockNotation;
 
     @Test
     void testTableDefinition() {
-        notationLibrary.register(BinaryNotation.NOTATION_NAME, mockNotation);
+        NotationLibrary.register(BinaryNotation.NOTATION_NAME, mockNotation);
         var stringType = UserTypeParser.parse("string");
 
         // given a TableDefinition
         var tableDefinition = new TableDefinition("topic", stringType, stringType, new KeyValueStateStoreDefinition("storename", stringType, stringType));
         var resources = new TopologyResources("test");
 
-        var context = new TopologyBuildContext(builder, resources, notationLibrary, "");
+        var context = new TopologyBuildContext(builder, resources, "");
         // when it adds itself to Builder
         var streamWrapper = context.getStreamWrapper(tableDefinition);
 

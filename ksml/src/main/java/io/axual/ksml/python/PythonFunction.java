@@ -78,6 +78,12 @@ public class PythonFunction extends UserFunction {
         if (this.parameters.length < parameters.length) {
             throw new KSMLTopologyException("Parameter list does not match function spec: maximally expected " + this.parameters.length + ", got " + parameters.length);
         }
+        // Validate the parameter types
+        for (int index = 0; index < parameters.length; index++) {
+            if (!this.parameters[index].type().isAssignableFrom(parameters[index])) {
+                throw new KSMLTopologyException("User function \"" + name + "\" expects parameter " + (index + 1) + " (\"" + this.parameters[index].name() + "\") to be " + this.parameters[index].type() + ", but " + parameters[index].type() + " was passed in");
+            }
+        }
 
         // Check all parameters and copy them into the interpreter as prefixed globals
         var globalVars = new HashMap<String, Object>();

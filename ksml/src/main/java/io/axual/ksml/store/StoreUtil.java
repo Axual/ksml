@@ -26,13 +26,8 @@ import io.axual.ksml.definition.SessionStateStoreDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.WindowStateStoreDefinition;
 import io.axual.ksml.generator.StreamDataType;
-import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.serde.DataObjectDeserializer;
-import io.axual.ksml.serde.DataObjectSerializer;
-import org.apache.kafka.common.serialization.Deserializer;
+import io.axual.ksml.serde.StoreSerde;
 import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.processor.StateStore;
@@ -61,23 +56,23 @@ public class StoreUtil {
                 : Stores.inMemoryKeyValueStore(store.name());
     }
 
-    public static StoreBuilder<?> getStoreBuilder(KeyValueStateStoreDefinition store, NotationLibrary notationLibrary) {
-        final var keyType = new StreamDataType(notationLibrary, store.keyType(), true);
-        final var valueType = new StreamDataType(notationLibrary, store.valueType(), false);
+    public static StoreBuilder<?> getStoreBuilder(KeyValueStateStoreDefinition store) {
+        final var keyType = new StreamDataType(store.keyType(), true);
+        final var valueType = new StreamDataType(store.valueType(), false);
         StoreBuilder<?> storeBuilder;
         if (store.persistent()) {
             if (store.versioned()) {
                 final var supplier = Stores.persistentVersionedKeyValueStore(store.name(), store.historyRetention(), store.segmentInterval());
-                storeBuilder = Stores.versionedKeyValueStoreBuilder(supplier, keyType.getSerde(), valueType.getSerde());
+                storeBuilder = Stores.versionedKeyValueStoreBuilder(supplier, keyType.serde(), valueType.serde());
             } else {
                 final var supplier = store.timestamped()
                         ? Stores.persistentTimestampedKeyValueStore(store.name())
                         : Stores.persistentKeyValueStore(store.name());
-                storeBuilder = Stores.keyValueStoreBuilder(supplier, keyType.getSerde(), valueType.getSerde());
+                storeBuilder = Stores.keyValueStoreBuilder(supplier, keyType.serde(), valueType.serde());
             }
         } else {
             final var supplier = Stores.inMemoryKeyValueStore(store.name());
-            storeBuilder = Stores.keyValueStoreBuilder(supplier, keyType.getSerde(), valueType.getSerde());
+            storeBuilder = Stores.keyValueStoreBuilder(supplier, keyType.serde(), valueType.serde());
         }
         storeBuilder = store.caching() ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
         storeBuilder = store.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();
@@ -90,13 +85,13 @@ public class StoreUtil {
                 : Stores.inMemorySessionStore(store.name(), store.retention());
     }
 
-    public static StoreBuilder<?> getStoreBuilder(SessionStateStoreDefinition store, NotationLibrary notationLibrary) {
-        final var keyType = new StreamDataType(notationLibrary, store.keyType(), true);
-        final var valueType = new StreamDataType(notationLibrary, store.valueType(), false);
+    public static StoreBuilder<?> getStoreBuilder(SessionStateStoreDefinition store) {
+        final var keyType = new StreamDataType(store.keyType(), true);
+        final var valueType = new StreamDataType(store.valueType(), false);
         final var supplier = store.persistent()
                 ? Stores.persistentSessionStore(store.name(), store.retention())
                 : Stores.inMemorySessionStore(store.name(), store.retention());
-        var storeBuilder = Stores.sessionStoreBuilder(supplier, keyType.getSerde(), valueType.getSerde());
+        var storeBuilder = Stores.sessionStoreBuilder(supplier, keyType.serde(), valueType.serde());
         storeBuilder = store.caching() ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
         storeBuilder = store.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();
         return storeBuilder;
@@ -110,15 +105,15 @@ public class StoreUtil {
                 : Stores.inMemoryWindowStore(store.name(), store.retention(), store.windowSize(), store.retainDuplicates());
     }
 
-    public static StoreBuilder<?> getStoreBuilder(WindowStateStoreDefinition store, NotationLibrary notationLibrary) {
-        final var keyType = new StreamDataType(notationLibrary, store.keyType(), true);
-        final var valueType = new StreamDataType(notationLibrary, store.valueType(), false);
+    public static StoreBuilder<?> getStoreBuilder(WindowStateStoreDefinition store) {
+        final var keyType = new StreamDataType(store.keyType(), true);
+        final var valueType = new StreamDataType(store.valueType(), false);
         var supplier = store.persistent()
                 ? (store.timestamped()
                 ? Stores.persistentTimestampedWindowStore(store.name(), store.retention(), store.windowSize(), store.retainDuplicates())
                 : Stores.persistentWindowStore(store.name(), store.retention(), store.windowSize(), store.retainDuplicates()))
                 : Stores.inMemoryWindowStore(store.name(), store.retention(), store.windowSize(), store.retainDuplicates());
-        var storeBuilder = Stores.windowStoreBuilder(supplier, keyType.getSerde(), valueType.getSerde());
+        var storeBuilder = Stores.windowStoreBuilder(supplier, keyType.serde(), valueType.serde());
         storeBuilder = store.caching() ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
         storeBuilder = store.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();
         return storeBuilder;
@@ -128,66 +123,40 @@ public class StoreUtil {
                                                              Serde<Object> keySerde, Serde<V> valueSerde) {
     }
 
-    public static <V> MaterializedStore<V, KeyValueStore<Bytes, byte[]>> materialize(KeyValueStateStoreDefinition store, NotationLibrary notationLibrary, String topicName) {
+    public static <V> MaterializedStore<V, KeyValueStore<Bytes, byte[]>> materialize(KeyValueStateStoreDefinition store, String topicName) {
         Materialized<Object, V, KeyValueStore<Bytes, byte[]>> mat = Materialized.as(getStoreSupplier(store));
-        return materialize(mat, store, notationLibrary, topicName);
+        return materialize(mat, store, topicName);
     }
 
-    public static <V> MaterializedStore<V, SessionStore<Bytes, byte[]>> materialize(SessionStateStoreDefinition store, NotationLibrary notationLibrary, String topicName) {
+    public static <V> MaterializedStore<V, SessionStore<Bytes, byte[]>> materialize(SessionStateStoreDefinition store, String topicName) {
         Materialized<Object, V, SessionStore<Bytes, byte[]>> mat = Materialized.as(getStoreSupplier(store));
         if (store.retention() != null) mat = mat.withRetention(store.retention());
-        return materialize(mat, store, notationLibrary, topicName);
+        return materialize(mat, store, topicName);
     }
 
-    public static <V> MaterializedStore<V, WindowStore<Bytes, byte[]>> materialize(WindowStateStoreDefinition store, NotationLibrary notationLibrary, String topicName) {
+    public static <V> MaterializedStore<V, WindowStore<Bytes, byte[]>> materialize(WindowStateStoreDefinition store, String topicName) {
         Materialized<Object, V, WindowStore<Bytes, byte[]>> mat = Materialized.as(getStoreSupplier(store));
         if (store.retention() != null) mat = mat.withRetention(store.retention());
-        return materialize(mat, store, notationLibrary, topicName);
+        return materialize(mat, store, topicName);
     }
 
-    private static <V, S extends StateStore> MaterializedStore<V, S> materialize(Materialized<Object, V, S> mat, StateStoreDefinition store, NotationLibrary notationLibrary, String topicName) {
-        final var keySerde = getStoreSerde(notationLibrary, store.keyType(), true, topicName);
-        final var valueSerde = (Serde<V>) getStoreSerde(notationLibrary, store.valueType(), false, store.name());
+    private static <V, S extends StateStore> MaterializedStore<V, S> materialize(Materialized<Object, V, S> mat, StateStoreDefinition store, String topicName) {
+        final var keySerde = getStoreSerde(store.keyType(), true, topicName);
+        final var valueSerde = (Serde<V>) getStoreSerde(store.valueType(), false, store.name());
         mat = mat.withKeySerde(keySerde).withValueSerde(valueSerde);
         mat = store.caching() ? mat.withCachingEnabled() : mat.withCachingDisabled();
         mat = store.logging() ? mat.withLoggingEnabled(new HashMap<>()) : mat.withLoggingDisabled();
         return new MaterializedStore<>(mat, keySerde, valueSerde);
     }
 
-    public static Serde<Object> getStoreSerde(NotationLibrary notationLibrary, UserType type, boolean isKey, final String topicName) {
+    public static Serde<Object> getStoreSerde(UserType type, boolean isKey, final String topicName) {
         // Here we determine the serde for the state store. The rule is: if we are serializing to a Kafka topic, then we
         // follow the explicitly provided type and use the corresponding serde. If we are serializing to an in memory or
         // RocksDB store, then we use an internal serde, which prevents external side effects, such as registering an
         // AVRO schema for a non-existing topic. The internal serde is capable of serializing an in-memory DataObject
         // to a byte[] and restoring it from the byte[] completely, including its schema, without any unwanted SR side
         // effects.
-        final var defaultSerde = new StreamDataType(notationLibrary, type, isKey).getSerde();
-        final var serializer = new Serializer<>() {
-            private final Serializer<Object> internalSerializer = new DataObjectSerializer(type.dataType());
-
-            @Override
-            public byte[] serialize(String topic, Object data) {
-                // If we are serializing to the topic, then use the normal serializer
-                if (topicName != null && topicName.equals(topic)) {
-                    return defaultSerde.serializer().serialize(topic, data);
-                }
-                // Else use the internal DataObject serializer
-                return internalSerializer.serialize(topic, data);
-            }
-        };
-        final var deserializer = new Deserializer<>() {
-            private final Deserializer<Object> internalDeserializer = new DataObjectDeserializer(type.dataType());
-
-            @Override
-            public Object deserialize(String topic, byte[] data) {
-                // If we are serializing to the topic, then use the normal deserializer
-                if (topicName != null && topicName.equals(topic)) {
-                    return defaultSerde.deserializer().deserialize(topic, data);
-                }
-                // Else use the internal DataObject deserializer
-                return internalDeserializer.deserialize(topic, data);
-            }
-        };
-        return Serdes.serdeFrom(serializer, deserializer);
+        final var defaultSerde = new StreamDataType(type, isKey).serde();
+        return new StoreSerde(type.dataType(), defaultSerde, topicName);
     }
 }

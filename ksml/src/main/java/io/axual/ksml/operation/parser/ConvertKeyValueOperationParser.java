@@ -31,8 +31,8 @@ import io.axual.ksml.parser.YamlNode;
 import static io.axual.ksml.dsl.KSMLDSL.CONVERT_INTO_ATTRIBUTE;
 
 public class ConvertKeyValueOperationParser extends OperationParser<ConvertKeyValueOperation> {
-    public ConvertKeyValueOperationParser(String name, TopologyResources resources) {
-        super(name, resources);
+    public ConvertKeyValueOperationParser(String prefix, String name, TopologyResources resources) {
+        super(prefix, name, resources);
     }
 
     @Override

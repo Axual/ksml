@@ -25,8 +25,8 @@ import io.axual.ksml.definition.StateStoreDefinition;
 public class StoreOperationConfig extends OperationConfig {
     public final StateStoreDefinition store;
 
-    public StoreOperationConfig(String name, StateStoreDefinition store) {
-        super(name, null);
+    public StoreOperationConfig(String prefix, String name, StateStoreDefinition store) {
+        super(prefix, name, null);
         this.store = store;
     }
 }

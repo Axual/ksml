@@ -20,19 +20,19 @@ package io.axual.ksml.notation.binary;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.common.serialization.Serializer;
-
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.SimpleType;
 import io.axual.ksml.data.value.Null;
 import io.axual.ksml.notation.Notation;
 import io.axual.ksml.notation.json.JsonNotation;
-import io.axual.ksml.serde.NullDeserializer;
-import io.axual.ksml.serde.NullSerializer;
+import io.axual.ksml.serde.ByteSerde;
+import io.axual.ksml.serde.NullSerde;
 import io.axual.ksml.util.DataUtil;
+import lombok.Getter;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.serialization.Serializer;
 
 public class BinaryNotation implements Notation {
     public static final String NOTATION_NAME = "BINARY";
@@ -47,50 +47,31 @@ public class BinaryNotation implements Notation {
     @Override
     public Serde<Object> serde(DataType type, boolean isKey) {
         if (type instanceof SimpleType) {
-            if (type.containerClass() == Null.class)
-                return new BinarySerde(Serdes.serdeFrom(new NullSerializer(), new NullDeserializer()));
+            if (type.containerClass() == Null.class) return new NullSerde();
+            if (type.containerClass() == Byte.class) return new ByteSerde();
             return new BinarySerde((Serde<Object>) Serdes.serdeFrom(type.containerClass()));
         }
         // If not a simple dataType, then rely on JSON encoding
         return jsonNotation.serde(type, isKey);
     }
 
+    @Getter
     private static class BinarySerde implements Serde<Object> {
         private final Serializer<Object> serializer;
         private final Deserializer<Object> deserializer;
 
-        public BinarySerde(Serde<Object> serde) {
-            this.serializer = serde.serializer();
-            this.deserializer = serde.deserializer();
-        }
-
-        private final Serializer<Object> wrapSerializer = new Serializer<>() {
-            @Override
-            public byte[] serialize(String topic, Object data) {
+        public BinarySerde(final Serde<Object> serde) {
+            this.serializer = (topic, data) -> {
                 // Serialize the raw object by converting from user object if necessary
-                return serializer.serialize(topic, mapper.fromDataObject(DataUtil.asDataObject(data)));
-            }
-        };
-
-        private final Deserializer<Object> wrapDeserializer = new Deserializer<>() {
-            @Override
-            public Object deserialize(String topic, byte[] data) {
+                return serde.serializer().serialize(topic, mapper.fromDataObject(DataUtil.asDataObject(data)));
+            };
+            this.deserializer = (topic, data) -> {
                 // Deserialize the raw object and return as such. If any conversion to a user
                 // object needs to be done, then it's up to the pipeline operations to do so.
                 // This ensures that operations that need the raw type (eg. Count needing Long)
                 // can read back the binary types they expect.
-                return deserializer.deserialize(topic, data);
-            }
-        };
-
-        @Override
-        public Serializer<Object> serializer() {
-            return wrapSerializer;
-        }
-
-        @Override
-        public Deserializer<Object> deserializer() {
-            return wrapDeserializer;
+                return serde.deserializer().deserialize(topic, data);
+            };
         }
     }
 }

@@ -32,8 +32,8 @@ import static io.axual.ksml.dsl.KSMLDSL.REDUCE_SUBTRACTOR_ATTRIBUTE;
 import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
 
 public class ReduceOperationParser extends StoreOperationParser<ReduceOperation> {
-    public ReduceOperationParser(String name, TopologyResources resources) {
-        super(name, resources);
+    public ReduceOperationParser(String prefix, String name, TopologyResources resources) {
+        super(prefix, name, resources);
     }
 
     @Override

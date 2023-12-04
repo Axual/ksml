@@ -38,36 +38,22 @@ public class PythonContext {
     @Getter
     private final DataObjectConverter converter;
 
-    public PythonContext(DataObjectConverter converter) {
-        this.converter = converter;
-        context = setupPythonContext();
-    }
+    public PythonContext() {
+        this.converter = new DataObjectConverter();
 
-    private Context setupPythonContext() {
         log.debug("Setting up new Python context");
         try {
-//            final var venvExe = getClass().
-//                    getClassLoader().
-//                    getResource(Paths.get("venv", "bin", "graalpy").toString());
-//            if (venvExe == null) throw FatalError.executionError("Could not set up Python execution path");
-            final var result = Context.newBuilder(PYTHON)
+            context = Context.newBuilder(PYTHON)
                     .allowIO(IOAccess.ALL)
                     .allowNativeAccess(true)
                     .allowPolyglotAccess(PolyglotAccess.ALL)
                     .allowHostAccess(HostAccess.ALL)
                     .allowHostClassLookup(name -> name.equals("java.util.ArrayList") || name.equals("java.util.HashMap") || name.equals("java.util.TreeMap"))
-//                    .option("python.Executable", venvExe.getPath())
                     .build();
-//            result.eval(PYTHON, "import site");
-            return result;
         } catch (Exception e) {
             log.error("Error setting up a new Python context", e);
             throw FatalError.executionError("Could not setup a new Python context", e);
         }
-    }
-
-    public DataObjectConverter converter() {
-        return converter;
     }
 
     public Value registerFunction(String pyCode, String callerName) {

@@ -49,7 +49,7 @@ public class TransformValueOperation extends StoreOperation {
         final var vr = context.streamDataTypeOf(firstSpecificType(mapper, v.userType()), false);
         final var map = checkFunction(MAPPER_NAME, mapper, vr, superOf(k), superOf(v));
 
-        final var userMap = new UserValueTransformer(context.createUserFunction(map));
+        final var userMap = new UserValueTransformer(context.createUserFunction(map, k.userType().dataType(), v.userType().dataType()));
         final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames().toArray(TEMPLATE));
         final var supplier = new FixedKeyOperationProcessorSupplier<>(
                 name,

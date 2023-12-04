@@ -25,8 +25,7 @@ import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.generator.TopologyAnalyzer;
 import io.axual.ksml.generator.TopologyBuildContext;
-import io.axual.ksml.generator.TopologySpecification;
-import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.operation.StoreOperation;
 import io.axual.ksml.operation.StreamOperation;
 import io.axual.ksml.operation.ToOperation;
@@ -43,21 +42,19 @@ import java.util.Set;
 public class TopologyGenerator {
     private static final Logger LOG = LoggerFactory.getLogger(TopologyGenerator.class);
     private final String applicationId;
-    private final NotationLibrary notationLibrary;
 
-    public TopologyGenerator(String applicationId, NotationLibrary notationLibrary) {
+    public TopologyGenerator(String applicationId) {
         // Parse configuration
         this.applicationId = applicationId;
-        this.notationLibrary = notationLibrary;
     }
 
-    public Topology create(StreamsBuilder streamsBuilder, Map<String, TopologySpecification> definitions) {
+    public Topology create(StreamsBuilder streamsBuilder, Map<String, TopologyDefinition> definitions) {
         if (definitions.isEmpty()) return null;
 
         final var knownTopics = new HashSet<String>();
 
         definitions.forEach((name, definition) -> {
-            final var context = new TopologyBuildContext(streamsBuilder, definition, notationLibrary, name);
+            final var context = new TopologyBuildContext(streamsBuilder, definition, name);
             generate(definition, context);
         });
 
@@ -80,7 +77,7 @@ public class TopologyGenerator {
     }
 
     public void appendTopics(StringBuilder builder, String description, Set<String> topics) {
-        if (topics.size() > 0) {
+        if (!topics.isEmpty()) {
             builder.append(description).append(":\n  ");
             builder.append(String.join("\n  ", topics));
             builder.append("\n");
@@ -88,7 +85,7 @@ public class TopologyGenerator {
     }
 
     public void appendStores(StringBuilder builder, String description, Map<String, StateStoreDefinition> stores) {
-        if (stores.size() > 0) {
+        if (!stores.isEmpty()) {
             builder.append(description).append(":\n");
         }
         for (var entry : stores.entrySet()) {
@@ -127,7 +124,7 @@ public class TopologyGenerator {
         return source;
     }
 
-    private void generate(TopologySpecification specification, TopologyBuildContext context) {
+    private void generate(TopologyDefinition specification, TopologyBuildContext context) {
         // Register all topics
         final var knownTopics = new HashSet<String>();
         specification.topics().forEach((name, def) -> knownTopics.add(def.topic()));
@@ -141,9 +138,9 @@ public class TopologyGenerator {
         });
 
         // Preload the function into the Python context
-        specification.functions().forEach((name, func) -> {
-            context.createUserFunction(func);
-        });
+//        specification.functions().forEach((name, func) -> {
+//            context.createUserFunction(func);
+//        });
 
         // Figure out which state stores to create manually. Mechanism:
         // 1. run through all pipelines and scan for StoreOperations, don't create the stores referenced

@@ -27,6 +27,7 @@ import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.GlobalTableDefinition;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
+import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.definition.SessionStateStoreDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.StreamDefinition;
@@ -35,7 +36,6 @@ import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.definition.WindowStateStoreDefinition;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.execution.FatalError;
-import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonFunction;
 import io.axual.ksml.store.StoreUtil;
@@ -61,22 +61,20 @@ public class TopologyBuildContext {
     private final StreamsBuilder builder;
     private final TopologyResources resources;
     private final PythonContext pythonContext;
-    private final NotationLibrary notationLibrary;
     private final String namePrefix;
 
     // All wrapped KStreams, KTables and KGlobalTables
     private final Map<String, StreamWrapper> streamWrappers = new HashMap<>();
 
-    public TopologyBuildContext(StreamsBuilder builder, TopologyResources resources, NotationLibrary notationLibrary, String namePrefix) {
+    public TopologyBuildContext(StreamsBuilder builder, TopologyResources resources, String namePrefix) {
         this.builder = builder;
         this.resources = resources;
-        this.notationLibrary = notationLibrary;
         this.namePrefix = namePrefix;
-        this.pythonContext = new PythonContext(new DataObjectConverter(notationLibrary));
+        this.pythonContext = new PythonContext();
     }
 
     public DataObjectConverter getDataObjectConverter() {
-        return new DataObjectConverter(notationLibrary);
+        return new DataObjectConverter();
     }
 
     public StreamDataType streamDataTypeOf(String notationName, DataType dataType, boolean isKey) {
@@ -84,7 +82,7 @@ public class TopologyBuildContext {
     }
 
     public StreamDataType streamDataTypeOf(UserType userType, boolean isKey) {
-        return new StreamDataType(notationLibrary, userType, isKey);
+        return new StreamDataType(userType, isKey);
     }
 
     public StreamDataType windowedTypeOf(StreamDataType keyType) {
@@ -98,17 +96,17 @@ public class TopologyBuildContext {
 
     public <V> Materialized<Object, V, KeyValueStore<Bytes, byte[]>> materialize(KeyValueStateStoreDefinition store) {
         resources.register(store.name(), store);
-        return StoreUtil.<V>materialize(store, notationLibrary, getTopicName(store)).materialized();
+        return StoreUtil.<V>materialize(store, getTopicName(store)).materialized();
     }
 
     public <V> Materialized<Object, V, SessionStore<Bytes, byte[]>> materialize(SessionStateStoreDefinition store) {
         resources.register(store.name(), store);
-        return StoreUtil.<V>materialize(store, notationLibrary, getTopicName(store)).materialized();
+        return StoreUtil.<V>materialize(store, getTopicName(store)).materialized();
     }
 
     public <V> Materialized<Object, V, WindowStore<Bytes, byte[]>> materialize(WindowStateStoreDefinition store) {
         resources.register(store.name(), store);
-        return StoreUtil.<V>materialize(store, notationLibrary, getTopicName(store)).materialized();
+        return StoreUtil.<V>materialize(store, getTopicName(store)).materialized();
     }
 
     private static String getTopicName(StateStoreDefinition store) {
@@ -118,17 +116,17 @@ public class TopologyBuildContext {
 
     public void createUserStateStore(StateStoreDefinition store) {
         if (store instanceof KeyValueStateStoreDefinition storeDef) {
-            final var storeBuilder = StoreUtil.getStoreBuilder(storeDef, notationLibrary);
+            final var storeBuilder = StoreUtil.getStoreBuilder(storeDef);
             builder.addStateStore(storeBuilder);
         }
 
         if (store instanceof SessionStateStoreDefinition storeDef) {
-            final var storeBuilder = StoreUtil.getStoreBuilder(storeDef, notationLibrary);
+            final var storeBuilder = StoreUtil.getStoreBuilder(storeDef);
             builder.addStateStore(storeBuilder);
         }
 
         if (store instanceof WindowStateStoreDefinition storeDef) {
-            final var storeBuilder = StoreUtil.getStoreBuilder(storeDef, notationLibrary);
+            final var storeBuilder = StoreUtil.getStoreBuilder(storeDef);
             builder.addStateStore(storeBuilder);
         }
     }
@@ -170,41 +168,56 @@ public class TopologyBuildContext {
 
     private StreamWrapper buildWrapper(String name, TopicDefinition def) {
         if (def instanceof StreamDefinition streamDefinition) {
-            var streamKey = new StreamDataType(notationLibrary, streamDefinition.keyType(), true);
-            var streamValue = new StreamDataType(notationLibrary, streamDefinition.valueType(), false);
+            var streamKey = new StreamDataType(streamDefinition.keyType(), true);
+            var streamValue = new StreamDataType(streamDefinition.valueType(), false);
             return new KStreamWrapper(
-                    builder.stream(streamDefinition.topic(), Consumed.with(streamKey.getSerde(), streamValue.getSerde()).withName(name)),
+                    builder.stream(streamDefinition.topic(), Consumed.with(streamKey.serde(), streamValue.serde()).withName(name)),
                     streamKey,
                     streamValue);
         }
 
         if (def instanceof TableDefinition tableDefinition) {
-            final var streamKey = new StreamDataType(notationLibrary, tableDefinition.keyType(), true);
-            final var streamValue = new StreamDataType(notationLibrary, tableDefinition.valueType(), false);
+            final var streamKey = new StreamDataType(tableDefinition.keyType(), true);
+            final var streamValue = new StreamDataType(tableDefinition.valueType(), false);
 
             if (tableDefinition.store() != null) {
-                final var mat = StoreUtil.materialize(tableDefinition.store(), notationLibrary, tableDefinition.topic);
+                final var mat = StoreUtil.materialize(tableDefinition.store(), tableDefinition.topic);
                 return new KTableWrapper(builder.table(tableDefinition.topic(), mat.materialized()), streamKey, streamValue);
             }
 
             // Set up dummy materialization for tables, mapping to the topic itself so we don't require an extra state store topic
             final var store = new KeyValueStateStoreDefinition(tableDefinition.topic, false, false, false, Duration.ofSeconds(900), Duration.ofSeconds(60), streamKey.userType(), streamValue.userType(), false, false);
-            final var mat = StoreUtil.materialize(store, notationLibrary, tableDefinition.topic);
+            final var mat = StoreUtil.materialize(store, tableDefinition.topic);
             final var consumed = Consumed.as(name).withKeySerde(mat.keySerde()).withValueSerde(mat.valueSerde());
             return new KTableWrapper(builder.table(tableDefinition.topic(), consumed, mat.materialized()), streamKey, streamValue);
         }
 
         if (def instanceof GlobalTableDefinition globalTableDefinition) {
-            final var streamKey = new StreamDataType(notationLibrary, globalTableDefinition.keyType(), true);
-            final var streamValue = new StreamDataType(notationLibrary, globalTableDefinition.valueType(), false);
-            final var consumed = Consumed.as(name).withKeySerde(streamKey.getSerde()).withValueSerde(streamValue.getSerde());
+            final var streamKey = new StreamDataType(globalTableDefinition.keyType(), true);
+            final var streamValue = new StreamDataType(globalTableDefinition.valueType(), false);
+            final var consumed = Consumed.as(name).withKeySerde(streamKey.serde()).withValueSerde(streamValue.serde());
             return new GlobalKTableWrapper(builder.globalTable(globalTableDefinition.topic(), consumed), streamKey, streamValue);
         }
 
         throw FatalError.topologyError("Unknown stream type: " + def.getClass().getSimpleName());
     }
 
-    public UserFunction createUserFunction(FunctionDefinition definition) {
-        return PythonFunction.fromNamed(pythonContext, definition.name(), definition);
+    public UserFunction createUserFunction(FunctionDefinition definition, DataType... paramTypes) {
+        // Here we replace the parameter types of the function with the given types from the stream. This allows user
+        // function wrappers to check incoming data types against expected types.
+        final var params = definition.parameters();
+        final var newParams = new ParameterDefinition[params.length];
+        if (params.length < paramTypes.length) {
+            throw FatalError.executionError("User function " + definition.name() + " has fewer parameters than expected");
+        }
+        // Replace the fixed parameters in the array
+        for (int index = 0; index < paramTypes.length; index++) {
+            final var param = params[index];
+            newParams[index] = new ParameterDefinition(param.name(), paramTypes[index], param.isOptional(), param.defaultValue());
+        }
+        // Copy the remainder of the parameters into the new array
+        System.arraycopy(params, paramTypes.length, newParams, paramTypes.length, params.length - paramTypes.length);
+        // Create the Python function with the new parameter definitions
+        return PythonFunction.fromNamed(pythonContext, definition.name(), definition.withParameters(newParams));
     }
 }

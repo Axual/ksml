@@ -29,8 +29,8 @@ import io.axual.ksml.parser.YamlNode;
 import static io.axual.ksml.dsl.KSMLDSL.REPARTITION_PARTITIONER_ATTRIBUTE;
 
 public class RepartitionOperationParser extends OperationParser<RepartitionOperation> {
-    public RepartitionOperationParser(String name, TopologyResources resources) {
-        super(name, resources);
+    public RepartitionOperationParser(String prefix, String name, TopologyResources resources) {
+        super(prefix, name, resources);
     }
 
     @Override

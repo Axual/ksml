@@ -26,6 +26,7 @@ functions:
       newSchemaId = 0x01020304
     code: |
       global newSchemaId
+      log.info("Replacing schema in message value: {}", value)
       if value != None:
         if value[0] == 0 and len(value) >= 5:
           value[1] = (newSchemaId & 0xff000000) >> 24

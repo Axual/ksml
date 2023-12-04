@@ -26,26 +26,29 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class NotationLibrary {
+    private NotationLibrary() {
+    }
+
     private record NotationEntry(Notation notation, NotationConverter converter) {
     }
 
-    private final Map<String, NotationEntry> notationEntries = new HashMap<>();
+    private static final Map<String, NotationEntry> notationEntries = new HashMap<>();
 
-    public void register(String name, Notation notation) {
+    public static void register(String name, Notation notation) {
         register(name, notation, null);
     }
 
-    public void register(String name, Notation notation, NotationConverter converter) {
+    public static void register(String name, Notation notation, NotationConverter converter) {
         notationEntries.put(name, new NotationEntry(notation, converter));
     }
 
-    public Notation get(String notation) {
+    public static Notation get(String notation) {
         var result = notation != null ? notationEntries.get(notation) : null;
         if (result != null) return result.notation;
         throw FatalError.dataError("Data notation is not registered in the NotationLibrary: " + (notation != null ? notation : "null"));
     }
 
-    public NotationConverter converter(String notation) {
+    public static NotationConverter converter(String notation) {
         var result = notation != null ? notationEntries.get(notation) : null;
         if (result != null) return result.converter;
         throw FatalError.dataError("Data type notation not found: " + notation);

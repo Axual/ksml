@@ -174,11 +174,11 @@ public class KSMLDSL {
     public static final String WINDOWEDBY_WINDOWTYPE_TIME_GRACE = "grace";
     public static final String PIPELINE_FROM_ATTRIBUTE = "from";
     public static final String PIPELINE_VIA_ATTRIBUTE = "via";
-    public static final String WITH_STREAM_DEFINITION = "withStream";
+    public static final String JOIN_WITH_STREAM_DEFINITION = "stream";
     public static final String STREAMS_DEFINITION = "streams";
-    public static final String WITH_TABLE_DEFINITION = "withTable";
+    public static final String JOIN_WITH_TABLE_DEFINITION = "table";
     public static final String TABLES_DEFINITION = "tables";
-    public static final String WITH_GLOBALTABLE_DEFINITION = "withGlobalTable";
+    public static final String JOIN_WITH_GLOBALTABLE_DEFINITION = "globalTable";
     public static final String GLOBALTABLES_DEFINITION = "globalTables";
     public static final String FUNCTIONS_DEFINITION = "functions";
     public static final String STORES_DEFINITION = "stores";

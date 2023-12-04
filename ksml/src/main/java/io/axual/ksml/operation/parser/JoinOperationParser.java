@@ -26,7 +26,7 @@ import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.definition.parser.KeyTransformerDefinitionParser;
 import io.axual.ksml.definition.parser.ValueJoinerDefinitionParser;
-import io.axual.ksml.definition.parser.WithTopicDefinitionParser;
+import io.axual.ksml.definition.parser.JoinTargetDefinitionParser;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.JoinOperation;
@@ -35,14 +35,14 @@ import io.axual.ksml.parser.YamlNode;
 import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class JoinOperationParser extends StoreOperationParser<JoinOperation> {
-    public JoinOperationParser(String name, TopologyResources resources) {
-        super(name, resources);
+    public JoinOperationParser(String prefix, String name, TopologyResources resources) {
+        super(prefix, name, resources);
     }
 
     @Override
     public JoinOperation parse(YamlNode node) {
         if (node == null) return null;
-        final var joinTopic = new WithTopicDefinitionParser(resources).parse(node);
+        final var joinTopic = new JoinTargetDefinitionParser(prefix, resources).parse(node);
         if (joinTopic instanceof StreamDefinition joinStream) {
             return new JoinOperation(
                     storeOperationConfig(node, STORE_ATTRIBUTE),

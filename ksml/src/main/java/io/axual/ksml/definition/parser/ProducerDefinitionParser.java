@@ -30,8 +30,8 @@ import io.axual.ksml.parser.YamlNode;
 import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class ProducerDefinitionParser extends ContextAwareParser<ProducerDefinition> {
-    public ProducerDefinitionParser(TopologyResources resources) {
-        super(resources);
+    public ProducerDefinitionParser(String prefix, TopologyResources resources) {
+        super(prefix, resources);
     }
 
     @Override

@@ -28,7 +28,7 @@ import io.axual.ksml.exception.KSMLTopologyException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TopologySpecification extends TopologyResources {
+public class TopologyDefinition extends TopologyResources {
     // All registered pipelines
     private final Map<String, PipelineDefinition> pipelines = new HashMap<>();
     // All registered producers
@@ -42,11 +42,11 @@ public class TopologySpecification extends TopologyResources {
         pipelines.put(name, pipelineDefinition);
     }
 
-    public TopologySpecification(String name) {
+    public TopologyDefinition(String name) {
         super(name);
     }
 
-    public TopologySpecification(TopologyResources resources) {
+    public TopologyDefinition(TopologyResources resources) {
         super(resources.name());
         resources.functions().forEach(this::register);
         resources.stateStores().forEach(this::register);

@@ -61,7 +61,7 @@ public class GroupByOperation extends StoreOperation {
 
         final var kvStore = validateKeyValueStore(store(), kr, v);
         final var userSel = new UserKeyTransformer(context.createUserFunction(sel));
-        var grouped = Grouped.with(kr.getSerde(), v.getSerde());
+        var grouped = Grouped.with(kr.serde(), v.serde());
         if (name != null) grouped = grouped.withName(name);
         if (kvStore != null) grouped = grouped.withName(name);
         final var output = input.stream.groupBy(userSel, grouped);
@@ -88,7 +88,7 @@ public class GroupByOperation extends StoreOperation {
             final var vr = context.streamDataTypeOf(userTupleType.getUserType(1), false);
             final var kvStore = validateKeyValueStore(store(), kr, vr);
             final var userSel = new UserKeyValueTransformer(context.createUserFunction(sel));
-            var grouped = Grouped.with(kr.getSerde(), vr.getSerde());
+            var grouped = Grouped.with(kr.serde(), vr.serde());
             if (name != null) grouped = grouped.withName(name);
             if (kvStore != null) grouped = grouped.withName(kvStore.name());
             final var output = input.table.groupBy(userSel, grouped);

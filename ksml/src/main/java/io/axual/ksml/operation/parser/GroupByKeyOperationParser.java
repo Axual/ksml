@@ -28,8 +28,8 @@ import io.axual.ksml.parser.YamlNode;
 import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
 
 public class GroupByKeyOperationParser extends StoreOperationParser<GroupByKeyOperation> {
-    public GroupByKeyOperationParser(String name, TopologyResources resources) {
-        super(name, resources);
+    public GroupByKeyOperationParser(String prefix, String name, TopologyResources resources) {
+        super(prefix, name, resources);
     }
 
     @Override

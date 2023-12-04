@@ -20,6 +20,13 @@ package io.axual.ksml;
  * =========================LICENSE_END==================================
  */
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.ImmutableMap;
+import io.axual.ksml.definition.parser.TopologyDefinitionParser;
+import io.axual.ksml.generator.YAMLObjectMapper;
+import io.axual.ksml.parser.YamlNode;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.TopologyDescription;
 import org.graalvm.home.Version;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -28,11 +35,17 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class TopologyGeneratorBasicTest {
+
+    private final StreamsBuilder streamsBuilder = new StreamsBuilder();
 
     @BeforeAll
     public static void checkGraalVM() {
@@ -41,23 +54,23 @@ public class TopologyGeneratorBasicTest {
         }
     }
 
-    @ParameterizedTest
+//    @ParameterizedTest
     @ValueSource(ints = {1, 2, 3, 4, 5})
     void parseAndCheckOuput(int nr) throws Exception {
-//        final var uri = ClassLoader.getSystemResource("pipelines/" + nr + "-demo.yaml").toURI();
-//        final var path = Paths.get(uri);
-//        final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(path), JsonNode.class);
-//        final var definitions = ImmutableMap.of("definition",
-//                new TopologySpecificationParser().parse(YamlNode.fromRoot(definition, "test")));
-//        var topologyGenerator = new TopologyGenerator("some.app.id", new NotationLibrary());
-//        final var topology = topologyGenerator.create(new StreamsBuilder(), definitions);
-//        final TopologyDescription description = topology.describe();
-//        System.out.println(description);
-//
-//        URI referenceURI = ClassLoader.getSystemResource("reference/" + nr + "-reference.txt").toURI();
-//        String reference = Files.readString(Paths.get(referenceURI));
-//
-//        assertThat(cleanDescription(description.toString()), is(reference));
+        final var uri = ClassLoader.getSystemResource("pipelines/" + nr + "-demo.yaml").toURI();
+        final var path = Paths.get(uri);
+        final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(path), JsonNode.class);
+        final var definitions = ImmutableMap.of("definition",
+                new TopologyDefinitionParser("test").parse(YamlNode.fromRoot(definition, "test")));
+        var topologyGenerator = new TopologyGenerator("some.app.id");
+        final var topology = topologyGenerator.create(streamsBuilder, definitions);
+        final TopologyDescription description = topology.describe();
+        System.out.println(description);
+
+        URI referenceURI = ClassLoader.getSystemResource("reference/" + nr + "-reference.txt").toURI();
+        String reference = Files.readString(Paths.get(referenceURI));
+
+        assertThat(cleanDescription(description.toString()), is(reference));
     }
 
     @ParameterizedTest

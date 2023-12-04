@@ -30,8 +30,8 @@ import static io.axual.ksml.dsl.KSMLDSL.GROUPBY_MAPPER_ATTRIBUTE;
 import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
 
 public class GroupByOperationParser extends StoreOperationParser<GroupByOperation> {
-    public GroupByOperationParser(String name, TopologyResources resources) {
-        super(name, resources);
+    public GroupByOperationParser(String prefix, String name, TopologyResources resources) {
+        super(prefix, name, resources);
     }
 
     @Override

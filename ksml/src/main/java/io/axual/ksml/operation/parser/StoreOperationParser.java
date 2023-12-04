@@ -30,13 +30,13 @@ import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.parser.YamlNode;
 
 public abstract class StoreOperationParser<T extends StoreOperation> extends OperationParser<T> {
-    public StoreOperationParser(String name, TopologyResources resources) {
-        super(name, resources);
+    public StoreOperationParser(String prefix, String name, TopologyResources resources) {
+        super(prefix, name, resources);
     }
 
     protected StoreOperationConfig storeOperationConfig(YamlNode node, String childName) {
         final var store = parseStore(node, childName, new StateStoreDefinitionParser());
-        return new StoreOperationConfig(name, store);
+        return new StoreOperationConfig(prefix, name, store);
     }
 
     private StateStoreDefinition parseStore(YamlNode parent, String childName, BaseParser<StateStoreDefinition> parser) {

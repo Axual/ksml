@@ -34,9 +34,8 @@ import io.axual.ksml.serde.UnionSerde;
 
 import static io.axual.ksml.dsl.WindowedSchema.generateWindowedSchema;
 
-public record StreamDataType(NotationLibrary notationLibrary, UserType userType, boolean isKey) {
-    public StreamDataType(NotationLibrary notationLibrary, UserType userType, boolean isKey) {
-        this.notationLibrary = notationLibrary;
+public record StreamDataType(UserType userType, boolean isKey) {
+    public StreamDataType(UserType userType, boolean isKey) {
         this.userType = new UserType(userType.notation(), cookType(userType.dataType()));
         this.isKey = isKey;
     }
@@ -69,10 +68,10 @@ public record StreamDataType(NotationLibrary notationLibrary, UserType userType,
         return (userType.notation() != null ? userType.notation().toLowerCase() : "unknown notation") + (schemaName != null && !schemaName.isEmpty() ? ":" : "") + schemaName;
     }
 
-    public Serde<Object> getSerde() {
+    public Serde<Object> serde() {
         if (userType.dataType() instanceof UnionType unionType)
-            return new UnionSerde(notationLibrary, cookUnion(unionType), isKey);
-        var serde = notationLibrary.get(userType.notation()).serde(userType.dataType(), isKey);
+            return new UnionSerde(cookUnion(unionType), isKey);
+        var serde = NotationLibrary.get(userType.notation()).serde(userType.dataType(), isKey);
         return ExecutionContext.INSTANCE.wrapSerde(serde);
     }
 }

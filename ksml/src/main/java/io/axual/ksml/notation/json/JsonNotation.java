@@ -20,8 +20,6 @@ package io.axual.ksml.notation.json;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.DataObjectMapper;
-import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.MapType;
@@ -30,7 +28,6 @@ import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.notation.Notation;
-import io.axual.ksml.notation.string.StringNotation;
 import io.axual.ksml.serde.JsonSerde;
 import org.apache.kafka.common.serialization.Serde;
 
@@ -39,8 +36,6 @@ public class JsonNotation implements Notation {
     public static final DataType DEFAULT_TYPE = new UnionType(
             new UserType(JsonNotation.NOTATION_NAME, new StructType()),
             new UserType(JsonNotation.NOTATION_NAME, new ListType()));
-
-    private static final JsonDataObjectMapper MAPPER = new JsonDataObjectMapper();
 
     @Override
     public String name() {

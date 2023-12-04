@@ -30,8 +30,8 @@ import static io.axual.ksml.dsl.KSMLDSL.WINDOWEDBY_WINDOWTYPE_SESSION_GRACE;
 import static io.axual.ksml.dsl.KSMLDSL.WINDOWEDBY_WINDOWTYPE_SESSION_INACTIVITYGAP;
 
 public class WindowBySessionOperationParser extends OperationParser<WindowBySessionOperation> {
-    public WindowBySessionOperationParser(String name, TopologyResources resources) {
-        super(name, resources);
+    public WindowBySessionOperationParser(String prefix, String name, TopologyResources resources) {
+        super(prefix, name, resources);
     }
 
     @Override

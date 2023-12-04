@@ -28,8 +28,8 @@ import io.axual.ksml.parser.ContextAwareParser;
 import io.axual.ksml.parser.YamlNode;
 
 public class BranchDefinitionParser extends ContextAwareParser<BranchDefinition> {
-    public BranchDefinitionParser(TopologyResources resources) {
-        super(resources);
+    public BranchDefinitionParser(String prefix, TopologyResources resources) {
+        super(prefix, resources);
     }
 
     @Override
@@ -37,6 +37,6 @@ public class BranchDefinitionParser extends ContextAwareParser<BranchDefinition>
         if (node == null) return null;
         return new BranchDefinition(
                 parseFunction(node, KSMLDSL.BRANCH_PREDICATE_ATTRIBUTE, new PredicateDefinitionParser(), true),
-                new PipelineDefinitionParser(resources).parse(node, false, true));
+                new PipelineDefinitionParser(prefix, resources).parse(node, false, true));
     }
 }

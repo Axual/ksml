@@ -30,8 +30,8 @@ import org.apache.kafka.streams.kstream.Suppressed;
 import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class SuppressOperationParser extends OperationParser<SuppressOperation> {
-    public SuppressOperationParser(String name, TopologyResources resources) {
-        super(name, resources);
+    public SuppressOperationParser(String prefix, String name, TopologyResources resources) {
+        super(prefix, name, resources);
     }
 
     @Override

@@ -89,7 +89,7 @@ pipelines:
     via:
       - name: alert_joining
         type: join
-        withTable: sensor_alert_settings
+        table: sensor_alert_settings
         valueJoiner: alert_join
       - name: log_join_result
         type: peek

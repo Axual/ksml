@@ -34,8 +34,8 @@ import static io.axual.ksml.dsl.KSMLDSL.PIPELINE_FROM_ATTRIBUTE;
 import static io.axual.ksml.dsl.KSMLDSL.PIPELINE_VIA_ATTRIBUTE;
 
 public class PipelineDefinitionParser extends ContextAwareParser<PipelineDefinition> {
-    protected PipelineDefinitionParser(TopologyResources context) {
-        super(context);
+    protected PipelineDefinitionParser(String prefix, TopologyResources context) {
+        super(prefix, context);
     }
 
     @Override
@@ -48,8 +48,8 @@ public class PipelineDefinitionParser extends ContextAwareParser<PipelineDefinit
         final var source = parseSource
                 ? new TopologyResourceParser<>("source", PIPELINE_FROM_ATTRIBUTE, resources.topics()::get, new TopicDefinitionParser()).parseDefinition(node)
                 : null;
-        final var operations = new ListParser<>("pipeline operation", new PipelineOperationParser(resources)).parse(node.get(PIPELINE_VIA_ATTRIBUTE, "step"));
-        final var sink = parseSink ? new PipelineSinkOperationParser(null, resources).parse(node) : null;
+        final var operations = new ListParser<>("pipeline operation", new PipelineOperationParser(prefix, resources)).parse(node.get(PIPELINE_VIA_ATTRIBUTE, "step"));
+        final var sink = parseSink ? new PipelineSinkOperationParser(prefix, null, resources).parse(node) : null;
         return new PipelineDefinition(source, operations, sink);
     }
 }

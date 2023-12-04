@@ -20,7 +20,7 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.generator.TopologySpecification;
+import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.MapParser;
 import io.axual.ksml.parser.YamlNode;
@@ -28,9 +28,15 @@ import io.axual.ksml.parser.YamlNode;
 import static io.axual.ksml.dsl.KSMLDSL.PIPELINES_DEFINITION;
 import static io.axual.ksml.dsl.KSMLDSL.PRODUCERS_DEFINITION;
 
-public class TopologySpecificationParser extends BaseParser<TopologySpecification> {
+public class TopologyDefinitionParser extends BaseParser<TopologyDefinition> {
+    private final String name;
+
+    public TopologyDefinitionParser(String name) {
+        this.name = name;
+    }
+
     @Override
-    public TopologySpecification parse(YamlNode node) {
+    public TopologyDefinition parse(YamlNode node) {
         // If there is nothing to parse, return immediately
         if (node == null) return null;
 
@@ -38,12 +44,12 @@ public class TopologySpecificationParser extends BaseParser<TopologySpecificatio
         final var resources = new TopologyResourcesParser().parse(node);
 
         // Set up an index for the topology specification
-        final var result = new TopologySpecification(resources);
+        final var result = new TopologyDefinition(resources);
 
-        // Parse all defined pipelines
-        new MapParser<>("pipeline definition", new PipelineDefinitionParser(resources)).parse(node.get(PIPELINES_DEFINITION)).forEach(result::register);
-        // Parse all defined producers
-        new MapParser<>("producer definition", new ProducerDefinitionParser(resources)).parse(node.get(PRODUCERS_DEFINITION)).forEach(result::register);
+        // Parse all defined pipelines, using this topology's name as operation prefix
+        new MapParser<>("pipeline definition", new PipelineDefinitionParser(name, resources)).parse(node.get(PIPELINES_DEFINITION)).forEach(result::register);
+        // Parse all defined producers, using this topology's name as operation prefix
+        new MapParser<>("producer definition", new ProducerDefinitionParser(name, resources)).parse(node.get(PRODUCERS_DEFINITION)).forEach(result::register);
 
         return result;
     }

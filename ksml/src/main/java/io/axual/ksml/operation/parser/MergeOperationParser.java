@@ -29,8 +29,8 @@ import io.axual.ksml.parser.YamlNode;
 import static io.axual.ksml.dsl.KSMLDSL.MERGE_STREAM_ATTRIBUTE;
 
 public class MergeOperationParser extends OperationParser<MergeOperation> {
-    public MergeOperationParser(String name, TopologyResources resources) {
-        super(name, resources);
+    public MergeOperationParser(String prefix, String name, TopologyResources resources) {
+        super(prefix, name, resources);
     }
 
     @Override
