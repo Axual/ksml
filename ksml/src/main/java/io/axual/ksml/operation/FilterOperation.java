@@ -33,11 +33,11 @@ import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserPredicate;
 import org.apache.kafka.streams.kstream.Named;
 
-public class FilterOperation extends BaseOperation {
+public class FilterOperation extends StoreOperation {
     private static final String PREDICATE_NAME = "Predicate";
     private final FunctionDefinition predicate;
 
-    public FilterOperation(OperationConfig config, FunctionDefinition predicate) {
+    public FilterOperation(StoreOperationConfig config, FunctionDefinition predicate) {
         super(config);
         this.predicate = predicate;
     }
@@ -78,8 +78,15 @@ public class FilterOperation extends BaseOperation {
         final var v = input.valueType();
         final var pred = userFunctionOf(context, PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k), superOf(v));
         final var userPred = new UserPredicate(pred);
-        final var output = name != null
-                ? input.table.filter(userPred, Named.as(name))
+        final var kvStore = validateKeyValueStore(store(), k, v);
+        final var mat = materializedOf(context, kvStore);
+        final var named = namedOf();
+        final var output = named != null
+                ? mat != null
+                ? input.table.filter(userPred, named, mat)
+                : input.table.filter(userPred, named)
+                : mat != null
+                ? input.table.filter(userPred, mat)
                 : input.table.filter(userPred);
         return new KTableWrapper(output, k, v);
     }

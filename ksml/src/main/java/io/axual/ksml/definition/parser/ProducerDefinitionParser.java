@@ -38,9 +38,9 @@ public class ProducerDefinitionParser extends ContextAwareParser<ProducerDefinit
     public ProducerDefinition parse(YamlNode node) {
         if (node == null) return null;
         return new ProducerDefinition(
-                new TopologyResourceParser<>("generator", PRODUCER_GENERATOR_ATTRIBUTE, resources::function, new GeneratorDefinitionParser()).parseDefinition(node),
-                parseDuration(node, PRODUCER_INTERVAL_ATTRIBUTE),
-                new TopologyResourceParser<>("condition", PRODUCER_CONDITION_ATTRIBUTE, resources::function, new PredicateDefinitionParser()).parseDefinition(node),
-                new TopologyResourceParser<>("to", PRODUCER_TARGET_ATTRIBUTE, resources::topic, new TopicDefinitionParser()).parseDefinition(node));
+                new TopologyResourceParser<>("generator", Producers.GENERATOR, resources::function, new GeneratorDefinitionParser()).parseDefinition(node),
+                parseDuration(node, Producers.INTERVAL),
+                new TopologyResourceParser<>("condition", Producers.CONDITION, resources::function, new PredicateDefinitionParser()).parseDefinition(node),
+                new TopologyResourceParser<>("to", Producers.TARGET, resources::topic, new TopicDefinitionParser()).parseDefinition(node));
     }
 }

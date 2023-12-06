@@ -34,7 +34,7 @@ public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition
     public FunctionDefinition parse(YamlNode node) {
         if (node == null) return null;
 
-        final var type = parseString(node, FUNCTION_TYPE);
+        final var type = parseString(node, Functions.TYPE);
         final var parser = getParser(node, type);
         if (parser != null) {
             try {
@@ -51,24 +51,25 @@ public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition
     private BaseParser<? extends FunctionDefinition> getParser(YamlNode node, String type) {
         if (type == null) return new FunctionDefinitionParser();
         return switch (type) {
-            case FUNCTION_TYPE_AGGREGATOR -> new AggregatorDefinitionParser();
-            case FUNCTION_TYPE_FOREACHACTION -> new ForEachActionDefinitionParser();
-            case FUNCTION_TYPE_GENERATOR -> new GeneratorDefinitionParser();
-            case FUNCTION_TYPE_GENERIC -> new FunctionDefinitionParser();
-            case FUNCTION_TYPE_INITIALIZER -> new InitializerDefinitionParser();
-            case FUNCTION_TYPE_KEYTRANSFORMER -> new KeyTransformerDefinitionParser();
-            case FUNCTION_TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER ->
+            case Functions.TYPE_AGGREGATOR -> new AggregatorDefinitionParser();
+            case Functions.TYPE_FOREACHACTION -> new ForEachActionDefinitionParser();
+            case Functions.TYPE_FOREIGN_KEY_EXTRACTOR -> new ForeignKeyExtractorDefinitionParser();
+            case Functions.TYPE_GENERATOR -> new GeneratorDefinitionParser();
+            case Functions.TYPE_GENERIC -> new FunctionDefinitionParser();
+            case Functions.TYPE_INITIALIZER -> new InitializerDefinitionParser();
+            case Functions.TYPE_KEYTRANSFORMER -> new KeyTransformerDefinitionParser();
+            case Functions.TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER ->
                     new KeyValueToKeyValueListTransformerDefinitionParser();
-            case FUNCTION_TYPE_KEYVALUETOVALUELISTTRANSFORMER -> new KeyValueToValueListTransformerDefinitionParser();
-            case FUNCTION_TYPE_KEYVALUEMAPPER, FUNCTION_TYPE_KEYVALUETRANSFORMER ->
+            case Functions.TYPE_KEYVALUETOVALUELISTTRANSFORMER -> new KeyValueToValueListTransformerDefinitionParser();
+            case Functions.TYPE_KEYVALUEMAPPER, Functions.TYPE_KEYVALUETRANSFORMER ->
                     new KeyValueTransformerDefinitionParser();
-            case FUNCTION_TYPE_MERGER -> new MergerDefinitionParser();
-            case FUNCTION_TYPE_PREDICATE -> new PredicateDefinitionParser();
-            case FUNCTION_TYPE_REDUCER -> new ReducerDefinitionParser();
-            case FUNCTION_TYPE_STREAMPARTITIONER -> new StreamPartitionerDefinitionParser();
-            case FUNCTION_TYPE_TOPICNAMEEXTRACTOR -> new TopicNameExtractorDefinitionParser();
-            case FUNCTION_TYPE_VALUEJOINER -> new ValueJoinerDefinitionParser();
-            case FUNCTION_TYPE_VALUETRANSFORMER -> new ValueTransformerDefinitionParser();
+            case Functions.TYPE_MERGER -> new MergerDefinitionParser();
+            case Functions.TYPE_PREDICATE -> new PredicateDefinitionParser();
+            case Functions.TYPE_REDUCER -> new ReducerDefinitionParser();
+            case Functions.TYPE_STREAMPARTITIONER -> new StreamPartitionerDefinitionParser();
+            case Functions.TYPE_TOPICNAMEEXTRACTOR -> new TopicNameExtractorDefinitionParser();
+            case Functions.TYPE_VALUEJOINER -> new ValueJoinerDefinitionParser();
+            case Functions.TYPE_VALUETRANSFORMER -> new ValueTransformerDefinitionParser();
             default -> throw FatalError.parseError(node, "Unknown function type: " + type);
         };
     }

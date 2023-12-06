@@ -81,7 +81,9 @@ public class OuterJoinOperation extends BaseJoinOperation {
             final var windowStore = validateWindowStore(store(), k, vr);
             final var streamJoined = streamJoinedOf(windowStore, k, v, vo);
             final var userJoiner = new UserValueJoiner(joiner);
-            final KStream<Object, Object> output = input.stream.outerJoin(otherStream.stream, userJoiner, joinWindows, streamJoined);
+            final KStream<Object, Object> output = streamJoined != null
+                    ? input.stream.outerJoin(otherStream.stream, userJoiner, joinWindows, streamJoined)
+                    : input.stream.outerJoin(otherStream.stream, userJoiner, joinWindows);
             return new KStreamWrapper(output, windowedK, vr);
         }
 

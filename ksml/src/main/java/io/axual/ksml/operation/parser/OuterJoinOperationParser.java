@@ -43,17 +43,17 @@ public class OuterJoinOperationParser extends StoreOperationParser<OuterJoinOper
         final var joinTopic = new JoinTargetDefinitionParser(prefix, resources).parse(node);
         if (joinTopic instanceof StreamDefinition joinStream) {
             return new OuterJoinOperation(
-                    storeOperationConfig(node, STORE_ATTRIBUTE, null),
+                    storeOperationConfig(node, Operations.STORE_ATTRIBUTE, null),
                     joinStream,
-                    parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()),
-                    parseDuration(node, JOIN_WINDOW_TIME_DIFFERENCE_ATTRIBUTE),
-                    parseDuration(node, JOIN_WINDOW_GRACE_ATTRIBUTE));
+                    parseFunction(node, Operations.Join.VALUE_JOINER, new ValueJoinerDefinitionParser()),
+                    parseDuration(node, Operations.Join.TIME_DIFFERENCE),
+                    parseDuration(node, Operations.Join.GRACE));
         }
         if (joinTopic instanceof TableDefinition joinTable) {
             return new OuterJoinOperation(
-                    storeOperationConfig(node, STORE_ATTRIBUTE, null),
+                    storeOperationConfig(node, Operations.STORE_ATTRIBUTE, null),
                     joinTable,
-                    parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()));
+                    parseFunction(node, Operations.Join.VALUE_JOINER, new ValueJoinerDefinitionParser()));
         }
         throw new KSMLParseException(node, "Stream not specified");
     }

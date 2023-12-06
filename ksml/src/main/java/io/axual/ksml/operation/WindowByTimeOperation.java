@@ -23,8 +23,10 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.stream.CogroupedKStreamWrapper;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
+import io.axual.ksml.stream.TimeWindowedCogroupedKStreamWrapper;
 import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
 import org.apache.kafka.streams.kstream.SlidingWindows;
 import org.apache.kafka.streams.kstream.TimeWindows;
@@ -49,12 +51,51 @@ public class WindowByTimeOperation extends BaseOperation {
     public StreamWrapper apply(KGroupedStreamWrapper input, TopologyBuildContext context) {
         final var k = input.keyType();
         final var v = input.valueType();
+
         if (slidingWindows != null) {
+            /*    Kafka Streams method signature:
+             *    TimeWindowedKStream<K, V> windowedBy(
+             *          final SlidingWindows windows)
+             */
+
             return new TimeWindowedKStreamWrapper(input.groupedStream.windowedBy(slidingWindows), k, v);
         }
+
         if (timeWindows != null) {
+            /*    Kafka Streams method signature:
+             *    <W extends Window > TimeWindowedKStream<K, V> windowedBy(
+             *          final Windows<W> windows)
+             */
+
             return new TimeWindowedKStreamWrapper(input.groupedStream.windowedBy(timeWindows), k, v);
         }
+
+        throw new KSMLTopologyException("Operation " + name + ". Error applying WINDOW BY to " + input);
+    }
+
+    @Override
+    public StreamWrapper apply(CogroupedKStreamWrapper input, TopologyBuildContext context) {
+        final var k = input.keyType();
+        final var v = input.valueType();
+
+        if (slidingWindows != null) {
+            /*    Kafka Streams method signature:
+             *    TimeWindowedCogroupedKStream<K, VOut> windowedBy(
+             *          final SlidingWindows windows)
+             */
+
+            return new TimeWindowedCogroupedKStreamWrapper(input.cogroupedStream.windowedBy(slidingWindows), k, v);
+        }
+
+        if (timeWindows != null) {
+            /*    Kafka Streams method signature:
+             *    <W extends Window > TimeWindowedCogroupedKStream<K, V> windowedBy(
+             *          final Windows<W> windows)
+             */
+
+            return new TimeWindowedCogroupedKStreamWrapper(input.cogroupedStream.windowedBy(timeWindows), k, v);
+        }
+
         throw new KSMLTopologyException("Operation " + name + ". Error applying WINDOW BY to " + input);
     }
 }

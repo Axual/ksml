@@ -32,6 +32,7 @@ import io.axual.ksml.operation.processor.TransformKeyValueProcessor;
 import io.axual.ksml.stream.BaseStreamWrapper;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.user.UserKeyValueTransformer;
+import org.apache.kafka.streams.kstream.KStream;
 
 public class TransformKeyValueOperation extends BaseOperation {
     private static final String MAPPER_NAME = "Mapper";
@@ -44,6 +45,12 @@ public class TransformKeyValueOperation extends BaseOperation {
 
     @Override
     public BaseStreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
+        /*    Kafka Streams method signature:
+         *    <KR, VR> KStream<KR, VR> map(
+         *          final KeyValueMapper<? super K, ? super V, ? extends KeyValue<? extends KR, ? extends VR>> mapper,
+         *          final Named named)
+         */
+
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
@@ -62,7 +69,7 @@ public class TransformKeyValueOperation extends BaseOperation {
                     (stores, record) -> userMap.apply(stores, record.key(), record.value()),
                     storeNames);
             final var named = namedOf();
-            final var output = named != null
+            final KStream<Object, Object> output = named != null
                     ? input.stream.process(supplier, named, storeNames)
                     : input.stream.process(supplier, storeNames);
             return new KStreamWrapper(output, kr, vr);

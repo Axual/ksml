@@ -36,7 +36,7 @@ public class BranchDefinitionParser extends ContextAwareParser<BranchDefinition>
     public BranchDefinition parse(YamlNode node) {
         if (node == null) return null;
         return new BranchDefinition(
-                parseFunction(node, KSMLDSL.BRANCH_PREDICATE_ATTRIBUTE, new PredicateDefinitionParser(), true),
+                parseFunction(node, KSMLDSL.Operations.Branch.PREDICATE, new PredicateDefinitionParser(), true),
                 new PipelineDefinitionParser(prefix, resources).parse(node, false, true));
     }
 }

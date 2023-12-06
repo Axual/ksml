@@ -22,6 +22,7 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.definition.parser.ValueTransformerDefinitionParser;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.TransformValueOperation;
 import io.axual.ksml.parser.YamlNode;
@@ -38,7 +39,7 @@ public class TransformValueOperationParser extends StoreOperationParser<Transfor
     public TransformValueOperation parse(YamlNode node) {
         if (node == null) return null;
         return new TransformValueOperation(
-                storeOperationConfig(node, MATERIALIZED_ATTRIBUTE, StoreType.KEYVALUE_STORE),
-                parseFunction(node, TRANSFORMVALUE_MAPPER_ATTRIBUTE, new ValueTransformerDefinitionParser()));
+                storeOperationConfig(node, Operations.STORE_ATTRIBUTE, StoreType.KEYVALUE_STORE),
+                parseFunction(node, KSMLDSL.Operations.Transform.MAPPER, new ValueTransformerDefinitionParser()));
     }
 }

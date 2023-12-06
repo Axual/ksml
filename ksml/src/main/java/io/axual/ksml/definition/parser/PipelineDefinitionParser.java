@@ -22,6 +22,7 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.PipelineDefinition;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.parser.PipelineOperationParser;
 import io.axual.ksml.operation.parser.PipelineSinkOperationParser;
@@ -29,9 +30,6 @@ import io.axual.ksml.parser.ContextAwareParser;
 import io.axual.ksml.parser.ListParser;
 import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.parser.YamlNode;
-
-import static io.axual.ksml.dsl.KSMLDSL.PIPELINE_FROM_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.PIPELINE_VIA_ATTRIBUTE;
 
 public class PipelineDefinitionParser extends ContextAwareParser<PipelineDefinition> {
     protected PipelineDefinitionParser(String prefix, TopologyResources context) {
@@ -46,9 +44,9 @@ public class PipelineDefinitionParser extends ContextAwareParser<PipelineDefinit
     public PipelineDefinition parse(YamlNode node, boolean parseSource, boolean parseSink) {
         if (node == null) return null;
         final var source = parseSource
-                ? new TopologyResourceParser<>("source", PIPELINE_FROM_ATTRIBUTE, resources.topics()::get, new TopicDefinitionParser()).parseDefinition(node)
+                ? new TopologyResourceParser<>("source", KSMLDSL.Pipelines.FROM, resources.topics()::get, new TopicDefinitionParser()).parseDefinition(node)
                 : null;
-        final var operations = new ListParser<>("pipeline operation", new PipelineOperationParser(prefix, resources)).parse(node.get(PIPELINE_VIA_ATTRIBUTE, "step"));
+        final var operations = new ListParser<>("pipeline operation", new PipelineOperationParser(prefix, resources)).parse(node.get(KSMLDSL.Pipelines.VIA, "step"));
         final var sink = parseSink ? new PipelineSinkOperationParser(prefix, null, resources).parse(node) : null;
         return new PipelineDefinition(source, operations, sink);
     }

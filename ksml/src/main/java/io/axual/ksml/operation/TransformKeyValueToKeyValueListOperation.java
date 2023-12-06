@@ -47,8 +47,8 @@ public class TransformKeyValueToKeyValueListOperation extends BaseOperation {
     @Override
     public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
         /*    Kafka Streams method signature:
-         *    <KR, VR> KStream<KR, VR> map(
-         *          final KeyValueMapper<? super K, ? super V, ? extends KeyValue<? extends KR, ? extends VR>> mapper,
+         *    <KR, VR> KStream<KR, VR> flatMap(
+         *          final KeyValueMapper<? super K, ? super V, ? extends Iterable<? extends KeyValue<? extends KR, ? extends VR>>> mapper,
          *          final Named named)
          */
 

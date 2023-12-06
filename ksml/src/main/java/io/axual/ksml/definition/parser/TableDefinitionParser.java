@@ -38,14 +38,14 @@ public class TableDefinitionParser extends BaseParser<TableDefinition> {
         if (node == null) return null;
 
         // Use the topic name as the default store name
-        var topic = parseString(node, TOPIC_ATTRIBUTE);
+        var topic = parseString(node, Streams.TOPIC);
 
         // Parse the key and value types
-        var keyType = UserTypeParser.parse(parseString(node, KEYTYPE_ATTRIBUTE));
-        var valueType = UserTypeParser.parse(parseString(node, VALUETYPE_ATTRIBUTE));
+        var keyType = UserTypeParser.parse(parseString(node, Streams.KEY_TYPE));
+        var valueType = UserTypeParser.parse(parseString(node, Streams.VALUE_TYPE));
 
         // Parse an optional key value state store
-        var parsedStore = new StateStoreDefinitionParser(StoreType.KEYVALUE_STORE, topic).parse(node.get(STORE_ATTRIBUTE));
+        var parsedStore = new StateStoreDefinitionParser(StoreType.KEYVALUE_STORE, topic).parse(node.get(Streams.STORE));
 
         // If there is no state store, then return just the table definition
         if (!(parsedStore instanceof KeyValueStateStoreDefinition kvStore)) {

@@ -28,7 +28,7 @@ import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserStreamPartitioner;
-import org.apache.kafka.streams.kstream.Repartitioned;
+import org.apache.kafka.streams.kstream.KStream;
 
 public class RepartitionOperation extends BaseOperation {
     private static final String PARTITIONER_NAME = "Partitioner";
@@ -45,14 +45,16 @@ public class RepartitionOperation extends BaseOperation {
          *    KStream<K, V> repartition(
          *          final Repartitioned<K, V> repartitioned)
          */
+
         checkNotNull(partitioner, "Partitioner must be defined");
         final var k = input.keyType();
         final var v = input.valueType();
         final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, equalTo(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
-        final var userPart = new UserStreamPartitioner(part);
-        var repartitioned = Repartitioned.with(k.serde(), v.serde()).withStreamPartitioner(userPart);
-        if (name != null) repartitioned = repartitioned.withName(name);
-        final var output = input.stream.repartition(repartitioned);
+        final var userPart = part != null ? new UserStreamPartitioner(part) : null;
+        final var repartitioned = repartitionedOf(k, v, userPart);
+        final KStream<Object, Object> output = repartitioned != null
+                ? input.stream.repartition(repartitioned)
+                : input.stream.repartition();
         return new KStreamWrapper(output, k, v);
     }
 }

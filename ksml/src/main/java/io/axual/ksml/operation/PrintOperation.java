@@ -20,40 +20,39 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.type.StructType;
-import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.UserTopicNameExtractor;
+import io.axual.ksml.user.UserKeyValuePrinter;
 
-import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA;
+public class PrintOperation extends BaseOperation {
+    private static final String MAPPER_NAME = "Mapper";
+    private final String filename;
+    private final String label;
+    private final FunctionDefinition mapper;
 
-public class ToTopicNameExtractorOperation extends BaseOperation {
-    private static final String TOPICNAMEEXTRACTOR_NAME = "TopicNameExtractor";
-    private final FunctionDefinition topicNameExtractor;
-
-    public ToTopicNameExtractorOperation(OperationConfig config, FunctionDefinition topicNameExtractor) {
+    public PrintOperation(OperationConfig config, String filename, String label, FunctionDefinition mapper) {
         super(config);
-        this.topicNameExtractor = topicNameExtractor;
+        this.filename = filename;
+        this.label = label;
+        this.mapper = mapper;
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
+        /*    Kafka Streams method signature:
+         *    void print(
+         *          final Printed<K, V> printed)
+         */
+
         final var k = input.keyType();
         final var v = input.valueType();
-        final var topicNameType = new UserType(DataString.DATATYPE);
-        final var recordContextType = new UserType(new StructType(RECORD_CONTEXT_SCHEMA));
-        final var extractor = userFunctionOf(context, TOPICNAMEEXTRACTOR_NAME, topicNameExtractor, topicNameType, superOf(k), superOf(v), superOf(recordContextType));
-        final var userExtractor = new UserTopicNameExtractor(extractor);
-        final var produced = producedOf(name, k, v);
-        if (produced != null)
-            input.stream.to(userExtractor, produced);
-        else
-            input.stream.to(userExtractor);
+        final var map = userFunctionOf(context, MAPPER_NAME, mapper, equalTo(DataString.DATATYPE), superOf(k), superOf(v));
+        final var userMap = map != null ? new UserKeyValuePrinter(map) : null;
+        final var printed = printedOf(filename, label, userMap);
+        input.stream.print(printed);
         return null;
     }
 }

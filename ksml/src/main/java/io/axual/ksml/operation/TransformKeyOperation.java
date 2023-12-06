@@ -41,6 +41,12 @@ public class TransformKeyOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
+        /*    Kafka Streams method signature:
+         *    <KR> KStream<KR, V> selectKey(
+         *          final KeyValueMapper<? super K, ? super V, ? extends KR> mapper,
+         *          final Named named)
+         */
+
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();

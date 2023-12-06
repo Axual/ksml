@@ -37,15 +37,15 @@ public class TopologyResourcesParser extends BaseParser<TopologyResources> {
         final var result = new TopologyResources(node.getName());
 
         // Parse all defined streams
-        new MapParser<>("stream definition", new StreamDefinitionParser()).parse(node.get(STREAMS_DEFINITION)).forEach(result::register);
-        new MapParser<>("table definition", new TableDefinitionParser()).parse(node.get(TABLES_DEFINITION)).forEach(result::register);
-        new MapParser<>("globalTable definition", new GlobalTableDefinitionParser()).parse(node.get(GLOBALTABLES_DEFINITION)).forEach(result::register);
+        new MapParser<>("stream definition", new StreamDefinitionParser()).parse(node.get(STREAMS)).forEach(result::register);
+        new MapParser<>("table definition", new TableDefinitionParser()).parse(node.get(TABLES)).forEach(result::register);
+        new MapParser<>("globalTable definition", new GlobalTableDefinitionParser()).parse(node.get(GLOBAL_TABLES)).forEach(result::register);
 
         // Parse all defined state stores
-        new MapParser<>("state store definition", new StateStoreDefinitionParser()).parse(node.get(STORES_DEFINITION)).forEach(result::register);
+        new MapParser<>("state store definition", new StateStoreDefinitionParser()).parse(node.get(STORES)).forEach(result::register);
 
         // Parse all defined functions
-        new MapParser<>("function definition", new TypedFunctionDefinitionParser()).parse(node.get(FUNCTIONS_DEFINITION)).forEach(result::register);
+        new MapParser<>("function definition", new TypedFunctionDefinitionParser()).parse(node.get(FUNCTIONS)).forEach(result::register);
 
         return result;
     }

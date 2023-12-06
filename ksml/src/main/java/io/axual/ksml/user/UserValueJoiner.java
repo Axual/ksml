@@ -28,7 +28,7 @@ import io.axual.ksml.python.Invoker;
 import io.axual.ksml.util.DataUtil;
 import org.apache.kafka.streams.kstream.ValueJoiner;
 
-public class UserValueJoiner extends Invoker implements ValueJoiner<Object, Object, DataObject> {
+public class UserValueJoiner extends Invoker implements ValueJoiner<Object, Object, Object> {
     private final static DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
 
     public UserValueJoiner(UserFunction function) {

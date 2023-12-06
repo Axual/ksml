@@ -20,6 +20,7 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.OperationConfig;
 import io.axual.ksml.operation.StreamOperation;
@@ -27,8 +28,6 @@ import io.axual.ksml.parser.ContextAwareParser;
 import io.axual.ksml.parser.ListParser;
 import io.axual.ksml.parser.StringValueParser;
 import io.axual.ksml.parser.YamlNode;
-
-import static io.axual.ksml.dsl.KSMLDSL.OPERATION_STORES_ATTRIBUTE;
 
 public abstract class OperationParser<T extends StreamOperation> extends ContextAwareParser<T> {
     private static final String[] TEMPLATE = new String[0];
@@ -44,7 +43,7 @@ public abstract class OperationParser<T extends StreamOperation> extends Context
     }
 
     protected OperationConfig operationConfig(YamlNode node, String typeName) {
-        final var storeNames = new ListParser<>("state store names", new StringValueParser()).parse(node.get(OPERATION_STORES_ATTRIBUTE));
+        final var storeNames = new ListParser<>("state store names", new StringValueParser()).parse(node.get(KSMLDSL.Operations.STORE_NAMES_ATTRIBUTE));
         return new OperationConfig(
                 prefix,
                 name != null ? name : determineName(typeName),

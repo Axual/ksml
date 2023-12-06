@@ -33,9 +33,9 @@ public class ParameterDefinitionParser extends BaseParser<ParameterDefinition> {
     @Override
     public ParameterDefinition parse(YamlNode node) {
         if (node == null) return null;
-        final var name = parseString(node, FUNCTION_PARAMETER_NAME);
-        final var type = UserTypeParser.parse(parseString(node, FUNCTION_PARAMETER_TYPE)).dataType();
-        final var defaultValue = parseString(node, FUNCTION_PARAMETER_DEFAULT_VALUE);
+        final var name = parseString(node, Functions.Parameters.NAME);
+        final var type = UserTypeParser.parse(parseString(node, Functions.Parameters.TYPE)).dataType();
+        final var defaultValue = parseString(node, Functions.Parameters.DEFAULT_VALUE);
         if (name == null || name.isEmpty()) {
             throw FatalError.parseError(node, "Parameter name undefined");
         }

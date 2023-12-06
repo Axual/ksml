@@ -132,8 +132,8 @@ public class TopologyGenerator {
         // Add source and target topics to the set of known topics
         specification.pipelines().forEach((name, def) -> {
             if (def.source() != null) knownTopics.add(def.source().topic());
-            if (def.sink() instanceof ToOperation toOperation) {
-                knownTopics.add(toOperation.target.topic());
+            if (def.sink() instanceof ToOperation toOperation && toOperation.topic != null) {
+                knownTopics.add(toOperation.topic.topic());
             }
         });
 

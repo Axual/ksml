@@ -70,12 +70,44 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         if (value == null) return DataNull.INSTANCE;
         if (value instanceof DataObject val) return val;
         if (value instanceof Boolean val) return new DataBoolean(val);
-        if (value instanceof Byte val) return new DataByte(val);
-        if (value instanceof Short val) return new DataShort(val);
-        if (value instanceof Integer val) return new DataInteger(val);
-        if (value instanceof Long val) return new DataLong(val);
-        if (value instanceof Double val) return new DataDouble(val);
-        if (value instanceof Float val) return new DataFloat(val);
+        if (value instanceof Byte val) {
+            if (expected == DataByte.DATATYPE) return new DataByte(val);
+            if (expected == DataShort.DATATYPE) return new DataShort(val.shortValue());
+            if (expected == DataInteger.DATATYPE) return new DataInteger(val.intValue());
+            if (expected == DataLong.DATATYPE) return new DataLong(val.longValue());
+            return new DataByte(val);
+        }
+        if (value instanceof Short val) {
+            if (expected == DataByte.DATATYPE) return new DataByte(val.byteValue());
+            if (expected == DataShort.DATATYPE) return new DataShort(val);
+            if (expected == DataInteger.DATATYPE) return new DataInteger(val.intValue());
+            if (expected == DataLong.DATATYPE) return new DataLong(val.longValue());
+            return new DataShort(val);
+        }
+        if (value instanceof Integer val) {
+            if (expected == DataByte.DATATYPE) return new DataByte(val.byteValue());
+            if (expected == DataShort.DATATYPE) return new DataShort(val.shortValue());
+            if (expected == DataInteger.DATATYPE) return new DataInteger(val);
+            if (expected == DataLong.DATATYPE) return new DataLong(val.longValue());
+            return new DataInteger(val);
+        }
+        if (value instanceof Long val) {
+            if (expected == DataByte.DATATYPE) return new DataByte(val.byteValue());
+            if (expected == DataShort.DATATYPE) return new DataShort(val.shortValue());
+            if (expected == DataInteger.DATATYPE) return new DataInteger(val.intValue());
+            if (expected == DataLong.DATATYPE) return new DataLong(val);
+            return new DataLong(val);
+        }
+        if (value instanceof Double val) {
+            if (expected == DataDouble.DATATYPE) return new DataDouble(val);
+            if (expected == DataFloat.DATATYPE) return new DataFloat(val.floatValue());
+            return new DataDouble(val);
+        }
+        if (value instanceof Float val) {
+            if (expected == DataDouble.DATATYPE) return new DataDouble(val.doubleValue());
+            if (expected == DataFloat.DATATYPE) return new DataFloat(val);
+            return new DataFloat(val);
+        }
         if (value instanceof byte[] val) return new DataBytes(val);
         if (value instanceof String val) return new DataString(val);
         if (value instanceof List<?> val)

@@ -22,11 +22,10 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.definition.parser.StreamDefinitionParser;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.MergeOperation;
 import io.axual.ksml.parser.YamlNode;
-
-import static io.axual.ksml.dsl.KSMLDSL.MERGE_STREAM_ATTRIBUTE;
 
 public class MergeOperationParser extends OperationParser<MergeOperation> {
     public MergeOperationParser(String prefix, String name, TopologyResources resources) {
@@ -36,7 +35,7 @@ public class MergeOperationParser extends OperationParser<MergeOperation> {
     @Override
     public MergeOperation parse(YamlNode node) {
         if (node == null) return null;
-        final var stream = parseStream(node, MERGE_STREAM_ATTRIBUTE, new StreamDefinitionParser());
+        final var stream = parseStream(node, KSMLDSL.Operations.Merge.STREAM, new StreamDefinitionParser());
         return new MergeOperation(operationConfig(node), stream);
     }
 }

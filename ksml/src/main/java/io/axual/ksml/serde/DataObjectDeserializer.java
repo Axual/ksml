@@ -20,12 +20,14 @@ package io.axual.ksml.serde;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.SchemaUtil;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.notation.binary.NativeDataObjectMapper;
 import lombok.Getter;
 import org.apache.kafka.common.serialization.Deserializer;
 
@@ -33,6 +35,7 @@ import java.util.List;
 
 @Getter
 public class DataObjectDeserializer implements Deserializer<Object> {
+    private static final DataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
     private static final String FIELD_NAME = "data";
     private final DataType expectedType;
     private final DataType wrapperType;
@@ -63,6 +66,8 @@ public class DataObjectDeserializer implements Deserializer<Object> {
         if (result != null && !expectedType.isAssignableFrom(result)) {
             throw FatalError.executionError("Wrong type retrieved from state store: expected " + expectedType + ", got " + result.type());
         }
-        return result;
+        // For compatibility reasons, we have to return native object format here. Otherwise, state stores assisting in
+        // count() operations do not get back expected Long types, for example.
+        return NATIVE_MAPPER.fromDataObject(result);
     }
 }

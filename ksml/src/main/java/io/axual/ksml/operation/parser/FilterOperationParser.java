@@ -22,13 +22,13 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.definition.parser.PredicateDefinitionParser;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.FilterOperation;
 import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.store.StoreType;
 
-import static io.axual.ksml.dsl.KSMLDSL.FILTER_PREDICATE_ATTRIBUTE;
-
-public class FilterOperationParser extends OperationParser<FilterOperation> {
+public class FilterOperationParser extends StoreOperationParser<FilterOperation> {
     public FilterOperationParser(String prefix, String name, TopologyResources resources) {
         super(prefix, name, resources);
     }
@@ -37,7 +37,7 @@ public class FilterOperationParser extends OperationParser<FilterOperation> {
     public FilterOperation parse(YamlNode node) {
         if (node == null) return null;
         return new FilterOperation(
-                operationConfig(node),
-                parseFunction(node, FILTER_PREDICATE_ATTRIBUTE, new PredicateDefinitionParser()));
+                storeOperationConfig(node, KSMLDSL.Operations.STORE_ATTRIBUTE, StoreType.KEYVALUE_STORE),
+                parseFunction(node, KSMLDSL.Operations.Filter.PREDICATE, new PredicateDefinitionParser()));
     }
 }

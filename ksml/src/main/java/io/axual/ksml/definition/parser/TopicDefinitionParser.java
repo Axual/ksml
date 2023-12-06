@@ -33,8 +33,8 @@ public class TopicDefinitionParser extends BaseParser<TopicDefinition> {
     public TopicDefinition parse(YamlNode node) {
         if (node == null) return null;
         return new TopicDefinition(
-                parseString(node, TOPIC_ATTRIBUTE),
-                UserTypeParser.parse(parseString(node, KEYTYPE_ATTRIBUTE)),
-                UserTypeParser.parse(parseString(node, VALUETYPE_ATTRIBUTE)));
+                parseString(node, Streams.TOPIC),
+                UserTypeParser.parse(parseString(node, Streams.KEY_TYPE)),
+                UserTypeParser.parse(parseString(node, Streams.VALUE_TYPE)));
     }
 }

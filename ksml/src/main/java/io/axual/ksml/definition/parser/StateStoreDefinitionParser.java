@@ -52,7 +52,7 @@ public class StateStoreDefinitionParser extends BaseParser<StateStoreDefinition>
     @Override
     public StateStoreDefinition parse(YamlNode node) {
         if (node == null) return null;
-        var type = storeTypeOf(parseString(node, STORE_TYPE_ATTRIBUTE));
+        var type = storeTypeOf(parseString(node, Stores.TYPE));
         if (type == null) {
             if (expectedType == null) {
                 throw FatalError.parseError(node, "State store type not specified");
@@ -70,9 +70,9 @@ public class StateStoreDefinitionParser extends BaseParser<StateStoreDefinition>
     private StoreType storeTypeOf(String type) {
         if (type == null) return null;
         return switch (type) {
-            case STORE_TYPE_KEYVALUE -> StoreType.KEYVALUE_STORE;
-            case STORE_TYPE_SESSION -> StoreType.SESSION_STORE;
-            case STORE_TYPE_WINDOW -> StoreType.WINDOW_STORE;
+            case Stores.TYPE_KEYVALUE -> StoreType.KEYVALUE_STORE;
+            case Stores.TYPE_SESSION -> StoreType.SESSION_STORE;
+            case Stores.TYPE_WINDOW -> StoreType.WINDOW_STORE;
             default -> null;
         };
     }
@@ -80,36 +80,36 @@ public class StateStoreDefinitionParser extends BaseParser<StateStoreDefinition>
     private StateStoreDefinition parseStore(YamlNode node, StoreType type) {
         return switch (type) {
             case KEYVALUE_STORE -> new KeyValueStateStoreDefinition(
-                    parseString(node, STORE_NAME_ATTRIBUTE, getDefaultName()),
-                    parseBoolean(node, STORE_PERSISTENT_ATTRIBUTE),
-                    parseBoolean(node, STORE_TIMESTAMPED_ATTRIBUTE),
-                    parseBoolean(node, STORE_VERSIONED_ATTRIBUTE),
-                    parseDuration(node, STORE_HISTORY_RETENTION_ATTRIBUTE),
-                    parseDuration(node, STORE_SEGMENT_INTERVAL_ATTRIBUTE),
-                    UserTypeParser.parse(parseString(node, STORE_KEYTYPE_ATTRIBUTE)),
-                    UserTypeParser.parse(parseString(node, STORE_VALUETYPE_ATTRIBUTE)),
-                    parseBoolean(node, STORE_CACHING_ATTRIBUTE),
-                    parseBoolean(node, STORE_LOGGING_ATTRIBUTE));
+                    parseString(node, Stores.NAME, getDefaultName()),
+                    parseBoolean(node, Stores.PERSISTENT),
+                    parseBoolean(node, Stores.TIMESTAMPED),
+                    parseBoolean(node, Stores.VERSIONED),
+                    parseDuration(node, Stores.HISTORY_RETENTION),
+                    parseDuration(node, Stores.SEGMENT_INTERVAL),
+                    UserTypeParser.parse(parseString(node, Stores.KEY_TYPE)),
+                    UserTypeParser.parse(parseString(node, Stores.VALUE_TYPE)),
+                    parseBoolean(node, Stores.CACHING),
+                    parseBoolean(node, Stores.LOGGING));
             case SESSION_STORE -> new SessionStateStoreDefinition(
-                    parseString(node, STORE_NAME_ATTRIBUTE, getDefaultName()),
-                    parseBoolean(node, STORE_PERSISTENT_ATTRIBUTE),
-                    parseBoolean(node, STORE_TIMESTAMPED_ATTRIBUTE),
-                    parseDuration(node, STORE_RETENTION_ATTRIBUTE),
-                    UserTypeParser.parse(parseString(node, STORE_KEYTYPE_ATTRIBUTE)),
-                    UserTypeParser.parse(parseString(node, STORE_VALUETYPE_ATTRIBUTE)),
-                    parseBoolean(node, STORE_CACHING_ATTRIBUTE),
-                    parseBoolean(node, STORE_LOGGING_ATTRIBUTE));
+                    parseString(node, Stores.NAME, getDefaultName()),
+                    parseBoolean(node, Stores.PERSISTENT),
+                    parseBoolean(node, Stores.TIMESTAMPED),
+                    parseDuration(node, Stores.RETENTION),
+                    UserTypeParser.parse(parseString(node, Stores.KEY_TYPE)),
+                    UserTypeParser.parse(parseString(node, Stores.VALUE_TYPE)),
+                    parseBoolean(node, Stores.CACHING),
+                    parseBoolean(node, Stores.LOGGING));
             case WINDOW_STORE -> new WindowStateStoreDefinition(
-                    parseString(node, STORE_NAME_ATTRIBUTE, getDefaultName()),
-                    parseBoolean(node, STORE_PERSISTENT_ATTRIBUTE),
-                    parseBoolean(node, STORE_TIMESTAMPED_ATTRIBUTE),
-                    parseDuration(node, STORE_RETENTION_ATTRIBUTE),
-                    parseDuration(node, STORE_WINDOWSIZE_ATTRIBUTE),
-                    parseBoolean(node, STORE_RETAINDUPLICATES_ATTRIBUTE),
-                    UserTypeParser.parse(parseString(node, STORE_KEYTYPE_ATTRIBUTE)),
-                    UserTypeParser.parse(parseString(node, STORE_VALUETYPE_ATTRIBUTE)),
-                    parseBoolean(node, STORE_CACHING_ATTRIBUTE),
-                    parseBoolean(node, STORE_LOGGING_ATTRIBUTE));
+                    parseString(node, Stores.NAME, getDefaultName()),
+                    parseBoolean(node, Stores.PERSISTENT),
+                    parseBoolean(node, Stores.TIMESTAMPED),
+                    parseDuration(node, Stores.RETENTION),
+                    parseDuration(node, Stores.WINDOWSIZE),
+                    parseBoolean(node, Stores.RETAIN_DUPLICATES),
+                    UserTypeParser.parse(parseString(node, Stores.KEY_TYPE)),
+                    UserTypeParser.parse(parseString(node, Stores.VALUE_TYPE)),
+                    parseBoolean(node, Stores.CACHING),
+                    parseBoolean(node, Stores.LOGGING));
         };
     }
 }

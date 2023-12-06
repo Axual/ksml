@@ -21,172 +21,302 @@ package io.axual.ksml.dsl;
  */
 
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class KSMLDSL {
-    private KSMLDSL() {
+    public static final String FUNCTIONS = "functions";
+
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class Functions {
+        public static final String NAME = "name";
+        public static final String PARAMETERS = "parameters";
+        public static final String CODE = "code";
+        public static final String GLOBAL_CODE = "globalCode";
+        public static final String STORES = "stores";
+        public static final String RESULT_TYPE = "resultType";
+        public static final String EXPRESSION = "expression";
+
+        public static final String TYPE = "type";
+        public static final String TYPE_AGGREGATOR = "aggregator";
+        public static final String TYPE_FOREACHACTION = "forEach";
+        public static final String TYPE_FOREIGN_KEY_EXTRACTOR = "foreignKeyExtractor";
+        public static final String TYPE_GENERATOR = "generator";
+        public static final String TYPE_GENERIC = "generic";
+        public static final String TYPE_INITIALIZER = "initializer";
+        public static final String TYPE_KEYTRANSFORMER = "keyTransformer";
+        public static final String TYPE_KEYVALUEMAPPER = "keyValueMapper";
+        public static final String TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER = "keyValueToKeyValueListTransformer";
+        public static final String TYPE_KEYVALUETOVALUELISTTRANSFORMER = "keyValueToValueListTransformer";
+        public static final String TYPE_KEYVALUETRANSFORMER = "keyValueTransformer";
+        public static final String TYPE_MERGER = "merger";
+        public static final String TYPE_PREDICATE = "predicate";
+        public static final String TYPE_REDUCER = "reducer";
+        public static final String TYPE_STREAMPARTITIONER = "streamPartitioner";
+        public static final String TYPE_TOPICNAMEEXTRACTOR = "topicNameExtractor";
+        public static final String TYPE_VALUEJOINER = "valueJoiner";
+        public static final String TYPE_VALUETRANSFORMER = "valueTransformer";
+
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class Parameters {
+            public static final String NAME = "name";
+            public static final String TYPE = "type";
+            public static final String DEFAULT_VALUE = "defaultValue";
+        }
     }
 
-    public static final String AGGREGATE_INITIALIZER_ATTRIBUTE = "initializer";
-    public static final String AGGREGATE_AGGREGATOR_ATTRIBUTE = "aggregator";
-    public static final String AGGREGATE_MERGER_ATTRIBUTE = "merger";
-    public static final String AGGREGATE_ADDER_ATTRIBTUE = "adder";
-    public static final String AGGREGATE_SUBTRACTOR_ATTRIBUTE = "subtractor";
-    public static final String BRANCH_PREDICATE_ATTRIBUTE = "if";
-    public static final String CONVERT_INTO_ATTRIBUTE = "into";
-    public static final String FUNCTION_NAME_ATTRIBUTE = "name";
-    public static final String FUNCTION_PARAMETERS_ATTRIBUTE = "parameters";
-    public static final String FUNCTION_CODE_ATTRIBUTE = "code";
-    public static final String FUNCTION_GLOBALCODE_ATTRIBUTE = "globalCode";
-    public static final String FUNCTION_STORES_ATTRIBUTE = "stores";
-    public static final String FUNCTION_RESULTTYPE_ATTRIBUTE = "resultType";
-    public static final String FUNCTION_EXPRESSION_ATTRIBUTE = "expression";
-    public static final String FILTER_PREDICATE_ATTRIBUTE = "if";
-    public static final String FILTERNOT_PREDICATE_ATTRIBUTE = "if";
-    public static final String STORE_ATTRIBUTE = "store";
-    public static final String STORE_NAME_ATTRIBUTE = "name";
-    public static final String STORE_TYPE_ATTRIBUTE = "type";
-    public static final String STORE_PERSISTENT_ATTRIBUTE = "persistent";
-    public static final String STORE_TIMESTAMPED_ATTRIBUTE = "timestamped";
-    public static final String STORE_VERSIONED_ATTRIBUTE = "versioned";
-    public static final String STORE_HISTORY_RETENTION_ATTRIBUTE = "historyRetention";
-    public static final String STORE_SEGMENT_INTERVAL_ATTRIBUTE = "segmentInterval";
-    public static final String STORE_KEYTYPE_ATTRIBUTE = "keyType";
-    public static final String STORE_VALUETYPE_ATTRIBUTE = "valueType";
-    public static final String STORE_RETENTION_ATTRIBUTE = "retention";
-    public static final String STORE_CACHING_ATTRIBUTE = "caching";
-    public static final String STORE_LOGGING_ATTRIBUTE = "logging";
-    public static final String STORE_TYPE_KEYVALUE = "keyValueStore";
-    public static final String STORE_TYPE_SESSION = "sessionStore";
-    public static final String STORE_TYPE_WINDOW = "windowStore";
-    public static final String STORE_WINDOWSIZE_ATTRIBUTE = "windowSize";
-    public static final String STORE_RETAINDUPLICATES_ATTRIBUTE = "retainDuplicates";
-    public static final String MATERIALIZED_ATTRIBUTE = "materialized";
-    public static final String MATERIALIZED_NAME_ATTRIBUTE = "name";
-    public static final String MATERIALIZED_RETENTION_ATTRIBUTE = "retention";
-    public static final String MATERIALIZED_CACHING_ATTRIBUTE = "caching";
-    public static final String MATERIALIZED_LOGGING_ATTRIBUTE = "logging";
-    public static final String NAME_ATTRIBUTE = "name";
-    public static final String TOPIC_ATTRIBUTE = "topic";
-    public static final String KEYTYPE_ATTRIBUTE = "keyType";
-    public static final String VALUETYPE_ATTRIBUTE = "valueType";
-    public static final String QUERYABLE_ATTRIBUTE = "queryable";
-    public static final String PERSISTENT_ATTRIBUTE = "persistent";
-    public static final String GROUPBY_MAPPER_ATTRIBUTE = "mapper";
-    public static final String JOIN_VALUEJOINER_ATTRIBUTE = "valueJoiner";
-    public static final String JOIN_MAPPER_ATTRIBUTE = "mapper";
-    public static final String JOIN_WINDOW_TIME_DIFFERENCE_ATTRIBUTE = "window";
-    public static final String JOIN_WINDOW_GRACE_ATTRIBUTE = "grace";
-    public static final String MERGE_STREAM_ATTRIBUTE = "stream";
-    public static final String PEEK_FOREACH_ATTRIBUTE = "forEach";
-    public static final String PIPELINE_BRANCH_ATTRIBUTE = "branch";
-    public static final String PIPELINE_TO_ATTRIBUTE = "to";
-    public static final String PIPELINE_FOREACH_ATTRIBUTE = "forEach";
-    public static final String PIPELINE_TOTOPICNAMEEXTRACTOR_ATTRIBUTE = "toExtractor";
-    public static final String REDUCE_REDUCER_ATTRIBUTE = "reducer";
-    public static final String REDUCE_ADDER_ATTRIBUTE = "adder";
-    public static final String REDUCE_SUBTRACTOR_ATTRIBUTE = "subtractor";
-    public static final String PIPELINE_OPERATIONTYPE_ATTRIBUTE = "type";
-    public static final String OPERATION_AGGREGATE_TYPE = "aggregate";
-    public static final String OPERATION_CONVERTKEY_TYPE = "convertKey";
-    public static final String OPERATION_CONVERTKEYVALUE_TYPE = "convertKeyValue";
-    public static final String OPERATION_CONVERTVALUE_TYPE = "convertValue";
-    public static final String OPERATION_COUNT_TYPE = "count";
-    public static final String OPERATION_FILTER_TYPE = "filter";
-    public static final String OPERATION_FILTERNOT_TYPE = "filterNot";
-    public static final String OPERATION_FLATMAP_TYPE = "flatMap";
-    public static final String OPERATION_TRANSFORMKEYVALUETOKEYVALUELIST_TYPE = "transformKeyValueToKeyValueList";
-    public static final String OPERATION_FLATMAPVALUES_TYPE = "flatMapValues";
-    public static final String OPERATION_TRANSFORMKEYVALUETOVALUELIST_TYPE = "transformKeyValueToValueList";
-    public static final String OPERATION_GROUPBY_TYPE = "groupBy";
-    public static final String OPERATION_GROUPBYKEY_TYPE = "groupByKey";
-    public static final String OPERATION_JOIN_TYPE = "join";
-    public static final String OPERATION_LEFTJOIN_TYPE = "leftJoin";
-    public static final String OPERATION_MAPKEY_TYPE = "mapKey";
-    public static final String OPERATION_SELECTKEY_TYPE = "selectKey";
-    public static final String OPERATION_TRANSFORMKEY_TYPE = "transformKey";
-    public static final String OPERATION_MAP_TYPE = "map";
-    public static final String OPERATION_MAPKEYVALUE_TYPE = "mapKeyValue";
-    public static final String OPERATION_TRANSFORMKEYVALUE_TYPE = "transformKeyValue";
-    public static final String OPERATION_MAPVALUE_TYPE = "mapValue";
-    public static final String OPERATION_MAPVALUES_TYPE = "mapValues";
-    public static final String OPERATION_TRANSFORMVALUE_TYPE = "transformValue";
-    public static final String OPERATION_MERGE_TYPE = "merge";
-    public static final String OPERATION_OUTERJOIN_TYPE = "outerJoin";
-    public static final String OPERATION_PEEK_TYPE = "peek";
-    public static final String OPERATION_REDUCE_TYPE = "reduce";
-    public static final String OPERATION_REPARTITION_TYPE = "repartition";
-    public static final String OPERATION_STORES_ATTRIBUTE = "stores";
-    public static final String OPERATION_SUPPRESS_TYPE = "suppress";
-    public static final String OPERATION_TOSTREAM_TYPE = "toStream";
-    public static final String OPERATION_WINDOWBYTIME_TYPE = "windowByTime";
-    public static final String OPERATION_WINDOWBYSESSION_TYPE = "windowBySession";
-    public static final String OPERATION_WINDOWBY_TIME_TYPE = "windowByTime";
-    public static final String REPARTITION_PARTITIONER_ATTRIBUTE = "partitioner";
-    public static final String SUPPRESS_UNTIL_ATTRIBUTE = "until";
-    public static final String SUPPRESS_UNTILTIMELIMIT = "timeLimit";
-    public static final String SUPPRESS_UNTILWINDOWCLOSES = "windowCloses";
-    public static final String SUPPRESS_DURATION_ATTRIBUTE = "duration";
-    public static final String SUPPRESS_BUFFER_MAXBYTES = "maxBytes";
-    public static final String SUPPRESS_BUFFER_MAXRECORDS = "maxRecords";
-    public static final String SUPPRESS_BUFFERFULLSTRATEGY = "bufferFullStrategy";
-    public static final String SUPPRESS_BUFFERFULLSTRATEGY_EMIT = "emitEarlyWhenFull";
-    public static final String SUPPRESS_BUFFERFULLSTRATEGY_SHUTDOWN = "shutdownWhenFull";
-    public static final String TO_STREAM_MAPPER_ATTRIBUTE = "mapper";
-    public static final String TRANSFORMKEY_MAPPER_ATTRIBUTE = "mapper";
-    public static final String TRANSFORMKEYVALUE_MAPPER_ATTRIBUTE = "mapper";
-    public static final String TRANSFORMKEYVALUETOKEYVALUELIST_MAPPER_ATTRIBUTE = "mapper";
-    public static final String TRANSFORMKEYVALUETOVALUELIST_MAPPER_ATTRIBUTE = "mapper";
-    public static final String TRANSFORMVALUE_MAPPER_ATTRIBUTE = "mapper";
-    public static final String FUNCTION_PARAMETER_NAME = "name";
-    public static final String FUNCTION_PARAMETER_TYPE = "type";
-    public static final String FUNCTION_PARAMETER_DEFAULT_VALUE = "defaultValue";
-    public static final String FUNCTION_TYPE = "type";
-    public static final String FUNCTION_TYPE_AGGREGATOR = "aggregator";
-    public static final String FUNCTION_TYPE_FOREACHACTION = "forEach";
-    public static final String FUNCTION_TYPE_GENERATOR = "generator";
-    public static final String FUNCTION_TYPE_GENERIC = "generic";
-    public static final String FUNCTION_TYPE_INITIALIZER = "initializer";
-    public static final String FUNCTION_TYPE_KEYTRANSFORMER = "keyTransformer";
-    public static final String FUNCTION_TYPE_KEYVALUEMAPPER = "keyValueMapper";
-    public static final String FUNCTION_TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER = "keyValueToKeyValueListTransformer";
-    public static final String FUNCTION_TYPE_KEYVALUETOVALUELISTTRANSFORMER = "keyValueToValueListTransformer";
-    public static final String FUNCTION_TYPE_KEYVALUETRANSFORMER = "keyValueTransformer";
-    public static final String FUNCTION_TYPE_MESSAGEGENERATOR = "messageGenerator";
-    public static final String FUNCTION_TYPE_MERGER = "merger";
-    public static final String FUNCTION_TYPE_PREDICATE = "predicate";
-    public static final String FUNCTION_TYPE_REDUCER = "reducer";
-    public static final String FUNCTION_TYPE_STREAMPARTITIONER = "streamPartitioner";
-    public static final String FUNCTION_TYPE_TOPICNAMEEXTRACTOR = "topicNameExtractor";
-    public static final String FUNCTION_TYPE_VALUEJOINER = "valueJoiner";
-    public static final String FUNCTION_TYPE_VALUETRANSFORMER = "valueTransformer";
-    public static final String WINDOWEDBY_WINDOWTYPE_ATTRIBUTE = "windowType";
-    public static final String WINDOWBYTIME_WINDOWTYPE_ATTRIBUTE = "windowType";
-    public static final String WINDOWBYTIME_WINDOWTYPE_TUMBLING = "tumbling";
-    public static final String WINDOWBYTIME_WINDOWTYPE_HOPPING = "hopping";
-    public static final String WINDOWBYTIME_WINDOWTYPE_SLIDING = "sliding";
-    public static final String WINDOWEDBY_WINDOWTYPE_SESSION = "session";
-    public static final String WINDOWEDBY_WINDOWTYPE_SLIDING = "sliding";
-    public static final String WINDOWEDBY_WINDOWTYPE_TIME = "time";
-    public static final String WINDOWEDBY_WINDOWTYPE_SESSION_INACTIVITYGAP = "inactivityGap";
-    public static final String WINDOWEDBY_WINDOWTYPE_SESSION_GRACE = "grace";
-    public static final String WINDOWEDBY_WINDOWTYPE_SLIDING_TIMEDIFFERENCE = "timeDifference";
-    public static final String WINDOWEDBY_WINDOWTYPE_SLIDING_GRACE = "grace";
-    public static final String WINDOWEDBY_WINDOWTYPE_TIME_DURATION = "duration";
-    public static final String WINDOWEDBY_WINDOWTYPE_TIME_ADVANCEBY = "advanceBy";
-    public static final String WINDOWEDBY_WINDOWTYPE_TIME_GRACE = "grace";
-    public static final String PIPELINE_FROM_ATTRIBUTE = "from";
-    public static final String PIPELINE_VIA_ATTRIBUTE = "via";
-    public static final String JOIN_WITH_STREAM_DEFINITION = "stream";
-    public static final String STREAMS_DEFINITION = "streams";
-    public static final String JOIN_WITH_TABLE_DEFINITION = "table";
-    public static final String TABLES_DEFINITION = "tables";
-    public static final String JOIN_WITH_GLOBALTABLE_DEFINITION = "globalTable";
-    public static final String GLOBALTABLES_DEFINITION = "globalTables";
-    public static final String FUNCTIONS_DEFINITION = "functions";
-    public static final String STORES_DEFINITION = "stores";
-    public static final String PIPELINES_DEFINITION = "pipelines";
-    public static final String PRODUCERS_DEFINITION = "producers";
-    public static final String PRODUCER_GENERATOR_ATTRIBUTE = "generator";
-    public static final String PRODUCER_INTERVAL_ATTRIBUTE = "interval";
-    public static final String PRODUCER_CONDITION_ATTRIBUTE = "condition";
-    public static final String PRODUCER_TARGET_ATTRIBUTE = "to";
+    public static final String PRODUCERS = "producers";
+
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class Producers {
+        public static final String GENERATOR = "generator";
+        public static final String INTERVAL = "interval";
+        public static final String CONDITION = "condition";
+        public static final String TARGET = "to";
+    }
+
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class Operations {
+        public static final String NAME_ATTRIBUTE = "name";
+        public static final String STORE_ATTRIBUTE = "store";
+        public static final String STORE_NAMES_ATTRIBUTE = "stores";
+
+        public static final String AGGREGATE = "aggregate";
+        public static final String COGROUP = "cogroup";
+
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class Aggregate {
+            public static final String INITIALIZER = "initializer";
+            public static final String AGGREGATOR = "aggregator";
+            public static final String MERGER = "merger";
+            public static final String ADDER = "adder";
+            public static final String SUBTRACTOR = "subtractor";
+        }
+
+        public static final String BRANCH = "branch";
+
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class Branch {
+            public static final String PREDICATE = "if";
+        }
+
+        public static final String CONVERT_KEY = "convertKey";
+        public static final String CONVERT_KEY_VALUE = "convertKeyValue";
+        public static final String CONVERT_VALUE = "convertValue";
+
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class Convert {
+            public static final String INTO = "into";
+        }
+
+        public static final String COUNT = "count";
+
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class Count {
+        }
+
+        public static final String FILTER = "filter";
+        public static final String FILTER_NOT = "filterNot";
+
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class Filter {
+            public static final String PREDICATE = "if";
+        }
+
+        public static final String FOR_EACH = "forEach";
+
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class ForEach {
+        }
+
+        public static final String GROUP_BY = "groupBy";
+        public static final String GROUP_BY_KEY = "groupByKey";
+
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class GroupBy {
+            public static final String MAPPER = "mapper";
+        }
+
+        public static final String JOIN = "join";
+        public static final String LEFT_JOIN = "leftJoin";
+        public static final String OUTER_JOIN = "outerJoin";
+
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class Join {
+            public static final String FOREIGN_KEY_EXTRACTOR = "foreignKeyExtractor";
+            public static final String VALUE_JOINER = "valueJoiner";
+            public static final String MAPPER = "mapper";
+            public static final String TIME_DIFFERENCE = "window";
+            public static final String GRACE = "grace";
+            public static final String PARTITIONER = "partitioner";
+            public static final String OTHER_PARTITIONER = "otherPartitioner";
+
+            public static final String WITH_STREAM = "stream";
+            public static final String WITH_TABLE = "table";
+            public static final String WITH_GLOBAL_TABLE = "globalTable";
+        }
+
+        public static final String MERGE = "merge";
+
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class Merge {
+            public static final String STREAM = "stream";
+        }
+
+        public static final String PEEK = "peek";
+
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class Peek {
+            public static final String FOR_EACH = "forEach";
+        }
+
+        public static final String PRINT = "print";
+
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class Print {
+            public static final String FILENAME = "filename";
+            public static final String LABEL = "label";
+            public static final String MAPPER = "mapper";
+        }
+
+        public static final String REDUCE = "reduce";
+
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class Reduce {
+            public static final String REDUCER = "reducer";
+            public static final String ADDER = "adder";
+            public static final String SUBTRACTOR = "subtractor";
+        }
+
+        public static final String REPARTITION = "repartition";
+
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class Repartition {
+            public static final String PARTITIONER = "partitioner";
+        }
+
+        public static final String SUPPRESS = "suppress";
+
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class Suppress {
+            public static final String UNTIL = "until";
+            public static final String UNTIL_TIME_LIMIT = "timeLimit";
+            public static final String UNTIL_WINDOW_CLOSES = "windowCloses";
+            public static final String DURATION = "duration";
+            public static final String BUFFER_MAXBYTES = "maxBytes";
+            public static final String BUFFER_MAXRECORDS = "maxRecords";
+            public static final String BUFFER_FULL_STRATEGY = "bufferFullStrategy";
+            public static final String BUFFER_FULL_STRATEGY_EMIT = "emitEarlyWhenFull";
+            public static final String BUFFER_FULL_STRATEGY_SHUTDOWN = "shutdownWhenFull";
+        }
+
+        public static final String TO = "to";
+
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class To {
+            public static final String TOPIC = "topic";
+            public static final String TOPIC_NAME_EXTRACTOR = "topicNaneExtractor";
+            public static final String PARTITIONER = "partitioner";
+        }
+
+        public static final String TO_STREAM = "toStream";
+
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class ToStream {
+            public static final String MAPPER = "mapper";
+        }
+
+        public static final String TO_TABLE = "toTable";
+
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class ToTable {
+        }
+
+        public static final String FLATMAP = "flatMap";
+        public static final String FLATMAP_VALUES = "flatMapValues";
+        public static final String MAP_KEY = "mapKey";
+        public static final String SELECT_KEY = "selectKey";
+        public static final String MAP = "map";
+        public static final String MAP_KEY_VALUE = "mapKeyValue";
+        public static final String MAP_VALUE = "mapValue";
+        public static final String MAP_VALUES = "mapValues";
+
+
+        public static final String TRANSFORM_KEY = "transformKey";
+        public static final String TRANSFORM_KEY_VALUE = "transformKeyValue";
+        public static final String TRANSFORM_KEY_VALUE_TO_KEY_VALUE_LIST = "transformKeyValueToKeyValueList";
+        public static final String TRANSFORM_KEY_VALUE_TO_VALUE_LIST = "transformKeyValueToValueList";
+        public static final String TRANSFORM_VALUE = "transformValue";
+
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class Transform {
+            public static final String MAPPER = "mapper";
+        }
+
+        public static final String WINDOW_BY_TIME = "windowByTime";
+        public static final String WINDOW_BY_SESSION = "windowBySession";
+    }
+
+    public static final String PIPELINES = "pipelines";
+
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class Pipelines {
+        public static final String FROM = "from";
+        public static final String VIA = "via";
+        public static final String OPERATION_TYPE = "type";
+    }
+
+    public static final String STORES = "stores";
+
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class Stores {
+        public static final String NAME = "name";
+        public static final String TYPE = "type";
+        public static final String PERSISTENT = "persistent";
+        public static final String TIMESTAMPED = "timestamped";
+        public static final String VERSIONED = "versioned";
+        public static final String HISTORY_RETENTION = "historyRetention";
+        public static final String SEGMENT_INTERVAL = "segmentInterval";
+        public static final String KEY_TYPE = "keyType";
+        public static final String VALUE_TYPE = "valueType";
+        public static final String RETENTION = "retention";
+        public static final String CACHING = "caching";
+        public static final String LOGGING = "logging";
+        public static final String TYPE_KEYVALUE = "keyValueStore";
+        public static final String TYPE_SESSION = "sessionStore";
+        public static final String TYPE_WINDOW = "windowStore";
+        public static final String WINDOWSIZE = "windowSize";
+        public static final String RETAIN_DUPLICATES = "retainDuplicates";
+    }
+
+    public static final String STREAMS = "streams";
+    public static final String TABLES = "tables";
+    public static final String GLOBAL_TABLES = "globalTables";
+
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class Streams {
+        public static final String STORE = "store";
+        public static final String TOPIC = "topic";
+        public static final String KEY_TYPE = "keyType";
+        public static final String VALUE_TYPE = "valueType";
+    }
+
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class SessionWindows {
+        public static final String INACTIVITY_GAP = "inactivityGap";
+        public static final String GRACE = "grace";
+    }
+
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class TimeWindows {
+        public static final String WINDOW_TYPE = "windowType";
+        public static final String TYPE_TUMBLING = "tumbling";
+        public static final String TYPE_HOPPING = "hopping";
+        public static final String TYPE_SLIDING = "sliding";
+        public static final String TIME_DIFFERENCE = "timeDifference";
+        public static final String DURATION = "duration";
+        public static final String ADVANCE_BY = "advanceBy";
+        public static final String GRACE = "grace";
+    }
 }

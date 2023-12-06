@@ -21,11 +21,10 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.CountOperation;
 import io.axual.ksml.parser.YamlNode;
-
-import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
 
 public class CountOperationParser extends StoreOperationParser<CountOperation> {
     public CountOperationParser(String prefix, String name, TopologyResources resources) {
@@ -35,6 +34,6 @@ public class CountOperationParser extends StoreOperationParser<CountOperation> {
     @Override
     public CountOperation parse(YamlNode node) {
         if (node == null) return null;
-        return new CountOperation(storeOperationConfig(node, STORE_ATTRIBUTE, null));
+        return new CountOperation(storeOperationConfig(node, KSMLDSL.Operations.STORE_ATTRIBUTE, null));
     }
 }

@@ -25,8 +25,7 @@ import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.MapParser;
 import io.axual.ksml.parser.YamlNode;
 
-import static io.axual.ksml.dsl.KSMLDSL.PIPELINES_DEFINITION;
-import static io.axual.ksml.dsl.KSMLDSL.PRODUCERS_DEFINITION;
+import static io.axual.ksml.dsl.KSMLDSL.*;
 
 public class TopologyDefinitionParser extends BaseParser<TopologyDefinition> {
     private final String name;
@@ -47,9 +46,9 @@ public class TopologyDefinitionParser extends BaseParser<TopologyDefinition> {
         final var result = new TopologyDefinition(resources);
 
         // Parse all defined pipelines, using this topology's name as operation prefix
-        new MapParser<>("pipeline definition", new PipelineDefinitionParser(name, resources)).parse(node.get(PIPELINES_DEFINITION)).forEach(result::register);
+        new MapParser<>("pipeline definition", new PipelineDefinitionParser(name, resources)).parse(node.get(PIPELINES)).forEach(result::register);
         // Parse all defined producers, using this topology's name as operation prefix
-        new MapParser<>("producer definition", new ProducerDefinitionParser(name, resources)).parse(node.get(PRODUCERS_DEFINITION)).forEach(result::register);
+        new MapParser<>("producer definition", new ProducerDefinitionParser(name, resources)).parse(node.get(PRODUCERS)).forEach(result::register);
 
         return result;
     }

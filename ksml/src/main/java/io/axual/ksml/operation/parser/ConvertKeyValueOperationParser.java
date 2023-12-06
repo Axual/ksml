@@ -22,13 +22,12 @@ package io.axual.ksml.operation.parser;
 
 import io.axual.ksml.data.type.UserTupleType;
 import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ConvertKeyValueOperation;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.parser.YamlNode;
-
-import static io.axual.ksml.dsl.KSMLDSL.CONVERT_INTO_ATTRIBUTE;
 
 public class ConvertKeyValueOperationParser extends OperationParser<ConvertKeyValueOperation> {
     public ConvertKeyValueOperationParser(String prefix, String name, TopologyResources resources) {
@@ -38,7 +37,7 @@ public class ConvertKeyValueOperationParser extends OperationParser<ConvertKeyVa
     @Override
     public ConvertKeyValueOperation parse(YamlNode node) {
         if (node == null) return null;
-        UserType target = UserTypeParser.parse(parseString(node, CONVERT_INTO_ATTRIBUTE));
+        UserType target = UserTypeParser.parse(parseString(node, KSMLDSL.Operations.Convert.INTO));
         if (target.dataType() instanceof UserTupleType userTupleType && userTupleType.subTypeCount() == 2) {
             return new ConvertKeyValueOperation(operationConfig(node), userTupleType.getUserType(0), userTupleType.getUserType(1));
         }

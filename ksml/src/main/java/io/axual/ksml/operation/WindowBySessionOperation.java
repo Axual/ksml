@@ -22,7 +22,9 @@ package io.axual.ksml.operation;
 
 
 import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.stream.CogroupedKStreamWrapper;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
+import io.axual.ksml.stream.SessionWindowedCogroupedKStreamWrapper;
 import io.axual.ksml.stream.SessionWindowedKStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import org.apache.kafka.streams.kstream.SessionWindows;
@@ -39,6 +41,25 @@ public class WindowBySessionOperation extends BaseOperation {
     public StreamWrapper apply(KGroupedStreamWrapper input, TopologyBuildContext context) {
         final var k = input.keyType();
         final var v = input.valueType();
+
+        /*    Kafka Streams method signature:
+         *    SessionWindowedKStream<K, V> windowedBy(
+         *          final SessionWindows windows)
+         */
+
         return new SessionWindowedKStreamWrapper(input.groupedStream.windowedBy(sessionWindows), k, v);
+    }
+
+    @Override
+    public StreamWrapper apply(CogroupedKStreamWrapper input, TopologyBuildContext context) {
+        final var k = input.keyType();
+        final var v = input.valueType();
+
+        /*    Kafka Streams method signature:
+         *    SessionWindowedCogroupedKStream<K, V> windowedBy(
+         *          final SessionWindows windows)
+         */
+
+        return new SessionWindowedCogroupedKStreamWrapper(input.cogroupedStream.windowedBy(sessionWindows), k, v);
     }
 }

@@ -21,6 +21,7 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.processor.FixedKeyOperationProcessorSupplier;
@@ -29,8 +30,10 @@ import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserValueTransformer;
+import io.axual.ksml.user.UserValueTransformerWithKey;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
+import org.apache.kafka.streams.kstream.ValueTransformerWithKeySupplier;
 
 public class TransformValueOperation extends StoreOperation {
     private static final String MAPPER_NAME = "Mapper";
@@ -82,17 +85,18 @@ public class TransformValueOperation extends StoreOperation {
         final var v = input.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(mapper, v.userType()), false);
         final var map = userFunctionOf(context, MAPPER_NAME, mapper, vr, superOf(k), superOf(v));
-        final var userMap = new UserValueTransformer(map);
+        final var userMap = new UserValueTransformerWithKey(map);
         final var kvStore = validateKeyValueStore(store(), k, vr);
-        final var mat = materializedOf(context, kvStore);
+        final ValueTransformerWithKeySupplier<Object, Object, DataObject> supplier = () -> userMap;
         final var named = namedOf();
+        final var mat = materializedOf(context, kvStore);
         final KTable<Object, Object> output = named != null
                 ? mat != null
-                ? input.table.mapValues(userMap, named, mat)
-                : input.table.mapValues(userMap, named)
+                ? input.table.transformValues(supplier, mat, named, storeNames)
+                : input.table.transformValues(supplier, named, storeNames)
                 : mat != null
-                ? input.table.mapValues(userMap, mat)
-                : input.table.mapValues(userMap);
+                ? input.table.transformValues(supplier, mat, storeNames)
+                : input.table.transformValues(supplier, storeNames);
         return new KTableWrapper(output, k, vr);
     }
 }

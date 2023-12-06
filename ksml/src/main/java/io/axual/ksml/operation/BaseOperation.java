@@ -39,9 +39,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.errors.TopologyException;
 import org.apache.kafka.streams.kstream.Grouped;
+import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Named;
+import org.apache.kafka.streams.kstream.Printed;
 import org.apache.kafka.streams.kstream.Produced;
+import org.apache.kafka.streams.kstream.Repartitioned;
+import org.apache.kafka.streams.kstream.TableJoined;
+import org.apache.kafka.streams.processor.StreamPartitioner;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.SessionStore;
 import org.apache.kafka.streams.state.WindowStore;
@@ -237,9 +242,7 @@ public class BaseOperation implements StreamOperation {
 
     protected UserFunction userFunctionOf(TopologyBuildContext context, String functionType, FunctionDefinition function, TypeComparator resultType, TypeComparator... parameters) {
         // Check if the function is defined
-        if (function == null) {
-            throw topologyError(functionType + " is not defined");
-        }
+        if (function == null) return null;
 
         // Check if the resultType of the function is as expected
         checkType(functionType + " resultType", (function.resultType() != null ? function.resultType() : new UserType(UserType.DEFAULT_NOTATION, DataNull.DATATYPE)), resultType);
@@ -334,30 +337,60 @@ public class BaseOperation implements StreamOperation {
         return grouped;
     }
 
-    protected Produced<Object, Object> producedOf(String name, StreamDataType k, StreamDataType v) {
+    protected Produced<Object, Object> producedOf(StreamDataType k, StreamDataType v, StreamPartitioner<Object, Object> partitioner) {
         var produced = Produced.with(k.serde(), v.serde());
+        if (partitioner != null) produced = produced.withStreamPartitioner(partitioner);
         if (name != null) produced = produced.withName(name);
         return produced;
     }
 
-    protected Materialized<Object, Object, KeyValueStore<Bytes, byte[]>> materializedOf(TopologyBuildContext context, KeyValueStateStoreDefinition store) {
+    protected <V> Materialized<Object, V, KeyValueStore<Bytes, byte[]>> materializedOf(TopologyBuildContext context, KeyValueStateStoreDefinition store) {
         if (store != null) {
             return context.materialize(store);
         }
         return null;
     }
 
-    protected Materialized<Object, Object, SessionStore<Bytes, byte[]>> materializedOf(TopologyBuildContext context, SessionStateStoreDefinition store) {
+    protected <V> Materialized<Object, V, SessionStore<Bytes, byte[]>> materializedOf(TopologyBuildContext context, SessionStateStoreDefinition store) {
         if (store != null) {
             return context.materialize(store);
         }
         return null;
     }
 
-    protected Materialized<Object, Object, WindowStore<Bytes, byte[]>> materializedOf(TopologyBuildContext context, WindowStateStoreDefinition store) {
+    protected <V> Materialized<Object, V, WindowStore<Bytes, byte[]>> materializedOf(TopologyBuildContext context, WindowStateStoreDefinition store) {
         if (store != null) {
             return context.materialize(store);
         }
         return null;
+    }
+
+    protected Repartitioned<Object, Object> repartitionedOf(StreamDataType k, StreamDataType v, StreamPartitioner<Object, Object> partitioner) {
+        if (partitioner == null) return null;
+        var repartitioned = Repartitioned.with(k.serde(), v.serde()).withStreamPartitioner(partitioner);
+        if (name != null) repartitioned = repartitioned.withName(name);
+        return repartitioned;
+    }
+
+    protected Printed<Object, Object> printedOf(String filename, String label, KeyValueMapper<Object, Object, String> mapper) {
+        var printed = filename != null ? Printed.toFile(filename) : Printed.toSysOut();
+        if (label != null) printed = printed.withLabel(label);
+        if (mapper != null) printed = printed.withKeyValueMapper(mapper);
+        if (name != null) printed = printed.withName(name);
+        return printed;
+    }
+
+    private record WrapPartitioner(
+            StreamPartitioner<Object, Object> partitioner) implements StreamPartitioner<Object, Void> {
+        @Override
+        public Integer partition(String topic, Object key, Void value, int numPartitions) {
+            return partitioner.partition(topic, key, value, numPartitions);
+        }
+    }
+
+    protected TableJoined<Object, Object> tableJoinedOf(StreamPartitioner<Object, Object> partitioner, StreamPartitioner<Object, Object> otherPartitioner) {
+        final var part = partitioner != null ? new WrapPartitioner(partitioner) : null;
+        final var otherPart = otherPartitioner != null ? new WrapPartitioner(otherPartitioner) : null;
+        return TableJoined.with(part, otherPart).withName(name);
     }
 }

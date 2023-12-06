@@ -21,19 +21,8 @@ package io.axual.ksml.operation.parser;
  */
 
 
-import io.axual.ksml.definition.parser.BranchDefinitionParser;
-import io.axual.ksml.definition.parser.ForEachActionDefinitionParser;
-import io.axual.ksml.definition.parser.TopicDefinitionParser;
-import io.axual.ksml.definition.parser.TopicNameExtractorDefinitionParser;
-import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.generator.TopologyResources;
-import io.axual.ksml.operation.BranchOperation;
-import io.axual.ksml.operation.ForEachOperation;
 import io.axual.ksml.operation.StreamOperation;
-import io.axual.ksml.operation.ToOperation;
-import io.axual.ksml.operation.ToTopicNameExtractorOperation;
-import io.axual.ksml.parser.ListParser;
-import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.*;
@@ -46,21 +35,19 @@ public class PipelineSinkOperationParser extends OperationParser<StreamOperation
     @Override
     public StreamOperation parse(YamlNode node) {
         if (node == null) return null;
-        if (node.get(PIPELINE_BRANCH_ATTRIBUTE) != null) {
-            return new BranchOperation(operationConfig(node, determineName("branch")), new ListParser<>("branch definition", new BranchDefinitionParser(prefix, resources)).parse(node.get(PIPELINE_BRANCH_ATTRIBUTE)));
+        if (node.get(Operations.BRANCH) != null) {
+            return new BranchOperationParser(prefix, determineName("branch"), resources).parse(node.get(Operations.BRANCH));
         }
-        if (node.get(PIPELINE_FOREACH_ATTRIBUTE) != null) {
-            return new ForEachOperation(operationConfig(node, determineName("for_each")), parseFunction(node, PIPELINE_FOREACH_ATTRIBUTE, new ForEachActionDefinitionParser()));
+        if (node.get(Operations.FOR_EACH) != null) {
+            // Parser can parse references, so pass in the node itself rather than the child
+            return new ForEachOperationParser(prefix, determineName("for_each"), resources).parse(node);
         }
-        if (node.get(PIPELINE_TOTOPICNAMEEXTRACTOR_ATTRIBUTE) != null) {
-            return new ToTopicNameExtractorOperation(operationConfig(node, determineName("to_topic_name_extractor")), parseFunction(node, PIPELINE_TOTOPICNAMEEXTRACTOR_ATTRIBUTE, new TopicNameExtractorDefinitionParser()));
+        if (node.get(Operations.PRINT) != null) {
+            return new PrintOperationParser(prefix, determineName("print"), resources).parse(node.get(Operations.PRINT));
         }
-        if (node.get(PIPELINE_TO_ATTRIBUTE) != null) {
-            final var target = new TopologyResourceParser<>("target", PIPELINE_TO_ATTRIBUTE, resources.topics()::get, new TopicDefinitionParser()).parseDefinition(node);
-            if (target != null) {
-                return new ToOperation(operationConfig(node, determineName("to")), target);
-            }
-            throw new KSMLParseException(node, "Target stream not found or not specified");
+        if (node.get(Operations.TO) != null) {
+            // Parser can parse references, so pass in the node itself rather than the child
+            return new ToOperationParser(prefix, determineName("to"), resources).parse(node);
         }
         return null;
     }

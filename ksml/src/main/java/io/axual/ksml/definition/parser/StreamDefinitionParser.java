@@ -22,21 +22,18 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.StreamDefinition;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.parser.YamlNode;
-
-import static io.axual.ksml.dsl.KSMLDSL.KEYTYPE_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.TOPIC_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.VALUETYPE_ATTRIBUTE;
 
 public class StreamDefinitionParser extends BaseParser<StreamDefinition> {
     @Override
     public StreamDefinition parse(YamlNode node) {
         if (node == null) return null;
         return new StreamDefinition(
-                parseString(node, TOPIC_ATTRIBUTE),
-                UserTypeParser.parse(parseString(node, KEYTYPE_ATTRIBUTE)),
-                UserTypeParser.parse(parseString(node, VALUETYPE_ATTRIBUTE)));
+                parseString(node, KSMLDSL.Streams.TOPIC),
+                UserTypeParser.parse(parseString(node, KSMLDSL.Streams.KEY_TYPE)),
+                UserTypeParser.parse(parseString(node, KSMLDSL.Streams.VALUE_TYPE)));
     }
 }

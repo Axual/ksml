@@ -23,17 +23,19 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.stream.CogroupedKStreamWrapper;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.KGroupedTableWrapper;
 import io.axual.ksml.stream.KTableWrapper;
+import io.axual.ksml.stream.SessionWindowedCogroupedKStreamWrapper;
 import io.axual.ksml.stream.SessionWindowedKStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
+import io.axual.ksml.stream.TimeWindowedCogroupedKStreamWrapper;
 import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
 import io.axual.ksml.user.UserAggregator;
 import io.axual.ksml.user.UserInitializer;
 import io.axual.ksml.user.UserMerger;
 import org.apache.kafka.streams.kstream.KTable;
-import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.Windowed;
 
 public class AggregateOperation extends StoreOperation {
@@ -72,11 +74,11 @@ public class AggregateOperation extends StoreOperation {
         final var v = input.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(initializer, aggregator), false);
         final var init = userFunctionOf(context, INITIALIZER_NAME, initializer, vr);
+        final var userInit = new UserInitializer(init);
         final var aggr = userFunctionOf(context, AGGREGATOR_NAME, aggregator, vr, superOf(k), superOf(v), superOf(vr));
+        final var userAggr = new UserAggregator(aggr);
         final var kvStore = validateKeyValueStore(store(), k, vr);
         final var mat = materializedOf(context, kvStore);
-        final var userInit = new UserInitializer(init);
-        final var userAggr = new UserAggregator(aggr);
         final var named = namedOf();
         final KTable<Object, Object> output = mat != null
                 ? named != null
@@ -102,13 +104,13 @@ public class AggregateOperation extends StoreOperation {
         final var v = input.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(initializer, adder, subtractor), false);
         final var init = userFunctionOf(context, INITIALIZER_NAME, initializer, vr);
+        final var userInit = new UserInitializer(init);
         final var add = userFunctionOf(context, ADDER_NAME, adder, vr, superOf(k), superOf(v), superOf(vr));
+        final var userAdd = new UserAggregator(add);
         final var sub = userFunctionOf(context, SUBTRACTOR_NAME, subtractor, vr, superOf(k), superOf(vr), superOf(vr));
+        final var userSub = new UserAggregator(sub);
         final var kvStore = validateKeyValueStore(store(), k, vr);
         final var mat = materializedOf(context, kvStore);
-        final var userInit = new UserInitializer(init);
-        final var userAdd = new UserAggregator(add);
-        final var userSub = new UserAggregator(sub);
         final var named = namedOf();
         final KTable<Object, Object> output = named != null
                 ? mat != null
@@ -137,13 +139,13 @@ public class AggregateOperation extends StoreOperation {
         final var windowedK = windowedTypeOf(k);
         final var vr = streamDataTypeOf(firstSpecificType(initializer, aggregator, merger), false);
         final var init = userFunctionOf(context, INITIALIZER_NAME, initializer, vr);
+        final var userInit = new UserInitializer(init);
         final var aggr = userFunctionOf(context, AGGREGATOR_NAME, aggregator, vr, superOf(k), superOf(v), superOf(vr));
+        final var userAggr = new UserAggregator(aggr);
         final var merg = userFunctionOf(context, MERGER_NAME, merger, vr, superOf(k), equalTo(vr), superOf(vr));
+        final var userMerg = new UserMerger(merg);
         final var sessionStore = validateSessionStore(store(), k, vr);
         final var mat = materializedOf(context, sessionStore);
-        final var userInit = new UserInitializer(init);
-        final var userAggr = new UserAggregator(aggr);
-        final var userMerg = new UserMerger(merg);
         final var named = namedOf();
         final KTable<Windowed<Object>, Object> output = named != null
                 ? mat != null
@@ -172,12 +174,12 @@ public class AggregateOperation extends StoreOperation {
         final var windowedK = windowedTypeOf(k);
         final var vr = streamDataTypeOf(firstSpecificType(initializer, aggregator), false);
         final var init = userFunctionOf(context, INITIALIZER_NAME, initializer, vr);
+        final var userInit = new UserInitializer(init);
         final var aggr = userFunctionOf(context, AGGREGATOR_NAME, aggregator, vr, superOf(k), superOf(v), superOf(vr));
+        final var userAggr = new UserAggregator(aggr);
         final var windowStore = validateWindowStore(store(), k, vr);
         final var mat = materializedOf(context, windowStore);
-        final var userInit = new UserInitializer(init);
-        final var userAggr = new UserAggregator(aggr);
-        final var named = name != null ? Named.as(name) : null;
+        final var named = namedOf();
         final KTable<Windowed<Object>, Object> output = named != null
                 ? mat != null
                 ? input.timeWindowedKStream.aggregate(userInit, userAggr, named, mat)
@@ -186,5 +188,92 @@ public class AggregateOperation extends StoreOperation {
                 ? input.timeWindowedKStream.aggregate(userInit, userAggr, mat)
                 : input.timeWindowedKStream.aggregate(userInit, userAggr);
         return new KTableWrapper((KTable) output, windowedK, vr);
+    }
+
+    @Override
+    public StreamWrapper apply(CogroupedKStreamWrapper input, TopologyBuildContext context) {
+        /*
+         *    Kafka Streams method signature:
+         *    KTable<K, VOut> aggregate(
+         *          final Initializer<VOut> initializer,
+         *          final Named named,
+         *          final Materialized<K, VOut, KeyValueStore<Bytes, byte[]>> materialized)
+         */
+
+        checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
+        final var k = input.keyType();
+        final var vout = input.valueType();
+        final var init = userFunctionOf(context, INITIALIZER_NAME, initializer, vout);
+        final var userInit = new UserInitializer(init);
+        final var kvStore = validateKeyValueStore(store(), k, vout);
+        final var mat = materializedOf(context, kvStore);
+        final var named = namedOf();
+        final KTable<Object, Object> output = named != null
+                ? mat != null
+                ? input.cogroupedStream.aggregate(userInit, named, mat)
+                : input.cogroupedStream.aggregate(userInit, named)
+                : mat != null
+                ? input.cogroupedStream.aggregate(userInit, mat)
+                : input.cogroupedStream.aggregate(userInit);
+        return new KTableWrapper(output, k, vout);
+    }
+
+    @Override
+    public StreamWrapper apply(TimeWindowedCogroupedKStreamWrapper input, TopologyBuildContext context) {
+        /*
+         *    Kafka Streams method signature:
+         *    KTable<Windowed<K>, V> aggregate(
+         *          final Initializer<V> initializer,
+         *          final Named named,
+         *          final Materialized<K, V, WindowStore<Bytes, byte[]>> materialized)
+         */
+
+        checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
+        final var k = input.keyType();
+        final var v = input.valueType();
+        final var init = userFunctionOf(context, INITIALIZER_NAME, initializer, v);
+        final var userInit = new UserInitializer(init);
+        final var kvStore = validateWindowStore(store(), k, v);
+        final var mat = materializedOf(context, kvStore);
+        final var named = namedOf();
+        final KTable<Windowed<Object>, Object> output = named != null
+                ? mat != null
+                ? input.timeWindowedCogroupedKStream.aggregate(userInit, named, mat)
+                : input.timeWindowedCogroupedKStream.aggregate(userInit, named)
+                : mat != null
+                ? input.timeWindowedCogroupedKStream.aggregate(userInit, mat)
+                : input.timeWindowedCogroupedKStream.aggregate(userInit);
+        return new KTableWrapper((KTable) output, k, v);
+    }
+
+    @Override
+    public StreamWrapper apply(SessionWindowedCogroupedKStreamWrapper input, TopologyBuildContext context) {
+        /*
+         *    Kafka Streams method signature:
+         *    KTable<Windowed<K>, V> aggregate(
+         *          final Initializer<V> initializer,
+         *          final Merger<? super K, V> sessionMerger,
+         *          final Named named,
+         *          final Materialized<K, V, SessionStore<Bytes, byte[]>> materialized)
+         */
+
+        checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
+        final var k = input.keyType();
+        final var v = input.valueType();
+        final var init = userFunctionOf(context, INITIALIZER_NAME, initializer, v);
+        final var userInit = new UserInitializer(init);
+        final var merg = userFunctionOf(context, MERGER_NAME, merger, v);
+        final var userMerg = new UserMerger(merg);
+        final var sessionStore = validateSessionStore(store(), k, v);
+        final var mat = materializedOf(context, sessionStore);
+        final var named = namedOf();
+        final KTable<Windowed<Object>, Object> output = named != null
+                ? mat != null
+                ? input.sessionWindowedCogroupedKStream.aggregate(userInit, userMerg, named, mat)
+                : input.sessionWindowedCogroupedKStream.aggregate(userInit, userMerg, named)
+                : mat != null
+                ? input.sessionWindowedCogroupedKStream.aggregate(userInit, userMerg, mat)
+                : input.sessionWindowedCogroupedKStream.aggregate(userInit, userMerg);
+        return new KTableWrapper((KTable) output, k, v);
     }
 }

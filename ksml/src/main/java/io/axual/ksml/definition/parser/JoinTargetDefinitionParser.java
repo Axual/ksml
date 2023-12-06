@@ -38,14 +38,14 @@ public class JoinTargetDefinitionParser extends ContextAwareParser<TopicDefiniti
     @Override
     public TopicDefinition parse(YamlNode node) {
         if (node == null) return null;
-        if (node.get(JOIN_WITH_STREAM_DEFINITION) != null) {
-            return new TopologyResourceParser<>("stream", JOIN_WITH_STREAM_DEFINITION, resources::topic, new StreamDefinitionParser()).parseDefinition(node);
+        if (node.get(Operations.Join.WITH_STREAM) != null) {
+            return new TopologyResourceParser<>("stream", Operations.Join.WITH_STREAM, resources::topic, new StreamDefinitionParser()).parseDefinition(node);
         }
-        if (parseString(node, JOIN_WITH_TABLE_DEFINITION) != null) {
-            return new TopologyResourceParser<>("table", JOIN_WITH_TABLE_DEFINITION, resources::topic, new TableDefinitionParser()).parseDefinition(node);
+        if (parseString(node, Operations.Join.WITH_TABLE) != null) {
+            return new TopologyResourceParser<>("table", Operations.Join.WITH_TABLE, resources::topic, new TableDefinitionParser()).parseDefinition(node);
         }
-        if (parseString(node, JOIN_WITH_GLOBALTABLE_DEFINITION) != null) {
-            return new TopologyResourceParser<>("globalTable", JOIN_WITH_GLOBALTABLE_DEFINITION, resources::topic, new GlobalTableDefinitionParser()).parseDefinition(node);
+        if (parseString(node, Operations.Join.WITH_GLOBAL_TABLE) != null) {
+            return new TopologyResourceParser<>("globalTable", Operations.Join.WITH_GLOBAL_TABLE, resources::topic, new GlobalTableDefinitionParser()).parseDefinition(node);
         }
         throw new KSMLParseException(node, "Stream definition missing");
     }

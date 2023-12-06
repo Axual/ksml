@@ -23,13 +23,16 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.stream.CogroupedKStreamWrapper;
 import io.axual.ksml.stream.GlobalKTableWrapper;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.KGroupedTableWrapper;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
+import io.axual.ksml.stream.SessionWindowedCogroupedKStreamWrapper;
 import io.axual.ksml.stream.SessionWindowedKStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
+import io.axual.ksml.stream.TimeWindowedCogroupedKStreamWrapper;
 import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
 
 public interface StreamOperation {
@@ -60,5 +63,17 @@ public interface StreamOperation {
 
     default StreamWrapper apply(TimeWindowedKStreamWrapper timeWindowedKStream, TopologyBuildContext context) {
         throw new KSMLTopologyException("Can not apply " + getClass().getSimpleName() + " to " + timeWindowedKStream);
+    }
+
+    default StreamWrapper apply(CogroupedKStreamWrapper cogroupedStream, TopologyBuildContext context) {
+        throw new KSMLTopologyException("Can not apply " + getClass().getSimpleName() + " to " + cogroupedStream);
+    }
+
+    default StreamWrapper apply(SessionWindowedCogroupedKStreamWrapper sessionWindowedCogroupedKStreamWrapper, TopologyBuildContext context) {
+        throw new KSMLTopologyException("Can not apply " + getClass().getSimpleName() + " to " + sessionWindowedCogroupedKStreamWrapper);
+    }
+
+    default StreamWrapper apply(TimeWindowedCogroupedKStreamWrapper timeWindowedCogroupedKStreamWrapper, TopologyBuildContext context) {
+        throw new KSMLTopologyException("Can not apply " + getClass().getSimpleName() + " to " + timeWindowedCogroupedKStreamWrapper);
     }
 }

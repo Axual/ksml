@@ -42,12 +42,12 @@ public class FunctionDefinitionParser extends BaseParser<FunctionDefinition> {
     public FunctionDefinition parse(YamlNode node) {
         if (node == null) return null;
         return FunctionDefinition.as(
-                parseString(node, FUNCTION_NAME_ATTRIBUTE, getDefaultName()),
-                new ListParser<>("function parameter", new ParameterDefinitionParser()).parse(node.get(FUNCTION_PARAMETERS_ATTRIBUTE)).toArray(TEMPLATE),
-                UserTypeParser.parse(parseString(node, FUNCTION_RESULTTYPE_ATTRIBUTE)),
-                parseString(node, FUNCTION_EXPRESSION_ATTRIBUTE),
-                parseMultilineText(node, FUNCTION_CODE_ATTRIBUTE),
-                parseMultilineText(node, FUNCTION_GLOBALCODE_ATTRIBUTE),
-                new ListParser<>("function store", new StringValueParser()).parse(node.get(FUNCTION_STORES_ATTRIBUTE)));
+                parseString(node, Functions.NAME, getDefaultName()),
+                new ListParser<>("function parameter", new ParameterDefinitionParser()).parse(node.get(Functions.PARAMETERS)).toArray(TEMPLATE),
+                UserTypeParser.parse(parseString(node, Functions.RESULT_TYPE)),
+                parseString(node, Functions.EXPRESSION),
+                parseMultilineText(node, Functions.CODE),
+                parseMultilineText(node, Functions.GLOBAL_CODE),
+                new ListParser<>("function store", new StringValueParser()).parse(node.get(Functions.STORES)));
     }
 }

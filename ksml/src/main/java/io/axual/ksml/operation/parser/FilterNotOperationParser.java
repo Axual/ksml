@@ -22,13 +22,13 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.definition.parser.PredicateDefinitionParser;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.FilterNotOperation;
 import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.store.StoreType;
 
-import static io.axual.ksml.dsl.KSMLDSL.FILTERNOT_PREDICATE_ATTRIBUTE;
-
-public class FilterNotOperationParser extends OperationParser<FilterNotOperation> {
+public class FilterNotOperationParser extends StoreOperationParser<FilterNotOperation> {
     public FilterNotOperationParser(String prefix, String name, TopologyResources resources) {
         super(prefix, name, resources);
     }
@@ -37,8 +37,8 @@ public class FilterNotOperationParser extends OperationParser<FilterNotOperation
     public FilterNotOperation parse(YamlNode node) {
         if (node == null) return null;
         return new FilterNotOperation(
-                operationConfig(node),
-                parseFunction(node, FILTERNOT_PREDICATE_ATTRIBUTE, new PredicateDefinitionParser())
+                storeOperationConfig(node, KSMLDSL.Operations.STORE_ATTRIBUTE, StoreType.KEYVALUE_STORE),
+                parseFunction(node, KSMLDSL.Operations.Filter.PREDICATE, new PredicateDefinitionParser())
         );
     }
 }

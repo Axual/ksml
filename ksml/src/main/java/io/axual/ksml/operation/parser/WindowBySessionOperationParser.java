@@ -21,13 +21,11 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.WindowBySessionOperation;
 import io.axual.ksml.parser.YamlNode;
 import org.apache.kafka.streams.kstream.SessionWindows;
-
-import static io.axual.ksml.dsl.KSMLDSL.WINDOWEDBY_WINDOWTYPE_SESSION_GRACE;
-import static io.axual.ksml.dsl.KSMLDSL.WINDOWEDBY_WINDOWTYPE_SESSION_INACTIVITYGAP;
 
 public class WindowBySessionOperationParser extends OperationParser<WindowBySessionOperation> {
     public WindowBySessionOperationParser(String prefix, String name, TopologyResources resources) {
@@ -37,8 +35,8 @@ public class WindowBySessionOperationParser extends OperationParser<WindowBySess
     @Override
     public WindowBySessionOperation parse(YamlNode node) {
         if (node == null) return null;
-        final var duration = parseDuration(node, WINDOWEDBY_WINDOWTYPE_SESSION_INACTIVITYGAP, "Missing inactivityGap attribute for session window");
-        final var grace = parseDuration(node, WINDOWEDBY_WINDOWTYPE_SESSION_GRACE);
+        final var duration = parseDuration(node, KSMLDSL.SessionWindows.INACTIVITY_GAP, "Missing inactivityGap attribute for session window");
+        final var grace = parseDuration(node, KSMLDSL.SessionWindows.GRACE);
         final var sessionWindows = (grace != null && grace.toMillis() > 0)
                 ? SessionWindows.ofInactivityGapAndGrace(duration, grace)
                 : SessionWindows.ofInactivityGapWithNoGrace(duration);

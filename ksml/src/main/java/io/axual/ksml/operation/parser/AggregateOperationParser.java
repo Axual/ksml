@@ -24,6 +24,7 @@ package io.axual.ksml.operation.parser;
 import io.axual.ksml.definition.parser.AggregatorDefinitionParser;
 import io.axual.ksml.definition.parser.InitializerDefinitionParser;
 import io.axual.ksml.definition.parser.MergerDefinitionParser;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.AggregateOperation;
 import io.axual.ksml.parser.YamlNode;
@@ -40,11 +41,11 @@ public class AggregateOperationParser extends StoreOperationParser<AggregateOper
     public AggregateOperation parse(YamlNode node) {
         if (node == null) return null;
         return new AggregateOperation(
-                storeOperationConfig(node, STORE_ATTRIBUTE, StoreType.WINDOW_STORE),
-                parseOptionalFunction(node, AGGREGATE_INITIALIZER_ATTRIBUTE, new InitializerDefinitionParser()),
-                parseOptionalFunction(node, AGGREGATE_AGGREGATOR_ATTRIBUTE, new AggregatorDefinitionParser()),
-                parseOptionalFunction(node, AGGREGATE_MERGER_ATTRIBUTE, new MergerDefinitionParser()),
-                parseOptionalFunction(node, AGGREGATE_ADDER_ATTRIBTUE, new AggregatorDefinitionParser()),
-                parseOptionalFunction(node, AGGREGATE_SUBTRACTOR_ATTRIBUTE, new AggregatorDefinitionParser()));
+                storeOperationConfig(node, Operations.STORE_ATTRIBUTE, StoreType.WINDOW_STORE),
+                parseOptionalFunction(node, KSMLDSL.Operations.Aggregate.INITIALIZER, new InitializerDefinitionParser()),
+                parseOptionalFunction(node, KSMLDSL.Operations.Aggregate.AGGREGATOR, new AggregatorDefinitionParser()),
+                parseOptionalFunction(node, KSMLDSL.Operations.Aggregate.MERGER, new MergerDefinitionParser()),
+                parseOptionalFunction(node, KSMLDSL.Operations.Aggregate.ADDER, new AggregatorDefinitionParser()),
+                parseOptionalFunction(node, KSMLDSL.Operations.Aggregate.SUBTRACTOR, new AggregatorDefinitionParser()));
     }
 }

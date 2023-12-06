@@ -30,8 +30,13 @@ import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.SessionWindowedKStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
+import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.kstream.KTable;
-import org.apache.kafka.streams.kstream.Named;
+import org.apache.kafka.streams.kstream.Materialized;
+import org.apache.kafka.streams.kstream.Windowed;
+import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.SessionStore;
+import org.apache.kafka.streams.state.WindowStore;
 
 public class CountOperation extends StoreOperation {
     public CountOperation(StoreOperationConfig config) {
@@ -49,13 +54,16 @@ public class CountOperation extends StoreOperation {
         final var k = input.keyType();
         final var vr = streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
         final var kvStore = validateKeyValueStore(store(), k, vr);
-        final var output = kvStore != null
-                ? (KTable) input.groupedStream.count(
-                Named.as(name),
-                context.materialize(kvStore))
-                : (KTable) input.groupedStream.count(
-                Named.as(name));
-        return new KTableWrapper(output, k, vr);
+        final Materialized<Object, Long, KeyValueStore<Bytes, byte[]>> mat = materializedOf(context, kvStore);
+        final var named = namedOf();
+        final KTable<Object, Long> output = named != null
+                ? mat != null
+                ? input.groupedStream.count(named, mat)
+                : input.groupedStream.count(named)
+                : mat != null
+                ? input.groupedStream.count(mat)
+                : input.groupedStream.count();
+        return new KTableWrapper((KTable) output, k, vr);
     }
 
     @Override
@@ -69,13 +77,16 @@ public class CountOperation extends StoreOperation {
         final var k = input.keyType();
         final var vr = streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
         final var kvStore = validateKeyValueStore(store(), k, vr);
-        final var output = kvStore != null
-                ? (KTable) input.groupedTable.count(
-                Named.as(name),
-                context.materialize(kvStore))
-                : (KTable) input.groupedTable.count(
-                Named.as(name));
-        return new KTableWrapper(output, k, vr);
+        final Materialized<Object, Long, KeyValueStore<Bytes, byte[]>> mat = materializedOf(context, kvStore);
+        final var named = namedOf();
+        final KTable<Object, Long> output = named != null
+                ? mat != null
+                ? input.groupedTable.count(named, mat)
+                : input.groupedTable.count(named)
+                : mat != null
+                ? input.groupedTable.count(mat)
+                : input.groupedTable.count();
+        return new KTableWrapper((KTable) output, k, vr);
     }
 
     @Override
@@ -90,13 +101,16 @@ public class CountOperation extends StoreOperation {
         final var vr = streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
         final var windowedK = windowedTypeOf(k);
         final var sessionStore = validateSessionStore(store(), k, vr);
-        final var output = sessionStore != null
-                ? (KTable) input.sessionWindowedKStream.count(
-                Named.as(name),
-                context.materialize(sessionStore))
-                : (KTable) input.sessionWindowedKStream.count(
-                Named.as(name));
-        return new KTableWrapper(output, windowedK, vr);
+        final Materialized<Object, Long, SessionStore<Bytes, byte[]>> mat = materializedOf(context, sessionStore);
+        final var named = namedOf();
+        final KTable<Windowed<Object>, Long> output = named != null
+                ? mat != null
+                ? input.sessionWindowedKStream.count(named, mat)
+                : input.sessionWindowedKStream.count(named)
+                : mat != null
+                ? input.sessionWindowedKStream.count(mat)
+                : input.sessionWindowedKStream.count();
+        return new KTableWrapper((KTable) output, windowedK, vr);
     }
 
     @Override
@@ -111,12 +125,15 @@ public class CountOperation extends StoreOperation {
         final var vr = streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
         final var windowedK = windowedTypeOf(k);
         final var windowStore = validateWindowStore(store(), k, vr);
-        final var output = windowStore != null
-                ? (KTable) input.timeWindowedKStream.count(
-                Named.as(name),
-                context.materialize(windowStore))
-                : (KTable) input.timeWindowedKStream.count(
-                Named.as(name));
-        return new KTableWrapper(output, windowedK, vr);
+        final Materialized<Object, Long, WindowStore<Bytes, byte[]>> mat = materializedOf(context, windowStore);
+        final var named = namedOf();
+        final KTable<Windowed<Object>, Long> output = named != null
+                ? mat != null
+                ? input.timeWindowedKStream.count(named, mat)
+                : input.timeWindowedKStream.count(named)
+                : mat != null
+                ? input.timeWindowedKStream.count(mat)
+                : input.timeWindowedKStream.count();
+        return new KTableWrapper((KTable) output, windowedK, vr);
     }
 }

@@ -25,7 +25,6 @@ import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import org.apache.kafka.streams.kstream.Named;
 
 public class MergeOperation extends BaseOperation {
     private final StreamDefinition mergeStream;
@@ -48,8 +47,9 @@ public class MergeOperation extends BaseOperation {
         final var v = input.valueType();
         checkType("Merge stream keyType", otherStream.keyType().userType(), equalTo(k));
         checkType("Merge stream valueType", otherStream.valueType().userType(), equalTo(v));
-        final var output = name != null
-                ? input.stream.merge(otherStream.stream, Named.as(name))
+        final var named = namedOf();
+        final var output = named != null
+                ? input.stream.merge(otherStream.stream, named)
                 : input.stream.merge(otherStream.stream);
         return new KStreamWrapper(output, k, v);
     }

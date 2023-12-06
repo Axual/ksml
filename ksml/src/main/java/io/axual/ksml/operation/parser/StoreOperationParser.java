@@ -35,8 +35,8 @@ public abstract class StoreOperationParser<T extends StoreOperation> extends Ope
         super(prefix, name, resources);
     }
 
-    protected StoreOperationConfig storeOperationConfig(YamlNode node, String childName, StoreType expectedType) {
-        final var store = parseStore(node, childName, new StateStoreDefinitionParser());
+    protected StoreOperationConfig storeOperationConfig(YamlNode node, String childName, StoreType expectedStoreType) {
+        final var store = parseStore(node, childName, new StateStoreDefinitionParser(expectedStoreType));
         return new StoreOperationConfig(prefix, name, store);
     }
 

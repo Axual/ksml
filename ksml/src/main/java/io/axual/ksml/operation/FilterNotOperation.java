@@ -31,13 +31,13 @@ import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserPredicate;
-import org.apache.kafka.streams.kstream.Named;
+import org.apache.kafka.streams.kstream.KTable;
 
-public class FilterNotOperation extends BaseOperation {
+public class FilterNotOperation extends StoreOperation {
     private static final String PREDICATE_NAME = "Predicate";
     private final FunctionDefinition predicate;
 
-    public FilterNotOperation(OperationConfig config, FunctionDefinition predicate) {
+    public FilterNotOperation(StoreOperationConfig config, FunctionDefinition predicate) {
         super(config);
         this.predicate = predicate;
     }
@@ -60,8 +60,9 @@ public class FilterNotOperation extends BaseOperation {
                 FilterNotProcessor::new,
                 (stores, record) -> userPred.test(stores, record.key(), record.value()),
                 storeNames);
-        final var output = name != null
-                ? input.stream.processValues(supplier, Named.as(name), storeNames)
+        final var named = namedOf();
+        final var output = named != null
+                ? input.stream.processValues(supplier, named, storeNames)
                 : input.stream.processValues(supplier, storeNames);
         return new KStreamWrapper(output, k, v);
     }
@@ -71,15 +72,23 @@ public class FilterNotOperation extends BaseOperation {
         /*    Kafka Streams method signature:
          *    KTable<K, V> filterNot(
          *          final Predicate<? super K, ? super V> predicate
-         *          final Named named)
+         *          final Named named,
+         *          final Materialized<K, V, KeyValueStore<Bytes, byte[]>> materialized)
          */
 
         final var k = input.keyType();
         final var v = input.valueType();
         final var pred = userFunctionOf(context, PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k), superOf(v));
         final var userPred = new UserPredicate(pred);
-        final var output = name != null
-                ? input.table.filterNot(userPred, Named.as(name))
+        final var kvStore = validateKeyValueStore(store(), k, v);
+        final var mat = materializedOf(context, kvStore);
+        final var named = namedOf();
+        final KTable<Object, Object> output = named != null
+                ? mat != null
+                ? input.table.filterNot(userPred, named, mat)
+                : input.table.filterNot(userPred, named)
+                : mat != null
+                ? input.table.filterNot(userPred, mat)
                 : input.table.filterNot(userPred);
         return new KTableWrapper(output, k, v);
     }

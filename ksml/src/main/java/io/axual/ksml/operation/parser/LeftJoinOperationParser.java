@@ -21,9 +21,13 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.definition.GlobalTableDefinition;
 import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.definition.TopicDefinition;
+import io.axual.ksml.definition.parser.ForeignKeyExtractorDefinitionParser;
+import io.axual.ksml.definition.parser.KeyValueMapperDefinitionParser;
+import io.axual.ksml.definition.parser.StreamPartitionerDefinitionParser;
 import io.axual.ksml.definition.parser.ValueJoinerDefinitionParser;
 import io.axual.ksml.definition.parser.JoinTargetDefinitionParser;
 import io.axual.ksml.exception.KSMLParseException;
@@ -44,18 +48,29 @@ public class LeftJoinOperationParser extends StoreOperationParser<LeftJoinOperat
         TopicDefinition joinTopic = new JoinTargetDefinitionParser(prefix, resources).parse(node);
         if (joinTopic instanceof StreamDefinition joinStream) {
             return new LeftJoinOperation(
-                    storeOperationConfig(node, STORE_ATTRIBUTE, null),
+                    storeOperationConfig(node, Operations.STORE_ATTRIBUTE, null),
                     joinStream,
-                    parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()),
-                    parseDuration(node, JOIN_WINDOW_TIME_DIFFERENCE_ATTRIBUTE),
-                    parseDuration(node, JOIN_WINDOW_GRACE_ATTRIBUTE));
+                    parseFunction(node, Operations.Join.VALUE_JOINER, new ValueJoinerDefinitionParser()),
+                    parseDuration(node, Operations.Join.TIME_DIFFERENCE),
+                    parseDuration(node, Operations.Join.GRACE));
         }
         if (joinTopic instanceof TableDefinition joinTable) {
             return new LeftJoinOperation(
-                    storeOperationConfig(node, STORE_ATTRIBUTE, null),
+                    storeOperationConfig(node, Operations.STORE_ATTRIBUTE, null),
                     joinTable,
-                    parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()),
-                    parseDuration(node, JOIN_WINDOW_GRACE_ATTRIBUTE));
+                    parseFunction(node, Operations.Join.FOREIGN_KEY_EXTRACTOR, new ForeignKeyExtractorDefinitionParser()),
+                    parseFunction(node, Operations.Join.VALUE_JOINER, new ValueJoinerDefinitionParser()),
+                    parseDuration(node, Operations.Join.GRACE),
+                    parseFunction(node, Operations.Join.PARTITIONER, new StreamPartitionerDefinitionParser()),
+                    parseFunction(node, Operations.Join.OTHER_PARTITIONER, new StreamPartitionerDefinitionParser()));
+        }
+        if (joinTopic instanceof GlobalTableDefinition joinGlobalTable) {
+            return new LeftJoinOperation(
+                    storeOperationConfig(node, Operations.STORE_ATTRIBUTE, null),
+                    joinGlobalTable,
+                    parseFunction(node, Operations.Join.MAPPER, new KeyValueMapperDefinitionParser()),
+                    parseFunction(node, Operations.Join.VALUE_JOINER, new ValueJoinerDefinitionParser()),
+                    parseDuration(node, Operations.Join.GRACE));
         }
 
         throw new KSMLParseException(node, "Incorrect join stream type: " + joinTopic.getClass().getSimpleName());
