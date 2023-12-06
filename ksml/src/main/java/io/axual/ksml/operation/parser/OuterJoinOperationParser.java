@@ -22,8 +22,9 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.definition.StreamDefinition;
-import io.axual.ksml.definition.parser.ValueJoinerDefinitionParser;
+import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.definition.parser.JoinTargetDefinitionParser;
+import io.axual.ksml.definition.parser.ValueJoinerDefinitionParser;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.OuterJoinOperation;
@@ -42,10 +43,17 @@ public class OuterJoinOperationParser extends StoreOperationParser<OuterJoinOper
         final var joinTopic = new JoinTargetDefinitionParser(prefix, resources).parse(node);
         if (joinTopic instanceof StreamDefinition joinStream) {
             return new OuterJoinOperation(
-                    storeOperationConfig(node, STORE_ATTRIBUTE),
+                    storeOperationConfig(node, STORE_ATTRIBUTE, null),
                     joinStream,
                     parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()),
-                    parseDuration(node, JOIN_WINDOW_ATTRIBUTE));
+                    parseDuration(node, JOIN_WINDOW_TIME_DIFFERENCE_ATTRIBUTE),
+                    parseDuration(node, JOIN_WINDOW_GRACE_ATTRIBUTE));
+        }
+        if (joinTopic instanceof TableDefinition joinTable) {
+            return new OuterJoinOperation(
+                    storeOperationConfig(node, STORE_ATTRIBUTE, null),
+                    joinTable,
+                    parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()));
         }
         throw new KSMLParseException(node, "Stream not specified");
     }

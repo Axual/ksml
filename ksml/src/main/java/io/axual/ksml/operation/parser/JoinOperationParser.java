@@ -45,20 +45,22 @@ public class JoinOperationParser extends StoreOperationParser<JoinOperation> {
         final var joinTopic = new JoinTargetDefinitionParser(prefix, resources).parse(node);
         if (joinTopic instanceof StreamDefinition joinStream) {
             return new JoinOperation(
-                    storeOperationConfig(node, STORE_ATTRIBUTE),
+                    storeOperationConfig(node, STORE_ATTRIBUTE, null),
                     joinStream,
                     parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()),
-                    parseDuration(node, JOIN_WINDOW_ATTRIBUTE));
+                    parseDuration(node, JOIN_WINDOW_TIME_DIFFERENCE_ATTRIBUTE),
+                    parseDuration(node, JOIN_WINDOW_GRACE_ATTRIBUTE));
         }
         if (joinTopic instanceof TableDefinition joinTable) {
             return new JoinOperation(
-                    storeOperationConfig(node, STORE_ATTRIBUTE),
+                    storeOperationConfig(node, STORE_ATTRIBUTE, null),
                     joinTable,
-                    parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()));
+                    parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()),
+                    parseDuration(node, JOIN_WINDOW_GRACE_ATTRIBUTE));
         }
         if (joinTopic instanceof GlobalTableDefinition globalTableDefinition) {
             return new JoinOperation(
-                    storeOperationConfig(node, STORE_ATTRIBUTE),
+                    storeOperationConfig(node, STORE_ATTRIBUTE, null),
                     globalTableDefinition,
                     parseFunction(node, JOIN_MAPPER_ATTRIBUTE, new KeyTransformerDefinitionParser()),
                     parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()));

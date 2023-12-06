@@ -52,8 +52,8 @@ public class FilterNotOperation extends BaseOperation {
 
         final var k = input.keyType();
         final var v = input.valueType();
-        final var pred = checkFunction(PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k), superOf(v));
-        final var userPred = new UserPredicate(context.createUserFunction(pred));
+        final var pred = userFunctionOf(context, PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k), superOf(v));
+        final var userPred = new UserPredicate(pred);
         final var storeNames = combineStoreNames(this.storeNames, predicate.storeNames().toArray(TEMPLATE));
         final var supplier = new FixedKeyOperationProcessorSupplier<>(
                 name,
@@ -76,8 +76,8 @@ public class FilterNotOperation extends BaseOperation {
 
         final var k = input.keyType();
         final var v = input.valueType();
-        final var pred = checkFunction(PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k), superOf(v));
-        final var userPred = new UserPredicate(context.createUserFunction(pred));
+        final var pred = userFunctionOf(context, PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k), superOf(v));
+        final var userPred = new UserPredicate(pred);
         final var output = name != null
                 ? input.table.filterNot(userPred, Named.as(name))
                 : input.table.filterNot(userPred);

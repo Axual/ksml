@@ -25,6 +25,7 @@ import io.axual.ksml.definition.parser.KeyValueMapperDefinitionParser;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.GroupByOperation;
 import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.store.StoreType;
 
 import static io.axual.ksml.dsl.KSMLDSL.GROUPBY_MAPPER_ATTRIBUTE;
 import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
@@ -38,7 +39,7 @@ public class GroupByOperationParser extends StoreOperationParser<GroupByOperatio
     public GroupByOperation parse(YamlNode node) {
         if (node == null) return null;
         return new GroupByOperation(
-                storeOperationConfig(node, STORE_ATTRIBUTE),
+                storeOperationConfig(node, STORE_ATTRIBUTE, StoreType.KEYVALUE_STORE),
                 parseFunction(node, GROUPBY_MAPPER_ATTRIBUTE, new KeyValueMapperDefinitionParser())
         );
     }

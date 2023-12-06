@@ -21,6 +21,7 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.definition.BranchDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
@@ -33,6 +34,7 @@ import org.apache.kafka.streams.kstream.Predicate;
 import java.util.List;
 
 public class BranchOperation extends BaseOperation {
+    private static final String PREDICATE_NAME = "Predicate";
     private final List<BranchDefinition> branches;
 
     public BranchOperation(OperationConfig config, List<BranchDefinition> branches) {
@@ -49,9 +51,12 @@ public class BranchOperation extends BaseOperation {
         @SuppressWarnings("unchecked") final var predicates = new Predicate[branches.size()];
         for (var index = 0; index < branches.size(); index++) {
             final var branch = branches.get(index);
-            predicates[index] = branch.predicate() != null
-                    ? new UserPredicate(context.createUserFunction(branch.predicate()))
-                    : (key, value) -> true;
+            if (branch.predicate() != null) {
+                final var pred = userFunctionOf(context, PREDICATE_NAME, branch.predicate(), equalTo(DataBoolean.DATATYPE), superOf(k), superOf(v));
+                predicates[index] = new UserPredicate(pred);
+            } else {
+                predicates[index] = (key, value) -> true;
+            }
         }
 
         // Pass the predicates to KStream and get resulting KStream branches back

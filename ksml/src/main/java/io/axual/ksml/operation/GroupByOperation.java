@@ -34,7 +34,8 @@ import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserKeyTransformer;
 import io.axual.ksml.user.UserKeyValueTransformer;
-import org.apache.kafka.streams.kstream.Grouped;
+import org.apache.kafka.streams.kstream.KGroupedStream;
+import org.apache.kafka.streams.kstream.KGroupedTable;
 
 public class GroupByOperation extends StoreOperation {
     private static final String SELECTOR_NAME = "Selector";
@@ -56,15 +57,14 @@ public class GroupByOperation extends StoreOperation {
         checkNotNull(selector, SELECTOR_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var kr = context.streamDataTypeOf(firstSpecificType(selector, k.userType()), true);
-        final var sel = checkFunction(SELECTOR_NAME, selector, kr, superOf(k), superOf(v));
-
+        final var kr = streamDataTypeOf(firstSpecificType(selector, k.userType()), true);
+        final var sel = userFunctionOf(context, SELECTOR_NAME, selector, kr, superOf(k), superOf(v));
         final var kvStore = validateKeyValueStore(store(), kr, v);
-        final var userSel = new UserKeyTransformer(context.createUserFunction(sel));
-        var grouped = Grouped.with(kr.serde(), v.serde());
-        if (name != null) grouped = grouped.withName(name);
-        if (kvStore != null) grouped = grouped.withName(name);
-        final var output = input.stream.groupBy(userSel, grouped);
+        final var userSel = new UserKeyTransformer(sel);
+        final var grouped = groupedOf(kr, v, kvStore);
+        final KGroupedStream<Object, Object> output = grouped != null
+                ? input.stream.groupBy(userSel, grouped)
+                : input.stream.groupBy(userSel);
         return new KGroupedStreamWrapper(output, kr, v);
     }
 
@@ -80,18 +80,18 @@ public class GroupByOperation extends StoreOperation {
         final var k = input.keyType();
         final var v = input.valueType();
         final var krAndVr = firstSpecificType(selector, new UserType(new UserTupleType(k.userType(), v.userType())));
-        checkTuple(SELECTOR_NAME + " resultType", krAndVr, DataType.UNKNOWN, DataType.UNKNOWN);
-        final var sel = checkFunction(SELECTOR_NAME, selector, krAndVr, superOf(k), superOf(v));
 
         if (krAndVr.dataType() instanceof UserTupleType userTupleType && userTupleType.subTypeCount() == 2) {
-            final var kr = context.streamDataTypeOf(userTupleType.getUserType(0), true);
-            final var vr = context.streamDataTypeOf(userTupleType.getUserType(1), false);
+            checkTuple(SELECTOR_NAME + " resultType", krAndVr, DataType.UNKNOWN, DataType.UNKNOWN);
+            final var sel = userFunctionOf(context, SELECTOR_NAME, selector, krAndVr, superOf(k), superOf(v));
+            final var kr = streamDataTypeOf(userTupleType.getUserType(0), true);
+            final var vr = streamDataTypeOf(userTupleType.getUserType(1), false);
             final var kvStore = validateKeyValueStore(store(), kr, vr);
-            final var userSel = new UserKeyValueTransformer(context.createUserFunction(sel));
-            var grouped = Grouped.with(kr.serde(), vr.serde());
-            if (name != null) grouped = grouped.withName(name);
-            if (kvStore != null) grouped = grouped.withName(kvStore.name());
-            final var output = input.table.groupBy(userSel, grouped);
+            final var userSel = new UserKeyValueTransformer(sel);
+            final var grouped = groupedOf(kr, vr, kvStore);
+            final KGroupedTable<Object, Object> output = grouped != null
+                    ? input.table.groupBy(userSel, grouped)
+                    : input.table.groupBy(userSel);
             return new KGroupedTableWrapper(output, kr, vr);
         }
 

@@ -31,7 +31,6 @@ import io.axual.ksml.operation.processor.TransformKeyValueToValueListProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserKeyValueToValueListTransformer;
-import org.apache.kafka.streams.kstream.Named;
 
 public class TransformKeyValueToValueListOperation extends BaseOperation {
     private static final String MAPPER_NAME = "Mapper";
@@ -44,22 +43,27 @@ public class TransformKeyValueToValueListOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
+        /*    Kafka Streams method signature:
+         *    <VR> KStream<K, VR> mapValues(
+         *          final ValueMapperWithKey<? super K, ? super V, ? extends VR> mapper,
+         *          final Named named)
+         */
+
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var vr = context.streamDataTypeOf(firstSpecificType(mapper, new UserType(new ListType(v.userType().dataType()))), false);
-        final var mapperResultType = new UserType(new ListType(DataType.UNKNOWN));
-        final var map = checkFunction(MAPPER_NAME, mapper, subOf(mapperResultType), vr, superOf(k), superOf(v));
-
-        final var userMap = new UserKeyValueToValueListTransformer(context.createUserFunction(map));
+        final var vr = streamDataTypeOf(firstSpecificType(mapper, new UserType(new ListType(DataType.UNKNOWN))), false);
+        final var map = userFunctionOf(context, MAPPER_NAME, mapper, subOf(vr), superOf(k), superOf(v));
+        final var userMap = new UserKeyValueToValueListTransformer(map);
         final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames().toArray(TEMPLATE));
         final var supplier = new FixedKeyOperationProcessorSupplier<>(
                 name,
                 TransformKeyValueToValueListProcessor::new,
                 (stores, record) -> userMap.apply(stores, record.key(), record.value()),
                 storeNames);
-        final var output = name != null
-                ? input.stream.processValues(supplier, Named.as(name), storeNames)
+        final var named = namedOf();
+        final var output = named != null
+                ? input.stream.processValues(supplier, named, storeNames)
                 : input.stream.processValues(supplier, storeNames);
         return new KStreamWrapper(output, k, vr);
     }

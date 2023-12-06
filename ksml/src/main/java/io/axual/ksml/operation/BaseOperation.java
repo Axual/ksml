@@ -25,12 +25,26 @@ import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.definition.KeyValueStateStoreDefinition;
+import io.axual.ksml.definition.ParameterDefinition;
+import io.axual.ksml.definition.SessionStateStoreDefinition;
+import io.axual.ksml.definition.WindowStateStoreDefinition;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.user.UserFunction;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.errors.TopologyException;
+import org.apache.kafka.streams.kstream.Grouped;
+import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Named;
+import org.apache.kafka.streams.kstream.Produced;
+import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.SessionStore;
+import org.apache.kafka.streams.state.WindowStore;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -91,7 +105,7 @@ public class BaseOperation implements StreamOperation {
         boolean compare(DataType type);
     }
 
-    protected record TypeComparator(TypeCompatibilityChecker checker, String faultDescription) {
+    protected record TypeComparator(UserType type, TypeCompatibilityChecker checker, String faultDescription) {
     }
 
     protected KSMLTopologyException topologyError(String message) {
@@ -167,13 +181,14 @@ public class BaseOperation implements StreamOperation {
     }
 
     protected TypeComparator equalTo(UserType compareType) {
-        return equalTo(compareType.dataType());
+        return new TypeComparator(
+                compareType,
+                myDataType -> compareType.dataType().isAssignableFrom(myDataType) && myDataType.isAssignableFrom(compareType.dataType()),
+                "of type " + compareType);
     }
 
     protected TypeComparator equalTo(DataType compareType) {
-        return new TypeComparator(
-                type -> compareType.isAssignableFrom(type) && type.isAssignableFrom(compareType),
-                "of type " + compareType);
+        return equalTo(new UserType(compareType));
     }
 
     protected TypeComparator superOf(StreamDataType compareType) {
@@ -181,12 +196,9 @@ public class BaseOperation implements StreamOperation {
     }
 
     protected TypeComparator superOf(UserType compareType) {
-        return superOf(compareType.dataType());
-    }
-
-    protected TypeComparator superOf(DataType compareType) {
         return new TypeComparator(
-                type -> type.isAssignableFrom(compareType),
+                compareType,
+                myDataType -> myDataType.isAssignableFrom(compareType.dataType()),
                 "(superclass of) type " + compareType);
     }
 
@@ -195,12 +207,9 @@ public class BaseOperation implements StreamOperation {
     }
 
     protected TypeComparator subOf(UserType compareType) {
-        return subOf(compareType.dataType());
-    }
-
-    protected TypeComparator subOf(DataType compareType) {
         return new TypeComparator(
-                compareType::isAssignableFrom,
+                compareType,
+                myDataType -> compareType.dataType().isAssignableFrom(myDataType),
                 "(subclass of) type " + compareType);
     }
 
@@ -218,35 +227,26 @@ public class BaseOperation implements StreamOperation {
         }
     }
 
-    private FunctionDefinition applySpecificResult(FunctionDefinition function, UserType appliedResultType) {
-        // If the given result type is more specific than the current result type, then adopt the specific result type
-        return function.resultType() != null && function.resultType().dataType().isAssignableFrom(appliedResultType)
-                ? function.withResult(appliedResultType)
-                : function;
+    protected UserFunction userFunctionOf(TopologyBuildContext context, String functionType, FunctionDefinition function, StreamDataType resultType, TypeComparator... parameters) {
+        return userFunctionOf(context, functionType, function, superOf(resultType), parameters);
     }
 
-    protected FunctionDefinition checkFunction(String functionType, FunctionDefinition function, StreamDataType appliedResultType, TypeComparator... parameters) {
-        return checkFunction(functionType, function, superOf(appliedResultType), appliedResultType, parameters);
+    protected UserFunction userFunctionOf(TopologyBuildContext context, String functionType, FunctionDefinition function, UserType resultType, TypeComparator... parameters) {
+        return userFunctionOf(context, functionType, function, superOf(resultType), parameters);
     }
 
-    protected FunctionDefinition checkFunction(String functionType, FunctionDefinition function, TypeComparator resultType, StreamDataType appliedResultType, TypeComparator... parameters) {
-        return checkFunction(functionType, function, resultType, appliedResultType.userType(), parameters);
-    }
-
-    protected FunctionDefinition checkFunction(String functionType, FunctionDefinition function, UserType appliedResultType, TypeComparator... parameters) {
-        return checkFunction(functionType, function, superOf(appliedResultType), appliedResultType, parameters);
-    }
-
-    protected FunctionDefinition checkFunction(String functionType, FunctionDefinition function, TypeComparator resultType, UserType appliedResultType, TypeComparator... parameters) {
+    protected UserFunction userFunctionOf(TopologyBuildContext context, String functionType, FunctionDefinition function, TypeComparator resultType, TypeComparator... parameters) {
         // Check if the function is defined
         if (function == null) {
             throw topologyError(functionType + " is not defined");
         }
 
         // Check if the resultType of the function is as expected
-        checkType(functionType + " resultType", (function.resultType() != null ? function.resultType().dataType() : DataNull.DATATYPE), resultType);
-        // Update the applied result type of the function
-        function = applySpecificResult(function, appliedResultType);
+        checkType(functionType + " resultType", (function.resultType() != null ? function.resultType() : new UserType(UserType.DEFAULT_NOTATION, DataNull.DATATYPE)), resultType);
+        // Update the applied result type of the function with the (more specific) supplied result type
+        function = function.resultType() != null
+                ? function.withResult(resultType.type())
+                : function;
 
         // Check if the number of parameters is as expected
         int fixedParamCount = Arrays.stream(function.parameters()).map(p -> p.isOptional() ? 0 : 1).reduce(Integer::sum).orElse(0);
@@ -259,10 +259,21 @@ public class BaseOperation implements StreamOperation {
 
         // Check if all parameters are of expected type
         for (int index = 0; index < parameters.length; index++) {
-            checkType(functionType + " parameter " + (index + 1) + " (\"" + function.parameters()[index].name() + "\")", function.parameters()[index].type(), parameters[index]);
+            checkType(functionType + " parameter " + (index + 1) + " (\"" + function.parameters()[index].name() + "\")", function.parameters()[index].type(), superOf(parameters[index].type()));
         }
 
-        return function;
+        // Here we replace the parameter types of the function with the (more specific) given types from the stream.
+        // This allows user function wrappers to check incoming data types more strictly against expected types.
+        final var newParams = new ParameterDefinition[function.parameters().length];
+        // Replace the fixed parameters in the array
+        for (int index = 0; index < parameters.length; index++) {
+            final var param = function.parameters()[index];
+            newParams[index] = new ParameterDefinition(param.name(), parameters[index].type().dataType(), param.isOptional(), param.defaultValue());
+        }
+        // Copy the remainder of the parameters into the new array
+        System.arraycopy(function.parameters(), parameters.length, newParams, parameters.length, function.parameters().length - parameters.length);
+        // Update the function with its new parameter types
+        return context.createUserFunction(function.withParameters(newParams));
     }
 
     protected void checkTuple(String faultDescription, UserType type, DataType... elements) {
@@ -289,5 +300,64 @@ public class BaseOperation implements StreamOperation {
             if (storeNameArray != null) Collections.addAll(storeNames, storeNameArray);
         }
         return storeNames.toArray(TEMPLATE);
+    }
+
+    protected StreamDataType streamDataTypeOf(DataType dataType, boolean isKey) {
+        return streamDataTypeOf(new UserType(dataType), isKey);
+    }
+
+    protected StreamDataType streamDataTypeOf(String notationName, DataType dataType, boolean isKey) {
+        return streamDataTypeOf(new UserType(notationName, dataType), isKey);
+    }
+
+    protected StreamDataType streamDataTypeOf(UserType userType, boolean isKey) {
+        return new StreamDataType(userType, isKey);
+    }
+
+    protected StreamDataType windowedTypeOf(StreamDataType keyType) {
+        return streamDataTypeOf(windowedTypeOf(keyType.userType()), true);
+    }
+
+    protected UserType windowedTypeOf(UserType keyType) {
+        var windowedType = new WindowedType(keyType.dataType());
+        return new UserType(keyType.notation(), windowedType);
+    }
+
+    protected Named namedOf() {
+        return Named.as(name);
+    }
+
+    protected Grouped<Object, Object> groupedOf(StreamDataType k, StreamDataType v, KeyValueStateStoreDefinition store) {
+        var grouped = Grouped.with(k.serde(), v.serde());
+        if (name != null) grouped = grouped.withName(name);
+        if (store != null) grouped = grouped.withName(store.name());
+        return grouped;
+    }
+
+    protected Produced<Object, Object> producedOf(String name, StreamDataType k, StreamDataType v) {
+        var produced = Produced.with(k.serde(), v.serde());
+        if (name != null) produced = produced.withName(name);
+        return produced;
+    }
+
+    protected Materialized<Object, Object, KeyValueStore<Bytes, byte[]>> materializedOf(TopologyBuildContext context, KeyValueStateStoreDefinition store) {
+        if (store != null) {
+            return context.materialize(store);
+        }
+        return null;
+    }
+
+    protected Materialized<Object, Object, SessionStore<Bytes, byte[]>> materializedOf(TopologyBuildContext context, SessionStateStoreDefinition store) {
+        if (store != null) {
+            return context.materialize(store);
+        }
+        return null;
+    }
+
+    protected Materialized<Object, Object, WindowStore<Bytes, byte[]>> materializedOf(TopologyBuildContext context, WindowStateStoreDefinition store) {
+        if (store != null) {
+            return context.materialize(store);
+        }
+        return null;
     }
 }

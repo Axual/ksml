@@ -44,17 +44,18 @@ public class LeftJoinOperationParser extends StoreOperationParser<LeftJoinOperat
         TopicDefinition joinTopic = new JoinTargetDefinitionParser(prefix, resources).parse(node);
         if (joinTopic instanceof StreamDefinition joinStream) {
             return new LeftJoinOperation(
-                    storeOperationConfig(node, STORE_ATTRIBUTE),
+                    storeOperationConfig(node, STORE_ATTRIBUTE, null),
                     joinStream,
                     parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()),
-                    parseDuration(node, JOIN_WINDOW_ATTRIBUTE));
+                    parseDuration(node, JOIN_WINDOW_TIME_DIFFERENCE_ATTRIBUTE),
+                    parseDuration(node, JOIN_WINDOW_GRACE_ATTRIBUTE));
         }
         if (joinTopic instanceof TableDefinition joinTable) {
             return new LeftJoinOperation(
-                    storeOperationConfig(node, STORE_ATTRIBUTE),
+                    storeOperationConfig(node, STORE_ATTRIBUTE, null),
                     joinTable,
                     parseFunction(node, JOIN_VALUEJOINER_ATTRIBUTE, new ValueJoinerDefinitionParser()),
-                    parseDuration(node, JOIN_WINDOW_ATTRIBUTE));
+                    parseDuration(node, JOIN_WINDOW_GRACE_ATTRIBUTE));
         }
 
         throw new KSMLParseException(node, "Incorrect join stream type: " + joinTopic.getClass().getSimpleName());

@@ -21,13 +21,9 @@ package io.axual.ksml.generator;
  */
 
 import io.axual.ksml.data.mapper.DataObjectConverter;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.UserType;
-import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.GlobalTableDefinition;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
-import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.definition.SessionStateStoreDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.StreamDefinition;
@@ -75,23 +71,6 @@ public class TopologyBuildContext {
 
     public DataObjectConverter getDataObjectConverter() {
         return new DataObjectConverter();
-    }
-
-    public StreamDataType streamDataTypeOf(String notationName, DataType dataType, boolean isKey) {
-        return streamDataTypeOf(new UserType(notationName, dataType), isKey);
-    }
-
-    public StreamDataType streamDataTypeOf(UserType userType, boolean isKey) {
-        return new StreamDataType(userType, isKey);
-    }
-
-    public StreamDataType windowedTypeOf(StreamDataType keyType) {
-        return streamDataTypeOf(windowedTypeOf(keyType.userType()), true);
-    }
-
-    public UserType windowedTypeOf(UserType keyType) {
-        var windowedType = new WindowedType(keyType.dataType());
-        return new UserType(keyType.notation(), windowedType);
     }
 
     public <V> Materialized<Object, V, KeyValueStore<Bytes, byte[]>> materialize(KeyValueStateStoreDefinition store) {
@@ -202,22 +181,7 @@ public class TopologyBuildContext {
         throw FatalError.topologyError("Unknown stream type: " + def.getClass().getSimpleName());
     }
 
-    public UserFunction createUserFunction(FunctionDefinition definition, DataType... paramTypes) {
-        // Here we replace the parameter types of the function with the given types from the stream. This allows user
-        // function wrappers to check incoming data types against expected types.
-        final var params = definition.parameters();
-        final var newParams = new ParameterDefinition[params.length];
-        if (params.length < paramTypes.length) {
-            throw FatalError.executionError("User function " + definition.name() + " has fewer parameters than expected");
-        }
-        // Replace the fixed parameters in the array
-        for (int index = 0; index < paramTypes.length; index++) {
-            final var param = params[index];
-            newParams[index] = new ParameterDefinition(param.name(), paramTypes[index], param.isOptional(), param.defaultValue());
-        }
-        // Copy the remainder of the parameters into the new array
-        System.arraycopy(params, paramTypes.length, newParams, paramTypes.length, params.length - paramTypes.length);
-        // Create the Python function with the new parameter definitions
-        return PythonFunction.fromNamed(pythonContext, definition.name(), definition.withParameters(newParams));
+    public UserFunction createUserFunction(FunctionDefinition definition) {
+        return PythonFunction.fromNamed(pythonContext, definition.name(), definition);
     }
 }

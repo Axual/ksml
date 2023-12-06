@@ -73,7 +73,8 @@ public class KSMLDSL {
     public static final String GROUPBY_MAPPER_ATTRIBUTE = "mapper";
     public static final String JOIN_VALUEJOINER_ATTRIBUTE = "valueJoiner";
     public static final String JOIN_MAPPER_ATTRIBUTE = "mapper";
-    public static final String JOIN_WINDOW_ATTRIBUTE = "window";
+    public static final String JOIN_WINDOW_TIME_DIFFERENCE_ATTRIBUTE = "window";
+    public static final String JOIN_WINDOW_GRACE_ATTRIBUTE = "grace";
     public static final String MERGE_STREAM_ATTRIBUTE = "stream";
     public static final String PEEK_FOREACH_ATTRIBUTE = "forEach";
     public static final String PIPELINE_BRANCH_ATTRIBUTE = "branch";

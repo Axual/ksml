@@ -35,6 +35,6 @@ public class CountOperationParser extends StoreOperationParser<CountOperation> {
     @Override
     public CountOperation parse(YamlNode node) {
         if (node == null) return null;
-        return new CountOperation(storeOperationConfig(node, STORE_ATTRIBUTE));
+        return new CountOperation(storeOperationConfig(node, STORE_ATTRIBUTE, null));
     }
 }

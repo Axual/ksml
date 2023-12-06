@@ -47,7 +47,7 @@ public class CountOperation extends StoreOperation {
          */
 
         final var k = input.keyType();
-        final var vr = context.streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
+        final var vr = streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
         final var kvStore = validateKeyValueStore(store(), k, vr);
         final var output = kvStore != null
                 ? (KTable) input.groupedStream.count(
@@ -67,7 +67,7 @@ public class CountOperation extends StoreOperation {
          */
 
         final var k = input.keyType();
-        final var vr = context.streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
+        final var vr = streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
         final var kvStore = validateKeyValueStore(store(), k, vr);
         final var output = kvStore != null
                 ? (KTable) input.groupedTable.count(
@@ -87,7 +87,8 @@ public class CountOperation extends StoreOperation {
          */
 
         final var k = input.keyType();
-        final var vr = context.streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
+        final var vr = streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
+        final var windowedK = windowedTypeOf(k);
         final var sessionStore = validateSessionStore(store(), k, vr);
         final var output = sessionStore != null
                 ? (KTable) input.sessionWindowedKStream.count(
@@ -95,7 +96,7 @@ public class CountOperation extends StoreOperation {
                 context.materialize(sessionStore))
                 : (KTable) input.sessionWindowedKStream.count(
                 Named.as(name));
-        return new KTableWrapper(output, k, vr);
+        return new KTableWrapper(output, windowedK, vr);
     }
 
     @Override
@@ -107,8 +108,8 @@ public class CountOperation extends StoreOperation {
          */
 
         final var k = input.keyType();
-        final var vr = context.streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
-        final var windowedK = context.windowedTypeOf(k);
+        final var vr = streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
+        final var windowedK = windowedTypeOf(k);
         final var windowStore = validateWindowStore(store(), k, vr);
         final var output = windowStore != null
                 ? (KTable) input.timeWindowedKStream.count(

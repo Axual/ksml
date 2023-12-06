@@ -23,7 +23,7 @@ pipelines:
         duration: 20s
       - type: count
         store:
-          name: owner_count_count
+          name: owner_count
           type: windowStore
           windowSize: 10m
           retention: 1h

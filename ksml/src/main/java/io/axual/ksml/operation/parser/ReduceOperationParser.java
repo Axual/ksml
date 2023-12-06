@@ -40,7 +40,7 @@ public class ReduceOperationParser extends StoreOperationParser<ReduceOperation>
     public ReduceOperation parse(YamlNode node) {
         if (node == null) return null;
         return new ReduceOperation(
-                storeOperationConfig(node, STORE_ATTRIBUTE),
+                storeOperationConfig(node, STORE_ATTRIBUTE, null),
                 parseFunction(node, REDUCE_REDUCER_ATTRIBUTE, new ReducerDefinitionParser()),
                 parseFunction(node, REDUCE_ADDER_ATTRIBUTE, new ReducerDefinitionParser()),
                 parseFunction(node, REDUCE_SUBTRACTOR_ATTRIBUTE, new ReducerDefinitionParser()));

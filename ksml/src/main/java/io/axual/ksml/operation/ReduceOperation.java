@@ -52,8 +52,8 @@ public class ReduceOperation extends StoreOperation {
     public StreamWrapper apply(KGroupedStreamWrapper input, TopologyBuildContext context) {
         final var k = input.keyType();
         final var v = input.valueType();
-        final var red = checkFunction(REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
-        final var userRed = new UserReducer(context.createUserFunction(red));
+        final var red = userFunctionOf(context, REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
+        final var userRed = new UserReducer(red);
         final var kvStore = validateKeyValueStore(store(), k, v);
 
         if (kvStore != null) {
@@ -80,10 +80,10 @@ public class ReduceOperation extends StoreOperation {
 
         final var k = input.keyType();
         final var v = input.valueType();
-        final var add = checkFunction(ADDER_NAME, adder, v, equalTo(v), equalTo(v));
-        final var sub = checkFunction(SUBTRACTOR_NAME, subtractor, v, equalTo(v), equalTo(v));
-        final var userAdd = new UserReducer(context.createUserFunction(add));
-        final var userSub = new UserReducer(context.createUserFunction(sub));
+        final var add = userFunctionOf(context, ADDER_NAME, adder, v, equalTo(v), equalTo(v));
+        final var sub = userFunctionOf(context, SUBTRACTOR_NAME, subtractor, v, equalTo(v), equalTo(v));
+        final var userAdd = new UserReducer(add);
+        final var userSub = new UserReducer(sub);
         final var kvStore = validateKeyValueStore(store(), k, v);
 
         if (kvStore != null) {
@@ -109,10 +109,10 @@ public class ReduceOperation extends StoreOperation {
 
         final var k = input.keyType();
         final var v = input.valueType();
-        final var windowedK = context.windowedTypeOf(k);
-        final var red = checkFunction(REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
-        final var userRed = new UserReducer(context.createUserFunction(red));
-        final var sessionStore = validateSessionStore(store(), windowedK, v);
+        final var windowedK = windowedTypeOf(k);
+        final var red = userFunctionOf(context, REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
+        final var userRed = new UserReducer(red);
+        final var sessionStore = validateSessionStore(store(), k, v);
 
         if (sessionStore != null) {
             final var mat = context.materialize(sessionStore);
@@ -137,10 +137,10 @@ public class ReduceOperation extends StoreOperation {
 
         final var k = input.keyType();
         final var v = input.valueType();
-        final var windowedK = context.windowedTypeOf(k);
-        final var red = checkFunction(REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
-        final var userRed = new UserReducer(context.createUserFunction(red));
-        final var windowStore = validateWindowStore(store(), windowedK, v);
+        final var windowedK = windowedTypeOf(k);
+        final var red = userFunctionOf(context, REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
+        final var userRed = new UserReducer(red);
+        final var windowStore = validateWindowStore(store(), k, v);
 
         if (windowStore != null) {
             final var mat = context.materialize(windowStore);

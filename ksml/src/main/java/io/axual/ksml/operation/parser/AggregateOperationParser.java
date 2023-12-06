@@ -27,6 +27,7 @@ import io.axual.ksml.definition.parser.MergerDefinitionParser;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.AggregateOperation;
 import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.store.StoreType;
 
 import static io.axual.ksml.dsl.KSMLDSL.*;
 
@@ -39,7 +40,7 @@ public class AggregateOperationParser extends StoreOperationParser<AggregateOper
     public AggregateOperation parse(YamlNode node) {
         if (node == null) return null;
         return new AggregateOperation(
-                storeOperationConfig(node, STORE_ATTRIBUTE),
+                storeOperationConfig(node, STORE_ATTRIBUTE, StoreType.WINDOW_STORE),
                 parseOptionalFunction(node, AGGREGATE_INITIALIZER_ATTRIBUTE, new InitializerDefinitionParser()),
                 parseOptionalFunction(node, AGGREGATE_AGGREGATOR_ATTRIBUTE, new AggregatorDefinitionParser()),
                 parseOptionalFunction(node, AGGREGATE_MERGER_ATTRIBUTE, new MergerDefinitionParser()),

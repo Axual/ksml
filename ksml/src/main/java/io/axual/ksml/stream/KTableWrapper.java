@@ -21,11 +21,10 @@ package io.axual.ksml.stream;
  */
 
 
-import io.axual.ksml.generator.TopologyBuildContext;
-import org.apache.kafka.streams.kstream.KTable;
-
 import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.StreamOperation;
+import org.apache.kafka.streams.kstream.KTable;
 
 public class KTableWrapper extends BaseStreamWrapper {
     public final KTable<Object, Object> table;

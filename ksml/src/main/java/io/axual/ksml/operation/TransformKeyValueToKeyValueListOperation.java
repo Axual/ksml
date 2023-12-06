@@ -34,7 +34,6 @@ import io.axual.ksml.operation.processor.TransformKeyValueToKeyValueListProcesso
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserKeyValueToKeyValueListTransformer;
-import org.apache.kafka.streams.kstream.Named;
 
 public class TransformKeyValueToKeyValueListOperation extends BaseOperation {
     private static final String MAPPER_NAME = "Mapper";
@@ -47,26 +46,33 @@ public class TransformKeyValueToKeyValueListOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
+        /*    Kafka Streams method signature:
+         *    <KR, VR> KStream<KR, VR> map(
+         *          final KeyValueMapper<? super K, ? super V, ? extends KeyValue<? extends KR, ? extends VR>> mapper,
+         *          final Named named)
+         */
+
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
         final var mapperResultType = firstSpecificType(mapper, new UserType(new ListType(new TupleType(DataType.UNKNOWN, DataType.UNKNOWN))));
-        final var map = checkFunction(MAPPER_NAME, mapper, subOf(mapperResultType), mapperResultType, superOf(k), superOf(v));
+        final var map = userFunctionOf(context, MAPPER_NAME, mapper, subOf(mapperResultType), superOf(k), superOf(v));
 
         if (mapperResultType.dataType() instanceof ListType mapperResultListType &&
                 mapperResultListType.valueType() instanceof UserTupleType mapperResultListTupleValueType &&
                 mapperResultListTupleValueType.subTypeCount() == 2) {
-            final var kr = context.streamDataTypeOf(mapperResultListTupleValueType.getUserType(0), true);
-            final var vr = context.streamDataTypeOf(mapperResultListTupleValueType.getUserType(1), false);
-            final var userMap = new UserKeyValueToKeyValueListTransformer(context.createUserFunction(map));
+            final var kr = streamDataTypeOf(mapperResultListTupleValueType.getUserType(0), true);
+            final var vr = streamDataTypeOf(mapperResultListTupleValueType.getUserType(1), false);
+            final var userMap = new UserKeyValueToKeyValueListTransformer(map);
             final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames().toArray(TEMPLATE));
             final var supplier = new OperationProcessorSupplier<>(
                     name,
                     TransformKeyValueToKeyValueListProcessor::new,
                     (stores, record) -> userMap.apply(stores, record.key(), record.value()),
                     storeNames);
+            final var named = namedOf();
             final var output = name != null
-                    ? input.stream.process(supplier, Named.as(name), storeNames)
+                    ? input.stream.process(supplier, named, storeNames)
                     : input.stream.process(supplier, storeNames);
             return new KStreamWrapper(output, kr, vr);
         }

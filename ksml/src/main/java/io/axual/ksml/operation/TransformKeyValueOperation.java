@@ -32,7 +32,6 @@ import io.axual.ksml.operation.processor.TransformKeyValueProcessor;
 import io.axual.ksml.stream.BaseStreamWrapper;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.user.UserKeyValueTransformer;
-import org.apache.kafka.streams.kstream.Named;
 
 public class TransformKeyValueOperation extends BaseOperation {
     private static final String MAPPER_NAME = "Mapper";
@@ -50,20 +49,21 @@ public class TransformKeyValueOperation extends BaseOperation {
         final var v = input.valueType();
         final var kvTuple = firstSpecificType(mapper, new UserType(new UserTupleType(k.userType(), v.userType())));
         checkTuple(MAPPER_NAME + " resultType", kvTuple, DataType.UNKNOWN, DataType.UNKNOWN);
-        final var map = checkFunction(MAPPER_NAME, mapper, kvTuple, superOf(k), superOf(v));
+        final var map = userFunctionOf(context, MAPPER_NAME, mapper, kvTuple, superOf(k), superOf(v));
 
         if (kvTuple.dataType() instanceof UserTupleType userTupleType && userTupleType.subTypeCount() == 2) {
-            final var kr = context.streamDataTypeOf(userTupleType.getUserType(0), true);
-            final var vr = context.streamDataTypeOf(userTupleType.getUserType(1), false);
-            final var userMap = new UserKeyValueTransformer(context.createUserFunction(map));
+            final var kr = streamDataTypeOf(userTupleType.getUserType(0), true);
+            final var vr = streamDataTypeOf(userTupleType.getUserType(1), false);
+            final var userMap = new UserKeyValueTransformer(map);
             final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames().toArray(TEMPLATE));
             final var supplier = new OperationProcessorSupplier<>(
                     name,
                     TransformKeyValueProcessor::new,
                     (stores, record) -> userMap.apply(stores, record.key(), record.value()),
                     storeNames);
-            final var output = name != null
-                    ? input.stream.process(supplier, Named.as(name), storeNames)
+            final var named = namedOf();
+            final var output = named != null
+                    ? input.stream.process(supplier, named, storeNames)
                     : input.stream.process(supplier, storeNames);
             return new KStreamWrapper(output, kr, vr);
         }

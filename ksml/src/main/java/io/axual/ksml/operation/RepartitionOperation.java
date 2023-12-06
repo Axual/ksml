@@ -23,7 +23,6 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
@@ -49,8 +48,8 @@ public class RepartitionOperation extends BaseOperation {
         checkNotNull(partitioner, "Partitioner must be defined");
         final var k = input.keyType();
         final var v = input.valueType();
-        final var part = checkFunction(PARTITIONER_NAME, partitioner, new UserType(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
-        final var userPart = new UserStreamPartitioner(context.createUserFunction(part));
+        final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, equalTo(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
+        final var userPart = new UserStreamPartitioner(part);
         var repartitioned = Repartitioned.with(k.serde(), v.serde()).withStreamPartitioner(userPart);
         if (name != null) repartitioned = repartitioned.withName(name);
         final var output = input.stream.repartition(repartitioned);

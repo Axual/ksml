@@ -50,19 +50,21 @@ public class StoreOperation extends BaseOperation {
 
     protected KeyValueStateStoreDefinition validateKeyValueStore(StateStoreDefinition store, UserType keyType, UserType valueType) {
         if (store == null) return null;
-        validateStore(store, keyType, valueType);
-        if (store instanceof KeyValueStateStoreDefinition def) {
+        if (store instanceof KeyValueStateStoreDefinition keyValueStore) {
+            validateStore(store, keyType, valueType);
+            final var storeKeyType = keyType != null ? keyType : keyValueStore.keyType();
+            final var storeValueType = valueType != null ? valueType : keyValueStore.valueType();
             return new KeyValueStateStoreDefinition(
-                    def.name(),
-                    def.persistent(),
-                    def.timestamped(),
-                    def.versioned(),
-                    def.historyRetention(),
-                    def.segmentInterval(),
-                    keyType != null ? keyType : def.keyType(),
-                    valueType != null ? valueType : def.valueType(),
-                    def.caching(),
-                    def.logging());
+                    keyValueStore.name(),
+                    keyValueStore.persistent(),
+                    keyValueStore.timestamped(),
+                    keyValueStore.versioned(),
+                    keyValueStore.historyRetention(),
+                    keyValueStore.segmentInterval(),
+                    storeKeyType,
+                    storeValueType,
+                    keyValueStore.caching(),
+                    keyValueStore.logging());
         }
         throw FatalError.executionError(this + " requires a  state store of type 'keyValue'");
     }
@@ -73,17 +75,19 @@ public class StoreOperation extends BaseOperation {
 
     protected SessionStateStoreDefinition validateSessionStore(StateStoreDefinition store, UserType keyType, UserType valueType) {
         if (store == null) return null;
-        validateStore(store, keyType, valueType);
-        if (store instanceof SessionStateStoreDefinition def) {
+        if (store instanceof SessionStateStoreDefinition sessionStore) {
+            validateStore(store, keyType, valueType);
+            final var storeKeyType = keyType != null ? keyType : sessionStore.keyType();
+            final var storeValueType = valueType != null ? valueType : sessionStore.valueType();
             return new SessionStateStoreDefinition(
-                    def.name(),
-                    def.persistent(),
-                    def.timestamped(),
-                    def.retention(),
-                    keyType != null ? keyType : def.keyType(),
-                    valueType != null ? valueType : def.valueType(),
-                    def.caching(),
-                    def.logging());
+                    sessionStore.name(),
+                    sessionStore.persistent(),
+                    sessionStore.timestamped(),
+                    sessionStore.retention(),
+                    storeKeyType,
+                    storeValueType,
+                    sessionStore.caching(),
+                    sessionStore.logging());
         }
         throw FatalError.executionError(this + " requires a  state store of type 'session'");
     }
@@ -94,19 +98,21 @@ public class StoreOperation extends BaseOperation {
 
     protected WindowStateStoreDefinition validateWindowStore(StateStoreDefinition store, UserType keyType, UserType valueType) {
         if (store == null) return null;
-        validateStore(store, keyType, valueType);
-        if (store instanceof WindowStateStoreDefinition def) {
+        if (store instanceof WindowStateStoreDefinition windowStore) {
+            validateStore(store, keyType, valueType);
+            final var storeKeyType = keyType != null ? keyType : windowStore.keyType();
+            final var storeValueType = valueType != null ? valueType : windowStore.valueType();
             return new WindowStateStoreDefinition(
-                    def.name(),
-                    def.persistent(),
-                    def.timestamped(),
-                    def.retention(),
-                    def.windowSize(),
-                    def.retainDuplicates(),
-                    keyType != null ? keyType : def.keyType(),
-                    valueType != null ? valueType : def.valueType(),
-                    def.caching(),
-                    def.logging());
+                    windowStore.name(),
+                    windowStore.persistent(),
+                    windowStore.timestamped(),
+                    windowStore.retention(),
+                    windowStore.windowSize(),
+                    windowStore.retainDuplicates(),
+                    storeKeyType,
+                    storeValueType,
+                    windowStore.caching(),
+                    windowStore.logging());
         }
         throw FatalError.executionError(this + " requires a  state store of type 'window'");
     }

@@ -29,7 +29,6 @@ import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserTopicNameExtractor;
-import org.apache.kafka.streams.kstream.Produced;
 
 import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA;
 
@@ -48,11 +47,13 @@ public class ToTopicNameExtractorOperation extends BaseOperation {
         final var v = input.valueType();
         final var topicNameType = new UserType(DataString.DATATYPE);
         final var recordContextType = new UserType(new StructType(RECORD_CONTEXT_SCHEMA));
-        final var extractor = checkFunction(TOPICNAMEEXTRACTOR_NAME, topicNameExtractor, topicNameType, superOf(k), superOf(v), superOf(recordContextType));
-        final var userExtractor = new UserTopicNameExtractor(context.createUserFunction(extractor));
-        var produced = Produced.with(input.keyType().serde(), input.valueType().serde());
-        if (name != null) produced = produced.withName(name);
-        input.stream.to(userExtractor, produced);
+        final var extractor = userFunctionOf(context, TOPICNAMEEXTRACTOR_NAME, topicNameExtractor, topicNameType, superOf(k), superOf(v), superOf(recordContextType));
+        final var userExtractor = new UserTopicNameExtractor(extractor);
+        final var produced = producedOf(name, k, v);
+        if (produced != null)
+            input.stream.to(userExtractor, produced);
+        else
+            input.stream.to(userExtractor);
         return null;
     }
 }

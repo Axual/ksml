@@ -34,6 +34,7 @@ import io.axual.ksml.user.UserInitializer;
 import io.axual.ksml.user.UserMerger;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Named;
+import org.apache.kafka.streams.kstream.Windowed;
 
 public class AggregateOperation extends StoreOperation {
     private static final String ADDER_NAME = "Adder";
@@ -69,25 +70,19 @@ public class AggregateOperation extends StoreOperation {
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var vr = context.streamDataTypeOf(firstSpecificType(initializer, aggregator), false);
-        final var init = checkFunction(INITIALIZER_NAME, initializer, vr);
-        final var aggr = checkFunction(AGGREGATOR_NAME, aggregator, vr, superOf(k), superOf(v), superOf(vr));
+        final var vr = streamDataTypeOf(firstSpecificType(initializer, aggregator), false);
+        final var init = userFunctionOf(context, INITIALIZER_NAME, initializer, vr);
+        final var aggr = userFunctionOf(context, AGGREGATOR_NAME, aggregator, vr, superOf(k), superOf(v), superOf(vr));
         final var kvStore = validateKeyValueStore(store(), k, vr);
-
-        final var userInit = new UserInitializer(context.createUserFunction(init));
-        final var userAggr = new UserAggregator(context.createUserFunction(aggr));
-        final var named = name != null ? Named.as(name) : null;
-
-        if (kvStore != null) {
-            final var mat = context.materialize(kvStore);
-            final var output = named != null
-                    ? (KTable) input.groupedStream.aggregate(userInit, userAggr, named, mat)
-                    : (KTable) input.groupedStream.aggregate(userInit, userAggr, mat);
-            return new KTableWrapper(output, k, vr);
-        }
-
-        // Method signature using Named without Materialized does not exist
-        final var output = (KTable) input.groupedStream.aggregate(userInit, userAggr);
+        final var mat = materializedOf(context, kvStore);
+        final var userInit = new UserInitializer(init);
+        final var userAggr = new UserAggregator(aggr);
+        final var named = namedOf();
+        final KTable<Object, Object> output = mat != null
+                ? named != null
+                ? input.groupedStream.aggregate(userInit, userAggr, named, mat)
+                : input.groupedStream.aggregate(userInit, userAggr, mat)
+                : input.groupedStream.aggregate(userInit, userAggr);
         return new KTableWrapper(output, k, vr);
     }
 
@@ -105,28 +100,23 @@ public class AggregateOperation extends StoreOperation {
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var vr = context.streamDataTypeOf(firstSpecificType(initializer, adder, subtractor), false);
-        final var init = checkFunction(INITIALIZER_NAME, initializer, vr);
-        final var add = checkFunction(ADDER_NAME, adder, vr, superOf(k), superOf(v), superOf(vr));
-        final var sub = checkFunction(SUBTRACTOR_NAME, subtractor, vr, superOf(k), superOf(vr), superOf(vr));
+        final var vr = streamDataTypeOf(firstSpecificType(initializer, adder, subtractor), false);
+        final var init = userFunctionOf(context, INITIALIZER_NAME, initializer, vr);
+        final var add = userFunctionOf(context, ADDER_NAME, adder, vr, superOf(k), superOf(v), superOf(vr));
+        final var sub = userFunctionOf(context, SUBTRACTOR_NAME, subtractor, vr, superOf(k), superOf(vr), superOf(vr));
         final var kvStore = validateKeyValueStore(store(), k, vr);
-
-        final var userInit = new UserInitializer(context.createUserFunction(init));
-        final var userAdd = new UserAggregator(context.createUserFunction(add));
-        final var userSub = new UserAggregator(context.createUserFunction(sub));
-        final var named = name != null ? Named.as(name) : null;
-
-        if (kvStore != null) {
-            final var mat = context.materialize(kvStore);
-            final var output = named != null
-                    ? (KTable) input.groupedTable.aggregate(userInit, userAdd, userSub, named, mat)
-                    : (KTable) input.groupedTable.aggregate(userInit, userAdd, userSub, mat);
-            return new KTableWrapper(output, k, vr);
-        }
-
-        final var output = named != null
-                ? (KTable) input.groupedTable.aggregate(userInit, userAdd, userSub, named)
-                : (KTable) input.groupedTable.aggregate(userInit, userAdd, userSub);
+        final var mat = materializedOf(context, kvStore);
+        final var userInit = new UserInitializer(init);
+        final var userAdd = new UserAggregator(add);
+        final var userSub = new UserAggregator(sub);
+        final var named = namedOf();
+        final KTable<Object, Object> output = named != null
+                ? mat != null
+                ? input.groupedTable.aggregate(userInit, userAdd, userSub, named, mat)
+                : input.groupedTable.aggregate(userInit, userAdd, userSub, named)
+                : mat != null
+                ? input.groupedTable.aggregate(userInit, userAdd, userSub, mat)
+                : input.groupedTable.aggregate(userInit, userAdd, userSub);
         return new KTableWrapper(output, k, vr);
     }
 
@@ -144,29 +134,25 @@ public class AggregateOperation extends StoreOperation {
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var vr = context.streamDataTypeOf(firstSpecificType(initializer, aggregator, merger), false);
-        final var init = checkFunction(INITIALIZER_NAME, initializer, vr);
-        final var aggr = checkFunction(AGGREGATOR_NAME, aggregator, vr, superOf(k), superOf(v), superOf(vr));
-        final var merg = checkFunction(MERGER_NAME, merger, vr, superOf(k), equalTo(vr), superOf(vr));
+        final var windowedK = windowedTypeOf(k);
+        final var vr = streamDataTypeOf(firstSpecificType(initializer, aggregator, merger), false);
+        final var init = userFunctionOf(context, INITIALIZER_NAME, initializer, vr);
+        final var aggr = userFunctionOf(context, AGGREGATOR_NAME, aggregator, vr, superOf(k), superOf(v), superOf(vr));
+        final var merg = userFunctionOf(context, MERGER_NAME, merger, vr, superOf(k), equalTo(vr), superOf(vr));
         final var sessionStore = validateSessionStore(store(), k, vr);
-
-        final var userInit = new UserInitializer(context.createUserFunction(init));
-        final var userAggr = new UserAggregator(context.createUserFunction(aggr));
-        final var userMerg = new UserMerger(context.createUserFunction(merg));
-        final var named = name != null ? Named.as(name) : null;
-
-        if (sessionStore != null) {
-            final var mat = context.materialize(sessionStore);
-            final var output = named != null
-                    ? (KTable) input.sessionWindowedKStream.aggregate(userInit, userAggr, userMerg, named, mat)
-                    : (KTable) input.sessionWindowedKStream.aggregate(userInit, userAggr, userMerg, mat);
-            return new KTableWrapper(output, k, vr);
-        }
-
-        final var output = named != null
-                ? (KTable) input.sessionWindowedKStream.aggregate(userInit, userAggr, userMerg, named)
-                : (KTable) input.sessionWindowedKStream.aggregate(userInit, userAggr, userMerg);
-        return new KTableWrapper(output, k, vr);
+        final var mat = materializedOf(context, sessionStore);
+        final var userInit = new UserInitializer(init);
+        final var userAggr = new UserAggregator(aggr);
+        final var userMerg = new UserMerger(merg);
+        final var named = namedOf();
+        final KTable<Windowed<Object>, Object> output = named != null
+                ? mat != null
+                ? input.sessionWindowedKStream.aggregate(userInit, userAggr, userMerg, named, mat)
+                : input.sessionWindowedKStream.aggregate(userInit, userAggr, userMerg, named)
+                : mat != null
+                ? input.sessionWindowedKStream.aggregate(userInit, userAggr, userMerg, mat)
+                : input.sessionWindowedKStream.aggregate(userInit, userAggr, userMerg);
+        return new KTableWrapper((KTable) output, windowedK, vr);
     }
 
     @Override
@@ -183,26 +169,22 @@ public class AggregateOperation extends StoreOperation {
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var vr = context.streamDataTypeOf(firstSpecificType(initializer, aggregator), false);
-        final var init = checkFunction(INITIALIZER_NAME, initializer, vr);
-        final var aggr = checkFunction(AGGREGATOR_NAME, aggregator, vr, superOf(k), superOf(v), superOf(vr));
+        final var windowedK = windowedTypeOf(k);
+        final var vr = streamDataTypeOf(firstSpecificType(initializer, aggregator), false);
+        final var init = userFunctionOf(context, INITIALIZER_NAME, initializer, vr);
+        final var aggr = userFunctionOf(context, AGGREGATOR_NAME, aggregator, vr, superOf(k), superOf(v), superOf(vr));
         final var windowStore = validateWindowStore(store(), k, vr);
-
-        final var userInit = new UserInitializer(context.createUserFunction(init));
-        final var userAggr = new UserAggregator(context.createUserFunction(aggr));
+        final var mat = materializedOf(context, windowStore);
+        final var userInit = new UserInitializer(init);
+        final var userAggr = new UserAggregator(aggr);
         final var named = name != null ? Named.as(name) : null;
-
-        if (windowStore != null) {
-            final var mat = context.materialize(windowStore);
-            final var output = named != null
-                    ? (KTable) input.timeWindowedKStream.aggregate(userInit, userAggr, named, mat)
-                    : (KTable) input.timeWindowedKStream.aggregate(userInit, userAggr, mat);
-            return new KTableWrapper(output, k, vr);
-        }
-
-        final var output = named != null
-                ? (KTable) input.timeWindowedKStream.aggregate(userInit, userAggr, named)
-                : (KTable) input.timeWindowedKStream.aggregate(userInit, userAggr);
-        return new KTableWrapper(output, k, vr);
+        final KTable<Windowed<Object>, Object> output = named != null
+                ? mat != null
+                ? input.timeWindowedKStream.aggregate(userInit, userAggr, named, mat)
+                : input.timeWindowedKStream.aggregate(userInit, userAggr, named)
+                : mat != null
+                ? input.timeWindowedKStream.aggregate(userInit, userAggr, mat)
+                : input.timeWindowedKStream.aggregate(userInit, userAggr);
+        return new KTableWrapper((KTable) output, windowedK, vr);
     }
 }

@@ -44,10 +44,10 @@ public class ToStreamOperation extends BaseOperation {
     public StreamWrapper apply(KTableWrapper input, TopologyBuildContext context) {
         final var k = input.keyType();
         final var v = input.valueType();
-        final var kr = mapper != null ? context.streamDataTypeOf(firstSpecificType(mapper, k), true) : k;
-        final var map = mapper != null ? checkFunction(MAPPER_NAME, mapper, kr, superOf(k), superOf(v)) : null;
+        final var kr = mapper != null ? streamDataTypeOf(firstSpecificType(mapper, k), true) : k;
+        final var map = mapper != null ? userFunctionOf(context, MAPPER_NAME, mapper, kr, superOf(k), superOf(v)) : null;
         final KeyValueMapper<Object, Object, Object> userMap = map != null
-                ? new UserKeyTransformer(context.createUserFunction(map))
+                ? new UserKeyTransformer(map)
                 : (key, value) -> DataUtil.asDataObject(key);
         final var output = name != null
                 ? input.table.toStream(userMap, Named.as(name))

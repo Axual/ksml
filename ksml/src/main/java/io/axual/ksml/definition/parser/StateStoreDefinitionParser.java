@@ -41,7 +41,7 @@ public class StateStoreDefinitionParser extends BaseParser<StateStoreDefinition>
     }
 
     public StateStoreDefinitionParser(StoreType expectedType) {
-        this(null, null);
+        this(expectedType, null);
     }
 
     public StateStoreDefinitionParser(StoreType expectedType, String defaultName) {

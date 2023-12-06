@@ -6,15 +6,6 @@ streams:
     keyType: string
     valueType: avro:SensorData
 
-stores:
-  owner_count_aggregate:
-    type: windowStore
-    keyType: string
-    valueType: long
-    windowSize: 10m
-    retention: 1h
-    caching: false
-
 pipelines:
   main:
     from: sensor_source
@@ -31,7 +22,11 @@ pipelines:
         windowType: tumbling
         duration: 20s
       - type: aggregate
-        store: owner_count_aggregate
+        store:
+          type: windowStore
+          windowSize: 10m
+          retention: 1h
+          caching: false
         initializer:
           expression: 0
           resultType: long

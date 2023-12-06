@@ -33,33 +33,32 @@ import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserValueJoiner;
 import io.axual.ksml.user.UserValueJoinerWithKey;
 import org.apache.kafka.streams.kstream.JoinWindows;
-import org.apache.kafka.streams.kstream.Joined;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
-import org.apache.kafka.streams.kstream.Named;
-import org.apache.kafka.streams.kstream.StreamJoined;
 
 import java.time.Duration;
-import java.util.HashMap;
 
-public class LeftJoinOperation extends StoreOperation {
+public class LeftJoinOperation extends BaseJoinOperation {
     private static final String VALUEJOINER_NAME = "ValueJoiner";
     private final TopicDefinition joinTopic;
     private final FunctionDefinition valueJoiner;
-    private final Duration joinWindowsDuration;
+    private final JoinWindows joinWindows;
+    private final Duration gracePeriod;
 
-    public LeftJoinOperation(StoreOperationConfig config, StreamDefinition joinStream, FunctionDefinition valueJoiner, Duration joinWindowDuration) {
+    public LeftJoinOperation(StoreOperationConfig config, StreamDefinition joinStream, FunctionDefinition valueJoiner, Duration timeDifference, Duration gracePeriod) {
         super(config);
         this.joinTopic = joinStream;
         this.valueJoiner = valueJoiner;
-        this.joinWindowsDuration = joinWindowDuration;
+        this.joinWindows = joinWindowsOf(timeDifference, gracePeriod);
+        this.gracePeriod = null;
     }
 
-    public LeftJoinOperation(StoreOperationConfig config, TableDefinition joinTable, FunctionDefinition valueJoiner, Duration joinWindowDuration) {
+    public LeftJoinOperation(StoreOperationConfig config, TableDefinition joinTable, FunctionDefinition valueJoiner, Duration gracePeriod) {
         super(config);
         this.joinTopic = joinTable;
         this.valueJoiner = valueJoiner;
-        this.joinWindowsDuration = joinWindowDuration;
+        this.joinWindows = null;
+        this.gracePeriod = gracePeriod;
     }
 
     @Override
@@ -79,21 +78,15 @@ public class LeftJoinOperation extends StoreOperation {
 
             final var otherStream = context.getStreamWrapper(joinStream);
             final var vo = otherStream.valueType();
-            final var vr = context.streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
+            final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
             checkType("Join stream keyType", otherStream.keyType(), equalTo(k));
-            final var joiner = checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vo));
+            final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vo));
+            final var windowedK = windowedTypeOf(k);
             final var windowStore = validateWindowStore(store(), k, vr);
-
-            var joined = StreamJoined.with(k.serde(), v.serde(), vo.serde());
-            if (name != null) joined = joined.withName(name);
-            if (windowStore != null) {
-                if (windowStore.name() != null) joined = joined.withStoreName(windowStore.name());
-                joined = windowStore.logging() ? joined.withLoggingEnabled(new HashMap<>()) : joined.withLoggingDisabled();
-            }
-
-            final var userJoiner = new UserValueJoinerWithKey(context.createUserFunction(joiner));
-            final var output = (KStream) input.stream.leftJoin(otherStream.stream, userJoiner, JoinWindows.ofTimeDifferenceWithNoGrace(joinWindowsDuration), joined);
-            return new KStreamWrapper(output, k, vr);
+            final var streamJoined = streamJoinedOf(windowStore, k, v, vo);
+            final var userJoiner = new UserValueJoinerWithKey(joiner);
+            final var output = (KStream) input.stream.leftJoin(otherStream.stream, userJoiner, joinWindows, streamJoined);
+            return new KStreamWrapper(output, windowedK, vr);
         }
 
         if (joinTopic instanceof TableDefinition joinTable) {
@@ -106,14 +99,11 @@ public class LeftJoinOperation extends StoreOperation {
 
             final var otherTable = context.getStreamWrapper(joinTable);
             final var vt = otherTable.valueType();
-            final var vr = context.streamDataTypeOf(firstSpecificType(valueJoiner, vt, v), false);
+            final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vt, v), false);
             checkType("Join table keyType", otherTable.keyType(), equalTo(k));
-            final var joiner = checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vt));
-
-            var joined = Joined.with(k.serde(), v.serde(), vt.serde());
-            if (name != null) joined = joined.withName(name);
-
-            final var userJoiner = new UserValueJoinerWithKey(context.createUserFunction(joiner));
+            final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vt));
+            final var joined = joinedOf(name, k, v, vt, gracePeriod);
+            final var userJoiner = new UserValueJoinerWithKey(joiner);
             final var output = (KStream) input.stream.leftJoin(otherTable.table, userJoiner, joined);
             return new KStreamWrapper(output, k, vr);
         }
@@ -137,22 +127,20 @@ public class LeftJoinOperation extends StoreOperation {
 
             final var otherTable = context.getStreamWrapper(joinTable);
             final var vo = otherTable.valueType();
-            final var vr = context.streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
+            final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
             checkType("Join table keyType", otherTable.keyType(), equalTo(k));
-            final var joiner = checkFunction(VALUEJOINER_NAME, valueJoiner, subOf(vr), vr, superOf(v), superOf(vo));
-            final var userJoiner = new UserValueJoiner(context.createUserFunction(joiner));
+            final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(v), superOf(vo));
+            final var userJoiner = new UserValueJoiner(joiner);
             final var kvStore = validateKeyValueStore(store(), k, vr);
-            if (kvStore != null) {
-                final var mat = context.materialize(kvStore);
-                final var output = name != null
-                        ? input.table.leftJoin(otherTable.table, userJoiner, Named.as(name), mat)
-                        : input.table.leftJoin(otherTable.table, userJoiner, mat);
-                return new KTableWrapper(output, k, vr);
-            }
-
-            final var output = name != null
-                    ? (KTable) input.table.leftJoin(otherTable.table, userJoiner, Named.as(name))
-                    : (KTable) input.table.leftJoin(otherTable.table, userJoiner);
+            final var mat = materializedOf(context, kvStore);
+            final var named = namedOf();
+            final KTable<Object, Object> output = name != null
+                    ? mat != null
+                    ? input.table.leftJoin(otherTable.table, userJoiner, named, mat)
+                    : input.table.leftJoin(otherTable.table, userJoiner, named)
+                    : mat != null
+                    ? input.table.leftJoin(otherTable.table, userJoiner, mat)
+                    : input.table.leftJoin(otherTable.table, userJoiner);
             return new KTableWrapper(output, k, vr);
         }
 
