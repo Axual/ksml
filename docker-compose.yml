@@ -55,6 +55,12 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'PLAINTEXT://broker:9093'
       SCHEMA_REGISTRY_KAFKASTORE_TOPIC_REPLICATION_FACTOR: 1
       SCHEMA_REGISTRY_ZK_NAMESPACE: 'mySRNS'
+    healthcheck:
+      test: curl http://localhost:8081 | fgrep -q "{}"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
 
   # This "container" is a workaround to pre-create topics
   kafka-setup:
@@ -82,7 +88,7 @@ services:
                        kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic io.ksml.example.processor-ownerCount-changelog'"
 
   example-producer:
-    image: axual/ksml-data-generator:snapshot
+    image: axual/ksml:local
     hostname: kafka-data-generator
     restart: always
     networks:

@@ -3,8 +3,8 @@ ksml:
   configDirectory: /ksml # When not set defaults to the working directory
   schemaDirectory: /ksml # When not set defaults to the config directory
   definitions:
-    - 00-example-generate-alertsettings.yaml
-    - 00-example-generate-sensordata.yaml
+    gen-alert-setting: 00-example-generate-alertsettings.yaml
+    gen-sensor-data: 00-example-generate-sensordata.yaml
 
 # This setup connects to the Kafka broker and schema registry started with the example docker-compose file
 # These examples are intended to run from a inside a container on the same network
