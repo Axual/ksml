@@ -20,8 +20,6 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Arrays;
-
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.object.DataBytes;
@@ -41,6 +39,8 @@ import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.exception.KSMLExecutionException;
+
+import java.util.Arrays;
 
 import static io.axual.ksml.dsl.WindowedSchema.generateWindowedSchema;
 
@@ -67,7 +67,7 @@ public class SchemaUtil {
             return new ListSchema(dataTypeToSchema(listType.valueType()));
         // Check structs first, since they are a subclass of maps
         if (type instanceof StructType structType)
-            return new StructSchema(structType.schema());
+            return structType.schema() != null ? new StructSchema(structType.schema()) : new StructSchema();
         if (type instanceof MapType mapType)
             return new MapSchema(SchemaUtil.dataTypeToSchema(mapType.valueType()));
         if (type instanceof WindowedType windowedType)

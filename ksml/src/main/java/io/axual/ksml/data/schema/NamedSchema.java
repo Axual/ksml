@@ -35,7 +35,7 @@ public abstract class NamedSchema extends DataSchema {
     protected NamedSchema(Type type, String namespace, String name, String doc) {
         super(type);
         this.namespace = namespace;
-        if (name == null || name.length() == 0) {
+        if (name == null || name.isEmpty()) {
             name = "Unnamed" + getClass().getSimpleName();
         }
         this.name = name;
@@ -61,7 +61,8 @@ public abstract class NamedSchema extends DataSchema {
     public boolean isAssignableFrom(DataSchema otherSchema) {
         if (!super.isAssignableFrom(otherSchema)) return false;
         if (!(otherSchema instanceof NamedSchema otherNamedSchema)) return false;
-        // Return true if the other named schema has the same name (ignore namespace and doc)
+        // Return true if the other named schema has the same name. We purposefully ignore namespace and doc fields to
+        // make XML, JSON etc comparable schema.
         return Objects.equals(name, otherNamedSchema.name);
     }
 }

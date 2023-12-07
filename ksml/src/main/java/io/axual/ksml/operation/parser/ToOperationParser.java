@@ -41,14 +41,16 @@ public class ToOperationParser extends OperationParser<ToOperation> {
         final var child = node.get(KSMLDSL.Operations.TO);
         if (child != null) {
             if (child.isString()) {
-                final var reference = child.asString();
                 // There is a reference to either a topic or a topic name extractor
+                final var reference = child.asString();
+                // Try topic reference
                 if (resources.topic(reference) != null) {
                     return new ToOperation(
                             operationConfig(node, name),
                             resources.topic(reference),
                             null);
                 }
+                // Try topic name extractor reference
                 if (resources.function(reference) != null) {
                     return new ToOperation(
                             operationConfig(node, name),
@@ -56,6 +58,7 @@ public class ToOperationParser extends OperationParser<ToOperation> {
                             null);
                 }
             } else {
+                // Try to pare the destination as a topic
                 final var topic = new TopicDefinitionParser().parse(child);
                 if (topic != null && topic.topic != null) {
                     return new ToOperation(
@@ -64,6 +67,7 @@ public class ToOperationParser extends OperationParser<ToOperation> {
                             parseOptionalFunction(child, KSMLDSL.Operations.To.PARTITIONER, new KeyValueMapperDefinitionParser()));
                 }
 
+                // Try to parse the destination as a topic name extractor
                 if (child.get(KSMLDSL.Operations.To.TOPIC_NAME_EXTRACTOR) != null) {
                     return new ToOperation(
                             operationConfig(child, name),

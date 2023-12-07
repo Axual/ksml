@@ -33,6 +33,13 @@ public class StructSchema extends NamedSchema {
     private final List<DataField> fields = new ArrayList<>();
     private final Map<String, DataField> fieldsByName = new HashMap<>();
 
+    public StructSchema() {
+        // This exists for compatibility reasons: if we define eg. JSON Objects, or schema-less Structs, then we need
+        // to somehow capture this in a schema with the proper type. The StructSchema is the proper type, so we let
+        // the absence of a schema be reflected through null fields.
+        this(null, null, null, null);
+    }
+
     public StructSchema(StructSchema other) {
         this(other.namespace(), other.name(), other.doc(), other.fields);
     }
