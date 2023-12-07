@@ -89,7 +89,12 @@ services:
 
   example-producer:
     image: axual/ksml:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: ksml
     hostname: kafka-data-generator
+
     restart: always
     networks:
       - ksml
