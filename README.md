@@ -29,9 +29,6 @@ The submodules are as follows:
 * [`ksml-runner`](ksml-runner/) 
   standalone Java application for running KSML against plain Kafka and Axual Platform/Cloud deployments
 
-* [`ksml-data-generator`](ksml-data-generator/)
-  A KSML based data generator, allows for programmable data generator using KSML definitions
-
 
 ## Building KSML
 Building and running KSML requires an installation of GraalVM and the corresponding Python module.
@@ -48,8 +45,6 @@ You can build either the standard KSML runner, or the runner for the Axual platf
     docker buildx create --name ksml
     # Build KSML Runner
     docker buildx --builder ksml build --load --platform linux/amd64,linux/arm64 -t axual/ksml:local --target ksml -f Dockerfile .
-    # Build KSML Data Generator 
-    docker buildx --builder ksml build --load --platform linux/amd64,linux/arm64 -t axual/ksml-data-generator:local --target ksml-datagen -f Dockerfile .
     # Remove the BuildX builder for KSML
     docker buildx rm ksml
 
@@ -63,16 +58,13 @@ You can perform a build for just your platform by removing the `--platform linux
     docker buildx create --name ksml
     # Build KSML Runner
     docker buildx --builder ksml build --load -t axual/ksml:local --target ksml -f Dockerfile .
-    # Build KSML Data Generator 
-    docker buildx --builder ksml build --load -t axual/ksml-data-generator:local --target ksml-datagen -f Dockerfile .
     # Remove the BuildX builder for KSML
     docker buildx rm ksml
 
 
 #### Install GraalVM locally
-Download GraalVM for Java 17 or later from [this page](https://www.graalvm.org/downloads/) and install it for your
-platform as explained. Once installed, use the command ```gu install python``` to install the Python
-module. For more information, check out the [Python Reference](https://www.graalvm.org/reference-manual/python/) pages.
+Download GraalVM for Java 21 or later from [this page](https://www.graalvm.org/downloads/) and install it for your
+platform as explained.
 
 Once installed, select GraalVM as your default Java JVM. Then you can build KSML using the normal
 Maven commands:

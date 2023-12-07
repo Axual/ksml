@@ -86,6 +86,3 @@ COPY --chown=ksml:0 --from=builder /project_dir/graalpy-module-collection/target
 COPY --chown=ksml:0 --from=builder /project_dir/ksml-runner/target/ksml-runner*.jar /opt/ksml/ksml.jar
 
 ENTRYPOINT ["java", "--upgrade-module-path", "/opt/ksml/modules", "-jar", "/opt/ksml/ksml.jar"]
-
-# Step 6: Create the KSML Data Generator image
-FROM ksml AS ksml-datagen
