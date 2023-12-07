@@ -52,5 +52,3 @@ jobs:
           tags: |
             axual/ksml:snapshot
             ghcr.io/axual/ksml:snapshot
-            axual/ksml-axual:snapshot
-            ghcr.io/axual/ksml-axual:snapshot
