@@ -29,6 +29,7 @@ import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.definition.TopicDefinition;
+import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.definition.WindowStateStoreDefinition;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.execution.FatalError;
@@ -53,19 +54,22 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
+// This is a supporting class during topology building/generation. It contains the main reference to Kafka Streams'
+// StreamsBuilder and serves as the lookup point for topology resources. It also contains the Python context in which
+// all topology definitions will get loaded. By convention, every KSML definition file is built separately and its
+// all its functions are loaded into a private Python context.
 public class TopologyBuildContext {
     private final StreamsBuilder builder;
     private final TopologyResources resources;
     private final PythonContext pythonContext;
-    private final String namePrefix;
 
     // All wrapped KStreams, KTables and KGlobalTables
-    private final Map<String, StreamWrapper> streamWrappers = new HashMap<>();
+    private final Map<String, StreamWrapper> streamWrappersByName = new HashMap<>();
+    private final Map<String, StreamWrapper> streamWrappersByTopic = new HashMap<>();
 
-    public TopologyBuildContext(StreamsBuilder builder, TopologyResources resources, String namePrefix) {
+    public TopologyBuildContext(StreamsBuilder builder, TopologyResources resources) {
         this.builder = builder;
         this.resources = resources;
-        this.namePrefix = namePrefix;
         this.pythonContext = new PythonContext();
     }
 
@@ -110,39 +114,86 @@ public class TopologyBuildContext {
         }
     }
 
-    public BaseStreamWrapper getStreamWrapper(TopicDefinition topic) {
-        if (topic instanceof StreamDefinition) return getStreamWrapper(topic, KStreamWrapper.class);
-        if (topic instanceof TableDefinition) return getStreamWrapper(topic, KTableWrapper.class);
-        if (topic instanceof GlobalTableDefinition) return getStreamWrapper(topic, GlobalKTableWrapper.class);
+    public StreamWrapper getStreamWrapper(TopologyResource<TopicDefinition> resource) {
+        return getStreamWrapper(resource.name(), resource.definition());
+    }
+
+    public StreamWrapper getStreamWrapper(final String name, final TopicDefinition topicDefinition) {
+        // First do a lookup by name
+        if (name != null) {
+            if (streamWrappersByName.containsKey(name)) {
+                final var expectedResultClass = getStreamWrapperClass(topicDefinition, BaseStreamWrapper.class);
+                return validateStreamWrapper(streamWrappersByName.get(name), topicDefinition, expectedResultClass);
+            }
+            if (topicDefinition == null) {
+                throw FatalError.topologyError("Stream \"" + name + "\" not found");
+            }
+        }
+
+        // Then do a lookup by topic
+        if (topicDefinition != null) {
+            if (topicDefinition.topic() == null) {
+                throw FatalError.topologyError("Topic definition does not contain a topic name");
+            }
+
+            // Get the wrapper from the lookup table, or by creating a new instance
+            final Class<? extends BaseStreamWrapper> expectedResultClass;
+            final StreamWrapper result;
+            if (streamWrappersByTopic.containsKey(topicDefinition.topic())) {
+                expectedResultClass = getStreamWrapperClass(topicDefinition, BaseStreamWrapper.class);
+                result = streamWrappersByTopic.get(topicDefinition.topic());
+            } else {
+                expectedResultClass = getStreamWrapperClass(topicDefinition, KStreamWrapper.class);
+                if (topicDefinition instanceof StreamDefinition || topicDefinition instanceof TableDefinition || topicDefinition instanceof GlobalTableDefinition) {
+                    result = getStreamWrapper(topicDefinition, getStreamWrapperClass(topicDefinition, null));
+                } else {
+                    result = getStreamWrapper(new StreamDefinition(topicDefinition.topic(), topicDefinition.keyType(), topicDefinition.valueType()));
+                }
+            }
+
+            // If the name was not yet registered, do that here
+            if (name != null) streamWrappersByName.put(name, result);
+            return validateStreamWrapper(result, topicDefinition, expectedResultClass);
+        }
+
+        throw FatalError.topologyError("Failed to lookup nameless stream for nameless topic");
+    }
+
+    private static Class<? extends BaseStreamWrapper> getStreamWrapperClass(TopicDefinition topicDefinition, Class<? extends BaseStreamWrapper> defaultClass) {
         // Anonymous topics are assumed to be Streams, so treat as if the topic was a stream definition
-        return getStreamWrapper(new StreamDefinition(topic.topic, topic.keyType, topic.valueType));
+        Class<? extends BaseStreamWrapper> resultClass = defaultClass;
+        // Other types are explicitly assigned
+        if (topicDefinition instanceof StreamDefinition) resultClass = KStreamWrapper.class;
+        if (topicDefinition instanceof TableDefinition) resultClass = KTableWrapper.class;
+        if (topicDefinition instanceof GlobalTableDefinition) resultClass = GlobalKTableWrapper.class;
+        return resultClass;
     }
 
     public KStreamWrapper getStreamWrapper(StreamDefinition stream) {
-        return getStreamWrapper(stream, KStreamWrapper.class);
+        return (KStreamWrapper) getStreamWrapper(stream, KStreamWrapper.class);
     }
 
     public KTableWrapper getStreamWrapper(TableDefinition table) {
-        return getStreamWrapper(table, KTableWrapper.class);
+        return (KTableWrapper) getStreamWrapper(table, KTableWrapper.class);
     }
 
     public GlobalKTableWrapper getStreamWrapper(GlobalTableDefinition globalTable) {
-        return getStreamWrapper(globalTable, GlobalKTableWrapper.class);
+        return (GlobalKTableWrapper) getStreamWrapper(globalTable, GlobalKTableWrapper.class);
     }
 
-    public <T extends BaseStreamWrapper> T getStreamWrapper(TopicDefinition definition, Class<T> resultClass) {
+    public StreamWrapper getStreamWrapper(TopicDefinition definition, Class<? extends BaseStreamWrapper> resultClass) {
         // We do not know the name of the StreamWrapper here, only its definition (which may be inlined in KSML), so we
         // perform a lookup based on the topic name. If we find it, we return that StreamWrapper. If not, we create it,
         // register it and return it here.
-        var result = streamWrappers.get(definition.topic());
+        var result = streamWrappersByTopic.get(definition.topic());
         if (result == null) {
             result = buildWrapper(definition.topic(), definition);
-            streamWrappers.put(definition.topic(), result);
+            streamWrappersByTopic.put(definition.topic(), result);
         }
         if (!resultClass.isInstance(result)) {
             throw new KSMLTopologyException("Stream is of incorrect dataType " + result.getClass().getSimpleName() + " where " + resultClass.getSimpleName() + " expected");
         }
-        return (T) result;
+        return result;
     }
 
     private StreamWrapper buildWrapper(String name, TopicDefinition def) {
@@ -160,13 +211,13 @@ public class TopologyBuildContext {
             final var streamValue = new StreamDataType(tableDefinition.valueType(), false);
 
             if (tableDefinition.store() != null) {
-                final var mat = StoreUtil.materialize(tableDefinition.store(), tableDefinition.topic);
+                final var mat = StoreUtil.materialize(tableDefinition.store(), tableDefinition.topic());
                 return new KTableWrapper(builder.table(tableDefinition.topic(), mat.materialized()), streamKey, streamValue);
             }
 
             // Set up dummy materialization for tables, mapping to the topic itself so we don't require an extra state store topic
-            final var store = new KeyValueStateStoreDefinition(tableDefinition.topic, false, false, false, Duration.ofSeconds(900), Duration.ofSeconds(60), streamKey.userType(), streamValue.userType(), false, false);
-            final var mat = StoreUtil.materialize(store, tableDefinition.topic);
+            final var store = new KeyValueStateStoreDefinition(tableDefinition.topic(), false, false, false, Duration.ofSeconds(900), Duration.ofSeconds(60), streamKey.userType(), streamValue.userType(), false, false);
+            final var mat = StoreUtil.materialize(store, tableDefinition.topic());
             final var consumed = Consumed.as(name).withKeySerde(mat.keySerde()).withValueSerde(mat.valueSerde());
             return new KTableWrapper(builder.table(tableDefinition.topic(), consumed, mat.materialized()), streamKey, streamValue);
         }
@@ -181,6 +232,38 @@ public class TopologyBuildContext {
         throw FatalError.topologyError("Unknown stream type: " + def.getClass().getSimpleName());
     }
 
+    private StreamWrapper validateStreamWrapper(StreamWrapper wrapper, TopicDefinition definition, Class<? extends BaseStreamWrapper> resultType) {
+        if (definition != null) {
+            final var topic = definition.topic() != null ? definition.topic() : "unknown topic";
+            final var defKeyType = definition.keyType();
+            final var wrapperKeyType = wrapper.keyType().userType();
+            if (defKeyType != null && !defKeyType.dataType().isAssignableFrom(wrapperKeyType.dataType())) {
+                throw FatalError.topologyError("Expected keyType " + defKeyType + " for topic " + definition.topic() + " differs from real keyType " + wrapperKeyType);
+            }
+            final var defValueType = definition.valueType();
+            final var wrapperValueType = wrapper.valueType().userType();
+            if (defValueType != null && !defValueType.dataType().isAssignableFrom(wrapperValueType.dataType())) {
+                throw FatalError.topologyError("Expected valueType " + defValueType + " for topic \"" + topic + "\" differs from real valueType " + wrapperValueType);
+            }
+        }
+
+        if (!resultType.isInstance(wrapper)) {
+            throw FatalError.topologyError("Incorrect stream type referenced: expected=" + resultType + ", found=" + wrapper.toString());
+        }
+
+        return wrapper;
+    }
+
+    // Results of pipelines can be registered in this build context for later use (see AsOperation). This is the entry
+    // point for that operation to register pipeline outcomes as independent stream wrappers.
+    public void registerStreamWrapper(String name, StreamWrapper wrapper) {
+        if (streamWrappersByName.containsKey(name)) {
+            throw FatalError.topologyError("Can not register " + wrapper.toString() + " as " + name + ": name must be unique");
+        }
+        streamWrappersByName.put(name, wrapper);
+    }
+
+    // Create a new function in the Python context, using the definition in the parameter
     public UserFunction createUserFunction(FunctionDefinition definition) {
         return PythonFunction.fromNamed(pythonContext, definition.name(), definition);
     }

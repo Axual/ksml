@@ -30,7 +30,7 @@ public class TimeWindowedCogroupedKStreamWrapper extends BaseStreamWrapper {
     public final TimeWindowedCogroupedKStream<Object, Object> timeWindowedCogroupedKStream;
 
     public TimeWindowedCogroupedKStreamWrapper(TimeWindowedCogroupedKStream<Object, Object> timeWindowedCogroupedKStream, StreamDataType key, StreamDataType value) {
-        super(key, value);
+        super("TimeWindowedCogroupedStream", key, value);
         this.timeWindowedCogroupedKStream = timeWindowedCogroupedKStream;
     }
 

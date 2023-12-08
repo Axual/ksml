@@ -31,7 +31,7 @@ public class KGroupedStreamWrapper extends BaseStreamWrapper {
     public final KGroupedStream<Object, Object> groupedStream;
 
     public KGroupedStreamWrapper(KGroupedStream<Object, Object> groupedStream, StreamDataType key, StreamDataType value) {
-        super(key, value);
+        super("GroupedStream", key, value);
         this.groupedStream = groupedStream;
     }
 

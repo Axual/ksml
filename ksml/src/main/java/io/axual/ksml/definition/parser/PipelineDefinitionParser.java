@@ -44,7 +44,7 @@ public class PipelineDefinitionParser extends ContextAwareParser<PipelineDefinit
     public PipelineDefinition parse(YamlNode node, boolean parseSource, boolean parseSink) {
         if (node == null) return null;
         final var source = parseSource
-                ? new TopologyResourceParser<>("source", KSMLDSL.Pipelines.FROM, resources.topics()::get, new TopicDefinitionParser()).parseDefinition(node)
+                ? new TopologyResourceParser<>("source", KSMLDSL.Pipelines.FROM, resources.topics()::get, new TopicDefinitionParser(), true).parse(node)
                 : null;
         final var operations = new ListParser<>("pipeline operation", new PipelineOperationParser(prefix, resources)).parse(node.get(KSMLDSL.Pipelines.VIA, "step"));
         final var sink = parseSink ? new PipelineSinkOperationParser(prefix, null, resources).parse(node) : null;

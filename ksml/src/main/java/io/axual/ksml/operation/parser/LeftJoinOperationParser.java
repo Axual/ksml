@@ -24,18 +24,17 @@ package io.axual.ksml.operation.parser;
 import io.axual.ksml.definition.GlobalTableDefinition;
 import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.definition.TableDefinition;
-import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.definition.parser.ForeignKeyExtractorDefinitionParser;
+import io.axual.ksml.definition.parser.JoinTargetDefinitionParser;
 import io.axual.ksml.definition.parser.KeyValueMapperDefinitionParser;
 import io.axual.ksml.definition.parser.StreamPartitionerDefinitionParser;
 import io.axual.ksml.definition.parser.ValueJoinerDefinitionParser;
-import io.axual.ksml.definition.parser.JoinTargetDefinitionParser;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.LeftJoinOperation;
 import io.axual.ksml.parser.YamlNode;
 
-import static io.axual.ksml.dsl.KSMLDSL.*;
+import static io.axual.ksml.dsl.KSMLDSL.Operations;
 
 public class LeftJoinOperationParser extends StoreOperationParser<LeftJoinOperation> {
     public LeftJoinOperationParser(String prefix, String name, TopologyResources resources) {
@@ -45,8 +44,8 @@ public class LeftJoinOperationParser extends StoreOperationParser<LeftJoinOperat
     @Override
     public LeftJoinOperation parse(YamlNode node) {
         if (node == null) return null;
-        TopicDefinition joinTopic = new JoinTargetDefinitionParser(prefix, resources).parse(node);
-        if (joinTopic instanceof StreamDefinition joinStream) {
+        final var joinTopic = new JoinTargetDefinitionParser(prefix, resources).parse(node);
+        if (joinTopic.definition() instanceof StreamDefinition joinStream) {
             return new LeftJoinOperation(
                     storeOperationConfig(node, Operations.STORE_ATTRIBUTE, null),
                     joinStream,
@@ -54,7 +53,7 @@ public class LeftJoinOperationParser extends StoreOperationParser<LeftJoinOperat
                     parseDuration(node, Operations.Join.TIME_DIFFERENCE),
                     parseDuration(node, Operations.Join.GRACE));
         }
-        if (joinTopic instanceof TableDefinition joinTable) {
+        if (joinTopic.definition() instanceof TableDefinition joinTable) {
             return new LeftJoinOperation(
                     storeOperationConfig(node, Operations.STORE_ATTRIBUTE, null),
                     joinTable,
@@ -64,7 +63,7 @@ public class LeftJoinOperationParser extends StoreOperationParser<LeftJoinOperat
                     parseFunction(node, Operations.Join.PARTITIONER, new StreamPartitionerDefinitionParser()),
                     parseFunction(node, Operations.Join.OTHER_PARTITIONER, new StreamPartitionerDefinitionParser()));
         }
-        if (joinTopic instanceof GlobalTableDefinition joinGlobalTable) {
+        if (joinTopic.definition() instanceof GlobalTableDefinition joinGlobalTable) {
             return new LeftJoinOperation(
                     storeOperationConfig(node, Operations.STORE_ATTRIBUTE, null),
                     joinGlobalTable,
@@ -73,6 +72,8 @@ public class LeftJoinOperationParser extends StoreOperationParser<LeftJoinOperat
                     parseDuration(node, Operations.Join.GRACE));
         }
 
-        throw new KSMLParseException(node, "Incorrect join stream type: " + joinTopic.getClass().getSimpleName());
+        final var separator = joinTopic.name() != null && joinTopic.definition() != null ? ", " : "";
+        final var description = (joinTopic.name() != null ? joinTopic.name() : "") + separator + (joinTopic.definition() != null ? joinTopic.definition() : "");
+        throw new KSMLParseException(node, "Join stream not found: " + description);
     }
 }

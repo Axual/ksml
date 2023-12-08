@@ -30,7 +30,7 @@ public class KStreamWrapper extends BaseStreamWrapper {
     public final KStream<Object, Object> stream;
 
     public KStreamWrapper(KStream<Object, Object> stream, StreamDataType keyType, StreamDataType valueType) {
-        super(keyType, valueType);
+        super("Stream", keyType, valueType);
         this.stream = stream;
     }
 

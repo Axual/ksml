@@ -31,7 +31,7 @@ public class SessionWindowedKStreamWrapper extends BaseStreamWrapper {
     public final SessionWindowedKStream<Object, Object> sessionWindowedKStream;
 
     public SessionWindowedKStreamWrapper(SessionWindowedKStream<Object, Object> sessionWindowedKStream, StreamDataType keyType, StreamDataType valueType) {
-        super(keyType, valueType);
+        super("SessionWindowedStream", keyType, valueType);
         this.sessionWindowedKStream = sessionWindowedKStream;
     }
 

@@ -56,6 +56,7 @@ public class PipelineOperationParser extends ContextAwareParser<StreamOperation>
 
     private BaseParser<? extends StreamOperation> getParser(String type, String name) {
         return switch (type) {
+            case Operations.AS -> new AsOperationParser(prefix, name, resources);
             case Operations.AGGREGATE -> new AggregateOperationParser(prefix, name, resources);
             case Operations.COGROUP -> new CogroupOperationParser(prefix, name, resources);
             case Operations.CONVERT_KEY -> new ConvertKeyOperationParser(prefix, name, resources);

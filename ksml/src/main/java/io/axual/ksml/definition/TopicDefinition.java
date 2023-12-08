@@ -30,7 +30,14 @@ import lombok.Getter;
 @Getter
 @EqualsAndHashCode
 public class TopicDefinition {
-    public final String topic;
-    public final UserType keyType;
-    public final UserType valueType;
+    private final String type;
+    private final String topic;
+    private final UserType keyType;
+    private final UserType valueType;
+
+    public String toString() {
+        final var kt = keyType != null ? ", " + keyType : "";
+        final var vt = valueType != null ? ", " + valueType : "";
+        return type + "[topic=" + topic + kt + vt + "]";
+    }
 }

@@ -25,5 +25,6 @@ import io.axual.ksml.operation.StreamOperation;
 
 import java.util.List;
 
-public record PipelineDefinition(TopicDefinition source, List<StreamOperation> chain, StreamOperation sink) {
+public record PipelineDefinition(TopologyResource<TopicDefinition> source, List<StreamOperation> chain,
+                                 StreamOperation sink) {
 }

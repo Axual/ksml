@@ -79,7 +79,7 @@ public class ToOperation extends BaseOperation {
             if (produced != null)
                 input.stream.to(topic.topic(), produced);
             else
-                input.stream.to(topic.topic);
+                input.stream.to(topic.topic());
             return null;
         }
 

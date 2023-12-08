@@ -31,7 +31,7 @@ public class KGroupedTableWrapper extends BaseStreamWrapper {
     public final KGroupedTable<Object, Object> groupedTable;
 
     public KGroupedTableWrapper(KGroupedTable<Object, Object> groupedTable, StreamDataType key, StreamDataType value) {
-        super(key, value);
+        super("GroupedTable", key, value);
         this.groupedTable = groupedTable;
     }
 

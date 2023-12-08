@@ -94,6 +94,11 @@ public class KSMLDSL {
             public static final String SUBTRACTOR = "subtractor";
         }
 
+        public static final String AS = "as";
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class As {
+        }
+
         public static final String BRANCH = "branch";
 
         @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -215,7 +220,6 @@ public class KSMLDSL {
 
         @NoArgsConstructor(access = AccessLevel.PRIVATE)
         public static class To {
-            public static final String TOPIC = "topic";
             public static final String TOPIC_NAME_EXTRACTOR = "topicNaneExtractor";
             public static final String PARTITIONER = "partitioner";
         }
@@ -283,10 +287,10 @@ public class KSMLDSL {
         public static final String RETENTION = "retention";
         public static final String CACHING = "caching";
         public static final String LOGGING = "logging";
-        public static final String TYPE_KEYVALUE = "keyValueStore";
-        public static final String TYPE_SESSION = "sessionStore";
-        public static final String TYPE_WINDOW = "windowStore";
-        public static final String WINDOWSIZE = "windowSize";
+        public static final String TYPE_KEY_VALUE = "keyValue";
+        public static final String TYPE_SESSION = "session";
+        public static final String TYPE_WINDOW = "window";
+        public static final String WINDOW_SIZE = "windowSize";
         public static final String RETAIN_DUPLICATES = "retainDuplicates";
     }
 

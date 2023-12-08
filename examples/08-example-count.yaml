@@ -24,7 +24,7 @@ pipelines:
       - type: count
         store:
           name: owner_count
-          type: windowStore
+          type: window
           windowSize: 10m
           retention: 1h
           caching: false

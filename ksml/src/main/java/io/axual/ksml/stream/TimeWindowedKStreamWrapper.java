@@ -31,7 +31,7 @@ public class TimeWindowedKStreamWrapper extends BaseStreamWrapper {
     public final TimeWindowedKStream<Object, Object> timeWindowedKStream;
 
     public TimeWindowedKStreamWrapper(TimeWindowedKStream<Object, Object> timeWindowedKStream, StreamDataType key, StreamDataType value) {
-        super(key, value);
+        super("TimeWindowedStream", key, value);
         this.timeWindowedKStream = timeWindowedKStream;
     }
 

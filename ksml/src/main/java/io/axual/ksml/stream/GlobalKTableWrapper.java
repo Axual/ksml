@@ -31,7 +31,7 @@ public class GlobalKTableWrapper extends BaseStreamWrapper {
     public final GlobalKTable<Object, Object> globalTable;
 
     public GlobalKTableWrapper(GlobalKTable<Object, Object> globalTable, StreamDataType keyType, StreamDataType valueType) {
-        super(keyType, valueType);
+        super("GlobalTable", keyType, valueType);
         this.globalTable = globalTable;
     }
 

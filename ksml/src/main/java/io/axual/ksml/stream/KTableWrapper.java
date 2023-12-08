@@ -30,7 +30,7 @@ public class KTableWrapper extends BaseStreamWrapper {
     public final KTable<Object, Object> table;
 
     public KTableWrapper(KTable<Object, Object> table, StreamDataType key, StreamDataType value) {
-        super(key, value);
+        super("Table", key, value);
         this.table = table;
     }
 

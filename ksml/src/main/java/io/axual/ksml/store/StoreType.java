@@ -26,7 +26,7 @@ import static io.axual.ksml.dsl.KSMLDSL.*;
 
 @Getter
 public enum StoreType {
-    KEYVALUE_STORE(Stores.TYPE_KEYVALUE),
+    KEYVALUE_STORE(Stores.TYPE_KEY_VALUE),
     SESSION_STORE(Stores.TYPE_SESSION),
     WINDOW_STORE(Stores.TYPE_WINDOW);
 

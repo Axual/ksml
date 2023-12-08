@@ -25,15 +25,14 @@ import io.axual.ksml.definition.PipelineDefinition;
 import io.axual.ksml.definition.ProducerDefinition;
 import io.axual.ksml.exception.KSMLTopologyException;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class TopologyDefinition extends TopologyResources {
-    // All registered pipelines
-    private final Map<String, PipelineDefinition> pipelines = new HashMap<>();
-    // All registered producers
-    private final Map<String, ProducerDefinition> producers = new HashMap<>();
-    // All registered KStreams, KTables and KGlobalTables
+    // All registered pipelines in order of insertion
+    private final Map<String, PipelineDefinition> pipelines = new LinkedHashMap<>();
+    // All registered producers in order of insertion
+    private final Map<String, ProducerDefinition> producers = new LinkedHashMap<>();
 
     public void register(String name, PipelineDefinition pipelineDefinition) {
         if (pipelines.containsKey(name)) {

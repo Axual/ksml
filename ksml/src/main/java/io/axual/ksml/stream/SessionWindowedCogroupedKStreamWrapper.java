@@ -30,7 +30,7 @@ public class SessionWindowedCogroupedKStreamWrapper extends BaseStreamWrapper {
     public final SessionWindowedCogroupedKStream<Object, Object> sessionWindowedCogroupedKStream;
 
     public SessionWindowedCogroupedKStreamWrapper(SessionWindowedCogroupedKStream<Object, Object> sessionWindowedCogroupedKStream, StreamDataType key, StreamDataType value) {
-        super(key, value);
+        super("SessionWindowedCogroupedStream", key, value);
         this.sessionWindowedCogroupedKStream = sessionWindowedCogroupedKStream;
     }
 

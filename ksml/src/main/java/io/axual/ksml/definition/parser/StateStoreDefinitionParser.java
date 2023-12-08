@@ -70,7 +70,7 @@ public class StateStoreDefinitionParser extends BaseParser<StateStoreDefinition>
     private StoreType storeTypeOf(String type) {
         if (type == null) return null;
         return switch (type) {
-            case Stores.TYPE_KEYVALUE -> StoreType.KEYVALUE_STORE;
+            case Stores.TYPE_KEY_VALUE -> StoreType.KEYVALUE_STORE;
             case Stores.TYPE_SESSION -> StoreType.SESSION_STORE;
             case Stores.TYPE_WINDOW -> StoreType.WINDOW_STORE;
             default -> null;
@@ -104,7 +104,7 @@ public class StateStoreDefinitionParser extends BaseParser<StateStoreDefinition>
                     parseBoolean(node, Stores.PERSISTENT),
                     parseBoolean(node, Stores.TIMESTAMPED),
                     parseDuration(node, Stores.RETENTION),
-                    parseDuration(node, Stores.WINDOWSIZE),
+                    parseDuration(node, Stores.WINDOW_SIZE),
                     parseBoolean(node, Stores.RETAIN_DUPLICATES),
                     UserTypeParser.parse(parseString(node, Stores.KEY_TYPE)),
                     UserTypeParser.parse(parseString(node, Stores.VALUE_TYPE)),

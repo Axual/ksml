@@ -30,7 +30,7 @@ public class CogroupedKStreamWrapper extends BaseStreamWrapper {
     public final CogroupedKStream<Object, Object> cogroupedStream;
 
     public CogroupedKStreamWrapper(CogroupedKStream<Object, Object> cogroupedStream, StreamDataType key, StreamDataType value) {
-        super(key, value);
+        super("CogroupedStream", key, value);
         this.cogroupedStream = cogroupedStream;
     }
 

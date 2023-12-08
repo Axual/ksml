@@ -30,6 +30,6 @@ public class GlobalTableDefinition extends TopicDefinition {
     }
 
     public GlobalTableDefinition(String topic, UserType keyType, UserType valueType) {
-        super(topic, keyType, valueType);
+        super("GlobalTable", topic, keyType, valueType);
     }
 }

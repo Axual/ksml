@@ -35,6 +35,10 @@ public class PipelineSinkOperationParser extends OperationParser<StreamOperation
     @Override
     public StreamOperation parse(YamlNode node) {
         if (node == null) return null;
+        if (node.get(Operations.AS) != null) {
+            // Parser can parse references, so pass in the node itself rather than the child
+            return new AsOperationParser(prefix, determineName("as"), resources).parse(node);
+        }
         if (node.get(Operations.BRANCH) != null) {
             return new BranchOperationParser(prefix, determineName("branch"), resources).parse(node.get(Operations.BRANCH));
         }

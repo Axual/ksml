@@ -33,12 +33,18 @@ public class TopologyResourceParser<T, F extends T> extends BaseParser<TopologyR
     private final String childName;
     private final Function<String, T> lookup;
     private final BaseParser<F> inlineParser;
+    private final boolean allowLookupFail;
 
     public TopologyResourceParser(String resourceType, String childName, Function<String, T> lookup, BaseParser<F> inlineParser) {
+        this(resourceType, childName, lookup, inlineParser, false);
+    }
+
+    public TopologyResourceParser(String resourceType, String childName, Function<String, T> lookup, BaseParser<F> inlineParser, boolean allowLookupFail) {
         this.resourceType = resourceType;
         this.childName = childName;
         this.lookup = lookup;
         this.inlineParser = inlineParser;
+        this.allowLookupFail = allowLookupFail;
     }
 
     @Override
@@ -49,7 +55,7 @@ public class TopologyResourceParser<T, F extends T> extends BaseParser<TopologyR
         if (node.childIsText(childName)) {
             final var resourceToFind = parseString(node, childName);
             final var resource = lookup.apply(resourceToFind);
-            if (resource == null) {
+            if (resource == null && !allowLookupFail) {
                 throw FatalError.parseError(node, "Unknown " + resourceType + " \"" + resourceToFind + "\"");
             }
             return new TopologyResource<>(resourceToFind, resource);

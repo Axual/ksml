@@ -60,7 +60,7 @@ public class ToOperationParser extends OperationParser<ToOperation> {
             } else {
                 // Try to pare the destination as a topic
                 final var topic = new TopicDefinitionParser().parse(child);
-                if (topic != null && topic.topic != null) {
+                if (topic != null && topic.topic() != null) {
                     return new ToOperation(
                             operationConfig(child, name),
                             topic,

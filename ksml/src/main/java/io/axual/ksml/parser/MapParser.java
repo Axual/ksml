@@ -23,7 +23,7 @@ package io.axual.ksml.parser;
 
 import io.axual.ksml.execution.FatalError;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class MapParser<V> extends BaseParser<Map<String, V>> {
@@ -37,7 +37,8 @@ public class MapParser<V> extends BaseParser<Map<String, V>> {
 
     @Override
     public Map<String, V> parse(YamlNode node) {
-        Map<String, V> result = new HashMap<>();
+        // Parse into a LinkedHashMap to preserve insertion orde
+        Map<String, V> result = new LinkedHashMap<>();
         if (node != null) {
             for (YamlNode child : node.getChildren()) {
                 try {

@@ -36,7 +36,7 @@ public class TableDefinition extends TopicDefinition {
     }
 
     public TableDefinition(String topic, UserType keyType, UserType valueType, KeyValueStateStoreDefinition store) {
-        super(topic, keyType, valueType);
+        super("Table", topic, keyType, valueType);
         this.store = store;
     }
 }
