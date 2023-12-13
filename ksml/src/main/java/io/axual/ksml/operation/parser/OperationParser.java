@@ -20,33 +20,56 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.operation.BaseOperation;
 import io.axual.ksml.operation.OperationConfig;
-import io.axual.ksml.operation.StreamOperation;
 import io.axual.ksml.parser.ContextAwareParser;
-import io.axual.ksml.parser.ListParser;
 import io.axual.ksml.parser.StringValueParser;
+import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.parser.YamlNode;
 
-public abstract class OperationParser<T extends StreamOperation> extends ContextAwareParser<T> {
+import java.util.List;
+
+public abstract class OperationParser<T extends BaseOperation> extends ContextAwareParser<T> {
     private static final String[] TEMPLATE = new String[0];
-    protected final String name;
+    private final String type;
 
-    public OperationParser(String prefix, String name, TopologyResources resources) {
-        super(prefix, resources);
-        this.name = name;
+    public OperationParser(String type, TopologyResources resources) {
+        super(resources);
+        this.type = type;
     }
 
-    protected OperationConfig operationConfig(YamlNode node) {
-        return operationConfig(node, null);
+    protected StructParser<String> nameField() {
+        final var stringParser = stringField(KSMLDSL.Operations.NAME_ATTRIBUTE, false, type, "The name of the operation processor");
+        return new StructParser<>() {
+            @Override
+            public String parse(YamlNode node) {
+                final var name = stringParser.parse(node);
+                // To ensure every operation gets a unique name, we generate one based on the YAML node
+                return name != null ? name : node.longName();
+            }
+
+            @Override
+            public StructSchema schema() {
+                return stringParser.schema();
+            }
+        };
     }
 
-    protected OperationConfig operationConfig(YamlNode node, String typeName) {
-        final var storeNames = new ListParser<>("state store names", new StringValueParser()).parse(node.get(KSMLDSL.Operations.STORE_NAMES_ATTRIBUTE));
+    protected StructParser<List<String>> storeNamesField() {
+        return listField(KSMLDSL.Operations.STORE_NAMES_ATTRIBUTE, "state store name", false, "The names of all state stores used by the function", new StringValueParser());
+    }
+
+    protected OperationConfig operationConfig(String name) {
+        return operationConfig(name, null);
+    }
+
+    protected OperationConfig operationConfig(String name, List<String> storeNames) {
         return new OperationConfig(
-                prefix,
-                name != null ? name : determineName(typeName),
+                namespace(),
+                name != null ? determineName(name) : determineName(getClass().getSimpleName()),
                 storeNames != null ? storeNames.toArray(TEMPLATE) : null);
     }
 }

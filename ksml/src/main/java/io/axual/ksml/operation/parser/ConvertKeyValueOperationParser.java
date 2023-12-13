@@ -21,26 +21,30 @@ package io.axual.ksml.operation.parser;
  */
 
 import io.axual.ksml.data.type.UserTupleType;
-import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ConvertKeyValueOperation;
-import io.axual.ksml.parser.UserTypeParser;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.parser.StructParser;
 
 public class ConvertKeyValueOperationParser extends OperationParser<ConvertKeyValueOperation> {
-    public ConvertKeyValueOperationParser(String prefix, String name, TopologyResources resources) {
-        super(prefix, name, resources);
+    public ConvertKeyValueOperationParser(TopologyResources resources) {
+        super("convertKeyValue", resources);
     }
 
     @Override
-    public ConvertKeyValueOperation parse(YamlNode node) {
-        if (node == null) return null;
-        UserType target = UserTypeParser.parse(parseString(node, KSMLDSL.Operations.Convert.INTO));
-        if (target.dataType() instanceof UserTupleType userTupleType && userTupleType.subTypeCount() == 2) {
-            return new ConvertKeyValueOperation(operationConfig(node), userTupleType.getUserType(0), userTupleType.getUserType(1));
-        }
-        throw FatalError.parseError(node, "The type to convert to should be a tuple consisting of two subtypes. For example '(string,avro:SomeSchema)");
+    public StructParser<ConvertKeyValueOperation> parser() {
+        return structParser(
+                ConvertKeyValueOperation.class,
+                "An operation to convert the stream key and value types to other types. Conversion is only syntactic, eg. from Avro to XML.",
+                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + KSMLDSL.Operations.CONVERT_KEY_VALUE + "\""),
+                nameField(),
+                userTypeField(KSMLDSL.Operations.Convert.INTO, true, "The tuple type to convert the stream key/value into"),
+                (type, name, into) -> {
+                    if (into.dataType() instanceof UserTupleType userTupleType && userTupleType.subTypeCount() == 2) {
+                        return new ConvertKeyValueOperation(operationConfig(name), userTupleType.getUserType(0), userTupleType.getUserType(1));
+                    }
+                    throw FatalError.topologyError("The type to convert to should be a tuple consisting of two subtypes. For example '(string,avro:SomeSchema)");
+                });
     }
 }

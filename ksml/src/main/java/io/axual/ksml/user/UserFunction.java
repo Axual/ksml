@@ -31,6 +31,7 @@ import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.KSMLDataException;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.store.StateStores;
 import org.apache.kafka.streams.KeyValue;
 import org.slf4j.Logger;
@@ -38,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+
 public class UserFunction {
     private static final Logger LOG = LoggerFactory.getLogger(UserFunction.class);
     private static final String[] TEMPLATE = new String[]{};
@@ -52,6 +54,9 @@ public class UserFunction {
     }
 
     public UserFunction(String name, ParameterDefinition[] parameters, UserType resultType, String[] storeNames) {
+        if (name == null) {
+            throw FatalError.topologyError("Function name can not be null");
+        }
         this.name = name;
         this.parameters = parameters;
         this.fixedParameterCount = getFixedParameterCount(parameters);

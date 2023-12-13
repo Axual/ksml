@@ -20,62 +20,49 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.definition.TopicNameExtractorDefinition;
-import io.axual.ksml.definition.parser.KeyValueMapperDefinitionParser;
-import io.axual.ksml.definition.parser.TopicDefinitionParser;
-import io.axual.ksml.definition.parser.TopicNameExtractorDefinitionParser;
-import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.definition.parser.TopicOrTopicNameExtractorDefinitionParser;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ToOperation;
+import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.parser.YamlNode;
 
 public class ToOperationParser extends OperationParser<ToOperation> {
-    public ToOperationParser(String prefix, String name, TopologyResources resources) {
-        super(prefix, name, resources);
+    private final TopicOrTopicNameExtractorDefinitionParser parser;
+    private final StructSchema schema;
+
+    public ToOperationParser(TopologyResources resources) {
+        super("to", resources);
+        // Set up the special parser for taking care of the heavy lifting for this operation
+        parser = new TopicOrTopicNameExtractorDefinitionParser(resources);
+        // Wrap the fields of the parser's schema into a nice definition with the operation's name
+        schema = structSchema(
+                ToOperation.class.getSimpleName(),
+                "Ends the pipeline by sending all messages to a fixed topic, or to a topic returned by a topic name extractor function",
+                parser.schema().fields());
     }
 
     @Override
-    public ToOperation parse(YamlNode node) {
-        if (node == null) return null;
-        final var child = node.get(KSMLDSL.Operations.TO);
-        if (child != null) {
-            if (child.isString()) {
-                // There is a reference to either a topic or a topic name extractor
-                final var reference = child.asString();
-                // Try topic reference
-                if (resources.topic(reference) != null) {
-                    return new ToOperation(
-                            operationConfig(node, name),
-                            resources.topic(reference),
-                            null);
+    public StructParser<ToOperation> parser() {
+        return new StructParser<>() {
+            @Override
+            public ToOperation parse(YamlNode node) {
+                final var target = parser.parse(node);
+                if (target != null) {
+                    if (target.topic() != null) {
+                        return new ToOperation(operationConfig(null), target.topic(), target.partitioner());
+                    }
+                    if (target.topicNameExtractor() != null) {
+                        return new ToOperation(operationConfig(null), target.topicNameExtractor(), target.partitioner());
+                    }
                 }
-                // Try topic name extractor reference
-                if (resources.function(reference) != null) {
-                    return new ToOperation(
-                            operationConfig(node, name),
-                            new TopicNameExtractorDefinition(resources.function(reference)),
-                            null);
-                }
-            } else {
-                // Try to pare the destination as a topic
-                final var topic = new TopicDefinitionParser().parse(child);
-                if (topic != null && topic.topic() != null) {
-                    return new ToOperation(
-                            operationConfig(child, name),
-                            topic,
-                            parseOptionalFunction(child, KSMLDSL.Operations.To.PARTITIONER, new KeyValueMapperDefinitionParser()));
-                }
-
-                // Try to parse the destination as a topic name extractor
-                if (child.get(KSMLDSL.Operations.To.TOPIC_NAME_EXTRACTOR) != null) {
-                    return new ToOperation(
-                            operationConfig(child, name),
-                            parseFunction(child, KSMLDSL.Operations.To.TOPIC_NAME_EXTRACTOR, new TopicNameExtractorDefinitionParser()),
-                            parseOptionalFunction(child, KSMLDSL.Operations.To.PARTITIONER, new KeyValueMapperDefinitionParser()));
-                }
+                return null;
             }
-        }
-        throw FatalError.topologyError("To operation should send data to topic or topic name extractor, but neither were specified");
+
+            @Override
+            public StructSchema schema() {
+                return schema;
+            }
+        };
     }
 }

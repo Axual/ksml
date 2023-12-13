@@ -20,22 +20,23 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ConvertValueOperation;
-import io.axual.ksml.parser.UserTypeParser;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.parser.StructParser;
 
 public class ConvertValueOperationParser extends OperationParser<ConvertValueOperation> {
-    public ConvertValueOperationParser(String prefix, String name, TopologyResources resources) {
-        super(prefix, name, resources);
+    public ConvertValueOperationParser(TopologyResources resources) {
+        super("convertValue", resources);
     }
 
-    @Override
-    public ConvertValueOperation parse(YamlNode node) {
-        if (node == null) return null;
-        UserType target = UserTypeParser.parse(parseString(node, KSMLDSL.Operations.Convert.INTO));
-        return new ConvertValueOperation(operationConfig(node), target);
+    public StructParser<ConvertValueOperation> parser() {
+        return structParser(
+                ConvertValueOperation.class,
+                "An operation to convert the stream value type to another type. Conversion is only syntactic, eg. from Avro to XML.",
+                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + KSMLDSL.Operations.CONVERT_VALUE + "\""),
+                nameField(),
+                userTypeField(KSMLDSL.Operations.Convert.INTO, true, "The type to convert the stream value into"),
+                (type, name, into) -> new ConvertValueOperation(operationConfig(name), into));
     }
 }

@@ -22,23 +22,19 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.ParameterDefinition;
-import io.axual.ksml.execution.FatalError;
-import io.axual.ksml.parser.BaseParser;
-import io.axual.ksml.parser.UserTypeParser;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.parser.DefinitionParser;
+import io.axual.ksml.parser.StructParser;
 
-import static io.axual.ksml.dsl.KSMLDSL.*;
+import static io.axual.ksml.dsl.KSMLDSL.Functions;
 
-public class ParameterDefinitionParser extends BaseParser<ParameterDefinition> {
+public class ParameterDefinitionParser extends DefinitionParser<ParameterDefinition> {
     @Override
-    public ParameterDefinition parse(YamlNode node) {
-        if (node == null) return null;
-        final var name = parseString(node, Functions.Parameters.NAME);
-        final var type = UserTypeParser.parse(parseString(node, Functions.Parameters.TYPE)).dataType();
-        final var defaultValue = parseString(node, Functions.Parameters.DEFAULT_VALUE);
-        if (name == null || name.isEmpty()) {
-            throw FatalError.parseError(node, "Parameter name undefined");
-        }
-        return new ParameterDefinition(name, type, true, defaultValue);
+    public StructParser<ParameterDefinition> parser() {
+        return structParser(ParameterDefinition.class,
+                "Defines a parameter for a user function",
+                stringField(Functions.Parameters.NAME, true, null, "The name of the parameter"),
+                userTypeField(Functions.Parameters.TYPE, true, "The type of the parameter"),
+                stringField(Functions.Parameters.DEFAULT_VALUE, false, "The default value for the parameter"),
+                (name, type, defaultValue) -> new ParameterDefinition(name, type.dataType(), true, defaultValue));
     }
 }

@@ -24,21 +24,27 @@ package io.axual.ksml.operation.parser;
 import io.axual.ksml.definition.parser.AggregatorDefinitionParser;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.CogroupOperation;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.operation.StoreOperationConfig;
+import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.store.StoreType;
 
 import static io.axual.ksml.dsl.KSMLDSL.Operations;
 
 public class CogroupOperationParser extends StoreOperationParser<CogroupOperation> {
-    public CogroupOperationParser(String prefix, String name, TopologyResources resources) {
-        super(prefix, name, resources);
+    public CogroupOperationParser(TopologyResources resources) {
+        super("cogroup", resources);
     }
 
     @Override
-    public CogroupOperation parse(YamlNode node) {
-        if (node == null) return null;
-        return new CogroupOperation(
-                storeOperationConfig(node, Operations.STORE_ATTRIBUTE, StoreType.WINDOW_STORE),
-                parseOptionalFunction(node, Operations.Aggregate.AGGREGATOR, new AggregatorDefinitionParser()));
+    protected StructParser<CogroupOperation> parser() {
+        final var storeField = storeField(false, "Materialized view of the cogroup", StoreType.WINDOW_STORE);
+        return structParser(
+                CogroupOperation.class,
+                "An aggregate operation",
+                stringField(Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + Operations.COGROUP + "\""),
+                nameField(),
+                functionField(Operations.Aggregate.AGGREGATOR, "(GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result", new AggregatorDefinitionParser()),
+                storeField,
+                (type, name, aggr, store) -> new CogroupOperation(new StoreOperationConfig(namespace(), name, null, store), aggr));
     }
 }

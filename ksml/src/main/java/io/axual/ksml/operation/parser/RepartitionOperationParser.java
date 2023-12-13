@@ -25,18 +25,21 @@ import io.axual.ksml.definition.parser.StreamPartitionerDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.RepartitionOperation;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.parser.StructParser;
 
 public class RepartitionOperationParser extends OperationParser<RepartitionOperation> {
-    public RepartitionOperationParser(String prefix, String name, TopologyResources resources) {
-        super(prefix, name, resources);
+    public RepartitionOperationParser(TopologyResources resources) {
+        super("repartition", resources);
     }
 
     @Override
-    public RepartitionOperation parse(YamlNode node) {
-        if (node == null) return null;
-        return new RepartitionOperation(
-                operationConfig(node),
-                parseFunction(node, KSMLDSL.Operations.Repartition.PARTITIONER, new StreamPartitionerDefinitionParser()));
+    public StructParser<RepartitionOperation> parser() {
+        return structParser(
+                RepartitionOperation.class,
+                "Operation to (re)partition a stream",
+                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + KSMLDSL.Operations.REPARTITION + "\""),
+                nameField(),
+                functionField(KSMLDSL.Operations.Repartition.PARTITIONER, true, "A function that partitions stream records", new StreamPartitionerDefinitionParser()),
+                (type, name, partitioner) -> new RepartitionOperation(operationConfig(name, null), partitioner));
     }
 }

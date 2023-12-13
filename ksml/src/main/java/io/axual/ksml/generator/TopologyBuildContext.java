@@ -257,6 +257,9 @@ public class TopologyBuildContext {
     // Results of pipelines can be registered in this build context for later use (see AsOperation). This is the entry
     // point for that operation to register pipeline outcomes as independent stream wrappers.
     public void registerStreamWrapper(String name, StreamWrapper wrapper) {
+        if (name==null) {
+            throw FatalError.topologyError("Can not register " + wrapper.toString() + " without a name");
+        }
         if (streamWrappersByName.containsKey(name)) {
             throw FatalError.topologyError("Can not register " + wrapper.toString() + " as " + name + ": name must be unique");
         }

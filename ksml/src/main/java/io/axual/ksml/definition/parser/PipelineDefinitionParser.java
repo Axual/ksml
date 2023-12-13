@@ -24,30 +24,55 @@ package io.axual.ksml.definition.parser;
 import io.axual.ksml.definition.PipelineDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.operation.parser.AsOperationParser;
+import io.axual.ksml.operation.parser.BranchOperationParser;
+import io.axual.ksml.operation.parser.ForEachOperationParser;
 import io.axual.ksml.operation.parser.PipelineOperationParser;
-import io.axual.ksml.operation.parser.PipelineSinkOperationParser;
+import io.axual.ksml.operation.parser.PrintOperationParser;
+import io.axual.ksml.operation.parser.ToOperationParser;
 import io.axual.ksml.parser.ContextAwareParser;
-import io.axual.ksml.parser.ListParser;
-import io.axual.ksml.parser.TopologyResourceParser;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.parser.StructParser;
+
+import java.util.ArrayList;
 
 public class PipelineDefinitionParser extends ContextAwareParser<PipelineDefinition> {
-    protected PipelineDefinitionParser(String prefix, TopologyResources context) {
-        super(prefix, context);
+    private final boolean parseSource;
+
+    protected PipelineDefinitionParser(TopologyResources resources) {
+        this(resources, true);
+    }
+
+    protected PipelineDefinitionParser(TopologyResources resources, boolean parseSource) {
+        super(resources);
+        this.parseSource = parseSource;
     }
 
     @Override
-    public PipelineDefinition parse(YamlNode node) {
-        return parse(node, true, true);
-    }
+    public StructParser<PipelineDefinition> parser() {
+        final var asParser = new AsOperationParser(resources());
+        final var branchParser = new BranchOperationParser(resources(), parseSource);
+        final var forEachParser = new ForEachOperationParser(resources());
+        final var printParser = new PrintOperationParser(resources());
+        final var toParser = new ToOperationParser(resources());
 
-    public PipelineDefinition parse(YamlNode node, boolean parseSource, boolean parseSink) {
-        if (node == null) return null;
-        final var source = parseSource
-                ? new TopologyResourceParser<>("source", KSMLDSL.Pipelines.FROM, resources.topics()::get, new TopicDefinitionParser(), true).parse(node)
-                : null;
-        final var operations = new ListParser<>("pipeline operation", new PipelineOperationParser(prefix, resources)).parse(node.get(KSMLDSL.Pipelines.VIA, "step"));
-        final var sink = parseSink ? new PipelineSinkOperationParser(prefix, null, resources).parse(node) : null;
-        return new PipelineDefinition(source, operations, sink);
+        return structParser(
+                PipelineDefinition.class,
+                "Defines a pipeline through a source, a series of operations to perform on it and a sink operation to close the stream with",
+                topologyResourceField("source", KSMLDSL.Pipelines.FROM, "Pipeline source", resources()::topic, new TopicDefinitionParser()),
+                listField(KSMLDSL.Pipelines.VIA, "step", false, "A series of operations performend on the input stream", new PipelineOperationParser(resources())),
+                optional(asParser),
+                branchParser,
+                forEachParser,
+                printParser,
+                toParser,
+                (from, via, as, branch, forEach, print, to) -> {
+                    via = via != null ? via : new ArrayList<>();
+                    if (as != null) return new PipelineDefinition(from, via, as);
+                    if (branch != null) return new PipelineDefinition(from, via, branch);
+                    if (forEach != null) return new PipelineDefinition(from, via, forEach);
+                    if (print != null) return new PipelineDefinition(from, via, print);
+                    if (to != null) return new PipelineDefinition(from, via, to);
+                    return new PipelineDefinition(from, via, null);
+                });
     }
 }

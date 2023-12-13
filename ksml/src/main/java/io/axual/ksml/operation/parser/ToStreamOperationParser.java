@@ -25,18 +25,21 @@ import io.axual.ksml.definition.parser.KeyTransformerDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ToStreamOperation;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.parser.StructParser;
 
 public class ToStreamOperationParser extends OperationParser<ToStreamOperation> {
-    public ToStreamOperationParser(String prefix, String name, TopologyResources resources) {
-        super(prefix, name, resources);
+    public ToStreamOperationParser(TopologyResources resources) {
+        super("toStream", resources);
     }
 
     @Override
-    public ToStreamOperation parse(YamlNode node) {
-        if (node == null) return null;
-        return new ToStreamOperation(
-                operationConfig(node),
-                parseOptionalFunction(node, KSMLDSL.Operations.ToStream.MAPPER, new KeyTransformerDefinitionParser()));
+    public StructParser<ToStreamOperation> parser() {
+        return structParser(
+                ToStreamOperation.class,
+                "Convert a Table into a Stream, optionally through a custom key transformer",
+                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + KSMLDSL.Operations.TO_STREAM + "\""),
+                nameField(),
+                functionField(KSMLDSL.Operations.ToStream.MAPPER, true, "A function that computes the output key for every record", new KeyTransformerDefinitionParser()),
+                (type, name, mapper) -> new ToStreamOperation(operationConfig(name), mapper));
     }
 }

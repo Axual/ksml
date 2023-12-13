@@ -25,28 +25,30 @@ import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.generator.TopologyResources;
-import io.axual.ksml.parser.ContextAwareParser;
+import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.Operations;
 
-public class JoinTargetDefinitionParser extends ContextAwareParser<TopologyResource<TopicDefinition>> {
-    public JoinTargetDefinitionParser(String prefix, TopologyResources resources) {
-        super(prefix, resources);
+public class JoinTargetDefinitionParser extends BaseParser<TopologyResource<TopicDefinition>> {
+    private final TopologyResources resources;
+
+    public JoinTargetDefinitionParser(TopologyResources resources) {
+        this.resources = resources;
     }
 
     @Override
     public TopologyResource<TopicDefinition> parse(YamlNode node) {
         if (node == null) return null;
         if (node.get(Operations.Join.WITH_STREAM) != null) {
-            return new TopologyResourceParser<>("stream", Operations.Join.WITH_STREAM, resources::topic, new StreamDefinitionParser()).parse(node);
+            return new TopologyResourceParser<>("stream", Operations.Join.WITH_STREAM, null, resources::topic, new StreamDefinitionParser()).parse(node);
         }
         if (parseString(node, Operations.Join.WITH_TABLE) != null) {
-            return new TopologyResourceParser<>("table", Operations.Join.WITH_TABLE, resources::topic, new TableDefinitionParser()).parse(node);
+            return new TopologyResourceParser<>("table", Operations.Join.WITH_TABLE, null, resources::topic, new TableDefinitionParser()).parse(node);
         }
         if (parseString(node, Operations.Join.WITH_GLOBAL_TABLE) != null) {
-            return new TopologyResourceParser<>("globalTable", Operations.Join.WITH_GLOBAL_TABLE, resources::topic, new GlobalTableDefinitionParser()).parse(node);
+            return new TopologyResourceParser<>("globalTable", Operations.Join.WITH_GLOBAL_TABLE, null, resources::topic, new GlobalTableDefinitionParser()).parse(node);
         }
         throw new KSMLParseException(node, "Stream definition missing");
     }

@@ -21,14 +21,14 @@ package io.axual.ksml.definition.parser;
  */
 
 
-
+import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.TopicNameExtractorDefinition;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.parser.StructParser;
 
 public class TopicNameExtractorDefinitionParser extends FunctionDefinitionParser {
     @Override
-    public TopicNameExtractorDefinition parse(YamlNode node) {
-        if (node == null) return null;
-        return new TopicNameExtractorDefinition(super.parse(node));
+    public StructParser<FunctionDefinition> parser() {
+        return parserWithoutStores(KSMLDSL.Functions.TYPE_TOPICNAMEEXTRACTOR, "topic name extractor", TopicNameExtractorDefinition::new);
     }
 }

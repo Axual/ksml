@@ -20,12 +20,26 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-public class OperationConfig {
-    public final String name;
-    public final String[] storeNames;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
-    public OperationConfig(String prefix, String name, String[] storeNames) {
-        this.name = prefix + "_" + name;
+@Getter
+@Slf4j
+public class OperationConfig {
+    private final String name;
+    private final boolean allowStores;
+    private final String[] storeNames;
+
+    public OperationConfig(String namespace, String name, String[] storeNames) {
+        if (namespace != null || name != null) {
+            this.name = (namespace != null ? namespace : "")
+                    + (namespace != null && name != null ? "_" : "")
+                    + (name != null ? name : "");
+        } else {
+            this.name = null;
+        }
+        log.info("Generated name: {}", this.name);
+        this.allowStores = storeNames != null;
         this.storeNames = storeNames;
     }
 }

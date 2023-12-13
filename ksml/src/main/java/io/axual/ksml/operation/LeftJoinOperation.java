@@ -82,14 +82,14 @@ public class LeftJoinOperation extends BaseJoinOperation {
         this.otherPartitioner = otherPartitioner;
     }
 
-    public LeftJoinOperation(StoreOperationConfig config, GlobalTableDefinition joinTable, FunctionDefinition keySelector, FunctionDefinition valueJoiner, Duration gracePeriod) {
+    public LeftJoinOperation(StoreOperationConfig config, GlobalTableDefinition joinTable, FunctionDefinition keySelector, FunctionDefinition valueJoiner) {
         super(config);
         this.joinTopic = joinTable;
         this.keySelector = keySelector;
         this.foreignKeyExtractor = null;
         this.valueJoiner = valueJoiner;
         this.joinWindows = null;
-        this.gracePeriod = gracePeriod;
+        this.gracePeriod = null;
         this.partitioner = null;
         this.otherPartitioner = null;
     }

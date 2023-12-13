@@ -25,20 +25,23 @@ import io.axual.ksml.definition.parser.KeyValueMapperDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.GroupByOperation;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.operation.StoreOperationConfig;
+import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.store.StoreType;
 
 public class GroupByOperationParser extends StoreOperationParser<GroupByOperation> {
-    public GroupByOperationParser(String prefix, String name, TopologyResources resources) {
-        super(prefix, name, resources);
+    public GroupByOperationParser(TopologyResources resources) {
+        super("groupBy", resources);
     }
 
-    @Override
-    public GroupByOperation parse(YamlNode node) {
-        if (node == null) return null;
-        return new GroupByOperation(
-                storeOperationConfig(node, KSMLDSL.Operations.STORE_ATTRIBUTE, StoreType.KEYVALUE_STORE),
-                parseFunction(node, KSMLDSL.Operations.GroupBy.MAPPER, new KeyValueMapperDefinitionParser())
-        );
+    public StructParser<GroupByOperation> parser() {
+        return structParser(
+                GroupByOperation.class,
+                "Operation to group all messages with together based on a keying function",
+                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + KSMLDSL.Operations.GROUP_BY_KEY + "\""),
+                nameField(),
+                functionField(KSMLDSL.Operations.GroupBy.MAPPER, "Function to map records to a key they can be grouped on", new KeyValueMapperDefinitionParser()),
+                storeField(false, "Materialized view of the grouped stream or table", StoreType.KEYVALUE_STORE),
+                (type, name, mapper, store) -> new GroupByOperation(new StoreOperationConfig(namespace(), name, null, store), mapper));
     }
 }

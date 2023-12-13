@@ -21,13 +21,14 @@ package io.axual.ksml.definition.parser;
  */
 
 
+import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.KeyValuePrinterDefinition;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.parser.StructParser;
 
 public class KeyValuePrinterDefinitionParser extends FunctionDefinitionParser {
     @Override
-    public KeyValuePrinterDefinition parse(YamlNode node) {
-        if (node == null) return null;
-        return new KeyValuePrinterDefinition(super.parse(node));
+    public StructParser<FunctionDefinition> parser() {
+        return parserWithoutStores(KSMLDSL.Functions.TYPE_KEYVALUEPRINTER, "keyvalue printer", KeyValuePrinterDefinition::new);
     }
 }

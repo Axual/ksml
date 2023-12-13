@@ -69,7 +69,7 @@ public class BaseOperation implements StreamOperation {
         // Define a static method that calls the protected validate method in Named
         public static String validateNameAndReturnError(String name) {
             try {
-                Named.validate(name);
+                if (name != null) Named.validate(name);
                 return null;
             } catch (TopologyException e) {
                 return e.getMessage();
@@ -81,14 +81,14 @@ public class BaseOperation implements StreamOperation {
     protected final String[] storeNames;
 
     public BaseOperation(OperationConfig config) {
-        var error = NameValidator.validateNameAndReturnError(config.name);
+        var error = NameValidator.validateNameAndReturnError(config.name());
         if (error != null) {
-            log.warn("Ignoring name with error '" + config.name + "': " + error);
+            log.warn("Ignoring name with error '" + config.name() + "': " + error);
             name = null;
         } else {
-            name = config.name;
+            name = config.name();
         }
-        storeNames = config.storeNames;
+        storeNames = config.storeNames() != null ? config.storeNames() : new String[0];
     }
 
     @Override
@@ -327,7 +327,7 @@ public class BaseOperation implements StreamOperation {
     }
 
     protected Named namedOf() {
-        return Named.as(name);
+        return name != null ? Named.as(name) : null;
     }
 
     protected Grouped<Object, Object> groupedOf(StreamDataType k, StreamDataType v, KeyValueStateStoreDefinition store) {

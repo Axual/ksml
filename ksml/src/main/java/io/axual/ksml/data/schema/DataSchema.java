@@ -65,6 +65,46 @@ public class DataSchema {
         };
     }
 
+    public static DataSchema nullSchema() {
+        return create(Type.NULL);
+    }
+
+    public static DataSchema booleanSchema() {
+        return create(Type.BOOLEAN);
+    }
+
+    public static DataSchema byteSchema() {
+        return create(Type.BYTE);
+    }
+
+    public static DataSchema shortSchema() {
+        return create(Type.SHORT);
+    }
+
+    public static DataSchema integerSchema() {
+        return create(Type.INTEGER);
+    }
+
+    public static DataSchema longSchema() {
+        return create(Type.LONG);
+    }
+
+    public static DataSchema doubleSchema() {
+        return create(Type.DOUBLE);
+    }
+
+    public static DataSchema floatSchema() {
+        return create(Type.FLOAT);
+    }
+
+    public static DataSchema bytesSchema() {
+        return create(Type.BYTES);
+    }
+
+    public static DataSchema stringSchema() {
+        return create(Type.STRING);
+    }
+
     protected DataSchema(Type type) {
         this.type = type;
     }

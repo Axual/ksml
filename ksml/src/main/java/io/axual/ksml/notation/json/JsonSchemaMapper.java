@@ -21,12 +21,16 @@ package io.axual.ksml.notation.json;
  */
 
 import io.axual.ksml.data.mapper.DataSchemaMapper;
+import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.AnySchema;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.ListSchema;
+import io.axual.ksml.data.schema.MapSchema;
 import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.schema.UnionSchema;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +70,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             var spec = entry.getValue();
             if (spec instanceof DataStruct specStruct) {
                 var doc = specStruct.getAsString(DESCRIPTION_NAME);
-                var field = new DataField(name, convertType(specStruct), doc != null ? doc.value() : null, null, DataField.Order.ASCENDING);
+                var field = new DataField(name, convertType(specStruct), doc != null ? doc.value() : null);
                 result.add(field);
             }
         }
@@ -105,6 +109,64 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
 
     @Override
     public String fromDataSchema(DataSchema schema) {
+        if (schema instanceof StructSchema structSchema) {
+            final var result = fromDataSchema(structSchema);
+            // First translate the schema into DataObjects
+            // The use the mapper to convert it into JSON
+            return MAPPER.fromDataObject(result);
+        }
         return null;
+    }
+
+    public DataStruct fromDataSchema(StructSchema structSchema) {
+        final var result = new DataStruct();
+        final var title = structSchema.name();
+        final var doc = structSchema.doc();
+        if (title != null) result.put(TITLE_NAME, new DataString(title));
+        if (doc != null) result.put(DESCRIPTION_NAME, new DataString(doc));
+        result.put(TYPE_NAME, new DataString("object"));
+        final var properties = new DataStruct();
+        for (var field : structSchema.fields()) {
+            properties.put(field.name(), fromDataSchema(field));
+        }
+        if (properties.size() > 0) result.put(PROPERTIES_NAME, properties);
+        return result;
+    }
+
+    private DataStruct fromDataSchema(DataField field) {
+        final var result = new DataStruct();
+        final var doc = field.doc();
+        if (doc != null) result.put(DESCRIPTION_NAME, new DataString(doc));
+        convertType(field.schema(), result);
+        return result;
+    }
+
+    private void convertType(DataSchema schema, DataStruct target) {
+        if (schema.type() == DataSchema.Type.NULL) target.put(TYPE_NAME, new DataString("null"));
+        if (schema.type() == DataSchema.Type.BOOLEAN) target.put(TYPE_NAME, new DataString("boolean"));
+        if (schema.type() == DataSchema.Type.LONG) target.put(TYPE_NAME, new DataString("number"));
+        if (schema.type() == DataSchema.Type.STRING) target.put(TYPE_NAME, new DataString("string"));
+        if (schema instanceof ListSchema listSchema) {
+            target.put(TYPE_NAME, new DataString("array"));
+            final var subStruct = new DataStruct();
+            convertType(listSchema.valueSchema(), subStruct);
+            target.put(ITEMS_NAME, subStruct);
+        }
+        if (schema instanceof MapSchema mapSchema) {
+            final var subStruct = new DataStruct();
+            convertType(mapSchema.valueSchema(), subStruct);
+            target.put("object", subStruct);
+        }
+        if (schema instanceof StructSchema structSchema) target.put("object", fromDataSchema(structSchema));
+        if (schema instanceof UnionSchema unionSchema) {
+            // Convert to an array of possible types
+            final var possibleTypes = new DataList();
+            for (var possibleSchema : unionSchema.possibleSchemas()) {
+                final var typeStruct = new DataStruct();
+                convertType(possibleSchema, typeStruct);
+                possibleTypes.add(typeStruct);
+            }
+            target.put(TYPE_NAME, possibleTypes);
+        }
     }
 }

@@ -22,11 +22,13 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.definition.StateStoreDefinition;
 
+import java.util.List;
+
 public class StoreOperationConfig extends OperationConfig {
     public final StateStoreDefinition store;
 
-    public StoreOperationConfig(String prefix, String name, StateStoreDefinition store) {
-        super(prefix, name, null);
+    public StoreOperationConfig(String namespace, String name, List<String> storeNames, StateStoreDefinition store) {
+        super(namespace, name, storeNames != null ? storeNames.toArray(new String[]{}) : null);
         this.store = store;
     }
 }

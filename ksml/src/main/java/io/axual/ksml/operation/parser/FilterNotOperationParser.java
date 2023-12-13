@@ -25,20 +25,22 @@ import io.axual.ksml.definition.parser.PredicateDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.FilterNotOperation;
-import io.axual.ksml.parser.YamlNode;
-import io.axual.ksml.store.StoreType;
+import io.axual.ksml.operation.StoreOperationConfig;
+import io.axual.ksml.parser.StructParser;
 
 public class FilterNotOperationParser extends StoreOperationParser<FilterNotOperation> {
-    public FilterNotOperationParser(String prefix, String name, TopologyResources resources) {
-        super(prefix, name, resources);
+    public FilterNotOperationParser(TopologyResources resources) {
+        super("filterNot", resources);
     }
 
-    @Override
-    public FilterNotOperation parse(YamlNode node) {
-        if (node == null) return null;
-        return new FilterNotOperation(
-                storeOperationConfig(node, KSMLDSL.Operations.STORE_ATTRIBUTE, StoreType.KEYVALUE_STORE),
-                parseFunction(node, KSMLDSL.Operations.Filter.PREDICATE, new PredicateDefinitionParser())
-        );
+    public StructParser<FilterNotOperation> parser() {
+        return structParser(
+                FilterNotOperation.class,
+                "Filter records based on the inverse result of a predicate function",
+                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + KSMLDSL.Operations.FILTER_NOT + "\""),
+                nameField(),
+                functionField(KSMLDSL.Operations.Filter.PREDICATE, true, "A function that returns \"false\" when records are accepted, \"true\" otherwise", new PredicateDefinitionParser()),
+                storeNamesField(),
+                (type, name, pred, stores) -> new FilterNotOperation(new StoreOperationConfig(namespace(), name, stores, null), pred));
     }
 }

@@ -21,31 +21,20 @@ package io.axual.ksml.operation.parser;
  */
 
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.AsOperation;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.parser.StructParser;
 
 public class AsOperationParser extends OperationParser<AsOperation> {
-    public AsOperationParser(String prefix, String name, TopologyResources resources) {
-        super(prefix, name, resources);
+    public AsOperationParser(TopologyResources resources) {
+        super("as", resources);
     }
 
-    @Override
-    public AsOperation parse(YamlNode node) {
-        if (node == null) return null;
-        final var child = node.get(KSMLDSL.Operations.AS);
-        if (child != null) {
-            if (child.isString()) {
-                // The string contains a name, to which other pipelines may reference later
-                final var reference = child.asString();
-                // Create the corresponding operation
-                return new AsOperation(
-                        operationConfig(node, name),
-                        reference);
-            }
-        }
-
-        throw FatalError.topologyError("Operation \"as\" should provide a name to reference the stream");
+    public StructParser<AsOperation> parser() {
+        return structParser(
+                AsOperation.class,
+                "An operation to close the pipeline and save the result under a given name",
+                stringField(KSMLDSL.Operations.AS, true, "The name to register the pipeline result under, which can be used as source by follow-up pipelines"),
+                name -> name != null ? new AsOperation(operationConfig(null), name) : null);
     }
 }

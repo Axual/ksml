@@ -21,14 +21,14 @@ package io.axual.ksml.definition.parser;
  */
 
 
-
 import io.axual.ksml.definition.ForEachActionDefinition;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.parser.StructParser;
 
 public class ForEachActionDefinitionParser extends FunctionDefinitionParser {
     @Override
-    public ForEachActionDefinition parse(YamlNode node) {
-        if (node == null) return null;
-        return new ForEachActionDefinition(super.parse(node));
+    public StructParser<FunctionDefinition> parser() {
+        return parserWithStores(KSMLDSL.Functions.TYPE_FOREACHACTION, "foreach action", ForEachActionDefinition::new);
     }
 }

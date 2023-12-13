@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TopologyResources {
-    private final String name;
+    private final String namespace;
     // All registered user functions
     private final Map<String, FunctionDefinition> functions = new HashMap<>();
     // All registered state stores
@@ -38,12 +38,12 @@ public class TopologyResources {
     // All registered KStreams, KTables and KGlobalTables
     private final Map<String, TopicDefinition> topics = new HashMap<>();
 
-    public TopologyResources(String name) {
-        this.name = name;
+    public TopologyResources(String namespace) {
+        this.namespace = namespace;
     }
 
-    public String name() {
-        return name;
+    public String namespace() {
+        return namespace;
     }
 
     public void register(String name, FunctionDefinition functionDefinition) {

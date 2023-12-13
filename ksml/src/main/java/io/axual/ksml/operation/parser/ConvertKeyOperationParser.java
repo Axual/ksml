@@ -20,22 +20,23 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ConvertKeyOperation;
-import io.axual.ksml.parser.UserTypeParser;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.parser.StructParser;
 
 public class ConvertKeyOperationParser extends OperationParser<ConvertKeyOperation> {
-    public ConvertKeyOperationParser(String prefix, String name, TopologyResources resources) {
-        super(prefix, name, resources);
+    public ConvertKeyOperationParser(TopologyResources resources) {
+        super("converKey", resources);
     }
 
-    @Override
-    public ConvertKeyOperation parse(YamlNode node) {
-        if (node == null) return null;
-        UserType target = UserTypeParser.parse(parseString(node, KSMLDSL.Operations.Convert.INTO));
-        return new ConvertKeyOperation(operationConfig(node), target);
+    public StructParser<ConvertKeyOperation> parser() {
+        return structParser(
+                ConvertKeyOperation.class,
+                "An operation to convert the stream key type to another type. Conversion is only syntactic, eg. from Avro to XML.",
+                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + KSMLDSL.Operations.CONVERT_KEY + "\""),
+                nameField(),
+                userTypeField(KSMLDSL.Operations.Convert.INTO, true, "The type to convert the stream key into"),
+                (type, name, into) -> new ConvertKeyOperation(operationConfig(name), into));
     }
 }

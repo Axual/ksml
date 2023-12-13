@@ -20,16 +20,16 @@ package io.axual.ksml.dsl;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
-
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.ListSchema;
 import io.axual.ksml.data.schema.StructSchema;
 
-import static io.axual.ksml.dsl.DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE;
+import java.util.ArrayList;
+
 import static io.axual.ksml.data.schema.DataSchema.Type.BOOLEAN;
 import static io.axual.ksml.data.schema.DataSchema.Type.STRING;
+import static io.axual.ksml.dsl.DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE;
 
 public class SOAPSchema {
     private SOAPSchema() {
@@ -99,65 +99,65 @@ public class SOAPSchema {
 
     private static StructSchema generateQNameSchema() {
         var qnameFields = new ArrayList<DataField>();
-        qnameFields.add(new DataField(SOAP_SCHEMA_QNAME_LOCAL_PART_FIELD, DataSchema.create(STRING), SOAP_SCHEMA_QNAME_LOCAL_PART_DOC, null, DataField.Order.ASCENDING));
-        qnameFields.add(new DataField(SOAP_SCHEMA_QNAME_NAMESPACE_URI_FIELD, DataSchema.create(STRING), SOAP_SCHEMA_QNAME_NAMESPACE_URI_DOC, null, DataField.Order.ASCENDING));
-        qnameFields.add(new DataField(SOAP_SCHEMA_QNAME_PREFIX_FIELD, DataSchema.create(STRING), SOAP_SCHEMA_QNAME_PREFIX_DOC, null, DataField.Order.ASCENDING));
+        qnameFields.add(new DataField(SOAP_SCHEMA_QNAME_LOCAL_PART_FIELD, DataSchema.create(STRING), SOAP_SCHEMA_QNAME_LOCAL_PART_DOC));
+        qnameFields.add(new DataField(SOAP_SCHEMA_QNAME_NAMESPACE_URI_FIELD, DataSchema.create(STRING), SOAP_SCHEMA_QNAME_NAMESPACE_URI_DOC));
+        qnameFields.add(new DataField(SOAP_SCHEMA_QNAME_PREFIX_FIELD, DataSchema.create(STRING), SOAP_SCHEMA_QNAME_PREFIX_DOC));
         return new StructSchema(DATA_SCHEMA_KSML_NAMESPACE, SOAP_QNAME_SCHEMA_NAME, SOAP_QNAME_SCHEMA_DOC, qnameFields);
     }
 
     private static StructSchema generateHeaderElementSchema() {
         var elementFields = new ArrayList<DataField>();
-        elementFields.add(new DataField(SOAP_SCHEMA_QNAME_FIELD, SOAP_QNAME_SCHEMA, SOAP_QNAME_SCHEMA.doc(), null, DataField.Order.ASCENDING));
-        elementFields.add(new DataField(SOAP_SCHEMA_ACTOR_FIELD, DataSchema.create(STRING), SOAP_SCHEMA_ACTOR_DOC, null, DataField.Order.ASCENDING));
-        elementFields.add(new DataField(SOAP_SCHEMA_ROLE_FIELD, DataSchema.create(STRING), SOAP_SCHEMA_ROLE_DOC, null, DataField.Order.ASCENDING));
-        elementFields.add(new DataField(SOAP_SCHEMA_MUST_UNDERSTAND_FIELD, DataSchema.create(BOOLEAN), SOAP_SCHEMA_MUST_UNDERSTAND_DOC, null, DataField.Order.ASCENDING));
-        elementFields.add(new DataField(SOAP_SCHEMA_RELAY_FIELD, DataSchema.create(BOOLEAN), SOAP_SCHEMA_RELAY_DOC, null, DataField.Order.ASCENDING));
+        elementFields.add(new DataField(SOAP_SCHEMA_QNAME_FIELD, SOAP_QNAME_SCHEMA, SOAP_QNAME_SCHEMA.doc()));
+        elementFields.add(new DataField(SOAP_SCHEMA_ACTOR_FIELD, DataSchema.create(STRING), SOAP_SCHEMA_ACTOR_DOC));
+        elementFields.add(new DataField(SOAP_SCHEMA_ROLE_FIELD, DataSchema.create(STRING), SOAP_SCHEMA_ROLE_DOC));
+        elementFields.add(new DataField(SOAP_SCHEMA_MUST_UNDERSTAND_FIELD, DataSchema.create(BOOLEAN), SOAP_SCHEMA_MUST_UNDERSTAND_DOC));
+        elementFields.add(new DataField(SOAP_SCHEMA_RELAY_FIELD, DataSchema.create(BOOLEAN), SOAP_SCHEMA_RELAY_DOC));
         return new StructSchema(DATA_SCHEMA_KSML_NAMESPACE, SOAP_HEADER_ELEMENT_SCHEMA_NAME, SOAP_HEADER_ELEMENT_SCHEMA_DOC, elementFields);
     }
 
     private static StructSchema generateHeaderSchema() {
         var headerFields = new ArrayList<DataField>();
-        headerFields.add(new DataField(SOAP_SCHEMA_HEADER_ELEMENTS_FIELD, new ListSchema(SOAP_HEADER_ELEMENT_SCHEMA), SOAP_SCHEMA_HEADER_ELEMENTS_DOC, null, DataField.Order.ASCENDING));
+        headerFields.add(new DataField(SOAP_SCHEMA_HEADER_ELEMENTS_FIELD, new ListSchema(SOAP_HEADER_ELEMENT_SCHEMA), SOAP_SCHEMA_HEADER_ELEMENTS_DOC));
         return new StructSchema(DATA_SCHEMA_KSML_NAMESPACE, SOAP_HEADER_SCHEMA_NAME, SOAP_HEADER_SCHEMA_DOC, headerFields);
     }
 
     public static StructSchema generateBodySchema(DataSchema bodyElementSchema) {
         var bodyFields = new ArrayList<DataField>();
-        bodyFields.add(new DataField(SOAP_SCHEMA_ENCODING_STYLE_FIELD, DataSchema.create(STRING), SOAP_SCHEMA_ENCODING_STYLE_DOC, null, DataField.Order.ASCENDING));
-        bodyFields.add(new DataField(SOAP_SCHEMA_BODY_ELEMENTS_FIELD, new ListSchema(bodyElementSchema), SOAP_SCHEMA_BODY_ELEMENTS_DOC, null, DataField.Order.ASCENDING));
+        bodyFields.add(new DataField(SOAP_SCHEMA_ENCODING_STYLE_FIELD, DataSchema.create(STRING), SOAP_SCHEMA_ENCODING_STYLE_DOC));
+        bodyFields.add(new DataField(SOAP_SCHEMA_BODY_ELEMENTS_FIELD, new ListSchema(bodyElementSchema), SOAP_SCHEMA_BODY_ELEMENTS_DOC));
         return new StructSchema(DATA_SCHEMA_KSML_NAMESPACE, SOAP_BODY_SCHEMA_NAME, SOAP_BODY_SCHEMA_DOC, bodyFields);
     }
 
     private static StructSchema generateFaultDetailSchema() {
         var faultDetailFields = new ArrayList<DataField>();
-        faultDetailFields.add(new DataField(SOAP_SCHEMA_QNAME_FIELD, SOAP_QNAME_SCHEMA, SOAP_QNAME_SCHEMA.doc(), null, DataField.Order.ASCENDING));
-        faultDetailFields.add(new DataField(SOAP_SCHEMA_FAULT_DETAIL_VALUE_FIELD, DataSchema.create(STRING), SOAP_SCHEMA_FAULT_DETAIL_VALUE_DOC, null, DataField.Order.ASCENDING));
+        faultDetailFields.add(new DataField(SOAP_SCHEMA_QNAME_FIELD, SOAP_QNAME_SCHEMA, SOAP_QNAME_SCHEMA.doc()));
+        faultDetailFields.add(new DataField(SOAP_SCHEMA_FAULT_DETAIL_VALUE_FIELD, DataSchema.create(STRING), SOAP_SCHEMA_FAULT_DETAIL_VALUE_DOC));
         return new StructSchema(DATA_SCHEMA_KSML_NAMESPACE, SOAP_FAULT_DETAIL_SCHEMA_NAME, SOAP_FAULT_DETAIL_SCHEMA_DOC, faultDetailFields);
     }
 
     private static StructSchema generateFaultSchema() {
         var faultFields = new ArrayList<DataField>();
-        faultFields.add(new DataField(SOAP_SCHEMA_QNAME_FIELD, SOAP_QNAME_SCHEMA, SOAP_QNAME_SCHEMA.doc(), null, DataField.Order.ASCENDING));
-        faultFields.add(new DataField(SOAP_SCHEMA_FAULT_ACTOR_FIELD, DataSchema.create(STRING), SOAP_SCHEMA_FAULT_ACTOR_DOC, null, DataField.Order.ASCENDING));
-        faultFields.add(new DataField(SOAP_SCHEMA_FAULT_CODE_FIELD, DataSchema.create(STRING), SOAP_SCHEMA_FAULT_CODE_DOC, null, DataField.Order.ASCENDING));
-        faultFields.add(new DataField(SOAP_SCHEMA_FAULT_STRING_FIELD, DataSchema.create(STRING), SOAP_SCHEMA_FAULT_STRING_DOC, null, DataField.Order.ASCENDING));
-        faultFields.add(new DataField(SOAP_SCHEMA_FAULT_DETAIL_FIELD, new ListSchema(SOAP_FAULT_DETAIL_SCHEMA), SOAP_SCHEMA_FAULT_DETAIL_DOC, null, DataField.Order.ASCENDING));
+        faultFields.add(new DataField(SOAP_SCHEMA_QNAME_FIELD, SOAP_QNAME_SCHEMA, SOAP_QNAME_SCHEMA.doc()));
+        faultFields.add(new DataField(SOAP_SCHEMA_FAULT_ACTOR_FIELD, DataSchema.create(STRING), SOAP_SCHEMA_FAULT_ACTOR_DOC));
+        faultFields.add(new DataField(SOAP_SCHEMA_FAULT_CODE_FIELD, DataSchema.create(STRING), SOAP_SCHEMA_FAULT_CODE_DOC));
+        faultFields.add(new DataField(SOAP_SCHEMA_FAULT_STRING_FIELD, DataSchema.create(STRING), SOAP_SCHEMA_FAULT_STRING_DOC));
+        faultFields.add(new DataField(SOAP_SCHEMA_FAULT_DETAIL_FIELD, new ListSchema(SOAP_FAULT_DETAIL_SCHEMA), SOAP_SCHEMA_FAULT_DETAIL_DOC));
         return new StructSchema(DATA_SCHEMA_KSML_NAMESPACE, SOAP_FAULT_SCHEMA_NAME, SOAP_FAULT_SCHEMA_DOC, faultFields);
     }
 
     public static StructSchema generateEnvelopeSchema(DataSchema bodyElementSchema) {
         var envelopeFields = new ArrayList<DataField>();
         var body = generateBodySchema(bodyElementSchema);
-        envelopeFields.add(new DataField(SOAP_SCHEMA_HEADER_FIELD, SOAP_HEADER_SCHEMA, SOAP_HEADER_SCHEMA.doc(), null, DataField.Order.ASCENDING));
-        envelopeFields.add(new DataField(SOAP_SCHEMA_BODY_FIELD, body, body.doc(), null, DataField.Order.ASCENDING));
-        envelopeFields.add(new DataField(SOAP_SCHEMA_FAULT_FIELD, SOAP_FAULT_SCHEMA, SOAP_FAULT_SCHEMA.doc(), null, DataField.Order.ASCENDING));
+        envelopeFields.add(new DataField(SOAP_SCHEMA_HEADER_FIELD, SOAP_HEADER_SCHEMA, SOAP_HEADER_SCHEMA.doc()));
+        envelopeFields.add(new DataField(SOAP_SCHEMA_BODY_FIELD, body, body.doc()));
+        envelopeFields.add(new DataField(SOAP_SCHEMA_FAULT_FIELD, SOAP_FAULT_SCHEMA, SOAP_FAULT_SCHEMA.doc()));
         return new StructSchema(DATA_SCHEMA_KSML_NAMESPACE, SOAP_ENVELOPE_SCHEMA_NAME, SOAP_ENVELOPE_SCHEMA_DOC, envelopeFields);
     }
 
     public static StructSchema generateSOAPSchema(DataSchema bodyElementSchema) {
         var messageFields = new ArrayList<DataField>();
         var envelope = generateEnvelopeSchema(bodyElementSchema);
-        messageFields.add(new DataField(SOAP_SCHEMA_ENVELOPE_FIELD, envelope, envelope.doc(), null, DataField.Order.ASCENDING));
+        messageFields.add(new DataField(SOAP_SCHEMA_ENVELOPE_FIELD, envelope, envelope.doc()));
         return new StructSchema(DATA_SCHEMA_KSML_NAMESPACE, SOAP_MESSAGE_SCHEMA_NAME, SOAP_MESSAGE_SCHEMA_DOC, messageFields);
     }
 }

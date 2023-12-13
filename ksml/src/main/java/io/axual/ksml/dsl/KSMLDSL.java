@@ -47,6 +47,7 @@ public class KSMLDSL {
         public static final String TYPE_INITIALIZER = "initializer";
         public static final String TYPE_KEYTRANSFORMER = "keyTransformer";
         public static final String TYPE_KEYVALUEMAPPER = "keyValueMapper";
+        public static final String TYPE_KEYVALUEPRINTER = "keyValuePrinter";
         public static final String TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER = "keyValueToKeyValueListTransformer";
         public static final String TYPE_KEYVALUETOVALUELISTTRANSFORMER = "keyValueToValueListTransformer";
         public static final String TYPE_KEYVALUETRANSFORMER = "keyValueTransformer";
@@ -79,6 +80,7 @@ public class KSMLDSL {
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Operations {
         public static final String NAME_ATTRIBUTE = "name";
+        public static final String TYPE_ATTRIBUTE = "type";
         public static final String STORE_ATTRIBUTE = "store";
         public static final String STORE_NAMES_ATTRIBUTE = "stores";
 
@@ -95,6 +97,7 @@ public class KSMLDSL {
         }
 
         public static final String AS = "as";
+
         @NoArgsConstructor(access = AccessLevel.PRIVATE)
         public static class As {
         }
@@ -220,6 +223,7 @@ public class KSMLDSL {
 
         @NoArgsConstructor(access = AccessLevel.PRIVATE)
         public static class To {
+            public static final String TOPIC = "topic";
             public static final String TOPIC_NAME_EXTRACTOR = "topicNaneExtractor";
             public static final String PARTITIONER = "partitioner";
         }
@@ -268,7 +272,6 @@ public class KSMLDSL {
     public static class Pipelines {
         public static final String FROM = "from";
         public static final String VIA = "via";
-        public static final String OPERATION_TYPE = "type";
     }
 
     public static final String STORES = "stores";

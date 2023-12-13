@@ -34,25 +34,34 @@ import java.util.List;
 public class FunctionDefinition {
     private static final String DEFINITION_LITERAL = "Definition";
     private static final String[] EMPTY_STRING_ARRAY = new String[]{};
+    private static final ParameterDefinition[] EMPTY_PARAMETER_ARRAY = new ParameterDefinition[]{};
     private static final List<String> EMPTY_STRING_LIST = new ArrayList<>();
     private final String name;
     private final ParameterDefinition[] parameters;
-    private final UserType resultType;
-    private final String expression;
-    private final String[] code;
     private final String[] globalCode;
+    private final String[] code;
+    private final String expression;
+    private final UserType resultType;
     private final List<String> storeNames;
 
-    public static FunctionDefinition as(String name, ParameterDefinition[] parameters, UserType resultType, String expression, String[] code, String[] globalCode, List<String> storeNames) {
-        return new FunctionDefinition(name, parameters, resultType, expression, code, globalCode, storeNames);
+    public static FunctionDefinition as(String name, List<ParameterDefinition> parameters, String globalCode, String code, String expression, UserType resultType, List<String> storeNames) {
+        return new FunctionDefinition(name, parameters != null ? parameters.toArray(EMPTY_PARAMETER_ARRAY) : EMPTY_PARAMETER_ARRAY, multiline(globalCode), multiline(code), expression, resultType, storeNames);
     }
 
-    public FunctionDefinition withCode(String expression, String[] code, String[] globalCode, List<String> storeNames) {
-        return new FunctionDefinition(name, parameters, resultType, expression, code, globalCode, storeNames);
+    public static FunctionDefinition as(String name, ParameterDefinition[] parameters, String[] globalCode, String[] code, String expression, UserType resultType, List<String> storeNames) {
+        return new FunctionDefinition(name, parameters, globalCode, code, expression, resultType, storeNames);
+    }
+
+    public FunctionDefinition withName(String name) {
+        return new FunctionDefinition(name, parameters, globalCode, code, expression, resultType, storeNames);
     }
 
     public FunctionDefinition withParameters(ParameterDefinition[] parameters) {
-        return new FunctionDefinition(name, parameters, resultType, expression, code, globalCode, storeNames);
+        return new FunctionDefinition(name, parameters, globalCode, code, expression, resultType, storeNames);
+    }
+
+    public FunctionDefinition withCode(String[] globalCode, String[] code, String expression, List<String> storeNames) {
+        return new FunctionDefinition(name, parameters, globalCode, code, expression, resultType, storeNames);
     }
 
     public FunctionDefinition withoutResult() {
@@ -60,12 +69,12 @@ public class FunctionDefinition {
     }
 
     public FunctionDefinition withResult(UserType type) {
-        return new FunctionDefinition(name, parameters, type, type != null ? expression : null, code, globalCode, storeNames);
+        return new FunctionDefinition(name, parameters, globalCode, code, type != null ? expression : null, type, storeNames);
     }
 
     public FunctionDefinition withDefaultExpression(String expression) {
         if (this.expression == null) {
-            return new FunctionDefinition(name, parameters, resultType, expression, code, globalCode, storeNames);
+            return new FunctionDefinition(name, parameters, globalCode, code, expression, resultType, storeNames);
         }
         return this;
     }
@@ -87,10 +96,10 @@ public class FunctionDefinition {
     }
 
     public FunctionDefinition withStoreNames(List<String> storeNames) {
-        return new FunctionDefinition(name, parameters, resultType, expression, code, globalCode, storeNames);
+        return new FunctionDefinition(name, parameters, globalCode, code, expression, resultType, storeNames);
     }
 
-    private FunctionDefinition(String name, ParameterDefinition[] parameters, UserType resultType, String expression, String[] code, String[] globalCode, List<String> storeNames) {
+    private FunctionDefinition(String name, ParameterDefinition[] parameters, String[] globalCode, String[] code, String expression, UserType resultType, List<String> storeNames) {
         this.name = name;
         this.parameters = parameters;
         this.resultType = resultType;
@@ -142,5 +151,10 @@ public class FunctionDefinition {
 
         // Return the integrated parameter list
         return result;
+    }
+
+    private static String[] multiline(String lines) {
+        if (lines == null) return EMPTY_STRING_ARRAY;
+        return lines.split("\\r?\\n");
     }
 }

@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.axual.ksml.client.serde.ResolvingDeserializer;
 import io.axual.ksml.client.serde.ResolvingSerializer;
+import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.SchemaLibrary;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.exception.KSMLExecutionException;
@@ -42,6 +43,7 @@ import io.axual.ksml.notation.csv.CsvSchemaLoader;
 import io.axual.ksml.notation.json.JsonDataObjectConverter;
 import io.axual.ksml.notation.json.JsonNotation;
 import io.axual.ksml.notation.json.JsonSchemaLoader;
+import io.axual.ksml.notation.json.JsonSchemaMapper;
 import io.axual.ksml.notation.soap.SOAPDataObjectConverter;
 import io.axual.ksml.notation.soap.SOAPNotation;
 import io.axual.ksml.notation.xml.XmlDataObjectConverter;
@@ -145,7 +147,10 @@ public class KSMLRunner {
             final Map<String, TopologyDefinition> producerSpecs = new HashMap<>();
             final Map<String, TopologyDefinition> pipelineSpecs = new HashMap<>();
             definitions.forEach((name, definition) -> {
-                final var specification = new TopologyDefinitionParser(name).parse(YamlNode.fromRoot(definition, name));
+                final var parser = new TopologyDefinitionParser(name);
+                final var schema = new JsonSchemaMapper().fromDataSchema((DataSchema)parser.schema());
+                log.info("Schema: {}", schema);
+                final var specification = parser.parse(YamlNode.fromRoot(definition, name));
                 if (!specification.producers().isEmpty()) producerSpecs.put(name, specification);
                 if (!specification.pipelines().isEmpty()) pipelineSpecs.put(name, specification);
             });

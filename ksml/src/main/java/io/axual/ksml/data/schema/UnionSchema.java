@@ -23,14 +23,36 @@ package io.axual.ksml.data.schema;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 @Getter
 @EqualsAndHashCode
 public class UnionSchema extends DataSchema {
     private final DataSchema[] possibleSchemas;
 
     public UnionSchema(DataSchema... possibleSchemas) {
+        this(true, possibleSchemas);
+    }
+
+    public UnionSchema(boolean optimize, DataSchema... possibleSchemas) {
         super(Type.UNION);
-        this.possibleSchemas = possibleSchemas;
+        this.possibleSchemas = optimize ? getPossibleSchemas(possibleSchemas) : possibleSchemas;
+    }
+
+    public DataSchema[] getPossibleSchemas(DataSchema[] possibleSchemas) {
+        // Here we flatten the list of possible schemas by recursively walking through all possible types. Any sub-unions
+        // are exploded and taken up in this union's list of possible types.
+        final var result = new ArrayList<DataSchema>();
+        for (final var possibleSchema : possibleSchemas) {
+            if (possibleSchema instanceof UnionSchema unionSchema) {
+                final var subSchemas = getPossibleSchemas(unionSchema.possibleSchemas);
+                result.addAll(Arrays.stream(subSchemas).toList());
+            } else {
+                result.add(possibleSchema);
+            }
+        }
+        return result.toArray(new DataSchema[]{});
     }
 
     @Override

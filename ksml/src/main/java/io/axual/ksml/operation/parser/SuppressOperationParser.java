@@ -21,60 +21,59 @@ package io.axual.ksml.operation.parser;
  */
 
 
-import io.axual.ksml.exception.KSMLParseException;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.SuppressOperation;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.parser.StructParser;
 import org.apache.kafka.streams.kstream.Suppressed;
 
-import static io.axual.ksml.dsl.KSMLDSL.*;
+import static io.axual.ksml.dsl.KSMLDSL.Operations;
 
 public class SuppressOperationParser extends OperationParser<SuppressOperation> {
-    public SuppressOperationParser(String prefix, String name, TopologyResources resources) {
-        super(prefix, name, resources);
+    public SuppressOperationParser(TopologyResources resources) {
+        super("suppress", resources);
     }
 
-    @Override
-    public SuppressOperation parse(YamlNode node) {
-        if (node == null) return null;
-        String suppressedType = parseString(node, Operations.Suppress.UNTIL);
-        if (suppressedType != null) {
-            return switch (suppressedType) {
-                case Operations.Suppress.UNTIL_TIME_LIMIT -> parseSuppressUntilTimeLimit(node);
-                case Operations.Suppress.UNTIL_WINDOW_CLOSES -> parseSuppressUntilWindowClose(node);
-                default ->
-                        throw new KSMLParseException(node, "Unknown Suppressed dataType for suppress operation: " + suppressedType);
-            };
-        }
-        throw new KSMLParseException(node, "Mandatory 'until' attribute is missing for Suppress operation");
+    public StructParser<SuppressOperation> parser() {
+        return structParser(
+                SuppressOperation.class,
+                "Operation to suppress messages in the source stream until a certain limit is reached",
+                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + Operations.SUPPRESS + "\""),
+                nameField(),
+                stringField(Operations.Suppress.UNTIL, true, "The method by which messages are held, either \"" + Operations.Suppress.UNTIL_TIME_LIMIT + "\", or \"" + Operations.Suppress.UNTIL_WINDOW_CLOSES + "\""),
+                durationField(Operations.Suppress.DURATION, true, "The duration for which messages are suppressed"),
+                stringField(Operations.Suppress.BUFFER_MAXBYTES, false, "The maximum number of bytes in the buffer"),
+                stringField(Operations.Suppress.BUFFER_MAXRECORDS, false, "The maximum number of records in the buffer"),
+                stringField(Operations.Suppress.BUFFER_FULL_STRATEGY, false, "What to do when the buffer is full, either \"" + Operations.Suppress.BUFFER_FULL_STRATEGY_EMIT + "\", or \"" + Operations.Suppress.BUFFER_FULL_STRATEGY_SHUTDOWN + "\""),
+                (type, name, until, duration, maxBytes, maxRecords, strategy) -> {
+                    switch (until) {
+                        case Operations.Suppress.UNTIL_TIME_LIMIT -> {
+                            final var bufferConfig = bufferConfig(maxBytes, maxRecords, strategy);
+                            return SuppressOperation.create(
+                                    operationConfig(name),
+                                    Suppressed.untilTimeLimit(duration, bufferConfig));
+                        }
+                        case Operations.Suppress.UNTIL_WINDOW_CLOSES -> {
+                            final var bufferConfig = strictBufferConfig(bufferConfig(maxBytes, maxRecords, strategy));
+                            return SuppressOperation.createWindowed(
+                                    operationConfig(name),
+                                    Suppressed.untilWindowCloses(bufferConfig));
+                        }
+                    }
+                    throw FatalError.topologyError("Unknown Until type for suppress operation: " + until);
+                });
     }
 
-    private SuppressOperation parseSuppressUntilTimeLimit(YamlNode node) {
-        var duration = parseDuration(node, Operations.Suppress.DURATION);
-        var bufferConfig = parseBufferConfig(node);
-        return SuppressOperation.create(
-                operationConfig(node),
-                Suppressed.untilTimeLimit(duration, bufferConfig));
-    }
-
-    private SuppressOperation parseSuppressUntilWindowClose(YamlNode node) {
-        var bufferConfig = parseStrictBufferConfig(node);
-        return SuppressOperation.createWindowed(
-                operationConfig(node),
-                Suppressed.untilWindowCloses(bufferConfig));
-    }
-
-    private Suppressed.EagerBufferConfig parseBufferConfig(YamlNode node) {
+    private Suppressed.EagerBufferConfig bufferConfig(String maxBytes, String maxRecords, String bufferFullStrategy) {
         Suppressed.EagerBufferConfig result = null;
 
         // Check for a maxBytes setting
-        String maxBytes = parseString(node, Operations.Suppress.BUFFER_MAXBYTES);
         if (maxBytes != null) {
             result = Suppressed.BufferConfig.maxBytes(Long.parseLong(maxBytes));
         }
 
         // Check for a maxRecords setting
-        String maxRecords = parseString(node, Operations.Suppress.BUFFER_MAXRECORDS);
         if (maxRecords != null) {
             if (result == null) {
                 result = Suppressed.BufferConfig.maxRecords(Long.parseLong(maxRecords));
@@ -84,10 +83,9 @@ public class SuppressOperationParser extends OperationParser<SuppressOperation> 
         }
 
         // Check for a bufferFull strategy
-        String bufferFullStrategy = parseString(node, Operations.Suppress.BUFFER_FULL_STRATEGY);
         if (Operations.Suppress.BUFFER_FULL_STRATEGY_EMIT.equals(bufferFullStrategy)) {
             if (result == null) {
-                throw new KSMLParseException(node, "Can not instantiate BufferConfig without maxBytes and/or maxRecords setting");
+                throw FatalError.topologyError("Can not instantiate BufferConfig without maxBytes and/or maxRecords setting");
             }
             result = result.emitEarlyWhenFull();
         }
@@ -95,14 +93,12 @@ public class SuppressOperationParser extends OperationParser<SuppressOperation> 
         return result;
     }
 
-    private Suppressed.StrictBufferConfig parseStrictBufferConfig(YamlNode node) {
-        Suppressed.EagerBufferConfig result = parseBufferConfig(node);
-
+    private Suppressed.StrictBufferConfig strictBufferConfig(Suppressed.EagerBufferConfig config) {
         // Assume the BufferFullStrategy is SHUT_DOWN from here on
-        if (result == null) {
+        if (config == null) {
             return Suppressed.BufferConfig.unbounded();
         }
 
-        return result.shutDownWhenFull();
+        return config.shutDownWhenFull();
     }
 }

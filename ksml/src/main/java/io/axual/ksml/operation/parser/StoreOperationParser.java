@@ -20,27 +20,50 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.parser.StateStoreDefinitionParser;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.StoreOperation;
 import io.axual.ksml.operation.StoreOperationConfig;
-import io.axual.ksml.parser.BaseParser;
+import io.axual.ksml.parser.NamedObjectParser;
+import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.store.StoreType;
 
+import java.util.List;
+
 public abstract class StoreOperationParser<T extends StoreOperation> extends OperationParser<T> {
-    public StoreOperationParser(String prefix, String name, TopologyResources resources) {
-        super(prefix, name, resources);
+    public StoreOperationParser(String type, TopologyResources resources) {
+        super(type, resources);
     }
 
-    protected StoreOperationConfig storeOperationConfig(YamlNode node, String childName, StoreType expectedStoreType) {
-        final var store = parseStore(node, childName, new StateStoreDefinitionParser(expectedStoreType));
-        return new StoreOperationConfig(prefix, name, store);
+    protected StoreOperationConfig storeOperationConfig(String name, List<String> storeNames, StateStoreDefinition store) {
+        return new StoreOperationConfig(resources().namespace(), name, storeNames, store);
     }
 
-    private StateStoreDefinition parseStore(YamlNode parent, String childName, BaseParser<StateStoreDefinition> parser) {
-        return new TopologyResourceParser<>("state store", childName, resources::stateStore, parser).parseDefinition(parent);
+    protected StructParser<StateStoreDefinition> storeField(boolean mandatory, String doc, StoreType expectedStoreType) {
+        final var stateStoreParser = new StateStoreDefinitionParser(expectedStoreType);
+        final var resourceParser = new TopologyResourceParser<>("state store", KSMLDSL.Operations.STORE_ATTRIBUTE, doc, resources()::stateStore, stateStoreParser);
+        final var schema = mandatory ? resourceParser.schema() : optional(resourceParser).schema();
+        return new StructParser<>() {
+            @Override
+            public StateStoreDefinition parse(YamlNode node) {
+                if (stateStoreParser instanceof NamedObjectParser nop)
+                    nop.defaultName(node.longName());
+                final var resource = resourceParser.parse(node);
+                if (resource != null && resource.definition() instanceof StateStoreDefinition def) return def;
+                if (!mandatory) return null;
+                throw FatalError.parseError(node, "Mandatory state store not defined");
+            }
+
+            @Override
+            public StructSchema schema() {
+                return schema;
+            }
+        };
     }
 }

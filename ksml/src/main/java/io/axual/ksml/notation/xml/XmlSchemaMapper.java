@@ -178,7 +178,7 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
                     var sequenceElement = complexTypeStruct.get(SEQUENCE_NAME);
                     if (sequenceElement instanceof DataStruct sequenceStruct) {
                         var fields = parseFields(sequenceStruct);
-                        return new DataField(fieldName.toString(), new StructSchema(null, fieldName.toString(), "Converted from XSD", fields), null, null, DataField.Order.ASCENDING);
+                        return new DataField(fieldName.toString(), new StructSchema(null, fieldName.toString(), "Converted from XSD", fields), null);
                     }
                 }
             }
@@ -196,7 +196,7 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
             default -> null;
         };
         if (schema == null) return null;
-        return new DataField(name, schema, null, null, DataField.Order.ASCENDING);
+        return new DataField(name, schema, null);
     }
 
     @Override

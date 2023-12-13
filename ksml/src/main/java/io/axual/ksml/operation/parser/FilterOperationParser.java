@@ -25,19 +25,22 @@ import io.axual.ksml.definition.parser.PredicateDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.FilterOperation;
-import io.axual.ksml.parser.YamlNode;
-import io.axual.ksml.store.StoreType;
+import io.axual.ksml.operation.StoreOperationConfig;
+import io.axual.ksml.parser.StructParser;
 
 public class FilterOperationParser extends StoreOperationParser<FilterOperation> {
-    public FilterOperationParser(String prefix, String name, TopologyResources resources) {
-        super(prefix, name, resources);
+    public FilterOperationParser(TopologyResources resources) {
+        super("filter", resources);
     }
 
-    @Override
-    public FilterOperation parse(YamlNode node) {
-        if (node == null) return null;
-        return new FilterOperation(
-                storeOperationConfig(node, KSMLDSL.Operations.STORE_ATTRIBUTE, StoreType.KEYVALUE_STORE),
-                parseFunction(node, KSMLDSL.Operations.Filter.PREDICATE, new PredicateDefinitionParser()));
+    public StructParser<FilterOperation> parser() {
+        return structParser(
+                FilterOperation.class,
+                "Filter records based on a predicate function",
+                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + KSMLDSL.Operations.FILTER + "\""),
+                nameField(),
+                functionField(KSMLDSL.Operations.Filter.PREDICATE, true, "A function that returns \"true\" when records are accepted, \"false\" otherwise", new PredicateDefinitionParser()),
+                storeNamesField(),
+                (type, name, pred, stores) -> new FilterOperation(new StoreOperationConfig(namespace(), name, stores, null), pred));
     }
 }

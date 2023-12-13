@@ -20,64 +20,22 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
-
-import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.execution.FatalError;
 
 import java.time.Duration;
-import java.util.function.Function;
 import java.util.function.ToLongFunction;
 
-public abstract class BaseParser<T> {
-    private String defaultName;
-    private final BooleanToStringConverter booleanToStringConverter;
+public abstract class BaseParser<T> implements Parser<T> {
+    protected final ParserWithSchema<String> codeParser;
+    protected final ParserWithSchema<String> stringValueParser;
 
-    protected interface BooleanToStringConverter {
-        String interpret(boolean value);
+    protected BaseParser() {
+        this.codeParser = new StringValueParser(value -> value ? "True" : "False");
+        this.stringValueParser = new StringValueParser();
     }
 
-    public BaseParser() {
-        booleanToStringConverter = value -> value ? "true" : "false";
-    }
-
-    protected BaseParser(BooleanToStringConverter handler) {
-        this.booleanToStringConverter = handler;
-    }
-
-    protected String getDefaultName() {
-        return defaultName;
-    }
-
-    public void setDefaultName(String defaultName) {
-        this.defaultName = defaultName;
-    }
-
-    public abstract T parse(YamlNode node);
-
-    protected Boolean parseBoolean(YamlNode parent, String childName) {
-        return parseBoolean(parent, childName, false);
-    }
-
-    protected Boolean parseBoolean(YamlNode parent, String childName, boolean valueIfNull) {
-        YamlNode child = parent.get(childName);
-        return child != null ? child.asBoolean() : valueIfNull;
-    }
-
-    protected Duration parseDuration(YamlNode parent, String childName) {
-        return parseDuration(parent, childName, (Duration) null);
-    }
-
-    protected Duration parseDuration(YamlNode parent, String childName, String errorMessageIfNull) {
-        final var result = parseDuration(parent, childName, (Duration) null);
-        if (result == null && errorMessageIfNull != null) {
-            throw FatalError.parseError(parent, errorMessageIfNull);
-        }
-        return result;
-    }
-
-    protected Duration parseDuration(YamlNode parent, String childName, Duration valueIfNull) {
-        String durationStr = parseString(parent, childName);
-        if (durationStr == null) return valueIfNull;
+    protected Duration parseDuration(String durationStr) {
+        if (durationStr == null) return null;
         durationStr = durationStr.toLowerCase().trim();
         if (durationStr.length() >= 2) {
             // Prepare a function to extract the number part from a string formatted as "1234x".
@@ -109,49 +67,15 @@ public abstract class BaseParser<T> {
             // If the duration does not contain a valid unit string, assume it is a whole number in millis
             return Duration.ofMillis(Long.parseLong(durationStr));
         } catch (NumberFormatException e) {
-            throw new KSMLParseException(parent, "Illegal duration: " + durationStr);
+            throw FatalError.topologyError("Illegal duration: " + durationStr);
         }
     }
 
-    protected String[] parseMultilineText(YamlNode parent, String childName) {
-        return parseMultilineText(parent, childName, null);
+    protected Integer parseInteger(YamlNode node, String childName) {
+        return node != null && node.get(childName) != null ? node.get(childName).asInt() : null;
     }
 
-    protected String[] parseMultilineText(YamlNode parent, String childName, String[] valueIfNull) {
-        var result = parseTextAndTransform(parent, childName, s -> s.split("\\r?\\n"));
-        return result != null ? result : valueIfNull;
-    }
-
-    protected int parseInteger(YamlNode parent, String childName) {
-        return parseInteger(parent, childName, 0);
-    }
-
-    protected int parseInteger(YamlNode parent, String childName, int valueIfNull) {
-        YamlNode child = parent.get(childName);
-        return child != null ? child.asInt() : valueIfNull;
-    }
-
-    protected String parseString(YamlNode parent, String childName) {
-        return parseString(parent, childName, null);
-    }
-
-    protected String parseString(YamlNode parent, String childName, String valueIfNull) {
-        return parseStringValue(parent.get(childName), valueIfNull);
-    }
-
-    protected String parseStringValue(YamlNode node) {
-        return parseStringValue(node, null);
-    }
-
-    protected String parseStringValue(YamlNode node, String valueIfNull) {
-        // The following line catches a corner case, where Jackson parses a string as boolean, whereas it was meant
-        // to be interpreted as a string literal for Python.
-        if (node != null && node.isBoolean()) return booleanToStringConverter.interpret(node.asBoolean());
-        return node != null ? node.asString() : valueIfNull;
-    }
-
-    protected <S> S parseTextAndTransform(YamlNode parent, String childName, Function<String, S> transform) {
-        String result = parseString(parent, childName);
-        return result != null ? transform.apply(result) : null;
+    protected String parseString(YamlNode node, String childName) {
+        return node != null ? stringValueParser.parse(node.get(childName)) : null;
     }
 }

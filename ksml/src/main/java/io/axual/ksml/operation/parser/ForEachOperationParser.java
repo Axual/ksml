@@ -20,24 +20,26 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.parser.ForEachActionDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ForEachOperation;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.operation.StoreOperationConfig;
+import io.axual.ksml.parser.StructParser;
 
 public class ForEachOperationParser extends OperationParser<ForEachOperation> {
-    public ForEachOperationParser(String prefix, String name, TopologyResources resources) {
-        super(prefix, name, resources);
+    public ForEachOperationParser(TopologyResources resources) {
+        super("forEach", resources);
     }
 
-    @Override
-    public ForEachOperation parse(YamlNode node) {
-        if (node == null) return null;
-        FunctionDefinition action = parseFunction(node, KSMLDSL.Operations.FOR_EACH, new ForEachActionDefinitionParser(), false);
-        return new ForEachOperation(
-                operationConfig(node, name),
-                action);
+    public StructParser<ForEachOperation> parser() {
+        return structParser(
+                ForEachOperation.class,
+                "Operation to call a function for every record in the stream",
+                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + KSMLDSL.Operations.FOR_EACH + "\""),
+                nameField(),
+                functionField(KSMLDSL.Operations.FOR_EACH, true, "A function that gets called for every message in the stream", new ForEachActionDefinitionParser()),
+                storeNamesField(),
+                (type, name, action, stores) -> action != null ? new ForEachOperation(new StoreOperationConfig(namespace(), name, stores, null), action) : null);
     }
 }

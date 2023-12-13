@@ -20,14 +20,14 @@ package io.axual.ksml.dsl;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
-import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.SchemaUtil;
 import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.type.WindowedType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class WindowedSchema {
     private WindowedSchema() {
@@ -58,12 +58,12 @@ public class WindowedSchema {
 
     private static List<DataField> generateWindowKeySchemaFields(WindowedType windowedType) {
         var result = new ArrayList<DataField>();
-        result.add(new DataField(WINDOWED_SCHEMA_START_FIELD, DataSchema.create(DataSchema.Type.LONG), WINDOWED_SCHEMA_START_FIELD_DOC, null, DataField.Order.ASCENDING));
-        result.add(new DataField(WINDOWED_SCHEMA_END_FIELD, DataSchema.create(DataSchema.Type.LONG), WINDOWED_SCHEMA_END_FIELD_DOC, null, DataField.Order.ASCENDING));
-        result.add(new DataField(WINDOWED_SCHEMA_START_TIME_FIELD, DataSchema.create(DataSchema.Type.STRING), WINDOWED_SCHEMA_START_TIME_FIELD_DOC, null, DataField.Order.ASCENDING));
-        result.add(new DataField(WINDOWED_SCHEMA_END_TIME_FIELD, DataSchema.create(DataSchema.Type.STRING), WINDOWED_SCHEMA_END_TIME_FIELD_DOC, null, DataField.Order.ASCENDING));
+        result.add(new DataField(WINDOWED_SCHEMA_START_FIELD, DataSchema.create(DataSchema.Type.LONG), WINDOWED_SCHEMA_START_FIELD_DOC));
+        result.add(new DataField(WINDOWED_SCHEMA_END_FIELD, DataSchema.create(DataSchema.Type.LONG), WINDOWED_SCHEMA_END_FIELD_DOC));
+        result.add(new DataField(WINDOWED_SCHEMA_START_TIME_FIELD, DataSchema.create(DataSchema.Type.STRING), WINDOWED_SCHEMA_START_TIME_FIELD_DOC));
+        result.add(new DataField(WINDOWED_SCHEMA_END_TIME_FIELD, DataSchema.create(DataSchema.Type.STRING), WINDOWED_SCHEMA_END_TIME_FIELD_DOC));
         var keySchema = SchemaUtil.dataTypeToSchema(windowedType.keyType());
-        result.add(new DataField(WINDOWED_SCHEMA_KEY_FIELD, keySchema, WINDOWED_SCHEMA_KEY_FIELD_DOC, null, DataField.Order.ASCENDING));
+        result.add(new DataField(WINDOWED_SCHEMA_KEY_FIELD, keySchema, WINDOWED_SCHEMA_KEY_FIELD_DOC));
         return result;
     }
 }

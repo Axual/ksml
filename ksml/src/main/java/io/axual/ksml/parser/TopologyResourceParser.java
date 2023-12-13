@@ -21,57 +21,74 @@ package io.axual.ksml.parser;
  */
 
 
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.execution.FatalError;
 
+import java.util.List;
 import java.util.function.Function;
 
 // Certain KSML resources (like streams, tables and functions) can be referenced from pipelines,
 // or they can be defined inline. This parser distinguishes between the two.
-public class TopologyResourceParser<T, F extends T> extends BaseParser<TopologyResource<T>> {
+public class TopologyResourceParser<T, F extends T> extends DefinitionParser<TopologyResource<T>> {
     private final String resourceType;
     private final String childName;
+    private final String doc;
     private final Function<String, T> lookup;
-    private final BaseParser<F> inlineParser;
+    private final ParserWithSchema<F> inlineParser;
     private final boolean allowLookupFail;
 
-    public TopologyResourceParser(String resourceType, String childName, Function<String, T> lookup, BaseParser<F> inlineParser) {
-        this(resourceType, childName, lookup, inlineParser, false);
+    public TopologyResourceParser(String resourceType, String childName, String doc, Function<String, T> lookup, ParserWithSchema<F> inlineParser) {
+        this(resourceType, childName, doc, lookup, inlineParser, false);
     }
 
-    public TopologyResourceParser(String resourceType, String childName, Function<String, T> lookup, BaseParser<F> inlineParser, boolean allowLookupFail) {
+    public TopologyResourceParser(String resourceType, String childName, String doc, Function<String, T> lookup, ParserWithSchema<F> inlineParser, boolean allowLookupFail) {
         this.resourceType = resourceType;
         this.childName = childName;
+        this.doc = doc;
         this.lookup = lookup;
         this.inlineParser = inlineParser;
         this.allowLookupFail = allowLookupFail;
     }
 
     @Override
-    public TopologyResource<T> parse(YamlNode node) {
-        if (node == null) return null;
+    public StructParser<TopologyResource<T>> parser() {
+        final var schema = structSchema((String) null, null, List.of(new DataField(childName, new UnionSchema(DataSchema.stringSchema(), inlineParser.schema()), doc)));
+        final var stringParser = stringField(childName, false, null, doc);
+        return new StructParser<>() {
+            @Override
+            public TopologyResource<T> parse(YamlNode node) {
+                if (node == null) return null;
 
-        // Check if the node is a text node --> parse as direct reference
-        if (node.childIsText(childName)) {
-            final var resourceToFind = parseString(node, childName);
-            final var resource = lookup.apply(resourceToFind);
-            if (resource == null && !allowLookupFail) {
-                throw FatalError.parseError(node, "Unknown " + resourceType + " \"" + resourceToFind + "\"");
+                // Check if the node is a text node --> parse as direct reference
+                final var resourceToFind = stringParser.parse(node);
+                if (resourceToFind != null) {
+                    final var resource = lookup.apply(resourceToFind);
+                    if (resource == null && !allowLookupFail) {
+                        throw FatalError.parseError(node, "Unknown " + resourceType + " \"" + resourceToFind + "\"");
+                    }
+                    return new TopologyResource<>(resourceToFind, resource);
+                }
+
+                // Parse as anonymous inline definition using the supplied inline parser
+                final var childNode = node.get(childName);
+                if (childNode != null) {
+                    final var name = childNode.longName();
+                    return new TopologyResource<>(name, inlineParser.parse(childNode));
+                }
+
+                final var name = node.appendName(childName).longName();
+                return new TopologyResource<>(name, null);
             }
-            return new TopologyResource<>(resourceToFind, resource);
-        }
 
-        // Parse as anonymous inline definition using the supplied inline parser
-        final var childNode = node.get(childName);
-        if (childNode != null) {
-            final var name = childNode.getLongName();
-            inlineParser.setDefaultName(name);
-            return new TopologyResource<>(name, inlineParser.parse(childNode));
-        }
-
-        final var name = node.appendName(childName).getLongName();
-        inlineParser.setDefaultName(name);
-        return new TopologyResource<>(name, inlineParser.parse(null));
+            @Override
+            public StructSchema schema() {
+                return schema;
+            }
+        };
     }
 
     public T parseDefinition(YamlNode node) {

@@ -24,23 +24,24 @@ package io.axual.ksml.definition.parser;
 import io.axual.ksml.definition.ProducerDefinition;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.parser.ContextAwareParser;
-import io.axual.ksml.parser.TopologyResourceParser;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.parser.StructParser;
 
-import static io.axual.ksml.dsl.KSMLDSL.*;
+import static io.axual.ksml.dsl.KSMLDSL.Producers;
 
 public class ProducerDefinitionParser extends ContextAwareParser<ProducerDefinition> {
-    public ProducerDefinitionParser(String prefix, TopologyResources resources) {
-        super(prefix, resources);
+    public ProducerDefinitionParser(TopologyResources resources) {
+        super(resources);
     }
 
     @Override
-    public ProducerDefinition parse(YamlNode node) {
-        if (node == null) return null;
-        return new ProducerDefinition(
-                new TopologyResourceParser<>("generator", Producers.GENERATOR, resources::function, new GeneratorDefinitionParser()).parseDefinition(node),
-                parseDuration(node, Producers.INTERVAL),
-                new TopologyResourceParser<>("condition", Producers.CONDITION, resources::function, new PredicateDefinitionParser()).parseDefinition(node),
-                new TopologyResourceParser<>("to", Producers.TARGET, resources::topic, new TopicDefinitionParser()).parseDefinition(node));
+    public StructParser<ProducerDefinition> parser() {
+        return structParser(
+                ProducerDefinition.class,
+                "Definition of a Producer that regularly generates messages for a topic",
+                functionField(Producers.GENERATOR, true, "The function that generates records", new GeneratorDefinitionParser()),
+                durationField(Producers.INTERVAL, true, "The interval with which the generator is called"),
+                functionField(Producers.CONDITION, false, "A function that validates the generator's result message. Returns \"true\" when the message may be produced on the topic, \"false\" otherwise.", new PredicateDefinitionParser()),
+                topicField(Producers.TARGET, true, "The topic to produce to", new TopicDefinitionParser()),
+                ProducerDefinition::new);
     }
 }

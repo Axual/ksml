@@ -1,0 +1,52 @@
+package io.axual.ksml.definition.parser;
+
+import io.axual.ksml.definition.WindowStateStoreDefinition;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.parser.DefinitionParser;
+import io.axual.ksml.parser.NamedObjectParser;
+import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.store.StoreType;
+
+public class WindowStateStoreDefinitionParser extends DefinitionParser<WindowStateStoreDefinition> implements NamedObjectParser {
+    private final boolean requireType;
+    private String defaultName;
+
+    public WindowStateStoreDefinitionParser(boolean requireType) {
+        this.requireType = requireType;
+    }
+
+    @Override
+    protected StructParser<WindowStateStoreDefinition> parser() {
+        return structParser(
+                WindowStateStoreDefinition.class,
+                "Definition of a window state store",
+                stringField(KSMLDSL.Stores.TYPE, requireType, "The type of the state store, fixed value \"" + StoreType.WINDOW_STORE + "\""),
+                stringField(KSMLDSL.Stores.NAME, false, null, "The name of the window store. If this field is not defined, then the name is derived from the context."),
+                booleanField(KSMLDSL.Stores.PERSISTENT, false, "\"true\" if this window store needs to be stored on disk, \"false\" otherwise"),
+                booleanField(KSMLDSL.Stores.TIMESTAMPED, false, "\"true\" if elements in the store are timestamped, \"false\" otherwise"),
+                durationField(KSMLDSL.Stores.RETENTION, false, "The duration for which elements in the window store are retained"),
+                durationField(KSMLDSL.Stores.WINDOW_SIZE, false, "Size of the windows (cannot be negative)"),
+                booleanField(KSMLDSL.Stores.RETAIN_DUPLICATES, false, "Whether or not to retain duplicates"),
+                userTypeField(KSMLDSL.Stores.KEY_TYPE, false, "The key type of the window store"),
+                userTypeField(KSMLDSL.Stores.VALUE_TYPE, false, "The value type of the window store"),
+                booleanField(KSMLDSL.Stores.CACHING, false, "\"true\" if changed to the window store need to be buffered and periodically released, \"false\" to emit all changes directly"),
+                booleanField(KSMLDSL.Stores.LOGGING, false, "\"true\" if a changelog topic should be set up on Kafka for this window store, \"false\" otherwise"),
+                (type, name, persistent, timestamped, retention, windowSize, retainDuplicates, keyType, valueType, caching, logging) -> {
+                    // Validate the type field if one was provided
+                    if (type != null && !StoreType.WINDOW_STORE.externalName().equals(type)) {
+                        throw FatalError.topologyError("Expected store type \"" + StoreType.WINDOW_STORE.externalName() + "\"");
+                    }
+                    name = name != null ? name : defaultName;
+                    if (name == null || name.isEmpty()) {
+                        throw FatalError.topologyError("State store name not defined");
+                    }
+                    return new WindowStateStoreDefinition(name, persistent, timestamped, retention, windowSize, retainDuplicates, keyType, valueType, caching, logging);
+                });
+    }
+
+    @Override
+    public void defaultName(String name) {
+        defaultName = name;
+    }
+}

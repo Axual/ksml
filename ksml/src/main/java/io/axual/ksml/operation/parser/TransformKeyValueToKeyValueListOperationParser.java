@@ -24,19 +24,24 @@ package io.axual.ksml.operation.parser;
 import io.axual.ksml.definition.parser.KeyValueToKeyValueListTransformerDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.operation.StoreOperationConfig;
 import io.axual.ksml.operation.TransformKeyValueToKeyValueListOperation;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.parser.StructParser;
 
 public class TransformKeyValueToKeyValueListOperationParser extends OperationParser<TransformKeyValueToKeyValueListOperation> {
-    public TransformKeyValueToKeyValueListOperationParser(String prefix, String name, TopologyResources resources) {
-        super(prefix, name, resources);
+    public TransformKeyValueToKeyValueListOperationParser(TopologyResources resources) {
+        super("transformKeyValueToKeyValueList", resources);
     }
 
     @Override
-    public TransformKeyValueToKeyValueListOperation parse(YamlNode node) {
-        if (node == null) return null;
-        return new TransformKeyValueToKeyValueListOperation(
-                operationConfig(node),
-                parseFunction(node, KSMLDSL.Operations.Transform.MAPPER, new KeyValueToKeyValueListTransformerDefinitionParser()));
+    protected StructParser<TransformKeyValueToKeyValueListOperation> parser() {
+        return structParser(
+                TransformKeyValueToKeyValueListOperation.class,
+                "Convert a stream by transforming every record into a list of derived records",
+                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + KSMLDSL.Operations.TRANSFORM_KEY_VALUE_TO_KEY_VALUE_LIST + "\""),
+                nameField(),
+                functionField(KSMLDSL.Operations.Transform.MAPPER, "A function that converts every record of a stream to a list of output records.", new KeyValueToKeyValueListTransformerDefinitionParser()),
+                storeNamesField(),
+                (type, name, mapper, storeNames) -> new TransformKeyValueToKeyValueListOperation(new StoreOperationConfig(namespace(), name, storeNames, null), mapper));
     }
 }

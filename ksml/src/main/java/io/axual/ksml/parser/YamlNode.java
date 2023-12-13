@@ -24,6 +24,7 @@ package io.axual.ksml.parser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import io.axual.ksml.exception.KSMLExecutionException;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -37,6 +38,7 @@ import java.util.Set;
 public class YamlNode {
     private final JsonNode node;
     private final YamlNode parent;
+    @Getter
     private final String name;
 
     public static YamlNode fromRoot(JsonNode root, String name) {
@@ -49,19 +51,19 @@ public class YamlNode {
         this.name = name;
     }
 
-    public String getName() {
-        return name;
-    }
-
     private String getPathInternal(String separator) {
         return (parent != null ? parent.getPathInternal(separator) + separator : "") + name;
     }
 
-    public String getDottedName() {
+    public String parentName() {
+        return parent != null ? parent.name : null;
+    }
+
+    public String dottedName() {
         return getPathInternal(".");
     }
 
-    public String getLongName() {
+    public String longName() {
         return getPathInternal("_");
     }
 
@@ -87,7 +89,7 @@ public class YamlNode {
         return new YamlNode(this, node, appendName);
     }
 
-    public List<YamlNode> getChildren() {
+    public List<YamlNode> children() {
         List<YamlNode> result = new ArrayList<>();
         Set<JsonNode> seen = new HashSet<>();
         Iterator<Map.Entry<String, JsonNode>> fieldIterator = node.fields();

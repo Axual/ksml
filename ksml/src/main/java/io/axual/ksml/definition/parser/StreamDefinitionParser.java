@@ -22,18 +22,20 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.StreamDefinition;
-import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.parser.BaseParser;
-import io.axual.ksml.parser.UserTypeParser;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.parser.DefinitionParser;
+import io.axual.ksml.parser.StructParser;
 
-public class StreamDefinitionParser extends BaseParser<StreamDefinition> {
+import static io.axual.ksml.dsl.KSMLDSL.Streams;
+
+public class StreamDefinitionParser extends DefinitionParser<StreamDefinition> {
     @Override
-    public StreamDefinition parse(YamlNode node) {
-        if (node == null) return null;
-        return new StreamDefinition(
-                parseString(node, KSMLDSL.Streams.TOPIC),
-                UserTypeParser.parse(parseString(node, KSMLDSL.Streams.KEY_TYPE)),
-                UserTypeParser.parse(parseString(node, KSMLDSL.Streams.VALUE_TYPE)));
+    public StructParser<StreamDefinition> parser() {
+        return structParser(
+                StreamDefinition.class,
+                "Contains a definition of a Stream, which can be referenced by producers and pipelines",
+                stringField(Streams.TOPIC, true, "The name of the Kafka topic for this stream"),
+                userTypeField(Streams.KEY_TYPE, true, "The key type of the stream"),
+                userTypeField(Streams.VALUE_TYPE, true, "The value type of the stream"),
+                StreamDefinition::new);
     }
 }

@@ -26,27 +26,28 @@ import io.axual.ksml.execution.FatalError;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class MapParser<V> extends BaseParser<Map<String, V>> {
-    private final BaseParser<V> valueParser;
+public class MapParser<V> implements Parser<Map<String, V>> {
+    private final Parser<V> valueParser;
     private final String whatToParse;
 
-    public MapParser(String whatToParse, BaseParser<V> valueParser) {
+    public MapParser(String whatToParse, Parser<V> valueParser) {
         this.valueParser = valueParser;
         this.whatToParse = whatToParse;
     }
 
     @Override
     public Map<String, V> parse(YamlNode node) {
-        // Parse into a LinkedHashMap to preserve insertion orde
+        // Parse into a LinkedHashMap to preserve insertion order
         Map<String, V> result = new LinkedHashMap<>();
         if (node != null) {
-            for (YamlNode child : node.getChildren()) {
+            for (YamlNode child : node.children()) {
                 try {
-                    var name = child.getName();
-                    valueParser.setDefaultName(name);
+                    var name = child.name();
+                    if (valueParser instanceof NamedObjectParser nop)
+                        nop.defaultName(name);
                     result.put(name, valueParser.parse(child));
                 } catch (RuntimeException e) {
-                    throw FatalError.parseError(node, "Error in " + whatToParse + " \"" + child.getName() + "\"", e);
+                    throw FatalError.parseError(node, "Error in " + whatToParse + " \"" + child.name() + "\"", e);
                 }
             }
         }

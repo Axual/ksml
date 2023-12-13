@@ -21,21 +21,33 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.MergeOperation;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.operation.OperationConfig;
+import io.axual.ksml.parser.StructParser;
 
 public class MergeOperationParser extends OperationParser<MergeOperation> {
-    public MergeOperationParser(String prefix, String name, TopologyResources resources) {
-        super(prefix, name, resources);
+    public MergeOperationParser(TopologyResources resources) {
+        super("merge", resources);
     }
 
     @Override
-    public MergeOperation parse(YamlNode node) {
-        if (node == null) return null;
-        final var stream = parseStream(node, KSMLDSL.Operations.Merge.STREAM, new StreamDefinitionParser());
-        return new MergeOperation(operationConfig(node), stream);
+    protected StructParser<MergeOperation> parser() {
+        return structParser(
+                MergeOperation.class,
+                "A merge operation to join two Streams",
+                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + KSMLDSL.Operations.MERGE + "\""),
+                nameField(),
+                topicField(KSMLDSL.Operations.Merge.STREAM, true, "The stream to merge with", new StreamDefinitionParser()),
+                (type, name, stream) -> {
+                    if (stream instanceof StreamDefinition streamDef) {
+                        return new MergeOperation(new OperationConfig(namespace(), name, null), streamDef);
+                    }
+                    throw FatalError.topologyError("Merge stream not correct, should be a defined Stream");
+                });
     }
 }

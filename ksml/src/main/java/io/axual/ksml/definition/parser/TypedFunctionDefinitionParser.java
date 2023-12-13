@@ -22,55 +22,40 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.exception.KSMLParseException;
-import io.axual.ksml.execution.FatalError;
-import io.axual.ksml.parser.BaseParser;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.parser.ChoiceParser;
+import io.axual.ksml.parser.StructParser;
 
-import static io.axual.ksml.dsl.KSMLDSL.*;
+import java.util.HashMap;
+import java.util.Map;
 
-public class TypedFunctionDefinitionParser extends BaseParser<FunctionDefinition> {
-    @Override
-    public FunctionDefinition parse(YamlNode node) {
-        if (node == null) return null;
+import static io.axual.ksml.dsl.KSMLDSL.Functions;
 
-        final var type = parseString(node, Functions.TYPE);
-        final var parser = getParser(node, type);
-        if (parser != null) {
-            try {
-                parser.setDefaultName(getDefaultName());
-                return parser.parse(node);
-            } catch (RuntimeException e) {
-                throw new KSMLParseException(node, "Error parsing typed function");
-            }
-        }
-
-        return new FunctionDefinitionParser().parse(node.appendName("generic"));
+public class TypedFunctionDefinitionParser extends ChoiceParser<FunctionDefinition> {
+    public TypedFunctionDefinitionParser() {
+        super(Functions.TYPE, "function", Functions.TYPE_GENERIC, parsers());
     }
 
-    private BaseParser<? extends FunctionDefinition> getParser(YamlNode node, String type) {
-        if (type == null) return new FunctionDefinitionParser();
-        return switch (type) {
-            case Functions.TYPE_AGGREGATOR -> new AggregatorDefinitionParser();
-            case Functions.TYPE_FOREACHACTION -> new ForEachActionDefinitionParser();
-            case Functions.TYPE_FOREIGN_KEY_EXTRACTOR -> new ForeignKeyExtractorDefinitionParser();
-            case Functions.TYPE_GENERATOR -> new GeneratorDefinitionParser();
-            case Functions.TYPE_GENERIC -> new FunctionDefinitionParser();
-            case Functions.TYPE_INITIALIZER -> new InitializerDefinitionParser();
-            case Functions.TYPE_KEYTRANSFORMER -> new KeyTransformerDefinitionParser();
-            case Functions.TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER ->
-                    new KeyValueToKeyValueListTransformerDefinitionParser();
-            case Functions.TYPE_KEYVALUETOVALUELISTTRANSFORMER -> new KeyValueToValueListTransformerDefinitionParser();
-            case Functions.TYPE_KEYVALUEMAPPER, Functions.TYPE_KEYVALUETRANSFORMER ->
-                    new KeyValueTransformerDefinitionParser();
-            case Functions.TYPE_MERGER -> new MergerDefinitionParser();
-            case Functions.TYPE_PREDICATE -> new PredicateDefinitionParser();
-            case Functions.TYPE_REDUCER -> new ReducerDefinitionParser();
-            case Functions.TYPE_STREAMPARTITIONER -> new StreamPartitionerDefinitionParser();
-            case Functions.TYPE_TOPICNAMEEXTRACTOR -> new TopicNameExtractorDefinitionParser();
-            case Functions.TYPE_VALUEJOINER -> new ValueJoinerDefinitionParser();
-            case Functions.TYPE_VALUETRANSFORMER -> new ValueTransformerDefinitionParser();
-            default -> throw FatalError.parseError(node, "Unknown function type: " + type);
-        };
+    private static Map<String, StructParser<? extends FunctionDefinition>> parsers() {
+        final var result = new HashMap<String, StructParser<? extends FunctionDefinition>>();
+        result.put(Functions.TYPE_AGGREGATOR, new AggregatorDefinitionParser());
+        result.put(Functions.TYPE_FOREACHACTION, new ForEachActionDefinitionParser());
+        result.put(Functions.TYPE_FOREIGN_KEY_EXTRACTOR, new ForeignKeyExtractorDefinitionParser());
+        result.put(Functions.TYPE_GENERATOR, new GeneratorDefinitionParser());
+        result.put(Functions.TYPE_GENERIC, new GenericFunctionDefinitionParser());
+        result.put(Functions.TYPE_INITIALIZER, new InitializerDefinitionParser());
+        result.put(Functions.TYPE_KEYTRANSFORMER, new KeyTransformerDefinitionParser());
+        result.put(Functions.TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER, new KeyValueToKeyValueListTransformerDefinitionParser());
+        result.put(Functions.TYPE_KEYVALUETOVALUELISTTRANSFORMER, new KeyValueToValueListTransformerDefinitionParser());
+        result.put(Functions.TYPE_KEYVALUEMAPPER, new KeyValueMapperDefinitionParser());
+        result.put(Functions.TYPE_KEYVALUETRANSFORMER, new KeyValueTransformerDefinitionParser());
+        result.put(Functions.TYPE_KEYVALUEPRINTER, new KeyValuePrinterDefinitionParser());
+        result.put(Functions.TYPE_MERGER, new MergerDefinitionParser());
+        result.put(Functions.TYPE_PREDICATE, new PredicateDefinitionParser());
+        result.put(Functions.TYPE_REDUCER, new ReducerDefinitionParser());
+        result.put(Functions.TYPE_STREAMPARTITIONER, new StreamPartitionerDefinitionParser());
+        result.put(Functions.TYPE_TOPICNAMEEXTRACTOR, new TopicNameExtractorDefinitionParser());
+        result.put(Functions.TYPE_VALUEJOINER, new ValueJoinerDefinitionParser());
+        result.put(Functions.TYPE_VALUETRANSFORMER, new ValueTransformerDefinitionParser());
+        return result;
     }
 }

@@ -21,43 +21,85 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.definition.parser.JoinTargetDefinitionParser;
+import io.axual.ksml.definition.parser.StreamDefinitionParser;
+import io.axual.ksml.definition.parser.TableDefinitionParser;
 import io.axual.ksml.definition.parser.ValueJoinerDefinitionParser;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.KSMLParseException;
+import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.operation.JoinOperation;
 import io.axual.ksml.operation.OuterJoinOperation;
+import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.parser.YamlNode;
+import org.apache.commons.collections4.ListUtils;
 
-import static io.axual.ksml.dsl.KSMLDSL.*;
+import static io.axual.ksml.dsl.KSMLDSL.Operations;
 
 public class OuterJoinOperationParser extends StoreOperationParser<OuterJoinOperation> {
-    public OuterJoinOperationParser(String prefix, String name, TopologyResources resources) {
-        super(prefix, name, resources);
+    private final StructParser<OuterJoinOperation> joinStreamParser;
+    private final StructParser<OuterJoinOperation> joinTableParser;
+    private final StructSchema schema;
+
+    public OuterJoinOperationParser(TopologyResources resources) {
+        super("outerJoin", resources);
+        joinStreamParser = structParser(
+                OuterJoinOperation.class,
+                "Operation to join with a stream",
+                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + Operations.JOIN + "\""),
+                nameField(),
+                topicField(Operations.Join.WITH_STREAM, true, "(Required for Stream joins) A reference to the Stream, or an inline definition of the Stream to join with", new StreamDefinitionParser()),
+                functionField(Operations.Join.VALUE_JOINER, "(Stream joins) A function that joins two values", new ValueJoinerDefinitionParser()),
+                durationField(Operations.Join.TIME_DIFFERENCE, true, "(Stream joins) The maximum time difference for a join over two streams on the same key"),
+                durationField(Operations.Join.GRACE, false, "(Stream joins) The window grace period (the time to admit out-of-order events after the end of the window)"),
+                storeField(false, "Materialized view of the joined streams", null),
+                (type, name, stream, valueJoiner, timeDifference, grace, store) -> {
+                    if (stream instanceof StreamDefinition streamDef) {
+                        return new OuterJoinOperation(storeOperationConfig(name, null, store), streamDef, valueJoiner, timeDifference, grace);
+                    }
+                    throw FatalError.topologyError("Join stream not correct, should be a defined Stream");
+                });
+
+        joinTableParser = structParser(
+                OuterJoinOperation.class,
+                "Operation to join with a table",
+                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + Operations.JOIN + "\""),
+                nameField(),
+                topicField(Operations.Join.WITH_TABLE, true, "(Required for Table joins) A reference to the Table, or an inline definition of the Table to join with", new TableDefinitionParser()),
+                functionField(Operations.Join.VALUE_JOINER, "(Table joins) A function that joins two values", new ValueJoinerDefinitionParser()),
+                storeField(false, "Materialized view of the joined streams", null),
+                (type, name, table, valueJoiner, store) -> {
+                    if (table instanceof TableDefinition tableDef) {
+                        return new OuterJoinOperation(storeOperationConfig(name, null, store), tableDef, valueJoiner);
+                    }
+                    throw FatalError.topologyError("Join table not correct, should be a defined Table");
+                });
+
+        schema = structSchema(JoinOperation.class, "Defines a leftJoin operation", ListUtils.union(joinStreamParser.fields(), joinTableParser.fields()));
     }
 
-    @Override
-    public OuterJoinOperation parse(YamlNode node) {
-        if (node == null) return null;
-        final var joinTopic = new JoinTargetDefinitionParser(prefix, resources).parse(node);
-        if (joinTopic.definition() instanceof StreamDefinition joinStream) {
-            return new OuterJoinOperation(
-                    storeOperationConfig(node, Operations.STORE_ATTRIBUTE, null),
-                    joinStream,
-                    parseFunction(node, Operations.Join.VALUE_JOINER, new ValueJoinerDefinitionParser()),
-                    parseDuration(node, Operations.Join.TIME_DIFFERENCE),
-                    parseDuration(node, Operations.Join.GRACE));
-        }
-        if (joinTopic.definition() instanceof TableDefinition joinTable) {
-            return new OuterJoinOperation(
-                    storeOperationConfig(node, Operations.STORE_ATTRIBUTE, null),
-                    joinTable,
-                    parseFunction(node, Operations.Join.VALUE_JOINER, new ValueJoinerDefinitionParser()));
-        }
+    public StructParser<OuterJoinOperation> parser() {
+        return new StructParser<>() {
+            @Override
+            public OuterJoinOperation parse(YamlNode node) {
+                if (node == null) return null;
+                final var joinTopic = new JoinTargetDefinitionParser(resources()).parse(node);
+                if (joinTopic.definition() instanceof StreamDefinition) return joinStreamParser.parse(node);
+                if (joinTopic.definition() instanceof TableDefinition) return joinTableParser.parse(node);
 
-        final var separator = joinTopic.name() != null && joinTopic.definition() != null ? ", " : "";
-        final var description = (joinTopic.name() != null ? joinTopic.name() : "") + separator + (joinTopic.definition() != null ? joinTopic.definition() : "");
-        throw new KSMLParseException(node, "Join stream not found: " + description);
+                final var separator = joinTopic.name() != null && joinTopic.definition() != null ? ", " : "";
+                final var description = (joinTopic.name() != null ? joinTopic.name() : "") + separator + (joinTopic.definition() != null ? joinTopic.definition() : "");
+                throw new KSMLParseException(node, "Join stream not found: " + description);
+            }
+
+            @Override
+            public StructSchema schema() {
+                return schema;
+            }
+        };
     }
 }

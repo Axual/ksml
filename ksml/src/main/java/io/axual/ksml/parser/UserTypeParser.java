@@ -31,6 +31,8 @@ import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.EnumType;
 import io.axual.ksml.data.type.ListType;
@@ -48,6 +50,8 @@ import io.axual.ksml.notation.soap.SOAPNotation;
 import io.axual.ksml.notation.xml.XmlNotation;
 import io.axual.ksml.data.schema.SchemaLibrary;
 import io.axual.ksml.data.schema.StructSchema;
+
+import java.util.ArrayList;
 
 import static io.axual.ksml.data.type.UserType.UNKNOWN;
 
@@ -304,5 +308,26 @@ public class UserTypeParser {
             }
         }
         throw new KSMLParseException("Error in expression: no closing bracket found: " + type);
+    }
+
+    public static DataSchema getSchema() {
+        final var types = new ArrayList<String>();
+        types.add("null");
+        types.add("none");
+        types.add("boolean");
+        types.add("byte");
+        types.add("double");
+        types.add("float");
+        types.add("int");
+        types.add("integer");
+        types.add("long");
+        types.add("bytes");
+        types.add("str");
+        types.add("string");
+        types.add("struct");
+        types.add("any");
+        types.add("?");
+        types.add("notation:schema");
+        return new EnumSchema(DefinitionParser.SCHEMA_NAMESPACE, "UserType", "UserTypes are the basic types used in streams and pipelines", types);
     }
 }

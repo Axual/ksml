@@ -20,36 +20,52 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.generator.TopologyDefinition;
-import io.axual.ksml.parser.BaseParser;
+import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.MapParser;
+import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.parser.YamlNode;
 
-import static io.axual.ksml.dsl.KSMLDSL.*;
+import static io.axual.ksml.dsl.KSMLDSL.PIPELINES;
+import static io.axual.ksml.dsl.KSMLDSL.PRODUCERS;
 
-public class TopologyDefinitionParser extends BaseParser<TopologyDefinition> {
-    private final String name;
+public class TopologyDefinitionParser extends DefinitionParser<TopologyDefinition> {
+    private final TopologyResourcesParser resourcesParser;
 
-    public TopologyDefinitionParser(String name) {
-        this.name = name;
+    public TopologyDefinitionParser(String namespace) {
+        resourcesParser = new TopologyResourcesParser(namespace);
     }
 
     @Override
-    public TopologyDefinition parse(YamlNode node) {
-        // If there is nothing to parse, return immediately
-        if (node == null) return null;
+    public StructParser<TopologyDefinition> parser() {
+        final var fields = resourcesParser.fields();
+        final var dummyResources = new TopologyResources("dummy");
+        fields.add(new DataField(PIPELINES, new PipelineDefinitionParser(dummyResources).schema(), "Collection of named pipelines"));
+        fields.add(new DataField(PRODUCERS, new ProducerDefinitionParser(dummyResources).schema(), "Collection of named producers"));
+        final var schema = structSchema(TopologyDefinition.class, "A KSML topology description", fields);
+        return new StructParser<>() {
+            @Override
+            public TopologyDefinition parse(YamlNode node) {
+                final var resources = resourcesParser.parse(node);
+                final var result = new TopologyDefinition(resources.namespace());
+                // Copy the resources into the topology definition
+                resources.topics().forEach(result::register);
+                resources.stateStores().forEach(result::register);
+                resources.functions().forEach(result::register);
+                // Parse all defined pipelines, using this topology's name as operation prefix
+                new MapParser<>("pipeline definition", new PipelineDefinitionParser(resources)).parse(node.get(PIPELINES)).forEach(result::register);
+                // Parse all defined producers, using this topology's name as operation prefix
+                new MapParser<>("producer definition", new ProducerDefinitionParser(resources)).parse(node.get(PRODUCERS)).forEach(result::register);
+                return result;
+            }
 
-        // Parse the underlying resources first
-        final var resources = new TopologyResourcesParser().parse(node);
-
-        // Set up an index for the topology specification
-        final var result = new TopologyDefinition(resources);
-
-        // Parse all defined pipelines, using this topology's name as operation prefix
-        new MapParser<>("pipeline definition", new PipelineDefinitionParser(name, resources)).parse(node.get(PIPELINES)).forEach(result::register);
-        // Parse all defined producers, using this topology's name as operation prefix
-        new MapParser<>("producer definition", new ProducerDefinitionParser(name, resources)).parse(node.get(PRODUCERS)).forEach(result::register);
-
-        return result;
+            @Override
+            public StructSchema schema() {
+                return schema;
+            }
+        };
     }
 }

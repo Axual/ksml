@@ -20,10 +20,34 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-public record DataField(String name, DataSchema schema, String doc, DataValue defaultValue,
-                        Order order) {
+import lombok.Getter;
+
+@Getter
+public class DataField {
+    private final String name;
+    private final DataSchema schema;
+    private final String doc;
+    private final DataValue defaultValue;
+    private final Order order;
+
     public enum Order {
         ASCENDING, DESCENDING, IGNORE;
+    }
+
+    public DataField(String name, DataSchema schema, String doc, DataValue defaultValue, Order order) {
+        this.name = name;
+        this.schema = schema;
+        this.doc = doc;
+        this.defaultValue = defaultValue;
+        this.order = order;
+    }
+
+    public DataField(String name, DataSchema schema, String doc) {
+        this(name, schema, doc, null);
+    }
+
+    public DataField(String name, DataSchema schema, String doc, DataValue defaultValue) {
+        this(name, schema, doc, defaultValue, Order.ASCENDING);
     }
 
     public boolean isAssignableFrom(DataField field) {

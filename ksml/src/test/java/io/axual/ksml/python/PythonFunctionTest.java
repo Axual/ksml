@@ -43,7 +43,7 @@ public class PythonFunctionTest {
     @ParameterizedTest
     @CsvSource({"1, 2, 3", "100,100,200", "100, -1, 99", "99, -100, -1"})
     void testAdditionExpression(Integer i1, Integer i2, Integer sum) {
-        FunctionDefinition adderDef = FunctionDefinition.as("adder", params, resultType, "one + two", null, null, null);
+        FunctionDefinition adderDef = FunctionDefinition.as("adder", params, null, null, "one + two", resultType, null);
         PythonFunction adder = PythonFunction.fromAnon(context, "adder", adderDef, "adderLog");
 
         DataObject arg1 = new DataInteger(i1);
@@ -64,7 +64,7 @@ public class PythonFunctionTest {
                   return one + two
                     
                 """;
-        FunctionDefinition adderDef = FunctionDefinition.as("adder", params, resultType, "myAddFunc(one, two)", pythonCode.split("\n"), null, null);
+        FunctionDefinition adderDef = FunctionDefinition.as("adder", params, null, pythonCode.split("\n"), "myAddFunc(one, two)", resultType, null);
         PythonFunction adder = PythonFunction.fromAnon(context, "adder", adderDef, "adderLog");
 
         DataObject arg1 = new DataInteger(i1);
@@ -85,7 +85,7 @@ public class PythonFunctionTest {
                   return one + two
                     
                 """;
-        FunctionDefinition adderDef = FunctionDefinition.as("adder", params, resultType, "myAddFunc(one, two)", null, pythonCode.split("\n"), null);
+        FunctionDefinition adderDef = FunctionDefinition.as("adder", params, pythonCode.split("\n"), null, "myAddFunc(one, two)", resultType, null);
         PythonFunction adder = PythonFunction.fromAnon(context, "adder", adderDef, "adderLog");
 
         DataObject arg1 = new DataInteger(i1);

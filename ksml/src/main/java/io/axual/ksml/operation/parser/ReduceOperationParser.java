@@ -25,22 +25,29 @@ import io.axual.ksml.definition.parser.ReducerDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ReduceOperation;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.operation.StoreOperationConfig;
+import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.store.StoreType;
 
-import static io.axual.ksml.dsl.KSMLDSL.*;
+import static io.axual.ksml.dsl.KSMLDSL.Operations;
 
 public class ReduceOperationParser extends StoreOperationParser<ReduceOperation> {
-    public ReduceOperationParser(String prefix, String name, TopologyResources resources) {
-        super(prefix, name, resources);
+    public ReduceOperationParser(TopologyResources resources) {
+        super("reduce", resources);
     }
 
     @Override
-    public ReduceOperation parse(YamlNode node) {
-        if (node == null) return null;
-        return new ReduceOperation(
-                storeOperationConfig(node, KSMLDSL.Operations.STORE_ATTRIBUTE, null),
-                parseFunction(node, Operations.Reduce.REDUCER, new ReducerDefinitionParser()),
-                parseFunction(node, Operations.Reduce.ADDER, new ReducerDefinitionParser()),
-                parseFunction(node, Operations.Reduce.SUBTRACTOR, new ReducerDefinitionParser()));
+    public StructParser<ReduceOperation> parser() {
+        final var storeField = storeField(false, "Materialized view of the aggregation", StoreType.WINDOW_STORE);
+        return structParser(
+                ReduceOperation.class,
+                "Operation to reduce a series of records into a single aggregate result",
+                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + KSMLDSL.Operations.REPARTITION + "\""),
+                nameField(),
+                functionField(Operations.Reduce.REDUCER, true, "A function that computes a new aggregate result", new ReducerDefinitionParser()),
+                functionField(Operations.Reduce.ADDER, true, "A function that adds a record to the aggregate result", new ReducerDefinitionParser()),
+                functionField(Operations.Reduce.SUBTRACTOR, true, "A function that removes a record from the aggregate result", new ReducerDefinitionParser()),
+                storeField,
+                (type, name, reducer, add, sub, store) -> new ReduceOperation(new StoreOperationConfig(namespace(), name, null, store), reducer, add, sub));
     }
 }

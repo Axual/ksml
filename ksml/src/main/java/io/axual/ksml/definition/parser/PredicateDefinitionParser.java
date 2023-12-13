@@ -21,14 +21,14 @@ package io.axual.ksml.definition.parser;
  */
 
 
-
+import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.PredicateDefinition;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.parser.StructParser;
 
 public class PredicateDefinitionParser extends FunctionDefinitionParser {
     @Override
-    public PredicateDefinition parse(YamlNode node) {
-        if (node == null) return null;
-        return new PredicateDefinition(super.parse(node));
+    public StructParser<FunctionDefinition> parser() {
+        return parserWithStores(KSMLDSL.Functions.TYPE_PREDICATE, "predicate", PredicateDefinition::new);
     }
 }

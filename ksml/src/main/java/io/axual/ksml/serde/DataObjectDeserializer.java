@@ -44,7 +44,7 @@ public class DataObjectDeserializer implements Deserializer<Object> {
     public DataObjectDeserializer(DataType type) {
         expectedType = type;
         final var dataObjectSchema = SchemaUtil.dataTypeToSchema(expectedType);
-        final var wrapperField = new DataField(FIELD_NAME, dataObjectSchema, "", null, DataField.Order.ASCENDING);
+        final var wrapperField = new DataField(FIELD_NAME, dataObjectSchema, "");
         final var wrapperSchema = new StructSchema("io.axual.ksml.data", "DataObject", "", List.of(wrapperField));
         wrapperType = SchemaUtil.schemaToDataType(wrapperSchema);
         try (final var serde = new JsonSerde(wrapperType)) {

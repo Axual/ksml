@@ -22,20 +22,24 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.TopicDefinition;
-import io.axual.ksml.parser.BaseParser;
-import io.axual.ksml.parser.UserTypeParser;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.parser.DefinitionParser;
+import io.axual.ksml.parser.StructParser;
 
-import static io.axual.ksml.dsl.KSMLDSL.*;
+import static io.axual.ksml.dsl.KSMLDSL.Streams;
 
-public class TopicDefinitionParser extends BaseParser<TopicDefinition> {
+public class TopicDefinitionParser extends DefinitionParser<TopicDefinition> {
+    public TopicDefinitionParser() {
+        super(null);
+    }
+
     @Override
-    public TopicDefinition parse(YamlNode node) {
-        if (node == null) return null;
-        return new TopicDefinition(
-                "Topic",
-                parseString(node, Streams.TOPIC),
-                UserTypeParser.parse(parseString(node, Streams.KEY_TYPE)),
-                UserTypeParser.parse(parseString(node, Streams.VALUE_TYPE)));
+    public StructParser<TopicDefinition> parser() {
+        return structParser(
+                TopicDefinition.class,
+                "Contains a definition of a Topic, which can be referenced by producers and pipelines",
+                stringField(Streams.TOPIC, true, "The name of the Kafka topic"),
+                userTypeField(Streams.KEY_TYPE, true, "The key type of the topic"),
+                userTypeField(Streams.VALUE_TYPE, true, "The value type of the topic"),
+                (topic, keyType, valueType) -> new TopicDefinition("Topic", topic, keyType, valueType));
     }
 }

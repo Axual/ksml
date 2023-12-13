@@ -46,7 +46,7 @@ public class TopologyDefinition extends TopologyResources {
     }
 
     public TopologyDefinition(TopologyResources resources) {
-        super(resources.name());
+        super(resources.namespace());
         resources.functions().forEach(this::register);
         resources.stateStores().forEach(this::register);
         resources.topics().forEach(this::register);
