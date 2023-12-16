@@ -19,7 +19,6 @@ tables:
     topic: ksml_sensoralert_settings
     keyType: string
     valueType: avro:SensorAlertSettings
-    queryable: false
 
 functions:
   alert_join:

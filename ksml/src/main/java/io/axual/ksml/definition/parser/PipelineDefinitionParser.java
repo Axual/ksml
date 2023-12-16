@@ -24,6 +24,8 @@ package io.axual.ksml.definition.parser;
 import io.axual.ksml.definition.PipelineDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.operation.AsOperation;
+import io.axual.ksml.operation.OperationConfig;
 import io.axual.ksml.operation.parser.AsOperationParser;
 import io.axual.ksml.operation.parser.BranchOperationParser;
 import io.axual.ksml.operation.parser.ForEachOperationParser;
@@ -31,12 +33,14 @@ import io.axual.ksml.operation.parser.PipelineOperationParser;
 import io.axual.ksml.operation.parser.PrintOperationParser;
 import io.axual.ksml.operation.parser.ToOperationParser;
 import io.axual.ksml.parser.ContextAwareParser;
+import io.axual.ksml.parser.NamedObjectParser;
 import io.axual.ksml.parser.StructParser;
 
 import java.util.ArrayList;
 
-public class PipelineDefinitionParser extends ContextAwareParser<PipelineDefinition> {
+public class PipelineDefinitionParser extends ContextAwareParser<PipelineDefinition> implements NamedObjectParser {
     private final boolean parseSource;
+    private String defaultName;
 
     protected PipelineDefinitionParser(TopologyResources resources) {
         this(resources, true);
@@ -58,21 +62,32 @@ public class PipelineDefinitionParser extends ContextAwareParser<PipelineDefinit
         return structParser(
                 PipelineDefinition.class,
                 "Defines a pipeline through a source, a series of operations to perform on it and a sink operation to close the stream with",
-                topologyResourceField("source", KSMLDSL.Pipelines.FROM, "Pipeline source", resources()::topic, new TopicDefinitionParser()),
-                listField(KSMLDSL.Pipelines.VIA, "step", false, "A series of operations performend on the input stream", new PipelineOperationParser(resources())),
+                stringField(KSMLDSL.Pipelines.NAME, false, null, "The name of the pipeline. If this field is not defined, then the name is derived from the context."),
+                topologyResourceField("source", KSMLDSL.Pipelines.FROM, "Pipeline source", resources()::topic, new TopicDefinitionParser(true)),
+                listField(KSMLDSL.Pipelines.VIA, "step", false, "A series of operations performed on the input stream", new PipelineOperationParser(resources())),
                 optional(asParser),
-                branchParser,
-                forEachParser,
-                printParser,
-                toParser,
-                (from, via, as, branch, forEach, print, to) -> {
+                optional(branchParser),
+                optional(forEachParser),
+                optional(printParser),
+                optional(toParser),
+                (name, from, via, as, branch, forEach, print, to) -> {
+                    name = validateName("Pipeline", name, defaultName, false);
                     via = via != null ? via : new ArrayList<>();
-                    if (as != null) return new PipelineDefinition(from, via, as);
-                    if (branch != null) return new PipelineDefinition(from, via, branch);
-                    if (forEach != null) return new PipelineDefinition(from, via, forEach);
-                    if (print != null) return new PipelineDefinition(from, via, print);
-                    if (to != null) return new PipelineDefinition(from, via, to);
-                    return new PipelineDefinition(from, via, null);
+                    if (as != null) return new PipelineDefinition(name, from, via, as);
+                    if (branch != null) return new PipelineDefinition(name, from, via, branch);
+                    if (forEach != null) return new PipelineDefinition(name, from, via, forEach);
+                    if (print != null) return new PipelineDefinition(name, from, via, print);
+                    if (to != null) return new PipelineDefinition(name, from, via, to);
+                    // If no sink operation was specified, then we create an AS operation here with the name provided.
+                    // This means that pipeline results can be referred to by other pipelines using the pipeline's name
+                    // as identifier.
+                    var sinkOperation = name != null ? new AsOperation(new OperationConfig(resources().namespace(), name, null), name) : null;
+                    return new PipelineDefinition(name, from, via, sinkOperation);
                 });
+    }
+
+    @Override
+    public void defaultName(String name) {
+        this.defaultName = name;
     }
 }

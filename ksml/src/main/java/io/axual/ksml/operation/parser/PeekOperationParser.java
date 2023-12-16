@@ -37,7 +37,7 @@ public class PeekOperationParser extends OperationParser<PeekOperation> {
         return structParser(
                 PeekOperation.class,
                 "Operation to peek into a stream, without modifying the stream contents",
-                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + KSMLDSL.Operations.PEEK + "\""),
+                operationTypeField(KSMLDSL.Operations.PEEK),
                 nameField(),
                 functionField(KSMLDSL.Operations.FOR_EACH, true, "A function that gets called for every message in the stream", new ForEachActionDefinitionParser()),
                 storeNamesField(),

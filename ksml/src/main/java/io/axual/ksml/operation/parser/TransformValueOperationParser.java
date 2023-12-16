@@ -38,7 +38,7 @@ public class TransformValueOperationParser extends StoreOperationParser<Transfor
         return structParser(
                 TransformValueOperation.class,
                 "Convert the value of every record in the stream to another value",
-                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + KSMLDSL.Operations.TRANSFORM_VALUE + "\""),
+                operationTypeField(KSMLDSL.Operations.TRANSFORM_VALUE),
                 nameField(),
                 functionField(KSMLDSL.Operations.Transform.MAPPER, "A function that converts the value of every record into another value", new ValueTransformerDefinitionParser()),
                 storeNamesField(),

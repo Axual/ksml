@@ -22,7 +22,6 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.definition.parser.ReducerDefinitionParser;
-import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ReduceOperation;
 import io.axual.ksml.operation.StoreOperationConfig;
@@ -42,7 +41,7 @@ public class ReduceOperationParser extends StoreOperationParser<ReduceOperation>
         return structParser(
                 ReduceOperation.class,
                 "Operation to reduce a series of records into a single aggregate result",
-                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + KSMLDSL.Operations.REPARTITION + "\""),
+                operationTypeField(Operations.REDUCE),
                 nameField(),
                 functionField(Operations.Reduce.REDUCER, true, "A function that computes a new aggregate result", new ReducerDefinitionParser()),
                 functionField(Operations.Reduce.ADDER, true, "A function that adds a record to the aggregate result", new ReducerDefinitionParser()),

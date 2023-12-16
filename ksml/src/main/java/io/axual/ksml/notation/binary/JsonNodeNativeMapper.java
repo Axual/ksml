@@ -77,6 +77,7 @@ public class JsonNodeNativeMapper {
 
     private JsonNode addToArrayNode(ArrayNode node, Object value) {
         if (value == null) return node.add(MAPPER.nullNode());
+        if (value instanceof Boolean val) return node.add(val);
         if (value instanceof Byte val) return node.add(val);
         if (value instanceof Short val) return node.add(val);
         if (value instanceof Integer val) return node.add(val);
@@ -94,6 +95,7 @@ public class JsonNodeNativeMapper {
 
     private JsonNode addToObjectNode(ObjectNode node, String key, Object value) {
         if (value == null) return node.set(key, MAPPER.nullNode());
+        if (value instanceof Boolean val) return node.put(key, val);
         if (value instanceof Byte val) return node.put(key, val);
         if (value instanceof Short val) return node.put(key, val);
         if (value instanceof Integer val) return node.put(key, val);
@@ -136,6 +138,7 @@ public class JsonNodeNativeMapper {
     private Object toNativeValue(JsonNode value) {
         try {
             if (value.isNull()) return null;
+            if (value.isBoolean()) return value.booleanValue();
             if (value.isShort()) return value.shortValue();
             if (value.isInt()) return value.intValue();
             if (value.isLong()) return value.longValue();

@@ -39,14 +39,20 @@ import java.util.List;
 import static io.axual.ksml.dsl.KSMLDSL.Streams;
 
 public class TableDefinitionParser extends DefinitionParser<TableDefinition> {
+    private final boolean requireKeyValueType;
+
+    public TableDefinitionParser(boolean requireKeyValueType) {
+        this.requireKeyValueType = requireKeyValueType;
+    }
+
     @Override
     public StructParser<TableDefinition> parser() {
         return structParser(
                 TableDefinition.class,
                 "Contains a definition of a Table, which can be referenced by producers and pipelines",
                 stringField(Streams.TOPIC, true, "The name of the Kafka topic for this table"),
-                userTypeField(Streams.KEY_TYPE, true, "The key type of the table"),
-                userTypeField(Streams.VALUE_TYPE, true, "The value type of the table"),
+                userTypeField(Streams.KEY_TYPE, requireKeyValueType, "The key type of the table"),
+                userTypeField(Streams.VALUE_TYPE, requireKeyValueType, "The value type of the table"),
                 storeField(),
                 (topic, keyType, valueType, store) -> {
                     keyType = keyType != null ? keyType : UserType.UNKNOWN;
@@ -65,7 +71,7 @@ public class TableDefinitionParser extends DefinitionParser<TableDefinition> {
 
     private StructParser<KeyValueStateStoreDefinition> storeField() {
         final var resourceParser = new TopologyResourceParser<>("state store", Streams.STORE, "State store definition", null, new StateStoreDefinitionParser(StoreType.KEYVALUE_STORE));
-        final var field = new DataField(Streams.STORE, new UnionSchema(DataSchema.nullSchema(), resourceParser.schema()), "Definition of the keyValue state store associated with the table");
+        final var field = new DataField(Streams.STORE, new UnionSchema(DataSchema.nullSchema(), resourceParser.schema()), "Definition of the keyValue state store associated with the table", false);
         final var schema = structSchema(KeyValueStateStoreDefinition.class, field.doc(), List.of(field));
         return new StructParser<>() {
             @Override

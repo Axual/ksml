@@ -36,7 +36,7 @@ public class CountOperationParser extends StoreOperationParser<CountOperation> {
         return structParser(
                 CountOperation.class,
                 "Count the number of times a key is seen in a given window",
-                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + KSMLDSL.Operations.COUNT + "\""),
+                operationTypeField(KSMLDSL.Operations.COUNT),
                 nameField(),
                 storeField(false, "Materialized view of the count operation's result", null),
                 (type, name, store) -> new CountOperation(new StoreOperationConfig(namespace(), name, null, store)));

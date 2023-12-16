@@ -29,8 +29,6 @@ import io.axual.ksml.parser.StructParser;
 import org.apache.kafka.streams.kstream.SlidingWindows;
 import org.apache.kafka.streams.kstream.TimeWindows;
 
-import static io.axual.ksml.dsl.KSMLDSL.Operations;
-
 public class WindowByTimeOperationParser extends OperationParser<WindowByTimeOperation> {
     public WindowByTimeOperationParser(TopologyResources resources) {
         super("windowByTime", resources);
@@ -41,7 +39,7 @@ public class WindowByTimeOperationParser extends OperationParser<WindowByTimeOpe
         return structParser(
                 WindowByTimeOperation.class,
                 "Operation to reduce a series of records into a single aggregate result",
-                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + Operations.WINDOW_BY_TIME + "\""),
+                operationTypeField(KSMLDSL.Operations.WINDOW_BY_TIME),
                 nameField(),
                 stringField(KSMLDSL.TimeWindows.WINDOW_TYPE, true, "The type of the operation, either \"" + KSMLDSL.TimeWindows.TYPE_TUMBLING + "\", or \"" + KSMLDSL.TimeWindows.TYPE_HOPPING + "\", or \"" + KSMLDSL.TimeWindows.TYPE_SLIDING + "\""),
                 durationField(KSMLDSL.TimeWindows.DURATION, true, "(Tumbling) The duration of time windows"),

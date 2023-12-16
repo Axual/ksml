@@ -38,7 +38,7 @@ public class ToTableOperationParser extends StoreOperationParser<ToTableOperatio
         return structParser(
                 ToTableOperation.class,
                 "Convert a Stream into a Table",
-                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + KSMLDSL.Operations.TO_STREAM + "\""),
+                operationTypeField(KSMLDSL.Operations.TO_TABLE),
                 nameField(),
                 storeField(false, "Materialized view of the Table", StoreType.KEYVALUE_STORE),
                 (type, name, store) -> new ToTableOperation(new StoreOperationConfig(namespace(), name, null, store)));

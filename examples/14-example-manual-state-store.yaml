@@ -10,7 +10,7 @@ stores:
     keyType: string
     valueType: json
     persistent: false
-    retention: 1h
+    historyRetention: 1h
     caching: false
     logging: false
 

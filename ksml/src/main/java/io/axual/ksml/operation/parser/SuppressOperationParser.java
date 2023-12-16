@@ -21,7 +21,6 @@ package io.axual.ksml.operation.parser;
  */
 
 
-import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.SuppressOperation;
@@ -39,7 +38,7 @@ public class SuppressOperationParser extends OperationParser<SuppressOperation> 
         return structParser(
                 SuppressOperation.class,
                 "Operation to suppress messages in the source stream until a certain limit is reached",
-                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + Operations.SUPPRESS + "\""),
+                operationTypeField(Operations.SUPPRESS),
                 nameField(),
                 stringField(Operations.Suppress.UNTIL, true, "The method by which messages are held, either \"" + Operations.Suppress.UNTIL_TIME_LIMIT + "\", or \"" + Operations.Suppress.UNTIL_WINDOW_CLOSES + "\""),
                 durationField(Operations.Suppress.DURATION, true, "The duration for which messages are suppressed"),

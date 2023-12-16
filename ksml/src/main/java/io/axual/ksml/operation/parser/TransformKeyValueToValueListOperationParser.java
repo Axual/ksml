@@ -38,7 +38,7 @@ public class TransformKeyValueToValueListOperationParser extends OperationParser
         return structParser(
                 TransformKeyValueToValueListOperation.class,
                 "Convert every record in the stream to a list of output records with the same key",
-                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + KSMLDSL.Operations.TRANSFORM_KEY_VALUE_TO_VALUE_LIST + "\""),
+                operationTypeField(KSMLDSL.Operations.TRANSFORM_KEY_VALUE_TO_VALUE_LIST),
                 nameField(),
                 functionField(KSMLDSL.Operations.Transform.MAPPER, "A function that converts every key/value into a list of result values, which will be combined with the original key in the output stream", new KeyValueToValueListTransformerDefinitionParser()),
                 storeNamesField(),

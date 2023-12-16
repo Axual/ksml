@@ -116,6 +116,7 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
         final var result = new LinkedHashMap<String, Object>();
         result.put(DATA_FIELD_NAME_FIELD, field.name());
         result.put(DATA_FIELD_DOC_FIELD, field.doc());
+        result.put(DATA_FIELD_REQUIRED_FIELD, field.required());
         result.put(DATA_FIELD_SCHEMA_FIELD, convertSchema(field.schema()));
         if (field.defaultValue() != null)
             encodeDefaultValue(result, DATA_FIELD_DEFAULT_VALUE_FIELD, field.defaultValue());

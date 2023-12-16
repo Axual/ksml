@@ -38,9 +38,9 @@ public class TopologyResourcesParser extends DefinitionParser<TopologyResources>
         return structParser(
                 TopologyResources.class,
                 "Contains a list of streams, functions and state stores to be used in producers and pipelines",
-                mapField(STREAMS, "stream definition", false, "Streams that can be referenced in producers and pipelines", new StreamDefinitionParser()),
-                mapField(TABLES, "table definition", false, "Tables that can be referenced in producers and pipelines", new TableDefinitionParser()),
-                mapField(GLOBAL_TABLES, "globalTable definition", false, "GlobalTables that can be referenced in producers and pipelines", new GlobalTableDefinitionParser()),
+                mapField(STREAMS, "stream definition", false, "Streams that can be referenced in producers and pipelines", new StreamDefinitionParser(true)),
+                mapField(TABLES, "table definition", false, "Tables that can be referenced in producers and pipelines", new TableDefinitionParser(true)),
+                mapField(GLOBAL_TABLES, "globalTable definition", false, "GlobalTables that can be referenced in producers and pipelines", new GlobalTableDefinitionParser(true)),
                 mapField(STORES, "state store definition", false, "State stores that can be referenced in producers and pipelines", new StateStoreDefinitionParser()),
                 mapField(FUNCTIONS, "function definition", false, "Functions that can be referenced in producers and pipelines", new TypedFunctionDefinitionParser()),
                 (streams, tables, globalTables, stores, functions) -> {
@@ -49,7 +49,8 @@ public class TopologyResourcesParser extends DefinitionParser<TopologyResources>
                     if (tables != null) tables.forEach(result::register);
                     if (globalTables != null) globalTables.forEach(result::register);
                     if (stores != null) stores.forEach(result::register);
-                    if (functions != null) functions.forEach((name, func) -> result.register(name, func.withName(name)));
+                    if (functions != null)
+                        functions.forEach((name, func) -> result.register(name, func.withName(name)));
                     return result;
                 }
         );

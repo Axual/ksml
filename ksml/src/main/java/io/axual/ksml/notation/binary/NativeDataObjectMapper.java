@@ -37,6 +37,10 @@ import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.object.DataUnion;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.SchemaLibrary;
+import io.axual.ksml.data.schema.SchemaUtil;
+import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.EnumType;
 import io.axual.ksml.data.type.ListType;
@@ -45,10 +49,6 @@ import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.value.Tuple;
 import io.axual.ksml.exception.KSMLDataException;
 import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.SchemaLibrary;
-import io.axual.ksml.data.schema.SchemaUtil;
-import io.axual.ksml.data.schema.StructSchema;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -179,14 +179,18 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         // we assume the entire schema is contained within the map itself. Therefore we do not
         // consult the schema library, but instead directly decode the schema from the field.
         if (map.containsKey(STRUCT_SCHEMA_FIELD)) {
-            var nativeSchema = map.get(STRUCT_SCHEMA_FIELD);
+            final var nativeSchema = map.get(STRUCT_SCHEMA_FIELD);
             return SCHEMA_MAPPER.toDataSchema("dummy", nativeSchema);
         }
 
         // The "@type" field indicates a type that is assumed to be contained in the schema
         // library. If this field is set, then look up the schema by name in the library.
         if (map.containsKey(STRUCT_TYPE_FIELD)) {
-            var typeName = map.get(STRUCT_TYPE_FIELD).toString();
+           final var typeName = map.get(STRUCT_TYPE_FIELD).toString();
+//            final var userType = UserTypeParser.parse(typeName);
+//            if (userType.dataType() instanceof StructType structType) return structType.schema();
+//            throw
+//            return userType.
             return SchemaLibrary.getSchema(typeName, false);
         }
 

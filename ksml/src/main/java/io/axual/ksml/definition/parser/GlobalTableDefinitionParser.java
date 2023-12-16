@@ -27,14 +27,20 @@ import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.StructParser;
 
 public class GlobalTableDefinitionParser extends DefinitionParser<GlobalTableDefinition> {
+    private final boolean requireKeyValueType;
+
+    public GlobalTableDefinitionParser(boolean requireKeyValueType) {
+        this.requireKeyValueType = requireKeyValueType;
+    }
+
     @Override
     public StructParser<GlobalTableDefinition> parser() {
         return structParser(
                 GlobalTableDefinition.class,
                 "Contains a definition of a GlobalTable, which can be referenced by producers and pipelines",
                 stringField(KSMLDSL.Streams.TOPIC, true, "The name of the Kafka topic for this global table"),
-                userTypeField(KSMLDSL.Streams.KEY_TYPE, true, "The key type of the global table"),
-                userTypeField(KSMLDSL.Streams.VALUE_TYPE, true, "The value type of the global table"),
+                userTypeField(KSMLDSL.Streams.KEY_TYPE, requireKeyValueType, "The key type of the global table"),
+                userTypeField(KSMLDSL.Streams.VALUE_TYPE, requireKeyValueType, "The value type of the global table"),
                 GlobalTableDefinition::new);
     }
 }

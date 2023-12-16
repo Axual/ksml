@@ -21,14 +21,13 @@ package io.axual.ksml.definition.parser;
  */
 
 
-import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.GeneratorDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.StructParser;
 
-public class GeneratorDefinitionParser extends FunctionDefinitionParser {
+public class GeneratorDefinitionParser extends FunctionDefinitionParser<GeneratorDefinition> {
     @Override
-    public StructParser<FunctionDefinition> parser() {
-        return parserWithoutStores(KSMLDSL.Functions.TYPE_GENERATOR, "message generator", GeneratorDefinition::new);
+    public StructParser<GeneratorDefinition> parser() {
+        return parserWithoutStores(GeneratorDefinition.class, KSMLDSL.Functions.TYPE_GENERATOR, "message generator", GeneratorDefinition::new);
     }
 }

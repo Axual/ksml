@@ -270,6 +270,7 @@ public class KSMLDSL {
 
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Pipelines {
+        public static final String NAME = "name";
         public static final String FROM = "from";
         public static final String VIA = "via";
     }

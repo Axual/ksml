@@ -38,7 +38,7 @@ public class OperationConfig {
         } else {
             this.name = null;
         }
-        log.info("Generated name: {}", this.name);
+        log.debug("Generated operation name: {}", this.name);
         this.allowStores = storeNames != null;
         this.storeNames = storeNames;
     }

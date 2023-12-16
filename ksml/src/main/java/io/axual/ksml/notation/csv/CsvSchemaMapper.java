@@ -46,7 +46,7 @@ public class CsvSchemaMapper implements DataSchemaMapper<String> {
     private DataSchema toDataSchema(String name, DataList fieldNames) {
         List<DataField> fields = new ArrayList<>();
         for (var fieldName : fieldNames) {
-            fields.add(new DataField(fieldName.toString(), DataSchema.create(DataSchema.Type.STRING), fieldName.toString(), new DataValue("")));
+            fields.add(new DataField(fieldName.toString(), DataSchema.create(DataSchema.Type.STRING), fieldName.toString(), true, false, new DataValue("")));
         }
         return new StructSchema(null, name, "CSV schema", fields);
     }

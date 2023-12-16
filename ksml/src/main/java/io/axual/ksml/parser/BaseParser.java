@@ -20,6 +20,8 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.execution.FatalError;
 
 import java.time.Duration;
@@ -30,8 +32,16 @@ public abstract class BaseParser<T> implements Parser<T> {
     protected final ParserWithSchema<String> stringValueParser;
 
     protected BaseParser() {
-        this.codeParser = new StringValueParser(value -> value ? "True" : "False");
+        final var codeStringParser = new StringValueParser(value -> value ? "True" : "False");
+        final var codeSchema = new UnionSchema(DataSchema.booleanSchema(), DataSchema.stringSchema());
+        this.codeParser = ParserWithSchema.of(codeStringParser::parse, codeSchema);
         this.stringValueParser = new StringValueParser();
+    }
+
+    protected Boolean parseBoolean(YamlNode node, String childName) {
+        if (node == null) return null;
+        final var child = node.get(childName);
+        return child != null && child.isBoolean() ? child.asBoolean() : null;
     }
 
     protected Duration parseDuration(String durationStr) {

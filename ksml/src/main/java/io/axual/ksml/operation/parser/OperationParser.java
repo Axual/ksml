@@ -41,6 +41,10 @@ public abstract class OperationParser<T extends BaseOperation> extends ContextAw
         this.type = type;
     }
 
+    protected StructParser<String> operationTypeField(String fixedType) {
+        return fixedStringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, fixedType, "The type of the operation");
+    }
+
     protected StructParser<String> nameField() {
         final var stringParser = stringField(KSMLDSL.Operations.NAME_ATTRIBUTE, false, type, "The name of the operation processor");
         return new StructParser<>() {

@@ -21,19 +21,23 @@ package io.axual.ksml.notation.json;
  */
 
 import io.axual.ksml.data.mapper.DataSchemaMapper;
+import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.AnySchema;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.DataValue;
 import io.axual.ksml.data.schema.ListSchema;
 import io.axual.ksml.data.schema.MapSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class JsonSchemaMapper implements DataSchemaMapper<String> {
     private static final JsonDataObjectMapper MAPPER = new JsonDataObjectMapper();
@@ -41,7 +45,15 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     private static final String DESCRIPTION_NAME = "description";
     private static final String TYPE_NAME = "type";
     private static final String PROPERTIES_NAME = "properties";
+    private static final String PATTERN_PROPERTIES_NAME = "patternProperties";
+    private static final String ALL_PROPERTIES_REGEX = "^[a-zA-Z0-9_]+$";
     private static final String ITEMS_NAME = "items";
+    private static final String REQUIRED_NAME = "required";
+    private static final String ADDITIONAL_PROPERTIES = "additionalProperties";
+    private static final String DEFINITIONS_NAME = "definitions";
+    private static final String REF_NAME = "$ref";
+    private static final String ANY_OF_NAME = "anyOf";
+    private static final String ENUM_NAME = "enum";
 
     @Override
     public DataSchema toDataSchema(String name, String value) {
@@ -54,23 +66,32 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     }
 
     private DataSchema toDataSchema(DataStruct schema) {
-        var title = schema.getAsString(TITLE_NAME);
-        var doc = schema.getAsString(DESCRIPTION_NAME);
-        var properties = schema.get(PROPERTIES_NAME);
+        final var title = schema.getAsString(TITLE_NAME);
+        final var doc = schema.getAsString(DESCRIPTION_NAME);
+
+        final var requiredProperties = new HashSet<String>();
         List<DataField> fields = null;
+        final var reqProps = schema.get(REQUIRED_NAME);
+        if (reqProps instanceof DataList reqPropList) {
+            for (var reqProp : reqPropList) {
+                requiredProperties.add(reqProp.toString());
+            }
+        }
+
+        final var properties = schema.get(PROPERTIES_NAME);
         if (properties instanceof DataStruct propertiesStruct)
-            fields = convertFields(propertiesStruct);
+            fields = convertFields(propertiesStruct, requiredProperties);
         return new StructSchema(null, title != null ? title.value() : null, doc != null ? doc.value() : null, fields);
     }
 
-    private List<DataField> convertFields(DataStruct properties) {
+    private List<DataField> convertFields(DataStruct properties, Set<String> requiredProperties) {
         var result = new ArrayList<DataField>();
         for (var entry : properties.entrySet()) {
             var name = entry.getKey();
             var spec = entry.getValue();
             if (spec instanceof DataStruct specStruct) {
                 var doc = specStruct.getAsString(DESCRIPTION_NAME);
-                var field = new DataField(name, convertType(specStruct), doc != null ? doc.value() : null);
+                var field = new DataField(name, convertType(specStruct), doc != null ? doc.value() : null, requiredProperties.contains(name));
                 result.add(field);
             }
         }
@@ -119,54 +140,87 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     }
 
     public DataStruct fromDataSchema(StructSchema structSchema) {
+        final var definitions = new DataStruct();
+        final var result = fromDataSchema(structSchema, definitions);
+        if (definitions.size() > 0) {
+            result.put(DEFINITIONS_NAME, definitions);
+        }
+        return result;
+    }
+
+    public DataStruct fromDataSchema(StructSchema structSchema, DataStruct definitions) {
         final var result = new DataStruct();
         final var title = structSchema.name();
         final var doc = structSchema.doc();
         if (title != null) result.put(TITLE_NAME, new DataString(title));
         if (doc != null) result.put(DESCRIPTION_NAME, new DataString(doc));
         result.put(TYPE_NAME, new DataString("object"));
+        final var requiredProperties = new DataList(DataString.DATATYPE);
         final var properties = new DataStruct();
         for (var field : structSchema.fields()) {
-            properties.put(field.name(), fromDataSchema(field));
+            properties.put(field.name(), fromDataSchema(field, definitions));
+            if (field.required()) requiredProperties.add(new DataString(field.name()));
         }
+        if (!requiredProperties.isEmpty()) result.put(REQUIRED_NAME, requiredProperties);
         if (properties.size() > 0) result.put(PROPERTIES_NAME, properties);
+        result.put(ADDITIONAL_PROPERTIES, new DataBoolean(false));
         return result;
     }
 
-    private DataStruct fromDataSchema(DataField field) {
+    private DataStruct fromDataSchema(DataField field, DataStruct definitions) {
         final var result = new DataStruct();
         final var doc = field.doc();
         if (doc != null) result.put(DESCRIPTION_NAME, new DataString(doc));
-        convertType(field.schema(), result);
+        convertType(field.schema(), field.constant(), field.defaultValue(), result, definitions);
         return result;
     }
 
-    private void convertType(DataSchema schema, DataStruct target) {
+    private void convertType(DataSchema schema, boolean constant, DataValue defaultValue, DataStruct target, DataStruct definitions) {
         if (schema.type() == DataSchema.Type.NULL) target.put(TYPE_NAME, new DataString("null"));
         if (schema.type() == DataSchema.Type.BOOLEAN) target.put(TYPE_NAME, new DataString("boolean"));
         if (schema.type() == DataSchema.Type.LONG) target.put(TYPE_NAME, new DataString("number"));
-        if (schema.type() == DataSchema.Type.STRING) target.put(TYPE_NAME, new DataString("string"));
+        if (schema.type() == DataSchema.Type.STRING) {
+            if (constant && defaultValue != null && defaultValue.value() != null) {
+                DataList enumList = new DataList();
+                enumList.add(new DataString(defaultValue.value().toString()));
+                target.put(ENUM_NAME, enumList);
+            } else {
+                target.put(TYPE_NAME, new DataString("string"));
+            }
+        }
         if (schema instanceof ListSchema listSchema) {
             target.put(TYPE_NAME, new DataString("array"));
             final var subStruct = new DataStruct();
-            convertType(listSchema.valueSchema(), subStruct);
+            convertType(listSchema.valueSchema(), false, null, subStruct, definitions);
             target.put(ITEMS_NAME, subStruct);
         }
         if (schema instanceof MapSchema mapSchema) {
+            final var patternSubStruct = new DataStruct();
+            target.put(PATTERN_PROPERTIES_NAME, patternSubStruct);
+
+
             final var subStruct = new DataStruct();
-            convertType(mapSchema.valueSchema(), subStruct);
-            target.put("object", subStruct);
+            target.put(TYPE_NAME, new DataString("object"));
+            patternSubStruct.put(ALL_PROPERTIES_REGEX, subStruct);
+            convertType(mapSchema.valueSchema(), false, null, subStruct, definitions);
         }
-        if (schema instanceof StructSchema structSchema) target.put("object", fromDataSchema(structSchema));
+        if (schema instanceof StructSchema structSchema) {
+            final var name = structSchema.name();
+            if (!definitions.containsKey(name)) {
+                definitions.put(name, fromDataSchema(structSchema, definitions));
+            }
+            target.put(REF_NAME, new DataString("#/definitions/" + name));
+        }
+
         if (schema instanceof UnionSchema unionSchema) {
             // Convert to an array of possible types
             final var possibleTypes = new DataList();
             for (var possibleSchema : unionSchema.possibleSchemas()) {
                 final var typeStruct = new DataStruct();
-                convertType(possibleSchema, typeStruct);
+                convertType(possibleSchema, false, null, typeStruct, definitions);
                 possibleTypes.add(typeStruct);
             }
-            target.put(TYPE_NAME, possibleTypes);
+            target.put(ANY_OF_NAME, possibleTypes);
         }
     }
 }

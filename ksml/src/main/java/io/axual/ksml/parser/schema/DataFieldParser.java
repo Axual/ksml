@@ -20,23 +20,53 @@ package io.axual.ksml.parser.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.UnionSchema;
+import io.axual.ksml.data.value.Pair;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.YamlNode;
-import io.axual.ksml.data.schema.DataField;
 
-import static io.axual.ksml.dsl.DataSchemaDSL.DATA_FIELD_DEFAULT_VALUE_FIELD;
-import static io.axual.ksml.dsl.DataSchemaDSL.DATA_FIELD_DOC_FIELD;
-import static io.axual.ksml.dsl.DataSchemaDSL.DATA_FIELD_NAME_FIELD;
-import static io.axual.ksml.dsl.DataSchemaDSL.DATA_FIELD_ORDER_FIELD;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import static io.axual.ksml.dsl.DataSchemaDSL.*;
 
 public class DataFieldParser extends BaseParser<DataField> {
+    private static final DataSchemaParser dataSchemaParser = new DataSchemaParser();
+    private static final DataSchema NULL_SCHEMA = DataSchema.create(DataSchema.Type.NULL);
+
     @Override
     public DataField parse(YamlNode node) {
+        final var schema = dataSchemaParser.parse(node);
+        final var required = parseBoolean(node, DATA_FIELD_REQUIRED_FIELD);
+        final var property = deductSchemaAndRequired(schema, required);
+        final var constant = parseBoolean(node, DATA_FIELD_CONSTANT_FIELD);
         return new DataField(
                 parseString(node, DATA_FIELD_NAME_FIELD),
-                new DataSchemaParser().parse(node),
+                property.left(),
                 parseString(node, DATA_FIELD_DOC_FIELD),
+                property.right(),
+                constant != null && constant,
                 new DataValueParser().parse(node.get(DATA_FIELD_DEFAULT_VALUE_FIELD)),
                 new DataFieldOrderParser().parse(node.get(DATA_FIELD_ORDER_FIELD)));
+    }
+
+    private static Pair<DataSchema, Boolean> deductSchemaAndRequired(DataSchema schema, Boolean required) {
+        // If we could parse the "required" field from the schema, then return the combination immediately
+        if (required != null) return Pair.of(schema, required);
+
+        // We could not parse a required field. In that case, the field is required if the schema is a UnionSchema with
+        // a NULL type in its list.
+        if (!(schema instanceof UnionSchema unionSchema)) return Pair.of(schema, true);
+        final var possibleSchemas = Arrays.stream(unionSchema.possibleSchemas()).toList();
+
+        // If there is no NULL type in the list, then conclude this is a required field
+        if (!possibleSchemas.contains(DataSchema.create(DataSchema.Type.NULL))) return Pair.of(schema, true);
+
+        // Create a copy of the union without NULL and return it along with "required=false"
+        final var newSchemas = new ArrayList<>(possibleSchemas);
+        newSchemas.remove(NULL_SCHEMA);
+        return Pair.of(new UnionSchema(newSchemas.toArray(DataSchema[]::new)), false);
     }
 }

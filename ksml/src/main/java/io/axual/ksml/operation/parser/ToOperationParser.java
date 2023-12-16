@@ -21,48 +21,65 @@ package io.axual.ksml.operation.parser;
  */
 
 import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.definition.parser.TopicOrTopicNameExtractorDefinitionParser;
+import io.axual.ksml.definition.parser.ToTopicDefinitionParser;
+import io.axual.ksml.definition.parser.ToTopicNameExtractorDefinitionParser;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ToOperation;
+import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.StructParser;
-import io.axual.ksml.parser.YamlNode;
 
 public class ToOperationParser extends OperationParser<ToOperation> {
-    private final TopicOrTopicNameExtractorDefinitionParser parser;
+    private final ToTopicDefinitionParser topicParser;
+    private final ToTopicNameExtractorDefinitionParser tneParser;
     private final StructSchema schema;
 
     public ToOperationParser(TopologyResources resources) {
         super("to", resources);
-        // Set up the special parser for taking care of the heavy lifting for this operation
-        parser = new TopicOrTopicNameExtractorDefinitionParser(resources);
-        // Wrap the fields of the parser's schema into a nice definition with the operation's name
+        topicParser = new ToTopicDefinitionParser(resources());
+        tneParser = new ToTopicNameExtractorDefinitionParser(resources());
+        final var fields = topicParser.fields();
+        fields.addAll(tneParser.fields());
         schema = structSchema(
                 ToOperation.class.getSimpleName(),
                 "Ends the pipeline by sending all messages to a fixed topic, or to a topic returned by a topic name extractor function",
-                parser.schema().fields());
+                fields);
+    }
+
+    private class ToOperationDefinitionParser extends DefinitionParser<ToOperation> {
+        @Override
+        protected StructParser<ToOperation> parser() {
+            return structParser(
+                    ToOperation.class,
+                    "Either a topic or topic name extractor that defines where to write pipeline messages to",
+                    topicParser,
+                    tneParser,
+                    (topic, tne) -> {
+                        if (topic != null && topic.topic() != null) {
+                            return new ToOperation(operationConfig(null), topic.topic(), topic.partitioner());
+                        }
+                        if (tne != null && tne.topicNameExtractor() != null) {
+                            return new ToOperation(operationConfig(null), tne.topicNameExtractor(), tne.partitioner());
+                        }
+                        throw FatalError.topologyError("Unknown target for pipeline \"to\" operation");
+                    });
+        }
     }
 
     @Override
     public StructParser<ToOperation> parser() {
-        return new StructParser<>() {
-            @Override
-            public ToOperation parse(YamlNode node) {
-                final var target = parser.parse(node);
-                if (target != null) {
-                    if (target.topic() != null) {
-                        return new ToOperation(operationConfig(null), target.topic(), target.partitioner());
-                    }
-                    if (target.topicNameExtractor() != null) {
-                        return new ToOperation(operationConfig(null), target.topicNameExtractor(), target.partitioner());
-                    }
-                }
-                return null;
-            }
-
-            @Override
-            public StructSchema schema() {
-                return schema;
-            }
-        };
+        return lookupField(
+                "topic",
+                KSMLDSL.Operations.TO,
+                false,
+                "Ends the pipeline by sending all messages to a fixed topic, or to a topic returned by a topic name extractor function",
+                name -> {
+                    final var topic = resources().topic(name);
+                    if (topic != null)
+                        return new ToOperation(operationConfig(null), topic, null);
+                    return null;
+                },
+                new ToOperationDefinitionParser());
     }
 }

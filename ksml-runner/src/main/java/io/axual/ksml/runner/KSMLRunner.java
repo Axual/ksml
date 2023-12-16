@@ -65,6 +65,7 @@ import org.apache.kafka.streams.state.HostInfo;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -148,7 +149,14 @@ public class KSMLRunner {
             final Map<String, TopologyDefinition> pipelineSpecs = new HashMap<>();
             definitions.forEach((name, definition) -> {
                 final var parser = new TopologyDefinitionParser(name);
-                final var schema = new JsonSchemaMapper().fromDataSchema((DataSchema)parser.schema());
+                final var schema = new JsonSchemaMapper().fromDataSchema((DataSchema) parser.schema());
+                try {
+                    final var writer = new PrintWriter(config.getKsmlConfig().getConfigDirectory() + "/ksml.json");
+                    writer.println(schema);
+                    writer.close();
+                } catch (Exception e) {
+                    // Ignore
+                }
                 log.info("Schema: {}", schema);
                 final var specification = parser.parse(YamlNode.fromRoot(definition, name));
                 if (!specification.producers().isEmpty()) producerSpecs.put(name, specification);

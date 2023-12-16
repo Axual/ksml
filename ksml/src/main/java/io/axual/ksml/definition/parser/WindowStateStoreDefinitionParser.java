@@ -2,7 +2,6 @@ package io.axual.ksml.definition.parser;
 
 import io.axual.ksml.definition.WindowStateStoreDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.NamedObjectParser;
 import io.axual.ksml.parser.StructParser;
@@ -21,7 +20,7 @@ public class WindowStateStoreDefinitionParser extends DefinitionParser<WindowSta
         return structParser(
                 WindowStateStoreDefinition.class,
                 "Definition of a window state store",
-                stringField(KSMLDSL.Stores.TYPE, requireType, "The type of the state store, fixed value \"" + StoreType.WINDOW_STORE + "\""),
+                fixedStringField(KSMLDSL.Stores.TYPE, requireType, StoreType.WINDOW_STORE.externalName(), "The type of the state store"),
                 stringField(KSMLDSL.Stores.NAME, false, null, "The name of the window store. If this field is not defined, then the name is derived from the context."),
                 booleanField(KSMLDSL.Stores.PERSISTENT, false, "\"true\" if this window store needs to be stored on disk, \"false\" otherwise"),
                 booleanField(KSMLDSL.Stores.TIMESTAMPED, false, "\"true\" if elements in the store are timestamped, \"false\" otherwise"),
@@ -35,12 +34,9 @@ public class WindowStateStoreDefinitionParser extends DefinitionParser<WindowSta
                 (type, name, persistent, timestamped, retention, windowSize, retainDuplicates, keyType, valueType, caching, logging) -> {
                     // Validate the type field if one was provided
                     if (type != null && !StoreType.WINDOW_STORE.externalName().equals(type)) {
-                        throw FatalError.topologyError("Expected store type \"" + StoreType.WINDOW_STORE.externalName() + "\"");
+                        return parseError("Expected store type \"" + StoreType.WINDOW_STORE.externalName() + "\"");
                     }
-                    name = name != null ? name : defaultName;
-                    if (name == null || name.isEmpty()) {
-                        throw FatalError.topologyError("State store name not defined");
-                    }
+                    name = validateName("Window state store", name, defaultName);
                     return new WindowStateStoreDefinition(name, persistent, timestamped, retention, windowSize, retainDuplicates, keyType, valueType, caching, logging);
                 });
     }

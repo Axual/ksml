@@ -25,6 +25,7 @@ pipelines:
       - type: peek
         forEach:
           code: log_message(key, value, pipeline="FIRST")
+    # Close the pipeline by saving its output under a self-defined name
     as: first_pipeline_result
 
   second:
@@ -34,6 +35,7 @@ pipelines:
       - type: peek
         forEach:
           code: log_message(key, value, pipeline="SECOND")
+    # Close the pipeline by saving its output under a self-defined name
     as: second_pipeline_result
 
   third:
@@ -43,19 +45,19 @@ pipelines:
       - type: peek
         forEach:
           code: log_message(key, value, pipeline="THIRD")
-    as: third_pipeline_result
+    # Close the pipeline implicitly by saving its output under the pipeline's own name
 
   fourth:
     # Use the result from the third pipeline as input
-    from: third_pipeline_result
+    from: third
     via:
       - type: peek
         forEach:
           code: log_message(key, value, pipeline="FOURTH")
-    as: fourth_pipeline_result
+    # Close the pipeline implicitly by saving its output under the pipeline's own name
 
   last:
     # Use the result from the fourth pipeline as input
-    from: fourth_pipeline_result
+    from: fourth
     forEach:
       code: log_message(key, value, pipeline="LAST")

@@ -43,7 +43,7 @@ public class AggregateOperationParser extends StoreOperationParser<AggregateOper
         return structParser(
                 AggregateOperation.class,
                 "An aggregate operation",
-                stringField(Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + Operations.AGGREGATE + "\""),
+                operationTypeField(Operations.AGGREGATE),
                 nameField(),
                 functionField(Operations.Aggregate.INITIALIZER, "The initializer function, which generates an initial value for every set of aggregated records", new InitializerDefinitionParser()),
                 optional(functionField(Operations.Aggregate.AGGREGATOR, "(GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result", new AggregatorDefinitionParser())),

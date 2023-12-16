@@ -36,10 +36,9 @@ public class ForEachOperationParser extends OperationParser<ForEachOperation> {
         return structParser(
                 ForEachOperation.class,
                 "Operation to call a function for every record in the stream",
-                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + KSMLDSL.Operations.FOR_EACH + "\""),
                 nameField(),
                 functionField(KSMLDSL.Operations.FOR_EACH, true, "A function that gets called for every message in the stream", new ForEachActionDefinitionParser()),
                 storeNamesField(),
-                (type, name, action, stores) -> action != null ? new ForEachOperation(new StoreOperationConfig(namespace(), name, stores, null), action) : null);
+                (name, action, stores) -> action != null ? new ForEachOperation(new StoreOperationConfig(namespace(), name, stores, null), action) : null);
     }
 }

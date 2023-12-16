@@ -28,14 +28,20 @@ import io.axual.ksml.parser.StructParser;
 import static io.axual.ksml.dsl.KSMLDSL.Streams;
 
 public class StreamDefinitionParser extends DefinitionParser<StreamDefinition> {
+    private final boolean requireKeyValueType;
+
+    public StreamDefinitionParser(boolean requireKeyValueType) {
+        this.requireKeyValueType = requireKeyValueType;
+    }
+
     @Override
     public StructParser<StreamDefinition> parser() {
         return structParser(
                 StreamDefinition.class,
                 "Contains a definition of a Stream, which can be referenced by producers and pipelines",
                 stringField(Streams.TOPIC, true, "The name of the Kafka topic for this stream"),
-                userTypeField(Streams.KEY_TYPE, true, "The key type of the stream"),
-                userTypeField(Streams.VALUE_TYPE, true, "The value type of the stream"),
+                userTypeField(Streams.KEY_TYPE, requireKeyValueType, "The key type of the stream"),
+                userTypeField(Streams.VALUE_TYPE, requireKeyValueType, "The value type of the stream"),
                 StreamDefinition::new);
     }
 }

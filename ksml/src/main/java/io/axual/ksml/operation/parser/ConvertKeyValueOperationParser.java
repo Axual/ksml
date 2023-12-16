@@ -37,7 +37,7 @@ public class ConvertKeyValueOperationParser extends OperationParser<ConvertKeyVa
         return structParser(
                 ConvertKeyValueOperation.class,
                 "An operation to convert the stream key and value types to other types. Conversion is only syntactic, eg. from Avro to XML.",
-                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + KSMLDSL.Operations.CONVERT_KEY_VALUE + "\""),
+                operationTypeField(KSMLDSL.Operations.CONVERT_KEY_VALUE),
                 nameField(),
                 userTypeField(KSMLDSL.Operations.Convert.INTO, true, "The tuple type to convert the stream key/value into"),
                 (type, name, into) -> {

@@ -41,7 +41,7 @@ public class ProducerDefinitionParser extends ContextAwareParser<ProducerDefinit
                 functionField(Producers.GENERATOR, true, "The function that generates records", new GeneratorDefinitionParser()),
                 durationField(Producers.INTERVAL, true, "The interval with which the generator is called"),
                 functionField(Producers.CONDITION, false, "A function that validates the generator's result message. Returns \"true\" when the message may be produced on the topic, \"false\" otherwise.", new PredicateDefinitionParser()),
-                topicField(Producers.TARGET, true, "The topic to produce to", new TopicDefinitionParser()),
+                topicField(Producers.TARGET, true, "The topic to produce to", new TopicDefinitionParser(false)),
                 ProducerDefinition::new);
     }
 }

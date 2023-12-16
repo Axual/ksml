@@ -53,9 +53,9 @@ public class JoinOperationParser extends StoreOperationParser<JoinOperation> {
         joinStreamParser = structParser(
                 JoinOperation.class,
                 "Operation to join with a stream",
-                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + Operations.JOIN + "\""),
+                operationTypeField(Operations.JOIN),
                 nameField(),
-                topicField(Operations.Join.WITH_STREAM, true, "(Required for Stream joins) A reference to the Stream, or an inline definition of the Stream to join with", new StreamDefinitionParser()),
+                topicField(Operations.Join.WITH_STREAM, true, "(Required for Stream joins) A reference to the Stream, or an inline definition of the Stream to join with", new StreamDefinitionParser(false)),
                 functionField(Operations.Join.VALUE_JOINER, "(Stream joins) A function that joins two values", new ValueJoinerDefinitionParser()),
                 durationField(Operations.Join.TIME_DIFFERENCE, true, "(Stream joins) The maximum time difference for a join over two streams on the same key"),
                 durationField(Operations.Join.GRACE, false, "(Stream joins) The window grace period (the time to admit out-of-order events after the end of the window)"),
@@ -72,7 +72,7 @@ public class JoinOperationParser extends StoreOperationParser<JoinOperation> {
                 "Operation to join with a table",
                 stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + Operations.JOIN + "\""),
                 nameField(),
-                topicField(Operations.Join.WITH_TABLE, true, "(Required for Table joins) A reference to the Table, or an inline definition of the Table to join with", new TableDefinitionParser()),
+                topicField(Operations.Join.WITH_TABLE, true, "(Required for Table joins) A reference to the Table, or an inline definition of the Table to join with", new TableDefinitionParser(false)),
                 functionField(Operations.Join.FOREIGN_KEY_EXTRACTOR, "(Table joins) A function that can translate the join table value to a primary key", new ValueJoinerDefinitionParser()),
                 functionField(Operations.Join.VALUE_JOINER, "(Table joins) A function that joins two values", new ValueJoinerDefinitionParser()),
                 durationField(Operations.Join.GRACE, false, "(Table joins) The window grace period (the time to admit out-of-order events after the end of the window)"),
@@ -91,7 +91,7 @@ public class JoinOperationParser extends StoreOperationParser<JoinOperation> {
                 "Operation to join with a table",
                 stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + Operations.JOIN + "\""),
                 nameField(),
-                topicField(Operations.Join.WITH_GLOBAL_TABLE, true, "(Required for GlobalTable joins) A reference to the GlobalTable, or an inline definition of the GlobalTable to join with", new GlobalTableDefinitionParser()),
+                topicField(Operations.Join.WITH_GLOBAL_TABLE, true, "(Required for GlobalTable joins) A reference to the GlobalTable, or an inline definition of the GlobalTable to join with", new GlobalTableDefinitionParser(false)),
                 functionField(Operations.Join.MAPPER, "(GlobalTable joins) A function that maps the key value from the stream with the primary key of the GlobalTable", new ValueJoinerDefinitionParser()),
                 functionField(Operations.Join.VALUE_JOINER, "(GlobalTable joins) A function that joins two values", new ValueJoinerDefinitionParser()),
                 storeField(false, "Materialized view of the joined streams", null),
@@ -111,7 +111,7 @@ public class JoinOperationParser extends StoreOperationParser<JoinOperation> {
             public JoinOperation parse(YamlNode node) {
                 if (node == null) return null;
 
-                final var joinTopic = new JoinTargetDefinitionParser( resources()).parse(node);
+                final var joinTopic = new JoinTargetDefinitionParser(resources()).parse(node);
                 if (joinTopic.definition() instanceof StreamDefinition) return joinStreamParser.parse(node);
                 if (joinTopic.definition() instanceof TableDefinition) return joinTableParser.parse(node);
                 if (joinTopic.definition() instanceof GlobalTableDefinition) return joinGlobalTableParser.parse(node);
