@@ -36,7 +36,7 @@ import io.axual.ksml.data.type.DataType;
 public class AvroDataMapper extends NativeDataObjectMapper {
     @Override
     public DataObject toDataObject(DataType expected, Object value) {
-        if (value == JsonProperties.NULL_VALUE) return DataNull.INSTANCE;
+        if (value == null || value == JsonProperties.NULL_VALUE) return DataNull.INSTANCE;
         if (value instanceof Utf8 utf8) return new DataString(utf8.toString());
         if (value instanceof GenericData.EnumSymbol) {
             return new DataString(value.toString());
@@ -54,7 +54,7 @@ public class AvroDataMapper extends NativeDataObjectMapper {
 
     @Override
     public Object fromDataObject(DataObject value) {
-        if (value instanceof DataNull) return JsonProperties.NULL_VALUE;
+        if (value instanceof DataNull) return null;
         if (value instanceof DataStruct rec) {
             return new AvroObject(rec.type().schema(), fromDataStruct(rec));
         }
