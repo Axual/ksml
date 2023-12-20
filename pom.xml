@@ -6,7 +6,7 @@
 
     <groupId>io.axual.ksml</groupId>
     <artifactId>ksml-parent</artifactId>
-    <version>0.2.1</version>
+    <version>0.2.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <licenses>
