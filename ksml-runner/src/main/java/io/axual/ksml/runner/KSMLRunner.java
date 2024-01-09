@@ -127,6 +127,8 @@ public class KSMLRunner {
             backendFuture.get();
             // Future, check exit state of backend
         } catch (ExecutionException | InterruptedException e) {
+            throw FatalError.reportAndExit(new KSMLExecutionException("Exception caught", e));
+        }finally {
             executorService.shutdown();
             try {
                 if (!executorService.awaitTermination(800, TimeUnit.MILLISECONDS)) {
@@ -136,7 +138,7 @@ public class KSMLRunner {
                 executorService.shutdownNow();
                 throw FatalError.reportAndExit(new KSMLExecutionException("Exception caught", e2));
             }
-            throw FatalError.reportAndExit(new KSMLExecutionException("Exception caught", e));
+
         }
     }
 }
