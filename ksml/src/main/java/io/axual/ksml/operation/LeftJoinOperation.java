@@ -64,10 +64,17 @@ public class LeftJoinOperation extends StoreOperation {
         final var k = input.keyType();
         final var v = input.valueType();
 
-        if (joinStream instanceof KStreamWrapper kStreamWrapper) {
-            final var vo = kStreamWrapper.valueType();
+        if (joinStream instanceof KStreamWrapper otherStream) {
+            /*    Kafka Streams method signature:
+             *    <VO, VR> KStream<K, VR> leftJoin(final KStream<K, VO> otherStream,
+             *          final ValueJoiner<? super V, ? super VO, ? extends VR> joiner,
+             *          final JoinWindows windows,
+             *          final StreamJoined<K, V, VO> streamJoined);
+             */
+            final var ko = otherStream.keyType();
+            final var vo = otherStream.valueType();
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
-            checkType("Join stream keyType", kStreamWrapper.keyType(), equalTo(k));
+            checkType("Join stream keyType", ko, equalTo(k));
             checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vo));
             var joined = StreamJoined.with(k.getSerde(), v.getSerde(), vo.getSerde());
             if (name != null) joined = joined.withName(name);
@@ -77,29 +84,29 @@ public class LeftJoinOperation extends StoreOperation {
             }
 
             final var output = (KStream) input.stream.leftJoin(
-                    kStreamWrapper.stream,
+                    otherStream.stream,
                     new UserValueJoiner(valueJoiner),
                     JoinWindows.ofTimeDifferenceWithNoGrace(joinWindowsDuration),
                     joined);
             return new KStreamWrapper(output, k, vr);
         }
 
-        if (joinStream instanceof KTableWrapper kTableWrapper) {
+        if (joinStream instanceof KTableWrapper otherTable) {
             /*    Kafka Streams method signature:
              *    <VT, VR> KStream<K, VR> leftJoin(
              *          final KTable<K, VT> table,
              *          final ValueJoiner<? super V, ? super VT, ? extends VR> joiner,
              *          final Joined<K, V, VT> joined)
              */
-
-            final var vt = kTableWrapper.valueType();
+            final var kt = otherTable.keyType();
+            final var vt = otherTable.valueType();
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vt, v), false);
-            checkType("Join table keyType", kTableWrapper.keyType(), equalTo(k));
+            checkType("Join table keyType", kt, equalTo(k));
             checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vt));
             var joined = Joined.with(k.getSerde(), v.getSerde(), vt.getSerde());
             if (name != null) joined = joined.withName(name);
             final var output = (KStream) input.stream.leftJoin(
-                    kTableWrapper.table,
+                    otherTable.table,
                     new UserValueJoiner(valueJoiner),
                     joined);
             return new KStreamWrapper(output, k, vr);
@@ -113,7 +120,7 @@ public class LeftJoinOperation extends StoreOperation {
         final var k = input.keyType();
         final var v = input.valueType();
 
-        if (joinStream instanceof KTableWrapper kTableWrapper) {
+        if (joinStream instanceof KTableWrapper otherTable) {
             /*    Kafka Streams method signature:
              *    <VO, VR> KTable<K, VR> leftJoin(
              *          final KTable<K, VO> other,
@@ -121,23 +128,23 @@ public class LeftJoinOperation extends StoreOperation {
              *          final Named named,
              *          final Materialized<K, VR, KeyValueStore<Bytes, byte[]>> materialized)
              */
-
-            final var vo = kTableWrapper.valueType();
+            final var ko = otherTable.keyType();
+            final var vo = otherTable.valueType();
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
-            checkType("Join table keyType", kTableWrapper.keyType(), equalTo(k));
+            checkType("Join table keyType", ko, equalTo(k));
             checkFunction(VALUEJOINER_NAME, valueJoiner, subOf(vr), vr, superOf(v), superOf(vo));
             final var kvStore = validateKeyValueStore(store, k, vr);
             if (kvStore != null) {
                 final var mat = materialize(kvStore);
                 final var output = name != null
-                        ? input.table.leftJoin(kTableWrapper.table, new UserValueJoiner(valueJoiner), Named.as(name), mat)
-                        : input.table.leftJoin(kTableWrapper.table, new UserValueJoiner(valueJoiner), mat);
+                        ? input.table.leftJoin(otherTable.table, new UserValueJoiner(valueJoiner), Named.as(name), mat)
+                        : input.table.leftJoin(otherTable.table, new UserValueJoiner(valueJoiner), mat);
                 return new KTableWrapper(output, k, vr);
             }
 
             final var output = name != null
-                    ? (KTable) input.table.leftJoin(kTableWrapper.table, new UserValueJoiner(valueJoiner), Named.as(name))
-                    : (KTable) input.table.leftJoin(kTableWrapper.table, new UserValueJoiner(valueJoiner));
+                    ? (KTable) input.table.leftJoin(otherTable.table, new UserValueJoiner(valueJoiner), Named.as(name))
+                    : (KTable) input.table.leftJoin(otherTable.table, new UserValueJoiner(valueJoiner));
             return new KTableWrapper(output, k, vr);
         }
 

@@ -57,9 +57,16 @@ public class OuterJoinOperation extends StoreOperation {
         final var v = input.valueType();
 
         if (joinStream instanceof KStreamWrapper otherStream) {
+            /*    Kafka Streams method signature:
+             *    <VO, VR> KStream<K, VR> outerJoin(final KStream<K, VO> otherStream,
+             *          final ValueJoiner<? super V, ? super VO, ? extends VR> joiner,
+             *          final JoinWindows windows,
+             *          final StreamJoined<K, V, VO> streamJoined);
+             */
+            final var ko = otherStream.keyType();
             final var vo = otherStream.valueType();
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
-            checkType("Join stream keyType", otherStream.keyType().userType().dataType(), equalTo(k));
+            checkType("Join stream keyType", ko, equalTo(k));
             checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vo));
             var joined = StreamJoined.with(k.getSerde(), v.getSerde(), vo.getSerde());
             if (name != null) joined = joined.withName(name);
@@ -88,11 +95,11 @@ public class OuterJoinOperation extends StoreOperation {
              *          final Named named,
              *          final Materialized<K, VR, KeyValueStore<Bytes, byte[]>> materialized)
              */
-
             checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
+            final var ko = otherTable.keyType();
             final var vo = otherTable.valueType();
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
-            checkType("Join table keyType", otherTable.keyType().userType(), equalTo(k));
+            checkType("Join table keyType", ko, equalTo(k));
             checkFunction(VALUEJOINER_NAME, valueJoiner, subOf(vr), vr, superOf(v), superOf(vo));
             final var kvStore = validateKeyValueStore(store, k, vr);
 
