@@ -58,7 +58,7 @@ class StreamDefinitionTest {
         var streamDefinition = new StreamDefinition("topic", "string", "string");
         var resources = new TopologyResources("test");
 
-        var context = new TopologyBuildContext(builder, resources, "");
+        var context = new TopologyBuildContext(builder, resources);
         // when it adds itself to Builder
         var streamWrapper = context.getStreamWrapper(streamDefinition);
 
