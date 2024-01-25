@@ -39,10 +39,8 @@ import org.apache.kafka.common.utils.Utils;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.StoreQueryParameters;
-import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.StreamsMetadata;
-import org.apache.kafka.streams.TopologyConfig;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -95,10 +93,9 @@ public class KafkaBackend implements Backend {
                         new ResolvingDeserializer<>(serde.deserializer(), streamsConfig)));
         var topologyGenerator = new KSMLTopologyGenerator(applicationId, ksmlConf, streamsConfig);
 
-//        var topologyConfig = new TopologyConfig(applicationId, new StreamsConfig(streamsConfig), new Properties());
-        var topologyConfig = new TopologyConfig(new StreamsConfig(streamsConfig));
-        final var topology = topologyGenerator.create(new StreamsBuilder(topologyConfig));
-        kafkaStreams = new KafkaStreams(topology, mapToProperties(streamsConfig));
+        final var streamProperties = mapToProperties(streamsConfig);
+        final var topology = topologyGenerator.create(streamProperties);
+        kafkaStreams = new KafkaStreams(topology, streamProperties);
         kafkaStreams.setUncaughtExceptionHandler(ExecutionContext.INSTANCE::uncaughtException);
     }
 

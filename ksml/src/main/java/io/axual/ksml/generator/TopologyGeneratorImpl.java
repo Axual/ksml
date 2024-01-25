@@ -40,19 +40,12 @@ import io.axual.ksml.parser.MapParser;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.parser.topology.TopologyParseContext;
 import io.axual.ksml.stream.StreamWrapper;
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.Topology;
-import org.apache.kafka.streams.TopologyDescription;
+import org.apache.kafka.streams.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static io.axual.ksml.dsl.KSMLDSL.*;
 import static io.axual.ksml.store.StoreType.*;
@@ -89,11 +82,14 @@ public class TopologyGeneratorImpl {
         return new ArrayList<>();
     }
 
-    public Topology create(String applicationId, StreamsBuilder builder) {
+    public Topology create(String applicationId, Properties streamsConfig) {
+        var topologyConfig = new TopologyConfig(new StreamsConfig(streamsConfig));
+        var builder = new StreamsBuilder(topologyConfig);
+
         List<YAMLDefinition> definitions = readKSMLDefinitions();
         GeneratedTopology generatorResult = null;
         for (YAMLDefinition definition : definitions) {
-            generatorResult = generate(applicationId, builder, YamlNode.fromRoot(definition.root(), "ksml"), getPrefix(definition.source()));
+            generatorResult = generate(applicationId, builder,streamsConfig, YamlNode.fromRoot(definition.root(), "ksml"), getPrefix(definition.source()));
         }
 
         if (generatorResult != null) {
@@ -110,7 +106,7 @@ public class TopologyGeneratorImpl {
             LOG.info("\n{}\n", summary);
         }
 
-        return builder.build();
+        return builder.build(streamsConfig);
     }
 
     public void appendTopics(StringBuilder builder, String description, Set<String> topics) {
@@ -168,7 +164,7 @@ public class TopologyGeneratorImpl {
         return source;
     }
 
-    private GeneratedTopology generate(String applicationId, StreamsBuilder builder, YamlNode node, String
+    private GeneratedTopology generate(String applicationId, StreamsBuilder builder,Properties streamsProperties, YamlNode node, String
             namePrefix) {
         if (node == null) return null;
 
@@ -206,7 +202,7 @@ public class TopologyGeneratorImpl {
         });
 
         // Build the result topology
-        final var topology = context.build();
+        final var topology = context.build(streamsProperties);
 
         // Derive all input, intermediate and output topics
         final var knownTopics = context.getRegisteredTopics();
