@@ -31,7 +31,6 @@ import io.axual.ksml.notation.json.JsonNotation;
 import io.axual.ksml.notation.json.JsonSchemaLoader;
 import io.axual.ksml.notation.xml.XmlNotation;
 import io.axual.ksml.notation.xml.XmlSchemaLoader;
-import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 
 import java.util.Map;
@@ -49,7 +48,7 @@ public class KSMLTopologyGenerator implements TopologyGenerator {
     }
 
     @Override
-    public Topology create(StreamsBuilder streamsBuilder) {
+    public Topology create(Properties streamsConfig) {
         // Register schema loaders
         SchemaLibrary.registerLoader(AvroNotation.NOTATION_NAME, new AvroSchemaLoader(config.schemaDirectory()));
         SchemaLibrary.registerLoader(CsvNotation.NOTATION_NAME, new CsvSchemaLoader(config.schemaDirectory()));
@@ -60,6 +59,6 @@ public class KSMLTopologyGenerator implements TopologyGenerator {
         var generator = new TopologyGeneratorImpl(config);
 
         // Parse and return the topology
-        return generator.create(applicationId, streamsBuilder);
+        return generator.create(applicationId, streamsConfig);
     }
 }

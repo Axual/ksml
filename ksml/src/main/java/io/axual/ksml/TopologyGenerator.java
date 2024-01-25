@@ -21,9 +21,10 @@ package io.axual.ksml;
  */
 
 
-import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 
+import java.util.Properties;
+
 public interface TopologyGenerator {
-    Topology create(StreamsBuilder streamsBuilder);
+    Topology create(Properties streamsBuilder);
 }

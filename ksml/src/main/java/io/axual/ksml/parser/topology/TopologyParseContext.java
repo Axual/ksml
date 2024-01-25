@@ -43,10 +43,7 @@ import io.axual.ksml.user.UserFunction;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 public class TopologyParseContext implements ParseContext {
     private final PythonContext pythonContext;
@@ -244,7 +241,7 @@ public class TopologyParseContext implements ParseContext {
         markStateStoreCreated(store.name());
     }
 
-    public Topology build() {
+    public Topology build(Properties streamsProperties) {
         // Create all state stores that were defined, but not yet implicitly created (eg. through using Materialized)
         for (Map.Entry<String, StateStoreDefinition> entry : stateStoreDefinitions.entrySet()) {
             if (!createdStateStores.contains(entry.getKey())) {
@@ -252,6 +249,6 @@ public class TopologyParseContext implements ParseContext {
                 createdStateStores.add(entry.getKey());
             }
         }
-        return builder.build();
+        return builder.build(streamsProperties);
     }
 }

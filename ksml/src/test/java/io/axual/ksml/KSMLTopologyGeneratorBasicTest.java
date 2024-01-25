@@ -23,7 +23,6 @@ package io.axual.ksml;
 
 import io.axual.ksml.generator.TopologyGeneratorImpl;
 import io.axual.ksml.notation.NotationLibrary;
-import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TopologyDescription;
 import org.graalvm.home.Version;
 import org.junit.jupiter.api.BeforeAll;
@@ -38,7 +37,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.Properties;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -65,7 +64,11 @@ public class KSMLTopologyGeneratorBasicTest {
                 .notationLibrary(new NotationLibrary(new HashMap<>()))
                 .build());
 
-        final var topology = topologyGenerator.create("some.app.id", new StreamsBuilder());
+        var streamProperties = new Properties();
+        streamProperties.put("bootstrap.servers", "localhost:9092");
+        streamProperties.put("application.id", "testing");
+
+        final var topology = topologyGenerator.create("some.app.id", streamProperties);
         final TopologyDescription description = topology.describe();
         System.out.println(description);
 
