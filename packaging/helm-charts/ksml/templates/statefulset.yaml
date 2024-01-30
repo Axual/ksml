@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "ksml.fullname" . }}
   labels:
@@ -9,6 +9,8 @@ spec:
   selector:
     matchLabels:
       {{- include "ksml.selectorLabels" . | nindent 6 }}
+  serviceName: {{ include "ksml.fullname" . }}-headless
+  podManagementPolicy: Parallel
   template:
     metadata:
       annotations:
@@ -18,7 +20,7 @@ spec:
       {{- end }}
       labels:
         {{- include "ksml.labels" . | nindent 8 }}
-	{{- with .Values.podLabels }}
+        {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
