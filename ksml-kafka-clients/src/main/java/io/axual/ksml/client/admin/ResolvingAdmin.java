@@ -228,7 +228,7 @@ public class ResolvingAdmin extends ForwardingAdmin {
     public ListConsumerGroupOffsetsResult listConsumerGroupOffsets(Map<String, ListConsumerGroupOffsetsSpec> groupSpecs, ListConsumerGroupOffsetsOptions options) {
         // Resolve the groupSpecs
         var newGroupSpecs = new HashMap<String, ListConsumerGroupOffsetsSpec>();
-        groupSpecs.forEach((groupId, spec) -> newGroupSpecs.put(groupResolver.resolve(groupId), new ListConsumerGroupOffsetsSpec().topicPartitions(spec.topicPartitions())));
+        groupSpecs.forEach((groupId, spec) -> newGroupSpecs.put(groupResolver.resolve(groupId), new ListConsumerGroupOffsetsSpec().topicPartitions(topicResolver.resolveTopicPartitions(spec.topicPartitions()))));
 
         // Resolve the options
         if (options != null) {
@@ -335,9 +335,12 @@ public class ResolvingAdmin extends ForwardingAdmin {
         // Resolve all new topics into a new collection
         var resolvedTopics = new ArrayList<NewTopic>();
         for (var newTopic : newTopics) {
-            resolvedTopics.add(newTopic.replicasAssignments() == null
+            var resolvedTopic = newTopic.replicasAssignments() == null
                     ? new NewTopic(topicResolver.resolve(newTopic.name()), newTopic.numPartitions(), newTopic.replicationFactor())
-                    : new NewTopic(topicResolver.resolve(newTopic.name()), newTopic.replicasAssignments()));
+                    : new NewTopic(topicResolver.resolve(newTopic.name()), newTopic.replicasAssignments());
+            // Make sure that the config is added properly. Cleanup properties and timestamps are typical properties set in Streams
+            resolvedTopic.configs(newTopic.configs());
+            resolvedTopics.add(resolvedTopic);
         }
         return resolvedTopics;
     }
