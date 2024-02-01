@@ -42,6 +42,13 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+          env:
+            - name: "KSML_K8S_POD_NAME"
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: KSML_GROUP_INSTANCE_ID
+              value: "$(KSML_K8S_POD_NAME)"
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
