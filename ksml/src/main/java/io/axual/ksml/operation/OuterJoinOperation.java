@@ -73,9 +73,10 @@ public class OuterJoinOperation extends BaseJoinOperation {
              */
 
             final var otherStream = context.getStreamWrapper(joinStream);
+            final var ko = otherStream.keyType();
             final var vo = otherStream.valueType();
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
-            checkType("Join stream keyType", otherStream.keyType().userType().dataType(), equalTo(k));
+            checkType("Join stream keyType", ko, equalTo(k));
             final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vo));
             final var windowedK = windowedTypeOf(k);
             final var windowStore = validateWindowStore(store(), k, vr);
@@ -107,9 +108,10 @@ public class OuterJoinOperation extends BaseJoinOperation {
 
             final var otherTable = context.getStreamWrapper(joinTable);
             checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
+            final var ko = otherTable.keyType();
             final var vo = otherTable.valueType();
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
-            checkType("Join table keyType", otherTable.keyType().userType(), equalTo(k));
+            checkType("Join table keyType", ko, equalTo(k));
             final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(v), superOf(vo));
             final var userJoiner = new UserValueJoiner(joiner);
             final var kvStore = validateKeyValueStore(store(), k, vr);

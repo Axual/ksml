@@ -110,9 +110,10 @@ public class LeftJoinOperation extends BaseJoinOperation {
              */
 
             final var otherStream = context.getStreamWrapper(joinStream);
+            final var ko = otherStream.keyType();
             final var vo = otherStream.valueType();
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
-            checkType("Join stream keyType", otherStream.keyType(), equalTo(k));
+            checkType("Join stream keyType", ko, equalTo(k));
             final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vo));
             final var windowedK = windowedTypeOf(k);
             final var windowStore = validateWindowStore(store(), k, vr);
@@ -133,9 +134,10 @@ public class LeftJoinOperation extends BaseJoinOperation {
              */
 
             final var otherTable = context.getStreamWrapper(joinTable);
+            final var kt = otherTable.keyType();
             final var vt = otherTable.valueType();
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vt, v), false);
-            checkType("Join table keyType", otherTable.keyType(), equalTo(k));
+            checkType("Join table keyType", kt, equalTo(k));
             final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vt));
             final var joined = joinedOf(name, k, v, vt, gracePeriod);
             final var userJoiner = new UserValueJoinerWithKey(joiner);
@@ -185,7 +187,7 @@ public class LeftJoinOperation extends BaseJoinOperation {
             final var ko = otherTable.keyType();
             final var vo = otherTable.valueType();
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
-            checkType("Join table keyType", otherTable.keyType(), equalTo(k));
+            checkType("Join table keyType", ko, equalTo(k));
             final var fkExtract = userFunctionOf(context, FOREIGN_KEY_EXTRACTOR_NAME, foreignKeyExtractor, equalTo(v), equalTo(ko));
             if (fkExtract != null) {
                 /*    Kafka Streams method signature:
