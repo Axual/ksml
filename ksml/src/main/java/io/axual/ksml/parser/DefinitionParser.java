@@ -151,8 +151,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
     }
 
     protected StructParser<Duration> durationField(String childName, boolean mandatory, String doc) {
-        final var stringParser = stringField(childName, mandatory, null, doc);
-        return freeField(childName, mandatory, null, doc, ParserWithSchema.of(node -> parseDuration(stringParser.parse(node)), DURATION_SCHEMA));
+        return freeField(childName, mandatory, null, doc, ParserWithSchema.of(node -> parseDuration(stringValueParser.parse(node)), DURATION_SCHEMA));
     }
 
     protected StructParser<Integer> integerField(String childName, boolean mandatory, String doc) {
