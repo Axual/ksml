@@ -56,16 +56,16 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     private static final String ENUM_NAME = "enum";
 
     @Override
-    public DataSchema toDataSchema(String name, String value) {
+    public DataSchema toDataSchema(String namespace, String name, String value) {
         // Convert JSON to internal DataObject format
         var schema = MAPPER.toDataObject(value);
         if (schema instanceof DataStruct schemaStruct) {
-            return toDataSchema(schemaStruct);
+            return toDataSchema(namespace,name,schemaStruct);
         }
         return null;
     }
 
-    private DataSchema toDataSchema(DataStruct schema) {
+    private DataSchema toDataSchema(String namespace, String name, DataStruct schema) {
         final var title = schema.getAsString(TITLE_NAME);
         final var doc = schema.getAsString(DESCRIPTION_NAME);
 
@@ -81,7 +81,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         final var properties = schema.get(PROPERTIES_NAME);
         if (properties instanceof DataStruct propertiesStruct)
             fields = convertFields(propertiesStruct, requiredProperties);
-        return new StructSchema(null, title != null ? title.value() : null, doc != null ? doc.value() : null, fields);
+        return new StructSchema(namespace, title != null ? title.value() : name, doc != null ? doc.value() : null, fields);
     }
 
     private List<DataField> convertFields(DataStruct properties, Set<String> requiredProperties) {

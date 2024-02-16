@@ -20,7 +20,7 @@ package io.axual.ksml.rest.data;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.notation.binary.NativeDataObjectMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.util.DataUtil;
 
 public class KeyValueBean {

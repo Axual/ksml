@@ -21,16 +21,11 @@ package io.axual.ksml.generator;
  */
 
 
+import io.axual.ksml.data.type.*;
 import io.axual.ksml.execution.ExecutionContext;
-import org.apache.kafka.common.serialization.Serde;
-
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.StructType;
-import io.axual.ksml.data.type.UnionType;
-import io.axual.ksml.data.type.UserType;
-import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.serde.UnionSerde;
+import io.axual.ksml.data.serde.UnionSerde;
+import org.apache.kafka.common.serialization.Serde;
 
 import static io.axual.ksml.dsl.WindowedSchema.generateWindowedSchema;
 
@@ -50,10 +45,10 @@ public record StreamDataType(UserType userType, boolean isKey) {
     }
 
     private static UnionType cookUnion(UnionType type) {
-        var cookedUnionTypes = new UserType[type.possibleTypes().length];
+        var cookedUnionTypes = new DataType[type.possibleTypes().length];
         for (int index = 0; index < type.possibleTypes().length; index++) {
             var userType = type.possibleTypes()[index];
-            cookedUnionTypes[index] = new UserType(userType.notation(), cookType(userType.dataType()));
+            cookedUnionTypes[index] = cookType(userType);
         }
         return new UnionType(cookedUnionTypes);
     }
@@ -70,7 +65,7 @@ public record StreamDataType(UserType userType, boolean isKey) {
 
     public Serde<Object> serde() {
         if (userType.dataType() instanceof UnionType unionType)
-            return new UnionSerde(cookUnion(unionType), isKey);
+            return new UnionSerde(NotationLibrary.get(userType.notation())::get, cookUnion(unionType), isKey);
         var serde = NotationLibrary.get(userType.notation()).serde(userType.dataType(), isKey);
         return ExecutionContext.INSTANCE.wrapSerde(serde);
     }

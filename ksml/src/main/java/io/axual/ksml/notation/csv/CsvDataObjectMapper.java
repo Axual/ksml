@@ -28,12 +28,12 @@ import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
-import io.axual.ksml.data.schema.SchemaUtil;
+import io.axual.ksml.data.mapper.DataTypeSchemaMapper;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.execution.FatalError;
-import io.axual.ksml.notation.binary.NativeDataObjectMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -68,7 +68,7 @@ public class CsvDataObjectMapper implements DataObjectMapper<String> {
         for (int index = 0; index < schema.fields().size(); index++) {
             var field = schema.field(index);
             var value = index < line.length ? line[index] : (field.defaultValue() != null ? field.defaultValue().value() : null);
-            result.put(field.name(), NATIVE_MAPPER.toDataObject(SchemaUtil.schemaToDataType(field.schema()), value));
+            result.put(field.name(), NATIVE_MAPPER.toDataObject(DataTypeSchemaMapper.schemaToDataType(field.schema()), value));
         }
         return result;
     }

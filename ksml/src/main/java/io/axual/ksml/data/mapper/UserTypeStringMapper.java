@@ -67,7 +67,7 @@ public class UserTypeStringMapper {
     }
 
     private String enumTypeToString(EnumType enumType) {
-        return "enum(" + String.join(",", enumType.symbols()) + ")";
+        return "enum(" + String.join(",", enumType.getSymbols()) + ")";
     }
 
     private String listTypeToString(ListType listType) {

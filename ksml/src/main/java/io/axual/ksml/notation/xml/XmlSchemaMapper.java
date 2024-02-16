@@ -111,7 +111,7 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
     private static final String SEQUENCE_NAME = "sequence";
 
     @Override
-    public StructSchema toDataSchema(String name, String schema) {
+    public StructSchema toDataSchema(String namespace, String name, String schema) {
         var parsedSchema = MAPPER.toDataObject(schema);
         if (parsedSchema instanceof DataStruct schemaStruct) {
             var containedSchema = findSchema(schemaStruct, name);

@@ -21,6 +21,12 @@
     </properties>
 
     <dependencies>
+        <!-- project dependencies -->
+        <dependency>
+            <groupId>io.axual.ksml</groupId>
+            <artifactId>kameleon-data</artifactId>
+        </dependency>
+
         <!-- Dependencies for GraalVM polyglot and truffle -->
         <dependency>
             <groupId>org.graalvm.polyglot</groupId>

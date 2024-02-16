@@ -23,7 +23,7 @@ package io.axual.ksml.notation.json;
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.notation.binary.NativeDataObjectMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.notation.string.StringMapper;
 
 public class JsonDataObjectMapper implements DataObjectMapper<String> {

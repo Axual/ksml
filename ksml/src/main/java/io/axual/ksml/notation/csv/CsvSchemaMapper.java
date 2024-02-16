@@ -34,21 +34,21 @@ public class CsvSchemaMapper implements DataSchemaMapper<String> {
     private static final CsvDataObjectMapper MAPPER = new CsvDataObjectMapper();
 
     @Override
-    public DataSchema toDataSchema(String name, String value) {
+    public DataSchema toDataSchema(String namespace, String name, String value) {
         // Convert CSV to internal DataObject format
         var line = MAPPER.toDataObject(value);
         if (line instanceof DataList fieldNames) {
-            return toDataSchema(name, fieldNames);
+            return toDataSchema(namespace, name, fieldNames);
         }
         return null;
     }
 
-    private DataSchema toDataSchema(String name, DataList fieldNames) {
+    private DataSchema toDataSchema(String namespace, String name, DataList fieldNames) {
         List<DataField> fields = new ArrayList<>();
         for (var fieldName : fieldNames) {
             fields.add(new DataField(fieldName.toString(), DataSchema.create(DataSchema.Type.STRING), fieldName.toString(), true, false, new DataValue("")));
         }
-        return new StructSchema(null, name, "CSV schema", fields);
+        return new StructSchema(namespace, name, "CSV schema", fields);
     }
 
     @Override

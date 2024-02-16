@@ -20,18 +20,10 @@ package io.axual.ksml.notation.binary;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataSchemaMapper;
-import io.axual.ksml.data.schema.DataField;
-import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.DataValue;
-import io.axual.ksml.data.schema.EnumSchema;
-import io.axual.ksml.data.schema.FixedSchema;
-import io.axual.ksml.data.schema.ListSchema;
-import io.axual.ksml.data.schema.MapSchema;
-import io.axual.ksml.data.schema.NamedSchema;
-import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.schema.UnionSchema;
-import io.axual.ksml.exception.KSMLExecutionException;
+import io.axual.ksml.data.schema.*;
+import io.axual.ksml.dsl.DataSchemaDSL;
 import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.parser.schema.DataSchemaParser;
 
@@ -39,14 +31,12 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static io.axual.ksml.dsl.DataSchemaDSL.*;
-
 public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
     private static final DataSchemaParser PARSER = new DataSchemaParser();
     private static final JsonNodeNativeMapper JSON_NODE_MAPPER = new JsonNodeNativeMapper();
 
     @Override
-    public DataSchema toDataSchema(String name, Object value) {
+    public DataSchema toDataSchema(String namespace, String name, Object value) {
         final var json = JSON_NODE_MAPPER.fromNative(value);
         return PARSER.parse(YamlNode.fromRoot(json, "Schema"));
     }
@@ -61,32 +51,32 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
         }
 
         final var result = new LinkedHashMap<String, Object>();
-        result.put(DATA_SCHEMA_TYPE_FIELD, schema.type().toString().toLowerCase());
+        result.put(DataSchemaDSL.DATA_SCHEMA_TYPE_FIELD, schema.type().toString().toLowerCase());
         if (schema instanceof NamedSchema namedSchema)
             writeNamedSchemaToMap(result, namedSchema);
         if (schema instanceof ListSchema listSchema)
-            result.put(LIST_SCHEMA_VALUES_FIELD, convertSchema(listSchema.valueSchema()));
+            result.put(DataSchemaDSL.LIST_SCHEMA_VALUES_FIELD, convertSchema(listSchema.valueSchema()));
         if (schema instanceof MapSchema mapSchema)
-            result.put(MAP_SCHEMA_VALUES_FIELD, convertSchema(mapSchema.valueSchema()));
+            result.put(DataSchemaDSL.MAP_SCHEMA_VALUES_FIELD, convertSchema(mapSchema.valueSchema()));
         return result;
     }
 
     private void writeNamedSchemaToMap(Map<String, Object> result, NamedSchema namedSchema) {
         if (namedSchema.namespace() != null)
-            result.put(NAMED_SCHEMA_NAMESPACE_FIELD, namedSchema.namespace());
-        result.put(NAMED_SCHEMA_NAME_FIELD, namedSchema.name());
+            result.put(DataSchemaDSL.NAMED_SCHEMA_NAMESPACE_FIELD, namedSchema.namespace());
+        result.put(DataSchemaDSL.NAMED_SCHEMA_NAME_FIELD, namedSchema.name());
         if (namedSchema.doc() != null)
-            result.put(NAMED_SCHEMA_DOC_FIELD, namedSchema.doc());
+            result.put(DataSchemaDSL.NAMED_SCHEMA_DOC_FIELD, namedSchema.doc());
         if (namedSchema instanceof EnumSchema enumSchema) {
-            result.put(ENUM_SCHEMA_POSSIBLEVALUES_FIELD, enumSchema.symbols());
+            result.put(DataSchemaDSL.ENUM_SCHEMA_POSSIBLEVALUES_FIELD, enumSchema.symbols());
             if (enumSchema.defaultValue() != null)
-                result.put(ENUM_SCHEMA_DEFAULTVALUE_FIELD, enumSchema.defaultValue());
+                result.put(DataSchemaDSL.ENUM_SCHEMA_DEFAULTVALUE_FIELD, enumSchema.defaultValue());
         }
         if (namedSchema instanceof FixedSchema fixedSchema)
-            result.put(FIXED_SCHEMA_SIZE_FIELD, fixedSchema.size());
+            result.put(DataSchemaDSL.FIXED_SCHEMA_SIZE_FIELD, fixedSchema.size());
         if (namedSchema instanceof StructSchema structSchema) {
             var fields = new ArrayList<Map<String, Object>>();
-            result.put(STRUCT_SCHEMA_FIELDS_FIELD, fields);
+            result.put(DataSchemaDSL.STRUCT_SCHEMA_FIELDS_FIELD, fields);
             for (DataField field : structSchema.fields()) {
                 fields.add(convertField(field));
             }
@@ -96,31 +86,31 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
     private Object convertSchema(DataSchema schema) {
         if (schema == null) return null;
         return switch (schema.type()) {
-            case ANY -> ANY_TYPE;
-            case NULL -> NULL_TYPE;
-            case BOOLEAN -> BOOLEAN_TYPE;
-            case BYTE -> BYTE_TYPE;
-            case SHORT -> SHORT_TYPE;
-            case INTEGER -> INTEGER_TYPE;
-            case LONG -> LONG_TYPE;
-            case DOUBLE -> DOUBLE_TYPE;
-            case FLOAT -> FLOAT_TYPE;
-            case BYTES -> BYTES_TYPE;
-            case FIXED -> FIXED_TYPE;
-            case STRING -> STRING_TYPE;
+            case ANY -> DataSchemaDSL.ANY_TYPE;
+            case NULL -> DataSchemaDSL.NULL_TYPE;
+            case BOOLEAN -> DataSchemaDSL.BOOLEAN_TYPE;
+            case BYTE -> DataSchemaDSL.BYTE_TYPE;
+            case SHORT -> DataSchemaDSL.SHORT_TYPE;
+            case INTEGER -> DataSchemaDSL.INTEGER_TYPE;
+            case LONG -> DataSchemaDSL.LONG_TYPE;
+            case DOUBLE -> DataSchemaDSL.DOUBLE_TYPE;
+            case FLOAT -> DataSchemaDSL.FLOAT_TYPE;
+            case BYTES -> DataSchemaDSL.BYTES_TYPE;
+            case FIXED -> DataSchemaDSL.FIXED_TYPE;
+            case STRING -> DataSchemaDSL.STRING_TYPE;
             default -> fromDataSchema(schema);
         };
     }
 
     private Map<String, Object> convertField(DataField field) {
         final var result = new LinkedHashMap<String, Object>();
-        result.put(DATA_FIELD_NAME_FIELD, field.name());
-        result.put(DATA_FIELD_DOC_FIELD, field.doc());
-        result.put(DATA_FIELD_REQUIRED_FIELD, field.required());
-        result.put(DATA_FIELD_SCHEMA_FIELD, convertSchema(field.schema()));
+        result.put(DataSchemaDSL.DATA_FIELD_NAME_FIELD, field.name());
+        result.put(DataSchemaDSL.DATA_FIELD_DOC_FIELD, field.doc());
+        result.put(DataSchemaDSL.DATA_FIELD_REQUIRED_FIELD, field.required());
+        result.put(DataSchemaDSL.DATA_FIELD_SCHEMA_FIELD, convertSchema(field.schema()));
         if (field.defaultValue() != null)
-            encodeDefaultValue(result, DATA_FIELD_DEFAULT_VALUE_FIELD, field.defaultValue());
-        result.put(DATA_FIELD_ORDER_FIELD, field.order().toString());
+            encodeDefaultValue(result, DataSchemaDSL.DATA_FIELD_DEFAULT_VALUE_FIELD, field.defaultValue());
+        result.put(DataSchemaDSL.DATA_FIELD_ORDER_FIELD, field.order().toString());
         return result;
     }
 
@@ -134,6 +124,6 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
         if (defaultValue.value() instanceof Float value) return node.put(fieldName, value);
         if (defaultValue.value() instanceof byte[] value) return node.put(fieldName, value);
         if (defaultValue.value() instanceof String value) return node.put(fieldName, value);
-        throw new KSMLExecutionException("Can not encode default value of type: " + defaultValue.getClass().getSimpleName());
+        throw new ExecutionException("Can not encode default value of type: " + defaultValue.getClass().getSimpleName());
     }
 }

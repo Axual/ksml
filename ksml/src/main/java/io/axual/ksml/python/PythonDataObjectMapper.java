@@ -24,7 +24,7 @@ import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.type.*;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.execution.FatalError;
-import io.axual.ksml.notation.binary.NativeDataObjectMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.util.ExecutionUtil;
 import org.graalvm.polyglot.Value;
 

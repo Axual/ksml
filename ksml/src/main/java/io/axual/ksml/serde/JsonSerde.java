@@ -22,6 +22,7 @@ package io.axual.ksml.serde;
 
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.serde.StringSerde;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.notation.json.JsonDataObjectMapper;
 

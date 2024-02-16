@@ -23,11 +23,11 @@ package io.axual.ksml.serde;
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.DataField;
-import io.axual.ksml.data.schema.SchemaUtil;
+import io.axual.ksml.data.mapper.DataTypeSchemaMapper;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.execution.FatalError;
-import io.axual.ksml.notation.binary.NativeDataObjectMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import lombok.Getter;
 import org.apache.kafka.common.serialization.Deserializer;
 
@@ -43,10 +43,10 @@ public class DataObjectDeserializer implements Deserializer<Object> {
 
     public DataObjectDeserializer(DataType type) {
         expectedType = type;
-        final var dataObjectSchema = SchemaUtil.dataTypeToSchema(expectedType);
+        final var dataObjectSchema = DataTypeSchemaMapper.dataTypeToSchema(expectedType);
         final var wrapperField = new DataField(FIELD_NAME, dataObjectSchema, "");
         final var wrapperSchema = new StructSchema("io.axual.ksml.data", "DataObject", "", List.of(wrapperField));
-        wrapperType = SchemaUtil.schemaToDataType(wrapperSchema);
+        wrapperType = DataTypeSchemaMapper.schemaToDataType(wrapperSchema);
         try (final var serde = new JsonSerde(wrapperType)) {
             jsonDeserializer = serde.deserializer();
         }

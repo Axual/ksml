@@ -21,7 +21,7 @@ package io.axual.ksml.notation.xml;
  */
 
 import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.SchemaLoader;
+import io.axual.ksml.util.SchemaLoader;
 
 public class XmlSchemaLoader extends SchemaLoader {
     private static final XmlSchemaMapper MAPPER = new XmlSchemaMapper();

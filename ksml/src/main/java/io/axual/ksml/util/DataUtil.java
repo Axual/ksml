@@ -20,24 +20,13 @@ package io.axual.ksml.util;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.streams.kstream.Windowed;
-
-import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.mapper.KafkaStreamsDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.object.DataStruct;
-import io.axual.ksml.data.type.WindowedType;
-import io.axual.ksml.notation.binary.NativeDataObjectMapper;
-
-import static io.axual.ksml.dsl.WindowedSchema.WINDOWED_SCHEMA_END_FIELD;
-import static io.axual.ksml.dsl.WindowedSchema.WINDOWED_SCHEMA_END_TIME_FIELD;
-import static io.axual.ksml.dsl.WindowedSchema.WINDOWED_SCHEMA_KEY_FIELD;
-import static io.axual.ksml.dsl.WindowedSchema.WINDOWED_SCHEMA_START_FIELD;
-import static io.axual.ksml.dsl.WindowedSchema.WINDOWED_SCHEMA_START_TIME_FIELD;
-import static io.axual.ksml.dsl.WindowedSchema.generateWindowedSchema;
+import io.axual.ksml.data.schema.KafkaStreamsSchemaMapper;
+import io.axual.ksml.notation.binary.NativeDataSchemaMapper;
 
 public class DataUtil {
-    private static final NativeDataObjectMapper nativeDataObjectMapper = new NativeDataObjectMapper();
+    private static final KafkaStreamsDataObjectMapper dataObjectMapper = new KafkaStreamsDataObjectMapper(new KafkaStreamsSchemaMapper(),new NativeDataSchemaMapper());
 
     private DataUtil() {
     }
@@ -52,19 +41,6 @@ public class DataUtil {
     // fly. When new data types pop up in Kafka Streams' generics, add the conversion to a
     // DataObject to this method.
     public static DataObject asDataObject(Object object) {
-        if (object instanceof DataObject dataObject) return dataObject;
-        if (object instanceof Windowed<?> windowedObject) {
-            // Convert a Windowed object into a struct with fields that contain the window fields.
-            var keyAsData = asDataObject(windowedObject.key());
-            var schema = generateWindowedSchema(new WindowedType(keyAsData.type()));
-            var result = new DataStruct(schema);
-            result.put(WINDOWED_SCHEMA_START_FIELD, new DataLong(windowedObject.window().start()));
-            result.put(WINDOWED_SCHEMA_END_FIELD, new DataLong(windowedObject.window().end()));
-            result.put(WINDOWED_SCHEMA_START_TIME_FIELD, new DataString(windowedObject.window().startTime().toString()));
-            result.put(WINDOWED_SCHEMA_END_TIME_FIELD, new DataString(windowedObject.window().endTime().toString()));
-            result.put(WINDOWED_SCHEMA_KEY_FIELD, keyAsData);
-            return result;
-        }
-        return nativeDataObjectMapper.toDataObject(object);
+        return dataObjectMapper.toDataObject(object);
     }
 }

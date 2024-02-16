@@ -20,13 +20,13 @@ package io.axual.ksml.serde;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.DataField;
-import io.axual.ksml.data.schema.SchemaUtil;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.util.DataUtil;
+import io.axual.ksml.data.schema.KafkaStreamsSchemaMapper;
 import lombok.Getter;
 import org.apache.kafka.common.serialization.Serializer;
 
@@ -36,16 +36,17 @@ import java.util.List;
 public class DataObjectSerializer implements Serializer<Object> {
     private static final String FIELD_NAME = "data";
     private final DataType expectedType;
+    private final KafkaStreamsSchemaMapper schemaMapper = new KafkaStreamsSchemaMapper();
     private final StructSchema wrapperSchema;
     private final DataType wrapperType;
     private final Serializer<Object> jsonSerializer;
 
     public DataObjectSerializer(DataType type) {
         expectedType = type;
-        final var dataObjectSchema = SchemaUtil.dataTypeToSchema(expectedType);
+        final var dataObjectSchema = schemaMapper.toDataSchema(expectedType);
         final var wrapperField = new DataField(FIELD_NAME, dataObjectSchema, "");
         wrapperSchema = new StructSchema("io.axual.ksml.data", "DataObject", "", List.of(wrapperField));
-        wrapperType = SchemaUtil.schemaToDataType(wrapperSchema);
+        wrapperType = schemaMapper.fromDataSchema(wrapperSchema);
         try (final var jsonSerde = new JsonSerde(wrapperType)) {
             jsonSerializer = jsonSerde.serializer();
         }
@@ -55,7 +56,7 @@ public class DataObjectSerializer implements Serializer<Object> {
     public byte[] serialize(String topic, Object data) {
         final var dataObject = DataUtil.asDataObject(data);
         if (!expectedType.isAssignableFrom(dataObject.type())) {
-            throw new KSMLExecutionException("Incorrect type passed in: expected=" + expectedType + ", got " + dataObject.type());
+            throw new ExecutionException("Incorrect type passed in: expected=" + expectedType + ", got " + dataObject.type());
         }
         final var wrapper = new DataStruct(wrapperSchema);
         wrapper.put(FIELD_NAME, dataObject);

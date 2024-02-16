@@ -32,7 +32,7 @@ import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.data.value.Pair;
 import io.axual.ksml.execution.FatalError;
-import io.axual.ksml.notation.binary.NativeDataObjectMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import org.apache.avro.Schema;
 
 import java.util.ArrayList;
@@ -46,7 +46,9 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     private static final Schema AVRO_NULL_TYPE = Schema.create(Schema.Type.NULL);
 
     @Override
-    public StructSchema toDataSchema(String name, Schema schema) {
+    public StructSchema toDataSchema(String namespace, String name, Schema schema) {
+        // The namespace and name fields are ignored, since they are already contained in the schema and
+        // take precedence over the parameters to this method.
         return new StructSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), convertFieldsToDataSchema(schema.getFields()));
     }
 

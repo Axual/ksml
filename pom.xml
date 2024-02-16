@@ -48,6 +48,7 @@
     </repositories>
 
     <modules>
+        <module>kameleon-data</module>
         <module>ksml</module>
         <module>ksml-query</module>
         <module>ksml-kafka-clients</module>
@@ -124,6 +125,11 @@
     <dependencyManagement>
         <dependencies>
             <!-- project dependencies -->
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
+                <artifactId>kameleon-data</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>io.axual.ksml</groupId>
                 <artifactId>ksml</artifactId>

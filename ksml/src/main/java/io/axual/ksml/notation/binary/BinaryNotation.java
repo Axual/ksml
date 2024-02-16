@@ -20,13 +20,14 @@ package io.axual.ksml.notation.binary;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.SimpleType;
 import io.axual.ksml.data.value.Null;
 import io.axual.ksml.notation.Notation;
 import io.axual.ksml.notation.json.JsonNotation;
-import io.axual.ksml.serde.ByteSerde;
-import io.axual.ksml.serde.NullSerde;
+import io.axual.ksml.data.serde.ByteSerde;
+import io.axual.ksml.data.serde.NullSerde;
 import io.axual.ksml.util.DataUtil;
 import lombok.Getter;
 import org.apache.kafka.common.serialization.Deserializer;

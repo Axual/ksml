@@ -24,7 +24,7 @@ import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.notation.Notation;
-import io.axual.ksml.serde.StringSerde;
+import io.axual.ksml.data.serde.StringSerde;
 import org.apache.kafka.common.serialization.Serde;
 
 public abstract class StringNotation implements Notation {

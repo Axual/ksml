@@ -22,7 +22,7 @@ package io.axual.ksml.notation.json;
 
 
 import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.SchemaLoader;
+import io.axual.ksml.util.SchemaLoader;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
