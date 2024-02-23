@@ -21,12 +21,14 @@ package io.axual.ksml.user;
  */
 
 
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.python.Invoker;
 import io.axual.ksml.store.StateStores;
-import io.axual.ksml.util.DataUtil;
 import org.apache.kafka.streams.kstream.ForeachAction;
 
 public class UserForeachAction extends Invoker implements ForeachAction<Object, Object> {
+    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
+
     public UserForeachAction(UserFunction function) {
         super(function);
         verifyParameterCount(2);
@@ -40,6 +42,6 @@ public class UserForeachAction extends Invoker implements ForeachAction<Object, 
     }
 
     public void apply(StateStores stores, Object key, Object value) {
-        function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
+        function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value));
     }
 }

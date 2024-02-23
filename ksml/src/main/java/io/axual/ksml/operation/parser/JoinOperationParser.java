@@ -21,24 +21,19 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.data.exception.ParseException;
+import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.GlobalTableDefinition;
 import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.definition.TableDefinition;
-import io.axual.ksml.definition.parser.GlobalTableDefinitionParser;
-import io.axual.ksml.definition.parser.JoinTargetDefinitionParser;
-import io.axual.ksml.definition.parser.StreamDefinitionParser;
-import io.axual.ksml.definition.parser.StreamPartitionerDefinitionParser;
-import io.axual.ksml.definition.parser.TableDefinitionParser;
-import io.axual.ksml.definition.parser.ValueJoinerDefinitionParser;
+import io.axual.ksml.definition.parser.*;
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.exception.KSMLParseException;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.JoinOperation;
 import io.axual.ksml.parser.StructParser;
-import io.axual.ksml.parser.YamlNode;
-import org.apache.commons.collections4.ListUtils;
+import io.axual.ksml.util.ListUtil;
 
 import static io.axual.ksml.dsl.KSMLDSL.Operations;
 
@@ -102,13 +97,13 @@ public class JoinOperationParser extends StoreOperationParser<JoinOperation> {
                     throw FatalError.topologyError("Join table not correct, should be a defined Table");
                 });
 
-        schema = structSchema(JoinOperation.class, "Defines a join operation", ListUtils.union(joinStreamParser.fields(), ListUtils.union(joinTableParser.fields(), joinGlobalTableParser.fields())));
+        schema = structSchema(JoinOperation.class, "Defines a join operation", ListUtil.union(joinStreamParser.fields(), ListUtil.union(joinTableParser.fields(), joinGlobalTableParser.fields())));
     }
 
     public StructParser<JoinOperation> parser() {
         return new StructParser<>() {
             @Override
-            public JoinOperation parse(YamlNode node) {
+            public JoinOperation parse(ParseNode node) {
                 if (node == null) return null;
 
                 final var joinTopic = new JoinTargetDefinitionParser(resources()).parse(node);
@@ -118,7 +113,7 @@ public class JoinOperationParser extends StoreOperationParser<JoinOperation> {
 
                 final var separator = joinTopic.name() != null && joinTopic.definition() != null ? ", " : "";
                 final var description = (joinTopic.name() != null ? joinTopic.name() : "") + separator + (joinTopic.definition() != null ? joinTopic.definition() : "");
-                throw new KSMLParseException(node, "Join stream not found: " + description);
+                throw new ParseException(node, "Join stream not found: " + description);
             }
 
             @Override

@@ -20,10 +20,10 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.client.producer.ResolvingProducer;
 import io.axual.ksml.client.serde.ResolvingSerializer;
 import io.axual.ksml.generator.TopologyDefinition;
-import io.axual.ksml.notation.NotationLibrary;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonFunction;
 import lombok.Builder;
@@ -107,18 +107,22 @@ public class KafkaProducerRunner implements Runner {
                     try {
                         var generator = schedule.getScheduledItem();
                         while (generator != null) {
+                            log.info("Calling " + generator.name());
                             generator.produceMessage(producer);
                             generator = schedule.getScheduledItem();
                         }
                         Utils.sleep(10);
                     } catch (Exception e) {
-                        log.info("Produce exception.",e);
+                        log.info("Produce exception.", e);
                         hasFailed.set(true);
                         break;
                     }
                 }
+            } catch (Throwable e) {
+                hasFailed.set(true);
+                log.error("Unhandled producer exception", e);
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             hasFailed.set(true);
             log.error("Unhandled producer exception", e);
         }

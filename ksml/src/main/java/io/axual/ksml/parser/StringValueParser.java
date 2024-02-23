@@ -20,6 +20,8 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.parser.ParseNode;
+import io.axual.ksml.data.parser.ParserWithSchema;
 import io.axual.ksml.data.schema.DataSchema;
 
 public class StringValueParser implements ParserWithSchema<String> {
@@ -40,7 +42,7 @@ public class StringValueParser implements ParserWithSchema<String> {
     }
 
     @Override
-    public String parse(YamlNode node) {
+    public String parse(ParseNode node) {
         // This implementation catches a corner case, where Jackson parses a string as boolean, whereas it was meant
         // to be interpreted as a string literal for Python.
         if (node != null) {

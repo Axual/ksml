@@ -21,10 +21,11 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.StructType;
-import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.execution.FatalError;
@@ -48,6 +49,9 @@ public class ToOperation extends BaseOperation {
         this.topic = topic;
         this.partitioner = partitioner;
         this.topicNameExtractor = null;
+        if (topic.topic() == null) {
+            throw new ExecutionException("Can not produce to NULL target");
+        }
     }
 
     public ToOperation(OperationConfig config, FunctionDefinition topicNameExtractor, FunctionDefinition partitioner) {
@@ -71,8 +75,8 @@ public class ToOperation extends BaseOperation {
             final var kt = streamDataTypeOf(firstSpecificType(topic.keyType(), k.userType()), true);
             final var vt = streamDataTypeOf(firstSpecificType(topic.valueType(), v.userType()), false);
             // Perform a dataType check to see if the key/value data types received matches the stream definition's types
-            checkType("Target topic keyType", topic.keyType().dataType(), superOf(k));
-            checkType("Target topic valueType", topic.valueType().dataType(), superOf(v));
+            checkType("Target topic keyType", kt, superOf(k));
+            checkType("Target topic valueType", vt, superOf(v));
             final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, equalTo(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
             final var userPart = part != null ? new UserStreamPartitioner(part) : null;
             final var produced = producedOf(kt, vt, userPart);

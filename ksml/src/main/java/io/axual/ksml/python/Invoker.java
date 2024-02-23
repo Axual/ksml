@@ -21,9 +21,9 @@ package io.axual.ksml.python;
  */
 
 
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.user.UserFunction;
 import org.slf4j.Logger;

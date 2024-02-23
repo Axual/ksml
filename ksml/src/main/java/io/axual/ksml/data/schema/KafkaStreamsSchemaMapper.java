@@ -20,51 +20,21 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataTypeSchemaMapper;
-import io.axual.ksml.data.object.*;
-import io.axual.ksml.data.type.*;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.dsl.WindowedSchema;
 
 public class KafkaStreamsSchemaMapper extends DataTypeSchemaMapper {
-    private static DataTypeSchemaMapper dataTypeSchemaMapper = new DataTypeSchemaMapper();
+    public KafkaStreamsSchemaMapper() {
+        super();
+    }
+
     @Override
     public DataSchema toDataSchema(String namespace, String name, DataType type) {
         // Check for the Kafka Streams / KSML specific types here, otherwise return default conversion
         if (type instanceof WindowedType windowedType)
             return WindowedSchema.generateWindowedSchema(windowedType);
         return super.toDataSchema(namespace, name, type);
-    }
-
-    @Override
-    public DataType fromDataSchema(DataSchema schema) {
-        if (schema == null) return DataType.UNKNOWN;
-        if (schema.type() == DataSchema.Type.ANY) return DataType.UNKNOWN;
-        if (schema.type() == DataSchema.Type.NULL) return DataNull.DATATYPE;
-        if (schema.type() == DataSchema.Type.BOOLEAN) return DataBoolean.DATATYPE;
-        if (schema.type() == DataSchema.Type.SHORT) return DataShort.DATATYPE;
-        if (schema.type() == DataSchema.Type.INTEGER) return DataInteger.DATATYPE;
-        if (schema.type() == DataSchema.Type.LONG) return DataLong.DATATYPE;
-        if (schema.type() == DataSchema.Type.FLOAT) return DataFloat.DATATYPE;
-        if (schema.type() == DataSchema.Type.DOUBLE) return DataDouble.DATATYPE;
-        if (schema.type() == DataSchema.Type.BYTES) return DataBytes.DATATYPE;
-        if (schema.type() == DataSchema.Type.STRING) return DataString.DATATYPE;
-
-        if (schema instanceof EnumSchema enumSchema)
-            return new EnumType(enumSchema.symbols().toArray(new String[0]));
-        if (schema instanceof ListSchema listSchema)
-            return new ListType(dataTypeSchemaMapper.fromDataSchema(listSchema.valueSchema()));
-        if (schema instanceof StructSchema structSchema) return new StructType(structSchema);
-        if (schema instanceof MapSchema mapSchema)
-            return new MapType(dataTypeSchemaMapper.fromDataSchema(mapSchema.valueSchema()));
-        if (schema instanceof UnionSchema unionSchema) {
-            var types = new DataType[unionSchema.possibleSchemas().length];
-            for (int index = 0; index < unionSchema.possibleSchemas().length; index++) {
-                types[index] = dataTypeSchemaMapper.fromDataSchema(unionSchema.possibleSchemas()[index]);
-            }
-            return new UnionType(types);
-        }
-
-        throw new ExecutionException("Can not convert schema " + schema + " to a dataType");
     }
 }

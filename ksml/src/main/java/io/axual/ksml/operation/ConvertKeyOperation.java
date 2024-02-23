@@ -20,15 +20,16 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.util.DataUtil;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Named;
 
 public class ConvertKeyOperation extends BaseOperation {
+    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
     private final UserType targetKeyType;
 
     public ConvertKeyOperation(OperationConfig config, UserType targetKeyType) {
@@ -45,7 +46,7 @@ public class ConvertKeyOperation extends BaseOperation {
 
         // Set up the mapping function to convert the value
         final KeyValueMapper<Object, Object, Object> converter = (key, value) -> {
-            final var keyAsData = DataUtil.asDataObject(key);
+            final var keyAsData = nativeMapper.toDataObject(key);
             return mapper.convert(k.userType().notation(), keyAsData, kr.userType());
         };
 

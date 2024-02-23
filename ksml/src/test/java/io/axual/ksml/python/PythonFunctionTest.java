@@ -20,16 +20,15 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-
+import io.axual.ksml.data.notation.UserType;
+import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataPrimitive;
-import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
-import io.axual.ksml.notation.binary.BinaryNotation;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

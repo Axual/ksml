@@ -20,13 +20,10 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.schema.DataField;
-import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.DataValue;
-import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.schema.UnionSchema;
-import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.data.parser.*;
+import io.axual.ksml.data.schema.*;
 import io.axual.ksml.execution.FatalError;
 import lombok.Getter;
 import lombok.Setter;
@@ -61,7 +58,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
 
     protected abstract StructParser<T> parser();
 
-    public final T parse(YamlNode node) {
+    public final T parse(ParseNode node) {
         if (parser == null) parser = parser();
         return parser.parse(node);
     }
@@ -105,7 +102,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         }
 
         @Override
-        public V parse(YamlNode node) {
+        public V parse(ParseNode node) {
             try {
                 if (node == null) return null;
                 final var child = node.get(field.name());
@@ -129,7 +126,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         }
 
         @Override
-        public V parse(YamlNode node) {
+        public V parse(ParseNode node) {
             try {
                 return valueParser.parse(node);
             } catch (Exception e) {
@@ -138,52 +135,52 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         }
     }
 
-    protected <V> StructParser<V> freeField(String childName, boolean mandatory, V valueIfNull, String doc, ParserWithSchema<V> parser) {
-        return new FieldParser<>(childName, mandatory, false, valueIfNull, doc, parser);
+    protected <V> StructParser<V> freeField(String childName, boolean required, V valueIfNull, String doc, ParserWithSchema<V> parser) {
+        return new FieldParser<>(childName, required, false, valueIfNull, doc, parser);
     }
 
-    protected StructParser<Boolean> booleanField(String childName, boolean mandatory, String doc) {
-        return booleanField(childName, mandatory, false, doc);
+    protected StructParser<Boolean> booleanField(String childName, boolean required, String doc) {
+        return booleanField(childName, required, false, doc);
     }
 
-    protected StructParser<Boolean> booleanField(String childName, boolean mandatory, Boolean valueIfNull, String doc) {
-        return freeField(childName, mandatory, valueIfNull, doc, ParserWithSchema.of(YamlNode::asBoolean, DataSchema.booleanSchema()));
+    protected StructParser<Boolean> booleanField(String childName, boolean required, Boolean valueIfNull, String doc) {
+        return freeField(childName, required, valueIfNull, doc, ParserWithSchema.of(ParseNode::asBoolean, DataSchema.booleanSchema()));
     }
 
-    protected StructParser<Duration> durationField(String childName, boolean mandatory, String doc) {
-        return freeField(childName, mandatory, null, doc, ParserWithSchema.of(node -> parseDuration(stringValueParser.parse(node)), DURATION_SCHEMA));
+    protected StructParser<Duration> durationField(String childName, boolean required, String doc) {
+        return freeField(childName, required, null, doc, ParserWithSchema.of(node -> parseDuration(stringValueParser.parse(node)), DURATION_SCHEMA));
     }
 
-    protected StructParser<Integer> integerField(String childName, boolean mandatory, String doc) {
-        return integerField(childName, mandatory, null, doc);
+    protected StructParser<Integer> integerField(String childName, boolean required, String doc) {
+        return integerField(childName, required, null, doc);
     }
 
-    protected StructParser<Integer> integerField(String childName, boolean mandatory, Integer valueIfNull, String doc) {
-        return freeField(childName, mandatory, valueIfNull, doc, ParserWithSchema.of(YamlNode::asInt, DataSchema.integerSchema()));
+    protected StructParser<Integer> integerField(String childName, boolean required, Integer valueIfNull, String doc) {
+        return freeField(childName, required, valueIfNull, doc, ParserWithSchema.of(ParseNode::asInt, DataSchema.integerSchema()));
     }
 
-    protected StructParser<String> fixedStringField(String childName, boolean mandatory, String fixedValue, String doc) {
-        return stringField(childName, mandatory, true, fixedValue, doc + ", fixed value \"" + fixedValue + "\"");
+    protected StructParser<String> fixedStringField(String childName, boolean required, String fixedValue, String doc) {
+        return stringField(childName, required, true, fixedValue, doc + ", fixed value \"" + fixedValue + "\"");
     }
 
-    protected StructParser<String> stringField(String childName, boolean mandatory, String doc) {
-        return stringField(childName, mandatory, null, doc);
+    protected StructParser<String> stringField(String childName, boolean required, String doc) {
+        return stringField(childName, required, null, doc);
     }
 
-    protected StructParser<String> stringField(String childName, boolean mandatory, String valueIfNull, String doc) {
-        return stringField(childName, mandatory, false, valueIfNull, doc);
+    protected StructParser<String> stringField(String childName, boolean required, String valueIfNull, String doc) {
+        return stringField(childName, required, false, valueIfNull, doc);
     }
 
-    protected StructParser<String> stringField(String childName, boolean mandatory, boolean constant, String valueIfNull, String doc) {
-        return new FieldParser<>(childName, mandatory, constant, valueIfNull, doc, stringValueParser);
+    protected StructParser<String> stringField(String childName, boolean required, boolean constant, String valueIfNull, String doc) {
+        return new FieldParser<>(childName, required, constant, valueIfNull, doc, stringValueParser);
     }
 
-    protected StructParser<String> codeField(String childName, boolean mandatory, String doc) {
-        return codeField(childName, mandatory, null, doc);
+    protected StructParser<String> codeField(String childName, boolean required, String doc) {
+        return codeField(childName, required, null, doc);
     }
 
-    protected StructParser<String> codeField(String childName, boolean mandatory, String valueIfNull, String doc) {
-        return new FieldParser<>(childName, mandatory, false, valueIfNull, doc, codeParser);
+    protected StructParser<String> codeField(String childName, boolean required, String valueIfNull, String doc) {
+        return new FieldParser<>(childName, required, false, valueIfNull, doc, codeParser);
     }
 
     protected StructParser<UserType> userTypeField(String childName, boolean required, String doc) {
@@ -196,33 +193,33 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
             }
 
             @Override
-            public UserType parse(YamlNode node) {
+            public UserType parse(ParseNode node) {
                 final var type = UserTypeParser.parse(stringParser.parse(node));
                 return type != null ? type : UserType.UNKNOWN;
             }
         };
     }
 
-    protected <TYPE> StructParser<List<TYPE>> listField(String childName, String whatToParse, boolean mandatory, String doc, ParserWithSchema<TYPE> valueParser) {
-        return new FieldParser<>(childName, mandatory, false, new ArrayList<>(), doc, new ListWithSchemaParser<>(whatToParse, valueParser));
+    protected <TYPE> StructParser<List<TYPE>> listField(String childName, String whatToParse, boolean required, String doc, ParserWithSchema<TYPE> valueParser) {
+        return new FieldParser<>(childName, required, false, new ArrayList<>(), doc, new ListWithSchemaParser<>(whatToParse, valueParser));
     }
 
-    protected <TYPE> StructParser<Map<String, TYPE>> mapField(String childName, String whatToParse, boolean mandatory, String doc, ParserWithSchema<TYPE> valueParser) {
-        return new FieldParser<>(childName, mandatory, false, new HashMap<>(), doc, new MapWithSchemaParser<>(whatToParse, valueParser));
+    protected <TYPE> StructParser<Map<String, TYPE>> mapField(String childName, String whatToParse, boolean required, String doc, ParserWithSchema<TYPE> valueParser) {
+        return new FieldParser<>(childName, required, false, new HashMap<>(), doc, new MapWithSchemaParser<>(whatToParse, valueParser));
     }
 
-    protected <TYPE> StructParser<TYPE> customField(String childName, boolean mandatory, String doc, StructParser<TYPE> valueParser) {
-        return new FieldParser<>(childName, mandatory, false, null, doc, valueParser);
+    protected <TYPE> StructParser<TYPE> customField(String childName, boolean required, String doc, StructParser<TYPE> valueParser) {
+        return new FieldParser<>(childName, required, false, null, doc, valueParser);
     }
 
     protected String validateName(String objectType, String parsedName, String defaultName) {
         return validateName(objectType, parsedName, defaultName, true);
     }
 
-    protected String validateName(String objectType, String parsedName, String defaultName, boolean mandatory) {
+    protected String validateName(String objectType, String parsedName, String defaultName, boolean required) {
         if (parsedName != null) return parsedName;
         if (defaultName != null) return defaultName;
-        if (!mandatory) return null;
+        if (!required) return null;
         return parseError(objectType + " name not defined");
     }
 

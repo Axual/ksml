@@ -20,8 +20,8 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.type.UserType;
 
 import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_PARAMETERS;
 

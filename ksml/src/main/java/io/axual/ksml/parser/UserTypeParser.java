@@ -20,40 +20,25 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
-
-import io.axual.ksml.data.object.DataBoolean;
-import io.axual.ksml.data.object.DataByte;
-import io.axual.ksml.data.object.DataBytes;
-import io.axual.ksml.data.object.DataDouble;
-import io.axual.ksml.data.object.DataFloat;
-import io.axual.ksml.data.object.DataInteger;
-import io.axual.ksml.data.object.DataLong;
-import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.object.DataShort;
-import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.exception.ParseException;
+import io.axual.ksml.data.notation.UserTupleType;
+import io.axual.ksml.data.notation.UserType;
+import io.axual.ksml.data.notation.avro.AvroNotation;
+import io.axual.ksml.data.notation.csv.CsvNotation;
+import io.axual.ksml.data.notation.json.JsonNotation;
+import io.axual.ksml.data.notation.soap.SOAPNotation;
+import io.axual.ksml.data.notation.xml.XmlNotation;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.EnumSchema;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.EnumType;
-import io.axual.ksml.data.type.ListType;
-import io.axual.ksml.data.type.StructType;
-import io.axual.ksml.data.type.UnionType;
-import io.axual.ksml.data.type.UserTupleType;
-import io.axual.ksml.data.type.UserType;
-import io.axual.ksml.data.type.WindowedType;
-import io.axual.ksml.exception.KSMLParseException;
-import io.axual.ksml.exception.KSMLTopologyException;
-import io.axual.ksml.notation.avro.AvroNotation;
-import io.axual.ksml.notation.csv.CsvNotation;
-import io.axual.ksml.notation.json.JsonNotation;
-import io.axual.ksml.notation.soap.SOAPNotation;
-import io.axual.ksml.notation.xml.XmlNotation;
 import io.axual.ksml.data.schema.SchemaLibrary;
 import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.object.*;
+import io.axual.ksml.data.type.*;
+import io.axual.ksml.exception.KSMLTopologyException;
 
 import java.util.ArrayList;
 
-import static io.axual.ksml.data.type.UserType.UNKNOWN;
+import static io.axual.ksml.data.notation.UserType.UNKNOWN;
 
 public class UserTypeParser {
     private static final String NOTATION_SEPARATOR = ":";
@@ -78,7 +63,7 @@ public class UserTypeParser {
         if (types.length == 1) {
             return types[0];
         }
-        throw new KSMLParseException("Could not parse data type: " + type);
+        throw new ParseException("Could not parse data type: " + type);
     }
 
     // Parses a list of comma-separated user data types. If no comma is found, then the returned
@@ -96,7 +81,7 @@ public class UserTypeParser {
         if (remainder.startsWith(TYPE_SEPARATOR)) {
             remainderTypes = parseListOfTypesAndNotation(remainder.substring(1), defaultNotation);
         } else if (!remainder.isEmpty()) {
-            throw new KSMLParseException("Could not parse data type: " + type);
+            throw new ParseException("Could not parse data type: " + type);
         }
 
         var result = new UserType[remainderTypes.length + 1];
@@ -116,7 +101,7 @@ public class UserTypeParser {
         // List type
         if (datatype.startsWith(SQUARE_BRACKET_OPEN)) {
             if (!datatype.endsWith(SQUARE_BRACKET_CLOSE)) {
-                throw new KSMLParseException("List type not properly closed: " + datatype);
+                throw new ParseException("List type not properly closed: " + datatype);
             }
             // Parse the type in brackets separately as the type of list elements. Notation overrides are not allowed
             // for list elements. If specified (eg. "[avro:SomeSchema]") then the value notation is ignored.
@@ -128,7 +113,7 @@ public class UserTypeParser {
         // Tuple type
         if (datatype.startsWith(ROUND_BRACKET_OPEN)) {
             if (!datatype.endsWith(ROUND_BRACKET_CLOSE)) {
-                throw new KSMLParseException("Tuple type not properly closed: " + datatype);
+                throw new ParseException("Tuple type not properly closed: " + datatype);
             }
             var valueTypes = parseListOfTypesAndNotation(datatype.substring(1, datatype.length() - 1), notation);
             return new UserType(notation, new UserTupleType(valueTypes));
@@ -143,7 +128,7 @@ public class UserTypeParser {
         // union(type1,type2,...)
         if (datatype.startsWith(UNION_TYPE + ROUND_BRACKET_OPEN) && datatype.endsWith(ROUND_BRACKET_CLOSE)) {
             var unionSubtypes = datatype.substring(UNION_TYPE.length() + 1, datatype.length() - 1);
-            return new UserType(notation, new UnionType(parseListOfTypesAndNotation(unionSubtypes, notation)));
+            return new UserType(notation, new UnionType(UserType.userTypesToDataTypes(parseListOfTypesAndNotation(unionSubtypes, notation))));
         }
 
         // windowed(type)
@@ -156,7 +141,7 @@ public class UserTypeParser {
         if (notation.equalsIgnoreCase(AvroNotation.NOTATION_NAME)) {
             var schema = SchemaLibrary.getSchema(AvroNotation.NOTATION_NAME, datatype, false);
             if (!(schema instanceof StructSchema structSchema))
-                throw new KSMLParseException("AVRO schema is not a STRUCT: " + datatype);
+                throw new ParseException("AVRO schema is not a STRUCT: " + datatype);
             return new UserType(AvroNotation.NOTATION_NAME, new StructType(structSchema));
         }
 
@@ -169,7 +154,7 @@ public class UserTypeParser {
         if (notation.equalsIgnoreCase(CsvNotation.NOTATION_NAME)) {
             var schema = SchemaLibrary.getSchema(CsvNotation.NOTATION_NAME, datatype, false);
             if (!(schema instanceof StructSchema structSchema))
-                throw new KSMLParseException("CSV schema is not a STRUCT: " + datatype);
+                throw new ParseException("CSV schema is not a STRUCT: " + datatype);
             return new UserType(CsvNotation.NOTATION_NAME, new StructType(structSchema));
         }
 
@@ -182,7 +167,7 @@ public class UserTypeParser {
         if (notation.equalsIgnoreCase(JsonNotation.NOTATION_NAME)) {
             var schema = SchemaLibrary.getSchema(JsonNotation.NOTATION_NAME, datatype, false);
             if (!(schema instanceof StructSchema structSchema))
-                throw new KSMLParseException("JSON schema is not a STRUCT: " + datatype);
+                throw new ParseException("JSON schema is not a STRUCT: " + datatype);
             return new UserType(JsonNotation.NOTATION_NAME, new StructType(structSchema));
         }
 
@@ -205,7 +190,7 @@ public class UserTypeParser {
         if (notation.equalsIgnoreCase(XmlNotation.NOTATION_NAME)) {
             var schema = SchemaLibrary.getSchema(XmlNotation.NOTATION_NAME, datatype, false);
             if (!(schema instanceof StructSchema structSchema))
-                throw new KSMLParseException("XML schema is not a STRUCT: " + datatype);
+                throw new ParseException("XML schema is not a STRUCT: " + datatype);
             return new UserType(XmlNotation.NOTATION_NAME, new StructType(structSchema));
         }
 
@@ -307,7 +292,7 @@ public class UserTypeParser {
                 return type.substring(0, index + 1);
             }
         }
-        throw new KSMLParseException("Error in expression: no closing bracket found: " + type);
+        throw new ParseException("Error in expression: no closing bracket found: " + type);
     }
 
     public static DataSchema getSchema() {

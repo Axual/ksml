@@ -20,7 +20,6 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
-
 import io.axual.ksml.data.type.DataType;
 
 public record ParameterDefinition(String name, DataType type, boolean isOptional, String defaultValue) {

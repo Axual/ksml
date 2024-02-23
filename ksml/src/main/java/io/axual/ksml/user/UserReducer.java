@@ -20,13 +20,14 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
-
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.python.Invoker;
-import io.axual.ksml.util.DataUtil;
 import org.apache.kafka.streams.kstream.Reducer;
 
 public class UserReducer extends Invoker implements Reducer<Object> {
+    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
+
     public UserReducer(UserFunction function) {
         super(function);
         verifyParameterCount(2);
@@ -36,6 +37,6 @@ public class UserReducer extends Invoker implements Reducer<Object> {
 
     @Override
     public DataObject apply(Object value1, Object value2) {
-        return function.call(DataUtil.asDataObject(value1), DataUtil.asDataObject(value2));
+        return function.call(nativeMapper.toDataObject(value1), nativeMapper.toDataObject(value2));
     }
 }

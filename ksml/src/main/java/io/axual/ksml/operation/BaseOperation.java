@@ -20,11 +20,10 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
-import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.definition.*;
 import io.axual.ksml.exception.KSMLTopologyException;
@@ -217,7 +216,7 @@ public class BaseOperation implements StreamOperation {
 
     protected void checkType(String subject, DataType type, TypeComparator comparator) {
         if (!comparator.checker.compare(type)) {
-            throw topologyError(subject + " is expected to be " + comparator.faultDescription);
+            throw topologyError(subject + " is expected to be " + comparator.faultDescription + ", but found " + type.schemaName());
         }
     }
 

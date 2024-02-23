@@ -20,7 +20,7 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.UserTupleType;
+import io.axual.ksml.data.notation.UserTupleType;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.generator.TopologyResources;

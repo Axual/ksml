@@ -21,6 +21,7 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.definition.parser.PredicateDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
@@ -41,6 +42,10 @@ public class FilterNotOperationParser extends StoreOperationParser<FilterNotOper
                 nameField(),
                 functionField(KSMLDSL.Operations.Filter.PREDICATE, true, "A function that returns \"false\" when records are accepted, \"true\" otherwise", new PredicateDefinitionParser()),
                 storeNamesField(),
-                (type, name, pred, stores) -> new FilterNotOperation(new StoreOperationConfig(namespace(), name, stores, null), pred));
+                (type, name, pred, stores) -> {
+                    if (pred != null)
+                        return new FilterNotOperation(new StoreOperationConfig(namespace(), name, stores, null), pred);
+                    throw new ExecutionException("Predicate not defined for " + KSMLDSL.Operations.FILTER_NOT + " operation");
+                });
     }
 }

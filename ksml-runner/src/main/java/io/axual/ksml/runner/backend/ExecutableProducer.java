@@ -20,27 +20,26 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.DataObjectConverter;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataTuple;
-import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.execution.FatalError;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.user.UserFunction;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.Serializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutionException;
 
-import static io.axual.ksml.data.type.UserType.DEFAULT_NOTATION;
+import static io.axual.ksml.data.notation.UserType.DEFAULT_NOTATION;
 
+@Slf4j
 public class ExecutableProducer {
-    private static final Logger LOG = LoggerFactory.getLogger(ExecutableProducer.class);
     private final UserFunction generator;
     private final UserFunction condition;
     private final String topic;
@@ -48,7 +47,7 @@ public class ExecutableProducer {
     private final UserType valueType;
     private final Serializer<Object> keySerializer;
     private final Serializer<Object> valueSerializer;
-    private final NativeDataObjectMapper nativeMapper = new NativeDataObjectMapper();
+    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
     private final DataObjectConverter dataObjectConverter;
 
     public ExecutableProducer(UserFunction generator,
@@ -68,6 +67,10 @@ public class ExecutableProducer {
         this.valueSerializer = valueSerializer;
     }
 
+    public String name() {
+        return generator.name;
+    }
+
     public void produceMessage(Producer<byte[], byte[]> producer) {
         DataObject result = generator.call();
         if (result instanceof DataTuple tuple && tuple.size() == 2) {
@@ -80,11 +83,11 @@ public class ExecutableProducer {
                 var okay = true;
 
                 if (key != null && !keyType.dataType().isAssignableFrom(key.type())) {
-                    LOG.error("Can not convert {} to topic key type {}", key.type(), keyType);
+                    log.error("Can not convert {} to topic key type {}", key.type(), keyType);
                     okay = false;
                 }
                 if (value != null && !valueType.dataType().isAssignableFrom(value.type())) {
-                    LOG.error("Can not convert {} to topic value type {}", value.type(), valueType);
+                    log.error("Can not convert {} to topic value type {}", value.type(), valueType);
                     okay = false;
                 }
 
@@ -94,7 +97,7 @@ public class ExecutableProducer {
 
                     keyStr = keyStr.replaceAll("\n", "\\\\n");
                     valueStr = valueStr.replaceAll("\n", "\\\\n");
-                    LOG.info("Message: key={}, value={}", keyStr, valueStr);
+                    log.info("Message: key={}, value={}", keyStr, valueStr);
 
                     var serializedKey = keySerializer.serialize(topic, nativeMapper.fromDataObject(key));
                     var serializedValue = valueSerializer.serialize(topic, nativeMapper.fromDataObject(value));
@@ -107,16 +110,16 @@ public class ExecutableProducer {
                     try {
                         var metadata = future.get();
                         if (metadata != null && metadata.hasOffset()) {
-                            LOG.info("Produced message to {}, partition {}, offset {}", metadata.topic(), metadata.partition(), metadata.offset());
+                            log.info("Produced message to {}, partition {}, offset {}", metadata.topic(), metadata.partition(), metadata.offset());
                         } else {
-                            LOG.error("Error producing message to topic {}", topic);
+                            log.error("Error producing message to topic {}", topic);
                         }
                     } catch (InterruptedException | ExecutionException e) {
                         throw new KSMLExecutionException("Could not produce to topic " + topic, e);
                     }
                 }
             } else {
-                LOG.info("Condition FALSE, skipping message");
+                log.info("Condition FALSE, skipping message");
             }
         }
     }

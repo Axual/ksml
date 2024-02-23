@@ -21,10 +21,10 @@ package io.axual.ksml.python;
  */
 
 
-import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.KSMLExecutionException;
@@ -32,6 +32,7 @@ import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.store.StateStores;
 import io.axual.ksml.user.UserFunction;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.processor.StateStore;
 import org.graalvm.polyglot.Value;
 
@@ -40,10 +41,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static io.axual.ksml.data.type.UserType.DEFAULT_NOTATION;
+import static io.axual.ksml.data.notation.UserType.DEFAULT_NOTATION;
 
+@Slf4j
 public class PythonFunction extends UserFunction {
-    private static final PythonDataObjectMapper MAPPER = new PythonDataObjectMapper();
+    private static final PythonDataObjectMapper MAPPER = new PythonDataObjectMapper(true);
     private static final Map<String, StateStore> EMPTY_STORES = new HashMap<>();
     private static final LoggerBridge loggerBridge = new LoggerBridge();
     private static final String QUOTE = "\"";
@@ -144,11 +146,15 @@ public class PythonFunction extends UserFunction {
                 .collect(Collectors.joining());
         // Code to copy / initialize all global variables
         final var includeGlobals =
-                "  global stores\n" +
-                        "  global loggerBridge\n";
+            """
+              global stores
+              global loggerBridge
+            """;
         final var initializeGlobals =
-                "  stores = convert_to_python(globalVars[\"stores\"])\n" +
-                        "  loggerBridge = globalVars[\"loggerBridge\"]\n";
+            """
+              stores = convert_to_python(globalVars["stores"])
+              loggerBridge = globalVars["loggerBridge"]
+            """;
         // Code to initialize optional parameters with default values
         final var initializeOptionalParams = Arrays.stream(definition.parameters())
                 .filter(ParameterDefinition::isOptional)
@@ -173,7 +179,8 @@ public class PythonFunction extends UserFunction {
                 initializeGlobals +
                 "  return convert_from_python(" + name + "(" + String.join(",", convertedParams) + "))\n";
 
-        final var pythonCodeTemplate = """
+        final var pythonCodeTemplate =
+                """
                 import polyglot
                 import java
                                 
@@ -222,7 +229,7 @@ public class PythonFunction extends UserFunction {
                   
                 # caller definition goes here (third argument)
                 @polyglot.export_value
-                %3$s  
+                %3$s
                 """;
 
         return pythonCodeTemplate.formatted(globalCode, functionAndExpression, pyCallerCode);

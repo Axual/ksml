@@ -21,8 +21,8 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataBoolean;
-import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.processor.FilterProcessor;

@@ -21,7 +21,7 @@ package io.axual.ksml.operation;
  */
 
 
-import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.SessionStateStoreDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;

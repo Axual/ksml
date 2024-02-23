@@ -224,7 +224,7 @@ public class KSMLDSL {
         @NoArgsConstructor(access = AccessLevel.PRIVATE)
         public static class To {
             public static final String TOPIC = "topic";
-            public static final String TOPIC_NAME_EXTRACTOR = "topicNaneExtractor";
+            public static final String TOPIC_NAME_EXTRACTOR = "topicNameExtractor";
             public static final String PARTITIONER = "partitioner";
         }
 

@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>ksml-kafka-clients</artifactId>
-    <name>Extended Kafka clients for KSML</name>
+    <name>KSML Kafka clients</name>
     <description>Kafka client classes for KSML that allow pattern usage for topics, group ids and transactional ids.
     </description>
 
@@ -61,14 +61,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>license-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>

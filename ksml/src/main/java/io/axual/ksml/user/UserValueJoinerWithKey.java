@@ -21,13 +21,14 @@ package io.axual.ksml.user;
  */
 
 
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.python.Invoker;
-import io.axual.ksml.util.DataUtil;
 import org.apache.kafka.streams.kstream.ValueJoinerWithKey;
 
 public class UserValueJoinerWithKey extends Invoker implements ValueJoinerWithKey<Object, Object, Object, DataObject> {
+    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
     private final static DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
 
     public UserValueJoinerWithKey(UserFunction function) {
@@ -38,6 +39,6 @@ public class UserValueJoinerWithKey extends Invoker implements ValueJoinerWithKe
 
     @Override
     public DataObject apply(Object key, Object value1, Object value2) {
-        return function.call(DataUtil.asDataObject(key), DataUtil.asDataObject(value1), DataUtil.asDataObject(value2));
+        return function.call(nativeMapper.toDataObject(key), nativeMapper.toDataObject(value1), nativeMapper.toDataObject(value2));
     }
 }

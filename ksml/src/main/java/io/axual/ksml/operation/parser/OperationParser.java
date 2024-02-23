@@ -20,6 +20,7 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
@@ -28,7 +29,6 @@ import io.axual.ksml.operation.OperationConfig;
 import io.axual.ksml.parser.ContextAwareParser;
 import io.axual.ksml.parser.StringValueParser;
 import io.axual.ksml.parser.StructParser;
-import io.axual.ksml.parser.YamlNode;
 
 import java.util.List;
 
@@ -49,7 +49,7 @@ public abstract class OperationParser<T extends BaseOperation> extends ContextAw
         final var stringParser = stringField(KSMLDSL.Operations.NAME_ATTRIBUTE, false, type, "The name of the operation processor");
         return new StructParser<>() {
             @Override
-            public String parse(YamlNode node) {
+            public String parse(ParseNode node) {
                 final var name = stringParser.parse(node);
                 // To ensure every operation gets a unique name, we generate one based on the YAML node
                 return name != null ? name : node.longName();

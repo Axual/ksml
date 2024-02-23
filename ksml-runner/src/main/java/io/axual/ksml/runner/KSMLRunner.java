@@ -23,33 +23,37 @@ package io.axual.ksml.runner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import io.axual.ksml.client.serde.ResolvingDeserializer;
-import io.axual.ksml.client.serde.ResolvingSerializer;
+import io.axual.ksml.data.mapper.DataTypeSchemaMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.notation.NotationLibrary;
+import io.axual.ksml.data.notation.avro.AvroNotation;
+import io.axual.ksml.data.notation.avro.AvroSchemaLoader;
+import io.axual.ksml.data.notation.binary.BinaryNotation;
+import io.axual.ksml.data.notation.csv.CsvDataObjectConverter;
+import io.axual.ksml.data.notation.csv.CsvNotation;
+import io.axual.ksml.data.notation.csv.CsvSchemaLoader;
+import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
+import io.axual.ksml.data.notation.json.JsonNotation;
+import io.axual.ksml.data.notation.json.JsonSchemaLoader;
+import io.axual.ksml.data.notation.json.JsonSchemaMapper;
+import io.axual.ksml.data.notation.soap.SOAPDataObjectConverter;
+import io.axual.ksml.data.notation.soap.SOAPNotation;
+import io.axual.ksml.data.notation.xml.XmlDataObjectConverter;
+import io.axual.ksml.data.notation.xml.XmlNotation;
+import io.axual.ksml.data.notation.xml.XmlSchemaLoader;
+import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.SchemaLibrary;
+import io.axual.ksml.client.serde.ResolvingDeserializer;
+import io.axual.ksml.client.serde.ResolvingSerializer;
+import io.axual.ksml.data.mapper.KafkaStreamsDataObjectMapper;
+import io.axual.ksml.data.schema.KafkaStreamsSchemaMapper;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.execution.ErrorHandler;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.generator.TopologyDefinition;
-import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.notation.avro.AvroNotation;
-import io.axual.ksml.notation.avro.AvroSchemaLoader;
-import io.axual.ksml.notation.binary.BinaryNotation;
-import io.axual.ksml.notation.csv.CsvDataObjectConverter;
-import io.axual.ksml.notation.csv.CsvNotation;
-import io.axual.ksml.notation.csv.CsvSchemaLoader;
-import io.axual.ksml.notation.json.JsonDataObjectConverter;
-import io.axual.ksml.notation.json.JsonNotation;
-import io.axual.ksml.notation.json.JsonSchemaLoader;
-import io.axual.ksml.notation.json.JsonSchemaMapper;
-import io.axual.ksml.notation.soap.SOAPDataObjectConverter;
-import io.axual.ksml.notation.soap.SOAPNotation;
-import io.axual.ksml.notation.xml.XmlDataObjectConverter;
-import io.axual.ksml.notation.xml.XmlNotation;
-import io.axual.ksml.notation.xml.XmlSchemaLoader;
-import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.rest.server.RestServer;
 import io.axual.ksml.runner.backend.KafkaProducerRunner;
 import io.axual.ksml.runner.backend.KafkaStreamsRunner;
@@ -119,11 +123,16 @@ public class KSMLRunner {
                 throw new ConfigException("definitions", definitions, "No KSML definitions found in configuration");
             }
 
-            // Set up the notation library with all known notations
+            // Ensure that Kafka Streams specific types are correctly handled by the KSML data library
+            DataTypeSchemaMapper.SUPPLIER(KafkaStreamsSchemaMapper::new);
+            NativeDataObjectMapper.SUPPLIER(KafkaStreamsDataObjectMapper::new);
+
+            // Set up the notation library with all known notations and type override classes
+            final var jsonNotation = new JsonNotation();
             NotationLibrary.register(AvroNotation.NOTATION_NAME, new AvroNotation(config.getKafkaConfig()), null);
-            NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(), null);
+            NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(jsonNotation::serde), null);
             NotationLibrary.register(CsvNotation.NOTATION_NAME, new CsvNotation(), new CsvDataObjectConverter());
-            NotationLibrary.register(JsonNotation.NOTATION_NAME, new JsonNotation(), new JsonDataObjectConverter());
+            NotationLibrary.register(JsonNotation.NOTATION_NAME, jsonNotation, new JsonDataObjectConverter());
             NotationLibrary.register(SOAPNotation.NOTATION_NAME, new SOAPNotation(), new SOAPDataObjectConverter());
             NotationLibrary.register(XmlNotation.NOTATION_NAME, new XmlNotation(), new XmlDataObjectConverter());
 
@@ -158,7 +167,7 @@ public class KSMLRunner {
                     // Ignore
                 }
                 log.info("Schema: {}", schema);
-                final var specification = parser.parse(YamlNode.fromRoot(definition, name));
+                final var specification = parser.parse(ParseNode.fromRoot(definition, name));
                 if (!specification.producers().isEmpty()) producerSpecs.put(name, specification);
                 if (!specification.pipelines().isEmpty()) pipelineSpecs.put(name, specification);
             });

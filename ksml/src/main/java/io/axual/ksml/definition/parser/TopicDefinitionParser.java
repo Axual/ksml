@@ -39,10 +39,10 @@ public class TopicDefinitionParser extends DefinitionParser<TopicDefinition> {
     public StructParser<TopicDefinition> parser() {
         return structParser(
                 TopicDefinition.class,
-                "Contains a definition of a Topic, which can be referenced by producers and pipelines",
+                "Contains a definition of a Kafka topic, to be used by producers and pipelines",
                 stringField(Streams.TOPIC, true, "The name of the Kafka topic"),
                 userTypeField(Streams.KEY_TYPE, requireKeyValueType, "The key type of the topic"),
                 userTypeField(Streams.VALUE_TYPE, requireKeyValueType, "The value type of the topic"),
-                (topic, keyType, valueType) -> new TopicDefinition("Topic", topic, keyType, valueType));
+                (topic, keyType, valueType) -> topic != null ? new TopicDefinition("Topic", topic, keyType, valueType) : null);
     }
 }

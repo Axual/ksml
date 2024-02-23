@@ -20,17 +20,21 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.type.*;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.execution.FatalError;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.util.ExecutionUtil;
 import org.graalvm.polyglot.Value;
 
 import java.util.Map;
 
 public class PythonDataObjectMapper extends NativeDataObjectMapper {
+    public PythonDataObjectMapper(boolean includeTypeInfo) {
+        super(includeTypeInfo);
+    }
+
     @Override
     public DataObject toDataObject(DataType expected, Object object) {
         // If we got a Value object, then convert it to native format first
@@ -47,9 +51,9 @@ public class PythonDataObjectMapper extends NativeDataObjectMapper {
     }
 
     private DataObject unionToDataObject(UnionType unionType, Object object) {
-        for (UserType possibleType : unionType.possibleTypes()) {
+        for (DataType possibleType : unionType.possibleTypes()) {
             try {
-                var result = toDataObject(possibleType.dataType(), object);
+                var result = toDataObject(possibleType, object);
                 if (result != null) return result;
             } catch (Exception e) {
                 // Ignore exception and move to next possible dataType

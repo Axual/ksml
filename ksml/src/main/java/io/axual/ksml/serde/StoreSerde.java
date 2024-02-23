@@ -20,7 +20,11 @@ package io.axual.ksml.serde;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.serde.DataObjectDeserializer;
+import io.axual.ksml.data.serde.DataObjectSerializer;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.mapper.KafkaStreamsDataObjectMapper;
+import io.axual.ksml.data.schema.KafkaStreamsSchemaMapper;
 import lombok.Getter;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
@@ -28,12 +32,14 @@ import org.apache.kafka.common.serialization.Serializer;
 
 @Getter
 public class StoreSerde implements Serde<Object> {
+    private static final KafkaStreamsSchemaMapper SCHEMA_MAPPER = new KafkaStreamsSchemaMapper();
+    private static final KafkaStreamsDataObjectMapper DO_MAPPER = new KafkaStreamsDataObjectMapper(true);
     private final Serializer<Object> serializer;
     private final Deserializer<Object> deserializer;
 
     public StoreSerde(DataType type, Serde<Object> defaultSerde, String topicName) {
-        try (final var internalSerializer = new DataObjectSerializer(type);
-             final var internalDeserializer = new DataObjectDeserializer(type)) {
+        try (final var internalSerializer = new DataObjectSerializer(type, SCHEMA_MAPPER);
+             final var internalDeserializer = new DataObjectDeserializer(type, SCHEMA_MAPPER)) {
 
             // Here we define the serialization logic for state stores. The rule is: if we are serializing to a Kafka
             // topic, then we follow the explicitly provided type and use the corresponding serde. If we are serializing
@@ -48,7 +54,7 @@ public class StoreSerde implements Serde<Object> {
                     return defaultSerde.serializer().serialize(topic, data);
                 }
                 // Else use the internal DataObject serializer
-                return internalSerializer.serialize(topic, data);
+                return internalSerializer.serialize(topic, DO_MAPPER.toDataObject(data));
             };
 
             deserializer = (topic, data) -> {
@@ -57,7 +63,10 @@ public class StoreSerde implements Serde<Object> {
                     return defaultSerde.deserializer().deserialize(topic, data);
                 }
                 // Else use the internal DataObject deserializer
-                return internalDeserializer.deserialize(topic, data);
+                final var dataObject = internalDeserializer.deserialize(topic, data);
+                // For compatibility reasons, we have to return native object format here. Otherwise, state stores assisting in
+                // count() operations do not get back expected Long types, for example.
+                return DO_MAPPER.fromDataObject(dataObject);
             };
         }
     }

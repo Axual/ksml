@@ -20,15 +20,14 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
-
+import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.definition.ParameterDefinition;
-import io.axual.ksml.exception.KSMLDataException;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.execution.FatalError;
@@ -96,7 +95,7 @@ public class UserFunction {
     protected void checkType(DataType expected, DataObject value) {
         if (value instanceof DataNull) return;
         if (expected != null && value != null && !expected.isAssignableFrom(value.type())) {
-            throw KSMLDataException.conversionFailed(expected, value.type());
+            throw DataException.conversionFailed(expected, value.type());
         }
     }
 

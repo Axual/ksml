@@ -21,6 +21,7 @@ package io.axual.ksml.parser;
  */
 
 
+import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.TopicDefinition;
@@ -71,11 +72,11 @@ public abstract class ContextAwareParser<T> extends DefinitionParser<T> {
     }
 
     protected <T> StructParser<T> lookupField(String resourceType, String childName, boolean mandatory, String doc, Function<String, T> lookup, DefinitionParser<? extends T> parser) {
-        final var resourceParser = new TopologyResourceParser<>("stream", childName, doc, lookup, parser);
+        final var resourceParser = new TopologyResourceParser<>(resourceType, childName, doc, lookup, parser);
         final var schema = mandatory ? resourceParser.schema() : optional(resourceParser).schema();
         return new StructParser<>() {
             @Override
-            public T parse(YamlNode node) {
+            public T parse(ParseNode node) {
                 if (node == null) return null;
                 final var resource = resourceParser.parse(node);
                 if (resource != null && (resource.definition() != null || !mandatory)) return resource.definition();

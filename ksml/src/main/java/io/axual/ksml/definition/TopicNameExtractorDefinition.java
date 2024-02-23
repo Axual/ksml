@@ -21,8 +21,8 @@ package io.axual.ksml.definition;
  */
 
 
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.type.UserType;
 
 import static io.axual.ksml.definition.DefinitionConstants.TOPIC_NAME_EXTRACTOR_PARAMETERS;
 

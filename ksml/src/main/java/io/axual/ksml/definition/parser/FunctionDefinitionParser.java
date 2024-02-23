@@ -21,14 +21,14 @@ package io.axual.ksml.definition.parser;
  */
 
 
+import io.axual.ksml.data.notation.UserType;
+import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.StringValueParser;
 import io.axual.ksml.parser.StructParser;
-import io.axual.ksml.parser.YamlNode;
 
 import java.util.List;
 
@@ -59,11 +59,14 @@ public abstract class FunctionDefinitionParser<T extends FunctionDefinition> ext
         final var parser = structParser(resultClass, doc, name, type, params, globalCode, code, expression, resultType, stores, innerConstructor);
         return new StructParser<>() {
             @Override
-            public T parse(YamlNode node) {
+            public T parse(ParseNode node) {
                 var rawFunction = parser.parse(node);
                 if (rawFunction != null) {
                     if (rawFunction.name() == null) rawFunction = rawFunction.withName(node.longName());
-                    return outerConstructor.construct(rawFunction);
+                    if (rawFunction.globalCode().length > 0 || rawFunction.code().length > 0 || rawFunction.expression() != null) {
+                        return outerConstructor.construct(rawFunction);
+                    }
+                    return null;
                 }
                 return null;
             }

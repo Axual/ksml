@@ -21,20 +21,15 @@ package io.axual.ksml.rest.data;
  */
 
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.util.DataUtil;
 
 public class KeyValueBean {
-    private static final NativeDataObjectMapper MAPPER = new NativeDataObjectMapper();
-
-    static {
-        MAPPER.setIncludeTypeInfo(false);
-    }
+    private static final NativeDataObjectMapper MAPPER = NativeDataObjectMapper.SUPPLIER().create(false);
 
     public final Object key;
     public final Object value;
 
     public KeyValueBean(Object key, Object value) {
-        this.key = MAPPER.fromDataObject(DataUtil.asDataObject(key));
-        this.value = MAPPER.fromDataObject(DataUtil.asDataObject(value));
+        this.key = MAPPER.fromDataObject(MAPPER.toDataObject(key));
+        this.value = MAPPER.fromDataObject(MAPPER.toDataObject(value));
     }
 }

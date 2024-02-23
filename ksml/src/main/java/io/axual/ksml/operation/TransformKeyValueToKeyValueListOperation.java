@@ -21,11 +21,11 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.data.notation.UserTupleType;
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.TupleType;
-import io.axual.ksml.data.type.UserTupleType;
-import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.generator.TopologyBuildContext;

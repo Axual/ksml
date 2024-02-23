@@ -20,18 +20,18 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.notation.UserType;
+import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
-import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.parser.TopologyResourceParser;
-import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.store.StoreType;
 
 import java.util.List;
@@ -75,7 +75,7 @@ public class TableDefinitionParser extends DefinitionParser<TableDefinition> {
         final var schema = structSchema(KeyValueStateStoreDefinition.class, field.doc(), List.of(field));
         return new StructParser<>() {
             @Override
-            public KeyValueStateStoreDefinition parse(YamlNode node) {
+            public KeyValueStateStoreDefinition parse(ParseNode node) {
                 final var resource = resourceParser.parse(node);
                 if (resource != null && resource.definition() instanceof KeyValueStateStoreDefinition def) return def;
                 return null;

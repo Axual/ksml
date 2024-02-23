@@ -20,6 +20,9 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.parser.ParseNode;
+import io.axual.ksml.data.parser.Parser;
+import io.axual.ksml.data.parser.ParserWithSchema;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.execution.FatalError;
@@ -38,7 +41,7 @@ public abstract class BaseParser<T> implements Parser<T> {
         this.stringValueParser = new StringValueParser();
     }
 
-    protected Boolean parseBoolean(YamlNode node, String childName) {
+    protected Boolean parseBoolean(ParseNode node, String childName) {
         if (node == null) return null;
         final var child = node.get(childName);
         return child != null && child.isBoolean() ? child.asBoolean() : null;
@@ -81,11 +84,11 @@ public abstract class BaseParser<T> implements Parser<T> {
         }
     }
 
-    protected Integer parseInteger(YamlNode node, String childName) {
+    protected Integer parseInteger(ParseNode node, String childName) {
         return node != null && node.get(childName) != null ? node.get(childName).asInt() : null;
     }
 
-    protected String parseString(YamlNode node, String childName) {
+    protected String parseString(ParseNode node, String childName) {
         return node != null ? stringValueParser.parse(node.get(childName)) : null;
     }
 }

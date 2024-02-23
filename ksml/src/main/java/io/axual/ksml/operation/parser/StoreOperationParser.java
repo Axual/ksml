@@ -20,6 +20,8 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.parser.NamedObjectParser;
+import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.parser.StateStoreDefinitionParser;
@@ -28,10 +30,8 @@ import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.StoreOperation;
 import io.axual.ksml.operation.StoreOperationConfig;
-import io.axual.ksml.parser.NamedObjectParser;
 import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.parser.TopologyResourceParser;
-import io.axual.ksml.parser.YamlNode;
 import io.axual.ksml.store.StoreType;
 
 import java.util.List;
@@ -51,7 +51,7 @@ public abstract class StoreOperationParser<T extends StoreOperation> extends Ope
         final var schema = mandatory ? resourceParser.schema() : optional(resourceParser).schema();
         return new StructParser<>() {
             @Override
-            public StateStoreDefinition parse(YamlNode node) {
+            public StateStoreDefinition parse(ParseNode node) {
                 if (stateStoreParser instanceof NamedObjectParser nop)
                     nop.defaultName(node.longName());
                 final var resource = resourceParser.parse(node);

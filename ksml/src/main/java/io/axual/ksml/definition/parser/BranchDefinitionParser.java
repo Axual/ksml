@@ -20,14 +20,13 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
-
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.BranchDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.parser.ContextAwareParser;
 import io.axual.ksml.parser.StructParser;
-import org.apache.commons.collections4.ListUtils;
+import io.axual.ksml.util.ListUtil;
 
 public class BranchDefinitionParser extends ContextAwareParser<BranchDefinition> {
     private final boolean includePipelineSchema;
@@ -41,10 +40,10 @@ public class BranchDefinitionParser extends ContextAwareParser<BranchDefinition>
     public StructParser<BranchDefinition> parser() {
         // This parser uses the PipelineDefinitionParser recursively, hence requires a special implementation to not
         // make the associated DataSchema recurse infinitely.
-        final var predParser = functionField(KSMLDSL.Operations.Branch.PREDICATE, "Defines the condition under which messages get sent down this branch", new PredicateDefinitionParser());
+        final var predParser = optional(functionField(KSMLDSL.Operations.Branch.PREDICATE, "Defines the condition under which messages get sent down this branch", new PredicateDefinitionParser()));
         final var pipelineParser = new PipelineDefinitionParser(resources(), false);
         final StructSchema schema = includePipelineSchema
-                ? structSchema(BranchDefinition.class.getSimpleName(), "Defines one branch in a BranchOperation", ListUtils.union(predParser.fields(), pipelineParser.fields()))
+                ? structSchema(BranchDefinition.class.getSimpleName(), "Defines one branch in a BranchOperation", ListUtil.union(predParser.fields(), pipelineParser.fields()))
                 : structSchema(BranchDefinition.class.getSimpleName(), "Defines one branch in a BranchOperation", predParser.fields());
         return StructParser.of(node -> new BranchDefinition(predParser.parse(node), pipelineParser.parse(node)), schema);
     }

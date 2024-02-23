@@ -20,13 +20,13 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
-
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.python.Invoker;
-import io.axual.ksml.util.DataUtil;
 import org.apache.kafka.streams.kstream.Merger;
 
 public class UserMerger extends Invoker implements Merger<Object, Object> {
+    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
 
     public UserMerger(UserFunction function) {
         super(function);
@@ -37,6 +37,6 @@ public class UserMerger extends Invoker implements Merger<Object, Object> {
 
     @Override
     public DataObject apply(Object key, Object value1, Object value2) {
-        return function.call(DataUtil.asDataObject(key), DataUtil.asDataObject(value1), DataUtil.asDataObject(value2));
+        return function.call(nativeMapper.toDataObject(key), nativeMapper.toDataObject(value1), nativeMapper.toDataObject(value2));
     }
 }

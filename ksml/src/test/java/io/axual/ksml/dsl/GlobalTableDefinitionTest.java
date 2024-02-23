@@ -20,12 +20,12 @@ package io.axual.ksml.dsl;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.notation.Notation;
+import io.axual.ksml.data.notation.NotationLibrary;
+import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.definition.GlobalTableDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.generator.TopologyResources;
-import io.axual.ksml.notation.Notation;
-import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.notation.binary.BinaryNotation;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.stream.GlobalKTableWrapper;
 import org.apache.kafka.streams.StreamsBuilder;

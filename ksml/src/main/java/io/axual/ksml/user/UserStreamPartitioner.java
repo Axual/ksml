@@ -20,17 +20,16 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
-
-import io.axual.ksml.data.type.DataType;
-import org.apache.kafka.streams.processor.StreamPartitioner;
-
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.util.DataUtil;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;
+import org.apache.kafka.streams.processor.StreamPartitioner;
 
 public class UserStreamPartitioner extends Invoker implements StreamPartitioner<Object, Object> {
+    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
     private final static DataType EXPECTED_RESULT_TYPE = DataInteger.DATATYPE;
 
     public UserStreamPartitioner(UserFunction function) {
@@ -41,7 +40,7 @@ public class UserStreamPartitioner extends Invoker implements StreamPartitioner<
 
     @Override
     public Integer partition(String topic, Object key, Object value, int numPartitions) {
-        final var result = function.call(new DataString(topic), DataUtil.asDataObject(key), DataUtil.asDataObject(value), new DataInteger(numPartitions));
+        final var result = function.call(new DataString(topic), nativeMapper.toDataObject(key), nativeMapper.toDataObject(value), new DataInteger(numPartitions));
         if (result instanceof DataInteger dataInteger) {
             return dataInteger.value();
         }

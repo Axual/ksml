@@ -20,22 +20,24 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.notation.NotationLibrary;
+import io.axual.ksml.data.notation.UserTupleType;
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.schema.KafkaStreamsSchemaMapper;
 import io.axual.ksml.data.type.*;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.execution.FatalError;
-import io.axual.ksml.notation.NotationLibrary;
 
-import static io.axual.ksml.data.type.UserType.DEFAULT_NOTATION;
+import static io.axual.ksml.data.notation.UserType.DEFAULT_NOTATION;
 
 // This DataObjectConverter makes expected data types compatible with the actual data that was
 // created. It does so by converting numbers to strings, and vice versa. It can convert complex
 // data objects like Enums, Lists and Structs too, recursively going through sub-elements if
 // necessary.
 public class DataObjectConverter {
-    private static DataTypeSchemaMapper dataTypeSchemaMapper = new KafkaStreamsSchemaMapper();
+    private static final DataTypeSchemaMapper SCHEMA_MAPPER = new KafkaStreamsSchemaMapper();
 
     public DataObject convert(String sourceNotation, DataObject value, UserType targetType) {
         return convert(sourceNotation, value, targetType, false);
@@ -80,7 +82,7 @@ public class DataObjectConverter {
                 var field = targetStructType.schema().field(entry.getKey());
                 // Only copy if the field exists in the target structure
                 if (field != null) {
-                    var newValueType = new UserType(dataTypeSchemaMapper.fromDataSchema(field.schema()));
+                    var newValueType = new UserType(SCHEMA_MAPPER.fromDataSchema(field.schema()));
                     // Convert to that type if necessary
                     result.put(entry.getKey(), convert(DEFAULT_NOTATION, entry.getValue(), newValueType));
                 }
@@ -251,7 +253,7 @@ public class DataObjectConverter {
         // Copy all struct fields into the new struct, possibly making sub-elements compatible
         for (var entry : value.entrySet()) {
             var fieldName = entry.getKey();
-            var fieldType = dataTypeSchemaMapper.fromDataSchema(schema.field(fieldName).schema());
+            var fieldType = SCHEMA_MAPPER.fromDataSchema(schema.field(fieldName).schema());
             result.put(entry.getKey(), convert(entry.getValue(), fieldType));
         }
 

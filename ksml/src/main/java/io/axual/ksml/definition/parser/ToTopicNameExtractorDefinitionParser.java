@@ -45,6 +45,6 @@ public class ToTopicNameExtractorDefinitionParser extends ContextAwareParser<ToT
                         resources()::function,
                         new TopicNameExtractorDefinitionParser()),
                 new StreamPartitionerDefinitionParser(),
-                (tne, partitioner) -> new ToTopicNameExtractorDefinition(new TopicNameExtractorDefinition(tne), partitioner));
+                (tne, partitioner) -> tne != null ? new ToTopicNameExtractorDefinition(new TopicNameExtractorDefinition(tne), partitioner) : null);
     }
 }

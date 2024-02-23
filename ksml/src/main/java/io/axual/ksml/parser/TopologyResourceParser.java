@@ -21,6 +21,8 @@ package io.axual.ksml.parser;
  */
 
 
+import io.axual.ksml.data.parser.ParseNode;
+import io.axual.ksml.data.parser.ParserWithSchema;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
@@ -60,7 +62,7 @@ public class TopologyResourceParser<T, F extends T> extends DefinitionParser<Top
         final var stringParser = stringField(childName, false, null, doc);
         return new StructParser<>() {
             @Override
-            public TopologyResource<T> parse(YamlNode node) {
+            public TopologyResource<T> parse(ParseNode node) {
                 if (node == null) return null;
 
                 // Check if the node is a text node --> parse as direct reference
@@ -91,7 +93,7 @@ public class TopologyResourceParser<T, F extends T> extends DefinitionParser<Top
         };
     }
 
-    public T parseDefinition(YamlNode node) {
+    public T parseDefinition(ParseNode node) {
         final var result = parse(node);
         return result != null ? result.definition() : null;
     }

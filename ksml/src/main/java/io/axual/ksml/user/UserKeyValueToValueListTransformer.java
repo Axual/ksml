@@ -20,19 +20,19 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
-
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;
 import io.axual.ksml.store.StateStores;
-import io.axual.ksml.util.DataUtil;
 import org.apache.kafka.streams.kstream.ValueMapperWithKey;
 
 import java.util.ArrayList;
 
 public class UserKeyValueToValueListTransformer extends Invoker implements ValueMapperWithKey<Object, Object, Iterable<Object>> {
+    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
     private final static DataType EXPECTED_RESULT_TYPE = new ListType(DataType.UNKNOWN);
 
     public UserKeyValueToValueListTransformer(UserFunction function) {
@@ -48,7 +48,7 @@ public class UserKeyValueToValueListTransformer extends Invoker implements Value
     }
 
     public Iterable<Object> apply(StateStores stores, Object key, Object value) {
-        final var result = function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
+        final var result = function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value));
         if (result instanceof DataList list) {
             final var newList = new ArrayList<>();
             list.forEach(newList::add);

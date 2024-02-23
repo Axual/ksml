@@ -20,10 +20,7 @@ package io.axual.ksml.dsl;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.DataField;
-import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.ListSchema;
-import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.schema.*;
 
 import java.util.ArrayList;
 

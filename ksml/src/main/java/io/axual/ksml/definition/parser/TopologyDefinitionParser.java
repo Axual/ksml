@@ -20,13 +20,13 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.parser.MapParser;
+import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.parser.DefinitionParser;
-import io.axual.ksml.parser.MapParser;
 import io.axual.ksml.parser.StructParser;
-import io.axual.ksml.parser.YamlNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.PIPELINES;
 import static io.axual.ksml.dsl.KSMLDSL.PRODUCERS;
@@ -49,7 +49,7 @@ public class TopologyDefinitionParser extends DefinitionParser<TopologyDefinitio
         final var schema = structSchema(TopologyDefinition.class, "A KSML topology description", fields);
         return new StructParser<>() {
             @Override
-            public TopologyDefinition parse(YamlNode node) {
+            public TopologyDefinition parse(ParseNode node) {
                 final var resources = resourcesParser.parse(node);
                 final var result = new TopologyDefinition(resources.namespace());
                 // Copy the resources into the topology definition

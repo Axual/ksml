@@ -20,6 +20,8 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.parser.ParseNode;
+import io.axual.ksml.data.parser.ParserWithSchema;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.StructSchema;
 
@@ -34,14 +36,14 @@ public interface StructParser<T> extends ParserWithSchema<T> {
         return schema().fields();
     }
 
-    static <T> StructParser<T> of(final Function<YamlNode, T> parseFunc, StructSchema schema) {
+    static <T> StructParser<T> of(final Function<ParseNode, T> parseFunc, StructSchema schema) {
         return of(parseFunc, () -> schema);
     }
 
-    static <T> StructParser<T> of(final Function<YamlNode, T> parseFunc, Supplier<StructSchema> getter) {
+    static <T> StructParser<T> of(final Function<ParseNode, T> parseFunc, Supplier<StructSchema> getter) {
         return new StructParser<T>() {
             @Override
-            public T parse(YamlNode node) {
+            public T parse(ParseNode node) {
                 return parseFunc.apply(node);
             }
 

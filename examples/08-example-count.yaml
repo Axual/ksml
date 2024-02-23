@@ -39,4 +39,4 @@ pipelines:
       - type: peek
         forEach:
           code: log.info("key={}, value={}", key, value)
-    to: ksml_sensordata_count
+    to: sensor_count

@@ -20,10 +20,12 @@ package io.axual.ksml.dsl;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.DataTypeSchemaMapper;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.mapper.DataTypeSchemaMapper;
+import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.schema.KafkaStreamsSchemaMapper;
 import io.axual.ksml.data.type.WindowedType;
 
 import java.util.ArrayList;
@@ -47,7 +49,7 @@ public class WindowedSchema {
     private static final String WINDOWED_SCHEMA_START_TIME_FIELD_DOC = "Start time";
     private static final String WINDOWED_SCHEMA_END_TIME_FIELD_DOC = "End time";
     private static final String WINDOWED_SCHEMA_KEY_FIELD_DOC = "Window key";
-    private static final DataTypeSchemaMapper dataTypeSchemaMapper = new DataTypeSchemaMapper();
+    private static final DataTypeSchemaMapper dataTypeSchemaMapper = KafkaStreamsSchemaMapper.SUPPLIER().create();
 
     public static StructSchema generateWindowedSchema(WindowedType windowedType) {
         return new StructSchema(

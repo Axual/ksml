@@ -20,16 +20,16 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
-
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;
 import io.axual.ksml.store.StateStores;
-import io.axual.ksml.util.DataUtil;
 import org.apache.kafka.streams.kstream.Predicate;
 
 public class UserPredicate extends Invoker implements Predicate<Object, Object> {
+    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
     private final static DataType EXPECTED_RESULT_TYPE = DataBoolean.DATATYPE;
 
     public UserPredicate(UserFunction function) {
@@ -45,7 +45,7 @@ public class UserPredicate extends Invoker implements Predicate<Object, Object> 
     }
 
     public boolean test(StateStores stores, Object key, Object value) {
-        final var result = function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
+        final var result = function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value));
         if (result instanceof DataBoolean dataBoolean) {
             return dataBoolean.value();
         }

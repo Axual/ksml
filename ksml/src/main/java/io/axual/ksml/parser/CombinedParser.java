@@ -20,9 +20,10 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.parser.ParserWithSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.value.Pair;
-import org.apache.commons.collections4.ListUtils;
+import io.axual.ksml.util.ListUtil;
 
 public class CombinedParser<L, R> extends DefinitionParser<Pair<L, R>> {
     private final ParserWithSchema<L> parser1;
@@ -32,7 +33,7 @@ public class CombinedParser<L, R> extends DefinitionParser<Pair<L, R>> {
     public CombinedParser(StructParser<L> parser1, StructParser<R> parser2) {
         this.parser1 = parser1;
         this.parser2 = parser2;
-        schema = structSchema((String) null, null, ListUtils.union(parser1.fields(), parser2.fields()));
+        schema = structSchema((String) null, null, ListUtil.union(parser1.fields(), parser2.fields()));
     }
 
     @Override

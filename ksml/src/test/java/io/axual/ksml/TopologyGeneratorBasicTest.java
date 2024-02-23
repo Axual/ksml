@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.generator.YAMLObjectMapper;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.data.parser.ParseNode;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TopologyDescription;
 import org.graalvm.home.Version;
@@ -61,7 +61,7 @@ public class TopologyGeneratorBasicTest {
         final var path = Paths.get(uri);
         final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(path), JsonNode.class);
         final var definitions = ImmutableMap.of("definition",
-                new TopologyDefinitionParser("test").parse(YamlNode.fromRoot(definition, "test")));
+                new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(definition, "test")));
         var topologyGenerator = new TopologyGenerator("some.app.id");
         final var topology = topologyGenerator.create(streamsBuilder, definitions);
         final TopologyDescription description = topology.describe();

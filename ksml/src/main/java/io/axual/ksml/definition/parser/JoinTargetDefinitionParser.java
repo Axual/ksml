@@ -23,11 +23,11 @@ package io.axual.ksml.definition.parser;
 
 import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.definition.TopologyResource;
-import io.axual.ksml.exception.KSMLParseException;
+import io.axual.ksml.data.exception.ParseException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.TopologyResourceParser;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.data.parser.ParseNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.Operations;
 
@@ -39,7 +39,7 @@ public class JoinTargetDefinitionParser extends BaseParser<TopologyResource<Topi
     }
 
     @Override
-    public TopologyResource<TopicDefinition> parse(YamlNode node) {
+    public TopologyResource<TopicDefinition> parse(ParseNode node) {
         if (node == null) return null;
         if (node.get(Operations.Join.WITH_STREAM) != null) {
             return new TopologyResourceParser<>("stream", Operations.Join.WITH_STREAM, null, resources::topic, new StreamDefinitionParser(false)).parse(node);
@@ -50,6 +50,6 @@ public class JoinTargetDefinitionParser extends BaseParser<TopologyResource<Topi
         if (parseString(node, Operations.Join.WITH_GLOBAL_TABLE) != null) {
             return new TopologyResourceParser<>("globalTable", Operations.Join.WITH_GLOBAL_TABLE, null, resources::topic, new GlobalTableDefinitionParser(false)).parse(node);
         }
-        throw new KSMLParseException(node, "Stream definition missing");
+        throw new ParseException(node, "Stream definition missing");
     }
 }

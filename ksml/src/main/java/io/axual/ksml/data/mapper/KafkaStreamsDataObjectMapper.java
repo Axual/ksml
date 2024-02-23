@@ -30,13 +30,22 @@ import org.apache.kafka.streams.kstream.Windowed;
 
 import static io.axual.ksml.dsl.WindowedSchema.*;
 
+// KSML uses a generic policy that ALL data in streams is internally represented as DataObjects.
+// However, Kafka Streams also dictates some types of its own, namely classes like Windowed and
+// Long, which are both used in the count() operation. This leads to ClassCastExceptions if we
+// define our stream types as KStream<DataObject,DataObject>, since Windows and Long cannot be
+// cast to DataObject. Therefore, all formal stream types in the Java code are
+// KStream<Object,Object> instead of KStream<DataObject,DataObject>. This mapper class ensures
+// that any data dataType injected by Kafka Streams gets modified into a proper DataObject on
+// the fly. When new data types pop up in Kafka Streams' generics, add the conversion to a
+// DataObject to this method.
 public class KafkaStreamsDataObjectMapper extends NativeDataObjectMapper {
-    public KafkaStreamsDataObjectMapper(DataSchemaMapper<DataType> schemaMapper, DataSchemaMapper<Object> schemaSerde) {
-        super(schemaMapper, schemaSerde);
+    public KafkaStreamsDataObjectMapper(boolean includeTypeInfo) {
+        super(includeTypeInfo);
     }
 
     @Override
-    public DataObject toDataObject(Object value) {
+    public DataObject toDataObject(DataType expected, Object value) {
         if (value instanceof Windowed<?> windowedObject) {
             // Convert a Windowed object into a struct with fields that contain the window fields.
             var keyAsData = toDataObject(windowedObject.key());
@@ -49,6 +58,6 @@ public class KafkaStreamsDataObjectMapper extends NativeDataObjectMapper {
             result.put(WINDOWED_SCHEMA_KEY_FIELD, keyAsData);
             return result;
         }
-        return super.toDataObject(value);
+        return super.toDataObject(expected, value);
     }
 }

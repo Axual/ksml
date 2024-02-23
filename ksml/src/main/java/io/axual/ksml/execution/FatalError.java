@@ -26,9 +26,9 @@ import org.slf4j.LoggerFactory;
 
 import io.axual.ksml.exception.KSMLDataException;
 import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.exception.KSMLParseException;
+import io.axual.ksml.data.exception.ParseException;
 import io.axual.ksml.exception.KSMLSchemaException;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.data.parser.ParseNode;
 
 public class FatalError {
     private static final Logger LOG = LoggerFactory.getLogger(FatalError.class);
@@ -56,12 +56,12 @@ public class FatalError {
         return reportAndExit(new KSMLExecutionException(message, cause));
     }
 
-    public static RuntimeException parseError(YamlNode node, String message) {
+    public static RuntimeException parseError(ParseNode node, String message) {
         return parseError(node, message, null);
     }
 
-    public static RuntimeException parseError(YamlNode node, String message, Throwable cause) {
-        return reportAndExit(new KSMLParseException(node, message, cause));
+    public static RuntimeException parseError(ParseNode node, String message, Throwable cause) {
+        return reportAndExit(new ParseException(node, message, cause));
     }
 
     public static RuntimeException schemaError(String message, Throwable cause) {

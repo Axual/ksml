@@ -53,14 +53,14 @@ public class ToOperationParser extends OperationParser<ToOperation> {
             return structParser(
                     ToOperation.class,
                     "Either a topic or topic name extractor that defines where to write pipeline messages to",
-                    topicParser,
+                    optional(topicParser),
                     tneParser,
-                    (topic, tne) -> {
-                        if (topic != null && topic.topic() != null) {
-                            return new ToOperation(operationConfig(null), topic.topic(), topic.partitioner());
+                    (toTopic, toTne) -> {
+                        if (toTopic != null && toTopic.topic() != null) {
+                            return new ToOperation(operationConfig(null), toTopic.topic(), toTopic.partitioner());
                         }
-                        if (tne != null && tne.topicNameExtractor() != null) {
-                            return new ToOperation(operationConfig(null), tne.topicNameExtractor(), tne.partitioner());
+                        if (toTne != null && toTne.topicNameExtractor() != null) {
+                            return new ToOperation(operationConfig(null), toTne.topicNameExtractor(), toTne.partitioner());
                         }
                         throw FatalError.topologyError("Unknown target for pipeline \"to\" operation");
                     });
@@ -75,9 +75,16 @@ public class ToOperationParser extends OperationParser<ToOperation> {
                 false,
                 "Ends the pipeline by sending all messages to a fixed topic, or to a topic returned by a topic name extractor function",
                 name -> {
+                    // First try to find a corresponding topic definition
                     final var topic = resources().topic(name);
-                    if (topic != null)
+                    if (topic != null) {
                         return new ToOperation(operationConfig(null), topic, null);
+                    }
+                    // Then try to find a corresponding topic name extractor function
+                    final var tne = resources().function(name);
+                    if (tne != null) {
+                        return new ToOperation(operationConfig(null), tne, null);
+                    }
                     return null;
                 },
                 new ToOperationDefinitionParser());

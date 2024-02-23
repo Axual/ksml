@@ -21,15 +21,10 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataLong;
-import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.generator.TopologyBuildContext;
-import io.axual.ksml.stream.KGroupedStreamWrapper;
-import io.axual.ksml.stream.KGroupedTableWrapper;
-import io.axual.ksml.stream.KTableWrapper;
-import io.axual.ksml.stream.SessionWindowedKStreamWrapper;
-import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
+import io.axual.ksml.stream.*;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Materialized;

@@ -20,13 +20,15 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.python.Invoker;
-import io.axual.ksml.util.DataUtil;
 
 import java.util.function.Function;
 
 public class UserForeignKeyExtractor extends Invoker implements Function<Object, Object> {
+    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
+
     public UserForeignKeyExtractor(UserFunction function) {
         super(function);
         verifyParameterCount(1);
@@ -34,6 +36,6 @@ public class UserForeignKeyExtractor extends Invoker implements Function<Object,
 
     @Override
     public DataObject apply(Object value) {
-        return function.call(DataUtil.asDataObject(value));
+        return function.call(nativeMapper.toDataObject(value));
     }
 }

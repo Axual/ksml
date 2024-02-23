@@ -17,7 +17,7 @@ pipelines:
     from: sensor_source
     via:
       - type: filter
-        predicate:
+        if:
           expression: key != None
       - type: peek
         forEach:

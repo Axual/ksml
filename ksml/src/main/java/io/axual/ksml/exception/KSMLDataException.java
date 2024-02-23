@@ -21,21 +21,7 @@ package io.axual.ksml.exception;
  */
 
 
-import io.axual.ksml.data.type.DataType;
-
 public class KSMLDataException extends KSMLExecutionException {
-    public static KSMLDataException conversionFailed(DataType variableType, DataType valueType) {
-        return conversionFailed(valueType.toString(), variableType.toString());
-    }
-
-    public static KSMLDataException conversionFailed(String fromType, String toType) {
-        return new KSMLDataException("Can not convert object from dataType \"" + fromType + "\" to \"" + toType + "\"");
-    }
-
-    public static KSMLDataException validationFailed(String key, Object value) {
-        return new KSMLDataException("Field validation failed for key \"" + key + "\": value=" + value);
-    }
-
     public KSMLDataException(String message) {
         super(message);
     }

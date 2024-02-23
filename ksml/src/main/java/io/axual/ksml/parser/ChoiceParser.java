@@ -21,6 +21,9 @@ package io.axual.ksml.parser;
  */
 
 import com.google.common.collect.ImmutableMap;
+import io.axual.ksml.data.parser.NamedObjectParser;
+import io.axual.ksml.data.parser.ParseNode;
+import io.axual.ksml.data.parser.ParserWithSchema;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.execution.FatalError;
@@ -50,12 +53,14 @@ public class ChoiceParser<T> extends BaseParser<T> implements ParserWithSchema<T
     }
 
     @Override
-    public T parse(YamlNode node) {
+    public T parse(ParseNode node) {
         if (node == null) return null;
         final var child = node.get(childName);
-        if (child == null) return null;
-        String childValue = child.asString();
-        childValue = childValue != null ? childValue : defaultValue;
+        String childValue = defaultValue;
+        if (child != null) {
+            childValue = child.asString();
+            childValue = childValue != null ? childValue : defaultValue;
+        }
         if (!parsers.containsKey(childValue)) {
             throw FatalError.parseError(child, "Unknown " + parsedType + " \"" + childName + "\", choose one of " + parsers.keySet().stream().sorted().collect(Collectors.joining(", ")));
         }
