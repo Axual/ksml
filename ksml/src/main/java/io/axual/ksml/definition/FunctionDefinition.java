@@ -22,7 +22,7 @@ package io.axual.ksml.definition;
 
 
 import io.axual.ksml.data.notation.UserType;
-import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.exception.TopologyException;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -89,9 +89,9 @@ public class FunctionDefinition {
 
     public FunctionDefinition withAResult(String functionType) {
         if (expression == null)
-            throw new KSMLTopologyException("Function type requires a result expression: " + functionType);
+            throw new TopologyException("Function type requires a result expression: " + functionType);
         if (resultType == null)
-            throw new KSMLTopologyException("Function type requires a result type: " + functionType);
+            throw new TopologyException("Function type requires a result type: " + functionType);
         return this;
     }
 

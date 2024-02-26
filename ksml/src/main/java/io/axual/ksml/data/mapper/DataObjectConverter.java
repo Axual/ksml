@@ -20,15 +20,15 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.UserTupleType;
 import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.schema.KafkaStreamsSchemaMapper;
 import io.axual.ksml.data.type.*;
-import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.execution.ExecutionContext;
-import io.axual.ksml.execution.FatalError;
 
 import static io.axual.ksml.data.notation.UserType.DEFAULT_NOTATION;
 
@@ -120,7 +120,7 @@ public class DataObjectConverter {
         if (allowFail) return null;
 
         // We can't perform the conversion, so report a fatal error
-        throw FatalError.dataError("Can not convert value to " + targetType + ": " + ExecutionContext.INSTANCE.maskData(value));
+        throw new DataException("Can not convert value to " + targetType + ": " + ExecutionContext.INSTANCE.maskData(value));
     }
 
     private DataObject applyNotationConverters(String sourceNotation, DataObject value, UserType targetType) {
@@ -192,7 +192,7 @@ public class DataObjectConverter {
         if (expected instanceof TupleType tupleType) return createEmptyTuple(tupleType);
         if (expected instanceof UnionType unionType)
             return new DataUnion(unionType, DataNull.INSTANCE);
-        throw new KSMLExecutionException("Can not convert NULL to " + expected);
+        throw new ExecutionException("Can not convert NULL to " + expected);
     }
 
     private DataTuple createEmptyTuple(TupleType tupleType) {

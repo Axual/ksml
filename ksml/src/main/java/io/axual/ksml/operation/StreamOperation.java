@@ -21,7 +21,7 @@ package io.axual.ksml.operation;
  */
 
 
-import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.CogroupedKStreamWrapper;
 import io.axual.ksml.stream.GlobalKTableWrapper;
@@ -38,42 +38,42 @@ import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
 public interface StreamOperation {
 
     default StreamWrapper apply(KStreamWrapper stream, TopologyBuildContext context) {
-        throw new KSMLTopologyException("Can not apply " + getClass().getSimpleName() + " to " + stream);
+        throw new TopologyException("Can not apply " + getClass().getSimpleName() + " to " + stream);
     }
 
     default StreamWrapper apply(KTableWrapper table, TopologyBuildContext context) {
-        throw new KSMLTopologyException("Can not apply " + getClass().getSimpleName() + " to " + table);
+        throw new TopologyException("Can not apply " + getClass().getSimpleName() + " to " + table);
     }
 
     default StreamWrapper apply(GlobalKTableWrapper globalTable, TopologyBuildContext context) {
-        throw new KSMLTopologyException("Can not apply " + getClass().getSimpleName() + " to " + globalTable);
+        throw new TopologyException("Can not apply " + getClass().getSimpleName() + " to " + globalTable);
     }
 
     default StreamWrapper apply(KGroupedStreamWrapper groupedStream, TopologyBuildContext context) {
-        throw new KSMLTopologyException("Can not apply " + getClass().getSimpleName() + " to " + groupedStream);
+        throw new TopologyException("Can not apply " + getClass().getSimpleName() + " to " + groupedStream);
     }
 
     default StreamWrapper apply(KGroupedTableWrapper groupedTable, TopologyBuildContext context) {
-        throw new KSMLTopologyException("Can not apply " + getClass().getSimpleName() + " to " + groupedTable);
+        throw new TopologyException("Can not apply " + getClass().getSimpleName() + " to " + groupedTable);
     }
 
     default StreamWrapper apply(SessionWindowedKStreamWrapper sessionWindowedKStream, TopologyBuildContext context) {
-        throw new KSMLTopologyException("Can not apply " + getClass().getSimpleName() + " to " + sessionWindowedKStream);
+        throw new TopologyException("Can not apply " + getClass().getSimpleName() + " to " + sessionWindowedKStream);
     }
 
     default StreamWrapper apply(TimeWindowedKStreamWrapper timeWindowedKStream, TopologyBuildContext context) {
-        throw new KSMLTopologyException("Can not apply " + getClass().getSimpleName() + " to " + timeWindowedKStream);
+        throw new TopologyException("Can not apply " + getClass().getSimpleName() + " to " + timeWindowedKStream);
     }
 
     default StreamWrapper apply(CogroupedKStreamWrapper cogroupedStream, TopologyBuildContext context) {
-        throw new KSMLTopologyException("Can not apply " + getClass().getSimpleName() + " to " + cogroupedStream);
+        throw new TopologyException("Can not apply " + getClass().getSimpleName() + " to " + cogroupedStream);
     }
 
     default StreamWrapper apply(SessionWindowedCogroupedKStreamWrapper sessionWindowedCogroupedKStreamWrapper, TopologyBuildContext context) {
-        throw new KSMLTopologyException("Can not apply " + getClass().getSimpleName() + " to " + sessionWindowedCogroupedKStreamWrapper);
+        throw new TopologyException("Can not apply " + getClass().getSimpleName() + " to " + sessionWindowedCogroupedKStreamWrapper);
     }
 
     default StreamWrapper apply(TimeWindowedCogroupedKStreamWrapper timeWindowedCogroupedKStreamWrapper, TopologyBuildContext context) {
-        throw new KSMLTopologyException("Can not apply " + getClass().getSimpleName() + " to " + timeWindowedCogroupedKStreamWrapper);
+        throw new TopologyException("Can not apply " + getClass().getSimpleName() + " to " + timeWindowedCogroupedKStreamWrapper);
     }
 }

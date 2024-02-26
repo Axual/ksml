@@ -24,7 +24,7 @@ package io.axual.ksml.operation.parser;
 import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.MergeOperation;
 import io.axual.ksml.operation.OperationConfig;
@@ -47,7 +47,7 @@ public class MergeOperationParser extends OperationParser<MergeOperation> {
                     if (stream instanceof StreamDefinition streamDef) {
                         return new MergeOperation(new OperationConfig(namespace(), name, null), streamDef);
                     }
-                    throw FatalError.topologyError("Merge stream not correct, should be a defined Stream");
+                    throw new TopologyException("Merge stream not correct, should be a defined Stream");
                 });
     }
 }

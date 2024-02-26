@@ -20,11 +20,12 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.ParseException;
 import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.parser.*;
 import io.axual.ksml.data.schema.*;
-import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.exception.TopologyException;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -33,10 +34,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.ToLongFunction;
 
 public abstract class DefinitionParser<T> extends BaseParser<T> implements StructParser<T> {
     public static final String SCHEMA_NAMESPACE = "io.axual.ksml";
     private static final DataSchema DURATION_SCHEMA = new UnionSchema(DataSchema.longSchema(), DataSchema.stringSchema());
+    protected final ParserWithSchema<String> codeParser;
     // The global namespace for this definition parser. The namespace is the specified name in the runner configuration
     // for this particular KSML definition. It is used to prefix global names in Kafka Streams (eg. processor names) to
     // ensure no conflict between processor names for two separate definitions.
@@ -49,11 +52,14 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
 
     public DefinitionParser(String namespace) {
         this.namespace = namespace;
+        final var codeStringParser = new StringValueParser(value -> value ? "True" : "False");
+        final var codeSchema = new UnionSchema(DataSchema.booleanSchema(), DataSchema.stringSchema());
+        this.codeParser = ParserWithSchema.of(codeStringParser::parse, codeSchema);
     }
 
     protected String namespace() {
         if (namespace != null) return namespace;
-        throw FatalError.topologyError("Topology namespace not properly initialized. This is a programming error.");
+        throw new TopologyException("Topology namespace not properly initialized. This is a programming error.");
     }
 
     protected abstract StructParser<T> parser();
@@ -108,7 +114,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
                 final var child = node.get(field.name());
                 return child != null ? valueParser.parse(child) : null;
             } catch (Exception e) {
-                throw FatalError.parseError(node, e.getMessage());
+                throw new ParseException(node, e.getMessage());
             }
         }
     }
@@ -130,8 +136,45 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
             try {
                 return valueParser.parse(node);
             } catch (Exception e) {
-                throw FatalError.parseError(node, e.getMessage());
+                throw new ParseException(node, e.getMessage());
             }
+        }
+    }
+
+    protected Duration parseDuration(String durationStr) {
+        if (durationStr == null) return null;
+        durationStr = durationStr.toLowerCase().trim();
+        if (durationStr.length() >= 2) {
+            // Prepare a function to extract the number part from a string formatted as "1234x".
+            // This function is only applied if a known unit character is found at the end of
+            // the duration string.
+            ToLongFunction<String> parser = ds -> Long.parseLong(ds.substring(0, ds.length() - 1));
+
+            // If the duration ends with a unit string, then use that for the duration basis
+            switch (durationStr.charAt(durationStr.length() - 1)) {
+                case 'd' -> {
+                    return Duration.ofDays(parser.applyAsLong(durationStr));
+                }
+                case 'h' -> {
+                    return Duration.ofHours(parser.applyAsLong(durationStr));
+                }
+                case 'm' -> {
+                    return Duration.ofMinutes(parser.applyAsLong(durationStr));
+                }
+                case 's' -> {
+                    return Duration.ofSeconds(parser.applyAsLong(durationStr));
+                }
+                case 'w' -> {
+                    return Duration.ofDays(parser.applyAsLong(durationStr) * 7);
+                }
+            }
+        }
+
+        try {
+            // If the duration does not contain a valid unit string, assume it is a whole number in millis
+            return Duration.ofMillis(Long.parseLong(durationStr));
+        } catch (NumberFormatException e) {
+            throw new TopologyException("Illegal duration: " + durationStr);
         }
     }
 
@@ -148,7 +191,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
     }
 
     protected StructParser<Duration> durationField(String childName, boolean required, String doc) {
-        return freeField(childName, required, null, doc, ParserWithSchema.of(node -> parseDuration(stringValueParser.parse(node)), DURATION_SCHEMA));
+        return freeField(childName, required, null, doc, ParserWithSchema.of(node -> parseDuration(new StringValueParser().parse(node)), DURATION_SCHEMA));
     }
 
     protected StructParser<Integer> integerField(String childName, boolean required, String doc) {
@@ -172,7 +215,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
     }
 
     protected StructParser<String> stringField(String childName, boolean required, boolean constant, String valueIfNull, String doc) {
-        return new FieldParser<>(childName, required, constant, valueIfNull, doc, stringValueParser);
+        return new FieldParser<>(childName, required, constant, valueIfNull, doc, new StringValueParser());
     }
 
     protected StructParser<String> codeField(String childName, boolean required, String doc) {
@@ -224,7 +267,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
     }
 
     protected <V> V parseError(String message) {
-        throw FatalError.topologyError(message);
+        throw new TopologyException(message);
     }
 
     public interface Constructor0<RESULT> {
@@ -291,15 +334,15 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         return new ValueStructParser<>(resultClass.getSimpleName(), doc, List.of(a, b, c), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node)));
     }
 
-    protected <TYPE, A, B, C, D, E, F, G> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, Constructor4<TYPE, A, B, C, D> constructor) {
+    protected <TYPE, A, B, C, D> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, Constructor4<TYPE, A, B, C, D> constructor) {
         return new ValueStructParser<>(resultClass.getSimpleName(), doc, List.of(a, b, c, d), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node)));
     }
 
-    protected <TYPE, A, B, C, D, E, F, G> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, Constructor5<TYPE, A, B, C, D, E> constructor) {
+    protected <TYPE, A, B, C, D, E> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, Constructor5<TYPE, A, B, C, D, E> constructor) {
         return new ValueStructParser<>(resultClass.getSimpleName(), doc, List.of(a, b, c, d, e), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node)));
     }
 
-    protected <TYPE, A, B, C, D, E, F, G> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, StructParser<F> f, Constructor6<TYPE, A, B, C, D, E, F> constructor) {
+    protected <TYPE, A, B, C, D, E, F> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, StructParser<F> f, Constructor6<TYPE, A, B, C, D, E, F> constructor) {
         return new ValueStructParser<>(resultClass.getSimpleName(), doc, List.of(a, b, c, d, e, f), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node)));
     }
 

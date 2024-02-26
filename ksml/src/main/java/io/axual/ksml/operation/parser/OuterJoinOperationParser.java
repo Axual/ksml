@@ -31,7 +31,7 @@ import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.definition.parser.TableDefinitionParser;
 import io.axual.ksml.definition.parser.ValueJoinerDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.JoinOperation;
 import io.axual.ksml.operation.OuterJoinOperation;
@@ -61,7 +61,7 @@ public class OuterJoinOperationParser extends StoreOperationParser<OuterJoinOper
                     if (stream instanceof StreamDefinition streamDef) {
                         return new OuterJoinOperation(storeOperationConfig(name, null, store), streamDef, valueJoiner, timeDifference, grace);
                     }
-                    throw FatalError.topologyError("Join stream not correct, should be a defined Stream");
+                    throw new TopologyException("Join stream not correct, should be a defined Stream");
                 });
 
         joinTableParser = structParser(
@@ -76,7 +76,7 @@ public class OuterJoinOperationParser extends StoreOperationParser<OuterJoinOper
                     if (table instanceof TableDefinition tableDef) {
                         return new OuterJoinOperation(storeOperationConfig(name, null, store), tableDef, valueJoiner);
                     }
-                    throw FatalError.topologyError("Join table not correct, should be a defined Table");
+                    throw new TopologyException("Join table not correct, should be a defined Table");
                 });
 
         schema = structSchema(JoinOperation.class, "Defines a leftJoin operation", ListUtil.union(joinStreamParser.fields(), joinTableParser.fields()));

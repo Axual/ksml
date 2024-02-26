@@ -25,7 +25,7 @@ import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.definition.TopicDefinition;
-import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
@@ -88,7 +88,7 @@ public class OuterJoinOperation extends BaseJoinOperation {
             return new KStreamWrapper(output, windowedK, vr);
         }
 
-        throw new KSMLTopologyException("Can not OUTER_JOIN stream with " + joinTopic.getClass().getSimpleName());
+        throw new TopologyException("Can not OUTER_JOIN stream with " + joinTopic.getClass().getSimpleName());
     }
 
     @Override
@@ -126,6 +126,6 @@ public class OuterJoinOperation extends BaseJoinOperation {
                     : input.table.outerJoin(otherTable.table, userJoiner);
             return new KTableWrapper(output, k, vr);
         }
-        throw new KSMLTopologyException("Can not OUTER_JOIN table with " + joinTopic.getClass().getSimpleName());
+        throw new TopologyException("Can not OUTER_JOIN table with " + joinTopic.getClass().getSimpleName());
     }
 }

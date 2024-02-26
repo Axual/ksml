@@ -20,13 +20,13 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.ParseException;
 import io.axual.ksml.data.parser.NamedObjectParser;
 import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.parser.StateStoreDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.StoreOperation;
 import io.axual.ksml.operation.StoreOperationConfig;
@@ -57,7 +57,7 @@ public abstract class StoreOperationParser<T extends StoreOperation> extends Ope
                 final var resource = resourceParser.parse(node);
                 if (resource != null && resource.definition() instanceof StateStoreDefinition def) return def;
                 if (!mandatory) return null;
-                throw FatalError.parseError(node, "Mandatory state store not defined");
+                throw new ParseException(node, "Mandatory state store not defined");
             }
 
             @Override

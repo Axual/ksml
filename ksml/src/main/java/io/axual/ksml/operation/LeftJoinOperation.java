@@ -24,7 +24,7 @@ package io.axual.ksml.operation;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.definition.*;
-import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
@@ -165,7 +165,7 @@ public class LeftJoinOperation extends BaseJoinOperation {
             return new KStreamWrapper(output, k, rv);
         }
 
-        throw new KSMLTopologyException("Can not LEFT_JOIN stream with " + joinTopic.getClass().getSimpleName());
+        throw new TopologyException("Can not LEFT_JOIN stream with " + joinTopic.getClass().getSimpleName());
     }
 
     @Override
@@ -234,6 +234,6 @@ public class LeftJoinOperation extends BaseJoinOperation {
             }
         }
 
-        throw new KSMLTopologyException("Can not LEFT_JOIN table with " + joinTopic.getClass().getSimpleName());
+        throw new TopologyException("Can not LEFT_JOIN table with " + joinTopic.getClass().getSimpleName());
     }
 }

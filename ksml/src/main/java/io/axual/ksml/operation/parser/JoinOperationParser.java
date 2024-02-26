@@ -29,7 +29,7 @@ import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.definition.parser.*;
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.JoinOperation;
 import io.axual.ksml.parser.StructParser;
@@ -59,7 +59,7 @@ public class JoinOperationParser extends StoreOperationParser<JoinOperation> {
                     if (stream instanceof StreamDefinition streamDef) {
                         return new JoinOperation(storeOperationConfig(name, null, store), streamDef, valueJoiner, timeDifference, grace);
                     }
-                    throw FatalError.topologyError("Join stream not correct, should be a defined Stream");
+                    throw new TopologyException("Join stream not correct, should be a defined Stream");
                 });
 
         joinTableParser = structParser(
@@ -78,7 +78,7 @@ public class JoinOperationParser extends StoreOperationParser<JoinOperation> {
                     if (table instanceof TableDefinition tableDef) {
                         return new JoinOperation(storeOperationConfig(name, null, store), tableDef, foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner);
                     }
-                    throw FatalError.topologyError("Join table not correct, should be a defined Table");
+                    throw new TopologyException("Join table not correct, should be a defined Table");
                 });
 
         joinGlobalTableParser = structParser(
@@ -94,7 +94,7 @@ public class JoinOperationParser extends StoreOperationParser<JoinOperation> {
                     if (globalTable instanceof GlobalTableDefinition globalTableDef) {
                         return new JoinOperation(storeOperationConfig(name, null, store), globalTableDef, mapper, valueJoiner);
                     }
-                    throw FatalError.topologyError("Join table not correct, should be a defined Table");
+                    throw new TopologyException("Join table not correct, should be a defined Table");
                 });
 
         schema = structSchema(JoinOperation.class, "Defines a join operation", ListUtil.union(joinStreamParser.fields(), ListUtil.union(joinTableParser.fields(), joinGlobalTableParser.fields())));

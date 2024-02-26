@@ -20,15 +20,16 @@ package io.axual.ksml.exception;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.BaseException;
 
-public class KSMLExecutionException extends KSMLException {
-    private static final String ACTIVITY = "Execution";
+public class TopologyException extends BaseException {
+    private static final String ACTIVITY = "Topology generation";
 
-    public KSMLExecutionException(String message) {
+    public TopologyException(String message) {
         super(ACTIVITY, message);
     }
 
-    public KSMLExecutionException(String message, Throwable t) {
+    public TopologyException(String message, Throwable t) {
         super(ACTIVITY, message, t);
     }
 }

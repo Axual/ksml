@@ -23,7 +23,7 @@ package io.axual.ksml.generator;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.definition.PipelineDefinition;
 import io.axual.ksml.definition.ProducerDefinition;
-import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.exception.TopologyException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -36,7 +36,7 @@ public class TopologyDefinition extends TopologyResources {
 
     public void register(String name, PipelineDefinition pipelineDefinition) {
         if (pipelines.containsKey(name)) {
-            throw new KSMLTopologyException("Pipeline definition must be unique: " + name);
+            throw new TopologyException("Pipeline definition must be unique: " + name);
         }
         pipelines.put(name, pipelineDefinition);
     }
@@ -62,7 +62,7 @@ public class TopologyDefinition extends TopologyResources {
 
     public void register(String name, ProducerDefinition producerDefinition) {
         if (pipelines.containsKey(name)) {
-            throw new KSMLTopologyException("Pipeline definition must be unique: " + name);
+            throw new TopologyException("Pipeline definition must be unique: " + name);
         }
         producers.put(name, producerDefinition);
     }

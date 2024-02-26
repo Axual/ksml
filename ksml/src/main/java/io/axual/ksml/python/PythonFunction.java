@@ -21,14 +21,14 @@ package io.axual.ksml.python;
  */
 
 
+import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
-import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.store.StateStores;
 import io.axual.ksml.user.UserFunction;
@@ -67,7 +67,7 @@ public class PythonFunction extends UserFunction {
         function = context.registerFunction(pyCode, name + "_caller");
         if (function == null) {
             System.out.println("Error in generated Python code:\n" + pyCode);
-            throw FatalError.executionError("Error in function: " + name);
+            throw new ExecutionException("Error in function: " + name);
         }
     }
 
@@ -75,15 +75,15 @@ public class PythonFunction extends UserFunction {
     public DataObject call(StateStores stores, DataObject... parameters) {
         // Validate that the defined parameter list matches the amount of passed in parameters
         if (this.fixedParameterCount > parameters.length) {
-            throw new KSMLTopologyException("Parameter list does not match function spec: minimally expected " + this.parameters.length + ", got " + parameters.length);
+            throw new TopologyException("Parameter list does not match function spec: minimally expected " + this.parameters.length + ", got " + parameters.length);
         }
         if (this.parameters.length < parameters.length) {
-            throw new KSMLTopologyException("Parameter list does not match function spec: maximally expected " + this.parameters.length + ", got " + parameters.length);
+            throw new TopologyException("Parameter list does not match function spec: maximally expected " + this.parameters.length + ", got " + parameters.length);
         }
         // Validate the parameter types
         for (int index = 0; index < parameters.length; index++) {
             if (!this.parameters[index].type().isAssignableFrom(parameters[index])) {
-                throw new KSMLTopologyException("User function \"" + name + "\" expects parameter " + (index + 1) + " (\"" + this.parameters[index].name() + "\") to be " + this.parameters[index].type() + ", but " + parameters[index].type() + " was passed in");
+                throw new TopologyException("User function \"" + name + "\" expects parameter " + (index + 1) + " (\"" + this.parameters[index].name() + "\") to be " + this.parameters[index].type() + ", but " + parameters[index].type() + " was passed in");
             }
         }
 
@@ -98,7 +98,7 @@ public class PythonFunction extends UserFunction {
             Value pyResult = function.execute(arguments);
 
             if (pyResult.canExecute()) {
-                throw new KSMLExecutionException("Python code results in a function instead of a value");
+                throw new ExecutionException("Python code results in a function instead of a value");
             }
 
             // Check if the function is supposed to return a result value
@@ -114,7 +114,7 @@ public class PythonFunction extends UserFunction {
             }
         } catch (Exception e) {
             logCall(parameters, null);
-            throw FatalError.reportAndExit(new KSMLTopologyException("Error while executing function " + name + ": " + e.getMessage(), e));
+            throw FatalError.reportAndExit(new TopologyException("Error while executing function " + name + ": " + e.getMessage(), e));
         }
     }
 

@@ -21,7 +21,7 @@ package io.axual.ksml.definition;
  */
 
 import io.axual.ksml.data.notation.UserTupleType;
-import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.exception.TopologyException;
 
 import static io.axual.ksml.definition.DefinitionConstants.NO_PARAMETERS;
 
@@ -31,7 +31,7 @@ public class GeneratorDefinition extends FunctionDefinition {
                 .withParameters(NO_PARAMETERS)
                 .withAResult());
         if (definition.resultType() == null || !(definition.resultType().dataType() instanceof UserTupleType)) {
-            throw new KSMLTopologyException("ResultType of generator function should be a tuple (keyType,valueType)");
+            throw new TopologyException("ResultType of generator function should be a tuple (keyType,valueType)");
         }
     }
 }

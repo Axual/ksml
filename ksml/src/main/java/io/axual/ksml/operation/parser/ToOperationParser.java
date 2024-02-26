@@ -24,7 +24,7 @@ import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.parser.ToTopicDefinitionParser;
 import io.axual.ksml.definition.parser.ToTopicNameExtractorDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ToOperation;
 import io.axual.ksml.parser.DefinitionParser;
@@ -62,7 +62,7 @@ public class ToOperationParser extends OperationParser<ToOperation> {
                         if (toTne != null && toTne.topicNameExtractor() != null) {
                             return new ToOperation(operationConfig(null), toTne.topicNameExtractor(), toTne.partitioner());
                         }
-                        throw FatalError.topologyError("Unknown target for pipeline \"to\" operation");
+                        throw new TopologyException("Unknown target for pipeline \"to\" operation");
                     });
         }
     }

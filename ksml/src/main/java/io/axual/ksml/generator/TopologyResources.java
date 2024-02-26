@@ -24,7 +24,7 @@ import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.TopicDefinition;
-import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.exception.TopologyException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,10 +48,10 @@ public class TopologyResources {
 
     public void register(String name, FunctionDefinition functionDefinition) {
         if (functions.containsKey(name)) {
-            throw new KSMLTopologyException("Function definition must be unique: " + name);
+            throw new TopologyException("Function definition must be unique: " + name);
         }
         if (functionDefinition.name() != null && !name.equals(functionDefinition.name())) {
-            throw new KSMLTopologyException("Function name inconsistently defined: " + name + " and " + functionDefinition.name());
+            throw new TopologyException("Function name inconsistently defined: " + name + " and " + functionDefinition.name());
         }
         functions.put(name, functionDefinition);
     }
@@ -71,19 +71,19 @@ public class TopologyResources {
     public void register(String name, StateStoreDefinition store, boolean canBeDuplicate) {
         // Check if the store is properly named
         if (store.name() == null || store.name().isEmpty()) {
-            throw new KSMLTopologyException("StateStore does not have a name: " + store);
+            throw new TopologyException("StateStore does not have a name: " + store);
         }
         // Check if the name is equal to the store name (otherwise a parsing error occurred)
         if (!store.name().equals(name)) {
-            throw new KSMLTopologyException("StateStore name mistmatch: this is a parsing error: " + store);
+            throw new TopologyException("StateStore name mistmatch: this is a parsing error: " + store);
         }
         // State stores can only be registered once. Duplicate names are a sign of faulty KSML definitions
         if (stateStores.containsKey(store.name())) {
             if (!canBeDuplicate) {
-                throw new KSMLTopologyException("StateStore is not unique: " + store.name());
+                throw new TopologyException("StateStore is not unique: " + store.name());
             }
             if (!stateStores.get(store.name()).equals(store)) {
-                throw new KSMLTopologyException("StateStore definition conflicts earlier registration: " + store);
+                throw new TopologyException("StateStore definition conflicts earlier registration: " + store);
             }
         } else {
             stateStores.put(store.name(), store);
@@ -100,7 +100,7 @@ public class TopologyResources {
 
     public void register(String name, TopicDefinition def) {
         if (topics.containsKey(name)) {
-            throw new KSMLTopologyException("Topic definition must be unique: " + name);
+            throw new TopologyException("Topic definition must be unique: " + name);
         }
         topics.put(name, def);
     }

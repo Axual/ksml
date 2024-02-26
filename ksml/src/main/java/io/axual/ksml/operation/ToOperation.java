@@ -28,7 +28,7 @@ import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.TopicDefinition;
-import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
@@ -110,6 +110,6 @@ public class ToOperation extends BaseOperation {
             return null;
         }
 
-        throw FatalError.topologyError("To operation should send data to topic or topic name extractor, but neither were specified");
+        throw new TopologyException("To operation should send data to topic or topic name extractor, but neither were specified");
     }
 }

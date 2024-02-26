@@ -21,7 +21,7 @@ package io.axual.ksml.operation.parser;
  */
 
 
-import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.SuppressOperation;
 import io.axual.ksml.parser.StructParser;
@@ -60,7 +60,7 @@ public class SuppressOperationParser extends OperationParser<SuppressOperation> 
                                     Suppressed.untilWindowCloses(bufferConfig));
                         }
                     }
-                    throw FatalError.topologyError("Unknown Until type for suppress operation: " + until);
+                    throw new TopologyException("Unknown Until type for suppress operation: " + until);
                 });
     }
 
@@ -84,7 +84,7 @@ public class SuppressOperationParser extends OperationParser<SuppressOperation> 
         // Check for a bufferFull strategy
         if (Operations.Suppress.BUFFER_FULL_STRATEGY_EMIT.equals(bufferFullStrategy)) {
             if (result == null) {
-                throw FatalError.topologyError("Can not instantiate BufferConfig without maxBytes and/or maxRecords setting");
+                throw new TopologyException("Can not instantiate BufferConfig without maxBytes and/or maxRecords setting");
             }
             result = result.emitEarlyWhenFull();
         }

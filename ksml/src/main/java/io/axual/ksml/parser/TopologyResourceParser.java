@@ -21,6 +21,7 @@ package io.axual.ksml.parser;
  */
 
 
+import io.axual.ksml.data.exception.ParseException;
 import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.parser.ParserWithSchema;
 import io.axual.ksml.data.schema.DataField;
@@ -28,7 +29,6 @@ import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.definition.TopologyResource;
-import io.axual.ksml.execution.FatalError;
 
 import java.util.List;
 import java.util.function.Function;
@@ -70,7 +70,7 @@ public class TopologyResourceParser<T, F extends T> extends DefinitionParser<Top
                 if (resourceToFind != null) {
                     final var resource = lookup.apply(resourceToFind);
                     if (resource == null && !allowLookupFail) {
-                        throw FatalError.parseError(node, "Unknown " + resourceType + " \"" + resourceToFind + "\"");
+                        throw new ParseException(node, "Unknown " + resourceType + " \"" + resourceToFind + "\"");
                     }
                     return new TopologyResource<>(resourceToFind, resource);
                 }

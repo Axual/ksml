@@ -21,13 +21,13 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.notation.UserTupleType;
 import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.processor.OperationProcessorSupplier;
 import io.axual.ksml.operation.processor.TransformKeyValueToKeyValueListProcessor;
@@ -76,6 +76,6 @@ public class TransformKeyValueToKeyValueListOperation extends BaseOperation {
                     : input.stream.process(supplier, storeNames);
             return new KStreamWrapper(output, kr, vr);
         }
-        throw new KSMLExecutionException("ResultType of keyValueToKeyValueListTransformer not correctly specified");
+        throw new ExecutionException("ResultType of keyValueToKeyValueListTransformer not correctly specified");
     }
 }

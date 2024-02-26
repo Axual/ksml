@@ -21,16 +21,6 @@ package io.axual.ksml.data.parser;
  */
 
 public abstract class BaseParser<T> implements Parser<T> {
-    protected final ParserWithSchema<String> stringValueParser;
-
-    protected BaseParser() {
-        this.stringValueParser = null;
-    }
-
-    protected BaseParser(StringValueParser stringValueParser) {
-        this.stringValueParser = stringValueParser;
-    }
-
     protected Boolean parseBoolean(ParseNode node, String childName) {
         if (node == null) return null;
         final var child = node.get(childName);
@@ -44,7 +34,6 @@ public abstract class BaseParser<T> implements Parser<T> {
     protected String parseString(ParseNode node, String childName) {
         if (node != null) {
             ParseNode value = node.get(childName);
-            if (stringValueParser != null) return stringValueParser.parse(value);
             return value != null ? value.asString() : null;
         }
         return null;

@@ -20,15 +20,11 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataObjectConverter;
-import io.axual.ksml.execution.FatalError;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.HostAccess;
-import org.graalvm.polyglot.PolyglotAccess;
-import org.graalvm.polyglot.Source;
-import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.*;
 import org.graalvm.polyglot.io.IOAccess;
 
 @Slf4j
@@ -52,7 +48,7 @@ public class PythonContext {
                     .build();
         } catch (Exception e) {
             log.error("Error setting up a new Python context", e);
-            throw FatalError.executionError("Could not setup a new Python context", e);
+            throw new ExecutionException("Could not setup a new Python context", e);
         }
     }
 

@@ -48,7 +48,6 @@ import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.KafkaStreamsSchemaMapper;
 import io.axual.ksml.data.schema.SchemaLibrary;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
-import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.execution.ErrorHandler;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.execution.FatalError;
@@ -236,7 +235,7 @@ public class KSMLRunner {
                                     }
                                 } catch (InterruptedException e) {
                                     executorService.shutdownNow();
-                                    throw FatalError.reportAndExit(new KSMLExecutionException("Exception caught while shutting down", e));
+                                    throw new ExecutionException("Exception caught while shutting down", e);
                                 }
                                 break;
                             }
@@ -250,7 +249,7 @@ public class KSMLRunner {
             }
         } catch (Throwable t) {
             log.error("Unhandled exception", t);
-            System.exit(2);
+            throw FatalError.reportAndExit(t);
         }
     }
 
@@ -267,7 +266,7 @@ public class KSMLRunner {
                     final var writer = new PrintWriter(filename);
                     writer.println(schema);
                     writer.close();
-                    log.info("KSML schema written to file: " + filename);
+                    log.info("KSML JSON schema written to file: " + filename);
                 } catch (Exception e) {
                     // Ignore
                     log.error("Error writing KSML JSON schema to file: " + filename);

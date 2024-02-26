@@ -20,11 +20,11 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
-import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;
 import io.axual.ksml.store.StateStores;
 import org.apache.kafka.streams.kstream.ValueMapperWithKey;
@@ -54,6 +54,6 @@ public class UserKeyValueToValueListTransformer extends Invoker implements Value
             list.forEach(newList::add);
             return newList;
         }
-        throw new KSMLExecutionException("Expected list result from keyValueToKeyValueList transformer: " + function.name);
+        throw new ExecutionException("Expected list result from keyValueToKeyValueList transformer: " + function.name);
     }
 }

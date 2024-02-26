@@ -21,7 +21,7 @@ package io.axual.ksml.operation;
  */
 
 
-import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.CogroupedKStreamWrapper;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
@@ -70,7 +70,7 @@ public class WindowByTimeOperation extends BaseOperation {
             return new TimeWindowedKStreamWrapper(input.groupedStream.windowedBy(timeWindows), k, v);
         }
 
-        throw new KSMLTopologyException("Operation " + name + ". Error applying WINDOW BY to " + input);
+        throw new TopologyException("Operation " + name + ". Error applying WINDOW BY to " + input);
     }
 
     @Override
@@ -96,6 +96,6 @@ public class WindowByTimeOperation extends BaseOperation {
             return new TimeWindowedCogroupedKStreamWrapper(input.cogroupedStream.windowedBy(timeWindows), k, v);
         }
 
-        throw new KSMLTopologyException("Operation " + name + ". Error applying WINDOW BY to " + input);
+        throw new TopologyException("Operation " + name + ". Error applying WINDOW BY to " + input);
     }
 }

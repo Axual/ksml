@@ -21,11 +21,11 @@ package io.axual.ksml.user;
  */
 
 
+import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.StructType;
-import io.axual.ksml.data.object.*;
-import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.header.Header;
@@ -51,7 +51,7 @@ public class UserTopicNameExtractor extends Invoker implements TopicNameExtracto
         if (result instanceof DataString dataString) {
             return dataString.value();
         }
-        throw new KSMLExecutionException("Expected string result from function: " + function.name);
+        throw new ExecutionException("Expected string result from function: " + function.name);
     }
 
     private DataStruct convertRecordContext(RecordContext recordContext) {

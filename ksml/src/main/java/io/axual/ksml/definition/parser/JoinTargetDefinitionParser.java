@@ -21,13 +21,13 @@ package io.axual.ksml.definition.parser;
  */
 
 
+import io.axual.ksml.data.exception.ParseException;
+import io.axual.ksml.data.parser.BaseParser;
+import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.definition.TopologyResource;
-import io.axual.ksml.data.exception.ParseException;
 import io.axual.ksml.generator.TopologyResources;
-import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.TopologyResourceParser;
-import io.axual.ksml.data.parser.ParseNode;
 
 import static io.axual.ksml.dsl.KSMLDSL.Operations;
 

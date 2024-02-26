@@ -25,7 +25,7 @@ import io.axual.ksml.data.notation.UserTupleType;
 import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.*;
 import io.axual.ksml.user.UserKeyTransformer;
@@ -91,6 +91,6 @@ public class GroupByOperation extends StoreOperation {
             return new KGroupedTableWrapper(output, kr, vr);
         }
 
-        throw new KSMLTopologyException("Can not apply given transformer to KTable.groupBy operation");
+        throw new TopologyException("Can not apply given transformer to KTable.groupBy operation");
     }
 }

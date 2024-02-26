@@ -21,6 +21,7 @@ package io.axual.ksml.user;
  */
 
 import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataNull;
@@ -28,9 +29,7 @@ import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.definition.ParameterDefinition;
-import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.exception.KSMLTopologyException;
-import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.store.StateStores;
 import org.apache.kafka.streams.KeyValue;
 import org.slf4j.Logger;
@@ -54,7 +53,7 @@ public class UserFunction {
 
     public UserFunction(String name, ParameterDefinition[] parameters, UserType resultType, String[] storeNames) {
         if (name == null) {
-            throw FatalError.topologyError("Function name can not be null");
+            throw new TopologyException("Function name can not be null");
         }
         this.name = name;
         this.parameters = parameters;
@@ -82,7 +81,7 @@ public class UserFunction {
         for (final var param : parameters) {
             if (!param.isOptional()) {
                 if (inOptionals) {
-                    throw new KSMLTopologyException("Error in parameter list, fixed parameters should be listed first: " + Arrays.toString(parameters));
+                    throw new TopologyException("Error in parameter list, fixed parameters should be listed first: " + Arrays.toString(parameters));
                 }
                 fixedParamCount++;
             } else {
@@ -109,7 +108,7 @@ public class UserFunction {
             // Check all parameters and copy them into the interpreter as prefixed globals
             StringBuilder paramsAndValues = new StringBuilder();
             for (int index = 0; index < parameters.length; index++) {
-                paramsAndValues.append(paramsAndValues.length() > 0 ? ", " : "");
+                paramsAndValues.append(!paramsAndValues.isEmpty() ? ", " : "");
                 String valueQuote = parameters[index] instanceof String ? "'" : "";
                 paramsAndValues.append(this.parameters[index].name()).append("=").append(valueQuote).append(parameters[index] != null ? parameters[index] : "null").append(valueQuote);
             }
@@ -128,15 +127,11 @@ public class UserFunction {
      * @return the result of the call.
      */
     public DataObject call(StateStores stores, DataObject... parameters) {
-        throw new KSMLExecutionException("Can not call the call() method of a UserFunction directly. Override this class and the call() method.");
+        throw new ExecutionException("Can not call the call() method of a UserFunction directly. Override this class and the call() method.");
     }
 
     public final DataObject call(DataObject... parameters) {
         return call(null, parameters);
-    }
-
-    private KSMLTopologyException validateException(Object result, String expectedType) {
-        return new KSMLTopologyException("Expected " + expectedType + " from function " + name + " but got: " + (result != null ? result : "null"));
     }
 
     public KeyValue<Object, Object> convertToKeyValue(DataObject result, DataType keyType, DataType valueType) {
@@ -154,6 +149,6 @@ public class UserFunction {
             return new KeyValue<>(tuple.get(0), tuple.get(1));
         }
 
-        throw validateException(result, "(key,value)");
+        throw new TopologyException("Expected (key, value) from function " + name + " but got: " + (result != null ? result : "null"));
     }
 }

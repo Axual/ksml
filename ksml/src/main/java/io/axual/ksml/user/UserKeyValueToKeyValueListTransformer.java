@@ -20,13 +20,13 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.TupleType;
-import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.python.Invoker;
 import io.axual.ksml.store.StateStores;
 import org.apache.kafka.streams.KeyValue;
@@ -70,6 +70,6 @@ public class UserKeyValueToKeyValueListTransformer extends Invoker implements Ke
             return convertedResult;
         }
 
-        throw new KSMLExecutionException("Expected list back from function: " + function.name);
+        throw new ExecutionException("Expected list back from function: " + function.name);
     }
 }

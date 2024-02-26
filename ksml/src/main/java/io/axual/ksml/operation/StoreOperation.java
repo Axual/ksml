@@ -21,12 +21,12 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.SessionStateStoreDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.WindowStateStoreDefinition;
-import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.generator.StreamDataType;
 import lombok.Getter;
 
@@ -66,7 +66,7 @@ public class StoreOperation extends BaseOperation {
                     keyValueStore.caching(),
                     keyValueStore.logging());
         }
-        throw FatalError.executionError(this + " requires a  state store of type 'keyValue'");
+        throw new ExecutionException(this + " requires a  state store of type 'keyValue'");
     }
 
     protected SessionStateStoreDefinition validateSessionStore(StateStoreDefinition store, StreamDataType keyType, StreamDataType valueType) {
@@ -89,7 +89,7 @@ public class StoreOperation extends BaseOperation {
                     sessionStore.caching(),
                     sessionStore.logging());
         }
-        throw FatalError.executionError(this + " requires a  state store of type 'session'");
+        throw new ExecutionException(this + " requires a  state store of type 'session'");
     }
 
     protected WindowStateStoreDefinition validateWindowStore(StateStoreDefinition store, StreamDataType keyType, StreamDataType valueType) {
@@ -114,7 +114,7 @@ public class StoreOperation extends BaseOperation {
                     windowStore.caching(),
                     windowStore.logging());
         }
-        throw FatalError.executionError(this + " requires a  state store of type 'window'");
+        throw new ExecutionException(this + " requires a  state store of type 'window'");
     }
 
     private void validateStore(StateStoreDefinition store, UserType keyType, UserType valueType) {
@@ -125,13 +125,13 @@ public class StoreOperation extends BaseOperation {
     private void validateStoreTypeWithStreamType(String keyOrValue, UserType storeKeyOrValueType, UserType streamKeyOrValueType) {
         if (streamKeyOrValueType == null) {
             if (storeKeyOrValueType == null) {
-                throw FatalError.executionError("State store '" + store.name() + "' does not have a defined " + keyOrValue + " type");
+                throw new ExecutionException("State store '" + store.name() + "' does not have a defined " + keyOrValue + " type");
             }
             return;
         }
 
         if (storeKeyOrValueType != null && !storeKeyOrValueType.dataType().isAssignableFrom(streamKeyOrValueType.dataType())) {
-            throw FatalError.executionError("Incompatible " + keyOrValue + " types for state store '" + store.name() + "': " + storeKeyOrValueType + " and " + streamKeyOrValueType);
+            throw new ExecutionException("Incompatible " + keyOrValue + " types for state store '" + store.name() + "': " + storeKeyOrValueType + " and " + streamKeyOrValueType);
         }
     }
 }

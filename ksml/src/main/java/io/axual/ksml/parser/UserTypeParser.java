@@ -34,7 +34,7 @@ import io.axual.ksml.data.schema.SchemaLibrary;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.type.*;
-import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.exception.TopologyException;
 
 import java.util.ArrayList;
 
@@ -252,7 +252,7 @@ public class UserTypeParser {
             case "string", "str" -> DataString.DATATYPE;
             case "struct" -> new StructType();
             case "any", UNKNOWN_TYPE -> DataType.UNKNOWN;
-            default -> throw new KSMLTopologyException("Can not derive dataType: " + type);
+            default -> throw new TopologyException("Can not derive dataType: " + type);
         };
     }
 

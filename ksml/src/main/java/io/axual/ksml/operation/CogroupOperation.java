@@ -22,7 +22,7 @@ package io.axual.ksml.operation;
 
 
 import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.CogroupedKStreamWrapper;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
@@ -70,6 +70,6 @@ public class CogroupOperation extends StoreOperation {
 
         // This is a method that we can not support, due to the pipeline nature of KSML. Therefore, throw
         // an exception with this explicit message.
-        throw FatalError.topologyError("Cogrouping operation is not supported for CogroupStreams");
+        throw new TopologyException("Cogrouping operation is not supported for CogroupStreams");
     }
 }

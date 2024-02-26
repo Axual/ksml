@@ -22,7 +22,7 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.WindowByTimeOperation;
 import io.axual.ksml.parser.StructParser;
@@ -56,7 +56,7 @@ public class WindowByTimeOperationParser extends OperationParser<WindowByTimeOpe
                         }
                         case KSMLDSL.TimeWindows.TYPE_HOPPING -> {
                             if (advanceBy.toMillis() > duration.toMillis()) {
-                                throw FatalError.topologyError("A hopping window can not advanceBy more than its duration");
+                                throw new TopologyException("A hopping window can not advanceBy more than its duration");
                             }
                             final var timeWindows = (grace != null && grace.toMillis() > 0)
                                     ? org.apache.kafka.streams.kstream.TimeWindows.ofSizeAndGrace(duration, grace).advanceBy(advanceBy)
@@ -70,7 +70,7 @@ public class WindowByTimeOperationParser extends OperationParser<WindowByTimeOpe
                             return new WindowByTimeOperation(operationConfig(name), slidingWindows);
                         }
                     }
-                    throw FatalError.topologyError("Unknown WindowType for windowByTime operation: " + windowType);
+                    throw new TopologyException("Unknown WindowType for windowByTime operation: " + windowType);
                 });
     }
 }

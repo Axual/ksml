@@ -28,7 +28,7 @@ import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.TableDefinition;
-import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.parser.TopologyResourceParser;
@@ -59,10 +59,10 @@ public class TableDefinitionParser extends DefinitionParser<TableDefinition> {
                     valueType = valueType != null ? valueType : UserType.UNKNOWN;
                     if (store != null) {
                         if (!keyType.dataType().isAssignableFrom(store.keyType().dataType())) {
-                            throw FatalError.topologyError("Incompatible key types between table \'" + topic + "\' and its corresponding state store: " + keyType.dataType() + " and " + store.keyType().dataType());
+                            throw new TopologyException("Incompatible key types between table '" + topic + "' and its corresponding state store: " + keyType.dataType() + " and " + store.keyType().dataType());
                         }
                         if (!valueType.dataType().isAssignableFrom(store.valueType().dataType())) {
-                            throw FatalError.topologyError("Incompatible value types between table \'" + topic + "\' and its corresponding state store: " + valueType.dataType() + " and " + store.valueType().dataType());
+                            throw new TopologyException("Incompatible value types between table '" + topic + "' and its corresponding state store: " + valueType.dataType() + " and " + store.valueType().dataType());
                         }
                     }
                     return new TableDefinition(topic, keyType, valueType, store);

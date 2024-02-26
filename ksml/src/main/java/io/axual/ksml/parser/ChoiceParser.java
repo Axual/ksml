@@ -21,12 +21,13 @@ package io.axual.ksml.parser;
  */
 
 import com.google.common.collect.ImmutableMap;
+import io.axual.ksml.data.exception.ParseException;
+import io.axual.ksml.data.parser.BaseParser;
 import io.axual.ksml.data.parser.NamedObjectParser;
 import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.parser.ParserWithSchema;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.UnionSchema;
-import io.axual.ksml.execution.FatalError;
 import lombok.Getter;
 
 import java.util.Map;
@@ -62,7 +63,7 @@ public class ChoiceParser<T> extends BaseParser<T> implements ParserWithSchema<T
             childValue = childValue != null ? childValue : defaultValue;
         }
         if (!parsers.containsKey(childValue)) {
-            throw FatalError.parseError(child, "Unknown " + parsedType + " \"" + childName + "\", choose one of " + parsers.keySet().stream().sorted().collect(Collectors.joining(", ")));
+            throw new ParseException(child, "Unknown " + parsedType + " \"" + childName + "\", choose one of " + parsers.keySet().stream().sorted().collect(Collectors.joining(", ")));
         }
         return parsers.get(childValue).parse(node);
     }

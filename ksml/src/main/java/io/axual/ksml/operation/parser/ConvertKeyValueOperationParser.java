@@ -22,7 +22,7 @@ package io.axual.ksml.operation.parser;
 
 import io.axual.ksml.data.notation.UserTupleType;
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ConvertKeyValueOperation;
 import io.axual.ksml.parser.StructParser;
@@ -44,7 +44,7 @@ public class ConvertKeyValueOperationParser extends OperationParser<ConvertKeyVa
                     if (into.dataType() instanceof UserTupleType userTupleType && userTupleType.subTypeCount() == 2) {
                         return new ConvertKeyValueOperation(operationConfig(name), userTupleType.getUserType(0), userTupleType.getUserType(1));
                     }
-                    throw FatalError.topologyError("The type to convert to should be a tuple consisting of two subtypes. For example '(string,avro:SomeSchema)");
+                    throw new TopologyException("The type to convert to should be a tuple consisting of two subtypes. For example '(string,avro:SomeSchema)");
                 });
     }
 }

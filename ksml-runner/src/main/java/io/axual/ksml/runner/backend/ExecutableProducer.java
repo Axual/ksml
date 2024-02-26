@@ -20,14 +20,12 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataTuple;
-import io.axual.ksml.data.mapper.DataObjectConverter;
-import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.user.UserFunction;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.Producer;
@@ -115,7 +113,7 @@ public class ExecutableProducer {
                             log.error("Error producing message to topic {}", topic);
                         }
                     } catch (InterruptedException | ExecutionException e) {
-                        throw new KSMLExecutionException("Could not produce to topic " + topic, e);
+                        throw new io.axual.ksml.data.exception.ExecutionException("Could not produce to topic " + topic, e);
                     }
                 }
             } else {
@@ -128,6 +126,6 @@ public class ExecutableProducer {
         if (condition == null) return true;
         DataObject result = condition.call(key, value);
         if (result instanceof DataBoolean resultBoolean) return resultBoolean.value();
-        throw FatalError.executionError("Producer condition did not return a boolean value: " + condition.name);
+        throw new io.axual.ksml.data.exception.ExecutionException("Producer condition did not return a boolean value: " + condition.name);
     }
 }

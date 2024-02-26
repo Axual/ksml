@@ -26,13 +26,12 @@ import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.definition.*;
-import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.user.UserFunction;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.utils.Bytes;
-import org.apache.kafka.streams.errors.TopologyException;
 import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.processor.StreamPartitioner;
 import org.apache.kafka.streams.state.KeyValueStore;
@@ -59,7 +58,7 @@ public class BaseOperation implements StreamOperation {
             try {
                 if (name != null) Named.validate(name);
                 return null;
-            } catch (TopologyException e) {
+            } catch (org.apache.kafka.streams.errors.TopologyException e) {
                 return e.getMessage();
             }
         }
@@ -90,7 +89,7 @@ public class BaseOperation implements StreamOperation {
 
     protected void checkNotNull(Object object, String description) {
         if (object == null) {
-            throw new KSMLTopologyException(ERROR_IN_TOPOLOGY + ": " + description + " not defined");
+            throw new TopologyException(ERROR_IN_TOPOLOGY + ": " + description + " not defined");
         }
     }
 
@@ -101,8 +100,8 @@ public class BaseOperation implements StreamOperation {
     protected record TypeComparator(UserType type, TypeCompatibilityChecker checker, String faultDescription) {
     }
 
-    protected KSMLTopologyException topologyError(String message) {
-        return new KSMLTopologyException(ERROR_IN_TOPOLOGY + ": " + message);
+    protected TopologyException topologyError(String message) {
+        return new TopologyException(ERROR_IN_TOPOLOGY + ": " + message);
     }
 
     private UserType[] arrayFrom(UserType element, UserType[] elements) {
@@ -273,14 +272,14 @@ public class BaseOperation implements StreamOperation {
 
     protected void checkTuple(String faultDescription, DataType type, DataType... elements) {
         if (!(type instanceof TupleType tupleType)) {
-            throw new KSMLTopologyException(ERROR_IN_TOPOLOGY + ": " + faultDescription + " is expected to be a tuple");
+            throw new TopologyException(ERROR_IN_TOPOLOGY + ": " + faultDescription + " is expected to be a tuple");
         }
         if (tupleType.subTypeCount() != elements.length) {
-            throw new KSMLTopologyException(ERROR_IN_TOPOLOGY + ": " + faultDescription + " is expected to be a tuple with " + elements.length + " elements");
+            throw new TopologyException(ERROR_IN_TOPOLOGY + ": " + faultDescription + " is expected to be a tuple with " + elements.length + " elements");
         }
         for (int index = 0; index < elements.length; index++) {
             if (!elements[index].isAssignableFrom(tupleType.subType(index))) {
-                throw new KSMLTopologyException(ERROR_IN_TOPOLOGY + ": " + faultDescription + " tuple element " + index + " is expected to be (subclass) of type " + elements[index]);
+                throw new TopologyException(ERROR_IN_TOPOLOGY + ": " + faultDescription + " tuple element " + index + " is expected to be (subclass) of type " + elements[index]);
             }
         }
     }

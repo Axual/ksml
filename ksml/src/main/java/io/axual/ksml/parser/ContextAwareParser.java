@@ -21,12 +21,13 @@ package io.axual.ksml.parser;
  */
 
 
+import io.axual.ksml.data.exception.ParseException;
 import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.definition.TopologyResource;
-import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 
 import java.util.HashMap;
@@ -46,14 +47,7 @@ public abstract class ContextAwareParser<T> extends DefinitionParser<T> {
 
     protected TopologyResources resources() {
         if (resources != null) return resources;
-        throw FatalError.topologyError("Topology resources not properly initialized. This is a programming error.");
-    }
-
-    protected String determineName(String name, String type) {
-        if (name == null || name.trim().isEmpty()) {
-            return determineName(type);
-        }
-        return name.trim();
+        throw new TopologyException("Topology resources not properly initialized. This is a programming error.");
     }
 
     protected String determineName(String name) {
@@ -64,23 +58,23 @@ public abstract class ContextAwareParser<T> extends DefinitionParser<T> {
     protected <F extends FunctionDefinition> StructParser<FunctionDefinition> functionField(String childName, boolean mandatory, String doc, DefinitionParser<F> parser) {
         final var resourceParser = new TopologyResourceParser<>("function", childName, doc, resources::function, parser);
         final var schema = mandatory ? resourceParser.schema() : optional(resourceParser).schema();
-        return StructParser.of(node -> resourceParser.parseDefinition(node), schema);
+        return StructParser.of(resourceParser::parseDefinition, schema);
     }
 
     protected <F extends FunctionDefinition> StructParser<FunctionDefinition> functionField(String childName, String doc, DefinitionParser<F> parser) {
         return functionField(childName, true, doc, parser);
     }
 
-    protected <T> StructParser<T> lookupField(String resourceType, String childName, boolean mandatory, String doc, Function<String, T> lookup, DefinitionParser<? extends T> parser) {
+    protected <S> StructParser<S> lookupField(String resourceType, String childName, boolean mandatory, String doc, Function<String, S> lookup, DefinitionParser<? extends S> parser) {
         final var resourceParser = new TopologyResourceParser<>(resourceType, childName, doc, lookup, parser);
         final var schema = mandatory ? resourceParser.schema() : optional(resourceParser).schema();
         return new StructParser<>() {
             @Override
-            public T parse(ParseNode node) {
+            public S parse(ParseNode node) {
                 if (node == null) return null;
                 final var resource = resourceParser.parse(node);
                 if (resource != null && (resource.definition() != null || !mandatory)) return resource.definition();
-                throw FatalError.parseError(node, resourceType + " not defined");
+                throw new ParseException(node, resourceType + " not defined");
             }
 
             @Override
@@ -90,13 +84,9 @@ public abstract class ContextAwareParser<T> extends DefinitionParser<T> {
         };
     }
 
-    protected <T> StructParser<TopologyResource<T>> topologyResourceField(String resourceType, String childName, String doc, Function<String, T> lookup, DefinitionParser<T> parser) {
+    protected <S> StructParser<TopologyResource<S>> topologyResourceField(String resourceType, String childName, String doc, Function<String, S> lookup, DefinitionParser<S> parser) {
         final var resourceParser = new TopologyResourceParser<>(resourceType, childName, doc, lookup, parser, true);
         return StructParser.of(resourceParser::parse, resourceParser.schema());
-    }
-
-    protected <F extends FunctionDefinition> StructParser<FunctionDefinition> optionalFunctionField(String childName, String doc, DefinitionParser<F> parser) {
-        return functionField(childName, false, doc, parser);
     }
 
     public StructParser<TopicDefinition> topicField(String childName, boolean mandatory, String doc, DefinitionParser<? extends TopicDefinition> parser) {

@@ -22,8 +22,7 @@ package io.axual.ksml.generator;
 
 import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.definition.*;
-import io.axual.ksml.exception.KSMLTopologyException;
-import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonFunction;
 import io.axual.ksml.store.StoreUtil;
@@ -113,14 +112,14 @@ public class TopologyBuildContext {
                 return validateStreamWrapper(streamWrappersByName.get(name), topicDefinition, expectedResultClass);
             }
             if (topicDefinition == null) {
-                throw FatalError.topologyError("Stream \"" + name + "\" not found");
+                throw new TopologyException("Stream '" + name + "' not found");
             }
         }
 
         // Then do a lookup by topic
         if (topicDefinition != null) {
             if (topicDefinition.topic() == null) {
-                throw FatalError.topologyError("Topic definition does not contain a topic name");
+                throw new TopologyException("Topic definition does not contain a topic name");
             }
 
             // Get the wrapper from the lookup table, or by creating a new instance
@@ -143,7 +142,7 @@ public class TopologyBuildContext {
             return validateStreamWrapper(result, topicDefinition, expectedResultClass);
         }
 
-        throw FatalError.topologyError("Failed to lookup nameless stream for nameless topic");
+        throw new TopologyException("Failed to lookup nameless stream for nameless topic");
     }
 
     private static Class<? extends BaseStreamWrapper> getStreamWrapperClass(TopicDefinition topicDefinition, Class<? extends BaseStreamWrapper> defaultClass) {
@@ -178,7 +177,7 @@ public class TopologyBuildContext {
             streamWrappersByTopic.put(definition.topic(), result);
         }
         if (!resultClass.isInstance(result)) {
-            throw new KSMLTopologyException("Stream is of incorrect dataType " + result.getClass().getSimpleName() + " where " + resultClass.getSimpleName() + " expected");
+            throw new TopologyException("Stream is of incorrect dataType " + result.getClass().getSimpleName() + " where " + resultClass.getSimpleName() + " expected");
         }
         return result;
     }
@@ -216,7 +215,7 @@ public class TopologyBuildContext {
             return new GlobalKTableWrapper(builder.globalTable(globalTableDefinition.topic(), consumed), streamKey, streamValue);
         }
 
-        throw FatalError.topologyError("Unknown stream type: " + def.getClass().getSimpleName());
+        throw new TopologyException("Unknown stream type: " + def.getClass().getSimpleName());
     }
 
     private StreamWrapper validateStreamWrapper(StreamWrapper wrapper, TopicDefinition definition, Class<? extends BaseStreamWrapper> resultType) {
@@ -225,17 +224,17 @@ public class TopologyBuildContext {
             final var defKeyType = definition.keyType();
             final var wrapperKeyType = wrapper.keyType().userType();
             if (defKeyType != null && !defKeyType.dataType().isAssignableFrom(wrapperKeyType.dataType())) {
-                throw FatalError.topologyError("Expected keyType " + defKeyType + " for topic " + definition.topic() + " differs from real keyType " + wrapperKeyType);
+                throw new TopologyException("Expected keyType " + defKeyType + " for topic " + definition.topic() + " differs from real keyType " + wrapperKeyType);
             }
             final var defValueType = definition.valueType();
             final var wrapperValueType = wrapper.valueType().userType();
             if (defValueType != null && !defValueType.dataType().isAssignableFrom(wrapperValueType.dataType())) {
-                throw FatalError.topologyError("Expected valueType " + defValueType + " for topic \"" + topic + "\" differs from real valueType " + wrapperValueType);
+                throw new TopologyException("Expected valueType " + defValueType + " for topic '" + topic + "' differs from real valueType " + wrapperValueType);
             }
         }
 
         if (!resultType.isInstance(wrapper)) {
-            throw FatalError.topologyError("Incorrect stream type referenced: expected=" + resultType + ", found=" + wrapper.toString());
+            throw new TopologyException("Incorrect stream type referenced: expected=" + resultType + ", found=" + wrapper.toString());
         }
 
         return wrapper;
@@ -245,10 +244,10 @@ public class TopologyBuildContext {
     // point for that operation to register pipeline outcomes as independent stream wrappers.
     public void registerStreamWrapper(String name, StreamWrapper wrapper) {
         if (name==null) {
-            throw FatalError.topologyError("Can not register " + wrapper.toString() + " without a name");
+            throw new TopologyException("Can not register " + wrapper.toString() + " without a name");
         }
         if (streamWrappersByName.containsKey(name)) {
-            throw FatalError.topologyError("Can not register " + wrapper.toString() + " as " + name + ": name must be unique");
+            throw new TopologyException("Can not register " + wrapper.toString() + " as " + name + ": name must be unique");
         }
         streamWrappersByName.put(name, wrapper);
     }

@@ -20,90 +20,43 @@ package io.axual.ksml.execution;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.exception.KSMLTopologyException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.axual.ksml.exception.TopologyException;
+import lombok.extern.slf4j.Slf4j;
 
-import io.axual.ksml.exception.KSMLDataException;
-import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.data.exception.ParseException;
-import io.axual.ksml.exception.KSMLSchemaException;
-import io.axual.ksml.data.parser.ParseNode;
-
+@Slf4j
 public class FatalError {
-    private static final Logger LOG = LoggerFactory.getLogger(FatalError.class);
-
     private FatalError() {
     }
 
-    public static RuntimeException configError(String message) {
-        return dataError(message, null);
+    public static Throwable topologyError(String message) {
+        return reportAndExit(new TopologyException(message));
     }
 
-    public static RuntimeException dataError(String message) {
-        return dataError(message, null);
-    }
-
-    public static RuntimeException dataError(String message, Throwable cause) {
-        return reportAndExit(new KSMLDataException(message, cause));
-    }
-
-    public static RuntimeException executionError(String message) {
-        return executionError(message, null);
-    }
-
-    public static RuntimeException executionError(String message, Throwable cause) {
-        return reportAndExit(new KSMLExecutionException(message, cause));
-    }
-
-    public static RuntimeException parseError(ParseNode node, String message) {
-        return parseError(node, message, null);
-    }
-
-    public static RuntimeException parseError(ParseNode node, String message, Throwable cause) {
-        return reportAndExit(new ParseException(node, message, cause));
-    }
-
-    public static RuntimeException schemaError(String message, Throwable cause) {
-        return reportAndExit(new KSMLSchemaException(message, cause));
-    }
-
-    public static RuntimeException schemaError(String message) {
-        return schemaError(message, (Throwable) null);
-    }
-
-    public static <T> T schemaError(String message, Class<T> returnType) {
-        throw schemaError(message);
-    }
-
-    public static RuntimeException topologyError(String message) {
-        return reportAndExit(new KSMLTopologyException(message));
-    }
-
-    public static RuntimeException reportAndExit(RuntimeException e) {
-        LOG.error("\n\n");
-        LOG.error("Fatal error");
+    public static RuntimeException reportAndExit(Throwable t) {
+        log.error("\n\n");
+        log.error("Fatal error");
         printLineSeparator();
-        printExceptionDetails(e);
+        printExceptionDetails(t);
         System.exit(1);
-        return e;
+        // Dummy return to resolve compiler errors
+        return new RuntimeException(t.getMessage());
     }
 
     private static void printExceptionDetails(Throwable t) {
         if (t.getCause() != null) {
             printExceptionDetails(t.getCause());
             printLineSeparator();
-            LOG.error("Above error caused: {}", t.getMessage());
+            log.error("Above error caused: {}", t.getMessage());
         } else {
-            LOG.error("Description: {}", t.getMessage());
+            log.error("Description: {}", t.getMessage());
         }
-        LOG.error("Stack trace:");
+        log.error("Stack trace:");
         for (var ste : t.getStackTrace()) {
-            LOG.error("  {}::{} @ {}:{}", ste.getClassName(), ste.getMethodName(), ste.getFileName(), ste.getLineNumber());
+            log.error("  {}::{} @ {}:{}", ste.getClassName(), ste.getMethodName(), ste.getFileName(), ste.getLineNumber());
         }
     }
 
     private static void printLineSeparator() {
-        LOG.error("===========");
+        log.error("===========");
     }
 }
