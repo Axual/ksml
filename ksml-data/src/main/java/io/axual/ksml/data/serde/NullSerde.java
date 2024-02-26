@@ -29,7 +29,7 @@ import org.apache.kafka.common.serialization.Serializer;
 
 @Getter
 public class NullSerde implements Serde<Object> {
-    private static final byte[] SERIALIZED_NULL = new byte[0];
+    private static final byte[] SERIALIZED_NULL = null;
     private final Serializer<Object> serializer = (topic, data) -> SERIALIZED_NULL;
     private final Deserializer<Object> deserializer = (topic, data) -> {
         if (data == null || data.length == 0) return Null.NULL;
