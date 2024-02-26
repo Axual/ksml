@@ -23,7 +23,10 @@ package io.axual.ksml.runner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import io.axual.ksml.client.serde.ResolvingDeserializer;
+import io.axual.ksml.client.serde.ResolvingSerializer;
 import io.axual.ksml.data.mapper.DataTypeSchemaMapper;
+import io.axual.ksml.data.mapper.KafkaStreamsDataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.avro.AvroNotation;
@@ -42,12 +45,8 @@ import io.axual.ksml.data.notation.xml.XmlDataObjectConverter;
 import io.axual.ksml.data.notation.xml.XmlNotation;
 import io.axual.ksml.data.notation.xml.XmlSchemaLoader;
 import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.SchemaLibrary;
-import io.axual.ksml.client.serde.ResolvingDeserializer;
-import io.axual.ksml.client.serde.ResolvingSerializer;
-import io.axual.ksml.data.mapper.KafkaStreamsDataObjectMapper;
 import io.axual.ksml.data.schema.KafkaStreamsSchemaMapper;
+import io.axual.ksml.data.schema.SchemaLibrary;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.execution.ErrorHandler;
@@ -82,6 +81,7 @@ import java.util.jar.Manifest;
 @Slf4j
 public class KSMLRunner {
     private static final String DEFAULT_CONFIG_FILE_SHORT = "ksml-runner.yaml";
+    private static final String WRITE_KSML_SCHEMA_ARGUMENT = "--schema";
 
     public static void main(String[] args) {
         try {
@@ -107,6 +107,9 @@ public class KSMLRunner {
             } catch (IOException e) {
                 log.info("Could not load manifest file, using default values");
             }
+
+            // Check if we need to output the schema and then exit
+            checkForSchemaOutput(args);
 
             log.info("Starting {} {}", executableName, executableVersion);
             final var configFile = new File(args.length == 0 ? DEFAULT_CONFIG_FILE_SHORT : args[0]);
@@ -158,15 +161,6 @@ public class KSMLRunner {
             final Map<String, TopologyDefinition> pipelineSpecs = new HashMap<>();
             definitions.forEach((name, definition) -> {
                 final var parser = new TopologyDefinitionParser(name);
-                final var schema = new JsonSchemaMapper().fromDataSchema((DataSchema) parser.schema());
-                try {
-                    final var writer = new PrintWriter(config.getKsmlConfig().getConfigDirectory() + "/ksml.json");
-                    writer.println(schema);
-                    writer.close();
-                } catch (Exception e) {
-                    // Ignore
-                }
-                log.info("Schema: {}", schema);
                 final var specification = parser.parse(ParseNode.fromRoot(definition, name));
                 if (!specification.producers().isEmpty()) producerSpecs.put(name, specification);
                 if (!specification.pipelines().isEmpty()) pipelineSpecs.put(name, specification);
@@ -257,6 +251,32 @@ public class KSMLRunner {
         } catch (Throwable t) {
             log.error("Unhandled exception", t);
             System.exit(2);
+        }
+    }
+
+    private static void checkForSchemaOutput(String[] args) {
+        // Check if the runner was started with "--schema". If so, then we output the JSON schema to validate the
+        // KSML definitions with on stdout and exit
+        if (args.length >= 1 && WRITE_KSML_SCHEMA_ARGUMENT.equals(args[0])) {
+            final var parser = new TopologyDefinitionParser("dummy");
+            final var schema = new JsonSchemaMapper().fromDataSchema(parser.schema());
+
+            final var filename = args.length >= 2 ? args[1] : null;
+            if (filename != null) {
+                try {
+                    final var writer = new PrintWriter(filename);
+                    writer.println(schema);
+                    writer.close();
+                    log.info("KSML schema written to file: " + filename);
+                } catch (Exception e) {
+                    // Ignore
+                    log.error("Error writing KSML JSON schema to file: " + filename);
+                    log.error("Error: " + e.getMessage());
+                }
+            } else {
+                System.out.println(schema);
+            }
+            System.exit(0);
         }
     }
 
