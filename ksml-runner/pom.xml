@@ -34,24 +34,6 @@
             <artifactId>ksml-kafka-clients</artifactId>
         </dependency>
 
-        <!-- Notation dependencies -->
-        <dependency>
-            <groupId>io.axual.ksml</groupId>
-            <artifactId>ksml-data-avro</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.axual.ksml</groupId>
-            <artifactId>ksml-data-csv</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.axual.ksml</groupId>
-            <artifactId>ksml-data-soap</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.axual.ksml</groupId>
-            <artifactId>ksml-data-xml</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>

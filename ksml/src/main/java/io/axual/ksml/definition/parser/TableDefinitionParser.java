@@ -71,7 +71,7 @@ public class TableDefinitionParser extends DefinitionParser<TableDefinition> {
 
     private StructParser<KeyValueStateStoreDefinition> storeField() {
         final var resourceParser = new TopologyResourceParser<>("state store", Streams.STORE, "State store definition", null, new StateStoreDefinitionParser(StoreType.KEYVALUE_STORE));
-        final var field = new DataField(Streams.STORE, new UnionSchema(DataSchema.nullSchema(), resourceParser.schema()), "Definition of the keyValue state store associated with the table", false);
+        final var field = new DataField(Streams.STORE, new UnionSchema(DataSchema.nullSchema(), resourceParser.schema()), "Definition of the keyValue state store associated with the table", DataField.NO_INDEX, false);
         final var schema = structSchema(KeyValueStateStoreDefinition.class, field.doc(), List.of(field));
         return new StructParser<>() {
             @Override

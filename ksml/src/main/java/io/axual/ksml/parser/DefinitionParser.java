@@ -78,7 +78,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         if (parser.fields().isEmpty()) return parser;
         final var schema = parser.schema();
         final var newFields = schema.fields().stream()
-                .map(field -> new DataField(field.name(), field.schema(), "(Optional) " + field.doc(), false, false, new DataValue(DataNull.INSTANCE)))
+                .map(field -> new DataField(field.name(), field.schema(), "(Optional) " + field.doc(), field.index(), false, false, new DataValue(DataNull.INSTANCE)))
                 .toList();
         final var newSchema = new StructSchema(schema.namespace(), schema.name(), schema.doc(), newFields);
         return StructParser.of(node -> node != null ? parser.parse(node) : null, newSchema);
@@ -102,7 +102,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         private String defaultName;
 
         public FieldParser(String childName, boolean required, boolean constant, V valueIfNull, String doc, ParserWithSchema<V> valueParser) {
-            field = new DataField(childName, valueParser.schema(), doc, required, constant, valueIfNull != null ? new DataValue(valueIfNull) : null);
+            field = new DataField(childName, valueParser.schema(), doc, DataField.NO_INDEX, required, constant, valueIfNull != null ? new DataValue(valueIfNull) : null);
             schema = structSchema((String) null, null, List.of(field));
             this.valueParser = valueParser;
         }
@@ -228,7 +228,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
 
     protected StructParser<UserType> userTypeField(String childName, boolean required, String doc) {
         final var stringParser = stringField(childName, required, null, doc);
-        final var field = new DataField(childName, DataSchema.stringSchema(), doc, required, false, null);
+        final var field = new DataField(childName, DataSchema.stringSchema(), doc, DataField.NO_INDEX, required, false, null);
         return new StructParser<>() {
             @Override
             public StructSchema schema() {
