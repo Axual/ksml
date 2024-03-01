@@ -39,7 +39,7 @@ import java.util.Map;
 public class AvroNotation implements Notation {
     public static final String NOTATION_NAME = "AVRO";
     public static final DataType DEFAULT_TYPE = new StructType();
-    private static final AvroDataMapper mapper = new AvroDataMapper();
+    private static final AvroDataObjectMapper mapper = new AvroDataObjectMapper();
     private final Map<String, Object> configs = new HashMap<>();
 
     public AvroNotation(Map<String, ?> configs) {

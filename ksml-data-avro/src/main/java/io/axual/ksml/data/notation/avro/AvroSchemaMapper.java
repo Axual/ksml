@@ -23,17 +23,18 @@ package io.axual.ksml.data.notation.avro;
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.value.Pair;
 import io.axual.ksml.data.schema.*;
 import org.apache.avro.Schema;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.axual.ksml.data.schema.DataField.NO_INDEX;
+
 // First attempt at providing an internal schema class. The implementation relies heavily on Avro
 // at the moment, which is fine for now, but may change in the future.
 public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
-    private static final AvroDataMapper avroMapper = new AvroDataMapper();
+    private static final AvroDataObjectMapper avroMapper = new AvroDataObjectMapper();
     private static final Schema AVRO_NULL_TYPE = Schema.create(Schema.Type.NULL);
     private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
 
@@ -54,36 +55,42 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         return null;
     }
 
-    private Pair<DataSchema, Boolean> convertToDataSchema(Schema schema) {
+    private record SchemaAndRequired(DataSchema schema, boolean required) {
+    }
+
+    private SchemaAndRequired convertToDataSchema(Schema schema) {
+        // Returns a record with
+        //   1. the DataSchema representation of the schema parameter
+        //   2. a boolean indicating whether the field is required
         return switch (schema.getType()) {
-            case NULL -> Pair.of(DataSchema.create(DataSchema.Type.NULL), false);
+            case NULL -> new SchemaAndRequired(DataSchema.create(DataSchema.Type.NULL), false);
 
-            case BOOLEAN -> Pair.of(DataSchema.create(DataSchema.Type.BOOLEAN), true);
+            case BOOLEAN -> new SchemaAndRequired(DataSchema.create(DataSchema.Type.BOOLEAN), true);
 
-            case INT -> Pair.of(DataSchema.create(DataSchema.Type.INTEGER), true);
-            case LONG -> Pair.of(DataSchema.create(DataSchema.Type.LONG), true);
+            case INT -> new SchemaAndRequired(DataSchema.create(DataSchema.Type.INTEGER), true);
+            case LONG -> new SchemaAndRequired(DataSchema.create(DataSchema.Type.LONG), true);
 
-            case BYTES -> Pair.of(DataSchema.create(DataSchema.Type.BYTES), true);
-            case FIXED -> Pair.of(
+            case BYTES -> new SchemaAndRequired(DataSchema.create(DataSchema.Type.BYTES), true);
+            case FIXED -> new SchemaAndRequired(
                     new FixedSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getFixedSize()),
                     true);
 
-            case FLOAT -> Pair.of(DataSchema.create(DataSchema.Type.FLOAT), true);
-            case DOUBLE -> Pair.of(DataSchema.create(DataSchema.Type.DOUBLE), true);
+            case FLOAT -> new SchemaAndRequired(DataSchema.create(DataSchema.Type.FLOAT), true);
+            case DOUBLE -> new SchemaAndRequired(DataSchema.create(DataSchema.Type.DOUBLE), true);
 
-            case STRING -> Pair.of(DataSchema.create(DataSchema.Type.STRING), true);
+            case STRING -> new SchemaAndRequired(DataSchema.create(DataSchema.Type.STRING), true);
 
-            case ARRAY -> Pair.of(new ListSchema(convertToDataSchema(schema.getElementType()).left()), true);
-            case ENUM -> Pair.of(
+            case ARRAY -> new SchemaAndRequired(new ListSchema(convertToDataSchema(schema.getElementType()).schema()), true);
+            case ENUM -> new SchemaAndRequired(
                     new EnumSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getEnumSymbols(), schema.getEnumDefault()),
                     true);
-            case MAP -> Pair.of(new MapSchema(convertToDataSchema(schema.getValueType()).left()), true);
-            case RECORD -> Pair.of(toDataSchema(schema.getName(), schema), true);
+            case MAP -> new SchemaAndRequired(new MapSchema(convertToDataSchema(schema.getValueType()).schema()), true);
+            case RECORD -> new SchemaAndRequired(toDataSchema(schema.getName(), schema), true);
             case UNION -> convertUnionToDataSchema(schema.getTypes());
         };
     }
 
-    private Pair<DataSchema, Boolean> convertUnionToDataSchema(List<Schema> unionTypes) {
+    private SchemaAndRequired convertUnionToDataSchema(List<Schema> unionTypes) {
         // If a type "null" is found in AVRO schema, the respective property is considered optional, so here we detect
         // this fact and return the result Boolean as "false" indicating a required property.
         var required = true;
@@ -96,17 +103,17 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
 
         // If the union now contains only a single schema, then unwrap it from the union and return as simple type
         if (unionTypes.size() == 1) {
-            return Pair.of(convertToDataSchema(unionTypes.get(0)).left(), required);
+            return new SchemaAndRequired(convertToDataSchema(unionTypes.getFirst()).schema(), required);
         }
-        return Pair.of(new UnionSchema(convertToDataSchema(unionTypes).left().toArray(DataSchema[]::new)), required);
+        return new SchemaAndRequired(new UnionSchema(convertToDataSchema(unionTypes).toArray(DataSchema[]::new)), required);
     }
 
-    private Pair<List<DataSchema>, Boolean> convertToDataSchema(List<Schema> schemas) {
+    private List<DataSchema> convertToDataSchema(List<Schema> schemas) {
         var result = new ArrayList<DataSchema>();
         for (Schema schema : schemas) {
-            result.add(convertToDataSchema(schema).left());
+            result.add(convertToDataSchema(schema).schema());
         }
-        return Pair.of(result, true);
+        return result;
     }
 
     private List<DataField> convertFieldsToDataSchema(List<Schema.Field> fields) {
@@ -114,9 +121,9 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         List<DataField> result = new ArrayList<>(fields.size());
         for (Schema.Field field : fields) {
             var defaultValue = convertFromAvroDefault(field);
-            var property = convertToDataSchema(field.schema());
+            var schemaAndRequired = convertToDataSchema(field.schema());
             // TODO: think about how to model fixed values in AVRO and replace the "false" with logic
-            result.add(new DataField(field.name(), property.left(), field.doc(), property.right(), false, defaultValue, convertOrderFromAvro(field.order())));
+            result.add(new DataField(field.name(), schemaAndRequired.schema(), field.doc(), NO_INDEX, schemaAndRequired.required(), false, defaultValue, convertOrderFromAvro(field.order())));
         }
         return result;
     }
@@ -162,7 +169,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             // If NULL is already part of the UNION types, then return the UNION as is
             if (types.contains(AVRO_NULL_TYPE)) return result;
             // Add NULL as possible type at the start of the array
-            types.add(0, AVRO_NULL_TYPE);
+            types.addFirst(AVRO_NULL_TYPE);
             return Schema.createUnion(types);
         }
 

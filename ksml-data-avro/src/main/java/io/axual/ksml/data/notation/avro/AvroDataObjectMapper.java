@@ -32,10 +32,10 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.util.Utf8;
 
-public class AvroDataMapper extends NativeDataObjectMapper {
+public class AvroDataObjectMapper extends NativeDataObjectMapper {
     private static final AvroSchemaMapper AVRO_SCHEMA_MAPPER = new AvroSchemaMapper();
 
-    protected AvroDataMapper() {
+    protected AvroDataObjectMapper() {
         super(true);
     }
 

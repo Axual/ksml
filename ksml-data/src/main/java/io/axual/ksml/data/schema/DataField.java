@@ -25,22 +25,26 @@ import lombok.Getter;
 
 @Getter
 public class DataField {
-    private final String name;
-    private final DataSchema schema;
-    private final String doc;
-    private final boolean required;
-    private final boolean constant;
-    private final DataValue defaultValue;
-    private final Order order;
+    public static final int NO_INDEX = -1;
 
     public enum Order {
         ASCENDING, DESCENDING, IGNORE;
     }
 
-    public DataField(String name, DataSchema schema, String doc, boolean required, boolean constant, DataValue defaultValue, Order order) {
+    private final String name;
+    private final DataSchema schema;
+    private final String doc;
+    private final boolean required;
+    private final boolean constant;
+    private final int index;
+    private final DataValue defaultValue;
+    private final Order order;
+
+    public DataField(String name, DataSchema schema, String doc, int index, boolean required, boolean constant, DataValue defaultValue, Order order) {
         this.name = name;
         this.schema = schema;
         this.doc = doc;
+        this.index = index;
         this.required = required;
         this.constant = constant;
         this.defaultValue = defaultValue;
@@ -50,16 +54,20 @@ public class DataField {
         }
     }
 
-    public DataField(String name, DataSchema schema, String doc, boolean required, boolean constant, DataValue defaultValue) {
-        this(name, schema, doc, required, constant, defaultValue, Order.ASCENDING);
-    }
-
-    public DataField(String name, DataSchema schema, String doc, boolean required) {
-        this(name, schema, doc, required, false, null);
-    }
-
     public DataField(String name, DataSchema schema, String doc) {
-        this(name, schema, doc, true);
+        this(name, schema, doc, -1);
+    }
+
+    public DataField(String name, DataSchema schema, String doc, int index) {
+        this(name, schema, doc, index, true, false, null);
+    }
+
+    public DataField(String name, DataSchema schema, String doc, int index, boolean required) {
+        this(name, schema, doc, index, required, false, null);
+    }
+
+    public DataField(String name, DataSchema schema, String doc, int index, boolean required, boolean constant, DataValue defaultValue) {
+        this(name, schema, doc, index, required, constant, defaultValue, Order.ASCENDING);
     }
 
     public boolean isAssignableFrom(DataField field) {

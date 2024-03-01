@@ -44,6 +44,7 @@ public class DataFieldParser extends BaseParser<DataField> {
                 parseString(node, DataSchemaDSL.DATA_FIELD_NAME_FIELD),
                 property.left(),
                 parseString(node, DataSchemaDSL.DATA_FIELD_DOC_FIELD),
+                DataField.NO_INDEX,
                 property.right(),
                 constant != null && constant,
                 new DataValueParser().parse(node.get(DataSchemaDSL.DATA_FIELD_DEFAULT_VALUE_FIELD)),

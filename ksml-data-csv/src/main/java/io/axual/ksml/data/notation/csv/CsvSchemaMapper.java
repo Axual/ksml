@@ -30,6 +30,8 @@ import io.axual.ksml.data.schema.StructSchema;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.axual.ksml.data.schema.DataField.NO_INDEX;
+
 public class CsvSchemaMapper implements DataSchemaMapper<String> {
     private static final CsvDataObjectMapper MAPPER = new CsvDataObjectMapper();
 
@@ -46,7 +48,7 @@ public class CsvSchemaMapper implements DataSchemaMapper<String> {
     private DataSchema toDataSchema(String namespace, String name, DataList fieldNames) {
         List<DataField> fields = new ArrayList<>();
         for (var fieldName : fieldNames) {
-            fields.add(new DataField(fieldName.toString(), DataSchema.create(DataSchema.Type.STRING), fieldName.toString(), true, false, new DataValue("")));
+            fields.add(new DataField(fieldName.toString(), DataSchema.create(DataSchema.Type.STRING), fieldName.toString(), NO_INDEX, true, false, new DataValue("")));
         }
         return new StructSchema(namespace, name, "CSV schema", fields);
     }
