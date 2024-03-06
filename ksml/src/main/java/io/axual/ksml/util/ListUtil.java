@@ -30,4 +30,12 @@ public class ListUtil {
         result.addAll(list2);
         return result;
     }
+
+    public static <T> List<T> union(List<T> list1, List<T> list2, List<T> list3) {
+        final var result = new ArrayList<T>(list1.size() + list2.size() + list3.size());
+        result.addAll(list1);
+        result.addAll(list2);
+        result.addAll(list3);
+        return result;
+    }
 }

@@ -38,12 +38,12 @@ public class BranchOperationParser extends OperationParser<BranchOperation> {
     public StructParser<BranchOperation> parser() {
         return structParser(
                 BranchOperation.class,
+                "",
                 "Splits the pipeline result into multiple substreams. Each message gets sent down one stream, based on the first matching branch condition",
-                nameField(),
+                operationNameField(),
                 listField(
                         KSMLDSL.Operations.BRANCH,
                         "branch",
-                        true,
                         "Defines a single branch, consisting of a condition and a pipeline to execute for messages that fulfil the predicate",
                         new BranchDefinitionParser(resources(), includePipelineSchema)),
                 (name, branches) -> branches != null ? new BranchOperation(operationConfig(namespace(), null), branches) : null);

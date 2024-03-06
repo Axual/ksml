@@ -47,12 +47,15 @@ public class TableDefinitionParser extends DefinitionParser<TableDefinition> {
 
     @Override
     public StructParser<TableDefinition> parser() {
+        final var keyField = userTypeField(Streams.KEY_TYPE, "The key type of the table");
+        final var valueField = userTypeField(Streams.VALUE_TYPE, "The value type of the table");
         return structParser(
                 TableDefinition.class,
+                requireKeyValueType ? "" : "WithOptionalTypes",
                 "Contains a definition of a Table, which can be referenced by producers and pipelines",
-                stringField(Streams.TOPIC, true, "The name of the Kafka topic for this table"),
-                userTypeField(Streams.KEY_TYPE, requireKeyValueType, "The key type of the table"),
-                userTypeField(Streams.VALUE_TYPE, requireKeyValueType, "The value type of the table"),
+                stringField(Streams.TOPIC, "The name of the Kafka topic for this table"),
+                requireKeyValueType ? keyField : optional(keyField),
+                requireKeyValueType ? valueField : optional(valueField),
                 storeField(),
                 (topic, keyType, valueType, store) -> {
                     keyType = keyType != null ? keyType : UserType.UNKNOWN;

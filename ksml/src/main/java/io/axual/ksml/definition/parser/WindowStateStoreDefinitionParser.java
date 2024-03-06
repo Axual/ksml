@@ -37,20 +37,22 @@ public class WindowStateStoreDefinitionParser extends DefinitionParser<WindowSta
 
     @Override
     protected StructParser<WindowStateStoreDefinition> parser() {
+        final var storeType = fixedStringField(KSMLDSL.Stores.TYPE, StoreType.WINDOW_STORE.externalName(), "The type of the state store");
         return structParser(
                 WindowStateStoreDefinition.class,
+                requireType ? "" : "WithImplicitType",
                 "Definition of a window state store",
-                fixedStringField(KSMLDSL.Stores.TYPE, requireType, StoreType.WINDOW_STORE.externalName(), "The type of the state store"),
-                stringField(KSMLDSL.Stores.NAME, false, null, "The name of the window store. If this field is not defined, then the name is derived from the context."),
-                booleanField(KSMLDSL.Stores.PERSISTENT, false, "\"true\" if this window store needs to be stored on disk, \"false\" otherwise"),
-                booleanField(KSMLDSL.Stores.TIMESTAMPED, false, "\"true\" if elements in the store are timestamped, \"false\" otherwise"),
-                durationField(KSMLDSL.Stores.RETENTION, false, "The duration for which elements in the window store are retained"),
-                durationField(KSMLDSL.Stores.WINDOW_SIZE, false, "Size of the windows (cannot be negative)"),
-                booleanField(KSMLDSL.Stores.RETAIN_DUPLICATES, false, "Whether or not to retain duplicates"),
-                userTypeField(KSMLDSL.Stores.KEY_TYPE, false, "The key type of the window store"),
-                userTypeField(KSMLDSL.Stores.VALUE_TYPE, false, "The value type of the window store"),
-                booleanField(KSMLDSL.Stores.CACHING, false, "\"true\" if changed to the window store need to be buffered and periodically released, \"false\" to emit all changes directly"),
-                booleanField(KSMLDSL.Stores.LOGGING, false, "\"true\" if a changelog topic should be set up on Kafka for this window store, \"false\" otherwise"),
+                requireType ? storeType : optional(storeType),
+                optional(stringField(KSMLDSL.Stores.NAME, false, null, "The name of the window store. If this field is not defined, then the name is derived from the context.")),
+                optional(booleanField(KSMLDSL.Stores.PERSISTENT, "\"true\" if this window store needs to be stored on disk, \"false\" otherwise")),
+                optional(booleanField(KSMLDSL.Stores.TIMESTAMPED, "\"true\" if elements in the store are timestamped, \"false\" otherwise")),
+                optional(durationField(KSMLDSL.Stores.RETENTION, "The duration for which elements in the window store are retained")),
+                optional(durationField(KSMLDSL.Stores.WINDOW_SIZE, "Size of the windows (cannot be negative)")),
+                optional(booleanField(KSMLDSL.Stores.RETAIN_DUPLICATES, "Whether or not to retain duplicates")),
+                optional(userTypeField(KSMLDSL.Stores.KEY_TYPE, "The key type of the window store")),
+                optional(userTypeField(KSMLDSL.Stores.VALUE_TYPE, "The value type of the window store")),
+                optional(booleanField(KSMLDSL.Stores.CACHING, "\"true\" if changed to the window store need to be buffered and periodically released, \"false\" to emit all changes directly")),
+                optional(booleanField(KSMLDSL.Stores.LOGGING, "\"true\" if a changelog topic should be set up on Kafka for this window store, \"false\" otherwise")),
                 (type, name, persistent, timestamped, retention, windowSize, retainDuplicates, keyType, valueType, caching, logging) -> {
                     // Validate the type field if one was provided
                     if (type != null && !StoreType.WINDOW_STORE.externalName().equals(type)) {

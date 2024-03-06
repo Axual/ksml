@@ -23,8 +23,6 @@ package io.axual.ksml.definition.parser;
 
 import io.axual.ksml.data.parser.NamedObjectParser;
 import io.axual.ksml.definition.PipelineDefinition;
-import io.axual.ksml.definition.TopicDefinition;
-import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.AsOperation;
@@ -57,15 +55,15 @@ public class PipelineDefinitionParser extends ContextAwareParser<PipelineDefinit
         final var printParser = new PrintOperationParser(resources());
         final var toParser = new ToOperationParser(resources());
 
-        final var source = topologyResourceField("source", KSMLDSL.Pipelines.FROM, "Pipeline source", resources()::topic, new TopicDefinitionParser(true));
-        final StructParser<TopologyResource<TopicDefinition>> optionalSource = parseSource ? source : new IgnoreParser<>();
+        final var sourceField = topologyResourceField("source", KSMLDSL.Pipelines.FROM, "Pipeline source", resources()::topic, new TopicDefinitionParser(true));
 
         return structParser(
                 PipelineDefinition.class,
+                parseSource ? "" : "WithoutSource",
                 "Defines a pipeline through a source, a series of operations to perform on it and a sink operation to close the stream with",
-                stringField(KSMLDSL.Pipelines.NAME, false, null, "The name of the pipeline. If this field is not defined, then the name is derived from the context."),
-                optionalSource,
-                listField(KSMLDSL.Pipelines.VIA, "step", false, "A series of operations performed on the input stream", new PipelineOperationParser(resources())),
+                optional(stringField(KSMLDSL.Pipelines.NAME, true, null, "The name of the pipeline. If this field is not defined, then the name is derived from the context.")),
+                parseSource ? sourceField : new IgnoreParser<>(),
+                optional(listField(KSMLDSL.Pipelines.VIA, "step", "A series of operations performed on the input stream", new PipelineOperationParser(resources()))),
                 optional(asParser),
                 optional(branchParser),
                 optional(forEachParser),

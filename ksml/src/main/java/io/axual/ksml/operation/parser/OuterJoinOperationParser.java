@@ -49,32 +49,34 @@ public class OuterJoinOperationParser extends StoreOperationParser<OuterJoinOper
         super("outerJoin", resources);
         joinStreamParser = structParser(
                 OuterJoinOperation.class,
+                "",
                 "Operation to join with a stream",
                 operationTypeField(Operations.OUTER_JOIN),
-                nameField(),
-                topicField(Operations.Join.WITH_STREAM, true, "(Required for Stream joins) A reference to the Stream, or an inline definition of the Stream to join with", new StreamDefinitionParser(false)),
+                operationNameField(),
+                topicField(Operations.Join.WITH_STREAM, "(Required for Stream joins) A reference to the Stream, or an inline definition of the Stream to join with", new StreamDefinitionParser(false)),
                 functionField(Operations.Join.VALUE_JOINER, "(Stream joins) A function that joins two values", new ValueJoinerDefinitionParser()),
-                durationField(Operations.Join.TIME_DIFFERENCE, true, "(Stream joins) The maximum time difference for a join over two streams on the same key"),
-                durationField(Operations.Join.GRACE, false, "(Stream joins) The window grace period (the time to admit out-of-order events after the end of the window)"),
+                durationField(Operations.Join.TIME_DIFFERENCE, "(Stream joins) The maximum time difference for a join over two streams on the same key"),
+                optional(durationField(Operations.Join.GRACE, "(Stream joins) The window grace period (the time to admit out-of-order events after the end of the window)")),
                 storeField(false, "Materialized view of the joined streams", null),
                 (type, name, stream, valueJoiner, timeDifference, grace, store) -> {
                     if (stream instanceof StreamDefinition streamDef) {
-                        return new OuterJoinOperation(storeOperationConfig(name, null, store), streamDef, valueJoiner, timeDifference, grace);
+                        return new OuterJoinOperation(storeOperationConfig(name, store), streamDef, valueJoiner, timeDifference, grace);
                     }
                     throw new TopologyException("Join stream not correct, should be a defined Stream");
                 });
 
         joinTableParser = structParser(
                 OuterJoinOperation.class,
+                "",
                 "Operation to join with a table",
-                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, "The type of the operation, fixed value \"" + Operations.JOIN + "\""),
-                nameField(),
-                topicField(Operations.Join.WITH_TABLE, true, "(Required for Table joins) A reference to the Table, or an inline definition of the Table to join with", new TableDefinitionParser(false)),
+                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, "The type of the operation, fixed value \"" + Operations.JOIN + "\""),
+                operationNameField(),
+                topicField(Operations.Join.WITH_TABLE, "(Required for Table joins) A reference to the Table, or an inline definition of the Table to join with", new TableDefinitionParser(false)),
                 functionField(Operations.Join.VALUE_JOINER, "(Table joins) A function that joins two values", new ValueJoinerDefinitionParser()),
                 storeField(false, "Materialized view of the joined streams", null),
                 (type, name, table, valueJoiner, store) -> {
                     if (table instanceof TableDefinition tableDef) {
-                        return new OuterJoinOperation(storeOperationConfig(name, null, store), tableDef, valueJoiner);
+                        return new OuterJoinOperation(storeOperationConfig(name, store), tableDef, valueJoiner);
                     }
                     throw new TopologyException("Join table not correct, should be a defined Table");
                 });

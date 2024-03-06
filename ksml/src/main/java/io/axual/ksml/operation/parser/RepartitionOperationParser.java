@@ -36,10 +36,11 @@ public class RepartitionOperationParser extends OperationParser<RepartitionOpera
     public StructParser<RepartitionOperation> parser() {
         return structParser(
                 RepartitionOperation.class,
+                "",
                 "Operation to (re)partition a stream",
                 operationTypeField(KSMLDSL.Operations.REPARTITION),
-                nameField(),
-                functionField(KSMLDSL.Operations.Repartition.PARTITIONER, true, "A function that partitions stream records", new StreamPartitionerDefinitionParser()),
+                operationNameField(),
+                functionField(KSMLDSL.Operations.Repartition.PARTITIONER, "A function that partitions stream records", new StreamPartitionerDefinitionParser()),
                 (type, name, partitioner) -> new RepartitionOperation(operationConfig(name, null), partitioner));
     }
 }

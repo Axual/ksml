@@ -40,9 +40,10 @@ public class CogroupOperationParser extends StoreOperationParser<CogroupOperatio
         final var storeField = storeField(false, "Materialized view of the cogroup", StoreType.WINDOW_STORE);
         return structParser(
                 CogroupOperation.class,
+                "",
                 "A cogroup operation",
                 operationTypeField(Operations.COGROUP),
-                nameField(),
+                operationNameField(),
                 functionField(Operations.Aggregate.AGGREGATOR, "(GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result", new AggregatorDefinitionParser()),
                 storeField,
                 (type, name, aggr, store) -> new CogroupOperation(new StoreOperationConfig(namespace(), name, null, store), aggr));

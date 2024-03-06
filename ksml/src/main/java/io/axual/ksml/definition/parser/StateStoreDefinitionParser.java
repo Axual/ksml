@@ -37,7 +37,7 @@ public class StateStoreDefinitionParser extends ChoiceParser<StateStoreDefinitio
     }
 
     public StateStoreDefinitionParser(StoreType expectedType) {
-        super(Stores.TYPE, null, "state store", types(expectedType));
+        super(Stores.TYPE, "state store", null, types(expectedType));
     }
 
     private static Map<String, StructParser<? extends StateStoreDefinition>> types(StoreType expectedType) {

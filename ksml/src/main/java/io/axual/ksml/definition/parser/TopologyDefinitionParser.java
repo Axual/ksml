@@ -40,13 +40,15 @@ public class TopologyDefinitionParser extends DefinitionParser<TopologyDefinitio
 
     @Override
     public StructParser<TopologyDefinition> parser() {
-        final var fields = resourcesParser.fields();
         final var dummyResources = new TopologyResources("dummy");
-        final var pipelinesParser = mapField(PIPELINES, "pipeline", false, "Collection of named pipelines", new PipelineDefinitionParser(dummyResources));
-        final var producersParser = mapField(PRODUCERS, "producer", false, "Collection of named producers", new ProducerDefinitionParser(dummyResources));
+        final var pipelinesParser = optional(mapField(PIPELINES, "pipeline", "Collection of named pipelines", new PipelineDefinitionParser(dummyResources)));
+        final var producersParser = optional(mapField(PRODUCERS, "producer", "Collection of named producers", new ProducerDefinitionParser(dummyResources)));
+
+        final var fields = resourcesParser.fields();
         fields.addAll(pipelinesParser.fields());
         fields.addAll(producersParser.fields());
-        final var schema = structSchema(TopologyDefinition.class, "A KSML topology description", fields);
+        final var schema = structSchema(TopologyDefinition.class, "KSML definition", fields);
+
         return new StructParser<>() {
             @Override
             public TopologyDefinition parse(ParseNode node) {

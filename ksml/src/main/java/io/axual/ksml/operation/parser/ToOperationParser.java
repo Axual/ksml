@@ -20,7 +20,6 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.parser.ToTopicDefinitionParser;
 import io.axual.ksml.definition.parser.ToTopicNameExtractorDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
@@ -33,7 +32,6 @@ import io.axual.ksml.parser.StructParser;
 public class ToOperationParser extends OperationParser<ToOperation> {
     private final ToTopicDefinitionParser topicParser;
     private final ToTopicNameExtractorDefinitionParser tneParser;
-    private final StructSchema schema;
 
     public ToOperationParser(TopologyResources resources) {
         super("to", resources);
@@ -41,10 +39,6 @@ public class ToOperationParser extends OperationParser<ToOperation> {
         tneParser = new ToTopicNameExtractorDefinitionParser(resources());
         final var fields = topicParser.fields();
         fields.addAll(tneParser.fields());
-        schema = structSchema(
-                ToOperation.class.getSimpleName(),
-                "Ends the pipeline by sending all messages to a fixed topic, or to a topic returned by a topic name extractor function",
-                fields);
     }
 
     private class ToOperationDefinitionParser extends DefinitionParser<ToOperation> {
@@ -52,9 +46,10 @@ public class ToOperationParser extends OperationParser<ToOperation> {
         protected StructParser<ToOperation> parser() {
             return structParser(
                     ToOperation.class,
+                    "",
                     "Either a topic or topic name extractor that defines where to write pipeline messages to",
                     optional(topicParser),
-                    tneParser,
+                    optional(tneParser),
                     (toTopic, toTne) -> {
                         if (toTopic != null && toTopic.topic() != null) {
                             return new ToOperation(operationConfig(null), toTopic.topic(), toTopic.partitioner());
@@ -72,7 +67,6 @@ public class ToOperationParser extends OperationParser<ToOperation> {
         return lookupField(
                 "topic",
                 KSMLDSL.Operations.TO,
-                false,
                 "Ends the pipeline by sending all messages to a fixed topic, or to a topic returned by a topic name extractor function",
                 name -> {
                     // First try to find a corresponding topic definition

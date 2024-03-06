@@ -37,12 +37,15 @@ public class TopicDefinitionParser extends DefinitionParser<TopicDefinition> {
 
     @Override
     public StructParser<TopicDefinition> parser() {
+        final var keyField = userTypeField(Streams.KEY_TYPE, "The key type of the topic");
+        final var valueField = userTypeField(Streams.VALUE_TYPE, "The value type of the topic");
         return structParser(
                 TopicDefinition.class,
+                requireKeyValueType ? "" : "WithOptionalTypes",
                 "Contains a definition of a Kafka topic, to be used by producers and pipelines",
-                stringField(Streams.TOPIC, true, "The name of the Kafka topic"),
-                userTypeField(Streams.KEY_TYPE, requireKeyValueType, "The key type of the topic"),
-                userTypeField(Streams.VALUE_TYPE, requireKeyValueType, "The value type of the topic"),
+                stringField(Streams.TOPIC, "The name of the Kafka topic"),
+                requireKeyValueType ? keyField : optional(keyField),
+                requireKeyValueType ? valueField : optional(valueField),
                 (topic, keyType, valueType) -> topic != null ? new TopicDefinition("Topic", topic, keyType, valueType) : null);
     }
 }

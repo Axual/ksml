@@ -32,7 +32,7 @@ import java.util.Map;
 
 public class PipelineOperationParser extends ChoiceParser<StreamOperation> {
     public PipelineOperationParser(TopologyResources resources) {
-        super(KSMLDSL.Operations.TYPE_ATTRIBUTE, null,"operation", types(resources));
+        super(KSMLDSL.Operations.TYPE_ATTRIBUTE, "operation", null, types(resources));
     }
 
     private static Map<String, StructParser<? extends StreamOperation>> types(TopologyResources resources) {

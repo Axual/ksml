@@ -35,12 +35,15 @@ public class GlobalTableDefinitionParser extends DefinitionParser<GlobalTableDef
 
     @Override
     public StructParser<GlobalTableDefinition> parser() {
+        final var keyField = userTypeField(KSMLDSL.Streams.KEY_TYPE, "The key type of the global table");
+        final var valueField = userTypeField(KSMLDSL.Streams.VALUE_TYPE, "The value type of the global table");
         return structParser(
                 GlobalTableDefinition.class,
+                requireKeyValueType ? "" : "WithOptionalTypes",
                 "Contains a definition of a GlobalTable, which can be referenced by producers and pipelines",
-                stringField(KSMLDSL.Streams.TOPIC, true, "The name of the Kafka topic for this global table"),
-                userTypeField(KSMLDSL.Streams.KEY_TYPE, requireKeyValueType, "The key type of the global table"),
-                userTypeField(KSMLDSL.Streams.VALUE_TYPE, requireKeyValueType, "The value type of the global table"),
+                stringField(KSMLDSL.Streams.TOPIC, "The name of the Kafka topic for this global table"),
+                requireKeyValueType ? keyField : optional(keyField),
+                requireKeyValueType ? valueField : optional(valueField),
                 GlobalTableDefinition::new);
     }
 }

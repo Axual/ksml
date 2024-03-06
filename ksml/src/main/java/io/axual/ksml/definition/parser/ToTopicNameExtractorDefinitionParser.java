@@ -36,14 +36,14 @@ public class ToTopicNameExtractorDefinitionParser extends ContextAwareParser<ToT
     protected StructParser<ToTopicNameExtractorDefinition> parser() {
         return structParser(
                 ToTopicNameExtractorDefinition.class,
+                "",
                 "Writes out pipeline messages to a topic as given by a topic name extractor",
-                lookupField(
+                optional(lookupField(
                         "topic name extractor",
                         KSMLDSL.Operations.To.TOPIC_NAME_EXTRACTOR,
-                        false,
                         "Reference to a pre-defined topic name extractor, or an inline definition of a topic name extractor and an optional stream partitioner",
                         resources()::function,
-                        new TopicNameExtractorDefinitionParser()),
+                        new TopicNameExtractorDefinitionParser())),
                 new StreamPartitionerDefinitionParser(),
                 (tne, partitioner) -> tne != null ? new ToTopicNameExtractorDefinition(new TopicNameExtractorDefinition(tne), partitioner) : null);
     }

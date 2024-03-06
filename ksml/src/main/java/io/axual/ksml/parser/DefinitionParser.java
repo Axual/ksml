@@ -22,7 +22,6 @@ package io.axual.ksml.parser;
 
 import io.axual.ksml.data.exception.ParseException;
 import io.axual.ksml.data.notation.UserType;
-import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.parser.*;
 import io.axual.ksml.data.schema.*;
 import io.axual.ksml.exception.TopologyException;
@@ -78,7 +77,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         if (parser.fields().isEmpty()) return parser;
         final var schema = parser.schema();
         final var newFields = schema.fields().stream()
-                .map(field -> new DataField(field.name(), field.schema(), "(Optional) " + field.doc(), field.index(), false, false, new DataValue(DataNull.INSTANCE)))
+                .map(field -> field.required() ? new DataField(field.name(), field.schema(), "(Optional) " + field.doc(), field.index(), false, field.constant(), field.defaultValue()) : field)
                 .toList();
         final var newSchema = new StructSchema(schema.namespace(), schema.name(), schema.doc(), newFields);
         return StructParser.of(node -> node != null ? parser.parse(node) : null, newSchema);
@@ -101,8 +100,10 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         @Setter
         private String defaultName;
 
-        public FieldParser(String childName, boolean required, boolean constant, V valueIfNull, String doc, ParserWithSchema<V> valueParser) {
-            field = new DataField(childName, valueParser.schema(), doc, DataField.NO_INDEX, required, constant, valueIfNull != null ? new DataValue(valueIfNull) : null);
+        public FieldParser(String childName, boolean constant, V valueIfNull, String doc, ParserWithSchema<V> valueParser) {
+            final var defaultValue = valueIfNull != null ? new DataValue(valueIfNull) : null;
+            final var docDefault = valueIfNull != null ? " Default: " + valueIfNull : "";
+            field = new DataField(childName, valueParser.schema(), doc + docDefault, DataField.NO_INDEX, true, constant, defaultValue);
             schema = structSchema((String) null, null, List.of(field));
             this.valueParser = valueParser;
         }
@@ -178,57 +179,53 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         }
     }
 
-    protected <V> StructParser<V> freeField(String childName, boolean required, V valueIfNull, String doc, ParserWithSchema<V> parser) {
-        return new FieldParser<>(childName, required, false, valueIfNull, doc, parser);
+    protected <V> StructParser<V> freeField(String childName, V valueIfNull, String doc, ParserWithSchema<V> parser) {
+        return new FieldParser<>(childName, false, valueIfNull, doc, parser);
     }
 
-    protected StructParser<Boolean> booleanField(String childName, boolean required, String doc) {
-        return booleanField(childName, required, false, doc);
+    protected StructParser<Boolean> booleanField(String childName, String doc) {
+        return freeField(childName, false, doc, ParserWithSchema.of(ParseNode::asBoolean, DataSchema.booleanSchema()));
     }
 
-    protected StructParser<Boolean> booleanField(String childName, boolean required, Boolean valueIfNull, String doc) {
-        return freeField(childName, required, valueIfNull, doc, ParserWithSchema.of(ParseNode::asBoolean, DataSchema.booleanSchema()));
+    protected StructParser<Duration> durationField(String childName, String doc) {
+        return freeField(childName, null, doc, ParserWithSchema.of(node -> parseDuration(new StringValueParser().parse(node)), DURATION_SCHEMA));
     }
 
-    protected StructParser<Duration> durationField(String childName, boolean required, String doc) {
-        return freeField(childName, required, null, doc, ParserWithSchema.of(node -> parseDuration(new StringValueParser().parse(node)), DURATION_SCHEMA));
+    protected StructParser<Integer> integerField(String childName, String doc) {
+        return integerField(childName, null, doc);
     }
 
-    protected StructParser<Integer> integerField(String childName, boolean required, String doc) {
-        return integerField(childName, required, null, doc);
+    protected StructParser<Integer> integerField(String childName, Integer valueIfNull, String doc) {
+        return freeField(childName, valueIfNull, doc, ParserWithSchema.of(ParseNode::asInt, DataSchema.integerSchema()));
     }
 
-    protected StructParser<Integer> integerField(String childName, boolean required, Integer valueIfNull, String doc) {
-        return freeField(childName, required, valueIfNull, doc, ParserWithSchema.of(ParseNode::asInt, DataSchema.integerSchema()));
+    protected StructParser<String> fixedStringField(String childName, String fixedValue, String doc) {
+        return stringField(childName, true, fixedValue, doc + ", fixed value \"" + fixedValue + "\"");
     }
 
-    protected StructParser<String> fixedStringField(String childName, boolean required, String fixedValue, String doc) {
-        return stringField(childName, required, true, fixedValue, doc + ", fixed value \"" + fixedValue + "\"");
+    protected StructParser<String> stringField(String childName, String doc) {
+        return stringField(childName, null, doc);
     }
 
-    protected StructParser<String> stringField(String childName, boolean required, String doc) {
-        return stringField(childName, required, null, doc);
+    protected StructParser<String> stringField(String childName, String valueIfNull, String doc) {
+        return stringField(childName, false, valueIfNull, doc);
     }
 
-    protected StructParser<String> stringField(String childName, boolean required, String valueIfNull, String doc) {
-        return stringField(childName, required, false, valueIfNull, doc);
+    protected StructParser<String> stringField(String childName, boolean constant, String valueIfNull, String doc) {
+        return new FieldParser<>(childName, constant, valueIfNull, doc, new StringValueParser());
     }
 
-    protected StructParser<String> stringField(String childName, boolean required, boolean constant, String valueIfNull, String doc) {
-        return new FieldParser<>(childName, required, constant, valueIfNull, doc, new StringValueParser());
+    protected StructParser<String> codeField(String childName, String doc) {
+        return codeField(childName, null, doc);
     }
 
-    protected StructParser<String> codeField(String childName, boolean required, String doc) {
-        return codeField(childName, required, null, doc);
+    protected StructParser<String> codeField(String childName, String valueIfNull, String doc) {
+        return new FieldParser<>(childName, false, valueIfNull, doc, codeParser);
     }
 
-    protected StructParser<String> codeField(String childName, boolean required, String valueIfNull, String doc) {
-        return new FieldParser<>(childName, required, false, valueIfNull, doc, codeParser);
-    }
-
-    protected StructParser<UserType> userTypeField(String childName, boolean required, String doc) {
-        final var stringParser = stringField(childName, required, null, doc);
-        final var field = new DataField(childName, DataSchema.stringSchema(), doc, DataField.NO_INDEX, required, false, null);
+    protected StructParser<UserType> userTypeField(String childName, String doc) {
+        final var stringParser = stringField(childName, null, doc);
+        final var field = new DataField(childName, DataSchema.stringSchema(), doc, DataField.NO_INDEX, true, false, null);
         return new StructParser<>() {
             @Override
             public StructSchema schema() {
@@ -243,16 +240,16 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         };
     }
 
-    protected <TYPE> StructParser<List<TYPE>> listField(String childName, String whatToParse, boolean required, String doc, ParserWithSchema<TYPE> valueParser) {
-        return new FieldParser<>(childName, required, false, new ArrayList<>(), doc, new ListWithSchemaParser<>(whatToParse, valueParser));
+    protected <TYPE> StructParser<List<TYPE>> listField(String childName, String whatToParse, String doc, ParserWithSchema<TYPE> valueParser) {
+        return new FieldParser<>(childName, false, new ArrayList<>(), doc, new ListWithSchemaParser<>(whatToParse, valueParser));
     }
 
-    protected <TYPE> StructParser<Map<String, TYPE>> mapField(String childName, String whatToParse, boolean required, String doc, ParserWithSchema<TYPE> valueParser) {
-        return new FieldParser<>(childName, required, false, new HashMap<>(), doc, new MapWithSchemaParser<>(whatToParse, valueParser));
+    protected <TYPE> StructParser<Map<String, TYPE>> mapField(String childName, String whatToParse, String doc, ParserWithSchema<TYPE> valueParser) {
+        return new FieldParser<>(childName, false, new HashMap<>(), doc, new MapWithSchemaParser<>(whatToParse, valueParser));
     }
 
-    protected <TYPE> StructParser<TYPE> customField(String childName, boolean required, String doc, StructParser<TYPE> valueParser) {
-        return new FieldParser<>(childName, required, false, null, doc, valueParser);
+    protected <TYPE> StructParser<TYPE> customField(String childName, String doc, StructParser<TYPE> valueParser) {
+        return new FieldParser<>(childName, false, null, doc, valueParser);
     }
 
     protected String validateName(String objectType, String parsedName, String defaultName) {
@@ -318,51 +315,51 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         RESULT construct(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k);
     }
 
-    protected <TYPE> StructParser<TYPE> structParser(Class<TYPE> resultClass, String doc, Constructor0<TYPE> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName(), doc, List.of(), node -> constructor.construct());
+    protected <TYPE> StructParser<TYPE> structParser(Class<TYPE> resultClass, String definitionVariant, String doc, Constructor0<TYPE> constructor) {
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(), node -> constructor.construct());
     }
 
-    protected <TYPE, A> StructParser<TYPE> structParser(Class<TYPE> resultClass, String doc, StructParser<A> a, Constructor1<TYPE, A> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName(), doc, List.of(a), node -> constructor.construct(a.parse(node)));
+    protected <TYPE, A> StructParser<TYPE> structParser(Class<TYPE> resultClass, String definitionVariant, String doc, StructParser<A> a, Constructor1<TYPE, A> constructor) {
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a), node -> constructor.construct(a.parse(node)));
     }
 
-    protected <TYPE, A, B> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String doc, StructParser<A> a, StructParser<B> b, Constructor2<TYPE, A, B> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName(), doc, List.of(a, b), node -> constructor.construct(a.parse(node), b.parse(node)));
+    protected <TYPE, A, B> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String definitionVariant, String doc, StructParser<A> a, StructParser<B> b, Constructor2<TYPE, A, B> constructor) {
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b), node -> constructor.construct(a.parse(node), b.parse(node)));
     }
 
-    protected <TYPE, A, B, C> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, Constructor3<TYPE, A, B, C> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName(), doc, List.of(a, b, c), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node)));
+    protected <TYPE, A, B, C> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String definitionVariant, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, Constructor3<TYPE, A, B, C> constructor) {
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node)));
     }
 
-    protected <TYPE, A, B, C, D> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, Constructor4<TYPE, A, B, C, D> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName(), doc, List.of(a, b, c, d), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node)));
+    protected <TYPE, A, B, C, D> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String definitionVariant, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, Constructor4<TYPE, A, B, C, D> constructor) {
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node)));
     }
 
-    protected <TYPE, A, B, C, D, E> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, Constructor5<TYPE, A, B, C, D, E> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName(), doc, List.of(a, b, c, d, e), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node)));
+    protected <TYPE, A, B, C, D, E> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String definitionVariant, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, Constructor5<TYPE, A, B, C, D, E> constructor) {
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node)));
     }
 
-    protected <TYPE, A, B, C, D, E, F> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, StructParser<F> f, Constructor6<TYPE, A, B, C, D, E, F> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName(), doc, List.of(a, b, c, d, e, f), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node)));
+    protected <TYPE, A, B, C, D, E, F> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String definitionVariant, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, StructParser<F> f, Constructor6<TYPE, A, B, C, D, E, F> constructor) {
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e, f), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node)));
     }
 
-    protected <TYPE, A, B, C, D, E, F, G> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, StructParser<F> f, StructParser<G> g, Constructor7<TYPE, A, B, C, D, E, F, G> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName(), doc, List.of(a, b, c, d, e, f, g), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node)));
+    protected <TYPE, A, B, C, D, E, F, G> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String definitionVariant, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, StructParser<F> f, StructParser<G> g, Constructor7<TYPE, A, B, C, D, E, F, G> constructor) {
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e, f, g), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node)));
     }
 
-    protected <TYPE, A, B, C, D, E, F, G, H> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, StructParser<F> f, StructParser<G> g, StructParser<H> h, Constructor8<TYPE, A, B, C, D, E, F, G, H> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName(), doc, List.of(a, b, c, d, e, f, g, h), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node), h.parse(node)));
+    protected <TYPE, A, B, C, D, E, F, G, H> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String definitionVariant, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, StructParser<F> f, StructParser<G> g, StructParser<H> h, Constructor8<TYPE, A, B, C, D, E, F, G, H> constructor) {
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e, f, g, h), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node), h.parse(node)));
     }
 
-    protected <TYPE, A, B, C, D, E, F, G, H, I> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, StructParser<F> f, StructParser<G> g, StructParser<H> h, StructParser<I> i, Constructor9<TYPE, A, B, C, D, E, F, G, H, I> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName(), doc, List.of(a, b, c, d, e, f, g, h, i), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node), h.parse(node), i.parse(node)));
+    protected <TYPE, A, B, C, D, E, F, G, H, I> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String definitionVariant, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, StructParser<F> f, StructParser<G> g, StructParser<H> h, StructParser<I> i, Constructor9<TYPE, A, B, C, D, E, F, G, H, I> constructor) {
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e, f, g, h, i), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node), h.parse(node), i.parse(node)));
     }
 
-    protected <TYPE, A, B, C, D, E, F, G, H, I, J> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, StructParser<F> f, StructParser<G> g, StructParser<H> h, StructParser<I> i, StructParser<J> j, Constructor10<TYPE, A, B, C, D, E, F, G, H, I, J> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName(), doc, List.of(a, b, c, d, e, f, g, h, i, j), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node), h.parse(node), i.parse(node), j.parse(node)));
+    protected <TYPE, A, B, C, D, E, F, G, H, I, J> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String definitionVariant, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, StructParser<F> f, StructParser<G> g, StructParser<H> h, StructParser<I> i, StructParser<J> j, Constructor10<TYPE, A, B, C, D, E, F, G, H, I, J> constructor) {
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e, f, g, h, i, j), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node), h.parse(node), i.parse(node), j.parse(node)));
     }
 
-    protected <TYPE, A, B, C, D, E, F, G, H, I, J, K> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, StructParser<F> f, StructParser<G> g, StructParser<H> h, StructParser<I> i, StructParser<J> j, StructParser<K> k, Constructor11<TYPE, A, B, C, D, E, F, G, H, I, J, K> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName(), doc, List.of(a, b, c, d, e, f, g, h, i, j, k), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node), h.parse(node), i.parse(node), j.parse(node), k.parse(node)));
+    protected <TYPE, A, B, C, D, E, F, G, H, I, J, K> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String definitionVariant, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, StructParser<F> f, StructParser<G> g, StructParser<H> h, StructParser<I> i, StructParser<J> j, StructParser<K> k, Constructor11<TYPE, A, B, C, D, E, F, G, H, I, J, K> constructor) {
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e, f, g, h, i, j, k), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node), h.parse(node), i.parse(node), j.parse(node), k.parse(node)));
     }
 }

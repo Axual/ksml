@@ -38,14 +38,15 @@ public class WindowByTimeOperationParser extends OperationParser<WindowByTimeOpe
     public StructParser<WindowByTimeOperation> parser() {
         return structParser(
                 WindowByTimeOperation.class,
+                "",
                 "Operation to reduce a series of records into a single aggregate result",
                 operationTypeField(KSMLDSL.Operations.WINDOW_BY_TIME),
-                nameField(),
-                stringField(KSMLDSL.TimeWindows.WINDOW_TYPE, true, "The type of the operation, either \"" + KSMLDSL.TimeWindows.TYPE_TUMBLING + "\", or \"" + KSMLDSL.TimeWindows.TYPE_HOPPING + "\", or \"" + KSMLDSL.TimeWindows.TYPE_SLIDING + "\""),
-                durationField(KSMLDSL.TimeWindows.DURATION, true, "(Tumbling) The duration of time windows"),
-                durationField(KSMLDSL.TimeWindows.ADVANCE_BY, true, "(Hopping) The amount of time to increase time windows by"),
-                durationField(KSMLDSL.TimeWindows.GRACE, false, "(Tumbling, Hopping) The grace period, during which out-of-order records can still be processed"),
-                durationField(KSMLDSL.TimeWindows.TIME_DIFFERENCE, true, "(Sliding) The maximum amount of time difference between two records"),
+                operationNameField(),
+                stringField(KSMLDSL.TimeWindows.WINDOW_TYPE, "The type of the operation, either \"" + KSMLDSL.TimeWindows.TYPE_TUMBLING + "\", or \"" + KSMLDSL.TimeWindows.TYPE_HOPPING + "\", or \"" + KSMLDSL.TimeWindows.TYPE_SLIDING + "\""),
+                optional(durationField(KSMLDSL.TimeWindows.DURATION, "(Tumbling) The duration of time windows")),
+                optional(durationField(KSMLDSL.TimeWindows.ADVANCE_BY, "(Hopping) The amount of time to increase time windows by")),
+                optional(durationField(KSMLDSL.TimeWindows.GRACE, "(Tumbling, Hopping) The grace period, during which out-of-order records can still be processed")),
+                optional(durationField(KSMLDSL.TimeWindows.TIME_DIFFERENCE, "(Sliding) The maximum amount of time difference between two records")),
                 (type, name, windowType, duration, advanceBy, grace, timeDifference) -> {
                     switch (windowType) {
                         case KSMLDSL.TimeWindows.TYPE_TUMBLING -> {

@@ -37,14 +37,15 @@ public class SuppressOperationParser extends OperationParser<SuppressOperation> 
     public StructParser<SuppressOperation> parser() {
         return structParser(
                 SuppressOperation.class,
+                "",
                 "Operation to suppress messages in the source stream until a certain limit is reached",
                 operationTypeField(Operations.SUPPRESS),
-                nameField(),
-                stringField(Operations.Suppress.UNTIL, true, "The method by which messages are held, either \"" + Operations.Suppress.UNTIL_TIME_LIMIT + "\", or \"" + Operations.Suppress.UNTIL_WINDOW_CLOSES + "\""),
-                durationField(Operations.Suppress.DURATION, true, "The duration for which messages are suppressed"),
-                stringField(Operations.Suppress.BUFFER_MAXBYTES, false, "The maximum number of bytes in the buffer"),
-                stringField(Operations.Suppress.BUFFER_MAXRECORDS, false, "The maximum number of records in the buffer"),
-                stringField(Operations.Suppress.BUFFER_FULL_STRATEGY, false, "What to do when the buffer is full, either \"" + Operations.Suppress.BUFFER_FULL_STRATEGY_EMIT + "\", or \"" + Operations.Suppress.BUFFER_FULL_STRATEGY_SHUTDOWN + "\""),
+                operationNameField(),
+                stringField(Operations.Suppress.UNTIL, "The method by which messages are held, either \"" + Operations.Suppress.UNTIL_TIME_LIMIT + "\", or \"" + Operations.Suppress.UNTIL_WINDOW_CLOSES + "\""),
+                durationField(Operations.Suppress.DURATION, "The duration for which messages are suppressed"),
+                optional(stringField(Operations.Suppress.BUFFER_MAXBYTES, "The maximum number of bytes in the buffer")),
+                optional(stringField(Operations.Suppress.BUFFER_MAXRECORDS, "The maximum number of records in the buffer")),
+                optional(stringField(Operations.Suppress.BUFFER_FULL_STRATEGY, "What to do when the buffer is full, either \"" + Operations.Suppress.BUFFER_FULL_STRATEGY_EMIT + "\", or \"" + Operations.Suppress.BUFFER_FULL_STRATEGY_SHUTDOWN + "\"")),
                 (type, name, until, duration, maxBytes, maxRecords, strategy) -> {
                     switch (until) {
                         case Operations.Suppress.UNTIL_TIME_LIMIT -> {

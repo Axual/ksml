@@ -37,11 +37,12 @@ public class ProducerDefinitionParser extends ContextAwareParser<ProducerDefinit
     public StructParser<ProducerDefinition> parser() {
         return structParser(
                 ProducerDefinition.class,
+                "",
                 "Definition of a Producer that regularly generates messages for a topic",
-                functionField(Producers.GENERATOR, true, "The function that generates records", new GeneratorDefinitionParser()),
-                durationField(Producers.INTERVAL, true, "The interval with which the generator is called"),
-                functionField(Producers.CONDITION, false, "A function that validates the generator's result message. Returns \"true\" when the message may be produced on the topic, \"false\" otherwise.", new PredicateDefinitionParser()),
-                topicField(Producers.TARGET, true, "The topic to produce to", new TopicDefinitionParser(false)),
+                functionField(Producers.GENERATOR, "The function that generates records", new GeneratorDefinitionParser()),
+                durationField(Producers.INTERVAL, "The interval with which the generator is called"),
+                optional(functionField(Producers.CONDITION, "A function that validates the generator's result message. Returns \"true\" when the message may be produced on the topic, \"false\" otherwise.", new PredicateDefinitionParser())),
+                topicField(Producers.TARGET, "The topic to produce to", new TopicDefinitionParser(false)),
                 ProducerDefinition::new);
     }
 }

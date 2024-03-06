@@ -36,12 +36,15 @@ public class StreamDefinitionParser extends DefinitionParser<StreamDefinition> {
 
     @Override
     public StructParser<StreamDefinition> parser() {
+        final var keyField = userTypeField(Streams.KEY_TYPE, "The key type of the stream");
+        final var valueField = userTypeField(Streams.VALUE_TYPE, "The value type of the stream");
         return structParser(
                 StreamDefinition.class,
+                requireKeyValueType ? "" : "WithOptionalTypes",
                 "Contains a definition of a Stream, which can be referenced by producers and pipelines",
-                stringField(Streams.TOPIC, true, "The name of the Kafka topic for this stream"),
-                userTypeField(Streams.KEY_TYPE, requireKeyValueType, "The key type of the stream"),
-                userTypeField(Streams.VALUE_TYPE, requireKeyValueType, "The value type of the stream"),
+                stringField(Streams.TOPIC, "The name of the Kafka topic for this stream"),
+                requireKeyValueType ? keyField : optional(keyField),
+                requireKeyValueType ? valueField : optional(valueField),
                 StreamDefinition::new);
     }
 }

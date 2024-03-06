@@ -39,10 +39,11 @@ public class MergeOperationParser extends OperationParser<MergeOperation> {
     protected StructParser<MergeOperation> parser() {
         return structParser(
                 MergeOperation.class,
+                "",
                 "A merge operation to join two Streams",
                 operationTypeField(KSMLDSL.Operations.MERGE),
-                nameField(),
-                topicField(KSMLDSL.Operations.Merge.STREAM, true, "The stream to merge with", new StreamDefinitionParser(true)),
+                operationNameField(),
+                topicField(KSMLDSL.Operations.Merge.STREAM, "The stream to merge with", new StreamDefinitionParser(true)),
                 (type, name, stream) -> {
                     if (stream instanceof StreamDefinition streamDef) {
                         return new MergeOperation(new OperationConfig(namespace(), name, null), streamDef);

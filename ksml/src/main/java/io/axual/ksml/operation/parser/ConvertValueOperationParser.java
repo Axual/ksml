@@ -33,10 +33,11 @@ public class ConvertValueOperationParser extends OperationParser<ConvertValueOpe
     public StructParser<ConvertValueOperation> parser() {
         return structParser(
                 ConvertValueOperation.class,
+                "",
                 "An operation to convert the stream value type to another type. Conversion is only syntactic, eg. from Avro to XML.",
                 operationTypeField(KSMLDSL.Operations.CONVERT_VALUE),
-                nameField(),
-                userTypeField(KSMLDSL.Operations.Convert.INTO, true, "The type to convert the stream value into"),
+                operationNameField(),
+                userTypeField(KSMLDSL.Operations.Convert.INTO, "The type to convert the stream value into"),
                 (type, name, into) -> new ConvertValueOperation(operationConfig(name), into));
     }
 }

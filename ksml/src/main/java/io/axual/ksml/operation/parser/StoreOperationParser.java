@@ -34,21 +34,19 @@ import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.store.StoreType;
 
-import java.util.List;
-
 public abstract class StoreOperationParser<T extends StoreOperation> extends OperationParser<T> {
     public StoreOperationParser(String type, TopologyResources resources) {
         super(type, resources);
     }
 
-    protected StoreOperationConfig storeOperationConfig(String name, List<String> storeNames, StateStoreDefinition store) {
-        return new StoreOperationConfig(resources().namespace(), name, storeNames, store);
+    protected StoreOperationConfig storeOperationConfig(String name, StateStoreDefinition store) {
+        return new StoreOperationConfig(resources().namespace(), name, null, store);
     }
 
-    protected StructParser<StateStoreDefinition> storeField(boolean mandatory, String doc, StoreType expectedStoreType) {
+    protected StructParser<StateStoreDefinition> storeField(boolean required, String doc, StoreType expectedStoreType) {
         final var stateStoreParser = new StateStoreDefinitionParser(expectedStoreType);
         final var resourceParser = new TopologyResourceParser<>("state store", KSMLDSL.Operations.STORE_ATTRIBUTE, doc, resources()::stateStore, stateStoreParser);
-        final var schema = mandatory ? resourceParser.schema() : optional(resourceParser).schema();
+        final var schema = required ? resourceParser.schema() : optional(resourceParser).schema();
         return new StructParser<>() {
             @Override
             public StateStoreDefinition parse(ParseNode node) {
@@ -56,8 +54,8 @@ public abstract class StoreOperationParser<T extends StoreOperation> extends Ope
                     nop.defaultName(node.longName());
                 final var resource = resourceParser.parse(node);
                 if (resource != null && resource.definition() instanceof StateStoreDefinition def) return def;
-                if (!mandatory) return null;
-                throw new ParseException(node, "Mandatory state store not defined");
+                if (!required) return null;
+                throw new ParseException(node, "Required state store is not defined");
             }
 
             @Override

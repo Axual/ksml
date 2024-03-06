@@ -35,20 +35,18 @@ public class PrintOperationParser extends OperationParser<PrintOperation> {
     public StructParser<PrintOperation> parser() {
         final var contentParser = structParser(
                 PrintOperation.class,
+                "",
                 "Operation to print the contents of a pipeline on the screen or to write them to a file",
-                nameField(),
-                stringField(KSMLDSL.Operations.Print.FILENAME, false, "The filename to output records to. If nothing is specified, then messages will be printed on stdout"),
-                stringField(KSMLDSL.Operations.Print.LABEL, false, "A label to attach to the output records"),
-                functionField(KSMLDSL.Operations.Print.MAPPER, false, "A function to convert record into a string for output", new KeyValuePrinterDefinitionParser()),
+                operationNameField(),
+                optional(stringField(KSMLDSL.Operations.Print.FILENAME, "The filename to output records to. If nothing is specified, then messages will be printed on stdout")),
+                optional(stringField(KSMLDSL.Operations.Print.LABEL, "A label to attach to the output records")),
+                optional(functionField(KSMLDSL.Operations.Print.MAPPER, "A function to convert record into a string for output", new KeyValuePrinterDefinitionParser())),
                 (name, filename, label, mapper) -> new PrintOperation(operationConfig(name, null), filename, label, mapper));
         return structParser(
                 PrintOperation.class,
+                "",
                 "Prints all messages resulting from a pipeline to a specified print target",
-                customField(
-                        KSMLDSL.Operations.PRINT,
-                        false,
-                        "The specification of where to print messages to",
-                        contentParser),
+                optional(customField(KSMLDSL.Operations.PRINT, "The specification of where to print messages to", contentParser)),
                 p -> p);
     }
 }

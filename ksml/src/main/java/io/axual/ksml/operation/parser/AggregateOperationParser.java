@@ -42,9 +42,10 @@ public class AggregateOperationParser extends StoreOperationParser<AggregateOper
         final var storeField = storeField(false, "Materialized view of the aggregation", StoreType.WINDOW_STORE);
         return structParser(
                 AggregateOperation.class,
+                "",
                 "An aggregate operation",
                 operationTypeField(Operations.AGGREGATE),
-                nameField(),
+                operationNameField(),
                 functionField(Operations.Aggregate.INITIALIZER, "The initializer function, which generates an initial value for every set of aggregated records", new InitializerDefinitionParser()),
                 optional(functionField(Operations.Aggregate.AGGREGATOR, "(GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result", new AggregatorDefinitionParser())),
                 optional(functionField(Operations.Aggregate.MERGER, "(SessionWindowedStream, SessionWindowedCogroupedStream) A function that combines two aggregation results", new MergerDefinitionParser())),

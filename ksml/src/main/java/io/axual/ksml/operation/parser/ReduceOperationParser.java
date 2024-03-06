@@ -40,12 +40,13 @@ public class ReduceOperationParser extends StoreOperationParser<ReduceOperation>
         final var storeField = storeField(false, "Materialized view of the aggregation", StoreType.WINDOW_STORE);
         return structParser(
                 ReduceOperation.class,
+                "",
                 "Operation to reduce a series of records into a single aggregate result",
                 operationTypeField(Operations.REDUCE),
-                nameField(),
-                functionField(Operations.Reduce.REDUCER, true, "A function that computes a new aggregate result", new ReducerDefinitionParser()),
-                functionField(Operations.Reduce.ADDER, true, "A function that adds a record to the aggregate result", new ReducerDefinitionParser()),
-                functionField(Operations.Reduce.SUBTRACTOR, true, "A function that removes a record from the aggregate result", new ReducerDefinitionParser()),
+                operationNameField(),
+                functionField(Operations.Reduce.REDUCER, "A function that computes a new aggregate result", new ReducerDefinitionParser()),
+                functionField(Operations.Reduce.ADDER, "A function that adds a record to the aggregate result", new ReducerDefinitionParser()),
+                functionField(Operations.Reduce.SUBTRACTOR, "A function that removes a record from the aggregate result", new ReducerDefinitionParser()),
                 storeField,
                 (type, name, reducer, add, sub, store) -> new ReduceOperation(new StoreOperationConfig(namespace(), name, null, store), reducer, add, sub));
     }

@@ -37,9 +37,10 @@ public class TransformKeyValueOperationParser extends OperationParser<TransformK
     protected StructParser<TransformKeyValueOperation> parser() {
         return structParser(
                 TransformKeyValueOperation.class,
+                "",
                 "Convert the key/value of every record in the stream to another key/value",
                 operationTypeField(KSMLDSL.Operations.TRANSFORM_KEY_VALUE),
-                nameField(),
+                operationNameField(),
                 functionField(KSMLDSL.Operations.Transform.MAPPER, "A function that computes a new key/value for each record", new KeyValueTransformerDefinitionParser()),
                 storeNamesField(),
                 (type, name, mapper, storeNames) -> new TransformKeyValueOperation(new StoreOperationConfig(namespace(), name, storeNames, null), mapper));

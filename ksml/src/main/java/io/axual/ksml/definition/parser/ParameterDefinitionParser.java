@@ -31,10 +31,11 @@ public class ParameterDefinitionParser extends DefinitionParser<ParameterDefinit
     @Override
     public StructParser<ParameterDefinition> parser() {
         return structParser(ParameterDefinition.class,
+                "",
                 "Defines a parameter for a user function",
                 stringField(Functions.Parameters.NAME, true, null, "The name of the parameter"),
-                userTypeField(Functions.Parameters.TYPE, true, "The type of the parameter"),
-                stringField(Functions.Parameters.DEFAULT_VALUE, false, "The default value for the parameter"),
+                userTypeField(Functions.Parameters.TYPE, "The type of the parameter"),
+                optional(stringField(Functions.Parameters.DEFAULT_VALUE, "The default value for the parameter")),
                 (name, type, defaultValue) -> new ParameterDefinition(name, type.dataType(), true, defaultValue));
     }
 }

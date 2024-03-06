@@ -37,18 +37,20 @@ public class SessionStateStoreDefinitionParser extends DefinitionParser<SessionS
 
     @Override
     protected StructParser<SessionStateStoreDefinition> parser() {
+        final var typeField = fixedStringField(KSMLDSL.Stores.TYPE, StoreType.SESSION_STORE.externalName(), "The type of the state store");
         return structParser(
                 SessionStateStoreDefinition.class,
+                requireType ? "" : "WithImplicitType",
                 "Definition of a session state store",
-                fixedStringField(KSMLDSL.Stores.TYPE, requireType, StoreType.SESSION_STORE.externalName(), "The type of the state store"),
-                stringField(KSMLDSL.Stores.NAME, false, null, "The name of the session store. If this field is not defined, then the name is derived from the context."),
-                booleanField(KSMLDSL.Stores.PERSISTENT, false, "\"true\" if this session store needs to be stored on disk, \"false\" otherwise"),
-                booleanField(KSMLDSL.Stores.TIMESTAMPED, false, "\"true\" if elements in the store are timestamped, \"false\" otherwise"),
-                durationField(KSMLDSL.Stores.RETENTION, false, "The duration for which elements in the session store are retained"),
-                userTypeField(KSMLDSL.Stores.KEY_TYPE, false, "The key type of the session store"),
-                userTypeField(KSMLDSL.Stores.VALUE_TYPE, false, "The value type of the session store"),
-                booleanField(KSMLDSL.Stores.CACHING, false, "\"true\" if changed to the session store need to be buffered and periodically released, \"false\" to emit all changes directly"),
-                booleanField(KSMLDSL.Stores.LOGGING, false, "\"true\" if a changelog topic should be set up on Kafka for this session store, \"false\" otherwise"),
+                requireType ? typeField : optional(typeField),
+                optional(stringField(KSMLDSL.Stores.NAME, false, null, "The name of the session store. If this field is not defined, then the name is derived from the context.")),
+                optional(booleanField(KSMLDSL.Stores.PERSISTENT, "\"true\" if this session store needs to be stored on disk, \"false\" otherwise")),
+                optional(booleanField(KSMLDSL.Stores.TIMESTAMPED, "\"true\" if elements in the store are timestamped, \"false\" otherwise")),
+                optional(durationField(KSMLDSL.Stores.RETENTION, "The duration for which elements in the session store are retained")),
+                optional(userTypeField(KSMLDSL.Stores.KEY_TYPE, "The key type of the session store")),
+                optional(userTypeField(KSMLDSL.Stores.VALUE_TYPE, "The value type of the session store")),
+                optional(booleanField(KSMLDSL.Stores.CACHING, "\"true\" if changed to the session store need to be buffered and periodically released, \"false\" to emit all changes directly")),
+                optional(booleanField(KSMLDSL.Stores.LOGGING, "\"true\" if a changelog topic should be set up on Kafka for this session store, \"false\" otherwise")),
                 (type, name, persistent, timestamped, retention, keyType, valueType, caching, logging) -> {
                     // Validate the type field if one was provided
                     if (type != null && !StoreType.SESSION_STORE.externalName().equals(type)) {

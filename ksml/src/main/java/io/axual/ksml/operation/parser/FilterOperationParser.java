@@ -37,10 +37,11 @@ public class FilterOperationParser extends StoreOperationParser<FilterOperation>
     public StructParser<FilterOperation> parser() {
         return structParser(
                 FilterOperation.class,
+                "",
                 "Filter records based on a predicate function",
                 operationTypeField(KSMLDSL.Operations.FILTER),
-                nameField(),
-                functionField(KSMLDSL.Operations.Filter.PREDICATE, true, "A function that returns \"true\" when records are accepted, \"false\" otherwise", new PredicateDefinitionParser()),
+                operationNameField(),
+                functionField(KSMLDSL.Operations.Filter.PREDICATE, "A function that returns \"true\" when records are accepted, \"false\" otherwise", new PredicateDefinitionParser()),
                 storeNamesField(),
                 (type, name, pred, stores) -> {
                     if (pred != null)

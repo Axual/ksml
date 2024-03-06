@@ -49,6 +49,12 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     private static final String REF_NAME = "$ref";
     private static final String ANY_OF_NAME = "anyOf";
     private static final String ENUM_NAME = "enum";
+    private static final String ARRAY_TYPE = "array";
+    private static final String BOOLEAN_TYPE = "boolean";
+    private static final String NULL_TYPE = "null";
+    private static final String NUMBER_TYPE = "number";
+    private static final String OBJECT_TYPE = "object";
+    private static final String STRING_TYPE = "string";
 
     @Override
     public DataSchema toDataSchema(String namespace, String name, String value) {
@@ -97,17 +103,17 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         var type = specStruct.getAsString(TYPE_NAME);
         if (type != null) {
             switch (type.value()) {
-                case "null":
+                case NULL_TYPE:
                     return DataSchema.create(DataSchema.Type.NULL);
-                case "boolean":
+                case BOOLEAN_TYPE:
                     return DataSchema.create(DataSchema.Type.BOOLEAN);
-                case "number":
+                case NUMBER_TYPE:
                     return DataSchema.create(DataSchema.Type.LONG);
-                case "array":
+                case ARRAY_TYPE:
                     return toListSchema(specStruct);
-                case "object":
+                case OBJECT_TYPE:
                     return toDataSchema(null, null, specStruct);
-                case "string":
+                case STRING_TYPE:
                     return DataSchema.create(DataSchema.Type.STRING);
             }
         }
@@ -134,7 +140,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         return null;
     }
 
-    public DataStruct fromDataSchema(StructSchema structSchema) {
+    private DataStruct fromDataSchema(StructSchema structSchema) {
         final var definitions = new DataStruct();
         final var result = fromDataSchema(structSchema, definitions);
         if (definitions.size() > 0) {
@@ -149,7 +155,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         final var doc = structSchema.doc();
         if (title != null) result.put(TITLE_NAME, new DataString(title));
         if (doc != null) result.put(DESCRIPTION_NAME, new DataString(doc));
-        result.put(TYPE_NAME, new DataString("object"));
+        result.put(TYPE_NAME, new DataString(OBJECT_TYPE));
         final var requiredProperties = new DataList(DataString.DATATYPE);
         final var properties = new DataStruct();
         for (var field : structSchema.fields()) {
@@ -171,20 +177,20 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     }
 
     private void convertType(DataSchema schema, boolean constant, DataValue defaultValue, DataStruct target, DataStruct definitions) {
-        if (schema.type() == DataSchema.Type.NULL) target.put(TYPE_NAME, new DataString("null"));
-        if (schema.type() == DataSchema.Type.BOOLEAN) target.put(TYPE_NAME, new DataString("boolean"));
-        if (schema.type() == DataSchema.Type.LONG) target.put(TYPE_NAME, new DataString("number"));
+        if (schema.type() == DataSchema.Type.NULL) target.put(TYPE_NAME, new DataString(NULL_TYPE));
+        if (schema.type() == DataSchema.Type.BOOLEAN) target.put(TYPE_NAME, new DataString(BOOLEAN_TYPE));
+        if (schema.type() == DataSchema.Type.LONG) target.put(TYPE_NAME, new DataString(NUMBER_TYPE));
         if (schema.type() == DataSchema.Type.STRING) {
             if (constant && defaultValue != null && defaultValue.value() != null) {
                 DataList enumList = new DataList();
                 enumList.add(new DataString(defaultValue.value().toString()));
                 target.put(ENUM_NAME, enumList);
             } else {
-                target.put(TYPE_NAME, new DataString("string"));
+                target.put(TYPE_NAME, new DataString(STRING_TYPE));
             }
         }
         if (schema instanceof ListSchema listSchema) {
-            target.put(TYPE_NAME, new DataString("array"));
+            target.put(TYPE_NAME, new DataString(ARRAY_TYPE));
             final var subStruct = new DataStruct();
             convertType(listSchema.valueSchema(), false, null, subStruct, definitions);
             target.put(ITEMS_NAME, subStruct);
@@ -195,7 +201,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
 
 
             final var subStruct = new DataStruct();
-            target.put(TYPE_NAME, new DataString("object"));
+            target.put(TYPE_NAME, new DataString(OBJECT_TYPE));
             patternSubStruct.put(ALL_PROPERTIES_REGEX, subStruct);
             convertType(mapSchema.valueSchema(), false, null, subStruct, definitions);
         }
@@ -204,7 +210,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             if (!definitions.containsKey(name)) {
                 definitions.put(name, fromDataSchema(structSchema, definitions));
             }
-            target.put(REF_NAME, new DataString("#/definitions/" + name));
+            target.put(REF_NAME, new DataString("#/" + DEFINITIONS_NAME + "/" + name));
         }
 
         if (schema instanceof UnionSchema unionSchema) {

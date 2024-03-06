@@ -36,9 +36,10 @@ public class GroupByKeyOperationParser extends StoreOperationParser<GroupByKeyOp
     public StructParser<GroupByKeyOperation> parser() {
         return structParser(
                 GroupByKeyOperation.class,
+                "",
                 "Operation to group all messages with the same key together",
                 operationTypeField(KSMLDSL.Operations.GROUP_BY_KEY),
-                nameField(),
+                operationNameField(),
                 storeField(false, "Materialized view of the grouped stream", StoreType.KEYVALUE_STORE),
                 (type, name, store) -> new GroupByKeyOperation(new StoreOperationConfig(namespace(), name, null, store)));
     }

@@ -34,6 +34,7 @@ public class ToTopicDefinitionParser extends ContextAwareParser<ToTopicDefinitio
     protected StructParser<ToTopicDefinition> parser() {
         return structParser(
                 ToTopicDefinition.class,
+                "",
                 "Writes out pipeline messages to a topic",
                 new TopicDefinitionParser(false),
                 new StreamPartitionerDefinitionParser(),

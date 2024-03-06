@@ -33,10 +33,11 @@ public class ConvertKeyOperationParser extends OperationParser<ConvertKeyOperati
     public StructParser<ConvertKeyOperation> parser() {
         return structParser(
                 ConvertKeyOperation.class,
+                "",
                 "An operation to convert the stream key type to another type. Conversion is only syntactic, eg. from Avro to XML.",
                 operationTypeField(KSMLDSL.Operations.CONVERT_KEY),
-                nameField(),
-                userTypeField(KSMLDSL.Operations.Convert.INTO, true, "The type to convert the stream key into"),
+                operationNameField(),
+                userTypeField(KSMLDSL.Operations.Convert.INTO, "The type to convert the stream key into"),
                 (type, name, into) -> new ConvertKeyOperation(operationConfig(name), into));
     }
 }

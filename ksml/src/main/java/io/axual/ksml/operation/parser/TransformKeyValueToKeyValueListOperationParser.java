@@ -37,9 +37,10 @@ public class TransformKeyValueToKeyValueListOperationParser extends OperationPar
     protected StructParser<TransformKeyValueToKeyValueListOperation> parser() {
         return structParser(
                 TransformKeyValueToKeyValueListOperation.class,
+                "",
                 "Convert a stream by transforming every record into a list of derived records",
                 operationTypeField(KSMLDSL.Operations.TRANSFORM_KEY_VALUE_TO_KEY_VALUE_LIST),
-                nameField(),
+                operationNameField(),
                 functionField(KSMLDSL.Operations.Transform.MAPPER, "A function that converts every record of a stream to a list of output records.", new KeyValueToKeyValueListTransformerDefinitionParser()),
                 storeNamesField(),
                 (type, name, mapper, storeNames) -> new TransformKeyValueToKeyValueListOperation(new StoreOperationConfig(namespace(), name, storeNames, null), mapper));

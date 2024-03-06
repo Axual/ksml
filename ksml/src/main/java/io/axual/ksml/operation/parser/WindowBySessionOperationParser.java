@@ -36,11 +36,12 @@ public class WindowBySessionOperationParser extends OperationParser<WindowBySess
     public StructParser<WindowBySessionOperation> parser() {
         return structParser(
                 WindowBySessionOperation.class,
+                "",
                 "Operation to window messages by session, configured by an inactivity gap",
                 operationTypeField(KSMLDSL.Operations.WINDOW_BY_SESSION),
-                nameField(),
-                durationField(KSMLDSL.SessionWindows.INACTIVITY_GAP, true, "The inactivity gap, below which two messages are considered to be of the same session"),
-                durationField(KSMLDSL.SessionWindows.GRACE, false, "(Tumbling, Hopping) The grace period, during which out-of-order records can still be processed"),
+                operationNameField(),
+                durationField(KSMLDSL.SessionWindows.INACTIVITY_GAP, "The inactivity gap, below which two messages are considered to be of the same session"),
+                optional(durationField(KSMLDSL.SessionWindows.GRACE, "(Tumbling, Hopping) The grace period, during which out-of-order records can still be processed")),
                 (type, name, inactivityGap, grace) -> {
                     final var sessionWindows = (grace != null && grace.toMillis() > 0)
                             ? SessionWindows.ofInactivityGapAndGrace(inactivityGap, grace)

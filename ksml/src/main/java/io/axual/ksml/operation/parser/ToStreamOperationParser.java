@@ -36,10 +36,11 @@ public class ToStreamOperationParser extends OperationParser<ToStreamOperation> 
     public StructParser<ToStreamOperation> parser() {
         return structParser(
                 ToStreamOperation.class,
+                "",
                 "Convert a Table into a Stream, optionally through a custom key transformer",
                 operationTypeField(KSMLDSL.Operations.TO_STREAM),
-                nameField(),
-                functionField(KSMLDSL.Operations.ToStream.MAPPER, true, "A function that computes the output key for every record", new KeyTransformerDefinitionParser()),
+                operationNameField(),
+                functionField(KSMLDSL.Operations.ToStream.MAPPER, "A function that computes the output key for every record", new KeyTransformerDefinitionParser()),
                 (type, name, mapper) -> new ToStreamOperation(operationConfig(name), mapper));
     }
 }

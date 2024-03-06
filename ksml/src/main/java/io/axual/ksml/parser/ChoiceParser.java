@@ -20,37 +20,34 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
-import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.data.exception.ParseException;
 import io.axual.ksml.data.parser.BaseParser;
 import io.axual.ksml.data.parser.NamedObjectParser;
 import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.parser.ParserWithSchema;
-import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.UnionSchema;
+import io.axual.ksml.data.parser.ParserWithSchemas;
+import io.axual.ksml.data.schema.StructSchema;
 import lombok.Getter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-public class ChoiceParser<T> extends BaseParser<T> implements ParserWithSchema<T>, NamedObjectParser {
+public class ChoiceParser<T> extends BaseParser<T> implements ParserWithSchemas<T>, NamedObjectParser {
     private final String childName;
     private final String parsedType;
     private final String defaultValue;
     private final Map<String, StructParser<? extends T>> parsers;
     @Getter
-    private final DataSchema schema;
+    private final List<StructSchema> schemas = new ArrayList<>();
 
-    public ChoiceParser(String childName, String parsedType, String defaultValue, Map<String, StructParser<? extends T>> parsers) {
+    public ChoiceParser(String childName, String description, String defaultValue, Map<String, StructParser<? extends T>> parsers) {
         this.childName = childName;
-        this.parsedType = parsedType;
+        this.parsedType = description;
         this.defaultValue = defaultValue;
-        this.parsers = ImmutableMap.copyOf(parsers);
-        if (parsers.size() == 1) {
-            this.schema = parsers.values().iterator().next().schema();
-        } else {
-            this.schema = new UnionSchema(parsers.values().stream().map(StructParser::schema).toArray(DataSchema[]::new));
-        }
+        this.parsers = new TreeMap<>(parsers); // Sort by name for nicer JSON Schema output
+        this.parsers.forEach((name, parser)-> schemas.add(parser.schema()));
     }
 
     @Override

@@ -21,7 +21,6 @@ package io.axual.ksml.parser;
  */
 
 
-import io.axual.ksml.data.exception.ParseException;
 import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.FunctionDefinition;
@@ -55,26 +54,20 @@ public abstract class ContextAwareParser<T> extends DefinitionParser<T> {
         return String.format("%s_%03d", basename, typeInstanceCounters.computeIfAbsent(basename, t -> new AtomicInteger(1)).getAndIncrement());
     }
 
-    protected <F extends FunctionDefinition> StructParser<FunctionDefinition> functionField(String childName, boolean mandatory, String doc, DefinitionParser<F> parser) {
-        final var resourceParser = new TopologyResourceParser<>("function", childName, doc, resources::function, parser);
-        final var schema = mandatory ? resourceParser.schema() : optional(resourceParser).schema();
-        return StructParser.of(resourceParser::parseDefinition, schema);
-    }
-
     protected <F extends FunctionDefinition> StructParser<FunctionDefinition> functionField(String childName, String doc, DefinitionParser<F> parser) {
-        return functionField(childName, true, doc, parser);
+        final var resourceParser = new TopologyResourceParser<>("function", childName, doc, resources::function, parser);
+        return StructParser.of(resourceParser::parseDefinition, resourceParser.schema());
     }
 
-    protected <S> StructParser<S> lookupField(String resourceType, String childName, boolean mandatory, String doc, Function<String, S> lookup, DefinitionParser<? extends S> parser) {
+    protected <S> StructParser<S> lookupField(String resourceType, String childName, String doc, Function<String, S> lookup, DefinitionParser<? extends S> parser) {
         final var resourceParser = new TopologyResourceParser<>(resourceType, childName, doc, lookup, parser);
-        final var schema = mandatory ? resourceParser.schema() : optional(resourceParser).schema();
+        final var schema = resourceParser.schema();
         return new StructParser<>() {
             @Override
             public S parse(ParseNode node) {
                 if (node == null) return null;
                 final var resource = resourceParser.parse(node);
-                if (resource != null && (resource.definition() != null || !mandatory)) return resource.definition();
-                throw new ParseException(node, resourceType + " not defined");
+                return (resource != null) ? resource.definition() : null;
             }
 
             @Override
@@ -89,7 +82,7 @@ public abstract class ContextAwareParser<T> extends DefinitionParser<T> {
         return StructParser.of(resourceParser::parse, resourceParser.schema());
     }
 
-    public StructParser<TopicDefinition> topicField(String childName, boolean mandatory, String doc, DefinitionParser<? extends TopicDefinition> parser) {
-        return lookupField("topic", childName, mandatory, doc, resources::topic, parser);
+    public StructParser<TopicDefinition> topicField(String childName, String doc, DefinitionParser<? extends TopicDefinition> parser) {
+        return lookupField("topic", childName, doc, resources::topic, parser);
     }
 }

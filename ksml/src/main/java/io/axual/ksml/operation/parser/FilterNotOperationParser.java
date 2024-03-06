@@ -37,10 +37,11 @@ public class FilterNotOperationParser extends StoreOperationParser<FilterNotOper
     public StructParser<FilterNotOperation> parser() {
         return structParser(
                 FilterNotOperation.class,
+                "",
                 "Filter records based on the inverse result of a predicate function",
                 operationTypeField(KSMLDSL.Operations.FILTER_NOT),
-                nameField(),
-                functionField(KSMLDSL.Operations.Filter.PREDICATE, true, "A function that returns \"false\" when records are accepted, \"true\" otherwise", new PredicateDefinitionParser()),
+                operationNameField(),
+                functionField(KSMLDSL.Operations.Filter.PREDICATE, "A function that returns \"false\" when records are accepted, \"true\" otherwise", new PredicateDefinitionParser()),
                 storeNamesField(),
                 (type, name, pred, stores) -> {
                     if (pred != null)

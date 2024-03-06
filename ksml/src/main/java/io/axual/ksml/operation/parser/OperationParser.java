@@ -42,10 +42,10 @@ public abstract class OperationParser<T extends BaseOperation> extends ContextAw
     }
 
     protected StructParser<String> operationTypeField(String fixedType) {
-        return fixedStringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, true, fixedType, "The type of the operation");
+        return fixedStringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, fixedType, "The type of the operation");
     }
 
-    protected StructParser<String> nameField() {
+    protected StructParser<String> operationNameField() {
         final var stringParser = stringField(KSMLDSL.Operations.NAME_ATTRIBUTE, false, type, "The name of the operation processor");
         return new StructParser<>() {
             @Override
@@ -63,7 +63,7 @@ public abstract class OperationParser<T extends BaseOperation> extends ContextAw
     }
 
     protected StructParser<List<String>> storeNamesField() {
-        return listField(KSMLDSL.Operations.STORE_NAMES_ATTRIBUTE, "state store name", false, "The names of all state stores used by the function", new StringValueParser());
+        return optional(listField(KSMLDSL.Operations.STORE_NAMES_ATTRIBUTE, "state store name", "The names of all state stores used by the function", new StringValueParser()));
     }
 
     protected OperationConfig operationConfig(String name) {
