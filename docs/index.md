@@ -22,7 +22,6 @@ KSML allows anyone to specify a powerful Kafka Streams application in just a few
 1. [Pipelines](pipelines.md)
 1. [Operations](operations.md)
 1. [Data Types](types.md)
-1. [Exceptions](exceptions.md)
 1. [Runners](runners.md)
 
 [Getting Started](getting-started.md)

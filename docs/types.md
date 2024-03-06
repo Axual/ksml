@@ -4,30 +4,43 @@
 
 ### Table of Contents
 1. [Introduction](#introduction)
-1. [Native types](#native types)
+1. [Primitives](#primitives)
+1. [Any](#any)
 1. [Duration](#duration)
-1. [Avro](#avro)
-1. [Json](#json)
+1. [Enum](#enum)
+1. [List](#list)
+1. [Struct](#struct)
+1. [Tuple](#tuple)
 1. [Windowed](#windowed)
 
 ## Introduction
 
+KSML supports a wide range of simple and complex types.
 Types are very useful.
 
-## Native types
+## Primitives
 
 The following native types are supported.
 
-|Type|Description|Remarks|
-|---|---|---|
-|?|Any type||
-|boolean|Boolean values, ie. true or false|
-|bytes|Byte array|
-|double|Double precision floating point|
-|float|Single precision floating point|
-|int|32-bit integer|
-|long|64-bit long|
-|string|String of characters|
+| Type    | Description                                                   |
+|---------|---------------------------------------------------------------|
+| ?       | Any type                                                      |
+| boolean | Boolean values, ie. true or false                             |
+| bytes   | Byte array                                                    |
+| double  | Double precision floating point                               |
+| float   | Single precision floating point                               |
+| byte    | 8-bit integer                                                 |
+| short   | 16-bit integer                                                |
+| int     | 32-bit integer                                                |
+| long    | 64-bit long                                                   |
+| string  | String of characters                                          |
+| struct  | Untyped key-value map, where keys are always of type `string` |
+
+## Any
+
+The special type `any` can be used in places where input is uncertain. Code that deals
+with input of this type should always perform proper type checking before assuming
+any specific underlying type.
 
 ## Duration
 
@@ -38,14 +51,14 @@ A string representing a duration in time. It can be defined as follows:
 
 where `#` is a positive number between 0 and 999999 and `x` is an optional letter from the following table:
 
-|Letter|Description|
-|--------|------------|
-|_none_|Duration in milliseconds
-|s|Duration in seconds
-|m|Duration in minutes
-|h|Duration in hours
-|d|Duration in days
-|w|Duration in weeks
+| Letter | Description              |
+|--------|--------------------------|
+| _none_ | Duration in milliseconds |
+| s      | Duration in seconds      |
+| m      | Duration in minutes      |
+| h      | Duration in hours        |
+| d      | Duration in days         |
+| w      | Duration in weeks        |
 
 Examples:
 
@@ -56,34 +69,83 @@ Examples:
 2w ==> two weeks
 ```
 
-## AVRO
+## Enum
 
-Avro types are supported through the "avro" prefix in types. The notation is ```avro:schema```, where schema is the schema fqdn, or just the schema name itself.
+Enumerations can be defined as individual types, through:
 
-On Kafka topics, Avro types are serialized in binary format. Internally they are represented as records.
-
-Examples
 ```
-avro:SensorData
-avro:io.axual.ksml.example.SensorData
+enum(literal1, literal2, ...)
 ```
 
-Note: when referencing a schema, please ensure that the respective Avro schema file can be found in the KSML working directory.
+## List
 
-## JSON
+Lists contain elements of the same type. They are defined using:
+```
+[elementType]
+```
 
-JSON is supported through built-in serializers and deserializers. The representation on Kafka will always be ```string```. Internally JSON objects are either records or lists.
+Examples:
+```
+[string]
+[long]
+[avro:SensorData]
+[(long,string)]
+```
 
-For windowed keys, the JSON representation modifies the _Windowed_ type to a plain JSON object,
-containing 4 timestamp fields and a key field with the original key.
+## Struct
+
+Structs are key-value maps, as usually found in AVRO or JSON messages. They are defined
+using:
+```struct```
+
+## Tuple
+
+Tuples combine multiple subtypes into one. For example `(1, "text")` is a tuple containing an integer and a string element.
+Tuple types always have a fixed number of elements.
+
+Examples:
+```
+(long, string)
+(avro:SensorData, string, long, string)
+([string], long)
+```
+
+## Union
+
+Unions are 'either-or' types. They have their own internal structure and can be described
+by respective data schema. Unions are defined using:
+
+```
+union(type1, type2)
+```
+
+Examples:
+```
+union(null, string)
+union(avro:SensorData, long, string)
+```
 
 ## Windowed
 
-Some Kafka Streams operations modify the key type from _K_ to _Windowed\<K>_. KSML generates an AVRO
-schema on-the-fly for any windowed type. These Avro windowed definitions will not be found on disk,
-so during the loading of the KSML definition this may lead to problems. To circumvent, use the
-following notation to refer to a windowed key type:
+Some Kafka Streams operations modify the key type from _K_ to _Windowed\<K>_. Kafka Streams uses the
+_Windowed\<K>_ type to group Kafka messages with similar keys together. The result is always a time-bound
+window, with a defined start and end time.
+
+KSML can convert the internal _Windowed\<K>_ type into a struct type with five fields:
+* `start`: The window start timestamp (type `long`)
+* `end`: The window end timestamp (type `long`)
+* `startTime`: The window start time (type `string`)
+* `endTime`: The window end time (type `string`)
+* `key`: The key used to group items together in this window (type is the same as the original key type)
+
+However, in pipelines or topic definitions users may need to refer to this type explicitly. This
+is done in the following manner:
 ```
-avro:windowed(string)
-avro:windowed(SensorData)
+notation:windowed(keytype)
+```
+
+For example:
+```
+avro:windowed(avro:SensorData)
+xml:windowed(long)
 ```

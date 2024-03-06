@@ -545,7 +545,6 @@ Convert a KTable into a KStream object.
 
 Example:
 ```yaml
-[yaml]
 from: input_table
 via:
   - type: toStream
