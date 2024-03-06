@@ -11,7 +11,7 @@ KSML allows anyone to specify a powerful Kafka Streams application in just a few
 - Access to Docker Hub to pull images (internet connectivity)
 
 ## Prerequisites to build KSML
-- GraalVM 22.3 with Java 17 and Python plugin installed
+- GraalVM JDK 21.0.2 with Java 21
 - Maven 3 - To build the project
 
 ## Contents
