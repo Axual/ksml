@@ -45,9 +45,9 @@ ksml:
       loggerName: ProduceError                 # logger name
       handler: continueOnFail                  # continue or stop on error
     definitions:                               # KSML definition files from the working directory
-      - definition1.yaml
-      - definition2.yaml
-      - <more here...>
+      namedDefinition1: definition1.yaml
+      namedDefinition2: definition2.yaml
+      namedDefinition3: <more here...>
 
 kafka: # Kafka streams configuration options 
   application.id: io.ksml.example.processor
