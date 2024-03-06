@@ -27,12 +27,11 @@ import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.MergeOperation;
-import io.axual.ksml.operation.OperationConfig;
 import io.axual.ksml.parser.StructParser;
 
 public class MergeOperationParser extends OperationParser<MergeOperation> {
     public MergeOperationParser(TopologyResources resources) {
-        super("merge", resources);
+        super(KSMLDSL.Operations.MERGE, resources);
     }
 
     @Override
@@ -41,12 +40,12 @@ public class MergeOperationParser extends OperationParser<MergeOperation> {
                 MergeOperation.class,
                 "",
                 "A merge operation to join two Streams",
-                operationTypeField(KSMLDSL.Operations.MERGE),
+                operationTypeField(),
                 operationNameField(),
                 topicField(KSMLDSL.Operations.Merge.STREAM, "The stream to merge with", new StreamDefinitionParser(true)),
                 (type, name, stream) -> {
                     if (stream instanceof StreamDefinition streamDef) {
-                        return new MergeOperation(new OperationConfig(namespace(), name, null), streamDef);
+                        return new MergeOperation(operationConfig(name), streamDef);
                     }
                     throw new TopologyException("Merge stream not correct, should be a defined Stream");
                 });

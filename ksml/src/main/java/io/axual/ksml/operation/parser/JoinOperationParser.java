@@ -44,12 +44,12 @@ public class JoinOperationParser extends StoreOperationParser<JoinOperation> {
     private final StructSchema schema;
 
     public JoinOperationParser(TopologyResources resources) {
-        super("join", resources);
+        super(KSMLDSL.Operations.JOIN, resources);
         joinStreamParser = structParser(
                 JoinOperation.class,
                 "",
                 "Operation to join with a stream",
-                operationTypeField(Operations.JOIN),
+                operationTypeField(),
                 operationNameField(),
                 topicField(Operations.Join.WITH_STREAM, "(Required for Stream joins) A reference to the Stream, or an inline definition of the Stream to join with", new StreamDefinitionParser(false)),
                 functionField(Operations.Join.VALUE_JOINER, "(Stream joins) A function that joins two values", new ValueJoinerDefinitionParser()),

@@ -29,7 +29,7 @@ import io.axual.ksml.parser.StructParser;
 
 public class RepartitionOperationParser extends OperationParser<RepartitionOperation> {
     public RepartitionOperationParser(TopologyResources resources) {
-        super("repartition", resources);
+        super(KSMLDSL.Operations.REPARTITION, resources);
     }
 
     @Override
@@ -38,9 +38,9 @@ public class RepartitionOperationParser extends OperationParser<RepartitionOpera
                 RepartitionOperation.class,
                 "",
                 "Operation to (re)partition a stream",
-                operationTypeField(KSMLDSL.Operations.REPARTITION),
+                operationTypeField(),
                 operationNameField(),
                 functionField(KSMLDSL.Operations.Repartition.PARTITIONER, "A function that partitions stream records", new StreamPartitionerDefinitionParser()),
-                (type, name, partitioner) -> new RepartitionOperation(operationConfig(name, null), partitioner));
+                (type, name, partitioner) -> new RepartitionOperation(operationConfig(name), partitioner));
     }
 }

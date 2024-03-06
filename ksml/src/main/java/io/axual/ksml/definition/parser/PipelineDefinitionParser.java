@@ -80,7 +80,7 @@ public class PipelineDefinitionParser extends ContextAwareParser<PipelineDefinit
                     // If no sink operation was specified, then we create an AS operation here with the name provided.
                     // This means that pipeline results can be referred to by other pipelines using the pipeline's name
                     // as identifier.
-                    var sinkOperation = name != null ? new AsOperation(new OperationConfig(resources().namespace(), name, null), name) : null;
+                    var sinkOperation = name != null ? new AsOperation(new OperationConfig(resources().getUniqueOperationName(name), null), name) : null;
                     return new PipelineDefinition(name, from, via, sinkOperation);
                 });
     }

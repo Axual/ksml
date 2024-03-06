@@ -23,14 +23,13 @@ package io.axual.ksml.operation.parser;
 
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
-import io.axual.ksml.operation.StoreOperationConfig;
 import io.axual.ksml.operation.ToTableOperation;
 import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.store.StoreType;
 
 public class ToTableOperationParser extends StoreOperationParser<ToTableOperation> {
     public ToTableOperationParser(TopologyResources resources) {
-        super("toTable", resources);
+        super(KSMLDSL.Operations.TO_TABLE, resources);
     }
 
     @Override
@@ -39,9 +38,9 @@ public class ToTableOperationParser extends StoreOperationParser<ToTableOperatio
                 ToTableOperation.class,
                 "",
                 "Convert a Stream into a Table",
-                operationTypeField(KSMLDSL.Operations.TO_TABLE),
+                operationTypeField(),
                 operationNameField(),
                 storeField(false, "Materialized view of the Table", StoreType.KEYVALUE_STORE),
-                (type, name, store) -> new ToTableOperation(new StoreOperationConfig(namespace(), name, null, store)));
+                (type, name, store) -> new ToTableOperation(storeOperationConfig(name, store)));
     }
 }

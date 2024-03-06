@@ -34,7 +34,7 @@ public class ToOperationParser extends OperationParser<ToOperation> {
     private final ToTopicNameExtractorDefinitionParser tneParser;
 
     public ToOperationParser(TopologyResources resources) {
-        super("to", resources);
+        super(KSMLDSL.Operations.TO, resources);
         topicParser = new ToTopicDefinitionParser(resources());
         tneParser = new ToTopicNameExtractorDefinitionParser(resources());
         final var fields = topicParser.fields();

@@ -30,14 +30,8 @@ public class OperationConfig {
     private final boolean allowStores;
     private final String[] storeNames;
 
-    public OperationConfig(String namespace, String name, String[] storeNames) {
-        if (namespace != null || name != null) {
-            this.name = (namespace != null ? namespace : "")
-                    + (namespace != null && name != null ? "_" : "")
-                    + (name != null ? name : "");
-        } else {
-            this.name = null;
-        }
+    public OperationConfig(String name, String[] storeNames) {
+        this.name = name;
         log.debug("Generated operation name: {}", this.name);
         this.allowStores = storeNames != null;
         this.storeNames = storeNames;

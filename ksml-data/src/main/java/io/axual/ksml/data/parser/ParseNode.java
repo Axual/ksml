@@ -2,9 +2,9 @@ package io.axual.ksml.data.parser;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Data Library
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2024 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package io.axual.ksml.data.parser;
  * limitations under the License.
  * =========================LICENSE_END==================================
  */
-
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.TextNode;
@@ -47,7 +46,8 @@ public class ParseNode {
     }
 
     private String getPathInternal(String separator) {
-        return (parent != null ? parent.getPathInternal(separator) + separator : "") + name;
+        final var parentPath = parent != null ? parent.getPathInternal(separator) : "";
+        return !parentPath.isEmpty() ? parentPath + separator + name : name;
     }
 
     public String parentName() {

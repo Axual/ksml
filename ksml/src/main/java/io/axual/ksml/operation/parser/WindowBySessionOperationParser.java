@@ -29,7 +29,7 @@ import org.apache.kafka.streams.kstream.SessionWindows;
 
 public class WindowBySessionOperationParser extends OperationParser<WindowBySessionOperation> {
     public WindowBySessionOperationParser(TopologyResources resources) {
-        super("windowBySession", resources);
+        super(KSMLDSL.Operations.WINDOW_BY_SESSION, resources);
     }
 
     @Override
@@ -38,7 +38,7 @@ public class WindowBySessionOperationParser extends OperationParser<WindowBySess
                 WindowBySessionOperation.class,
                 "",
                 "Operation to window messages by session, configured by an inactivity gap",
-                operationTypeField(KSMLDSL.Operations.WINDOW_BY_SESSION),
+                operationTypeField(),
                 operationNameField(),
                 durationField(KSMLDSL.SessionWindows.INACTIVITY_GAP, "The inactivity gap, below which two messages are considered to be of the same session"),
                 optional(durationField(KSMLDSL.SessionWindows.GRACE, "(Tumbling, Hopping) The grace period, during which out-of-order records can still be processed")),

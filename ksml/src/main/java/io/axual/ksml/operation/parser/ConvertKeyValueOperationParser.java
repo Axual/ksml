@@ -29,7 +29,7 @@ import io.axual.ksml.parser.StructParser;
 
 public class ConvertKeyValueOperationParser extends OperationParser<ConvertKeyValueOperation> {
     public ConvertKeyValueOperationParser(TopologyResources resources) {
-        super("convertKeyValue", resources);
+        super(KSMLDSL.Operations.CONVERT_KEY_VALUE, resources);
     }
 
     @Override
@@ -38,7 +38,7 @@ public class ConvertKeyValueOperationParser extends OperationParser<ConvertKeyVa
                 ConvertKeyValueOperation.class,
                 "",
                 "An operation to convert the stream key and value types to other types. Conversion is only syntactic, eg. from Avro to XML.",
-                operationTypeField(KSMLDSL.Operations.CONVERT_KEY_VALUE),
+                operationTypeField(),
                 operationNameField(),
                 userTypeField(KSMLDSL.Operations.Convert.INTO, "The tuple type to convert the stream key/value into"),
                 (type, name, into) -> {

@@ -30,7 +30,7 @@ public class BranchOperationParser extends OperationParser<BranchOperation> {
     private final boolean includePipelineSchema;
 
     public BranchOperationParser(TopologyResources resources, boolean includePipelineSchema) {
-        super("branch", resources);
+        super(KSMLDSL.Operations.BRANCH, resources);
         this.includePipelineSchema = includePipelineSchema;
     }
 
@@ -46,6 +46,6 @@ public class BranchOperationParser extends OperationParser<BranchOperation> {
                         "branch",
                         "Defines a single branch, consisting of a condition and a pipeline to execute for messages that fulfil the predicate",
                         new BranchDefinitionParser(resources(), includePipelineSchema)),
-                (name, branches) -> branches != null ? new BranchOperation(operationConfig(namespace(), null), branches) : null);
+                (name, branches) -> branches != null ? new BranchOperation(operationConfig(name), branches) : null);
     }
 }

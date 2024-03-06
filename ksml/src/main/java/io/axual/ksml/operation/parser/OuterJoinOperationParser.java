@@ -38,25 +38,23 @@ import io.axual.ksml.operation.OuterJoinOperation;
 import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.util.ListUtil;
 
-import static io.axual.ksml.dsl.KSMLDSL.Operations;
-
 public class OuterJoinOperationParser extends StoreOperationParser<OuterJoinOperation> {
     private final StructParser<OuterJoinOperation> joinStreamParser;
     private final StructParser<OuterJoinOperation> joinTableParser;
     private final StructSchema schema;
 
     public OuterJoinOperationParser(TopologyResources resources) {
-        super("outerJoin", resources);
+        super(KSMLDSL.Operations.OUTER_JOIN, resources);
         joinStreamParser = structParser(
                 OuterJoinOperation.class,
                 "",
                 "Operation to join with a stream",
-                operationTypeField(Operations.OUTER_JOIN),
+                operationTypeField(),
                 operationNameField(),
-                topicField(Operations.Join.WITH_STREAM, "(Required for Stream joins) A reference to the Stream, or an inline definition of the Stream to join with", new StreamDefinitionParser(false)),
-                functionField(Operations.Join.VALUE_JOINER, "(Stream joins) A function that joins two values", new ValueJoinerDefinitionParser()),
-                durationField(Operations.Join.TIME_DIFFERENCE, "(Stream joins) The maximum time difference for a join over two streams on the same key"),
-                optional(durationField(Operations.Join.GRACE, "(Stream joins) The window grace period (the time to admit out-of-order events after the end of the window)")),
+                topicField(KSMLDSL.Operations.Join.WITH_STREAM, "(Required for Stream joins) A reference to the Stream, or an inline definition of the Stream to join with", new StreamDefinitionParser(false)),
+                functionField(KSMLDSL.Operations.Join.VALUE_JOINER, "(Stream joins) A function that joins two values", new ValueJoinerDefinitionParser()),
+                durationField(KSMLDSL.Operations.Join.TIME_DIFFERENCE, "(Stream joins) The maximum time difference for a join over two streams on the same key"),
+                optional(durationField(KSMLDSL.Operations.Join.GRACE, "(Stream joins) The window grace period (the time to admit out-of-order events after the end of the window)")),
                 storeField(false, "Materialized view of the joined streams", null),
                 (type, name, stream, valueJoiner, timeDifference, grace, store) -> {
                     if (stream instanceof StreamDefinition streamDef) {
@@ -69,10 +67,10 @@ public class OuterJoinOperationParser extends StoreOperationParser<OuterJoinOper
                 OuterJoinOperation.class,
                 "",
                 "Operation to join with a table",
-                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, "The type of the operation, fixed value \"" + Operations.JOIN + "\""),
+                operationTypeField(),
                 operationNameField(),
-                topicField(Operations.Join.WITH_TABLE, "(Required for Table joins) A reference to the Table, or an inline definition of the Table to join with", new TableDefinitionParser(false)),
-                functionField(Operations.Join.VALUE_JOINER, "(Table joins) A function that joins two values", new ValueJoinerDefinitionParser()),
+                topicField(KSMLDSL.Operations.Join.WITH_TABLE, "(Required for Table joins) A reference to the Table, or an inline definition of the Table to join with", new TableDefinitionParser(false)),
+                functionField(KSMLDSL.Operations.Join.VALUE_JOINER, "(Table joins) A function that joins two values", new ValueJoinerDefinitionParser()),
                 storeField(false, "Materialized view of the joined streams", null),
                 (type, name, table, valueJoiner, store) -> {
                     if (table instanceof TableDefinition tableDef) {

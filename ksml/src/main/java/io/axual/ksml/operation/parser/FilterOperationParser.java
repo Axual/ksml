@@ -26,12 +26,12 @@ import io.axual.ksml.definition.parser.PredicateDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.FilterOperation;
-import io.axual.ksml.operation.StoreOperationConfig;
 import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.store.StoreType;
 
 public class FilterOperationParser extends StoreOperationParser<FilterOperation> {
     public FilterOperationParser(TopologyResources resources) {
-        super("filter", resources);
+        super(KSMLDSL.Operations.FILTER, resources);
     }
 
     public StructParser<FilterOperation> parser() {
@@ -39,14 +39,15 @@ public class FilterOperationParser extends StoreOperationParser<FilterOperation>
                 FilterOperation.class,
                 "",
                 "Filter records based on a predicate function",
-                operationTypeField(KSMLDSL.Operations.FILTER),
+                operationTypeField(),
                 operationNameField(),
                 functionField(KSMLDSL.Operations.Filter.PREDICATE, "A function that returns \"true\" when records are accepted, \"false\" otherwise", new PredicateDefinitionParser()),
+                storeField(false, "Materialized view of the filtered table", StoreType.KEYVALUE_STORE),
                 storeNamesField(),
-                (type, name, pred, stores) -> {
+                (type, name, pred, store, stores) -> {
                     if (pred != null)
-                        return new FilterOperation(new StoreOperationConfig(namespace(), name, stores, null), pred);
-                    throw new ExecutionException("Predicate not defined for " + KSMLDSL.Operations.FILTER + " operation");
+                        return new FilterOperation(storeOperationConfig(name, store, stores), pred);
+                    throw new ExecutionException("Predicate not defined for " + type + " operation");
                 });
     }
 }

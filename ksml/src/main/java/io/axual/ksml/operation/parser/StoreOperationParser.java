@@ -34,13 +34,22 @@ import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.store.StoreType;
 
+import java.util.List;
+
 public abstract class StoreOperationParser<T extends StoreOperation> extends OperationParser<T> {
     public StoreOperationParser(String type, TopologyResources resources) {
         super(type, resources);
     }
 
     protected StoreOperationConfig storeOperationConfig(String name, StateStoreDefinition store) {
-        return new StoreOperationConfig(resources().namespace(), name, null, store);
+        return storeOperationConfig(name, store, null);
+    }
+
+    protected StoreOperationConfig storeOperationConfig(String name, StateStoreDefinition store, List<String> storeNames) {
+        return new StoreOperationConfig(
+                resources().getUniqueOperationName(name != null ? name : type),
+                store,
+                storeNames);
     }
 
     protected StructParser<StateStoreDefinition> storeField(boolean required, String doc, StoreType expectedStoreType) {

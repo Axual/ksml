@@ -31,7 +31,6 @@ public class TopicDefinitionParser extends DefinitionParser<TopicDefinition> {
     private final boolean requireKeyValueType;
 
     public TopicDefinitionParser(boolean requireKeyValueType) {
-        super(null);
         this.requireKeyValueType = requireKeyValueType;
     }
 

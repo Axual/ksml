@@ -28,7 +28,7 @@ import io.axual.ksml.parser.StructParser;
 
 public class PrintOperationParser extends OperationParser<PrintOperation> {
     public PrintOperationParser(TopologyResources resources) {
-        super("print", resources);
+        super(KSMLDSL.Operations.PRINT, resources);
     }
 
     @Override
@@ -41,7 +41,7 @@ public class PrintOperationParser extends OperationParser<PrintOperation> {
                 optional(stringField(KSMLDSL.Operations.Print.FILENAME, "The filename to output records to. If nothing is specified, then messages will be printed on stdout")),
                 optional(stringField(KSMLDSL.Operations.Print.LABEL, "A label to attach to the output records")),
                 optional(functionField(KSMLDSL.Operations.Print.MAPPER, "A function to convert record into a string for output", new KeyValuePrinterDefinitionParser())),
-                (name, filename, label, mapper) -> new PrintOperation(operationConfig(name, null), filename, label, mapper));
+                (name, filename, label, mapper) -> new PrintOperation(operationConfig(name), filename, label, mapper));
         return structParser(
                 PrintOperation.class,
                 "",

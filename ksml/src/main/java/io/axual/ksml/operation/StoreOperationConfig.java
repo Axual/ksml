@@ -27,8 +27,8 @@ import java.util.List;
 public class StoreOperationConfig extends OperationConfig {
     public final StateStoreDefinition store;
 
-    public StoreOperationConfig(String namespace, String name, List<String> storeNames, StateStoreDefinition store) {
-        super(namespace, name, storeNames != null ? storeNames.toArray(new String[]{}) : null);
+    public StoreOperationConfig(String name, StateStoreDefinition store, List<String> storeNames) {
+        super(name, storeNames != null ? storeNames.toArray(new String[]{}) : null);
         this.store = store;
     }
 }

@@ -27,7 +27,7 @@ import io.axual.ksml.parser.StructParser;
 
 public class AsOperationParser extends OperationParser<AsOperation> {
     public AsOperationParser(TopologyResources resources) {
-        super("as", resources);
+        super(KSMLDSL.Operations.AS, resources);
     }
 
     public StructParser<AsOperation> parser() {

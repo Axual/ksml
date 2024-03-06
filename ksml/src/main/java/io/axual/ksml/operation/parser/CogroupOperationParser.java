@@ -22,9 +22,9 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.definition.parser.AggregatorDefinitionParser;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.CogroupOperation;
-import io.axual.ksml.operation.StoreOperationConfig;
 import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.store.StoreType;
 
@@ -32,20 +32,19 @@ import static io.axual.ksml.dsl.KSMLDSL.Operations;
 
 public class CogroupOperationParser extends StoreOperationParser<CogroupOperation> {
     public CogroupOperationParser(TopologyResources resources) {
-        super("cogroup", resources);
+        super(KSMLDSL.Operations.COGROUP, resources);
     }
 
     @Override
     protected StructParser<CogroupOperation> parser() {
-        final var storeField = storeField(false, "Materialized view of the cogroup", StoreType.WINDOW_STORE);
         return structParser(
                 CogroupOperation.class,
                 "",
                 "A cogroup operation",
-                operationTypeField(Operations.COGROUP),
+                operationTypeField(),
                 operationNameField(),
                 functionField(Operations.Aggregate.AGGREGATOR, "(GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result", new AggregatorDefinitionParser()),
-                storeField,
-                (type, name, aggr, store) -> new CogroupOperation(new StoreOperationConfig(namespace(), name, null, store), aggr));
+                storeField(false, "Materialized view of the cogroup", StoreType.WINDOW_STORE),
+                (type, name, aggr, store) -> new CogroupOperation(storeOperationConfig(name, store), aggr));
     }
 }

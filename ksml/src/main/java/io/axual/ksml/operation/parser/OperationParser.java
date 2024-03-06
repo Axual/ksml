@@ -29,20 +29,21 @@ import io.axual.ksml.operation.OperationConfig;
 import io.axual.ksml.parser.ContextAwareParser;
 import io.axual.ksml.parser.StringValueParser;
 import io.axual.ksml.parser.StructParser;
+import lombok.Getter;
 
 import java.util.List;
 
+@Getter
 public abstract class OperationParser<T extends BaseOperation> extends ContextAwareParser<T> {
-    private static final String[] TEMPLATE = new String[0];
-    private final String type;
+    protected final String type;
 
     public OperationParser(String type, TopologyResources resources) {
         super(resources);
         this.type = type;
     }
 
-    protected StructParser<String> operationTypeField(String fixedType) {
-        return fixedStringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, fixedType, "The type of the operation");
+    protected StructParser<String> operationTypeField() {
+        return fixedStringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, type, "The type of the operation");
     }
 
     protected StructParser<String> operationNameField() {
@@ -72,8 +73,7 @@ public abstract class OperationParser<T extends BaseOperation> extends ContextAw
 
     protected OperationConfig operationConfig(String name, List<String> storeNames) {
         return new OperationConfig(
-                namespace(),
-                name != null ? determineName(name) : determineName(getClass().getSimpleName()),
-                storeNames != null ? storeNames.toArray(TEMPLATE) : null);
+                resources().getUniqueOperationName(name != null ? name : type),
+                storeNames != null ? storeNames.toArray(new String[]{}) : null);
     }
 }

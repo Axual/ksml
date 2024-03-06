@@ -42,23 +42,12 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
     // The global namespace for this definition parser. The namespace is the specified name in the runner configuration
     // for this particular KSML definition. It is used to prefix global names in Kafka Streams (eg. processor names) to
     // ensure no conflict between processor names for two separate definitions.
-    private final String namespace;
     private StructParser<T> parser;
 
     public DefinitionParser() {
-        this(null);
-    }
-
-    public DefinitionParser(String namespace) {
-        this.namespace = namespace;
         final var codeStringParser = new StringValueParser(value -> value ? "True" : "False");
         final var codeSchema = new UnionSchema(DataSchema.booleanSchema(), DataSchema.stringSchema());
         this.codeParser = ParserWithSchema.of(codeStringParser::parse, codeSchema);
-    }
-
-    protected String namespace() {
-        if (namespace != null) return namespace;
-        throw new TopologyException("Topology namespace not properly initialized. This is a programming error.");
     }
 
     protected abstract StructParser<T> parser();
@@ -137,7 +126,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
             try {
                 return valueParser.parse(node);
             } catch (Exception e) {
-                throw new ParseException(node, e.getMessage());
+                throw new ParseException(node, e.getMessage(), e);
             }
         }
     }

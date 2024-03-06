@@ -31,7 +31,7 @@ import org.apache.kafka.streams.kstream.TimeWindows;
 
 public class WindowByTimeOperationParser extends OperationParser<WindowByTimeOperation> {
     public WindowByTimeOperationParser(TopologyResources resources) {
-        super("windowByTime", resources);
+        super(KSMLDSL.Operations.WINDOW_BY_TIME, resources);
     }
 
     @Override
@@ -40,7 +40,7 @@ public class WindowByTimeOperationParser extends OperationParser<WindowByTimeOpe
                 WindowByTimeOperation.class,
                 "",
                 "Operation to reduce a series of records into a single aggregate result",
-                operationTypeField(KSMLDSL.Operations.WINDOW_BY_TIME),
+                operationTypeField(),
                 operationNameField(),
                 stringField(KSMLDSL.TimeWindows.WINDOW_TYPE, "The type of the operation, either \"" + KSMLDSL.TimeWindows.TYPE_TUMBLING + "\", or \"" + KSMLDSL.TimeWindows.TYPE_HOPPING + "\", or \"" + KSMLDSL.TimeWindows.TYPE_SLIDING + "\""),
                 optional(durationField(KSMLDSL.TimeWindows.DURATION, "(Tumbling) The duration of time windows")),

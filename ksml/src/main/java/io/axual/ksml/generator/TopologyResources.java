@@ -27,7 +27,9 @@ import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.exception.TopologyException;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class TopologyResources {
     private final String namespace;
@@ -37,6 +39,8 @@ public class TopologyResources {
     private final Map<String, StateStoreDefinition> stateStores = new HashMap<>();
     // All registered KStreams, KTables and KGlobalTables
     private final Map<String, TopicDefinition> topics = new HashMap<>();
+    // All registered operation names
+    private final Set<String> operationNames = new HashSet<>();
 
     public TopologyResources(String namespace) {
         this.namespace = namespace;
@@ -111,5 +115,24 @@ public class TopologyResources {
 
     public Map<String, TopicDefinition> topics() {
         return ImmutableMap.copyOf(topics);
+    }
+
+    public String getUniqueOperationName(String basename) {
+        if (!operationNames.contains(basename)) {
+            operationNames.add(basename);
+            return namespace + "_" + basename;
+        }
+        int index = 1;
+        while (true) {
+            var postfix = "" + index;
+            // Pad with leading zeros unless the number gets bigger than 1000
+            if (postfix.length() < 3) postfix = ("000" + postfix).substring(postfix.length());
+            final var name = basename + "_" + postfix;
+            if (!operationNames.contains(name)) {
+                operationNames.add(name);
+                return namespace + "_" + name;
+            }
+            index++;
+        }
     }
 }

@@ -25,13 +25,12 @@ import io.axual.ksml.definition.parser.KeyValueMapperDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.GroupByOperation;
-import io.axual.ksml.operation.StoreOperationConfig;
 import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.store.StoreType;
 
 public class GroupByOperationParser extends StoreOperationParser<GroupByOperation> {
     public GroupByOperationParser(TopologyResources resources) {
-        super("groupBy", resources);
+        super(KSMLDSL.Operations.GROUP_BY, resources);
     }
 
     public StructParser<GroupByOperation> parser() {
@@ -39,10 +38,10 @@ public class GroupByOperationParser extends StoreOperationParser<GroupByOperatio
                 GroupByOperation.class,
                 "",
                 "Operation to group all messages with together based on a keying function",
-                operationTypeField(KSMLDSL.Operations.GROUP_BY_KEY),
+                operationTypeField(),
                 operationNameField(),
                 functionField(KSMLDSL.Operations.GroupBy.MAPPER, "Function to map records to a key they can be grouped on", new KeyValueMapperDefinitionParser()),
                 storeField(false, "Materialized view of the grouped stream or table", StoreType.KEYVALUE_STORE),
-                (type, name, mapper, store) -> new GroupByOperation(new StoreOperationConfig(namespace(), name, null, store), mapper));
+                (type, name, mapper, store) -> new GroupByOperation(storeOperationConfig(name, store), mapper));
     }
 }

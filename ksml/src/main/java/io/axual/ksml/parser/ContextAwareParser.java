@@ -29,29 +29,19 @@ import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 public abstract class ContextAwareParser<T> extends DefinitionParser<T> {
-    private static final Map<String, AtomicInteger> typeInstanceCounters = new HashMap<>();
     // The set of streams, functions and stores that producers and pipelines can reference
     private final TopologyResources resources;
 
     protected ContextAwareParser(TopologyResources resources) {
-        super(resources != null ? resources.namespace() : null);
         this.resources = resources;
     }
 
     protected TopologyResources resources() {
         if (resources != null) return resources;
         throw new TopologyException("Topology resources not properly initialized. This is a programming error.");
-    }
-
-    protected String determineName(String name) {
-        final var basename = namespace() + "_" + name;
-        return String.format("%s_%03d", basename, typeInstanceCounters.computeIfAbsent(basename, t -> new AtomicInteger(1)).getAndIncrement());
     }
 
     protected <F extends FunctionDefinition> StructParser<FunctionDefinition> functionField(String childName, String doc, DefinitionParser<F> parser) {
