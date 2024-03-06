@@ -8,7 +8,7 @@ networks:
 services:
 
   broker:
-    image: bitnami/kafka:3.6.0
+    image: bitnami/kafka:3.7.0
     hostname: broker
     ports:
       - "9092:9092"
@@ -34,7 +34,7 @@ services:
       KAFKA_CFG_MIN_INSYNC_REPLICAS: 1
       KAFKA_CFG_NUM_PARTITIONS: 1
     healthcheck:
-      test: kafka-topics --bootstrap-server broker:9093 --list | fgrep -q ksml_sensordata_table
+      test: kafka-topics.sh --bootstrap-server broker:9093 --list | fgrep -q ksml_sensordata_table
       interval: 30s
       timeout: 10s
       retries: 5
@@ -64,7 +64,7 @@ services:
 
   # This "container" is a workaround to pre-create topics
   kafka-setup:
-    image: bitnami/kafka:3.6.0
+    image: bitnami/kafka:3.7.0
     hostname: kafka-setup
     networks:
       - ksml
