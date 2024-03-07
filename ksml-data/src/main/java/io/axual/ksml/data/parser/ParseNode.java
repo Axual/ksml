@@ -45,26 +45,19 @@ public class ParseNode {
         this.name = name;
     }
 
-    private String getPathInternal(String separator) {
-        final var parentPath = parent != null ? parent.getPathInternal(separator) : "";
+    private String getPathInternal(boolean includeRoot, String separator) {
+        if (parent == null) return includeRoot ? name : "";
+        final var parentPath = parent.getPathInternal(includeRoot, separator);
         return !parentPath.isEmpty() ? parentPath + separator + name : name;
     }
 
-    public String parentName() {
-        return parent != null ? parent.name : null;
-    }
-
-    public String dottedName() {
-        return getPathInternal(".");
-    }
-
     public String longName() {
-        return getPathInternal("_");
+        return getPathInternal(false, "_");
     }
 
     @Override
     public String toString() {
-        return getPathInternal("->");
+        return getPathInternal(true, "->");
     }
 
     public ParseNode get(String childName, String displayName) {
@@ -84,14 +77,14 @@ public class ParseNode {
         return new ParseNode(this, node, appendName);
     }
 
-    public List<ParseNode> children() {
+    public List<ParseNode> children(String elementPrefix) {
         List<ParseNode> result = new ArrayList<>();
         Set<JsonNode> seen = new HashSet<>();
         Iterator<Map.Entry<String, JsonNode>> fieldIterator = node.fields();
         while (fieldIterator.hasNext()) {
             Map.Entry<String, JsonNode> field = fieldIterator.next();
             seen.add(field.getValue());
-            result.add(new ParseNode(this, field.getValue(), field.getKey()));
+            result.add(new ParseNode(this, field.getValue(), elementPrefix + field.getKey()));
         }
 
         Iterator<JsonNode> elementIterator = node.elements();
@@ -99,7 +92,7 @@ public class ParseNode {
         while (elementIterator.hasNext()) {
             JsonNode element = elementIterator.next();
             if (!seen.contains(element)) {
-                result.add(new ParseNode(this, element, "" + index++));
+                result.add(new ParseNode(this, element, elementPrefix + index++));
             }
         }
         return result;

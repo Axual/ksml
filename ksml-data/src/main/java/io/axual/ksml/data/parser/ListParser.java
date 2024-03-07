@@ -40,7 +40,7 @@ public class ListParser<V> implements Parser<List<V>> {
         List<V> result = new ArrayList<>();
         if (node != null) {
             var index = 0;
-            for (ParseNode childNode : node.children()) {
+            for (ParseNode childNode : node.children(whatToParse)) {
                 try {
                     index++;
                     result.add(valueParser.parse(childNode));

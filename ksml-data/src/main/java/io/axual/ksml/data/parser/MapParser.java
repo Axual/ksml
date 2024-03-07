@@ -40,7 +40,7 @@ public class MapParser<V> implements Parser<Map<String, V>> {
         // Parse into a LinkedHashMap to preserve insertion order
         Map<String, V> result = new LinkedHashMap<>();
         if (node != null) {
-            for (ParseNode child : node.children()) {
+            for (ParseNode child : node.children("")) {
                 try {
                     var name = child.name();
                     if (valueParser instanceof NamedObjectParser nop)
