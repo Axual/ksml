@@ -21,7 +21,6 @@ package io.axual.ksml.data.parser;
  */
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import io.axual.ksml.data.exception.ExecutionException;
 import lombok.Getter;
 
@@ -176,9 +175,5 @@ public class ParseNode {
 
     public boolean isObject() {
         return node.isObject();
-    }
-
-    public boolean childIsText(String childName) {
-        return node.get(childName) instanceof TextNode;
     }
 }

@@ -20,10 +20,10 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.parser.NamedObjectParser;
 import io.axual.ksml.definition.SessionStateStoreDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.DefinitionParser;
-import io.axual.ksml.data.parser.NamedObjectParser;
 import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.store.StoreType;
 

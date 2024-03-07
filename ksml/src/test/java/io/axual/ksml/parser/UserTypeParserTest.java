@@ -21,9 +21,9 @@ package io.axual.ksml.parser;
  */
 
 import io.axual.ksml.data.notation.UserType;
+import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.SimpleType;
-import io.axual.ksml.data.object.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;

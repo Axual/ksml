@@ -52,17 +52,22 @@ public class PythonFunction extends UserFunction {
     private final DataObjectConverter converter;
     private final Value function;
 
-    public static PythonFunction fromAnon(PythonContext context, String name, FunctionDefinition definition, String loggerName) {
-        return new PythonFunction(context, name, definition, loggerName);
+    public static PythonFunction forFunction(PythonContext context, String namespace, String name, FunctionDefinition definition) {
+        return new PythonFunction(context, namespace, "functions", name, definition);
     }
 
-    public static PythonFunction fromNamed(PythonContext context, String name, FunctionDefinition definition) {
-        return new PythonFunction(context, name, definition, "ksml.functions." + name);
+    public static PythonFunction forGenerator(PythonContext context, String namespace, String name, FunctionDefinition definition) {
+        return new PythonFunction(context, namespace, "generators", name, definition);
     }
 
-    private PythonFunction(PythonContext context, String name, FunctionDefinition definition, String loggerName) {
+    public static PythonFunction forPredicate(PythonContext context, String namespace, String name, FunctionDefinition definition) {
+        return new PythonFunction(context, namespace, "conditions", name, definition);
+    }
+
+    private PythonFunction(PythonContext context, String namespace, String type, String name, FunctionDefinition definition) {
         super(name, definition.parameters(), definition.resultType(), definition.storeNames());
         converter = context.converter();
+        final var loggerName = namespace + "." + type + "." + name;
         final var pyCode = generatePythonCode(name, loggerName, definition);
         function = context.registerFunction(pyCode, name + "_caller");
         if (function == null) {
@@ -146,15 +151,15 @@ public class PythonFunction extends UserFunction {
                 .collect(Collectors.joining());
         // Code to copy / initialize all global variables
         final var includeGlobals =
-            """
-              global stores
-              global loggerBridge
-            """;
+                """
+                          global stores
+                          global loggerBridge
+                        """;
         final var initializeGlobals =
-            """
-              stores = convert_to_python(globalVars["stores"])
-              loggerBridge = globalVars["loggerBridge"]
-            """;
+                """
+                          stores = convert_to_python(globalVars["stores"])
+                          loggerBridge = globalVars["loggerBridge"]
+                        """;
         // Code to initialize optional parameters with default values
         final var initializeOptionalParams = Arrays.stream(definition.parameters())
                 .filter(ParameterDefinition::isOptional)
@@ -181,56 +186,56 @@ public class PythonFunction extends UserFunction {
 
         final var pythonCodeTemplate =
                 """
-                import polyglot
-                import java
-                                
-                ArrayList = java.type('java.util.ArrayList')
-                HashMap = java.type('java.util.HashMap')
-                TreeMap = java.type('java.util.TreeMap')
-                loggerBridge = None
-                stores = None
-                                
-                # global Python code goes here (first argument)
-                %1$s
-                                
-                # function definition and expression go here (second argument)
-                @polyglot.export_value
-                %2$s
-                                
-                def convert_to_python(value):
-                  if value == None:
-                    return None
-                  if isinstance(value, (HashMap, TreeMap)):
-                    result = dict()
-                    for k, v in value.entrySet():
-                      result[convert_to_python(k)] = convert_to_python(v)
-                    return result
-                  if isinstance(value, ArrayList):
-                    result = []
-                    for e in value:
-                      result.append(convert_to_python(e))
-                    return result
-                  return value
-                  
-                def convert_from_python(value):
-                  if value == None:
-                    return None
-                  if isinstance(value, (list, tuple)):
-                    result = ArrayList()
-                    for e in value:
-                      result.add(convert_from_python(e))
-                    return result
-                  if type(value) is dict:
-                    result = HashMap()
-                    for k, v in value.items():
-                      result.put(convert_from_python(k), convert_from_python(v))
-                    return result
-                  return value
-                  
-                # caller definition goes here (third argument)
-                @polyglot.export_value
-                %3$s
-                """;
+                        import polyglot
+                        import java
+                                        
+                        ArrayList = java.type('java.util.ArrayList')
+                        HashMap = java.type('java.util.HashMap')
+                        TreeMap = java.type('java.util.TreeMap')
+                        loggerBridge = None
+                        stores = None
+                                        
+                        # global Python code goes here (first argument)
+                        %1$s
+                                        
+                        # function definition and expression go here (second argument)
+                        @polyglot.export_value
+                        %2$s
+                                        
+                        def convert_to_python(value):
+                          if value == None:
+                            return None
+                          if isinstance(value, (HashMap, TreeMap)):
+                            result = dict()
+                            for k, v in value.entrySet():
+                              result[convert_to_python(k)] = convert_to_python(v)
+                            return result
+                          if isinstance(value, ArrayList):
+                            result = []
+                            for e in value:
+                              result.append(convert_to_python(e))
+                            return result
+                          return value
+                          
+                        def convert_from_python(value):
+                          if value == None:
+                            return None
+                          if isinstance(value, (list, tuple)):
+                            result = ArrayList()
+                            for e in value:
+                              result.add(convert_from_python(e))
+                            return result
+                          if type(value) is dict:
+                            result = HashMap()
+                            for k, v in value.items():
+                              result.put(convert_from_python(k), convert_from_python(v))
+                            return result
+                          return value
+                          
+                        # caller definition goes here (third argument)
+                        @polyglot.export_value
+                        %3$s
+                        """;
 
         return pythonCodeTemplate.formatted(globalCode, functionAndExpression, pyCallerCode);
     }

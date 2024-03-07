@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class LoggerBridge {
+    // The below method is called from the Python context, so appears unused in the IDE
     public Logger getLogger(String loggerName) {
         return LoggerFactory.getLogger(loggerName);
     }

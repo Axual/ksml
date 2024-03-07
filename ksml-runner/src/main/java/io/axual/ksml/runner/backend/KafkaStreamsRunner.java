@@ -34,13 +34,7 @@ import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.utils.Utils;
-import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.KeyQueryMetadata;
-import org.apache.kafka.streams.StoreQueryParameters;
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.StreamsMetadata;
-import org.apache.kafka.streams.TopologyConfig;
+import org.apache.kafka.streams.*;
 
 import java.util.Collection;
 import java.util.HashMap;

@@ -20,6 +20,11 @@ package io.axual.ksml.rest.server;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.rest.data.KeyValueBean;
+import io.axual.ksml.rest.data.KeyValueBeans;
+import io.axual.ksml.rest.data.WindowedKeyValueBean;
+import io.axual.ksml.rest.data.WindowedKeyValueBeans;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StoreQueryParameters;
 import org.apache.kafka.streams.kstream.Windowed;
@@ -29,12 +34,6 @@ import org.apache.kafka.streams.state.QueryableStoreType;
 
 import java.util.List;
 import java.util.function.Function;
-
-import io.axual.ksml.rest.data.KeyValueBean;
-import io.axual.ksml.rest.data.KeyValueBeans;
-import io.axual.ksml.rest.data.WindowedKeyValueBean;
-import io.axual.ksml.rest.data.WindowedKeyValueBeans;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class StoreResource implements AutoCloseable {

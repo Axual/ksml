@@ -49,9 +49,4 @@ public abstract class FixedKeyOperationProcessor implements FixedKeyProcessor<Ob
             stores.put(storeName, store);
         }
     }
-
-    @Override
-    public void close() {
-        FixedKeyProcessor.super.close();
-    }
 }

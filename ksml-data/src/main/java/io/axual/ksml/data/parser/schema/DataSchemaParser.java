@@ -20,10 +20,10 @@ package io.axual.ksml.data.parser.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.parser.BaseParser;
+import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.AnySchema;
 import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.parser.BaseParser;
 
 public class DataSchemaParser extends BaseParser<DataSchema> {
     @Override

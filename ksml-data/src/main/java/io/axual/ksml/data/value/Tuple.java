@@ -30,6 +30,7 @@ import java.util.List;
 public class Tuple<T> {
     private final List<T> elements;
 
+    @SafeVarargs
     public Tuple(T... elements) {
         this.elements = List.of(elements);
     }

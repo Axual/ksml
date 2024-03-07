@@ -21,7 +21,6 @@ package io.axual.ksml.client.consumer;
  */
 
 import io.axual.ksml.client.generic.ResolvingClientConfig;
-import io.axual.ksml.client.resolving.GroupResolver;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 
 import java.util.Map;
@@ -42,9 +41,5 @@ public class ResolvingConsumerConfig extends ResolvingClientConfig {
             downstreamConfigs.put(ResolvingConsumerPartitionAssignorConfig.TOPIC_RESOLVER_CONFIG, topicResolver);
             downstreamConfigs.put(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, ResolvingConsumerPartitionAssignor.class.getName());
         }
-    }
-
-    public GroupResolver getGroupResolver() {
-        return groupResolver;
     }
 }

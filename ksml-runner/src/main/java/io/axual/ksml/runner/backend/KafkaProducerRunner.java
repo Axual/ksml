@@ -20,9 +20,9 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.client.producer.ResolvingProducer;
 import io.axual.ksml.client.serde.ResolvingSerializer;
+import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonFunction;
@@ -76,21 +76,19 @@ public class KafkaProducerRunner implements Runner {
                 // Set up the Python context for this definition
                 final var context = new PythonContext();
                 // Pre-register all functions in the Python context
-                definition.functions().forEach((name, function) -> {
-                    PythonFunction.fromNamed(context, name, function);
-                });
+                definition.functions().forEach((name, function) -> PythonFunction.forFunction(context, definition.namespace(), name, function));
                 // Schedule all defined producers
                 definition.producers().forEach((name, producer) -> {
                     var target = producer.target();
                     var gen = producer.generator();
                     final var generator = gen.name() != null
-                            ? PythonFunction.fromNamed(context, gen.name(), gen)
-                            : PythonFunction.fromAnon(context, name, gen, "ksml.generator." + name);
+                            ? PythonFunction.forGenerator(context, definition.namespace(), gen.name(), gen)
+                            : PythonFunction.forGenerator(context, definition.namespace(), name, gen);
                     var cond = producer.condition();
                     final var condition = cond != null
                             ? cond.name() != null
-                            ? PythonFunction.fromNamed(context, cond.name(), cond)
-                            : PythonFunction.fromAnon(context, name, cond, "ksml.condition." + name)
+                            ? PythonFunction.forPredicate(context, definition.namespace(), cond.name(), cond)
+                            : PythonFunction.forPredicate(context, definition.namespace(), name, cond)
                             : null;
                     var keySerde = NotationLibrary.get(target.keyType().notation()).serde(target.keyType().dataType(), true);
                     var keySerializer = new ResolvingSerializer<>(keySerde.serializer(), config.kafkaConfig);

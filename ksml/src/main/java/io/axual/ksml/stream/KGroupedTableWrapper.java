@@ -21,11 +21,10 @@ package io.axual.ksml.stream;
  */
 
 
-import io.axual.ksml.generator.TopologyBuildContext;
-import org.apache.kafka.streams.kstream.KGroupedTable;
-
 import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.StreamOperation;
+import org.apache.kafka.streams.kstream.KGroupedTable;
 
 public class KGroupedTableWrapper extends BaseStreamWrapper {
     public final KGroupedTable<Object, Object> groupedTable;

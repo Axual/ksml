@@ -139,9 +139,7 @@ public class TopologyGenerator {
         });
 
         // Preload the function into the Python context
-        specification.functions().forEach((name, func) -> {
-            context.createUserFunction(func);
-        });
+        specification.functions().forEach((name, func) -> context.createUserFunction(func));
 
         // Figure out which state stores to create manually. Mechanism:
         // 1. run through all pipelines and scan for StoreOperations, don't create the stores referenced
@@ -161,12 +159,10 @@ public class TopologyGenerator {
         });
 
         // Filter out all state stores that Kafka Streams will set up later as part of the topology
-        specification.pipelines().forEach((name, pipeline) -> {
-            pipeline.chain().forEach(operation -> {
-                if (operation instanceof StoreOperation storeOperation && storeOperation.store() != null)
-                    kafkaStreamsCreatedStores.add(storeOperation.store().name());
-            });
-        });
+        specification.pipelines().forEach((name, pipeline) -> pipeline.chain().forEach(operation -> {
+            if (operation instanceof StoreOperation storeOperation && storeOperation.store() != null)
+                kafkaStreamsCreatedStores.add(storeOperation.store().name());
+        }));
 
         // Create all not-automatically-created stores
         specification.stateStores().forEach((name, store) -> {

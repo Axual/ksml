@@ -34,13 +34,13 @@ public class ResolvingDeserializer<T> implements Deserializer<T> {
 
     public ResolvingDeserializer(Deserializer<T> backingDeserializer, Map<String, ?> configs) {
         this.backingDeserializer = backingDeserializer;
-        this.topicResolver = new ResolvingClientConfig(configs).getTopicResolver();
+        this.topicResolver = new ResolvingClientConfig(configs).topicResolver();
     }
 
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {
         backingDeserializer.configure(configs, isKey);
-        this.topicResolver = new ResolvingClientConfig(configs).getTopicResolver();
+        this.topicResolver = new ResolvingClientConfig(configs).topicResolver();
     }
 
     @Override

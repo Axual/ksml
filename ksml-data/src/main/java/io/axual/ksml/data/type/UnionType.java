@@ -37,8 +37,7 @@ public class UnionType extends ComplexType {
 
     private static DataType[] userTypesToDataTypes(DataType... userTypes) {
         var dataTypes = new DataType[userTypes.length];
-        for (int index = 0; index < userTypes.length; index++)
-            dataTypes[index] = userTypes[index];
+        System.arraycopy(userTypes, 0, dataTypes, 0, userTypes.length);
         return dataTypes;
     }
 

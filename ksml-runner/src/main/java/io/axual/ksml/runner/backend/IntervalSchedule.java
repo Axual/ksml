@@ -44,8 +44,8 @@ public class IntervalSchedule<T> {
 
             if (!firstScheduled.getValue().isEmpty()) {
                 // Extract the scheduled item from the list
-                var result = firstScheduled.getValue().get(0);
-                firstScheduled.getValue().remove(0);
+                var result = firstScheduled.getValue().getFirst();
+                firstScheduled.getValue().removeFirst();
                 // Reschedule for the next interval
                 var nextTime = firstScheduled.getKey() + result.interval();
                 var items = schedule.computeIfAbsent(nextTime, ts -> new ArrayList<>());

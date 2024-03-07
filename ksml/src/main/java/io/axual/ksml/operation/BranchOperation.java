@@ -48,7 +48,7 @@ public class BranchOperation extends BaseOperation {
         final var v = input.valueType();
 
         // Prepare the branch predicates to pass into the KStream
-        @SuppressWarnings("unchecked") final var predicates = new Predicate[branches.size()];
+        final var predicates = new Predicate[branches.size()];
         for (var index = 0; index < branches.size(); index++) {
             final var branch = branches.get(index);
             if (branch.predicate() != null) {

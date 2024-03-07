@@ -33,7 +33,7 @@ public interface ParserWithSchema<T> extends Parser<T> {
     }
 
     static <T> ParserWithSchema<T> of(final Function<ParseNode, T> parseFunc, Supplier<DataSchema> getter) {
-        return new ParserWithSchema<T>() {
+        return new ParserWithSchema<>() {
             @Override
             public T parse(ParseNode node) {
                 return parseFunc.apply(node);

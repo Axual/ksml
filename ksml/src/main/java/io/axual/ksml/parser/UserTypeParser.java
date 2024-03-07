@@ -28,11 +28,11 @@ import io.axual.ksml.data.notation.csv.CsvNotation;
 import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.data.notation.soap.SOAPNotation;
 import io.axual.ksml.data.notation.xml.XmlNotation;
+import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.SchemaLibrary;
 import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.type.*;
 import io.axual.ksml.exception.TopologyException;
 

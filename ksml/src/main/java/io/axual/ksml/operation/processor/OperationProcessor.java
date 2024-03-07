@@ -49,9 +49,4 @@ public abstract class OperationProcessor implements Processor<Object, Object, Ob
             stores.put(storeName, store);
         }
     }
-
-    @Override
-    public void close() {
-        Processor.super.close();
-    }
 }

@@ -24,10 +24,10 @@ import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.notation.xml.XmlDataObjectMapper;
+import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.schema.AnySchema;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.StructType;
-import io.axual.ksml.data.object.*;
 import jakarta.xml.soap.*;
 import lombok.extern.slf4j.Slf4j;
 import org.w3c.dom.Node;
@@ -158,7 +158,7 @@ public class SOAPDataObjectMapper implements DataObjectMapper<SOAPMessage> {
         return !detailEntries.isEmpty() ? detailEntries : null;
     }
 
-    private DataObject convertHeader(SOAPHeader header) throws SOAPException {
+    private DataObject convertHeader(SOAPHeader header) {
         if (header == null) return null;
 
         // Convert all header elements

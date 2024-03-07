@@ -27,14 +27,6 @@ public class FactoryUtil {
     private FactoryUtil() {
     }
 
-    public static <T> T create(Class<T> clazz) {
-        try {
-            return clazz.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new ClientException("Could not instantiate object of type " + clazz.getName());
-        }
-    }
-
     public static <T> T create(final String className, Class<T> clazz) {
         if (className == null || className.isEmpty()) {
             throw new ClientException("No " + clazz.getName() + " class passed");

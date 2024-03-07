@@ -22,30 +22,12 @@ package io.axual.ksml.client.consumer;
 
 import io.axual.ksml.client.resolving.GroupResolver;
 import io.axual.ksml.client.resolving.TopicResolver;
-import org.apache.kafka.clients.consumer.ConsumerGroupMetadata;
-import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.consumer.LogTruncationException;
-import org.apache.kafka.clients.consumer.NoOffsetForPartitionException;
-import org.apache.kafka.clients.consumer.OffsetAndMetadata;
-import org.apache.kafka.clients.consumer.OffsetAndTimestamp;
-import org.apache.kafka.clients.consumer.OffsetCommitCallback;
-import org.apache.kafka.clients.consumer.OffsetOutOfRangeException;
+import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.OptionalLong;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
@@ -54,9 +36,9 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
 
     public ResolvingConsumer(Map<String, Object> configs) {
         var config = new ResolvingConsumerConfig(configs);
-        initializeConsumer(new KafkaConsumer<>(config.getDownstreamConfigs()));
-        topicResolver = config.getTopicResolver();
-        groupResolver = config.getGroupResolver();
+        initializeConsumer(new KafkaConsumer<>(config.downstreamConfigs()));
+        topicResolver = config.topicResolver();
+        groupResolver = config.groupResolver();
     }
 
     @Override
@@ -141,11 +123,6 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
     @Override
     public void commitSync(Map<TopicPartition, OffsetAndMetadata> offsets, Duration timeout) {
         super.commitSync(topicResolver.resolve(offsets), timeout);
-    }
-
-    @Override
-    public void commitAsync() {
-        super.commitAsync();
     }
 
     @Override

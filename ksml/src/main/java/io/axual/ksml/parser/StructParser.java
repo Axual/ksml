@@ -41,7 +41,7 @@ public interface StructParser<T> extends ParserWithSchema<T> {
     }
 
     static <T> StructParser<T> of(final Function<ParseNode, T> parseFunc, Supplier<StructSchema> getter) {
-        return new StructParser<T>() {
+        return new StructParser<>() {
             @Override
             public T parse(ParseNode node) {
                 return parseFunc.apply(node);

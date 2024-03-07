@@ -21,14 +21,13 @@ package io.axual.ksml.operation;
  */
 
 
-import io.axual.ksml.generator.TopologyBuildContext;
-import org.apache.kafka.streams.kstream.Suppressed;
-import org.apache.kafka.streams.kstream.Windowed;
-
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
+import org.apache.kafka.streams.kstream.Suppressed;
+import org.apache.kafka.streams.kstream.Windowed;
 
 public class SuppressOperation extends BaseOperation {
     private final Suppressed<Windowed> suppressedWindowed;

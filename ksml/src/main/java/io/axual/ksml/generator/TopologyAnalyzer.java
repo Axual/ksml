@@ -24,11 +24,7 @@ import io.axual.ksml.definition.StateStoreDefinition;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyDescription;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class TopologyAnalyzer {
     public record TopologyAnalysis(Set<String> inputTopics, Set<String> intermediateTopics,

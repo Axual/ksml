@@ -34,12 +34,12 @@ public class ResolvingSerializer<T> implements Serializer<T> {
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {
         backingSerializer.configure(configs, isKey);
-        this.topicResolver = new ResolvingClientConfig(configs).getTopicResolver();
+        this.topicResolver = new ResolvingClientConfig(configs).topicResolver();
     }
 
     public ResolvingSerializer(Serializer<T> backingSerializer, Map<String, ?> configs) {
         this.backingSerializer = backingSerializer;
-        this.topicResolver = new ResolvingClientConfig(configs).getTopicResolver();
+        this.topicResolver = new ResolvingClientConfig(configs).topicResolver();
     }
 
     @Override

@@ -22,11 +22,7 @@ package io.axual.ksml.operation;
 
 
 import io.axual.ksml.generator.TopologyBuildContext;
-import io.axual.ksml.stream.CogroupedKStreamWrapper;
-import io.axual.ksml.stream.KGroupedStreamWrapper;
-import io.axual.ksml.stream.SessionWindowedCogroupedKStreamWrapper;
-import io.axual.ksml.stream.SessionWindowedKStreamWrapper;
-import io.axual.ksml.stream.StreamWrapper;
+import io.axual.ksml.stream.*;
 import org.apache.kafka.streams.kstream.SessionWindows;
 
 public class WindowBySessionOperation extends BaseOperation {

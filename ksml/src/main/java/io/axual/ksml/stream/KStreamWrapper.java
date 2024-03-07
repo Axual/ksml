@@ -21,8 +21,8 @@ package io.axual.ksml.stream;
  */
 
 
-import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.StreamOperation;
 import org.apache.kafka.streams.kstream.KStream;
 

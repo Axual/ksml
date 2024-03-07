@@ -22,12 +22,12 @@ package io.axual.ksml.data.mapper;
 
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.SchemaLibrary;
 import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.value.Tuple;
-import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.type.*;
+import io.axual.ksml.data.value.Tuple;
 import lombok.Getter;
 import lombok.Setter;
 

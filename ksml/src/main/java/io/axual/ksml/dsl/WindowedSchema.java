@@ -21,11 +21,7 @@ package io.axual.ksml.dsl;
  */
 
 import io.axual.ksml.data.mapper.DataTypeSchemaMapper;
-import io.axual.ksml.data.schema.DataField;
-import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.DataSchemaConstants;
-import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.schema.KafkaStreamsSchemaMapper;
+import io.axual.ksml.data.schema.*;
 import io.axual.ksml.data.type.WindowedType;
 
 import java.util.ArrayList;

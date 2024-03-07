@@ -22,7 +22,7 @@ package io.axual.ksml.store;
 
 import lombok.Getter;
 
-import static io.axual.ksml.dsl.KSMLDSL.*;
+import static io.axual.ksml.dsl.KSMLDSL.Stores;
 
 @Getter
 public enum StoreType {

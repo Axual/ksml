@@ -23,12 +23,7 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
-import io.axual.ksml.stream.KGroupedStreamWrapper;
-import io.axual.ksml.stream.KGroupedTableWrapper;
-import io.axual.ksml.stream.KTableWrapper;
-import io.axual.ksml.stream.SessionWindowedKStreamWrapper;
-import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
+import io.axual.ksml.stream.*;
 import io.axual.ksml.user.UserReducer;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Windowed;

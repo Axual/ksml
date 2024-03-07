@@ -33,17 +33,17 @@ import org.junit.jupiter.params.provider.CsvSource;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PythonFunctionTest {
-    PythonContext context = new PythonContext();
-    ParameterDefinition one = new ParameterDefinition("one", DataInteger.DATATYPE);
-    ParameterDefinition two = new ParameterDefinition("two", DataInteger.DATATYPE);
-    ParameterDefinition[] params = new ParameterDefinition[]{one, two};
-    UserType resultType = new UserType(BinaryNotation.NOTATION_NAME, DataInteger.DATATYPE);
+    final PythonContext context = new PythonContext();
+    final ParameterDefinition one = new ParameterDefinition("one", DataInteger.DATATYPE);
+    final ParameterDefinition two = new ParameterDefinition("two", DataInteger.DATATYPE);
+    final ParameterDefinition[] params = new ParameterDefinition[]{one, two};
+    final UserType resultType = new UserType(BinaryNotation.NOTATION_NAME, DataInteger.DATATYPE);
 
     @ParameterizedTest
     @CsvSource({"1, 2, 3", "100,100,200", "100, -1, 99", "99, -100, -1"})
     void testAdditionExpression(Integer i1, Integer i2, Integer sum) {
         FunctionDefinition adderDef = FunctionDefinition.as("adder", params, null, null, "one + two", resultType, null);
-        PythonFunction adder = PythonFunction.fromAnon(context, "adder", adderDef, "adderLog");
+        PythonFunction adder = PythonFunction.forFunction(context, "test", "adder", adderDef);
 
         DataObject arg1 = new DataInteger(i1);
         DataObject arg2 = new DataInteger(i2);
@@ -64,7 +64,7 @@ public class PythonFunctionTest {
                     
                 """;
         FunctionDefinition adderDef = FunctionDefinition.as("adder", params, null, pythonCode.split("\n"), "myAddFunc(one, two)", resultType, null);
-        PythonFunction adder = PythonFunction.fromAnon(context, "adder", adderDef, "adderLog");
+        PythonFunction adder = PythonFunction.forFunction(context, "test", "adder", adderDef);
 
         DataObject arg1 = new DataInteger(i1);
         DataObject arg2 = new DataInteger(i2);
@@ -85,7 +85,7 @@ public class PythonFunctionTest {
                     
                 """;
         FunctionDefinition adderDef = FunctionDefinition.as("adder", params, pythonCode.split("\n"), null, "myAddFunc(one, two)", resultType, null);
-        PythonFunction adder = PythonFunction.fromAnon(context, "adder", adderDef, "adderLog");
+        PythonFunction adder = PythonFunction.forFunction(context, "test", "adder", adderDef);
 
         DataObject arg1 = new DataInteger(i1);
         DataObject arg2 = new DataInteger(i2);
