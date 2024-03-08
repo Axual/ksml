@@ -4,6 +4,15 @@
 
 ### Table of Contents
 
+* [Introduction](#introduction)
+* [Data types in Python](#data-types-in-python)
+  * [Data type mapping](#data-type-mapping)
+  * [Automatic conversion](#automatic-conversion)
+* [Function Types](#function-types)
+* [Function parameters](#function-parameters)
+  * [Logger](#logger)
+  * [State stores](#state-stores)
+
 ## Introduction
 
 Functions can be specified in the `functions` section of a KSML definition file. The layout typically looks like this:
