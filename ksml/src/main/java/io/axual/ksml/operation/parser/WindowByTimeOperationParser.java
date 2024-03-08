@@ -45,7 +45,7 @@ public class WindowByTimeOperationParser extends OperationParser<WindowByTimeOpe
                 stringField(KSMLDSL.TimeWindows.WINDOW_TYPE, "The type of the operation, either \"" + KSMLDSL.TimeWindows.TYPE_TUMBLING + "\", or \"" + KSMLDSL.TimeWindows.TYPE_HOPPING + "\", or \"" + KSMLDSL.TimeWindows.TYPE_SLIDING + "\""),
                 optional(durationField(KSMLDSL.TimeWindows.DURATION, "(Tumbling) The duration of time windows")),
                 optional(durationField(KSMLDSL.TimeWindows.ADVANCE_BY, "(Hopping) The amount of time to increase time windows by")),
-                optional(durationField(KSMLDSL.TimeWindows.GRACE, "(Tumbling, Hopping) The grace period, during which out-of-order records can still be processed")),
+                optional(durationField(KSMLDSL.TimeWindows.GRACE, "(Tumbling, Hopping, Sliding) The grace period, during which out-of-order records can still be processed")),
                 optional(durationField(KSMLDSL.TimeWindows.TIME_DIFFERENCE, "(Sliding) The maximum amount of time difference between two records")),
                 (type, name, windowType, duration, advanceBy, grace, timeDifference) -> {
                     switch (windowType) {

@@ -49,16 +49,12 @@ public class CogroupOperation extends StoreOperation {
         checkNotNull(aggregator, AGGREGATOR_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var vout = streamDataTypeOf(aggregator.resultType(), false);
-        final var aggr = userFunctionOf(context, AGGREGATOR_NAME, aggregator, vout, superOf(k), superOf(v), equalTo(vout));
+        final var vOut = streamDataTypeOf(aggregator.resultType(), false);
+        final var aggr = userFunctionOf(context, AGGREGATOR_NAME, aggregator, vOut, superOf(k), superOf(v), equalTo(vOut));
         final var userAggr = new UserAggregator(aggr);
-        final var kvStore = validateKeyValueStore(store(), k, vout);
-        final var mat = materializedOf(context, kvStore);
-        final var named = namedOf();
         final CogroupedKStream<Object, Object> output = input.groupedStream.cogroup(userAggr);
-        return new CogroupedKStreamWrapper(output, k, vout);
+        return new CogroupedKStreamWrapper(output, k, vOut);
     }
-
 
     @Override
     public StreamWrapper apply(CogroupedKStreamWrapper input, TopologyBuildContext context) {
@@ -68,8 +64,11 @@ public class CogroupOperation extends StoreOperation {
          *          final Aggregator<? super K, ? super VIn, VOut> aggregator)
          */
 
-        // This is a method that we can not support, due to the pipeline nature of KSML. Therefore, throw
-        // an exception with this explicit message.
-        throw new TopologyException("Cogrouping operation is not supported for CogroupStreams");
+        // This is a method that we do not support currently. Due to the pipeline nature of KSML, we can at most ask
+        // for a reference to a KGroupedStream as parameter. That parameter could currently only come from the result
+        // of another pipeline, which then happens to be of Java-type KGroupedStream. It seems a little far-fetched
+        // for KSML users to grasp the technicalities under the hood well enough to use this properly. Therefore, this
+        // is unsupported for now and we throw an exception with this explicit message.
+        throw new TopologyException("Cogroup operations are not supported for CogroupStreams");
     }
 }

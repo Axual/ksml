@@ -33,11 +33,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.ToLongFunction;
 
 public abstract class DefinitionParser<T> extends BaseParser<T> implements StructParser<T> {
     public static final String SCHEMA_NAMESPACE = "io.axual.ksml";
-    private static final DataSchema DURATION_SCHEMA = new UnionSchema(DataSchema.longSchema(), DataSchema.stringSchema());
+    private final DurationParser durationParser = new DurationParser();
     protected final ParserWithSchema<String> codeParser;
     // The global namespace for this definition parser. The namespace is the specified name in the runner configuration
     // for this particular KSML definition. It is used to prefix global names in Kafka Streams (eg. processor names) to
@@ -131,43 +130,6 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         }
     }
 
-    protected Duration parseDuration(String durationStr) {
-        if (durationStr == null) return null;
-        durationStr = durationStr.toLowerCase().trim();
-        if (durationStr.length() >= 2) {
-            // Prepare a function to extract the number part from a string formatted as "1234x".
-            // This function is only applied if a known unit character is found at the end of
-            // the duration string.
-            ToLongFunction<String> parser = ds -> Long.parseLong(ds.substring(0, ds.length() - 1));
-
-            // If the duration ends with a unit string, then use that for the duration basis
-            switch (durationStr.charAt(durationStr.length() - 1)) {
-                case 'd' -> {
-                    return Duration.ofDays(parser.applyAsLong(durationStr));
-                }
-                case 'h' -> {
-                    return Duration.ofHours(parser.applyAsLong(durationStr));
-                }
-                case 'm' -> {
-                    return Duration.ofMinutes(parser.applyAsLong(durationStr));
-                }
-                case 's' -> {
-                    return Duration.ofSeconds(parser.applyAsLong(durationStr));
-                }
-                case 'w' -> {
-                    return Duration.ofDays(parser.applyAsLong(durationStr) * 7);
-                }
-            }
-        }
-
-        try {
-            // If the duration does not contain a valid unit string, assume it is a whole number in millis
-            return Duration.ofMillis(Long.parseLong(durationStr));
-        } catch (NumberFormatException e) {
-            throw new TopologyException("Illegal duration: " + durationStr);
-        }
-    }
-
     protected <V> StructParser<V> freeField(String childName, V valueIfNull, String doc, ParserWithSchema<V> parser) {
         return new FieldParser<>(childName, false, valueIfNull, doc, parser);
     }
@@ -177,7 +139,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
     }
 
     protected StructParser<Duration> durationField(String childName, String doc) {
-        return freeField(childName, null, doc, ParserWithSchema.of(node -> parseDuration(new StringValueParser().parse(node)), DURATION_SCHEMA));
+        return freeField(childName, null, doc, durationParser);
     }
 
     protected StructParser<Integer> integerField(String childName, String doc) {

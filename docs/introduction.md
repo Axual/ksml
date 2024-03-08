@@ -135,7 +135,7 @@ Next is a list of functions that can be used by the processing logic. Here we de
 
 The third element `pipelines` defines the real processing logic. We define a pipeline called `consume_avro`, which takes messages from `ksml_sensordata_avro` and passes them to `print_message`.
 
-The definition file is parsed by KSML and translated into a Kafka Streams topology, which is [described](https://kafka.apache.org/27/javadoc/org/apache/kafka/streams/Topology.html#describe--) as follows:
+The definition file is parsed by KSML and translated into a Kafka Streams topology, which is [described](https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/Topology.html#describe--) as follows:
 
 ```
 Topologies:

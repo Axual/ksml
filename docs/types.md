@@ -42,33 +42,6 @@ The special type `any` can be used in places where input is uncertain. Code that
 with input of this type should always perform proper type checking before assuming
 any specific underlying type.
 
-## Duration
-
-A string representing a duration in time. It can be defined as follows:
-```
-###x
-```
-
-where `#` is a positive number between 0 and 999999 and `x` is an optional letter from the following table:
-
-| Letter | Description              |
-|--------|--------------------------|
-| _none_ | Duration in milliseconds |
-| s      | Duration in seconds      |
-| m      | Duration in minutes      |
-| h      | Duration in hours        |
-| d      | Duration in days         |
-| w      | Duration in weeks        |
-
-Examples:
-
-```
-100 ==> hundred milliseconds
-30s ==> thirty seconds
-8h ==> eight hours
-2w ==> two weeks
-```
-
 ## Enum
 
 Enumerations can be defined as individual types, through:
@@ -116,7 +89,7 @@ Unions are 'either-or' types. They have their own internal structure and can be 
 by respective data schema. Unions are defined using:
 
 ```
-union(type1, type2)
+union(type1, type2, ...)
 ```
 
 Examples:

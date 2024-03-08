@@ -77,3 +77,35 @@ four sink types in KSML:
 
 For more information, see the respective documentation
 on [pipeline definitions](specifications.md#definitions/PipelineDefinition).
+
+## Duration
+
+Some pipeline operations require specifying durations. Durations can be expressed
+as strings with the following syntax:
+
+```
+###x
+```
+
+where `#` is a positive number between 0 and 999999 and `x` is an optional letter from the following table:
+
+| Letter | Description              |
+|--------|--------------------------|
+| _none_ | Duration in milliseconds |
+| s      | Duration in seconds      |
+| m      | Duration in minutes      |
+| h      | Duration in hours        |
+| d      | Duration in days         |
+| w      | Duration in weeks        |
+
+Examples:
+
+```
+100 ==> hundred milliseconds
+30s ==> thirty seconds
+8h ==> eight hours
+2w ==> two weeks
+```
+
+Note that durations are _not_ a data type that can used as key or value on a Kafka
+topic.
