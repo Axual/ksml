@@ -7,6 +7,7 @@
 <!-- TOC -->
 * [Release Notes](#release-notes)
   * [Releases](#releases)
+    * [0.8.0 (2024-03-08)](#080-2024-03-08)
     * [0.2.2 (2024-01-30)](#022-2024-01-30)
     * [0.2.1 (2023-12-20)](#021-2023-12-20)
     * [0.2.0 (2023-12-07)](#020-2023-12-07)
@@ -16,6 +17,35 @@
     * [0.0.2 (2021-06-28)](#002-2021-06-28)
     * [0.0.1 (2021-04-30)](#001-2021-04-30)
 <!-- TOC -->
+
+### 0.8.0 (2024-03-08)
+* Reworked all parsing logic, to allow for exporting the JSON schema of the KSML specification:
+  * docs/specification.md is now derived from internal parser logic, guaranteeing consistency and completeness.
+  * examples/ksml.json contains the JSON schema, which can be loaded into IDEs for syntax validation and completion.
+* Improved schema handling:
+  * Better compatibility checking between schema fields.
+* Improved support for state stores:
+  * Update to state store typing and handling.
+  * Manual state stores can be defined and referenced in pipelines.
+  * Manual state stores are also available in Python functions.
+  * State stores can be used 'side-effect-free' (eg. no AVRO schema registration)
+* Python function improvements:
+  * Automatic variable assignment for state stores.
+  * Every Python function can use a Java Logger, integrating Python output with KSML log output.
+  * Type inference in situations where parameters or result types can be derived from the context.
+* Lots of small language updates:
+  * Improve readability for store types, filter operations and windowing operations
+  * Introduction of the "as" operation, which allows for pipeline referencing and chaining.
+* Better data type handling:
+  * Separation of data types and KSML core, allowing for easier addition of new data types in the future.
+  * Automatic conversion of data types, removing common pipeline failure scenarios.
+  * New implementation for CSV handling.
+* Merged the different runners into a single runner.
+  * KSML definitions can now include both producers (data generators) and pipelines (Kafka Streams topologies).
+  * Removal of Kafka and Axual backend distinctions.
+* Configuration file updates, allowing for running multiple definitions in a single runner (each in its own namespace).
+* Examples updated to reflect the latest definition format.
+* Documentation updated.
 
 ### 0.2.2 (2024-01-30)
 

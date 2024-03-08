@@ -89,13 +89,8 @@ services:
                        kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic io.ksml.example.processor-ownerCount-changelog'"
 
   example-producer:
-    image: axual/ksml:local
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: ksml
+    image: axual/ksml:0.8.0
     hostname: kafka-data-generator
-
     restart: always
     networks:
       - ksml
