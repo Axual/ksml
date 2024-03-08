@@ -22,21 +22,28 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.GlobalTableDefinition;
-import io.axual.ksml.parser.BaseParser;
-import io.axual.ksml.parser.UserTypeParser;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.parser.DefinitionParser;
+import io.axual.ksml.parser.StructParser;
 
-import static io.axual.ksml.dsl.KSMLDSL.KEYTYPE_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.TOPIC_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.VALUETYPE_ATTRIBUTE;
+public class GlobalTableDefinitionParser extends DefinitionParser<GlobalTableDefinition> {
+    private final boolean requireKeyValueType;
 
-public class GlobalTableDefinitionParser extends BaseParser<GlobalTableDefinition> {
+    public GlobalTableDefinitionParser(boolean requireKeyValueType) {
+        this.requireKeyValueType = requireKeyValueType;
+    }
+
     @Override
-    public GlobalTableDefinition parse(YamlNode node) {
-        if (node == null) return null;
-        return new GlobalTableDefinition(
-                parseString(node, TOPIC_ATTRIBUTE),
-                UserTypeParser.parse(parseString(node, KEYTYPE_ATTRIBUTE)),
-                UserTypeParser.parse(parseString(node, VALUETYPE_ATTRIBUTE)));
+    public StructParser<GlobalTableDefinition> parser() {
+        final var keyField = userTypeField(KSMLDSL.Streams.KEY_TYPE, "The key type of the global table");
+        final var valueField = userTypeField(KSMLDSL.Streams.VALUE_TYPE, "The value type of the global table");
+        return structParser(
+                GlobalTableDefinition.class,
+                requireKeyValueType ? "" : "WithOptionalTypes",
+                "Contains a definition of a GlobalTable, which can be referenced by producers and pipelines",
+                stringField(KSMLDSL.Streams.TOPIC, "The name of the Kafka topic for this global table"),
+                requireKeyValueType ? keyField : optional(keyField),
+                requireKeyValueType ? valueField : optional(valueField),
+                GlobalTableDefinition::new);
     }
 }

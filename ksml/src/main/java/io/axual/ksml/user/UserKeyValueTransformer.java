@@ -20,16 +20,16 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
-
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.python.Invoker;
 import io.axual.ksml.store.StateStores;
-import io.axual.ksml.util.DataUtil;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 
 public class UserKeyValueTransformer extends Invoker implements KeyValueMapper<Object, Object, KeyValue<Object, Object>> {
+    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
     private final static DataType EXPECTED_RESULT_TYPE = new TupleType(DataType.UNKNOWN, DataType.UNKNOWN);
 
     public UserKeyValueTransformer(UserFunction function) {
@@ -45,10 +45,9 @@ public class UserKeyValueTransformer extends Invoker implements KeyValueMapper<O
     }
 
     public KeyValue<Object, Object> apply(StateStores stores, Object key, Object value) {
-        verifyAppliedResultType(EXPECTED_RESULT_TYPE);
-        final var kr = ((TupleType) function.appliedResultType.dataType()).subType(0);
-        final var vr = ((TupleType) function.appliedResultType.dataType()).subType(1);
-        final var result = function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
+        final var kr = ((TupleType) function.resultType.dataType()).subType(0);
+        final var vr = ((TupleType) function.resultType.dataType()).subType(1);
+        final var result = function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value));
         return function.convertToKeyValue(result, kr, vr);
     }
 }

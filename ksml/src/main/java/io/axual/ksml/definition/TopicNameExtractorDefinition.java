@@ -21,15 +21,15 @@ package io.axual.ksml.definition;
  */
 
 
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.type.UserType;
 
 import static io.axual.ksml.definition.DefinitionConstants.TOPIC_NAME_EXTRACTOR_PARAMETERS;
 
 public class TopicNameExtractorDefinition extends FunctionDefinition {
     public TopicNameExtractorDefinition(FunctionDefinition definition) {
         super(definition
-                .withParameters(mergeParameters(TOPIC_NAME_EXTRACTOR_PARAMETERS, definition.parameters))
-                .withResult(new UserType(definition.resultType.notation(), DataString.DATATYPE)));
+                .withParameters(mergeParameters(TOPIC_NAME_EXTRACTOR_PARAMETERS, definition.parameters()))
+                .withResult(new UserType(definition.resultType().notation(), DataString.DATATYPE)));
     }
 }

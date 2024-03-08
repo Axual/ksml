@@ -21,47 +21,53 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataBoolean;
-import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.processor.FilterProcessor;
-import io.axual.ksml.operation.processor.OperationProcessorSupplier;
+import io.axual.ksml.operation.processor.FixedKeyOperationProcessorSupplier;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserPredicate;
 import org.apache.kafka.streams.kstream.Named;
 
-public class FilterOperation extends BaseOperation {
+public class FilterOperation extends StoreOperation {
     private static final String PREDICATE_NAME = "Predicate";
-    private final UserFunction predicate;
+    private final FunctionDefinition predicate;
 
-    public FilterOperation(OperationConfig config, UserFunction predicate) {
+    public FilterOperation(StoreOperationConfig config, FunctionDefinition predicate) {
         super(config);
         this.predicate = predicate;
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
+        /*    Kafka Streams method signature:
+         *    KStream<K, V> filter(
+         *          final Predicate<? super K, ? super V> predicate
+         *          final Named named)
+         */
+
         final var k = input.keyType();
         final var v = input.valueType();
-        checkFunction(PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k), superOf(v));
-
-        final var action = new UserPredicate(predicate);
-        final var storeNames = combineStoreNames(this.storeNames, predicate.storeNames);
-        final var supplier = new OperationProcessorSupplier<>(
+        final var pred = userFunctionOf(context, PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k), superOf(v));
+        final var userPred = new UserPredicate(pred);
+        final var storeNames = combineStoreNames(this.storeNames, predicate.storeNames().toArray(TEMPLATE));
+        final var supplier = new FixedKeyOperationProcessorSupplier<>(
                 name,
                 FilterProcessor::new,
-                (stores, record) -> action.test(stores, record.key(), record.value()),
+                (stores, record) -> userPred.test(stores, record.key(), record.value()),
                 storeNames);
         final var output = name != null
-                ? input.stream.process(supplier, Named.as(name), storeNames)
-                : input.stream.process(supplier, storeNames);
+                ? input.stream.processValues(supplier, Named.as(name), storeNames)
+                : input.stream.processValues(supplier, storeNames);
         return new KStreamWrapper(output, k, v);
     }
 
     @Override
-    public StreamWrapper apply(KTableWrapper input) {
+    public StreamWrapper apply(KTableWrapper input, TopologyBuildContext context) {
         /*    Kafka Streams method signature:
          *    KTable<K, V> filterNot(
          *          final Predicate<? super K, ? super V> predicate
@@ -70,10 +76,18 @@ public class FilterOperation extends BaseOperation {
 
         final var k = input.keyType();
         final var v = input.valueType();
-        checkFunction(PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k), superOf(v));
-        final var output = name != null
-                ? input.table.filter(new UserPredicate(predicate), Named.as(name))
-                : input.table.filter(new UserPredicate(predicate));
+        final var pred = userFunctionOf(context, PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k), superOf(v));
+        final var userPred = new UserPredicate(pred);
+        final var kvStore = validateKeyValueStore(store(), k, v);
+        final var mat = materializedOf(context, kvStore);
+        final var named = namedOf();
+        final var output = named != null
+                ? mat != null
+                ? input.table.filter(userPred, named, mat)
+                : input.table.filter(userPred, named)
+                : mat != null
+                ? input.table.filter(userPred, mat)
+                : input.table.filter(userPred);
         return new KTableWrapper(output, k, v);
     }
 }

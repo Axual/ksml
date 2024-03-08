@@ -40,6 +40,8 @@ public class DefinitionConstants {
     }
 
     public static final ParameterDefinition[] NO_PARAMETERS = new ParameterDefinition[]{};
+    public static final ParameterDefinition[] FOREIGN_KEY_EXTRACTOR_PARAMETERS = new ParameterDefinition[]{
+            new ParameterDefinition(PARAM_VALUE, DataType.UNKNOWN)};
     public static final ParameterDefinition[] KEY_AND_TWO_VALUE_PARAMETERS = new ParameterDefinition[]{
             new ParameterDefinition(PARAM_KEY, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_VALUE1, DataType.UNKNOWN),

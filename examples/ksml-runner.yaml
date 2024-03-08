@@ -4,20 +4,21 @@ ksml:
   schemaDirectory: /ksml # When not set defaults to the config directory
   storageDirectory: /tmp # When not set defaults to the default JVM temp directory
   definitions:
-  - 01-example-inspect.yaml
-#  - 02-example-copy.yaml
-#  - 03-example-filter.yaml
-#  - 04-example-branch.yaml
-#  - 05-example-route.yaml
-#  - 06-example-duplicate.yaml
-#  - 07-example-convert.yaml
-#  - 08-example-count.yaml
-#  - 09-example-aggregate.yaml
-#  - 10-example-queryabletable.yaml
-#  - 11-example-fieldmodification.yaml
-#  - 12-example-bytemanipulation.yaml
-#  - 13-example-join.yaml
-#  - 14-example-manual-state-store.yaml
+    inspect: 01-example-inspect.yaml
+#    copy: 02-example-copy.yaml
+#    filter: 03-example-filter.yaml
+#    branch: 04-example-branch.yaml
+#    route: 05-example-route.yaml
+#    duplicate: 06-example-duplicate.yaml
+#    convert: 07-example-convert.yaml
+#    count: 08-example-count.yaml
+#    aggregate: 09-example-aggregate.yaml
+#    queryable_table: 10-example-queryable-table.yaml
+#    field_modification: 11-example-field-modification.yaml
+#    byte_manipulation: 12-example-byte-manipulation.yaml
+#    join: 13-example-join.yaml
+#    manual_state_store: 14-example-manual-state-store.yaml
+#    pipeline_linking: 15-example-pipeline-linking.yaml
 
 # This setup connects to the Kafka broker and schema registry started with the example docker-compose file
 # These examples are intended to run from a inside a container on the same network

@@ -5,8 +5,8 @@
 ### Table of Contents
 1. [Introduction](#introduction)
 2. [Generic configuration](#generic-configuration)
-    * [Kafka backend](#kafka-backend)
-    * [Axual backend](#axual-backend)
+    * [Kafka runner](#kafka-runner)
+    * [Axual runner](#axual-runner)
 3. [Starting a container](#starting-a-container)
 
 ## Introduction
@@ -29,16 +29,19 @@ docker compose logs -f
 
 Press CTRL-C when you verified data is produced. This typically looks like this:
 ```
-example-producer_1  | 2021-05-11T07:28:31,005Z [system] [main] INFO  i.a.k.e.producer.KSMLExampleProducer - Producing: 1787
-example-producer_1  | 2021-05-11T07:28:31,006Z [system] [main] INFO  i.a.k.e.producer.KSMLExampleProducer - Produced message to topic ksml_sensordata_avro partition 0 offset 1787
-example-producer_1  | 2021-05-11T07:28:31,506Z [system] [main] INFO  i.a.k.e.producer.KSMLExampleProducer - Producing: 1788
-example-producer_1  | 2021-05-11T07:28:31,508Z [system] [main] INFO  i.a.k.e.producer.KSMLExampleProducer - Produced message to topic ksml_sensordata_avro partition 0 offset 1788
-example-producer_1  | 2021-05-11T07:28:32,008Z [system] [main] INFO  i.a.k.e.producer.KSMLExampleProducer - Producing: 1789
-example-producer_1  | 2021-05-11T07:28:32,010Z [system] [main] INFO  i.a.k.e.producer.KSMLExampleProducer - Produced message to topic ksml_sensordata_avro partition 0 offset 1789
-example-producer_1  | 2021-05-11T07:28:32,510Z [system] [main] INFO  i.a.k.e.producer.KSMLExampleProducer - Producing: 1790
-example-producer_1  | 2021-05-11T07:28:32,512Z [system] [main] INFO  i.a.k.e.producer.KSMLExampleProducer - Produced message to topic ksml_sensordata_avro partition 0 offset 1790
-example-producer_1  | 2021-05-11T07:28:33,012Z [system] [main] INFO  i.a.k.e.producer.KSMLExampleProducer - Producing: 1791
-example-producer_1  | 2021-05-11T07:28:33,013Z [system] [main] INFO  i.a.k.e.producer.KSMLExampleProducer - Produced message to topic ksml_sensordata_avro partition 0 offset 1791
+example-producer-1  | 2024-03-06T20:24:49,480Z INFO  i.a.k.r.backend.KafkaProducerRunner  Calling generate_sensordata_message
+example-producer-1  | 2024-03-06T20:24:49,480Z INFO  i.a.k.r.backend.ExecutableProducer   Message: key=sensor2, value=SensorData: {"city":"Utrecht", "color":"white", "name":"sensor2", "owner":"Alice", "timestamp":1709756689480, "type":"HUMIDITY", "unit":"%", "value":"66"}
+example-producer-1  | 2024-03-06T20:24:49,481Z INFO  i.a.k.r.backend.ExecutableProducer   Produced message to ksml_sensordata_avro, partition 0, offset 1975
+example-producer-1  | 2024-03-06T20:24:49,481Z INFO  i.a.k.r.backend.KafkaProducerRunner  Calling generate_sensordata_message
+example-producer-1  | 2024-03-06T20:24:49,481Z INFO  i.a.k.r.backend.ExecutableProducer   Message: key=sensor3, value=SensorData: {"city":"Alkmaar", "color":"black", "name":"sensor3", "owner":"Dave", "timestamp":"1709756689481", "type":"STATE", "unit":"state", "value":"off"}
+example-producer-1  | 2024-03-06T20:24:49,483Z INFO  i.a.k.r.backend.Execut^Cestamp":1709756689814, "type":"AREA", "unit":"ft2", "value":"76"}
+example-producer-1  | 2024-03-06T20:24:49,815Z INFO  i.a.k.r.backend.ExecutableProducer   Produced message to ksml_sensordata_xml, partition 0, offset 1129
+example-producer-1  | 2024-03-06T20:24:49,921Z INFO  i.a.k.r.backend.KafkaProducerRunner  Calling generate_sensordata_message
+example-producer-1  | 2024-03-06T20:24:49,922Z INFO  i.a.k.r.backend.ExecutableProducer   Message: key=sensor6, value=SensorData: {"city":"Amsterdam", "color":"yellow", "name":"sensor6", "owner":"Evan", "timestamp":1709756689922, "type":"AREA", "unit":"m2", "value":"245"}
+example-producer-1  | 2024-03-06T20:24:49,923Z INFO  i.a.k.r.backend.ExecutableProducer   Produced message to ksml_sensordata_avro, partition 0, offset 1976
+example-producer-1  | 2024-03-06T20:24:50,035Z INFO  i.a.k.r.backend.KafkaProducerRunner  Calling generate_sensordata_message
+example-producer-1  | 2024-03-06T20:24:50,035Z INFO  i.a.k.r.backend.ExecutableProducer   Message: key=sensor7, value=SensorData: {"city":"Alkmaar", "color":"black", "name":"sensor7", "owner":"Dave", "timestamp":"1709756690035", "type":"TEMPERATURE", "unit":"C", "value":"0"}
+
 ```
 
 
@@ -53,19 +56,18 @@ To start a container which executes the example KSML definitions, type
 This will start the KSML docker container. You should see the following typical output:
 
 ```
-2021-05-11T07:20:22,844Z [system] [pool-1-thread-1] INFO  i.a.k.r.backend.kafka.KafkaBackend - Starting Kafka Backend
-key=sensor0, value={'owner': 'Evan', 'color': 'blue', 'city': 'Leiden', '@type': 'io.axual.ksml.example.SensorData', 'type': 'STATE', 'unit': 'state', 'name': 'sensor0', 'value': 'off', 'timestamp': 1620717212876L}
-key=sensor1, value={'owner': 'Alice', 'color': 'red', 'city': 'Alkmaar', '@type': 'io.axual.ksml.example.SensorData', 'type': 'TEMPERATURE', 'unit': 'F', 'name': 'sensor1', 'value': '811', 'timestamp': 1620717213896L}
-key=sensor2, value={'owner': 'Charlie', 'color': 'white', 'city': 'Leiden', '@type': 'io.axual.ksml.example.SensorData', 'type': 'STATE', 'unit': 'state', 'name': 'sensor2', 'value': 'on', 'timestamp': 1620717214404L}
-key=sensor3, value={'owner': 'Alice', 'color': 'blue', 'city': 'Alkmaar', '@type': 'io.axual.ksml.example.SensorData', 'type': 'AREA', 'unit': 'ft2', 'name': 'sensor3', 'value': '580', 'timestamp': 1620717214908L}
-key=sensor4, value={'owner': 'Charlie', 'color': 'blue', 'city': 'Leiden', '@type': 'io.axual.ksml.example.SensorData', 'type': 'STATE', 'unit': 'state', 'name': 'sensor4', 'value': 'off', 'timestamp': 1620717215412L}
-key=sensor5, value={'owner': 'Alice', 'color': 'black', 'city': 'Leiden', '@type': 'io.axual.ksml.example.SensorData', 'type': 'LENGTH', 'unit': 'm', 'name': 'sensor5', 'value': '307', 'timestamp': 1620717215917L}
-key=sensor6, value={'owner': 'Evan', 'color': 'yellow', 'city': 'Amsterdam', '@type': 'io.axual.ksml.example.SensorData', 'type': 'HUMIDITY', 'unit': '%', 'name': 'sensor6', 'value': '98', 'timestamp': 1620717216421L}
-key=sensor7, value={'owner': 'Charlie', 'color': 'black', 'city': 'Xanten', '@type': 'io.axual.ksml.example.SensorData', 'type': 'AREA', 'unit': 'ft2', 'name': 'sensor7', 'value': '391', 'timestamp': 1620717216924L}
-key=sensor8, value={'owner': 'Dave', 'color': 'yellow', 'city': 'Utrecht', '@type': 'io.axual.ksml.example.SensorData', 'type': 'LENGTH', 'unit': 'ft', 'name': 'sensor8', 'value': '592', 'timestamp': 1620717217428L}
-key=sensor9, value={'owner': 'Charlie', 'color': 'blue', 'city': 'Xanten', '@type': 'io.axual.ksml.example.SensorData', 'type': 'TEMPERATURE', 'unit': 'C', 'name': 'sensor9', 'value': '558', 'timestamp': 1620717217932L}
-key=sensor0, value={'owner': 'Alice', 'color': 'black', 'city': 'Leiden', '@type': 'io.axual.ksml.example.SensorData', 'type': 'LENGTH', 'unit': 'ft', 'name': 'sensor0', 'value': '706', 'timestamp': 1620717218435L}
-key=sensor1, value={'owner': 'Bob', 'color': 'yellow', 'city': 'Utrecht', '@type': 'io.axual.ksml.example.SensorData', 'type': 'STATE', 'unit': 'state', 'name': 'sensor1', 'value': 'off', 'timestamp': 1620717218940L
+2024-03-06T20:24:51,921Z INFO  io.axual.ksml.runner.KSMLRunner      Starting KSML Runner 1.76.0.0
+...
+...
+...
+...
+2024-03-06T20:24:57,196Z INFO  ksml.functions.log_message  Consumed AVRO message - key=sensor9, value={'city': 'Alkmaar', 'color': 'yellow', 'name': 'sensor9', 'owner': 'Bob', 'timestamp': 1709749917190, 'type': 'LENGTH', 'unit': 'm', 'value': '562', '@type': 'SensorData', '@schema': { <<Cleaned KSML Representation of Avro Schema>>}}
+2024-03-06T20:24:57,631Z INFO  ksml.functions.log_message  Consumed AVRO message - key=sensor3, value={'city': 'Amsterdam', 'color': 'blue', 'name': 'sensor3', 'owner': 'Bob', 'timestamp': 1709749917628, 'type': 'HUMIDITY', 'unit': 'g/m3', 'value': '23', '@type': 'SensorData', '@schema': { <<Cleaned KSML Representation of Avro Schema>>}}
+2024-03-06T20:24:58,082Z INFO  ksml.functions.log_message  Consumed AVRO message - key=sensor6, value={'city': 'Amsterdam', 'color': 'white', 'name': 'sensor6', 'owner': 'Bob', 'timestamp': 1709749918078, 'type': 'TEMPERATURE', 'unit': 'F', 'value': '64', '@type': 'SensorData', '@schema': { <<Cleaned KSML Representation of Avro Schema>>}}
+2024-03-06T20:24:58,528Z INFO  ksml.functions.log_message  Consumed AVRO message - key=sensor9, value={'city': 'Amsterdam', 'color': 'black', 'name': 'sensor9', 'owner': 'Evan', 'timestamp': 1709749918524, 'type': 'TEMPERATURE', 'unit': 'F', 'value': '87', '@type': 'SensorData', '@schema': { <<Cleaned KSML Representation of Avro Schema>>}}
+2024-03-06T20:24:58,970Z INFO  ksml.functions.log_message  Consumed AVRO message - key=sensor1, value={'city': 'Amsterdam', 'color': 'black', 'name': 'sensor1', 'owner': 'Bob', 'timestamp': 1709749918964, 'type': 'TEMPERATURE', 'unit': 'F', 'value': '75', '@type': 'SensorData', '@schema': { <<Cleaned KSML Representation of Avro Schema>>}}
+2024-03-06T20:24:59,412Z INFO  ksml.functions.log_message  Consumed AVRO message - key=sensor5, value={'city': 'Amsterdam', 'color': 'blue', 'name': 'sensor5', 'owner': 'Bob', 'timestamp': 1709749919409, 'type': 'LENGTH', 'unit': 'm', 'value': '658', '@type': 'SensorData', '@schema': { <<Cleaned KSML Representation of Avro Schema>>}}
+
 ```
 
 ## Next steps

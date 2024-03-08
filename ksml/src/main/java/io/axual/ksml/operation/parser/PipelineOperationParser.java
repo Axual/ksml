@@ -21,67 +21,57 @@ package io.axual.ksml.operation.parser;
  */
 
 
-import io.axual.ksml.exception.KSMLParseException;
-import io.axual.ksml.parser.BaseParser;
-import io.axual.ksml.parser.ContextAwareParser;
-import io.axual.ksml.parser.ParseContext;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.StreamOperation;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.parser.ChoiceParser;
+import io.axual.ksml.parser.StructParser;
 
-import static io.axual.ksml.dsl.KSMLDSL.*;
+import java.util.HashMap;
+import java.util.Map;
 
-public class PipelineOperationParser extends ContextAwareParser<StreamOperation> {
-    public PipelineOperationParser(ParseContext context) {
-        super(context);
+public class PipelineOperationParser extends ChoiceParser<StreamOperation> {
+    public PipelineOperationParser(TopologyResources resources) {
+        super(KSMLDSL.Operations.TYPE_ATTRIBUTE, "operation", null, types(resources));
     }
 
-    @Override
-    public StreamOperation parse(YamlNode node) {
-        if (node == null) return null;
-
-        final String type = parseString(node, PIPELINE_OPERATIONTYPE_ATTRIBUTE);
-        if (type == null) {
-            throw new KSMLParseException(node, "Type unspecified");
-        }
-
-        final String name = determineName(parseString(node, NAME_ATTRIBUTE), type);
-
-        BaseParser<? extends StreamOperation> parser = getParser(type, name);
-        if (parser != null) {
-            return parser.parse(node.appendName(type));
-        }
-
-        throw new KSMLParseException(node, "Unknown dataType \"" + type + "\" in pipeline operation " + name);
-    }
-
-    private BaseParser<? extends StreamOperation> getParser(String type, String name) {
-        return switch (type) {
-            case OPERATION_AGGREGATE_TYPE -> new AggregateOperationParser(name, context);
-            case OPERATION_CONVERTKEY_TYPE -> new ConvertKeyOperationParser(name, context);
-            case OPERATION_CONVERTKEYVALUE_TYPE -> new ConvertKeyValueOperationParser(name, context);
-            case OPERATION_CONVERTVALUE_TYPE -> new ConvertValueOperationParser(name, context);
-            case OPERATION_COUNT_TYPE -> new CountOperationParser(name, context);
-            case OPERATION_FILTER_TYPE -> new FilterOperationParser(name, context);
-            case OPERATION_FILTERNOT_TYPE -> new FilterNotOperationParser(name, context);
-            case OPERATION_FLATMAP_TYPE, OPERATION_TRANSFORMKEYVALUETOKEYVALUELIST_TYPE -> new TransformKeyValueToKeyValueListOperationParser(name, context);
-            case OPERATION_FLATMAPVALUES_TYPE, OPERATION_TRANSFORMKEYVALUETOVALUELIST_TYPE -> new TransformKeyValueToValueListOperationParser(name, context);
-            case OPERATION_GROUPBY_TYPE -> new GroupByOperationParser(name, context);
-            case OPERATION_GROUPBYKEY_TYPE -> new GroupByKeyOperationParser(name, context);
-            case OPERATION_JOIN_TYPE -> new JoinOperationParser(name, context);
-            case OPERATION_LEFTJOIN_TYPE -> new LeftJoinOperationParser(name, context);
-            case OPERATION_MAPKEY_TYPE, OPERATION_SELECTKEY_TYPE, OPERATION_TRANSFORMKEY_TYPE -> new TransformKeyOperationParser(name, context);
-            case OPERATION_MAP_TYPE, OPERATION_MAPKEYVALUE_TYPE, OPERATION_TRANSFORMKEYVALUE_TYPE -> new TransformKeyValueOperationParser(name, context);
-            case OPERATION_MAPVALUE_TYPE, OPERATION_MAPVALUES_TYPE, OPERATION_TRANSFORMVALUE_TYPE -> new TransformValueOperationParser(name, context);
-            case OPERATION_MERGE_TYPE -> new MergeOperationParser(name, context);
-            case OPERATION_OUTERJOIN_TYPE -> new OuterJoinOperationParser(name, context);
-            case OPERATION_PEEK_TYPE -> new PeekOperationParser(name, context);
-            case OPERATION_REDUCE_TYPE -> new ReduceOperationParser(name, context);
-            case OPERATION_REPARTITION_TYPE -> new RepartitionOperationParser(name, context);
-            case OPERATION_SUPPRESS_TYPE -> new SuppressOperationParser(name, context);
-            case OPERATION_TOSTREAM_TYPE -> new ToStreamOperationParser(name, context);
-            case OPERATION_WINDOWBYTIME_TYPE -> new WindowByTimeOperationParser(name,context);
-            case OPERATION_WINDOWBYSESSION_TYPE -> new WindowBySessionOperationParser(name,context);
-            default -> null;
-        };
+    private static Map<String, StructParser<? extends StreamOperation>> types(TopologyResources resources) {
+        final var result = new HashMap<String, StructParser<? extends StreamOperation>>();
+        result.put(KSMLDSL.Operations.AGGREGATE, new AggregateOperationParser(resources));
+        result.put(KSMLDSL.Operations.COGROUP, new CogroupOperationParser(resources));
+        result.put(KSMLDSL.Operations.CONVERT_KEY, new ConvertKeyOperationParser(resources));
+        result.put(KSMLDSL.Operations.CONVERT_KEY_VALUE, new ConvertKeyValueOperationParser(resources));
+        result.put(KSMLDSL.Operations.CONVERT_VALUE, new ConvertValueOperationParser(resources));
+        result.put(KSMLDSL.Operations.COUNT, new CountOperationParser(resources));
+        result.put(KSMLDSL.Operations.FILTER, new FilterOperationParser(resources));
+        result.put(KSMLDSL.Operations.FILTER_NOT, new FilterNotOperationParser(resources));
+        result.put(KSMLDSL.Operations.FLATMAP, new TransformKeyValueToKeyValueListOperationParser(resources));
+        result.put(KSMLDSL.Operations.TRANSFORM_KEY_VALUE_TO_KEY_VALUE_LIST, new TransformKeyValueToKeyValueListOperationParser(resources));
+        result.put(KSMLDSL.Operations.FLATMAP_VALUES, new TransformKeyValueToValueListOperationParser(resources));
+        result.put(KSMLDSL.Operations.TRANSFORM_KEY_VALUE_TO_VALUE_LIST, new TransformKeyValueToValueListOperationParser(resources));
+        result.put(KSMLDSL.Operations.GROUP_BY, new GroupByOperationParser(resources));
+        result.put(KSMLDSL.Operations.GROUP_BY_KEY, new GroupByKeyOperationParser(resources));
+        result.put(KSMLDSL.Operations.JOIN, new JoinOperationParser(resources));
+        result.put(KSMLDSL.Operations.LEFT_JOIN, new LeftJoinOperationParser(resources));
+        result.put(KSMLDSL.Operations.MAP_KEY, new TransformKeyOperationParser(resources));
+        result.put(KSMLDSL.Operations.SELECT_KEY, new TransformKeyOperationParser(resources));
+        result.put(KSMLDSL.Operations.TRANSFORM_KEY, new TransformKeyOperationParser(resources));
+        result.put(KSMLDSL.Operations.MAP, new TransformKeyValueOperationParser(resources));
+        result.put(KSMLDSL.Operations.MAP_KEY_VALUE, new TransformKeyValueOperationParser(resources));
+        result.put(KSMLDSL.Operations.TRANSFORM_KEY_VALUE, new TransformKeyValueOperationParser(resources));
+        result.put(KSMLDSL.Operations.MAP_VALUE, new TransformValueOperationParser(resources));
+        result.put(KSMLDSL.Operations.MAP_VALUES, new TransformValueOperationParser(resources));
+        result.put(KSMLDSL.Operations.TRANSFORM_VALUE, new TransformValueOperationParser(resources));
+        result.put(KSMLDSL.Operations.MERGE, new MergeOperationParser(resources));
+        result.put(KSMLDSL.Operations.OUTER_JOIN, new OuterJoinOperationParser(resources));
+        result.put(KSMLDSL.Operations.PEEK, new PeekOperationParser(resources));
+        result.put(KSMLDSL.Operations.REDUCE, new ReduceOperationParser(resources));
+        result.put(KSMLDSL.Operations.REPARTITION, new RepartitionOperationParser(resources));
+        result.put(KSMLDSL.Operations.SUPPRESS, new SuppressOperationParser(resources));
+        result.put(KSMLDSL.Operations.TO_STREAM, new ToStreamOperationParser(resources));
+        result.put(KSMLDSL.Operations.TO_TABLE, new ToTableOperationParser(resources));
+        result.put(KSMLDSL.Operations.WINDOW_BY_TIME, new WindowByTimeOperationParser(resources));
+        result.put(KSMLDSL.Operations.WINDOW_BY_SESSION, new WindowBySessionOperationParser(resources));
+        return result;
     }
 }

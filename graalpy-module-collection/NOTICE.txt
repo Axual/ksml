@@ -15,7 +15,7 @@ Lists of 21 third-party dependencies.
      (Unicode/ICU License) Truffle Icu4j (org.graalvm.shadowed:icu4j:23.1.1 - http://openjdk.java.net/projects/graal)
      (Universal Permissive License, Version 1.0) Truffle Json (org.graalvm.shadowed:json:23.1.1 - http://openjdk.java.net/projects/graal)
      (GNU General Public License, version 2, with the Classpath Exception) Truffle Profiler (org.graalvm.tools:profiler-tool:23.1.1 - http://openjdk.java.net/projects/graal)
-     (Universal Permissive License, Version 1.0) Truffle API (org.graalvm.truffle:truffle-api:23.1.0 - http://openjdk.java.net/projects/graal)
+     (Universal Permissive License, Version 1.0) Truffle API (org.graalvm.truffle:truffle-api:23.1.1 - http://openjdk.java.net/projects/graal)
      (Universal Permissive License, Version 1.0) Truffle Compiler (org.graalvm.truffle:truffle-compiler:23.1.1 - http://openjdk.java.net/projects/graal)
      (Universal Permissive License, Version 1.0) Truffle Nfi (org.graalvm.truffle:truffle-nfi:23.1.1 - http://openjdk.java.net/projects/graal)
      (Universal Permissive License, Version 1.0) Truffle Nfi Libffi (org.graalvm.truffle:truffle-nfi-libffi:23.1.1 - http://openjdk.java.net/projects/graal)

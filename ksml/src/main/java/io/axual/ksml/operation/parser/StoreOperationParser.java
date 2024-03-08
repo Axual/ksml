@@ -20,30 +20,57 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.ParseException;
+import io.axual.ksml.data.parser.NamedObjectParser;
+import io.axual.ksml.data.parser.ParseNode;
+import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.parser.StateStoreDefinitionParser;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.StoreOperation;
 import io.axual.ksml.operation.StoreOperationConfig;
-import io.axual.ksml.parser.BaseParser;
-import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.parser.ReferenceOrInlineParser;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.TopologyResourceParser;
+import io.axual.ksml.store.StoreType;
+
+import java.util.List;
 
 public abstract class StoreOperationParser<T extends StoreOperation> extends OperationParser<T> {
-    protected StoreOperationParser(ParseContext context) {
-        super(context);
+    public StoreOperationParser(String type, TopologyResources resources) {
+        super(type, resources);
     }
 
-    protected StoreOperationConfig storeOperationConfig(String name, YamlNode node, String childName) {
-        final var store = parseStoreInlineOrReference(node, childName, new StateStoreDefinitionParser());
+    protected StoreOperationConfig storeOperationConfig(String name, StateStoreDefinition store) {
+        return storeOperationConfig(name, store, null);
+    }
+
+    protected StoreOperationConfig storeOperationConfig(String name, StateStoreDefinition store, List<String> storeNames) {
         return new StoreOperationConfig(
-                name,
-                context.getNotationLibrary(),
+                resources().getUniqueOperationName(name != null ? name : type),
                 store,
-                context::registerStateStoreAsCreated);
+                storeNames);
     }
 
-    private StateStoreDefinition parseStoreInlineOrReference(YamlNode parent, String childName, BaseParser<StateStoreDefinition> parser) {
-        return new ReferenceOrInlineParser<>("state store", childName, context.getStoreDefinitions()::get, parser).parseDefinition(parent);
+    protected StructParser<StateStoreDefinition> storeField(boolean required, String doc, StoreType expectedStoreType) {
+        final var stateStoreParser = new StateStoreDefinitionParser(expectedStoreType);
+        final var resourceParser = new TopologyResourceParser<>("state store", KSMLDSL.Operations.STORE_ATTRIBUTE, doc, resources()::stateStore, stateStoreParser);
+        final var schema = required ? resourceParser.schema() : optional(resourceParser).schema();
+        return new StructParser<>() {
+            @Override
+            public StateStoreDefinition parse(ParseNode node) {
+                if (stateStoreParser instanceof NamedObjectParser nop)
+                    nop.defaultName(node.longName());
+                final var resource = resourceParser.parse(node);
+                if (resource != null && resource.definition() instanceof StateStoreDefinition def) return def;
+                if (!required) return null;
+                throw new ParseException(node, "Required state store is not defined");
+            }
+
+            @Override
+            public StructSchema schema() {
+                return schema;
+            }
+        };
     }
 }

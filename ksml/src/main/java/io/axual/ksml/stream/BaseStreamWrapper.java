@@ -21,21 +21,17 @@ package io.axual.ksml.stream;
  */
 
 
-
 import io.axual.ksml.generator.StreamDataType;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class BaseStreamWrapper implements StreamWrapper {
+    private final String streamType;
     private final StreamDataType keyType;
     private final StreamDataType valueType;
 
-    public String toString() {
-        String type = getClass().getSimpleName();
-        if (type.toLowerCase().endsWith("wrapper")) {
-            type = type.substring(0, type.length() - 7);
-        }
-        return type + "[key=" + keyType + ", value=" + valueType + "]";
+    public final String toString() {
+        return streamType + "[key=" + keyType + ", value=" + valueType + "]";
     }
 
     @Override

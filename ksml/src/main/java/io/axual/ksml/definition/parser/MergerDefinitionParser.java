@@ -21,14 +21,13 @@ package io.axual.ksml.definition.parser;
  */
 
 
-
 import io.axual.ksml.definition.MergerDefinition;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.parser.StructParser;
 
-public class MergerDefinitionParser extends FunctionDefinitionParser {
+public class MergerDefinitionParser extends FunctionDefinitionParser<MergerDefinition> {
     @Override
-    public MergerDefinition parse(YamlNode node) {
-        if (node == null) return null;
-        return new MergerDefinition(super.parse(node));
+    public StructParser<MergerDefinition> parser() {
+        return parserWithoutStores(MergerDefinition.class, KSMLDSL.Functions.TYPE_MERGER, "merger", MergerDefinition::new);
     }
 }

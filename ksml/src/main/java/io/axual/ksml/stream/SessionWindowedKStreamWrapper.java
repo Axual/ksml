@@ -21,21 +21,21 @@ package io.axual.ksml.stream;
  */
 
 
-import org.apache.kafka.streams.kstream.SessionWindowedKStream;
-
 import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.StreamOperation;
+import org.apache.kafka.streams.kstream.SessionWindowedKStream;
 
 public class SessionWindowedKStreamWrapper extends BaseStreamWrapper {
     public final SessionWindowedKStream<Object, Object> sessionWindowedKStream;
 
     public SessionWindowedKStreamWrapper(SessionWindowedKStream<Object, Object> sessionWindowedKStream, StreamDataType keyType, StreamDataType valueType) {
-        super(keyType, valueType);
+        super("SessionWindowedStream", keyType, valueType);
         this.sessionWindowedKStream = sessionWindowedKStream;
     }
 
     @Override
-    public StreamWrapper apply(StreamOperation operation) {
-        return operation.apply(this);
+    public StreamWrapper apply(StreamOperation operation, TopologyBuildContext context) {
+        return operation.apply(this, context);
     }
 }

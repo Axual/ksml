@@ -21,14 +21,13 @@ package io.axual.ksml.definition.parser;
  */
 
 
-
 import io.axual.ksml.definition.ValueTransformerDefinition;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.parser.StructParser;
 
-public class ValueTransformerDefinitionParser extends FunctionDefinitionParser {
+public class ValueTransformerDefinitionParser extends FunctionDefinitionParser<ValueTransformerDefinition> {
     @Override
-    public ValueTransformerDefinition parse(YamlNode node) {
-        if (node == null) return null;
-        return new ValueTransformerDefinition(super.parse(node));
+    public StructParser<ValueTransformerDefinition> parser() {
+        return parserWithStores(ValueTransformerDefinition.class, KSMLDSL.Functions.TYPE_VALUETRANSFORMER, "value transformer", ValueTransformerDefinition::new);
     }
 }

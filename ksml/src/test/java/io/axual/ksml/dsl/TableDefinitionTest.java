@@ -20,11 +20,13 @@ package io.axual.ksml.dsl;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.notation.Notation;
+import io.axual.ksml.data.notation.NotationLibrary;
+import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.TableDefinition;
-import io.axual.ksml.notation.Notation;
-import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.notation.binary.BinaryNotation;
+import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.stream.KTableWrapper;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -33,8 +35,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.HashMap;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -48,25 +48,25 @@ class TableDefinitionTest {
     @Mock
     private StreamsBuilder builder;
 
-    private final NotationLibrary notationLibrary = new NotationLibrary(new HashMap<>());
-
     @Mock
     Notation mockNotation;
 
     @Test
     void testTableDefinition() {
-        notationLibrary.register(BinaryNotation.NOTATION_NAME, mockNotation);
+        NotationLibrary.register(BinaryNotation.NOTATION_NAME, mockNotation);
         var stringType = UserTypeParser.parse("string");
 
         // given a TableDefinition
         var tableDefinition = new TableDefinition("topic", stringType, stringType, new KeyValueStateStoreDefinition("storename", stringType, stringType));
+        var resources = new TopologyResources("test");
 
+        var context = new TopologyBuildContext(builder, resources);
         // when it adds itself to Builder
-        var streamWrapper = tableDefinition.addToBuilder(builder, "name", notationLibrary, null);
+        var streamWrapper = context.getStreamWrapper(tableDefinition);
 
-        // it adds a ktable to the builder with key and value dataType, and returns a KTableWrapper instance
-        verify(mockNotation).getSerde(stringType.dataType(), true);
-        verify(mockNotation).getSerde(stringType.dataType(), false);
+        // it adds a KTable to the StreamsBuilder with key and value dataType, and returns a KTableWrapper instance
+        verify(mockNotation).serde(stringType.dataType(), true);
+        verify(mockNotation).serde(stringType.dataType(), false);
 
         verify(builder).table(eq("topic"), isA(Materialized.class));
         assertThat(streamWrapper, instanceOf(KTableWrapper.class));

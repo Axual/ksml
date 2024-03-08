@@ -20,12 +20,20 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.notation.NotationLibrary;
-import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
-@AllArgsConstructor
+@Getter
+@Slf4j
 public class OperationConfig {
-    public final String name;
-    public final NotationLibrary notationLibrary;
-    public String[] storeNames;
+    private final String name;
+    private final boolean allowStores;
+    private final String[] storeNames;
+
+    public OperationConfig(String name, String[] storeNames) {
+        this.name = name;
+        log.debug("Generated operation name: {}", this.name);
+        this.allowStores = storeNames != null;
+        this.storeNames = storeNames;
+    }
 }

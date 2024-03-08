@@ -21,70 +21,58 @@ package io.axual.ksml.parser;
  */
 
 
-import io.axual.ksml.definition.BaseStreamDefinition;
+import io.axual.ksml.data.parser.ParseNode;
+import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.definition.parser.BaseStreamDefinitionParser;
-import io.axual.ksml.exception.KSMLParseException;
-import io.axual.ksml.execution.FatalError;
-import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.UserFunction;
+import io.axual.ksml.definition.TopicDefinition;
+import io.axual.ksml.definition.TopologyResource;
+import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.generator.TopologyResources;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
-public abstract class ContextAwareParser<T> extends BaseParser<T> {
-    protected final ParseContext context;
+public abstract class ContextAwareParser<T> extends DefinitionParser<T> {
+    // The set of streams, functions and stores that producers and pipelines can reference
+    private final TopologyResources resources;
 
-    protected ContextAwareParser(ParseContext context) {
-        this.context = context;
+    protected ContextAwareParser(TopologyResources resources) {
+        this.resources = resources;
     }
 
-    protected <F extends FunctionDefinition> UserFunction parseFunction(YamlNode parent, String childName, BaseParser<F> parser) {
-        final var result = parseFunction(parent, childName, parser, true);
-        if (result == null) {
-            throw FatalError.parseError(parent, "Mandatory attribute \"" + childName + "\" is missing in the definition");
-        }
-        return result;
+    protected TopologyResources resources() {
+        if (resources != null) return resources;
+        throw new TopologyException("Topology resources not properly initialized. This is a programming error.");
     }
 
-    protected <F extends FunctionDefinition> UserFunction parseOptionalFunction(YamlNode parent, String childName, BaseParser<F> parser) {
-        if (parent.get(childName) == null) return null;
-        return parseFunction(parent, childName, parser, false);
+    protected <F extends FunctionDefinition> StructParser<FunctionDefinition> functionField(String childName, String doc, DefinitionParser<F> parser) {
+        final var resourceParser = new TopologyResourceParser<>("function", childName, doc, resources::function, parser);
+        return StructParser.of(resourceParser::parseDefinition, resourceParser.schema());
     }
 
-    protected <F extends FunctionDefinition> UserFunction parseFunction(YamlNode parent, String childName, BaseParser<F> parser, boolean allowNull) {
-        final var namedDefinition = new ReferenceOrInlineParser<>("function", childName, context.getFunctionDefinitions()::get, parser).parse(parent);
-        final var childNode = parent.appendName(childName);
-        final var functionName = childNode.getLongName();
-        if (namedDefinition == null || namedDefinition.definition() == null) {
-            if (allowNull) return null;
-            throw new KSMLParseException(parent, "Could not generate UserFunction for given definition: " + functionName);
-        }
-        return namedDefinition.name() != null
-                ? context.createNamedUserFunction(functionName, namedDefinition.definition())
-                : context.createAnonUserFunction(functionName, namedDefinition.definition(), childNode);
+    protected <S> StructParser<S> lookupField(String resourceType, String childName, String doc, Function<String, S> lookup, DefinitionParser<? extends S> parser) {
+        final var resourceParser = new TopologyResourceParser<>(resourceType, childName, doc, lookup, parser);
+        final var schema = resourceParser.schema();
+        return new StructParser<>() {
+            @Override
+            public S parse(ParseNode node) {
+                if (node == null) return null;
+                final var resource = resourceParser.parse(node);
+                return (resource != null) ? resource.definition() : null;
+            }
+
+            @Override
+            public StructSchema schema() {
+                return schema;
+            }
+        };
     }
 
-    protected <S extends BaseStreamDefinition> BaseStreamDefinition parseStreamInlineOrReference(YamlNode parent, String childName, BaseParser<S> parser) {
-        return new ReferenceOrInlineParser<>("stream", childName, context.getStreamDefinitions()::get, parser).parseDefinition(parent);
+    protected <S> StructParser<TopologyResource<S>> topologyResourceField(String resourceType, String childName, String doc, Function<String, S> lookup, DefinitionParser<S> parser) {
+        final var resourceParser = new TopologyResourceParser<>(resourceType, childName, doc, lookup, parser, true);
+        return StructParser.of(resourceParser::parse, resourceParser.schema());
     }
 
-    protected BaseStreamDefinition parseBaseStreamDefinition(YamlNode parent, String childName) {
-        return parseStreamInlineOrReference(parent, childName, new BaseStreamDefinitionParser(context));
-    }
-
-    protected StreamWrapper parseAndGetStreamWrapper(YamlNode parent) {
-        BaseStreamDefinition definition = new BaseStreamDefinitionParser(context).parse(parent);
-        return definition != null ? context.getStreamWrapper(definition) : null;
-    }
-
-    protected String determineName(String name, String type) {
-        if (name == null || name.trim().isEmpty()) {
-            return determineName(type);
-        }
-        return name.trim();
-    }
-
-    protected String determineName(String type) {
-        return String.format("%s_%03d", type, context.getTypeInstanceCounters().computeIfAbsent(type, t -> new AtomicInteger(1)).getAndIncrement());
+    public StructParser<TopicDefinition> topicField(String childName, String doc, DefinitionParser<? extends TopicDefinition> parser) {
+        return lookupField("topic", childName, doc, resources::topic, parser);
     }
 }

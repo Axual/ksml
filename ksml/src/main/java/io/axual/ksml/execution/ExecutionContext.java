@@ -20,18 +20,23 @@ package io.axual.ksml.execution;
  * =========================LICENSE_END==================================
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.errors.TopicAuthorizationException;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.errors.DeserializationExceptionHandler;
 import org.apache.kafka.streams.errors.ProductionExceptionHandler;
+import org.apache.kafka.streams.errors.StreamsException;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Base64;
+import java.util.stream.Collectors;
 
+@Slf4j
 public class ExecutionContext {
     public static final ExecutionContext INSTANCE = new ExecutionContext();
     private ErrorHandler consumeHandler;
@@ -80,7 +85,14 @@ public class ExecutionContext {
     }
 
     public StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse uncaughtException(Throwable throwable) {
-        processExceptionLogger.error("Caught unhandled exception, stopping this KSML instance", throwable);
+        if (throwable instanceof StreamsException streamsException) {
+            if (streamsException.getCause() instanceof TopicAuthorizationException topicAuthorizationException && !topicAuthorizationException.unauthorizedTopics().isEmpty()) {
+                log.error("Topic authorization exception was thrown. Please create / grant access to the following topics: \n"
+                        + topicAuthorizationException.unauthorizedTopics().stream().map(t -> "  * " + t + "\n").collect(Collectors.joining()));
+            }
+        } else {
+            processExceptionLogger.error("Caught unhandled exception, stopping this KSML instance", throwable);
+        }
         // Stop only the current instance of KSML
         return StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT;
     }

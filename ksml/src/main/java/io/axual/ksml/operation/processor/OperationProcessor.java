@@ -20,7 +20,7 @@ package io.axual.ksml.operation.processor;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.store.StateStores;
 import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.processor.api.Processor;
@@ -44,14 +44,9 @@ public abstract class OperationProcessor implements Processor<Object, Object, Ob
         for (String storeName : storeNames) {
             StateStore store = context.getStateStore(storeName);
             if (store == null) {
-                throw FatalError.executionError("Could not connect processor '" + name + "' to state store '" + storeName + "'");
+                throw new ExecutionException("Could not connect processor '" + name + "' to state store '" + storeName + "'");
             }
             stores.put(storeName, store);
         }
-    }
-
-    @Override
-    public void close() {
-        Processor.super.close();
     }
 }

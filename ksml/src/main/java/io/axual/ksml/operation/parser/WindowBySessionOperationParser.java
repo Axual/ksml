@@ -21,30 +21,32 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.WindowBySessionOperation;
-import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.parser.StructParser;
 import org.apache.kafka.streams.kstream.SessionWindows;
 
-import static io.axual.ksml.dsl.KSMLDSL.WINDOWEDBY_WINDOWTYPE_SESSION_GRACE;
-import static io.axual.ksml.dsl.KSMLDSL.WINDOWEDBY_WINDOWTYPE_SESSION_INACTIVITYGAP;
-
 public class WindowBySessionOperationParser extends OperationParser<WindowBySessionOperation> {
-    private final String name;
-
-    protected WindowBySessionOperationParser(String name, ParseContext context) {
-        super(context);
-        this.name = name;
+    public WindowBySessionOperationParser(TopologyResources resources) {
+        super(KSMLDSL.Operations.WINDOW_BY_SESSION, resources);
     }
 
     @Override
-    public WindowBySessionOperation parse(YamlNode node) {
-        if (node == null) return null;
-        final var duration = parseDuration(node, WINDOWEDBY_WINDOWTYPE_SESSION_INACTIVITYGAP, "Missing inactivityGap attribute for session window");
-        final var grace = parseDuration(node, WINDOWEDBY_WINDOWTYPE_SESSION_GRACE);
-        final var sessionWindows = (grace != null && grace.toMillis() > 0)
-                ? SessionWindows.ofInactivityGapAndGrace(duration, grace)
-                : SessionWindows.ofInactivityGapWithNoGrace(duration);
-        return new WindowBySessionOperation(parseConfig(node, name), sessionWindows);
+    public StructParser<WindowBySessionOperation> parser() {
+        return structParser(
+                WindowBySessionOperation.class,
+                "",
+                "Operation to window messages by session, configured by an inactivity gap",
+                operationTypeField(),
+                operationNameField(),
+                durationField(KSMLDSL.SessionWindows.INACTIVITY_GAP, "The inactivity gap, below which two messages are considered to be of the same session"),
+                optional(durationField(KSMLDSL.SessionWindows.GRACE, "(Tumbling, Hopping) The grace period, during which out-of-order records can still be processed")),
+                (type, name, inactivityGap, grace) -> {
+                    final var sessionWindows = (grace != null && grace.toMillis() > 0)
+                            ? SessionWindows.ofInactivityGapAndGrace(inactivityGap, grace)
+                            : SessionWindows.ofInactivityGapWithNoGrace(inactivityGap);
+                    return new WindowBySessionOperation(operationConfig(name), sessionWindows);
+                });
     }
 }

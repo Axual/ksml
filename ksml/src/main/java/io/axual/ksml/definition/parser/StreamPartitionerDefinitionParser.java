@@ -21,14 +21,17 @@ package io.axual.ksml.definition.parser;
  */
 
 
-
 import io.axual.ksml.definition.StreamPartitionerDefinition;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.parser.StructParser;
 
-public class StreamPartitionerDefinitionParser extends FunctionDefinitionParser {
+public class StreamPartitionerDefinitionParser extends FunctionDefinitionParser<StreamPartitionerDefinition> {
     @Override
-    public StreamPartitionerDefinition parse(YamlNode node) {
-        if (node == null) return null;
-        return new StreamPartitionerDefinition(super.parse(node));
+    public StructParser<StreamPartitionerDefinition> parser() {
+        return parserWithoutStores(
+                StreamPartitionerDefinition.class,
+                KSMLDSL.Functions.TYPE_STREAMPARTITIONER,
+                "stream partitioner",
+                (partitioner) -> partitioner != null ? new StreamPartitionerDefinition(partitioner) : null);
     }
 }

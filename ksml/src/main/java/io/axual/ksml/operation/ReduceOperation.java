@@ -21,26 +21,22 @@ package io.axual.ksml.operation;
  */
 
 
-import io.axual.ksml.stream.KGroupedStreamWrapper;
-import io.axual.ksml.stream.KGroupedTableWrapper;
-import io.axual.ksml.stream.KTableWrapper;
-import io.axual.ksml.stream.SessionWindowedKStreamWrapper;
-import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
-import io.axual.ksml.user.UserFunction;
+import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.stream.*;
 import io.axual.ksml.user.UserReducer;
 import org.apache.kafka.streams.kstream.KTable;
-import org.apache.kafka.streams.kstream.Named;
+import org.apache.kafka.streams.kstream.Windowed;
 
 public class ReduceOperation extends StoreOperation {
     private static final String ADDER_NAME = "Adder";
     private static final String REDUCER_NAME = "Reducer";
     private static final String SUBTRACTOR_NAME = "Subtractor";
-    private final UserFunction reducer;
-    private final UserFunction adder;
-    private final UserFunction subtractor;
+    private final FunctionDefinition reducer;
+    private final FunctionDefinition adder;
+    private final FunctionDefinition subtractor;
 
-    public ReduceOperation(StoreOperationConfig config, UserFunction reducer, UserFunction adder, UserFunction subtractor) {
+    public ReduceOperation(StoreOperationConfig config, FunctionDefinition reducer, FunctionDefinition adder, FunctionDefinition subtractor) {
         super(config);
         this.reducer = reducer;
         this.adder = adder;
@@ -48,26 +44,24 @@ public class ReduceOperation extends StoreOperation {
     }
 
     @Override
-    public StreamWrapper apply(KGroupedStreamWrapper input) {
+    public StreamWrapper apply(KGroupedStreamWrapper input, TopologyBuildContext context) {
         final var k = input.keyType();
         final var v = input.valueType();
-        checkFunction(REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
-        final var kvStore = validateKeyValueStore(store, k, v);
-
-        if (kvStore != null) {
-            final var mat = materialize(kvStore);
-            final var output = name != null
-                    ? input.groupedStream.reduce(new UserReducer(reducer), Named.as(name), mat)
-                    : input.groupedStream.reduce(new UserReducer(reducer), mat);
-            return new KTableWrapper(output, k, v);
-        }
-
-        final var output = input.groupedStream.reduce(new UserReducer(reducer));
+        final var red = userFunctionOf(context, REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
+        final var userRed = new UserReducer(red);
+        final var kvStore = validateKeyValueStore(store(), k, v);
+        final var mat = materializedOf(context, kvStore);
+        final var named = namedOf();
+        final KTable<Object, Object> output = mat != null
+                ? named != null
+                ? input.groupedStream.reduce(userRed, named, mat)
+                : input.groupedStream.reduce(userRed, mat)
+                : input.groupedStream.reduce(userRed);
         return new KTableWrapper(output, k, v);
     }
 
     @Override
-    public StreamWrapper apply(KGroupedTableWrapper input) {
+    public StreamWrapper apply(KGroupedTableWrapper input, TopologyBuildContext context) {
         /*    Kafka Streams method signature:
          *    KTable<K, V> reduce(
          *          final Reducer<V> adder,
@@ -78,24 +72,23 @@ public class ReduceOperation extends StoreOperation {
 
         final var k = input.keyType();
         final var v = input.valueType();
-        checkFunction(ADDER_NAME, adder, v, equalTo(v), equalTo(v));
-        checkFunction(SUBTRACTOR_NAME, subtractor, v, equalTo(v), equalTo(v));
-        final var kvStore = validateKeyValueStore(store, k, v);
-
-        if (kvStore != null) {
-            final var mat = materialize(kvStore);
-            final var output = name != null
-                    ? input.groupedTable.reduce(new UserReducer(reducer), new UserReducer(subtractor), Named.as(name), mat)
-                    : input.groupedTable.reduce(new UserReducer(reducer), new UserReducer(subtractor), mat);
-            return new KTableWrapper(output, k, v);
-        }
-
-        final var output = input.groupedTable.reduce(new UserReducer(reducer), new UserReducer(subtractor));
+        final var add = userFunctionOf(context, ADDER_NAME, adder, v, equalTo(v), equalTo(v));
+        final var userAdd = new UserReducer(add);
+        final var sub = userFunctionOf(context, SUBTRACTOR_NAME, subtractor, v, equalTo(v), equalTo(v));
+        final var userSub = new UserReducer(sub);
+        final var kvStore = validateKeyValueStore(store(), k, v);
+        final var mat = materializedOf(context, kvStore);
+        final var named = namedOf();
+        final KTable<Object, Object> output = mat != null
+                ? named != null
+                ? input.groupedTable.reduce(userAdd, userSub, named, mat)
+                : input.groupedTable.reduce(userAdd, userSub, mat)
+                : input.groupedTable.reduce(userAdd, userSub);
         return new KTableWrapper(output, k, v);
     }
 
     @Override
-    public StreamWrapper apply(SessionWindowedKStreamWrapper input) {
+    public StreamWrapper apply(SessionWindowedKStreamWrapper input, TopologyBuildContext context) {
         /*    Kafka Streams method signature:
          *    KTable<Windowed<K>, V> reduce(
          *          final Reducer<V> reducer,
@@ -106,24 +99,21 @@ public class ReduceOperation extends StoreOperation {
         final var k = input.keyType();
         final var v = input.valueType();
         final var windowedK = windowedTypeOf(k);
-        checkFunction(REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
-
-        final var sessionStore = validateSessionStore(store, windowedK, v);
-
-        if (sessionStore != null) {
-            final var mat = materialize(sessionStore);
-            final var output = name != null
-                    ? (KTable) input.sessionWindowedKStream.reduce(new UserReducer(reducer), Named.as(name), mat)
-                    : (KTable) input.sessionWindowedKStream.reduce(new UserReducer(reducer), mat);
-            return new KTableWrapper(output, windowedK, v);
-        }
-
-        final var output = (KTable) input.sessionWindowedKStream.reduce(new UserReducer(reducer));
-        return new KTableWrapper(output, windowedK, v);
+        final var red = userFunctionOf(context, REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
+        final var userRed = new UserReducer(red);
+        final var sessionStore = validateSessionStore(store(), k, v);
+        final var mat = materializedOf(context, sessionStore);
+        final var named = namedOf();
+        final KTable<Windowed<Object>, Object> output = mat != null
+                ? named != null
+                ? input.sessionWindowedKStream.reduce(userRed, named, mat)
+                : input.sessionWindowedKStream.reduce(userRed, mat)
+                : input.sessionWindowedKStream.reduce(userRed);
+        return new KTableWrapper((KTable) output, windowedK, v);
     }
 
     @Override
-    public StreamWrapper apply(TimeWindowedKStreamWrapper input) {
+    public StreamWrapper apply(TimeWindowedKStreamWrapper input, TopologyBuildContext context) {
         /*    Kafka Streams method signature:
          *    KTable<Windowed<K>, V> reduce(
          *          final Reducer<V> reducer,
@@ -134,19 +124,16 @@ public class ReduceOperation extends StoreOperation {
         final var k = input.keyType();
         final var v = input.valueType();
         final var windowedK = windowedTypeOf(k);
-        checkFunction(REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
-
-        final var windowStore = validateWindowStore(store, windowedK, v);
-
-        if (windowStore != null) {
-            final var mat = materialize(windowStore);
-            final var output = name != null
-                    ? (KTable) input.timeWindowedKStream.reduce(new UserReducer(reducer), Named.as(name), mat)
-                    : (KTable) input.timeWindowedKStream.reduce(new UserReducer(reducer), mat);
-            return new KTableWrapper(output, windowedK, v);
-        }
-
-        final var output = (KTable) input.timeWindowedKStream.reduce(new UserReducer(reducer));
-        return new KTableWrapper(output, windowedK, v);
+        final var red = userFunctionOf(context, REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
+        final var userRed = new UserReducer(red);
+        final var windowStore = validateWindowStore(store(), k, v);
+        final var mat = materializedOf(context, windowStore);
+        final var named = namedOf();
+        final KTable<Windowed<Object>, Object> output = mat != null
+                ? named != null
+                ? input.timeWindowedKStream.reduce(userRed, named, mat)
+                : input.timeWindowedKStream.reduce(userRed, mat)
+                : input.timeWindowedKStream.reduce(userRed);
+        return new KTableWrapper((KTable) output, windowedK, v);
     }
 }

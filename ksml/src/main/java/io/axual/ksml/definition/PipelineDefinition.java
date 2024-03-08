@@ -21,10 +21,10 @@ package io.axual.ksml.definition;
  */
 
 
-import java.util.List;
-
 import io.axual.ksml.operation.StreamOperation;
 
-public record PipelineDefinition(BaseStreamDefinition source, List<StreamOperation> chain,
+import java.util.List;
+
+public record PipelineDefinition(String name, TopologyResource<TopicDefinition> source, List<StreamOperation> chain,
                                  StreamOperation sink) {
 }

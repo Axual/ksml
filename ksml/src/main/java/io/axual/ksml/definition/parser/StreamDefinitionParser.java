@@ -22,21 +22,29 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.StreamDefinition;
-import io.axual.ksml.parser.BaseParser;
-import io.axual.ksml.parser.UserTypeParser;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.parser.DefinitionParser;
+import io.axual.ksml.parser.StructParser;
 
-import static io.axual.ksml.dsl.KSMLDSL.KEYTYPE_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.TOPIC_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.VALUETYPE_ATTRIBUTE;
+import static io.axual.ksml.dsl.KSMLDSL.Streams;
 
-public class StreamDefinitionParser extends BaseParser<StreamDefinition> {
+public class StreamDefinitionParser extends DefinitionParser<StreamDefinition> {
+    private final boolean requireKeyValueType;
+
+    public StreamDefinitionParser(boolean requireKeyValueType) {
+        this.requireKeyValueType = requireKeyValueType;
+    }
+
     @Override
-    public StreamDefinition parse(YamlNode node) {
-        if (node == null) return null;
-        return new StreamDefinition(
-                parseString(node, TOPIC_ATTRIBUTE),
-                UserTypeParser.parse(parseString(node, KEYTYPE_ATTRIBUTE)),
-                UserTypeParser.parse(parseString(node, VALUETYPE_ATTRIBUTE)));
+    public StructParser<StreamDefinition> parser() {
+        final var keyField = userTypeField(Streams.KEY_TYPE, "The key type of the stream");
+        final var valueField = userTypeField(Streams.VALUE_TYPE, "The value type of the stream");
+        return structParser(
+                StreamDefinition.class,
+                requireKeyValueType ? "" : "WithOptionalTypes",
+                "Contains a definition of a Stream, which can be referenced by producers and pipelines",
+                stringField(Streams.TOPIC, "The name of the Kafka topic for this stream"),
+                requireKeyValueType ? keyField : optional(keyField),
+                requireKeyValueType ? valueField : optional(valueField),
+                StreamDefinition::new);
     }
 }

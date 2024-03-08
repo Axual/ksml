@@ -21,15 +21,15 @@ package io.axual.ksml.definition;
  */
 
 
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataInteger;
-import io.axual.ksml.data.type.UserType;
 
 import static io.axual.ksml.definition.DefinitionConstants.STREAM_PARTITIONER_PARAMETERS;
 
 public class StreamPartitionerDefinition extends FunctionDefinition {
     public StreamPartitionerDefinition(FunctionDefinition definition) {
         super(definition
-                .withParameters(mergeParameters(STREAM_PARTITIONER_PARAMETERS, definition.parameters))
-                .withResult(new UserType(definition.resultType.notation(), DataInteger.DATATYPE)));
+                .withParameters(mergeParameters(STREAM_PARTITIONER_PARAMETERS, definition.parameters()))
+                .withResult(new UserType(definition.resultType().notation(), DataInteger.DATATYPE)));
     }
 }

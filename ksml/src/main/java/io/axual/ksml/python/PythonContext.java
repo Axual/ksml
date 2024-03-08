@@ -20,31 +20,36 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataObjectConverter;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.HostAccess;
-import org.graalvm.polyglot.PolyglotAccess;
-import org.graalvm.polyglot.Source;
-import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.*;
+import org.graalvm.polyglot.io.IOAccess;
 
 @Slf4j
 public class PythonContext {
     private static final String PYTHON = "python";
-    private final Context context = Context.newBuilder(PYTHON)
-            .allowNativeAccess(true)
-            .allowPolyglotAccess(PolyglotAccess.ALL)
-            .allowHostAccess(HostAccess.ALL)
-            .allowHostClassLookup(name -> name.equals("java.util.ArrayList") || name.equals("java.util.HashMap") || name.equals("java.util.TreeMap"))
-            .build();
+    private final Context context;
+    @Getter
     private final DataObjectConverter converter;
 
-    public PythonContext(DataObjectConverter converter) {
-        this.converter = converter;
-    }
+    public PythonContext() {
+        this.converter = new DataObjectConverter();
 
-    public DataObjectConverter getConverter() {
-        return converter;
+        log.debug("Setting up new Python context");
+        try {
+            context = Context.newBuilder(PYTHON)
+                    .allowIO(IOAccess.ALL)
+                    .allowNativeAccess(true)
+                    .allowPolyglotAccess(PolyglotAccess.ALL)
+                    .allowHostAccess(HostAccess.ALL)
+                    .allowHostClassLookup(name -> name.equals("java.util.ArrayList") || name.equals("java.util.HashMap") || name.equals("java.util.TreeMap"))
+                    .build();
+        } catch (Exception e) {
+            log.error("Error setting up a new Python context", e);
+            throw new ExecutionException("Could not setup a new Python context", e);
+        }
     }
 
     public Value registerFunction(String pyCode, String callerName) {

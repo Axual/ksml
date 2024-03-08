@@ -21,32 +21,33 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.definition.parser.PredicateDefinitionParser;
-import io.axual.ksml.exception.KSMLParseException;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.FilterOperation;
-import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.parser.YamlNode;
-import io.axual.ksml.user.UserFunction;
+import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.store.StoreType;
 
-import static io.axual.ksml.dsl.KSMLDSL.FILTER_PREDICATE_ATTRIBUTE;
-
-public class FilterOperationParser extends OperationParser<FilterOperation> {
-    private final String name;
-
-    protected FilterOperationParser(String name, ParseContext context) {
-        super(context);
-        this.name = name;
+public class FilterOperationParser extends StoreOperationParser<FilterOperation> {
+    public FilterOperationParser(TopologyResources resources) {
+        super(KSMLDSL.Operations.FILTER, resources);
     }
 
-    @Override
-    public FilterOperation parse(YamlNode node) {
-        if (node == null) return null;
-        UserFunction predicate = parseFunction(node, FILTER_PREDICATE_ATTRIBUTE, new PredicateDefinitionParser());
-        if (predicate != null) {
-            return new FilterOperation(
-                    parseConfig(node, name),
-                    predicate);
-        }
-        throw new KSMLParseException(node, "Predicate not specified or function unknown");
+    public StructParser<FilterOperation> parser() {
+        return structParser(
+                FilterOperation.class,
+                "",
+                "Filter records based on a predicate function",
+                operationTypeField(),
+                operationNameField(),
+                functionField(KSMLDSL.Operations.Filter.PREDICATE, "A function that returns \"true\" when records are accepted, \"false\" otherwise", new PredicateDefinitionParser()),
+                storeField(false, "Materialized view of the filtered table", StoreType.KEYVALUE_STORE),
+                storeNamesField(),
+                (type, name, pred, store, stores) -> {
+                    if (pred != null)
+                        return new FilterOperation(storeOperationConfig(name, store, stores), pred);
+                    throw new ExecutionException("Predicate not defined for " + type + " operation");
+                });
     }
 }

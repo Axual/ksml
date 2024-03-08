@@ -20,8 +20,6 @@ package io.axual.ksml.client.exception;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.client.exception.ClientException;
-
 public class ConfigException extends ClientException {
     public static final String MESSAGE_DETAIL_FORMAT = "%nConfiguration Key   : '%s'%nConfiguration Value : '%s' ";
     public static final String DEFAULT_MESSAGE = "An invalid configuration has been found.";

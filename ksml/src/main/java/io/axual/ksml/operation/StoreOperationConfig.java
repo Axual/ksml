@@ -21,16 +21,14 @@ package io.axual.ksml.operation;
  */
 
 import io.axual.ksml.definition.StateStoreDefinition;
-import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.store.StateStoreRegistry;
+
+import java.util.List;
 
 public class StoreOperationConfig extends OperationConfig {
     public final StateStoreDefinition store;
-    public final StateStoreRegistry stateStoreRegistry;
 
-    public StoreOperationConfig(String name, NotationLibrary notationLibrary, StateStoreDefinition store, StateStoreRegistry stateStoreRegistry) {
-        super(name, notationLibrary, null);
+    public StoreOperationConfig(String name, StateStoreDefinition store, List<String> storeNames) {
+        super(name, storeNames != null ? storeNames.toArray(new String[]{}) : null);
         this.store = store;
-        this.stateStoreRegistry = stateStoreRegistry;
     }
 }

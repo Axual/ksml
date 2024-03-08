@@ -20,30 +20,30 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-
+import io.axual.ksml.data.notation.UserType;
+import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataPrimitive;
-import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
-import io.axual.ksml.notation.binary.BinaryNotation;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PythonFunctionTest {
-    PythonContext context = new PythonContext(null);
-    ParameterDefinition one = new ParameterDefinition("one", DataInteger.DATATYPE);
-    ParameterDefinition two = new ParameterDefinition("two", DataInteger.DATATYPE);
-    ParameterDefinition[] params = new ParameterDefinition[]{one, two};
-    UserType resultType = new UserType(BinaryNotation.NOTATION_NAME, DataInteger.DATATYPE);
+    final PythonContext context = new PythonContext();
+    final ParameterDefinition one = new ParameterDefinition("one", DataInteger.DATATYPE);
+    final ParameterDefinition two = new ParameterDefinition("two", DataInteger.DATATYPE);
+    final ParameterDefinition[] params = new ParameterDefinition[]{one, two};
+    final UserType resultType = new UserType(BinaryNotation.NOTATION_NAME, DataInteger.DATATYPE);
+
     @ParameterizedTest
     @CsvSource({"1, 2, 3", "100,100,200", "100, -1, 99", "99, -100, -1"})
     void testAdditionExpression(Integer i1, Integer i2, Integer sum) {
-        FunctionDefinition adderDef = FunctionDefinition.as(params, resultType, "one + two", null, null, null);
-        PythonFunction adder = PythonFunction.fromAnon(context, "adder", adderDef, "adderLog");
+        FunctionDefinition adderDef = FunctionDefinition.as("adder", params, null, null, "one + two", resultType, null);
+        PythonFunction adder = PythonFunction.forFunction(context, "test", "adder", adderDef);
 
         DataObject arg1 = new DataInteger(i1);
         DataObject arg2 = new DataInteger(i2);
@@ -63,8 +63,8 @@ public class PythonFunctionTest {
                   return one + two
                     
                 """;
-        FunctionDefinition adderDef = FunctionDefinition.as(params, resultType, "myAddFunc(one, two)", pythonCode.split("\n"), null, null);
-        PythonFunction adder = PythonFunction.fromAnon(context, "adder", adderDef, "adderLog");
+        FunctionDefinition adderDef = FunctionDefinition.as("adder", params, null, pythonCode.split("\n"), "myAddFunc(one, two)", resultType, null);
+        PythonFunction adder = PythonFunction.forFunction(context, "test", "adder", adderDef);
 
         DataObject arg1 = new DataInteger(i1);
         DataObject arg2 = new DataInteger(i2);
@@ -84,8 +84,8 @@ public class PythonFunctionTest {
                   return one + two
                     
                 """;
-        FunctionDefinition adderDef = FunctionDefinition.as(params, resultType, "myAddFunc(one, two)", null, pythonCode.split("\n"), null);
-        PythonFunction adder = PythonFunction.fromAnon(context, "adder", adderDef, "adderLog");
+        FunctionDefinition adderDef = FunctionDefinition.as("adder", params, pythonCode.split("\n"), null, "myAddFunc(one, two)", resultType, null);
+        PythonFunction adder = PythonFunction.forFunction(context, "test", "adder", adderDef);
 
         DataObject arg1 = new DataInteger(i1);
         DataObject arg2 = new DataInteger(i2);

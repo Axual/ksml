@@ -20,30 +20,32 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.store.StoreType;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
-import java.util.Objects;
-
+@Getter
+@EqualsAndHashCode
 public abstract class StateStoreDefinition {
     private final StoreType type;
     private final String name;
-    private final Boolean persistent;
-    private final Boolean timestamped;
+    private final boolean persistent;
+    private final boolean timestamped;
     private final UserType keyType;
     private final UserType valueType;
-    private final Boolean caching;
-    private final Boolean logging;
+    private final boolean caching;
+    private final boolean logging;
 
     public StateStoreDefinition(StoreType type, String name, Boolean persistent, Boolean timestamped, UserType keyType, UserType valueType, Boolean caching, Boolean logging) {
         this.type = type;
         this.name = name;
-        this.persistent = persistent;
-        this.timestamped = timestamped;
-        this.keyType = keyType;
-        this.valueType = valueType;
-        this.caching = caching;
-        this.logging = logging;
+        this.persistent = persistent != null && persistent;
+        this.timestamped = timestamped != null && timestamped;
+        this.keyType = keyType != null ? keyType : UserType.UNKNOWN;
+        this.valueType = valueType != null ? valueType : UserType.UNKNOWN;
+        this.caching = caching != null && caching;
+        this.logging = logging != null && logging;
     }
 
     public String toString() {
@@ -52,55 +54,5 @@ public abstract class StateStoreDefinition {
             type = type.substring(0, type.length() - 10);
         }
         return type + " [name=" + (name == null ? "Unnamed" : name) + "]";
-    }
-
-    public StoreType type() {
-        return type;
-    }
-
-    public String name() {
-        return name;
-    }
-
-    public boolean persistent() {
-        return persistent != null && persistent;
-    }
-
-    public boolean timestamped() {
-        return timestamped != null && timestamped;
-    }
-
-    public UserType keyType() {
-        return keyType;
-    }
-
-    public UserType valueType() {
-        return valueType;
-    }
-
-    public boolean caching() {
-        return caching != null && caching;
-    }
-
-    public boolean logging() {
-        return logging != null && logging;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (!(other instanceof StateStoreDefinition def)) return false;
-        return (Objects.equals(type, def.type)
-                && Objects.equals(name, def.name)
-                && Objects.equals(persistent, def.persistent)
-                && Objects.equals(timestamped, def.timestamped)
-                && Objects.equals(keyType, def.keyType)
-                && Objects.equals(valueType, def.valueType)
-                && Objects.equals(caching, def.caching)
-                && Objects.equals(logging, def.logging));
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), type, name, persistent, timestamped, keyType, valueType, caching, logging);
     }
 }

@@ -20,64 +20,74 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
-
-import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.notation.UserType;
+import io.axual.ksml.data.parser.ParseNode;
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.TableDefinition;
-import io.axual.ksml.exception.KSMLParseException;
-import io.axual.ksml.parser.ContextAwareParser;
-import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.parser.UserTypeParser;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.parser.DefinitionParser;
+import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.store.StoreType;
 
-import static io.axual.ksml.dsl.KSMLDSL.*;
+import java.util.List;
 
-public class TableDefinitionParser extends ContextAwareParser<TableDefinition> {
-    public TableDefinitionParser(ParseContext context) {
-        super(context);
+import static io.axual.ksml.dsl.KSMLDSL.Streams;
+
+public class TableDefinitionParser extends DefinitionParser<TableDefinition> {
+    private final boolean requireKeyValueType;
+
+    public TableDefinitionParser(boolean requireKeyValueType) {
+        this.requireKeyValueType = requireKeyValueType;
     }
 
     @Override
-    public TableDefinition parse(YamlNode node) {
-        if (node == null) return null;
+    public StructParser<TableDefinition> parser() {
+        final var keyField = userTypeField(Streams.KEY_TYPE, "The key type of the table");
+        final var valueField = userTypeField(Streams.VALUE_TYPE, "The value type of the table");
+        return structParser(
+                TableDefinition.class,
+                requireKeyValueType ? "" : "WithOptionalTypes",
+                "Contains a definition of a Table, which can be referenced by producers and pipelines",
+                stringField(Streams.TOPIC, "The name of the Kafka topic for this table"),
+                requireKeyValueType ? keyField : optional(keyField),
+                requireKeyValueType ? valueField : optional(valueField),
+                storeField(),
+                (topic, keyType, valueType, store) -> {
+                    keyType = keyType != null ? keyType : UserType.UNKNOWN;
+                    valueType = valueType != null ? valueType : UserType.UNKNOWN;
+                    if (store != null) {
+                        if (!keyType.dataType().isAssignableFrom(store.keyType().dataType())) {
+                            throw new TopologyException("Incompatible key types between table '" + topic + "' and its corresponding state store: " + keyType.dataType() + " and " + store.keyType().dataType());
+                        }
+                        if (!valueType.dataType().isAssignableFrom(store.valueType().dataType())) {
+                            throw new TopologyException("Incompatible value types between table '" + topic + "' and its corresponding state store: " + valueType.dataType() + " and " + store.valueType().dataType());
+                        }
+                    }
+                    return new TableDefinition(topic, keyType, valueType, store);
+                });
+    }
 
-        // Use the topic name as the default store name
-        var topic = parseString(node, TOPIC_ATTRIBUTE);
+    private StructParser<KeyValueStateStoreDefinition> storeField() {
+        final var resourceParser = new TopologyResourceParser<>("state store", Streams.STORE, "State store definition", null, new StateStoreDefinitionParser(StoreType.KEYVALUE_STORE));
+        final var field = new DataField(Streams.STORE, new UnionSchema(DataSchema.nullSchema(), resourceParser.schema()), "Definition of the keyValue state store associated with the table", DataField.NO_INDEX, false);
+        final var schema = structSchema(KeyValueStateStoreDefinition.class, field.doc(), List.of(field));
+        return new StructParser<>() {
+            @Override
+            public KeyValueStateStoreDefinition parse(ParseNode node) {
+                final var resource = resourceParser.parse(node);
+                if (resource != null && resource.definition() instanceof KeyValueStateStoreDefinition def) return def;
+                return null;
+            }
 
-        // Parse the key and value types
-        var keyType = UserTypeParser.parse(parseString(node, KEYTYPE_ATTRIBUTE));
-        var valueType = UserTypeParser.parse(parseString(node, VALUETYPE_ATTRIBUTE));
-
-        // Parse an optional key value state store
-        var parsedStore = new StateStoreDefinitionParser(StoreType.KEYVALUE_STORE, topic).parse(node.get(STORE_ATTRIBUTE));
-
-        // If there is no state store, then return just the table definition
-        if (!(parsedStore instanceof KeyValueStateStoreDefinition kvStore)) {
-            return new TableDefinition(topic, keyType, valueType, null);
-        }
-
-        // Ensure that the store definition is in line with the given key and value types
-        kvStore = new KeyValueStateStoreDefinition(
-                kvStore.name(),
-                kvStore.persistent(),
-                kvStore.timestamped(),
-                kvStore.versioned(),
-                kvStore.historyRetention(),
-                kvStore.segmentInterval(),
-                kvStore.keyType() != null && kvStore.keyType().dataType() != DataType.UNKNOWN ? kvStore.keyType() : keyType,
-                kvStore.valueType() != null && kvStore.valueType().dataType() != DataType.UNKNOWN ? kvStore.valueType() : valueType,
-                kvStore.caching(),
-                kvStore.logging());
-        if (!keyType.dataType().isAssignableFrom(kvStore.keyType().dataType())) {
-            throw new KSMLParseException(node, "Incompatible key types between table \'" + topic + "\' and its corresponding state store: " + keyType.dataType() + " and " + kvStore.keyType().dataType());
-        }
-        if (!valueType.dataType().isAssignableFrom(kvStore.valueType().dataType())) {
-            throw new KSMLParseException(node, "Incompatible value types between table \'" + topic + "\' and its corresponding state store: " + valueType.dataType() + " and " + kvStore.valueType().dataType());
-        }
-
-        // Create and return the table definition with the state store
-        context.registerStateStore(kvStore.name(), kvStore);
-        return new TableDefinition(topic, keyType, valueType, kvStore);
+            @Override
+            public StructSchema schema() {
+                return schema;
+            }
+        };
     }
 }

@@ -21,14 +21,13 @@ package io.axual.ksml.definition.parser;
  */
 
 
-
 import io.axual.ksml.definition.ReducerDefinition;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.parser.StructParser;
 
-public class ReducerDefinitionParser extends FunctionDefinitionParser {
+public class ReducerDefinitionParser extends FunctionDefinitionParser<ReducerDefinition> {
     @Override
-    public ReducerDefinition parse(YamlNode node) {
-        if (node == null) return null;
-        return new ReducerDefinition(super.parse(node));
+    public StructParser<ReducerDefinition> parser() {
+        return parserWithoutStores(ReducerDefinition.class, KSMLDSL.Functions.TYPE_REDUCER, "reducer", ReducerDefinition::new);
     }
 }

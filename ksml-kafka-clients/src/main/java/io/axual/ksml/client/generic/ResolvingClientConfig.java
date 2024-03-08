@@ -28,6 +28,7 @@ import io.axual.ksml.client.resolving.TopicPatternResolver;
 import io.axual.ksml.client.resolving.TopicResolver;
 import io.axual.ksml.client.util.FactoryUtil;
 import io.axual.ksml.client.util.MapUtil;
+import lombok.Getter;
 import org.apache.kafka.common.Configurable;
 import org.apache.kafka.common.utils.Utils;
 
@@ -40,8 +41,11 @@ public class ResolvingClientConfig {
     public static final String TOPIC_PATTERN_CONFIG = "topic.pattern";
 
     protected final Map<String, Object> configs;
+    @Getter
     protected final Map<String, Object> downstreamConfigs;
+    @Getter
     public final GroupResolver groupResolver;
+    @Getter
     public final TopicResolver topicResolver;
 
     public ResolvingClientConfig(Map<String, ?> configs) {
@@ -108,17 +112,5 @@ public class ResolvingClientConfig {
         }
 
         throw new ClientException("Can not instantiate object of type " + expectedClass.getSimpleName() + " from value " + (value != null ? value.toString() : "null"));
-    }
-
-    public Map<String, Object> getDownstreamConfigs() {
-        return downstreamConfigs;
-    }
-
-    public GroupResolver getGroupResolver() {
-        return groupResolver;
-    }
-
-    public TopicResolver getTopicResolver() {
-        return topicResolver;
     }
 }

@@ -21,22 +21,20 @@ package io.axual.ksml.generator;
  */
 
 
-import io.axual.ksml.execution.ExecutionContext;
-import org.apache.kafka.common.serialization.Serde;
-
+import io.axual.ksml.data.notation.NotationLibrary;
+import io.axual.ksml.data.notation.UserType;
+import io.axual.ksml.data.serde.UnionSerde;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.UnionType;
-import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.data.type.WindowedType;
-import io.axual.ksml.notation.NotationLibrary;
-import io.axual.ksml.serde.UnionSerde;
+import io.axual.ksml.execution.ExecutionContext;
+import org.apache.kafka.common.serialization.Serde;
 
 import static io.axual.ksml.dsl.WindowedSchema.generateWindowedSchema;
 
-public record StreamDataType(NotationLibrary notationLibrary, UserType userType, boolean isKey) {
-    public StreamDataType(NotationLibrary notationLibrary, UserType userType, boolean isKey) {
-        this.notationLibrary = notationLibrary;
+public record StreamDataType(UserType userType, boolean isKey) {
+    public StreamDataType(UserType userType, boolean isKey) {
         this.userType = new UserType(userType.notation(), cookType(userType.dataType()));
         this.isKey = isKey;
     }
@@ -51,10 +49,10 @@ public record StreamDataType(NotationLibrary notationLibrary, UserType userType,
     }
 
     private static UnionType cookUnion(UnionType type) {
-        var cookedUnionTypes = new UserType[type.possibleTypes().length];
+        var cookedUnionTypes = new DataType[type.possibleTypes().length];
         for (int index = 0; index < type.possibleTypes().length; index++) {
             var userType = type.possibleTypes()[index];
-            cookedUnionTypes[index] = new UserType(userType.notation(), cookType(userType.dataType()));
+            cookedUnionTypes[index] = cookType(userType);
         }
         return new UnionType(cookedUnionTypes);
     }
@@ -69,10 +67,10 @@ public record StreamDataType(NotationLibrary notationLibrary, UserType userType,
         return (userType.notation() != null ? userType.notation().toLowerCase() : "unknown notation") + (schemaName != null && !schemaName.isEmpty() ? ":" : "") + schemaName;
     }
 
-    public Serde<Object> getSerde() {
+    public Serde<Object> serde() {
         if (userType.dataType() instanceof UnionType unionType)
-            return new UnionSerde(notationLibrary, cookUnion(unionType), isKey);
-        var serde = notationLibrary.get(userType.notation()).getSerde(userType.dataType(), isKey);
+            return new UnionSerde(cookUnion(unionType), isKey, NotationLibrary.get(userType.notation())::serde);
+        var serde = NotationLibrary.get(userType.notation()).serde(userType.dataType(), isKey);
         return ExecutionContext.INSTANCE.wrapSerde(serde);
     }
 }

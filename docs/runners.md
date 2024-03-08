@@ -10,8 +10,8 @@
 
 ## Introduction
 
-The core of KSML is a library that allows KSML Definition files to be parsed and translated into Kafka Streams topologies. Because we wanted to keep KSML low-overhead, KSML does not run these topologies itself. A runner was created to execute the generated topologies.
-This runner supports plain Kafka connections, and contains an advanced configurations that helps running against Kafka clusters using namespacing. 
+The core of KSML is a library that allows KSML definition files to be parsed and translated into Kafka Streams topologies. Because we wanted to keep KSML low-overhead, KSML does not run these topologies itself. A runner application is provided separately to execute the generated topologies.
+The runner supports plain Kafka connections, which can be configured using normal Kafka properties, and contains an advanced configurations that helps running against Kafka clusters using namespacing. 
 
 Examples of runner configurations are shown below.
 
@@ -45,13 +45,12 @@ ksml:
       loggerName: ProduceError                 # logger name
       handler: continueOnFail                  # continue or stop on error
     definitions:                               # KSML definition files from the working directory
-      - definition1.yaml
-      - definition2.yaml
-      - <more here...>
+      namedDefinition1: definition1.yaml
+      namedDefinition2: definition2.yaml
+      namedDefinition3: <more here...>
 
 kafka: # Kafka streams configuration options 
   application.id: io.ksml.example.processor
-  
   bootstrap.servers: broker-1:9092,broker-2:9092
   security.protocol: SSL
   ssl.protocol: TLSv1.3
@@ -89,7 +88,6 @@ kafka:
   instance: "dta"
   environment: "dev"
 ```
-
 
 ## Starting a container
 To start a container the KSML definitions and Runner configuration files need to be available in a directory mounted inside the docker container.

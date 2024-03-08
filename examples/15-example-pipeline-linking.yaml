@@ -1,0 +1,63 @@
+# This example shows how to read from four simple streams and log all messages
+
+streams:
+  sensor_source_avro:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+
+functions:
+  # Log the message using the built-in log variable that is passed in from Java
+  log_message:
+    type: forEach
+    parameters:
+      - name: pipeline
+        type: string
+    code: log.info("Consumed {} message - key={}, value={}", pipeline, key, value)
+
+pipelines:
+  # Every pipeline logs its own message and then ends by naming the pipeline for further processing using the "as"
+  # operation to terminate the pipeline
+  first:
+    # Use stream defined above as input
+    from: sensor_source_avro
+    via:
+      - type: peek
+        forEach:
+          code: log_message(key, value, pipeline="FIRST")
+    # Close the pipeline by saving its output under a self-defined name
+    as: first_pipeline_result
+
+  second:
+    # Use the result from the first pipeline as input
+    from: first_pipeline_result
+    via:
+      - type: peek
+        forEach:
+          code: log_message(key, value, pipeline="SECOND")
+    # Close the pipeline by saving its output under a self-defined name
+    as: second_pipeline_result
+
+  third:
+    # Use the result from the second pipeline as input
+    from: second_pipeline_result
+    via:
+      - type: peek
+        forEach:
+          code: log_message(key, value, pipeline="THIRD")
+    # Close the pipeline implicitly by saving its output under the pipeline's own name
+
+  fourth:
+    # Use the result from the third pipeline as input
+    from: third
+    via:
+      - type: peek
+        forEach:
+          code: log_message(key, value, pipeline="FOURTH")
+    # Close the pipeline implicitly by saving its output under the pipeline's own name
+
+  last:
+    # Use the result from the fourth pipeline as input
+    from: fourth
+    forEach:
+      code: log_message(key, value, pipeline="LAST")

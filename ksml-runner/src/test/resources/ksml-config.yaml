@@ -1,4 +1,4 @@
 storageDirectory: .
 configDirectory: .
 definitions:
-  - src/test/resources/example-definition.yaml
+  example: src/test/resources/example-definition.yaml

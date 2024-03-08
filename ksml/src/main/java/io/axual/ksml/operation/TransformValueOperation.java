@@ -20,49 +20,58 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-
-import io.axual.ksml.operation.processor.OperationProcessorSupplier;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.operation.processor.FixedKeyOperationProcessorSupplier;
 import io.axual.ksml.operation.processor.TransformValueProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserValueTransformer;
+import io.axual.ksml.user.UserValueTransformerWithKey;
+import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
-import org.apache.kafka.streams.kstream.Named;
+import org.apache.kafka.streams.kstream.ValueTransformerWithKeySupplier;
 
 public class TransformValueOperation extends StoreOperation {
     private static final String MAPPER_NAME = "Mapper";
-    private final UserFunction mapper;
+    private final FunctionDefinition mapper;
 
-    public TransformValueOperation(StoreOperationConfig config, UserFunction mapper) {
+    public TransformValueOperation(StoreOperationConfig config, FunctionDefinition mapper) {
         super(config);
         this.mapper = mapper;
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
+        /*    Kafka Streams method signature:
+         *    <KR, VR> KStream<KR, VR> map(
+         *          final KeyValueMapper<? super K, ? super V, ? extends KeyValue<? extends KR, ? extends VR>> mapper,
+         *          final Named named)
+         */
+
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(mapper, v.userType()), false);
-        checkFunction(MAPPER_NAME, mapper, vr, superOf(k), superOf(v));
-
-        final var action = new UserValueTransformer(mapper);
-        final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames);
-        final var supplier = new OperationProcessorSupplier<>(
+        final var map = userFunctionOf(context, MAPPER_NAME, mapper, vr, superOf(k), superOf(v));
+        final var userMap = new UserValueTransformer(map);
+        final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames().toArray(TEMPLATE));
+        final var supplier = new FixedKeyOperationProcessorSupplier<>(
                 name,
                 TransformValueProcessor::new,
-                (stores, record) -> action.apply(stores, record.key(), record.value()),
+                (stores, record) -> userMap.apply(stores, record.key(), record.value()),
                 storeNames);
-        final var output = name != null
-                ? input.stream.process(supplier, Named.as(name), storeNames)
-                : input.stream.process(supplier, storeNames);
+        final var named = namedOf();
+        final KStream<Object, Object> output = named != null
+                ? input.stream.processValues(supplier, named, storeNames)
+                : input.stream.processValues(supplier, storeNames);
         return new KStreamWrapper(output, k, vr);
     }
 
     @Override
-    public StreamWrapper apply(KTableWrapper input) {
+    public StreamWrapper apply(KTableWrapper input, TopologyBuildContext context) {
         /*    Kafka Streams method signature:
          *    <VR> KTable<K, VR> mapValues(
          *          final ValueMapperWithKey<? super K, ? super V, ? extends VR> mapper,
@@ -74,23 +83,19 @@ public class TransformValueOperation extends StoreOperation {
         final var k = input.keyType();
         final var v = input.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(mapper, v.userType()), false);
-        checkFunction(MAPPER_NAME, mapper, vr, superOf(k), superOf(v));
-        final var kvStore = validateKeyValueStore(store, k, vr);
-
-        final var map = new UserValueTransformer(mapper);
-        final var named = name != null ? Named.as(name) : null;
-
-        if (kvStore != null) {
-            final var mat = materialize(kvStore);
-            final var output = named != null
-                    ? (KTable) input.table.mapValues(map, named, mat)
-                    : (KTable) input.table.mapValues(map, mat);
-            return new KTableWrapper(output, k, vr);
-        }
-
-        final var output = named != null
-                ? (KTable) input.table.mapValues(map, named)
-                : (KTable) input.table.mapValues(map);
+        final var map = userFunctionOf(context, MAPPER_NAME, mapper, vr, superOf(k), superOf(v));
+        final var userMap = new UserValueTransformerWithKey(map);
+        final var kvStore = validateKeyValueStore(store(), k, vr);
+        final ValueTransformerWithKeySupplier<Object, Object, DataObject> supplier = () -> userMap;
+        final var named = namedOf();
+        final var mat = materializedOf(context, kvStore);
+        final KTable<Object, Object> output = named != null
+                ? mat != null
+                ? input.table.transformValues(supplier, mat, named, storeNames)
+                : input.table.transformValues(supplier, named, storeNames)
+                : mat != null
+                ? input.table.transformValues(supplier, mat, storeNames)
+                : input.table.transformValues(supplier, storeNames);
         return new KTableWrapper(output, k, vr);
     }
 }

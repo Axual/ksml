@@ -22,17 +22,12 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.KeyValueToKeyValueListTransformerDefinition;
-import io.axual.ksml.exception.KSMLParseException;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.parser.StructParser;
 
-public class KeyValueToKeyValueListTransformerDefinitionParser extends FunctionDefinitionParser {
+public class KeyValueToKeyValueListTransformerDefinitionParser extends FunctionDefinitionParser<KeyValueToKeyValueListTransformerDefinition> {
     @Override
-    public KeyValueToKeyValueListTransformerDefinition parse(YamlNode node) {
-        if (node == null) return null;
-        var transformer = super.parse(node);
-        if (transformer.resultType != null) {
-            return new KeyValueToKeyValueListTransformerDefinition(transformer);
-        }
-        throw new KSMLParseException(node, "Result dataType not correctly specified");
+    public StructParser<KeyValueToKeyValueListTransformerDefinition> parser() {
+        return parserWithStores(KeyValueToKeyValueListTransformerDefinition.class, KSMLDSL.Functions.TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER, "keyvalue-to-keyvaluelist transformer", KeyValueToKeyValueListTransformerDefinition::new);
     }
 }

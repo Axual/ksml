@@ -21,11 +21,11 @@ package io.axual.ksml.operation.processor;
  */
 
 import io.axual.ksml.store.StateStores;
-import org.apache.kafka.streams.processor.api.Record;
+import org.apache.kafka.streams.processor.api.FixedKeyRecord;
 
-public class FilterNotProcessor extends OperationProcessor {
+public class FilterNotProcessor extends FixedKeyOperationProcessor {
     public interface Predicate {
-        boolean test(StateStores stores, Record<Object, Object> record);
+        boolean test(StateStores stores, FixedKeyRecord<Object, Object> record);
     }
 
     private final Predicate action;
@@ -36,7 +36,7 @@ public class FilterNotProcessor extends OperationProcessor {
     }
 
     @Override
-    public void process(Record<Object, Object> record) {
+    public void process(FixedKeyRecord<Object, Object> record) {
         if (!action.test(stores, record)) {
             context.forward(record);
         }

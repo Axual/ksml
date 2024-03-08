@@ -20,26 +20,24 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.notation.NotationLibrary;
+import io.axual.ksml.data.notation.UserTupleType;
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.*;
-import io.axual.ksml.data.schema.SchemaUtil;
+import io.axual.ksml.data.schema.KafkaStreamsSchemaMapper;
 import io.axual.ksml.data.type.*;
-import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.execution.ExecutionContext;
-import io.axual.ksml.execution.FatalError;
-import io.axual.ksml.notation.NotationLibrary;
 
-import static io.axual.ksml.data.type.UserType.DEFAULT_NOTATION;
+import static io.axual.ksml.data.notation.UserType.DEFAULT_NOTATION;
 
 // This DataObjectConverter makes expected data types compatible with the actual data that was
 // created. It does so by converting numbers to strings, and vice versa. It can convert complex
 // data objects like Enums, Lists and Structs too, recursively going through sub-elements if
 // necessary.
 public class DataObjectConverter {
-    private final NotationLibrary notationLibrary;
-
-    public DataObjectConverter(NotationLibrary notationLibrary) {
-        this.notationLibrary = notationLibrary;
-    }
+    private static final DataTypeSchemaMapper SCHEMA_MAPPER = new KafkaStreamsSchemaMapper();
 
     public DataObject convert(String sourceNotation, DataObject value, UserType targetType) {
         return convert(sourceNotation, value, targetType, false);
@@ -56,7 +54,7 @@ public class DataObjectConverter {
         // Recurse into union types
         if (targetType.dataType() instanceof UnionType targetUnionType) {
             for (int index = 0; index < targetUnionType.possibleTypes().length; index++) {
-                var convertedValue = convert(sourceNotation, value, targetUnionType.possibleTypes()[index], true);
+                var convertedValue = convert(sourceNotation, value, new UserType(targetUnionType.possibleTypes()[index]), true);
                 if (convertedValue != null) return convertedValue;
             }
         }
@@ -84,7 +82,7 @@ public class DataObjectConverter {
                 var field = targetStructType.schema().field(entry.getKey());
                 // Only copy if the field exists in the target structure
                 if (field != null) {
-                    var newValueType = new UserType(SchemaUtil.schemaToDataType(field.schema()));
+                    var newValueType = new UserType(SCHEMA_MAPPER.fromDataSchema(field.schema()));
                     // Convert to that type if necessary
                     result.put(entry.getKey(), convert(DEFAULT_NOTATION, entry.getValue(), newValueType));
                 }
@@ -122,30 +120,27 @@ public class DataObjectConverter {
         if (allowFail) return null;
 
         // We can't perform the conversion, so report a fatal error
-        throw FatalError.dataError("Can not convert value to " + targetType + ": " + ExecutionContext.INSTANCE.maskData(value));
+        throw new DataException("Can not convert value to " + targetType + ": " + ExecutionContext.INSTANCE.maskData(value));
     }
 
     private DataObject applyNotationConverters(String sourceNotation, DataObject value, UserType targetType) {
-        // If we have a notation library, then we can check if the notations have converters to translate the value
-        if (notationLibrary != null) {
-            // If the value is a union, then dig down to its real value
-            while (value instanceof DataUnion valueUnion) {
-                value = valueUnion.value();
-            }
+        // If the value is a union, then dig down to its real value
+        while (value instanceof DataUnion valueUnion) {
+            value = valueUnion.value();
+        }
 
-            // First we see if the target notation is able to interpret the source value
-            var targetConverter = notationLibrary.getConverter(targetType.notation());
-            if (targetConverter != null) {
-                var target = targetConverter.convert(value, targetType);
-                if (target != null && targetType.dataType().isAssignableFrom(target.type())) return target;
-            }
+        // First we see if the target notation is able to interpret the source value
+        var targetConverter = NotationLibrary.converter(targetType.notation());
+        if (targetConverter != null) {
+            var target = targetConverter.convert(value, targetType);
+            if (target != null && targetType.dataType().isAssignableFrom(target.type())) return target;
+        }
 
-            // If the target notation was not able to convert, then try the source notation
-            var sourceConverter = notationLibrary.getConverter(sourceNotation);
-            if (sourceConverter != null) {
-                var target = sourceConverter.convert(value, targetType);
-                if (target != null && targetType.dataType().isAssignableFrom(target.type())) return target;
-            }
+        // If the target notation was not able to convert, then try the source notation
+        var sourceConverter = NotationLibrary.converter(sourceNotation);
+        if (sourceConverter != null) {
+            var target = sourceConverter.convert(value, targetType);
+            if (target != null && targetType.dataType().isAssignableFrom(target.type())) return target;
         }
 
         return value;
@@ -197,7 +192,7 @@ public class DataObjectConverter {
         if (expected instanceof TupleType tupleType) return createEmptyTuple(tupleType);
         if (expected instanceof UnionType unionType)
             return new DataUnion(unionType, DataNull.INSTANCE);
-        throw new KSMLExecutionException("Can not convert NULL to " + expected);
+        throw new ExecutionException("Can not convert NULL to " + expected);
     }
 
     private DataTuple createEmptyTuple(TupleType tupleType) {
@@ -258,7 +253,7 @@ public class DataObjectConverter {
         // Copy all struct fields into the new struct, possibly making sub-elements compatible
         for (var entry : value.entrySet()) {
             var fieldName = entry.getKey();
-            var fieldType = SchemaUtil.schemaToDataType(schema.field(fieldName).schema());
+            var fieldType = SCHEMA_MAPPER.fromDataSchema(schema.field(fieldName).schema());
             result.put(entry.getKey(), convert(entry.getValue(), fieldType));
         }
 
