@@ -2,7 +2,7 @@
 
 # State Stores
 
-[Duration]: types.md#duration
+[Duration]: pipelines.md#duration
 
 ## Introduction
 
@@ -33,9 +33,10 @@ State store configurations are defined by the following tags:
 | `keyType`     | `string`   | _none_  | Required | The key type of the state store. See [Types](types.md) for more information.                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | `valueType`   | `string`   | _none_  | Required | The value type of the state store. See [Types](types.md) for more information.                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `caching`     | `boolean`  | `false` | Optional | This parameter controls the internal state store caching. When _true_, the state store caches entries and does not emit every state change but only. When _false_ all changes to the state store will be emitted immediately.                                                                                                                                                                                                                                                                    |
-| `logging`     | `boolean`  | `false` | Optional | This parameter determines whether state changes are written out to a changelog topic, or not. When _true_ all state store changes are produced to a changelog topic. When _false_ no changelog topic is written to.                                                                                                                                                                                                                                                                              |
+| `logging`     | `boolean`  | `false` | Optional | This parameter determines whether state changes are written out to a changelog topic, or not. When _true_ all state store changes are produced to a changelog topic. The changelog topic is named `appId-storeName-changelog`. When _false_ no changelog topic is written to.                                                                                                                                                                                                                    |
 
 Example:
+
 ```yaml
 stores:
   owner_count_store:
@@ -67,6 +68,7 @@ pipelines:
 ```
 
 Instead of referring to predefined state store configurations, you may also use an inline definition for the store:
+
 ```yaml
       - type: aggregate
         store:

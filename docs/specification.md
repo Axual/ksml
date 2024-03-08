@@ -162,7 +162,7 @@
   - **`type`**: The type of the operation, fixed value "cogroup" Default: cogroup. Must be one of: `["cogroup"]`.
 - <a id="definitions/ConvertKeyOperation"></a>**`ConvertKeyOperation`** *(object)*: An operation to convert the stream key type to another type. Conversion is only syntactic, eg. from Avro to XML. Cannot contain additional properties.
   - **`into`** *(string, required)*: The type to convert the stream key into.
-  - **`name`** *(string, required)*: The name of the operation processor Default: converKey.
+  - **`name`** *(string, required)*: The name of the operation processor Default: convertKey.
   - **`type`**: The type of the operation, fixed value "convertKey" Default: convertKey. Must be one of: `["convertKey"]`.
 - <a id="definitions/ConvertKeyValueOperation"></a>**`ConvertKeyValueOperation`** *(object)*: An operation to convert the stream key and value types to other types. Conversion is only syntactic, eg. from Avro to XML. Cannot contain additional properties.
   - **`into`** *(string, required)*: The tuple type to convert the stream key/value into.
@@ -187,6 +187,10 @@
       - *string*
       - : Refer to *[#/definitions/PredicateDefinition](#definitions/PredicateDefinition)*.
   - **`name`** *(string, required)*: The name of the operation processor Default: filterNot.
+  - **`store`**: (Optional) Materialized view of the filtered table.
+    - **Any of**
+      - *string*
+      - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
   - **`stores`** *(array)*: (Optional) The names of all state stores used by the function Default: [].
     - **Items** *(string)*
   - **`type`**: The type of the operation, fixed value "filterNot" Default: filterNot. Must be one of: `["filterNot"]`.
@@ -196,6 +200,10 @@
       - *string*
       - : Refer to *[#/definitions/PredicateDefinition](#definitions/PredicateDefinition)*.
   - **`name`** *(string, required)*: The name of the operation processor Default: filter.
+  - **`store`**: (Optional) Materialized view of the filtered table.
+    - **Any of**
+      - *string*
+      - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
   - **`stores`** *(array)*: (Optional) The names of all state stores used by the function Default: [].
     - **Items** *(string)*
   - **`type`**: The type of the operation, fixed value "filter" Default: filter. Must be one of: `["filter"]`.
@@ -304,7 +312,7 @@
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
-  - **`type`**: The type of the operation, fixed value "groupByKey" Default: groupByKey. Must be one of: `["groupByKey"]`.
+  - **`type`**: The type of the operation, fixed value "groupBy" Default: groupBy. Must be one of: `["groupBy"]`.
 - <a id="definitions/InitializerDefinition"></a>**`InitializerDefinition`** *(object)*: Defines a initializer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: (Optional) The (multiline) code of the initializer.
     - **Any of**
@@ -870,7 +878,7 @@
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/KeyValueTransformerDefinition](#definitions/KeyValueTransformerDefinition)*.
-  - **`name`** *(string, required)*: The name of the operation processor Default: transformKey.
+  - **`name`** *(string, required)*: The name of the operation processor Default: transformKeyValue.
   - **`stores`** *(array)*: (Optional) The names of all state stores used by the function Default: [].
     - **Items** *(string)*
   - **`type`**: The type of the operation, fixed value "transformKeyValue" Default: transformKeyValue. Must be one of: `["transformKeyValue"]`.
@@ -898,6 +906,10 @@
       - *string*
       - : Refer to *[#/definitions/ValueTransformerDefinition](#definitions/ValueTransformerDefinition)*.
   - **`name`** *(string, required)*: The name of the operation processor Default: transformValue.
+  - **`store`**: (Optional) Materialized view of the transformed table.
+    - **Any of**
+      - *string*
+      - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
   - **`stores`** *(array)*: (Optional) The names of all state stores used by the function Default: [].
     - **Items** *(string)*
   - **`type`**: The type of the operation, fixed value "transformValue" Default: transformValue. Must be one of: `["transformValue"]`.
@@ -966,7 +978,7 @@
     - **Any of**
       - *number*
       - *string*
-  - **`grace`**: (Optional) (Tumbling, Hopping) The grace period, during which out-of-order records can still be processed.
+  - **`grace`**: (Optional) (Tumbling, Hopping, Sliding) The grace period, during which out-of-order records can still be processed.
     - **Any of**
       - *number*
       - *string*

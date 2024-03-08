@@ -63,7 +63,7 @@
     <properties>
         <!-- compile, runtime and provided dependency versions -->
         <apache.commons.text.version>1.11.0</apache.commons.text.version>
-        <apache.kafka.version>3.6.0</apache.kafka.version>
+        <apache.kafka.version>3.6.1</apache.kafka.version>
         <confluent.version>7.6.0</confluent.version>
         <graalvm.version>23.1.1</graalvm.version>
         <graalvm.polyglot.version>23.1.1</graalvm.polyglot.version>

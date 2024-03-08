@@ -70,11 +70,12 @@ Data types are automatically converted to/from Python in the following manner:
 
 ### Automatic conversion
 
-KSML is able to automatically convert types, as long as expected types are explicitly
-defined. Examples of automatic conversions are:
+KSML is able to automatically convert between types. Examples are:
 
-* Numbers: converts from/to byte, short, int, long
-* JSON: can use string as input for a json structure
+- To/from string conversion is handled automatically for almost all data types, including string-notations such as CSV, JSON and XML.
+- When a string is expected, but a struct is passed in, the struct is automatically converted to string.
+- When a struct is expected, but a string is passed in, the string is parsed according to the notation specified.
+- Field matching and field type conversion is done automatically. For instance, if a struct contains an integer field, but the target schema expects a string, the integer is automatically converted to string.
 
 ## Function Types
 
@@ -132,12 +133,20 @@ It supports the following operations:
 - `debug(message: str, value_params...)`  --> sends and debug message to the log
 - `trace(message: str, value_params...)`  --> sends and trace message to the log
 
-Output of the log can be formatted with usual Java logging rules. Examples are:
+The message contains double curly brackets `{}`, which will be substituted by the value parameters.
+Examples are:
 
 ```
 log.error("Something went completely bad here!")
 log.info("Received message from topic: key={}, value={}", key, value)
 log.debug("I'm printing five variables here: {}, {}, {}, {}, {}. Lovely isn't it?", 1, 2, 3, "text", {"json":"is cool"})
+```
+
+Output of the above statements looks like:
+```
+[LOG TIMESTAMP] ERROR function.name   Something went completely bad here!
+[LOG TIMESTAMP] INFO  function.name   Received message from topic: key=123, value={"key":"value"}
+[LOG TIMESTAMP] DEBUG function.name   I'm printing five variables here: 1, 2, 3, text, {"json":"is cool"}. Lovely isn't it?
 ```
 
 ### State stores
