@@ -47,6 +47,8 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import static javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING;
+
 public class XmlDataObjectMapper implements DataObjectMapper<String> {
     private static final Logger LOG = LoggerFactory.getLogger(XmlDataObjectMapper.class);
     public static final String COUNT_SYMBOL = "#";
@@ -67,6 +69,7 @@ public class XmlDataObjectMapper implements DataObjectMapper<String> {
 
             // Set up the transformer for later conversion from DOM to XML
             TransformerFactory tf = TransformerFactory.newInstance();
+            tf.setFeature(FEATURE_SECURE_PROCESSING, true);
             transformer = tf.newTransformer();
             transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
             transformer.setOutputProperty(OutputKeys.INDENT, "no");

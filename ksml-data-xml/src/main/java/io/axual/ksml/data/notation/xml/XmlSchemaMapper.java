@@ -117,7 +117,7 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
             var containedSchema = findSchema(schemaStruct, name);
             if (containedSchema instanceof DataStruct containedSchemaStruct) {
                 var field = parseField(containedSchemaStruct);
-                if (field.schema() instanceof StructSchema fieldStructSchema) return fieldStructSchema;
+                if (field != null && field.schema() instanceof StructSchema fieldStructSchema) return fieldStructSchema;
             }
         }
         throw new SchemaException("Can not parse XML Schema: " + name);
