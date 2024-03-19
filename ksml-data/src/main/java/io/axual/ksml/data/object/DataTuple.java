@@ -26,6 +26,8 @@ import io.axual.ksml.data.value.Tuple;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import java.util.Arrays;
+
 @Getter
 @EqualsAndHashCode
 public class DataTuple extends Tuple<DataObject> implements DataObject {
@@ -37,11 +39,7 @@ public class DataTuple extends Tuple<DataObject> implements DataObject {
     }
 
     private static DataType[] convertElements(DataObject... elements) {
-        DataType[] result = new DataType[elements.length];
-        for (int index = 0; index < elements.length; index++) {
-            result[index] = elements[index].type();
-        }
-        return result;
+        return Arrays.stream(elements).map(DataObject::type).toArray(DataType[]::new);
     }
 
     @Override

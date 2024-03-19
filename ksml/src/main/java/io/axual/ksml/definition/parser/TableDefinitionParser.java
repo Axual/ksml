@@ -22,10 +22,7 @@ package io.axual.ksml.definition.parser;
 
 import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.schema.DataField;
-import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.exception.TopologyException;
@@ -33,8 +30,6 @@ import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.store.StoreType;
-
-import java.util.List;
 
 import static io.axual.ksml.dsl.KSMLDSL.Streams;
 
@@ -73,12 +68,13 @@ public class TableDefinitionParser extends DefinitionParser<TableDefinition> {
     }
 
     private StructParser<KeyValueStateStoreDefinition> storeField() {
-        final var resourceParser = new TopologyResourceParser<>("state store", Streams.STORE, "State store definition", null, new StateStoreDefinitionParser(StoreType.KEYVALUE_STORE));
-        final var field = new DataField(Streams.STORE, new UnionSchema(DataSchema.nullSchema(), resourceParser.schema()), "Definition of the keyValue state store associated with the table", DataField.NO_INDEX, false);
-        final var schema = structSchema(KeyValueStateStoreDefinition.class, field.doc(), List.of(field));
+        final var storeParser = new StateStoreDefinitionParser(StoreType.KEYVALUE_STORE);
+        final var resourceParser = new TopologyResourceParser<>("state store", Streams.STORE, "KeyValue state store definition", null, storeParser);
+        final var schema = optional(resourceParser).schema();
         return new StructParser<>() {
             @Override
             public KeyValueStateStoreDefinition parse(ParseNode node) {
+                storeParser.defaultName(node.longName());
                 final var resource = resourceParser.parse(node);
                 if (resource != null && resource.definition() instanceof KeyValueStateStoreDefinition def) return def;
                 return null;

@@ -4,7 +4,7 @@
 
 ## Properties
 
-- **`functions`** *(object)*: (Optional) Functions that can be referenced in producers and pipelines Default: {}.
+- **`functions`** *(object)*: *(optional)* Functions that can be referenced in producers and pipelines Default: {}.
   - **`^[a-zA-Z0-9_]+$`**
     - **Any of**
       - : Refer to *[#/definitions/AggregatorDefinition](#definitions/AggregatorDefinition)*.
@@ -26,30 +26,30 @@
       - : Refer to *[#/definitions/TopicNameExtractorDefinition](#definitions/TopicNameExtractorDefinition)*.
       - : Refer to *[#/definitions/ValueJoinerDefinition](#definitions/ValueJoinerDefinition)*.
       - : Refer to *[#/definitions/ValueTransformerDefinition](#definitions/ValueTransformerDefinition)*.
-- **`globalTables`** *(object)*: (Optional) GlobalTables that can be referenced in producers and pipelines Default: {}.
+- **`globalTables`** *(object)*: *(optional)* GlobalTables that can be referenced in producers and pipelines Default: {}.
   - **`^[a-zA-Z0-9_]+$`**: Refer to *[#/definitions/GlobalTableDefinition](#definitions/GlobalTableDefinition)*.
-- **`pipelines`** *(object)*: (Optional) Collection of named pipelines Default: {}.
+- **`pipelines`** *(object)*: *(optional)* Collection of named pipelines Default: {}.
   - **`^[a-zA-Z0-9_]+$`**: Refer to *[#/definitions/PipelineDefinition](#definitions/PipelineDefinition)*.
-- **`producers`** *(object)*: (Optional) Collection of named producers Default: {}.
+- **`producers`** *(object)*: *(optional)* Collection of named producers Default: {}.
   - **`^[a-zA-Z0-9_]+$`**: Refer to *[#/definitions/ProducerDefinition](#definitions/ProducerDefinition)*.
-- **`stores`** *(object)*: (Optional) State stores that can be referenced in producers and pipelines Default: {}.
+- **`stores`** *(object)*: *(optional)* State stores that can be referenced in producers and pipelines Default: {}.
   - **`^[a-zA-Z0-9_]+$`**
     - **Any of**
       - : Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
       - : Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
       - : Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
-- **`streams`** *(object)*: (Optional) Streams that can be referenced in producers and pipelines Default: {}.
+- **`streams`** *(object)*: *(optional)* Streams that can be referenced in producers and pipelines Default: {}.
   - **`^[a-zA-Z0-9_]+$`**: Refer to *[#/definitions/StreamDefinition](#definitions/StreamDefinition)*.
-- **`tables`** *(object)*: (Optional) Tables that can be referenced in producers and pipelines Default: {}.
+- **`tables`** *(object)*: *(optional)* Tables that can be referenced in producers and pipelines Default: {}.
   - **`^[a-zA-Z0-9_]+$`**: Refer to *[#/definitions/TableDefinition](#definitions/TableDefinition)*.
 ## Definitions
 
 - <a id="definitions/AggregateOperation"></a>**`AggregateOperation`** *(object)*: An aggregate operation. Cannot contain additional properties.
-  - **`adder`**: (Optional) (GroupedTable) A function that adds a record to the aggregation result.
+  - **`adder`**: *(optional)* (GroupedTable) A function that adds a record to the aggregation result.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/AggregatorDefinition](#definitions/AggregatorDefinition)*.
-  - **`aggregator`**: (Optional) (GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result.
+  - **`aggregator`**: *(optional)* (GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/AggregatorDefinition](#definitions/AggregatorDefinition)*.
@@ -57,61 +57,61 @@
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/InitializerDefinition](#definitions/InitializerDefinition)*.
-  - **`merger`**: (Optional) (SessionWindowedStream, SessionWindowedCogroupedStream) A function that combines two aggregation results.
+  - **`merger`**: *(optional)* (SessionWindowedStream, SessionWindowedCogroupedStream) A function that combines two aggregation results.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/MergerDefinition](#definitions/MergerDefinition)*.
   - **`name`** *(string, required)*: The name of the operation processor Default: aggregate.
-  - **`store`**: (Optional) Materialized view of the aggregation.
+  - **`store`**: *(optional)* Materialized view of the aggregation.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitType](#definitions/WindowStateStoreDefinitionWithImplicitType)*.
-  - **`subtractor`**: (Optional) (GroupedTable) A function that removes a record from the aggregation result.
+  - **`subtractor`**: *(optional)* (GroupedTable) A function that removes a record from the aggregation result.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/AggregatorDefinition](#definitions/AggregatorDefinition)*.
   - **`type`**: The type of the operation, fixed value "aggregate" Default: aggregate. Must be one of: `["aggregate"]`.
 - <a id="definitions/AggregatorDefinition"></a>**`AggregatorDefinition`** *(object)*: Defines a aggregator function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
-  - **`code`**: (Optional) The (multiline) code of the aggregator.
+  - **`code`**: *(optional)* The (multiline) code of the aggregator.
     - **Any of**
       - *boolean*
       - *string*
-  - **`expression`**: (Optional) The expression returned by the aggregator. Only required for functions that return values.
+  - **`expression`**: *(optional)* The expression returned by the aggregator. Only required for functions that return values.
     - **Any of**
       - *boolean*
       - *string*
-  - **`globalCode`**: (Optional) Global (multiline) code that gets loaded into the Python context outside of the aggregator. Can be used for defining eg. global variables.
+  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the aggregator. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
       - *string*
-  - **`name`** *(string)*: (Optional) The name of the aggregator. If this field is not defined, then the name is derived from the context.
-  - **`parameters`** *(array)*: (Optional) A list of parameters to be passed into the aggregator Default: [].
+  - **`name`** *(string)*: *(optional)* The name of the aggregator. If this field is not defined, then the name is derived from the context.
+  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the aggregator Default: [].
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
-  - **`resultType`** *(string)*: (Optional) The data type returned by the aggregator. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: (Optional) A list of store names that the aggregator uses. Only required if the function wants to use a state store. Default: [].
+  - **`resultType`** *(string)*: *(optional)* The data type returned by the aggregator. Only required for function types, which are not pre-defined.
+  - **`stores`** *(array)*: *(optional)* A list of store names that the aggregator uses. Only required if the function wants to use a state store. Default: [].
     - **Items** *(string)*
-  - **`type`**: (Optional) The type of the function, fixed value "aggregator" Default: aggregator. Must be one of: `["aggregator"]`.
+  - **`type`**: *(optional)* The type of the function, fixed value "aggregator" Default: aggregator. Must be one of: `["aggregator"]`.
 - <a id="definitions/BranchDefinition"></a>**`BranchDefinition`** *(object)*: Defines one branch in a BranchOperation. Cannot contain additional properties.
-  - **`as`** *(string)*: (Optional) The name to register the pipeline result under, which can be used as source by follow-up pipelines.
-  - **`branch`** *(array)*: (Optional) Defines a single branch, consisting of a condition and a pipeline to execute for messages that fulfil the predicate Default: [].
+  - **`as`** *(string)*: *(optional)* The name to register the pipeline result under, which can be used as source by follow-up pipelines.
+  - **`branch`** *(array)*: *(optional)* Defines a single branch, consisting of a condition and a pipeline to execute for messages that fulfil the predicate Default: [].
     - **Items**: Refer to *[#/definitions/BranchDefinition](#definitions/BranchDefinition)*.
-  - **`forEach`**: (Optional) A function that gets called for every message in the stream.
+  - **`forEach`**: *(optional)* A function that gets called for every message in the stream.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/ForEachActionDefinition](#definitions/ForEachActionDefinition)*.
-  - **`if`**: (Optional) Defines the condition under which messages get sent down this branch.
+  - **`if`**: *(optional)* Defines the condition under which messages get sent down this branch.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/PredicateDefinition](#definitions/PredicateDefinition)*.
-  - **`name`** *(string)*: (Optional) The name of the operation processor Default: forEach.
-  - **`print`**: (Optional) The specification of where to print messages to. Refer to *[#/definitions/PrintOperation](#definitions/PrintOperation)*.
-  - **`stores`** *(array)*: (Optional) The names of all state stores used by the function Default: [].
+  - **`name`** *(string)*: *(optional)* The name of the operation processor Default: forEach.
+  - **`print`**: *(optional)* The specification of where to print messages to. Refer to *[#/definitions/PrintOperation](#definitions/PrintOperation)*.
+  - **`stores`** *(array)*: *(optional)* The names of all state stores used by the function Default: [].
     - **Items** *(string)*
-  - **`to`**: (Optional) Ends the pipeline by sending all messages to a fixed topic, or to a topic returned by a topic name extractor function.
+  - **`to`**: *(optional)* Ends the pipeline by sending all messages to a fixed topic, or to a topic returned by a topic name extractor function.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/ToOperation](#definitions/ToOperation)*.
-  - **`via`** *(array)*: (Optional) A series of operations performed on the input stream Default: [].
+  - **`via`** *(array)*: *(optional)* A series of operations performed on the input stream Default: [].
     - **Items**
       - **Any of**
         - : Refer to *[#/definitions/AggregateOperation](#definitions/AggregateOperation)*.
@@ -155,7 +155,7 @@
       - *string*
       - : Refer to *[#/definitions/AggregatorDefinition](#definitions/AggregatorDefinition)*.
   - **`name`** *(string, required)*: The name of the operation processor Default: cogroup.
-  - **`store`**: (Optional) Materialized view of the cogroup.
+  - **`store`**: *(optional)* Materialized view of the cogroup.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitType](#definitions/WindowStateStoreDefinitionWithImplicitType)*.
@@ -174,7 +174,7 @@
   - **`type`**: The type of the operation, fixed value "convertValue" Default: convertValue. Must be one of: `["convertValue"]`.
 - <a id="definitions/CountOperation"></a>**`CountOperation`** *(object)*: Count the number of times a key is seen in a given window. Cannot contain additional properties.
   - **`name`** *(string, required)*: The name of the operation processor Default: count.
-  - **`store`**: (Optional) Materialized view of the count operation's result.
+  - **`store`**: *(optional)* Materialized view of the count operation's result.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
@@ -187,11 +187,11 @@
       - *string*
       - : Refer to *[#/definitions/PredicateDefinition](#definitions/PredicateDefinition)*.
   - **`name`** *(string, required)*: The name of the operation processor Default: filterNot.
-  - **`store`**: (Optional) Materialized view of the filtered table.
+  - **`store`**: *(optional)* Materialized view of the filtered table.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
-  - **`stores`** *(array)*: (Optional) The names of all state stores used by the function Default: [].
+  - **`stores`** *(array)*: *(optional)* The names of all state stores used by the function Default: [].
     - **Items** *(string)*
   - **`type`**: The type of the operation, fixed value "filterNot" Default: filterNot. Must be one of: `["filterNot"]`.
 - <a id="definitions/FilterOperation"></a>**`FilterOperation`** *(object)*: Filter records based on a predicate function. Cannot contain additional properties.
@@ -200,104 +200,104 @@
       - *string*
       - : Refer to *[#/definitions/PredicateDefinition](#definitions/PredicateDefinition)*.
   - **`name`** *(string, required)*: The name of the operation processor Default: filter.
-  - **`store`**: (Optional) Materialized view of the filtered table.
+  - **`store`**: *(optional)* Materialized view of the filtered table.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
-  - **`stores`** *(array)*: (Optional) The names of all state stores used by the function Default: [].
+  - **`stores`** *(array)*: *(optional)* The names of all state stores used by the function Default: [].
     - **Items** *(string)*
   - **`type`**: The type of the operation, fixed value "filter" Default: filter. Must be one of: `["filter"]`.
 - <a id="definitions/ForEachActionDefinition"></a>**`ForEachActionDefinition`** *(object)*: Defines a foreach action function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
-  - **`code`**: (Optional) The (multiline) code of the foreach action.
+  - **`code`**: *(optional)* The (multiline) code of the foreach action.
     - **Any of**
       - *boolean*
       - *string*
-  - **`expression`**: (Optional) The expression returned by the foreach action. Only required for functions that return values.
+  - **`expression`**: *(optional)* The expression returned by the foreach action. Only required for functions that return values.
     - **Any of**
       - *boolean*
       - *string*
-  - **`globalCode`**: (Optional) Global (multiline) code that gets loaded into the Python context outside of the foreach action. Can be used for defining eg. global variables.
+  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the foreach action. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
       - *string*
-  - **`name`** *(string)*: (Optional) The name of the foreach action. If this field is not defined, then the name is derived from the context.
-  - **`parameters`** *(array)*: (Optional) A list of parameters to be passed into the foreach action Default: [].
+  - **`name`** *(string)*: *(optional)* The name of the foreach action. If this field is not defined, then the name is derived from the context.
+  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the foreach action Default: [].
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
-  - **`resultType`** *(string)*: (Optional) The data type returned by the foreach action. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: (Optional) A list of store names that the foreach action uses. Only required if the function wants to use a state store. Default: [].
+  - **`resultType`** *(string)*: *(optional)* The data type returned by the foreach action. Only required for function types, which are not pre-defined.
+  - **`stores`** *(array)*: *(optional)* A list of store names that the foreach action uses. Only required if the function wants to use a state store. Default: [].
     - **Items** *(string)*
-  - **`type`**: (Optional) The type of the function, fixed value "forEach" Default: forEach. Must be one of: `["forEach"]`.
+  - **`type`**: *(optional)* The type of the function, fixed value "forEach" Default: forEach. Must be one of: `["forEach"]`.
 - <a id="definitions/ForeignKeyExtractorDefinition"></a>**`ForeignKeyExtractorDefinition`** *(object)*: Defines a foreign key extractor function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
-  - **`code`**: (Optional) The (multiline) code of the foreign key extractor.
+  - **`code`**: *(optional)* The (multiline) code of the foreign key extractor.
     - **Any of**
       - *boolean*
       - *string*
-  - **`expression`**: (Optional) The expression returned by the foreign key extractor. Only required for functions that return values.
+  - **`expression`**: *(optional)* The expression returned by the foreign key extractor. Only required for functions that return values.
     - **Any of**
       - *boolean*
       - *string*
-  - **`globalCode`**: (Optional) Global (multiline) code that gets loaded into the Python context outside of the foreign key extractor. Can be used for defining eg. global variables.
+  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the foreign key extractor. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
       - *string*
-  - **`name`** *(string)*: (Optional) The name of the foreign key extractor. If this field is not defined, then the name is derived from the context.
-  - **`parameters`** *(array)*: (Optional) A list of parameters to be passed into the foreign key extractor Default: [].
+  - **`name`** *(string)*: *(optional)* The name of the foreign key extractor. If this field is not defined, then the name is derived from the context.
+  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the foreign key extractor Default: [].
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
-  - **`resultType`** *(string)*: (Optional) The data type returned by the foreign key extractor. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: (Optional) A list of store names that the foreign key extractor uses. Only required if the function wants to use a state store. Default: [].
+  - **`resultType`** *(string)*: *(optional)* The data type returned by the foreign key extractor. Only required for function types, which are not pre-defined.
+  - **`stores`** *(array)*: *(optional)* A list of store names that the foreign key extractor uses. Only required if the function wants to use a state store. Default: [].
     - **Items** *(string)*
-  - **`type`**: (Optional) The type of the function, fixed value "forEach" Default: forEach. Must be one of: `["forEach"]`.
+  - **`type`**: *(optional)* The type of the function, fixed value "forEach" Default: forEach. Must be one of: `["forEach"]`.
 - <a id="definitions/GeneratorDefinition"></a>**`GeneratorDefinition`** *(object)*: Defines a message generator function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
-  - **`code`**: (Optional) The (multiline) code of the message generator.
+  - **`code`**: *(optional)* The (multiline) code of the message generator.
     - **Any of**
       - *boolean*
       - *string*
-  - **`expression`**: (Optional) The expression returned by the message generator. Only required for functions that return values.
+  - **`expression`**: *(optional)* The expression returned by the message generator. Only required for functions that return values.
     - **Any of**
       - *boolean*
       - *string*
-  - **`globalCode`**: (Optional) Global (multiline) code that gets loaded into the Python context outside of the message generator. Can be used for defining eg. global variables.
+  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the message generator. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
       - *string*
-  - **`name`** *(string)*: (Optional) The name of the message generator. If this field is not defined, then the name is derived from the context.
-  - **`parameters`** *(array)*: (Optional) A list of parameters to be passed into the message generator Default: [].
+  - **`name`** *(string)*: *(optional)* The name of the message generator. If this field is not defined, then the name is derived from the context.
+  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the message generator Default: [].
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
-  - **`resultType`** *(string)*: (Optional) The data type returned by the message generator. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: (Optional) A list of store names that the message generator uses. Only required if the function wants to use a state store. Default: [].
+  - **`resultType`** *(string)*: *(optional)* The data type returned by the message generator. Only required for function types, which are not pre-defined.
+  - **`stores`** *(array)*: *(optional)* A list of store names that the message generator uses. Only required if the function wants to use a state store. Default: [].
     - **Items** *(string)*
-  - **`type`**: (Optional) The type of the function, fixed value "generator" Default: generator. Must be one of: `["generator"]`.
+  - **`type`**: *(optional)* The type of the function, fixed value "generator" Default: generator. Must be one of: `["generator"]`.
 - <a id="definitions/GenericFunctionDefinition"></a>**`GenericFunctionDefinition`** *(object)*: Defines a generic function function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
-  - **`code`**: (Optional) The (multiline) code of the generic function.
+  - **`code`**: *(optional)* The (multiline) code of the generic function.
     - **Any of**
       - *boolean*
       - *string*
-  - **`expression`**: (Optional) The expression returned by the generic function. Only required for functions that return values.
+  - **`expression`**: *(optional)* The expression returned by the generic function. Only required for functions that return values.
     - **Any of**
       - *boolean*
       - *string*
-  - **`globalCode`**: (Optional) Global (multiline) code that gets loaded into the Python context outside of the generic function. Can be used for defining eg. global variables.
+  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the generic function. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
       - *string*
-  - **`name`** *(string)*: (Optional) The name of the generic function. If this field is not defined, then the name is derived from the context.
-  - **`parameters`** *(array)*: (Optional) A list of parameters to be passed into the generic function Default: [].
+  - **`name`** *(string)*: *(optional)* The name of the generic function. If this field is not defined, then the name is derived from the context.
+  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the generic function Default: [].
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
-  - **`resultType`** *(string)*: (Optional) The data type returned by the generic function. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: (Optional) A list of store names that the generic function uses. Only required if the function wants to use a state store. Default: [].
+  - **`resultType`** *(string)*: *(optional)* The data type returned by the generic function. Only required for function types, which are not pre-defined.
+  - **`stores`** *(array)*: *(optional)* A list of store names that the generic function uses. Only required if the function wants to use a state store. Default: [].
     - **Items** *(string)*
-  - **`type`**: (Optional) The type of the function, fixed value "generic" Default: generic. Must be one of: `["generic"]`.
+  - **`type`**: *(optional)* The type of the function, fixed value "generic" Default: generic. Must be one of: `["generic"]`.
 - <a id="definitions/GlobalTableDefinition"></a>**`GlobalTableDefinition`** *(object)*: Contains a definition of a GlobalTable, which can be referenced by producers and pipelines. Cannot contain additional properties.
   - **`keyType`** *(string, required)*: The key type of the global table.
   - **`topic`** *(string, required)*: The name of the Kafka topic for this global table.
   - **`valueType`** *(string, required)*: The value type of the global table.
 - <a id="definitions/GlobalTableDefinitionWithOptionalTypes"></a>**`GlobalTableDefinitionWithOptionalTypes`** *(object)*: Contains a definition of a GlobalTable, which can be referenced by producers and pipelines. Cannot contain additional properties.
-  - **`keyType`** *(string)*: (Optional) The key type of the global table.
+  - **`keyType`** *(string)*: *(optional)* The key type of the global table.
   - **`topic`** *(string, required)*: The name of the Kafka topic for this global table.
-  - **`valueType`** *(string)*: (Optional) The value type of the global table.
+  - **`valueType`** *(string)*: *(optional)* The value type of the global table.
 - <a id="definitions/GroupByKeyOperation"></a>**`GroupByKeyOperation`** *(object)*: Operation to group all messages with the same key together. Cannot contain additional properties.
   - **`name`** *(string, required)*: The name of the operation processor Default: groupByKey.
-  - **`store`**: (Optional) Materialized view of the grouped stream.
+  - **`store`**: *(optional)* Materialized view of the grouped stream.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
@@ -308,31 +308,31 @@
       - *string*
       - : Refer to *[#/definitions/KeyValueMapperDefinition](#definitions/KeyValueMapperDefinition)*.
   - **`name`** *(string, required)*: The name of the operation processor Default: groupBy.
-  - **`store`**: (Optional) Materialized view of the grouped stream or table.
+  - **`store`**: *(optional)* Materialized view of the grouped stream or table.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
   - **`type`**: The type of the operation, fixed value "groupBy" Default: groupBy. Must be one of: `["groupBy"]`.
 - <a id="definitions/InitializerDefinition"></a>**`InitializerDefinition`** *(object)*: Defines a initializer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
-  - **`code`**: (Optional) The (multiline) code of the initializer.
+  - **`code`**: *(optional)* The (multiline) code of the initializer.
     - **Any of**
       - *boolean*
       - *string*
-  - **`expression`**: (Optional) The expression returned by the initializer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The expression returned by the initializer. Only required for functions that return values.
     - **Any of**
       - *boolean*
       - *string*
-  - **`globalCode`**: (Optional) Global (multiline) code that gets loaded into the Python context outside of the initializer. Can be used for defining eg. global variables.
+  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the initializer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
       - *string*
-  - **`name`** *(string)*: (Optional) The name of the initializer. If this field is not defined, then the name is derived from the context.
-  - **`parameters`** *(array)*: (Optional) A list of parameters to be passed into the initializer Default: [].
+  - **`name`** *(string)*: *(optional)* The name of the initializer. If this field is not defined, then the name is derived from the context.
+  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the initializer Default: [].
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
-  - **`resultType`** *(string)*: (Optional) The data type returned by the initializer. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: (Optional) A list of store names that the initializer uses. Only required if the function wants to use a state store. Default: [].
+  - **`resultType`** *(string)*: *(optional)* The data type returned by the initializer. Only required for function types, which are not pre-defined.
+  - **`stores`** *(array)*: *(optional)* A list of store names that the initializer uses. Only required if the function wants to use a state store. Default: [].
     - **Items** *(string)*
-  - **`type`**: (Optional) The type of the function, fixed value "initializer" Default: initializer. Must be one of: `["initializer"]`.
+  - **`type`**: *(optional)* The type of the function, fixed value "initializer" Default: initializer. Must be one of: `["initializer"]`.
 - <a id="definitions/JoinOperation"></a>**`JoinOperation`** *(object)*: Defines a join operation. Cannot contain additional properties.
   - **`foreignKeyExtractor`**: (Table joins) A function that can translate the join table value to a primary key.
     - **Any of**
@@ -342,7 +342,7 @@
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/GlobalTableDefinitionWithOptionalTypes](#definitions/GlobalTableDefinitionWithOptionalTypes)*.
-  - **`grace`**: (Optional) (Table joins) The window grace period (the time to admit out-of-order events after the end of the window).
+  - **`grace`**: *(optional)* (Table joins) The window grace period (the time to admit out-of-order events after the end of the window).
     - **Any of**
       - *number*
       - *string*
@@ -351,15 +351,15 @@
       - *string*
       - : Refer to *[#/definitions/ValueJoinerDefinition](#definitions/ValueJoinerDefinition)*.
   - **`name`** *(string, required)*: The name of the operation processor Default: join.
-  - **`otherPartitioner`**: (Optional) (Table joins) A function that partitions the records on the join table.
+  - **`otherPartitioner`**: *(optional)* (Table joins) A function that partitions the records on the join table.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/StreamPartitionerDefinition](#definitions/StreamPartitionerDefinition)*.
-  - **`partitioner`**: (Optional) (Table joins) A function that partitions the records on the primary table.
+  - **`partitioner`**: *(optional)* (Table joins) A function that partitions the records on the primary table.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/StreamPartitionerDefinition](#definitions/StreamPartitionerDefinition)*.
-  - **`store`**: (Optional) Materialized view of the joined streams.
+  - **`store`**: *(optional)* Materialized view of the joined streams.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
@@ -383,161 +383,161 @@
       - *number*
       - *string*
 - <a id="definitions/KeyTransformerDefinition"></a>**`KeyTransformerDefinition`** *(object)*: Defines a key transformer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
-  - **`code`**: (Optional) The (multiline) code of the key transformer.
+  - **`code`**: *(optional)* The (multiline) code of the key transformer.
     - **Any of**
       - *boolean*
       - *string*
-  - **`expression`**: (Optional) The expression returned by the key transformer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The expression returned by the key transformer. Only required for functions that return values.
     - **Any of**
       - *boolean*
       - *string*
-  - **`globalCode`**: (Optional) Global (multiline) code that gets loaded into the Python context outside of the key transformer. Can be used for defining eg. global variables.
+  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the key transformer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
       - *string*
-  - **`name`** *(string)*: (Optional) The name of the key transformer. If this field is not defined, then the name is derived from the context.
-  - **`parameters`** *(array)*: (Optional) A list of parameters to be passed into the key transformer Default: [].
+  - **`name`** *(string)*: *(optional)* The name of the key transformer. If this field is not defined, then the name is derived from the context.
+  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the key transformer Default: [].
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
-  - **`resultType`** *(string)*: (Optional) The data type returned by the key transformer. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: (Optional) A list of store names that the key transformer uses. Only required if the function wants to use a state store. Default: [].
+  - **`resultType`** *(string)*: *(optional)* The data type returned by the key transformer. Only required for function types, which are not pre-defined.
+  - **`stores`** *(array)*: *(optional)* A list of store names that the key transformer uses. Only required if the function wants to use a state store. Default: [].
     - **Items** *(string)*
-  - **`type`**: (Optional) The type of the function, fixed value "keyTransformer" Default: keyTransformer. Must be one of: `["keyTransformer"]`.
+  - **`type`**: *(optional)* The type of the function, fixed value "keyTransformer" Default: keyTransformer. Must be one of: `["keyTransformer"]`.
 - <a id="definitions/KeyValueMapperDefinition"></a>**`KeyValueMapperDefinition`** *(object)*: Defines a keyvalue mapper function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
-  - **`code`**: (Optional) The (multiline) code of the keyvalue mapper.
+  - **`code`**: *(optional)* The (multiline) code of the keyvalue mapper.
     - **Any of**
       - *boolean*
       - *string*
-  - **`expression`**: (Optional) The expression returned by the keyvalue mapper. Only required for functions that return values.
+  - **`expression`**: *(optional)* The expression returned by the keyvalue mapper. Only required for functions that return values.
     - **Any of**
       - *boolean*
       - *string*
-  - **`globalCode`**: (Optional) Global (multiline) code that gets loaded into the Python context outside of the keyvalue mapper. Can be used for defining eg. global variables.
+  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the keyvalue mapper. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
       - *string*
-  - **`name`** *(string)*: (Optional) The name of the keyvalue mapper. If this field is not defined, then the name is derived from the context.
-  - **`parameters`** *(array)*: (Optional) A list of parameters to be passed into the keyvalue mapper Default: [].
+  - **`name`** *(string)*: *(optional)* The name of the keyvalue mapper. If this field is not defined, then the name is derived from the context.
+  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the keyvalue mapper Default: [].
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
-  - **`resultType`** *(string)*: (Optional) The data type returned by the keyvalue mapper. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: (Optional) A list of store names that the keyvalue mapper uses. Only required if the function wants to use a state store. Default: [].
+  - **`resultType`** *(string)*: *(optional)* The data type returned by the keyvalue mapper. Only required for function types, which are not pre-defined.
+  - **`stores`** *(array)*: *(optional)* A list of store names that the keyvalue mapper uses. Only required if the function wants to use a state store. Default: [].
     - **Items** *(string)*
-  - **`type`**: (Optional) The type of the function, fixed value "keyValueMapper" Default: keyValueMapper. Must be one of: `["keyValueMapper"]`.
+  - **`type`**: *(optional)* The type of the function, fixed value "keyValueMapper" Default: keyValueMapper. Must be one of: `["keyValueMapper"]`.
 - <a id="definitions/KeyValuePrinterDefinition"></a>**`KeyValuePrinterDefinition`** *(object)*: Defines a keyvalue printer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
-  - **`code`**: (Optional) The (multiline) code of the keyvalue printer.
+  - **`code`**: *(optional)* The (multiline) code of the keyvalue printer.
     - **Any of**
       - *boolean*
       - *string*
-  - **`expression`**: (Optional) The expression returned by the keyvalue printer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The expression returned by the keyvalue printer. Only required for functions that return values.
     - **Any of**
       - *boolean*
       - *string*
-  - **`globalCode`**: (Optional) Global (multiline) code that gets loaded into the Python context outside of the keyvalue printer. Can be used for defining eg. global variables.
+  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the keyvalue printer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
       - *string*
-  - **`name`** *(string)*: (Optional) The name of the keyvalue printer. If this field is not defined, then the name is derived from the context.
-  - **`parameters`** *(array)*: (Optional) A list of parameters to be passed into the keyvalue printer Default: [].
+  - **`name`** *(string)*: *(optional)* The name of the keyvalue printer. If this field is not defined, then the name is derived from the context.
+  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the keyvalue printer Default: [].
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
-  - **`resultType`** *(string)*: (Optional) The data type returned by the keyvalue printer. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: (Optional) A list of store names that the keyvalue printer uses. Only required if the function wants to use a state store. Default: [].
+  - **`resultType`** *(string)*: *(optional)* The data type returned by the keyvalue printer. Only required for function types, which are not pre-defined.
+  - **`stores`** *(array)*: *(optional)* A list of store names that the keyvalue printer uses. Only required if the function wants to use a state store. Default: [].
     - **Items** *(string)*
-  - **`type`**: (Optional) The type of the function, fixed value "keyValuePrinter" Default: keyValuePrinter. Must be one of: `["keyValuePrinter"]`.
+  - **`type`**: *(optional)* The type of the function, fixed value "keyValuePrinter" Default: keyValuePrinter. Must be one of: `["keyValuePrinter"]`.
 - <a id="definitions/KeyValueStateStoreDefinition"></a>**`KeyValueStateStoreDefinition`** *(object)*: Definition of a keyValue state store. Cannot contain additional properties.
-  - **`caching`** *(boolean)*: (Optional) "true" if changed to the keyValue store need to be buffered and periodically released, "false" to emit all changes directly Default: false.
-  - **`historyRetention`**: (Optional) (Versioned only) The duration for which old record versions are available for query (cannot be negative).
+  - **`caching`** *(boolean)*: *(optional)* "true" if changed to the keyValue store need to be buffered and periodically released, "false" to emit all changes directly Default: false.
+  - **`historyRetention`**: *(optional)* (Versioned only) The duration for which old record versions are available for query (cannot be negative).
     - **Any of**
       - *number*
       - *string*
-  - **`keyType`** *(string)*: (Optional) The key type of the keyValue store.
-  - **`logging`** *(boolean)*: (Optional) "true" if a changelog topic should be set up on Kafka for this keyValue store, "false" otherwise Default: false.
-  - **`name`** *(string)*: (Optional) The name of the keyValue store. If this field is not defined, then the name is derived from the context.
-  - **`persistent`** *(boolean)*: (Optional) "true" if this keyValue store needs to be stored on disk, "false" otherwise Default: false.
-  - **`segmentInterval`**: (Optional) Size of segments for storing old record versions (must be positive). Old record versions for the same key in a single segment are stored (updated and accessed) together. The only impact of this parameter is performance. If segments are large and a workload results in many record versions for the same key being collected in a single segment, performance may degrade as a result. On the other hand, historical reads (which access older segments) and out-of-order writes may slow down if there are too many segments.
+  - **`keyType`** *(string)*: *(optional)* The key type of the keyValue store.
+  - **`logging`** *(boolean)*: *(optional)* "true" if a changelog topic should be set up on Kafka for this keyValue store, "false" otherwise Default: false.
+  - **`name`** *(string)*: *(optional)* The name of the keyValue store. If this field is not defined, then the name is derived from the context.
+  - **`persistent`** *(boolean)*: *(optional)* "true" if this keyValue store needs to be stored on disk, "false" otherwise Default: false.
+  - **`segmentInterval`**: *(optional)* Size of segments for storing old record versions (must be positive). Old record versions for the same key in a single segment are stored (updated and accessed) together. The only impact of this parameter is performance. If segments are large and a workload results in many record versions for the same key being collected in a single segment, performance may degrade as a result. On the other hand, historical reads (which access older segments) and out-of-order writes may slow down if there are too many segments.
     - **Any of**
       - *number*
       - *string*
-  - **`timestamped`** *(boolean)*: (Optional) "true" if elements in the store are timestamped, "false" otherwise Default: false.
+  - **`timestamped`** *(boolean)*: *(optional)* "true" if elements in the store are timestamped, "false" otherwise Default: false.
   - **`type`**: The type of the state store, fixed value "keyValue" Default: keyValue. Must be one of: `["keyValue"]`.
-  - **`valueType`** *(string)*: (Optional) The value type of the keyValue store.
-  - **`versioned`** *(boolean)*: (Optional) "true" if elements in the store are versioned, "false" otherwise Default: false.
+  - **`valueType`** *(string)*: *(optional)* The value type of the keyValue store.
+  - **`versioned`** *(boolean)*: *(optional)* "true" if elements in the store are versioned, "false" otherwise Default: false.
 - <a id="definitions/KeyValueStateStoreDefinitionWithImplicitType"></a>**`KeyValueStateStoreDefinitionWithImplicitType`** *(object)*: Definition of a keyValue state store. Cannot contain additional properties.
-  - **`caching`** *(boolean)*: (Optional) "true" if changed to the keyValue store need to be buffered and periodically released, "false" to emit all changes directly Default: false.
-  - **`historyRetention`**: (Optional) (Versioned only) The duration for which old record versions are available for query (cannot be negative).
+  - **`caching`** *(boolean)*: *(optional)* "true" if changed to the keyValue store need to be buffered and periodically released, "false" to emit all changes directly Default: false.
+  - **`historyRetention`**: *(optional)* (Versioned only) The duration for which old record versions are available for query (cannot be negative).
     - **Any of**
       - *number*
       - *string*
-  - **`keyType`** *(string)*: (Optional) The key type of the keyValue store.
-  - **`logging`** *(boolean)*: (Optional) "true" if a changelog topic should be set up on Kafka for this keyValue store, "false" otherwise Default: false.
-  - **`name`** *(string)*: (Optional) The name of the keyValue store. If this field is not defined, then the name is derived from the context.
-  - **`persistent`** *(boolean)*: (Optional) "true" if this keyValue store needs to be stored on disk, "false" otherwise Default: false.
-  - **`segmentInterval`**: (Optional) Size of segments for storing old record versions (must be positive). Old record versions for the same key in a single segment are stored (updated and accessed) together. The only impact of this parameter is performance. If segments are large and a workload results in many record versions for the same key being collected in a single segment, performance may degrade as a result. On the other hand, historical reads (which access older segments) and out-of-order writes may slow down if there are too many segments.
+  - **`keyType`** *(string)*: *(optional)* The key type of the keyValue store.
+  - **`logging`** *(boolean)*: *(optional)* "true" if a changelog topic should be set up on Kafka for this keyValue store, "false" otherwise Default: false.
+  - **`name`** *(string)*: *(optional)* The name of the keyValue store. If this field is not defined, then the name is derived from the context.
+  - **`persistent`** *(boolean)*: *(optional)* "true" if this keyValue store needs to be stored on disk, "false" otherwise Default: false.
+  - **`segmentInterval`**: *(optional)* Size of segments for storing old record versions (must be positive). Old record versions for the same key in a single segment are stored (updated and accessed) together. The only impact of this parameter is performance. If segments are large and a workload results in many record versions for the same key being collected in a single segment, performance may degrade as a result. On the other hand, historical reads (which access older segments) and out-of-order writes may slow down if there are too many segments.
     - **Any of**
       - *number*
       - *string*
-  - **`timestamped`** *(boolean)*: (Optional) "true" if elements in the store are timestamped, "false" otherwise Default: false.
-  - **`type`**: (Optional) The type of the state store, fixed value "keyValue" Default: keyValue. Must be one of: `["keyValue"]`.
-  - **`valueType`** *(string)*: (Optional) The value type of the keyValue store.
-  - **`versioned`** *(boolean)*: (Optional) "true" if elements in the store are versioned, "false" otherwise Default: false.
+  - **`timestamped`** *(boolean)*: *(optional)* "true" if elements in the store are timestamped, "false" otherwise Default: false.
+  - **`type`**: *(optional)* The type of the state store, fixed value "keyValue" Default: keyValue. Must be one of: `["keyValue"]`.
+  - **`valueType`** *(string)*: *(optional)* The value type of the keyValue store.
+  - **`versioned`** *(boolean)*: *(optional)* "true" if elements in the store are versioned, "false" otherwise Default: false.
 - <a id="definitions/KeyValueToKeyValueListTransformerDefinition"></a>**`KeyValueToKeyValueListTransformerDefinition`** *(object)*: Defines a keyvalue-to-keyvaluelist transformer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
-  - **`code`**: (Optional) The (multiline) code of the keyvalue-to-keyvaluelist transformer.
+  - **`code`**: *(optional)* The (multiline) code of the keyvalue-to-keyvaluelist transformer.
     - **Any of**
       - *boolean*
       - *string*
-  - **`expression`**: (Optional) The expression returned by the keyvalue-to-keyvaluelist transformer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The expression returned by the keyvalue-to-keyvaluelist transformer. Only required for functions that return values.
     - **Any of**
       - *boolean*
       - *string*
-  - **`globalCode`**: (Optional) Global (multiline) code that gets loaded into the Python context outside of the keyvalue-to-keyvaluelist transformer. Can be used for defining eg. global variables.
+  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the keyvalue-to-keyvaluelist transformer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
       - *string*
-  - **`name`** *(string)*: (Optional) The name of the keyvalue-to-keyvaluelist transformer. If this field is not defined, then the name is derived from the context.
-  - **`parameters`** *(array)*: (Optional) A list of parameters to be passed into the keyvalue-to-keyvaluelist transformer Default: [].
+  - **`name`** *(string)*: *(optional)* The name of the keyvalue-to-keyvaluelist transformer. If this field is not defined, then the name is derived from the context.
+  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the keyvalue-to-keyvaluelist transformer Default: [].
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
-  - **`resultType`** *(string)*: (Optional) The data type returned by the keyvalue-to-keyvaluelist transformer. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: (Optional) A list of store names that the keyvalue-to-keyvaluelist transformer uses. Only required if the function wants to use a state store. Default: [].
+  - **`resultType`** *(string)*: *(optional)* The data type returned by the keyvalue-to-keyvaluelist transformer. Only required for function types, which are not pre-defined.
+  - **`stores`** *(array)*: *(optional)* A list of store names that the keyvalue-to-keyvaluelist transformer uses. Only required if the function wants to use a state store. Default: [].
     - **Items** *(string)*
-  - **`type`**: (Optional) The type of the function, fixed value "keyValueToKeyValueListTransformer" Default: keyValueToKeyValueListTransformer. Must be one of: `["keyValueToKeyValueListTransformer"]`.
+  - **`type`**: *(optional)* The type of the function, fixed value "keyValueToKeyValueListTransformer" Default: keyValueToKeyValueListTransformer. Must be one of: `["keyValueToKeyValueListTransformer"]`.
 - <a id="definitions/KeyValueToValueListTransformerDefinition"></a>**`KeyValueToValueListTransformerDefinition`** *(object)*: Defines a keyvalue-to-valuelist transformer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
-  - **`code`**: (Optional) The (multiline) code of the keyvalue-to-valuelist transformer.
+  - **`code`**: *(optional)* The (multiline) code of the keyvalue-to-valuelist transformer.
     - **Any of**
       - *boolean*
       - *string*
-  - **`expression`**: (Optional) The expression returned by the keyvalue-to-valuelist transformer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The expression returned by the keyvalue-to-valuelist transformer. Only required for functions that return values.
     - **Any of**
       - *boolean*
       - *string*
-  - **`globalCode`**: (Optional) Global (multiline) code that gets loaded into the Python context outside of the keyvalue-to-valuelist transformer. Can be used for defining eg. global variables.
+  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the keyvalue-to-valuelist transformer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
       - *string*
-  - **`name`** *(string)*: (Optional) The name of the keyvalue-to-valuelist transformer. If this field is not defined, then the name is derived from the context.
-  - **`parameters`** *(array)*: (Optional) A list of parameters to be passed into the keyvalue-to-valuelist transformer Default: [].
+  - **`name`** *(string)*: *(optional)* The name of the keyvalue-to-valuelist transformer. If this field is not defined, then the name is derived from the context.
+  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the keyvalue-to-valuelist transformer Default: [].
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
-  - **`resultType`** *(string)*: (Optional) The data type returned by the keyvalue-to-valuelist transformer. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: (Optional) A list of store names that the keyvalue-to-valuelist transformer uses. Only required if the function wants to use a state store. Default: [].
+  - **`resultType`** *(string)*: *(optional)* The data type returned by the keyvalue-to-valuelist transformer. Only required for function types, which are not pre-defined.
+  - **`stores`** *(array)*: *(optional)* A list of store names that the keyvalue-to-valuelist transformer uses. Only required if the function wants to use a state store. Default: [].
     - **Items** *(string)*
-  - **`type`**: (Optional) The type of the function, fixed value "keyValueToValueListTransformer" Default: keyValueToValueListTransformer. Must be one of: `["keyValueToValueListTransformer"]`.
+  - **`type`**: *(optional)* The type of the function, fixed value "keyValueToValueListTransformer" Default: keyValueToValueListTransformer. Must be one of: `["keyValueToValueListTransformer"]`.
 - <a id="definitions/KeyValueTransformerDefinition"></a>**`KeyValueTransformerDefinition`** *(object)*: Defines a keyvalue transformer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
-  - **`code`**: (Optional) The (multiline) code of the keyvalue transformer.
+  - **`code`**: *(optional)* The (multiline) code of the keyvalue transformer.
     - **Any of**
       - *boolean*
       - *string*
-  - **`expression`**: (Optional) The expression returned by the keyvalue transformer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The expression returned by the keyvalue transformer. Only required for functions that return values.
     - **Any of**
       - *boolean*
       - *string*
-  - **`globalCode`**: (Optional) Global (multiline) code that gets loaded into the Python context outside of the keyvalue transformer. Can be used for defining eg. global variables.
+  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the keyvalue transformer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
       - *string*
-  - **`name`** *(string)*: (Optional) The name of the keyvalue transformer. If this field is not defined, then the name is derived from the context.
-  - **`parameters`** *(array)*: (Optional) A list of parameters to be passed into the keyvalue transformer Default: [].
+  - **`name`** *(string)*: *(optional)* The name of the keyvalue transformer. If this field is not defined, then the name is derived from the context.
+  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the keyvalue transformer Default: [].
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
-  - **`resultType`** *(string)*: (Optional) The data type returned by the keyvalue transformer. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: (Optional) A list of store names that the keyvalue transformer uses. Only required if the function wants to use a state store. Default: [].
+  - **`resultType`** *(string)*: *(optional)* The data type returned by the keyvalue transformer. Only required for function types, which are not pre-defined.
+  - **`stores`** *(array)*: *(optional)* A list of store names that the keyvalue transformer uses. Only required if the function wants to use a state store. Default: [].
     - **Items** *(string)*
-  - **`type`**: (Optional) The type of the function, fixed value "keyValueTransformer" Default: keyValueTransformer. Must be one of: `["keyValueTransformer"]`.
+  - **`type`**: *(optional)* The type of the function, fixed value "keyValueTransformer" Default: keyValueTransformer. Must be one of: `["keyValueTransformer"]`.
 - <a id="definitions/MergeOperation"></a>**`MergeOperation`** *(object)*: A merge operation to join two Streams. Cannot contain additional properties.
   - **`name`** *(string, required)*: The name of the operation processor Default: merge.
   - **`stream`**: The stream to merge with.
@@ -546,27 +546,27 @@
       - : Refer to *[#/definitions/StreamDefinition](#definitions/StreamDefinition)*.
   - **`type`**: The type of the operation, fixed value "merge" Default: merge. Must be one of: `["merge"]`.
 - <a id="definitions/MergerDefinition"></a>**`MergerDefinition`** *(object)*: Defines a merger function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
-  - **`code`**: (Optional) The (multiline) code of the merger.
+  - **`code`**: *(optional)* The (multiline) code of the merger.
     - **Any of**
       - *boolean*
       - *string*
-  - **`expression`**: (Optional) The expression returned by the merger. Only required for functions that return values.
+  - **`expression`**: *(optional)* The expression returned by the merger. Only required for functions that return values.
     - **Any of**
       - *boolean*
       - *string*
-  - **`globalCode`**: (Optional) Global (multiline) code that gets loaded into the Python context outside of the merger. Can be used for defining eg. global variables.
+  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the merger. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
       - *string*
-  - **`name`** *(string)*: (Optional) The name of the merger. If this field is not defined, then the name is derived from the context.
-  - **`parameters`** *(array)*: (Optional) A list of parameters to be passed into the merger Default: [].
+  - **`name`** *(string)*: *(optional)* The name of the merger. If this field is not defined, then the name is derived from the context.
+  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the merger Default: [].
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
-  - **`resultType`** *(string)*: (Optional) The data type returned by the merger. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: (Optional) A list of store names that the merger uses. Only required if the function wants to use a state store. Default: [].
+  - **`resultType`** *(string)*: *(optional)* The data type returned by the merger. Only required for function types, which are not pre-defined.
+  - **`stores`** *(array)*: *(optional)* A list of store names that the merger uses. Only required if the function wants to use a state store. Default: [].
     - **Items** *(string)*
-  - **`type`**: (Optional) The type of the function, fixed value "merger" Default: merger. Must be one of: `["merger"]`.
+  - **`type`**: *(optional)* The type of the function, fixed value "merger" Default: merger. Must be one of: `["merger"]`.
 - <a id="definitions/ParameterDefinition"></a>**`ParameterDefinition`** *(object)*: Defines a parameter for a user function. Cannot contain additional properties.
-  - **`defaultValue`** *(string)*: (Optional) The default value for the parameter.
+  - **`defaultValue`** *(string)*: *(optional)* The default value for the parameter.
   - **`name`** *(string, required)*: The name of the parameter.
   - **`type`** *(string, required)*: The type of the parameter.
 - <a id="definitions/PeekOperation"></a>**`PeekOperation`** *(object)*: Operation to peek into a stream, without modifying the stream contents. Cannot contain additional properties.
@@ -575,14 +575,14 @@
       - *string*
       - : Refer to *[#/definitions/ForEachActionDefinition](#definitions/ForEachActionDefinition)*.
   - **`name`** *(string, required)*: The name of the operation processor Default: peek.
-  - **`stores`** *(array)*: (Optional) The names of all state stores used by the function Default: [].
+  - **`stores`** *(array)*: *(optional)* The names of all state stores used by the function Default: [].
     - **Items** *(string)*
   - **`type`**: The type of the operation, fixed value "peek" Default: peek. Must be one of: `["peek"]`.
 - <a id="definitions/PipelineDefinition"></a>**`PipelineDefinition`** *(object)*: Defines a pipeline through a source, a series of operations to perform on it and a sink operation to close the stream with. Cannot contain additional properties.
-  - **`as`** *(string)*: (Optional) The name to register the pipeline result under, which can be used as source by follow-up pipelines.
-  - **`branch`** *(array)*: (Optional) Defines a single branch, consisting of a condition and a pipeline to execute for messages that fulfil the predicate Default: [].
+  - **`as`** *(string)*: *(optional)* The name to register the pipeline result under, which can be used as source by follow-up pipelines.
+  - **`branch`** *(array)*: *(optional)* Defines a single branch, consisting of a condition and a pipeline to execute for messages that fulfil the predicate Default: [].
     - **Items**: Refer to *[#/definitions/BranchDefinition](#definitions/BranchDefinition)*.
-  - **`forEach`**: (Optional) A function that gets called for every message in the stream.
+  - **`forEach`**: *(optional)* A function that gets called for every message in the stream.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/ForEachActionDefinition](#definitions/ForEachActionDefinition)*.
@@ -590,15 +590,15 @@
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/TopicDefinition](#definitions/TopicDefinition)*.
-  - **`name`** *(string)*: (Optional) The name of the operation processor Default: forEach.
-  - **`print`**: (Optional) The specification of where to print messages to. Refer to *[#/definitions/PrintOperation](#definitions/PrintOperation)*.
-  - **`stores`** *(array)*: (Optional) The names of all state stores used by the function Default: [].
+  - **`name`** *(string)*: *(optional)* The name of the operation processor Default: forEach.
+  - **`print`**: *(optional)* The specification of where to print messages to. Refer to *[#/definitions/PrintOperation](#definitions/PrintOperation)*.
+  - **`stores`** *(array)*: *(optional)* The names of all state stores used by the function Default: [].
     - **Items** *(string)*
-  - **`to`**: (Optional) Ends the pipeline by sending all messages to a fixed topic, or to a topic returned by a topic name extractor function.
+  - **`to`**: *(optional)* Ends the pipeline by sending all messages to a fixed topic, or to a topic returned by a topic name extractor function.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/ToOperation](#definitions/ToOperation)*.
-  - **`via`** *(array)*: (Optional) A series of operations performed on the input stream Default: [].
+  - **`via`** *(array)*: *(optional)* A series of operations performed on the input stream Default: [].
     - **Items**
       - **Any of**
         - : Refer to *[#/definitions/AggregateOperation](#definitions/AggregateOperation)*.
@@ -637,35 +637,35 @@
         - : Refer to *[#/definitions/WindowBySessionOperation](#definitions/WindowBySessionOperation)*.
         - : Refer to *[#/definitions/WindowByTimeOperation](#definitions/WindowByTimeOperation)*.
 - <a id="definitions/PredicateDefinition"></a>**`PredicateDefinition`** *(object)*: Defines a Function that returns true or false based on key/value input function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
-  - **`code`**: (Optional) The (multiline) code of the Function that returns true or false based on key/value input.
+  - **`code`**: *(optional)* The (multiline) code of the Function that returns true or false based on key/value input.
     - **Any of**
       - *boolean*
       - *string*
-  - **`expression`**: (Optional) The expression returned by the Function that returns true or false based on key/value input. Only required for functions that return values.
+  - **`expression`**: *(optional)* The expression returned by the Function that returns true or false based on key/value input. Only required for functions that return values.
     - **Any of**
       - *boolean*
       - *string*
-  - **`globalCode`**: (Optional) Global (multiline) code that gets loaded into the Python context outside of the Function that returns true or false based on key/value input. Can be used for defining eg. global variables.
+  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the Function that returns true or false based on key/value input. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
       - *string*
-  - **`name`** *(string)*: (Optional) The name of the Function that returns true or false based on key/value input. If this field is not defined, then the name is derived from the context.
-  - **`parameters`** *(array)*: (Optional) A list of parameters to be passed into the Function that returns true or false based on key/value input Default: [].
+  - **`name`** *(string)*: *(optional)* The name of the Function that returns true or false based on key/value input. If this field is not defined, then the name is derived from the context.
+  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the Function that returns true or false based on key/value input Default: [].
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
-  - **`resultType`** *(string)*: (Optional) The data type returned by the Function that returns true or false based on key/value input. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: (Optional) A list of store names that the Function that returns true or false based on key/value input uses. Only required if the function wants to use a state store. Default: [].
+  - **`resultType`** *(string)*: *(optional)* The data type returned by the Function that returns true or false based on key/value input. Only required for function types, which are not pre-defined.
+  - **`stores`** *(array)*: *(optional)* A list of store names that the Function that returns true or false based on key/value input uses. Only required if the function wants to use a state store. Default: [].
     - **Items** *(string)*
-  - **`type`**: (Optional) The type of the function, fixed value "predicate" Default: predicate. Must be one of: `["predicate"]`.
+  - **`type`**: *(optional)* The type of the function, fixed value "predicate" Default: predicate. Must be one of: `["predicate"]`.
 - <a id="definitions/PrintOperation"></a>**`PrintOperation`** *(object)*: Operation to print the contents of a pipeline on the screen or to write them to a file. Cannot contain additional properties.
-  - **`filename`** *(string)*: (Optional) The filename to output records to. If nothing is specified, then messages will be printed on stdout.
-  - **`label`** *(string)*: (Optional) A label to attach to the output records.
-  - **`mapper`**: (Optional) A function to convert record into a string for output.
+  - **`filename`** *(string)*: *(optional)* The filename to output records to. If nothing is specified, then messages will be printed on stdout.
+  - **`label`** *(string)*: *(optional)* A label to attach to the output records.
+  - **`mapper`**: *(optional)* A function to convert record into a string for output.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/KeyValuePrinterDefinition](#definitions/KeyValuePrinterDefinition)*.
   - **`name`** *(string, required)*: The name of the operation processor Default: print.
 - <a id="definitions/ProducerDefinition"></a>**`ProducerDefinition`** *(object)*: Definition of a Producer that regularly generates messages for a topic. Cannot contain additional properties.
-  - **`condition`**: (Optional) A function that validates the generator's result message. Returns "true" when the message may be produced on the topic, "false" otherwise.
+  - **`condition`**: *(optional)* A function that validates the generator's result message. Returns "true" when the message may be produced on the topic, "false" otherwise.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/PredicateDefinition](#definitions/PredicateDefinition)*.
@@ -691,7 +691,7 @@
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/ReducerDefinition](#definitions/ReducerDefinition)*.
-  - **`store`**: (Optional) Materialized view of the aggregation.
+  - **`store`**: *(optional)* Materialized view of the aggregation.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitType](#definitions/WindowStateStoreDefinitionWithImplicitType)*.
@@ -701,25 +701,25 @@
       - : Refer to *[#/definitions/ReducerDefinition](#definitions/ReducerDefinition)*.
   - **`type`**: The type of the operation, fixed value "reduce" Default: reduce. Must be one of: `["reduce"]`.
 - <a id="definitions/ReducerDefinition"></a>**`ReducerDefinition`** *(object)*: Defines a reducer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
-  - **`code`**: (Optional) The (multiline) code of the reducer.
+  - **`code`**: *(optional)* The (multiline) code of the reducer.
     - **Any of**
       - *boolean*
       - *string*
-  - **`expression`**: (Optional) The expression returned by the reducer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The expression returned by the reducer. Only required for functions that return values.
     - **Any of**
       - *boolean*
       - *string*
-  - **`globalCode`**: (Optional) Global (multiline) code that gets loaded into the Python context outside of the reducer. Can be used for defining eg. global variables.
+  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the reducer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
       - *string*
-  - **`name`** *(string)*: (Optional) The name of the reducer. If this field is not defined, then the name is derived from the context.
-  - **`parameters`** *(array)*: (Optional) A list of parameters to be passed into the reducer Default: [].
+  - **`name`** *(string)*: *(optional)* The name of the reducer. If this field is not defined, then the name is derived from the context.
+  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the reducer Default: [].
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
-  - **`resultType`** *(string)*: (Optional) The data type returned by the reducer. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: (Optional) A list of store names that the reducer uses. Only required if the function wants to use a state store. Default: [].
+  - **`resultType`** *(string)*: *(optional)* The data type returned by the reducer. Only required for function types, which are not pre-defined.
+  - **`stores`** *(array)*: *(optional)* A list of store names that the reducer uses. Only required if the function wants to use a state store. Default: [].
     - **Items** *(string)*
-  - **`type`**: (Optional) The type of the function, fixed value "reducer" Default: reducer. Must be one of: `["reducer"]`.
+  - **`type`**: *(optional)* The type of the function, fixed value "reducer" Default: reducer. Must be one of: `["reducer"]`.
 - <a id="definitions/RepartitionOperation"></a>**`RepartitionOperation`** *(object)*: Operation to (re)partition a stream. Cannot contain additional properties.
   - **`name`** *(string, required)*: The name of the operation processor Default: repartition.
   - **`partitioner`**: A function that partitions stream records.
@@ -728,100 +728,100 @@
       - : Refer to *[#/definitions/StreamPartitionerDefinition](#definitions/StreamPartitionerDefinition)*.
   - **`type`**: The type of the operation, fixed value "repartition" Default: repartition. Must be one of: `["repartition"]`.
 - <a id="definitions/SessionStateStoreDefinition"></a>**`SessionStateStoreDefinition`** *(object)*: Definition of a session state store. Cannot contain additional properties.
-  - **`caching`** *(boolean)*: (Optional) "true" if changed to the session store need to be buffered and periodically released, "false" to emit all changes directly Default: false.
-  - **`keyType`** *(string)*: (Optional) The key type of the session store.
-  - **`logging`** *(boolean)*: (Optional) "true" if a changelog topic should be set up on Kafka for this session store, "false" otherwise Default: false.
-  - **`name`** *(string)*: (Optional) The name of the session store. If this field is not defined, then the name is derived from the context.
-  - **`persistent`** *(boolean)*: (Optional) "true" if this session store needs to be stored on disk, "false" otherwise Default: false.
-  - **`retention`**: (Optional) The duration for which elements in the session store are retained.
+  - **`caching`** *(boolean)*: *(optional)* "true" if changed to the session store need to be buffered and periodically released, "false" to emit all changes directly Default: false.
+  - **`keyType`** *(string)*: *(optional)* The key type of the session store.
+  - **`logging`** *(boolean)*: *(optional)* "true" if a changelog topic should be set up on Kafka for this session store, "false" otherwise Default: false.
+  - **`name`** *(string)*: *(optional)* The name of the session store. If this field is not defined, then the name is derived from the context.
+  - **`persistent`** *(boolean)*: *(optional)* "true" if this session store needs to be stored on disk, "false" otherwise Default: false.
+  - **`retention`**: *(optional)* The duration for which elements in the session store are retained.
     - **Any of**
       - *number*
       - *string*
-  - **`timestamped`** *(boolean)*: (Optional) "true" if elements in the store are timestamped, "false" otherwise Default: false.
+  - **`timestamped`** *(boolean)*: *(optional)* "true" if elements in the store are timestamped, "false" otherwise Default: false.
   - **`type`**: The type of the state store, fixed value "session" Default: session. Must be one of: `["session"]`.
-  - **`valueType`** *(string)*: (Optional) The value type of the session store.
+  - **`valueType`** *(string)*: *(optional)* The value type of the session store.
 - <a id="definitions/StreamDefinition"></a>**`StreamDefinition`** *(object)*: Contains a definition of a Stream, which can be referenced by producers and pipelines. Cannot contain additional properties.
   - **`keyType`** *(string, required)*: The key type of the stream.
   - **`topic`** *(string, required)*: The name of the Kafka topic for this stream.
   - **`valueType`** *(string, required)*: The value type of the stream.
 - <a id="definitions/StreamDefinitionWithOptionalTypes"></a>**`StreamDefinitionWithOptionalTypes`** *(object)*: Contains a definition of a Stream, which can be referenced by producers and pipelines. Cannot contain additional properties.
-  - **`keyType`** *(string)*: (Optional) The key type of the stream.
+  - **`keyType`** *(string)*: *(optional)* The key type of the stream.
   - **`topic`** *(string, required)*: The name of the Kafka topic for this stream.
-  - **`valueType`** *(string)*: (Optional) The value type of the stream.
+  - **`valueType`** *(string)*: *(optional)* The value type of the stream.
 - <a id="definitions/StreamPartitionerDefinition"></a>**`StreamPartitionerDefinition`** *(object)*: Defines a stream partitioner function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
-  - **`code`**: (Optional) The (multiline) code of the stream partitioner.
+  - **`code`**: *(optional)* The (multiline) code of the stream partitioner.
     - **Any of**
       - *boolean*
       - *string*
-  - **`expression`**: (Optional) The expression returned by the stream partitioner. Only required for functions that return values.
+  - **`expression`**: *(optional)* The expression returned by the stream partitioner. Only required for functions that return values.
     - **Any of**
       - *boolean*
       - *string*
-  - **`globalCode`**: (Optional) Global (multiline) code that gets loaded into the Python context outside of the stream partitioner. Can be used for defining eg. global variables.
+  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the stream partitioner. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
       - *string*
-  - **`name`** *(string)*: (Optional) The name of the stream partitioner. If this field is not defined, then the name is derived from the context.
-  - **`parameters`** *(array)*: (Optional) A list of parameters to be passed into the stream partitioner Default: [].
+  - **`name`** *(string)*: *(optional)* The name of the stream partitioner. If this field is not defined, then the name is derived from the context.
+  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the stream partitioner Default: [].
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
-  - **`resultType`** *(string)*: (Optional) The data type returned by the stream partitioner. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: (Optional) A list of store names that the stream partitioner uses. Only required if the function wants to use a state store. Default: [].
+  - **`resultType`** *(string)*: *(optional)* The data type returned by the stream partitioner. Only required for function types, which are not pre-defined.
+  - **`stores`** *(array)*: *(optional)* A list of store names that the stream partitioner uses. Only required if the function wants to use a state store. Default: [].
     - **Items** *(string)*
-  - **`type`**: (Optional) The type of the function, fixed value "streamPartitioner" Default: streamPartitioner. Must be one of: `["streamPartitioner"]`.
+  - **`type`**: *(optional)* The type of the function, fixed value "streamPartitioner" Default: streamPartitioner. Must be one of: `["streamPartitioner"]`.
 - <a id="definitions/SuppressOperation"></a>**`SuppressOperation`** *(object)*: Operation to suppress messages in the source stream until a certain limit is reached. Cannot contain additional properties.
-  - **`bufferFullStrategy`** *(string)*: (Optional) What to do when the buffer is full, either "emitEarlyWhenFull", or "shutdownWhenFull".
+  - **`bufferFullStrategy`** *(string)*: *(optional)* What to do when the buffer is full, either "emitEarlyWhenFull", or "shutdownWhenFull".
   - **`duration`**: The duration for which messages are suppressed.
     - **Any of**
       - *number*
       - *string*
-  - **`maxBytes`** *(string)*: (Optional) The maximum number of bytes in the buffer.
-  - **`maxRecords`** *(string)*: (Optional) The maximum number of records in the buffer.
+  - **`maxBytes`** *(string)*: *(optional)* The maximum number of bytes in the buffer.
+  - **`maxRecords`** *(string)*: *(optional)* The maximum number of records in the buffer.
   - **`name`** *(string, required)*: The name of the operation processor Default: suppress.
   - **`type`**: The type of the operation, fixed value "suppress" Default: suppress. Must be one of: `["suppress"]`.
   - **`until`** *(string, required)*: The method by which messages are held, either "timeLimit", or "windowCloses".
 - <a id="definitions/TableDefinition"></a>**`TableDefinition`** *(object)*: Contains a definition of a Table, which can be referenced by producers and pipelines. Cannot contain additional properties.
   - **`keyType`** *(string, required)*: The key type of the table.
-  - **`store`**: Definition of the keyValue state store associated with the table.
+  - **`store`**: *(optional)* KeyValue state store definition.
     - **Any of**
-      - *null*
-      - : Refer to *[#/definitions/UnnamedStructSchema](#definitions/UnnamedStructSchema)*.
+      - *string*
+      - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
   - **`topic`** *(string, required)*: The name of the Kafka topic for this table.
   - **`valueType`** *(string, required)*: The value type of the table.
 - <a id="definitions/TableDefinitionWithOptionalTypes"></a>**`TableDefinitionWithOptionalTypes`** *(object)*: Contains a definition of a Table, which can be referenced by producers and pipelines. Cannot contain additional properties.
-  - **`keyType`** *(string)*: (Optional) The key type of the table.
-  - **`store`**: Definition of the keyValue state store associated with the table.
+  - **`keyType`** *(string)*: *(optional)* The key type of the table.
+  - **`store`**: *(optional)* KeyValue state store definition.
     - **Any of**
-      - *null*
-      - : Refer to *[#/definitions/UnnamedStructSchema](#definitions/UnnamedStructSchema)*.
+      - *string*
+      - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
   - **`topic`** *(string, required)*: The name of the Kafka topic for this table.
-  - **`valueType`** *(string)*: (Optional) The value type of the table.
+  - **`valueType`** *(string)*: *(optional)* The value type of the table.
 - <a id="definitions/ToOperation"></a>**`ToOperation`** *(object)*: Either a topic or topic name extractor that defines where to write pipeline messages to. Cannot contain additional properties.
-  - **`code`**: (Optional) The (multiline) code of the stream partitioner.
+  - **`code`**: *(optional)* The (multiline) code of the stream partitioner.
     - **Any of**
       - *boolean*
       - *string*
-  - **`expression`**: (Optional) The expression returned by the stream partitioner. Only required for functions that return values.
+  - **`expression`**: *(optional)* The expression returned by the stream partitioner. Only required for functions that return values.
     - **Any of**
       - *boolean*
       - *string*
-  - **`globalCode`**: (Optional) Global (multiline) code that gets loaded into the Python context outside of the stream partitioner. Can be used for defining eg. global variables.
+  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the stream partitioner. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
       - *string*
-  - **`keyType`** *(string)*: (Optional) The key type of the topic.
-  - **`name`** *(string)*: (Optional) The name of the stream partitioner. If this field is not defined, then the name is derived from the context.
-  - **`parameters`** *(array)*: (Optional) A list of parameters to be passed into the stream partitioner Default: [].
+  - **`keyType`** *(string)*: *(optional)* The key type of the topic.
+  - **`name`** *(string)*: *(optional)* The name of the stream partitioner. If this field is not defined, then the name is derived from the context.
+  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the stream partitioner Default: [].
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
-  - **`resultType`** *(string)*: (Optional) The data type returned by the stream partitioner. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: (Optional) A list of store names that the stream partitioner uses. Only required if the function wants to use a state store. Default: [].
+  - **`resultType`** *(string)*: *(optional)* The data type returned by the stream partitioner. Only required for function types, which are not pre-defined.
+  - **`stores`** *(array)*: *(optional)* A list of store names that the stream partitioner uses. Only required if the function wants to use a state store. Default: [].
     - **Items** *(string)*
-  - **`topic`** *(string)*: (Optional) The name of the Kafka topic.
-  - **`topicNameExtractor`**: (Optional) Reference to a pre-defined topic name extractor, or an inline definition of a topic name extractor and an optional stream partitioner.
+  - **`topic`** *(string)*: *(optional)* The name of the Kafka topic.
+  - **`topicNameExtractor`**: *(optional)* Reference to a pre-defined topic name extractor, or an inline definition of a topic name extractor and an optional stream partitioner.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/TopicNameExtractorDefinition](#definitions/TopicNameExtractorDefinition)*.
-  - **`type`**: (Optional) The type of the function, fixed value "streamPartitioner" Default: streamPartitioner. Must be one of: `["streamPartitioner"]`.
-  - **`valueType`** *(string)*: (Optional) The value type of the topic.
+  - **`type`**: *(optional)* The type of the function, fixed value "streamPartitioner" Default: streamPartitioner. Must be one of: `["streamPartitioner"]`.
+  - **`valueType`** *(string)*: *(optional)* The value type of the topic.
 - <a id="definitions/ToStreamOperation"></a>**`ToStreamOperation`** *(object)*: Convert a Table into a Stream, optionally through a custom key transformer. Cannot contain additional properties.
   - **`mapper`**: A function that computes the output key for every record.
     - **Any of**
@@ -831,7 +831,7 @@
   - **`type`**: The type of the operation, fixed value "toStream" Default: toStream. Must be one of: `["toStream"]`.
 - <a id="definitions/ToTableOperation"></a>**`ToTableOperation`** *(object)*: Convert a Stream into a Table. Cannot contain additional properties.
   - **`name`** *(string, required)*: The name of the operation processor Default: toTable.
-  - **`store`**: (Optional) Materialized view of the Table.
+  - **`store`**: *(optional)* Materialized view of the Table.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
@@ -841,36 +841,36 @@
   - **`topic`** *(string, required)*: The name of the Kafka topic.
   - **`valueType`** *(string, required)*: The value type of the topic.
 - <a id="definitions/TopicDefinitionWithOptionalTypes"></a>**`TopicDefinitionWithOptionalTypes`** *(object)*: Contains a definition of a Kafka topic, to be used by producers and pipelines. Cannot contain additional properties.
-  - **`keyType`** *(string)*: (Optional) The key type of the topic.
+  - **`keyType`** *(string)*: *(optional)* The key type of the topic.
   - **`topic`** *(string, required)*: The name of the Kafka topic.
-  - **`valueType`** *(string)*: (Optional) The value type of the topic.
+  - **`valueType`** *(string)*: *(optional)* The value type of the topic.
 - <a id="definitions/TopicNameExtractorDefinition"></a>**`TopicNameExtractorDefinition`** *(object)*: Defines a topic name extractor function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
-  - **`code`**: (Optional) The (multiline) code of the topic name extractor.
+  - **`code`**: *(optional)* The (multiline) code of the topic name extractor.
     - **Any of**
       - *boolean*
       - *string*
-  - **`expression`**: (Optional) The expression returned by the topic name extractor. Only required for functions that return values.
+  - **`expression`**: *(optional)* The expression returned by the topic name extractor. Only required for functions that return values.
     - **Any of**
       - *boolean*
       - *string*
-  - **`globalCode`**: (Optional) Global (multiline) code that gets loaded into the Python context outside of the topic name extractor. Can be used for defining eg. global variables.
+  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the topic name extractor. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
       - *string*
-  - **`name`** *(string)*: (Optional) The name of the topic name extractor. If this field is not defined, then the name is derived from the context.
-  - **`parameters`** *(array)*: (Optional) A list of parameters to be passed into the topic name extractor Default: [].
+  - **`name`** *(string)*: *(optional)* The name of the topic name extractor. If this field is not defined, then the name is derived from the context.
+  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the topic name extractor Default: [].
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
-  - **`resultType`** *(string)*: (Optional) The data type returned by the topic name extractor. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: (Optional) A list of store names that the topic name extractor uses. Only required if the function wants to use a state store. Default: [].
+  - **`resultType`** *(string)*: *(optional)* The data type returned by the topic name extractor. Only required for function types, which are not pre-defined.
+  - **`stores`** *(array)*: *(optional)* A list of store names that the topic name extractor uses. Only required if the function wants to use a state store. Default: [].
     - **Items** *(string)*
-  - **`type`**: (Optional) The type of the function, fixed value "topicNameExtractor" Default: topicNameExtractor. Must be one of: `["topicNameExtractor"]`.
+  - **`type`**: *(optional)* The type of the function, fixed value "topicNameExtractor" Default: topicNameExtractor. Must be one of: `["topicNameExtractor"]`.
 - <a id="definitions/TransformKeyOperation"></a>**`TransformKeyOperation`** *(object)*: Convert the key of every record in the stream to another key. Cannot contain additional properties.
   - **`mapper`**: A function that computes a new key for each record.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/KeyTransformerDefinition](#definitions/KeyTransformerDefinition)*.
   - **`name`** *(string, required)*: The name of the operation processor Default: transformKey.
-  - **`stores`** *(array)*: (Optional) The names of all state stores used by the function Default: [].
+  - **`stores`** *(array)*: *(optional)* The names of all state stores used by the function Default: [].
     - **Items** *(string)*
   - **`type`**: The type of the operation, fixed value "transformKey" Default: transformKey. Must be one of: `["transformKey"]`.
 - <a id="definitions/TransformKeyValueOperation"></a>**`TransformKeyValueOperation`** *(object)*: Convert the key/value of every record in the stream to another key/value. Cannot contain additional properties.
@@ -879,7 +879,7 @@
       - *string*
       - : Refer to *[#/definitions/KeyValueTransformerDefinition](#definitions/KeyValueTransformerDefinition)*.
   - **`name`** *(string, required)*: The name of the operation processor Default: transformKeyValue.
-  - **`stores`** *(array)*: (Optional) The names of all state stores used by the function Default: [].
+  - **`stores`** *(array)*: *(optional)* The names of all state stores used by the function Default: [].
     - **Items** *(string)*
   - **`type`**: The type of the operation, fixed value "transformKeyValue" Default: transformKeyValue. Must be one of: `["transformKeyValue"]`.
 - <a id="definitions/TransformKeyValueToKeyValueListOperation"></a>**`TransformKeyValueToKeyValueListOperation`** *(object)*: Convert a stream by transforming every record into a list of derived records. Cannot contain additional properties.
@@ -888,7 +888,7 @@
       - *string*
       - : Refer to *[#/definitions/KeyValueToKeyValueListTransformerDefinition](#definitions/KeyValueToKeyValueListTransformerDefinition)*.
   - **`name`** *(string, required)*: The name of the operation processor Default: transformKeyValueToKeyValueList.
-  - **`stores`** *(array)*: (Optional) The names of all state stores used by the function Default: [].
+  - **`stores`** *(array)*: *(optional)* The names of all state stores used by the function Default: [].
     - **Items** *(string)*
   - **`type`**: The type of the operation, fixed value "transformKeyValueToKeyValueList" Default: transformKeyValueToKeyValueList. Must be one of: `["transformKeyValueToKeyValueList"]`.
 - <a id="definitions/TransformKeyValueToValueListOperation"></a>**`TransformKeyValueToValueListOperation`** *(object)*: Convert every record in the stream to a list of output records with the same key. Cannot contain additional properties.
@@ -897,7 +897,7 @@
       - *string*
       - : Refer to *[#/definitions/KeyValueToValueListTransformerDefinition](#definitions/KeyValueToValueListTransformerDefinition)*.
   - **`name`** *(string, required)*: The name of the operation processor Default: transformKeyValueToValueList.
-  - **`stores`** *(array)*: (Optional) The names of all state stores used by the function Default: [].
+  - **`stores`** *(array)*: *(optional)* The names of all state stores used by the function Default: [].
     - **Items** *(string)*
   - **`type`**: The type of the operation, fixed value "transformKeyValueToValueList" Default: transformKeyValueToValueList. Must be one of: `["transformKeyValueToValueList"]`.
 - <a id="definitions/TransformValueOperation"></a>**`TransformValueOperation`** *(object)*: Convert the value of every record in the stream to another value. Cannot contain additional properties.
@@ -906,60 +906,55 @@
       - *string*
       - : Refer to *[#/definitions/ValueTransformerDefinition](#definitions/ValueTransformerDefinition)*.
   - **`name`** *(string, required)*: The name of the operation processor Default: transformValue.
-  - **`store`**: (Optional) Materialized view of the transformed table.
+  - **`store`**: *(optional)* Materialized view of the transformed table.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
-  - **`stores`** *(array)*: (Optional) The names of all state stores used by the function Default: [].
+  - **`stores`** *(array)*: *(optional)* The names of all state stores used by the function Default: [].
     - **Items** *(string)*
   - **`type`**: The type of the operation, fixed value "transformValue" Default: transformValue. Must be one of: `["transformValue"]`.
-- <a id="definitions/UnnamedStructSchema"></a>**`UnnamedStructSchema`** *(object)*: Cannot contain additional properties.
-  - **`store`**: State store definition.
-    - **Any of**
-      - *string*
-      - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
 - <a id="definitions/ValueJoinerDefinition"></a>**`ValueJoinerDefinition`** *(object)*: Defines a value joiner function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
-  - **`code`**: (Optional) The (multiline) code of the value joiner.
+  - **`code`**: *(optional)* The (multiline) code of the value joiner.
     - **Any of**
       - *boolean*
       - *string*
-  - **`expression`**: (Optional) The expression returned by the value joiner. Only required for functions that return values.
+  - **`expression`**: *(optional)* The expression returned by the value joiner. Only required for functions that return values.
     - **Any of**
       - *boolean*
       - *string*
-  - **`globalCode`**: (Optional) Global (multiline) code that gets loaded into the Python context outside of the value joiner. Can be used for defining eg. global variables.
+  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the value joiner. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
       - *string*
-  - **`name`** *(string)*: (Optional) The name of the value joiner. If this field is not defined, then the name is derived from the context.
-  - **`parameters`** *(array)*: (Optional) A list of parameters to be passed into the value joiner Default: [].
+  - **`name`** *(string)*: *(optional)* The name of the value joiner. If this field is not defined, then the name is derived from the context.
+  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the value joiner Default: [].
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
-  - **`resultType`** *(string)*: (Optional) The data type returned by the value joiner. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: (Optional) A list of store names that the value joiner uses. Only required if the function wants to use a state store. Default: [].
+  - **`resultType`** *(string)*: *(optional)* The data type returned by the value joiner. Only required for function types, which are not pre-defined.
+  - **`stores`** *(array)*: *(optional)* A list of store names that the value joiner uses. Only required if the function wants to use a state store. Default: [].
     - **Items** *(string)*
-  - **`type`**: (Optional) The type of the function, fixed value "valueJoiner" Default: valueJoiner. Must be one of: `["valueJoiner"]`.
+  - **`type`**: *(optional)* The type of the function, fixed value "valueJoiner" Default: valueJoiner. Must be one of: `["valueJoiner"]`.
 - <a id="definitions/ValueTransformerDefinition"></a>**`ValueTransformerDefinition`** *(object)*: Defines a value transformer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
-  - **`code`**: (Optional) The (multiline) code of the value transformer.
+  - **`code`**: *(optional)* The (multiline) code of the value transformer.
     - **Any of**
       - *boolean*
       - *string*
-  - **`expression`**: (Optional) The expression returned by the value transformer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The expression returned by the value transformer. Only required for functions that return values.
     - **Any of**
       - *boolean*
       - *string*
-  - **`globalCode`**: (Optional) Global (multiline) code that gets loaded into the Python context outside of the value transformer. Can be used for defining eg. global variables.
+  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the value transformer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
       - *string*
-  - **`name`** *(string)*: (Optional) The name of the value transformer. If this field is not defined, then the name is derived from the context.
-  - **`parameters`** *(array)*: (Optional) A list of parameters to be passed into the value transformer Default: [].
+  - **`name`** *(string)*: *(optional)* The name of the value transformer. If this field is not defined, then the name is derived from the context.
+  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the value transformer Default: [].
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
-  - **`resultType`** *(string)*: (Optional) The data type returned by the value transformer. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: (Optional) A list of store names that the value transformer uses. Only required if the function wants to use a state store. Default: [].
+  - **`resultType`** *(string)*: *(optional)* The data type returned by the value transformer. Only required for function types, which are not pre-defined.
+  - **`stores`** *(array)*: *(optional)* A list of store names that the value transformer uses. Only required if the function wants to use a state store. Default: [].
     - **Items** *(string)*
-  - **`type`**: (Optional) The type of the function, fixed value "valueTransformer" Default: valueTransformer. Must be one of: `["valueTransformer"]`.
+  - **`type`**: *(optional)* The type of the function, fixed value "valueTransformer" Default: valueTransformer. Must be one of: `["valueTransformer"]`.
 - <a id="definitions/WindowBySessionOperation"></a>**`WindowBySessionOperation`** *(object)*: Operation to window messages by session, configured by an inactivity gap. Cannot contain additional properties.
-  - **`grace`**: (Optional) (Tumbling, Hopping) The grace period, during which out-of-order records can still be processed.
+  - **`grace`**: *(optional)* (Tumbling, Hopping) The grace period, during which out-of-order records can still be processed.
     - **Any of**
       - *number*
       - *string*
@@ -970,58 +965,58 @@
   - **`name`** *(string, required)*: The name of the operation processor Default: windowBySession.
   - **`type`**: The type of the operation, fixed value "windowBySession" Default: windowBySession. Must be one of: `["windowBySession"]`.
 - <a id="definitions/WindowByTimeOperation"></a>**`WindowByTimeOperation`** *(object)*: Operation to reduce a series of records into a single aggregate result. Cannot contain additional properties.
-  - **`advanceBy`**: (Optional) (Hopping) The amount of time to increase time windows by.
+  - **`advanceBy`**: *(optional)* (Hopping) The amount of time to increase time windows by.
     - **Any of**
       - *number*
       - *string*
-  - **`duration`**: (Optional) (Tumbling) The duration of time windows.
+  - **`duration`**: *(optional)* (Tumbling) The duration of time windows.
     - **Any of**
       - *number*
       - *string*
-  - **`grace`**: (Optional) (Tumbling, Hopping, Sliding) The grace period, during which out-of-order records can still be processed.
+  - **`grace`**: *(optional)* (Tumbling, Hopping, Sliding) The grace period, during which out-of-order records can still be processed.
     - **Any of**
       - *number*
       - *string*
   - **`name`** *(string, required)*: The name of the operation processor Default: windowByTime.
-  - **`timeDifference`**: (Optional) (Sliding) The maximum amount of time difference between two records.
+  - **`timeDifference`**: *(optional)* (Sliding) The maximum amount of time difference between two records.
     - **Any of**
       - *number*
       - *string*
   - **`type`**: The type of the operation, fixed value "windowByTime" Default: windowByTime. Must be one of: `["windowByTime"]`.
   - **`windowType`** *(string, required)*: The type of the operation, either "tumbling", or "hopping", or "sliding".
 - <a id="definitions/WindowStateStoreDefinition"></a>**`WindowStateStoreDefinition`** *(object)*: Definition of a window state store. Cannot contain additional properties.
-  - **`caching`** *(boolean)*: (Optional) "true" if changed to the window store need to be buffered and periodically released, "false" to emit all changes directly Default: false.
-  - **`keyType`** *(string)*: (Optional) The key type of the window store.
-  - **`logging`** *(boolean)*: (Optional) "true" if a changelog topic should be set up on Kafka for this window store, "false" otherwise Default: false.
-  - **`name`** *(string)*: (Optional) The name of the window store. If this field is not defined, then the name is derived from the context.
-  - **`persistent`** *(boolean)*: (Optional) "true" if this window store needs to be stored on disk, "false" otherwise Default: false.
-  - **`retainDuplicates`** *(boolean)*: (Optional) Whether or not to retain duplicates Default: false.
-  - **`retention`**: (Optional) The duration for which elements in the window store are retained.
+  - **`caching`** *(boolean)*: *(optional)* "true" if changed to the window store need to be buffered and periodically released, "false" to emit all changes directly Default: false.
+  - **`keyType`** *(string)*: *(optional)* The key type of the window store.
+  - **`logging`** *(boolean)*: *(optional)* "true" if a changelog topic should be set up on Kafka for this window store, "false" otherwise Default: false.
+  - **`name`** *(string)*: *(optional)* The name of the window store. If this field is not defined, then the name is derived from the context.
+  - **`persistent`** *(boolean)*: *(optional)* "true" if this window store needs to be stored on disk, "false" otherwise Default: false.
+  - **`retainDuplicates`** *(boolean)*: *(optional)* Whether or not to retain duplicates Default: false.
+  - **`retention`**: *(optional)* The duration for which elements in the window store are retained.
     - **Any of**
       - *number*
       - *string*
-  - **`timestamped`** *(boolean)*: (Optional) "true" if elements in the store are timestamped, "false" otherwise Default: false.
+  - **`timestamped`** *(boolean)*: *(optional)* "true" if elements in the store are timestamped, "false" otherwise Default: false.
   - **`type`**: The type of the state store, fixed value "window" Default: window. Must be one of: `["window"]`.
-  - **`valueType`** *(string)*: (Optional) The value type of the window store.
-  - **`windowSize`**: (Optional) Size of the windows (cannot be negative).
+  - **`valueType`** *(string)*: *(optional)* The value type of the window store.
+  - **`windowSize`**: *(optional)* Size of the windows (cannot be negative).
     - **Any of**
       - *number*
       - *string*
 - <a id="definitions/WindowStateStoreDefinitionWithImplicitType"></a>**`WindowStateStoreDefinitionWithImplicitType`** *(object)*: Definition of a window state store. Cannot contain additional properties.
-  - **`caching`** *(boolean)*: (Optional) "true" if changed to the window store need to be buffered and periodically released, "false" to emit all changes directly Default: false.
-  - **`keyType`** *(string)*: (Optional) The key type of the window store.
-  - **`logging`** *(boolean)*: (Optional) "true" if a changelog topic should be set up on Kafka for this window store, "false" otherwise Default: false.
-  - **`name`** *(string)*: (Optional) The name of the window store. If this field is not defined, then the name is derived from the context.
-  - **`persistent`** *(boolean)*: (Optional) "true" if this window store needs to be stored on disk, "false" otherwise Default: false.
-  - **`retainDuplicates`** *(boolean)*: (Optional) Whether or not to retain duplicates Default: false.
-  - **`retention`**: (Optional) The duration for which elements in the window store are retained.
+  - **`caching`** *(boolean)*: *(optional)* "true" if changed to the window store need to be buffered and periodically released, "false" to emit all changes directly Default: false.
+  - **`keyType`** *(string)*: *(optional)* The key type of the window store.
+  - **`logging`** *(boolean)*: *(optional)* "true" if a changelog topic should be set up on Kafka for this window store, "false" otherwise Default: false.
+  - **`name`** *(string)*: *(optional)* The name of the window store. If this field is not defined, then the name is derived from the context.
+  - **`persistent`** *(boolean)*: *(optional)* "true" if this window store needs to be stored on disk, "false" otherwise Default: false.
+  - **`retainDuplicates`** *(boolean)*: *(optional)* Whether or not to retain duplicates Default: false.
+  - **`retention`**: *(optional)* The duration for which elements in the window store are retained.
     - **Any of**
       - *number*
       - *string*
-  - **`timestamped`** *(boolean)*: (Optional) "true" if elements in the store are timestamped, "false" otherwise Default: false.
-  - **`type`**: (Optional) The type of the state store, fixed value "window" Default: window. Must be one of: `["window"]`.
-  - **`valueType`** *(string)*: (Optional) The value type of the window store.
-  - **`windowSize`**: (Optional) Size of the windows (cannot be negative).
+  - **`timestamped`** *(boolean)*: *(optional)* "true" if elements in the store are timestamped, "false" otherwise Default: false.
+  - **`type`**: *(optional)* The type of the state store, fixed value "window" Default: window. Must be one of: `["window"]`.
+  - **`valueType`** *(string)*: *(optional)* The value type of the window store.
+  - **`windowSize`**: *(optional)* Size of the windows (cannot be negative).
     - **Any of**
       - *number*
       - *string*
