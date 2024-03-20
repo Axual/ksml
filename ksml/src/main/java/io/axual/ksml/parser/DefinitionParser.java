@@ -65,7 +65,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         if (parser.fields().isEmpty()) return parser;
         final var schema = parser.schema();
         final var newFields = schema.fields().stream()
-                .map(field -> field.required() ? new DataField(field.name(), field.schema(), "(Optional) " + field.doc(), field.index(), false, field.constant(), field.defaultValue()) : field)
+                .map(field -> field.required() ? new DataField(field.name(), field.schema(), "*(optional)* " + field.doc(), field.index(), false, field.constant(), field.defaultValue()) : field)
                 .toList();
         final var newSchema = new StructSchema(schema.namespace(), schema.name(), schema.doc(), newFields);
         return StructParser.of(node -> node != null ? parser.parse(node) : null, newSchema);

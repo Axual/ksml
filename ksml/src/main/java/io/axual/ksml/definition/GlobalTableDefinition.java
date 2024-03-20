@@ -23,13 +23,20 @@ package io.axual.ksml.definition;
 
 import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.parser.UserTypeParser;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
+@Getter
+@EqualsAndHashCode
 public class GlobalTableDefinition extends TopicDefinition {
-    public GlobalTableDefinition(String topic, String keyType, String valueType) {
-        this(topic, UserTypeParser.parse(keyType), UserTypeParser.parse(valueType));
+    private final KeyValueStateStoreDefinition store;
+
+    public GlobalTableDefinition(String topic, String keyType, String valueType, KeyValueStateStoreDefinition store) {
+        this(topic, UserTypeParser.parse(keyType), UserTypeParser.parse(valueType), store);
     }
 
-    public GlobalTableDefinition(String topic, UserType keyType, UserType valueType) {
+    public GlobalTableDefinition(String topic, UserType keyType, UserType valueType, KeyValueStateStoreDefinition store) {
         super("GlobalTable", topic, keyType, valueType);
+        this.store = store;
     }
 }

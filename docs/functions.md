@@ -6,12 +6,12 @@
 
 * [Introduction](#introduction)
 * [Data types in Python](#data-types-in-python)
-  * [Data type mapping](#data-type-mapping)
-  * [Automatic conversion](#automatic-conversion)
+    * [Data type mapping](#data-type-mapping)
+    * [Automatic conversion](#automatic-conversion)
 * [Function Types](#function-types)
 * [Function parameters](#function-parameters)
-  * [Logger](#logger)
-  * [State stores](#state-stores)
+    * [Logger](#logger)
+    * [State stores](#state-stores)
 
 ## Introduction
 
@@ -59,32 +59,34 @@ See [types](types.md) for more information on data types.
 
 Data types are automatically converted to/from Python in the following manner:
 
-| Data type          | Python type      | Example                                                                         |
-|--------------------|------------------|---------------------------------------------------------------------------------|
-| boolean            | bool             | True, False                                                                     |
-| bytes              | bytearray        |                                                                                 |
-| double             | float            | 3.145                                                                           |
-| float              | float            | 1.23456                                                                         |
-| byte               | int              | between -128 and 127                                                            |
-| short              | int              | between -65,536 and 65,535                                                      |
-| int                | int              | between -2,147,483,648 and 2,147,483,647                                        |
-| long               | int              | between -9,223,372,036,854,775,808 and 9,223,372,036,854,775,807                |
-| string             | str              | "text"                                                                          |
-| enum               | str              | enum string literal, eg. "BLUE", "EUROPE"                                       |
-| list               | array            | [ "key1", "key2" ]                                                              |
-| struct             | dict             | { "key1": "value1", "key2": "value2" }                                          |
-| struct with schema | dict             | { "key1": "value1", "key2": "value2", "@type": "SensorData", "@schema": "..." } |
-| tuple              | tuple            | (1, "text", 3.14, { "key": "value" })                                           |
-| union              | <value type>     | Real value is translated as specified in this table                             |
+| Data type          | Python type  | Example                                                                         |
+|--------------------|--------------|---------------------------------------------------------------------------------|
+| boolean            | bool         | True, False                                                                     |
+| bytes              | bytearray    |                                                                                 |
+| double             | float        | 3.145                                                                           |
+| float              | float        | 1.23456                                                                         |
+| byte               | int          | between -128 and 127                                                            |
+| short              | int          | between -65,536 and 65,535                                                      |
+| int                | int          | between -2,147,483,648 and 2,147,483,647                                        |
+| long               | int          | between -9,223,372,036,854,775,808 and 9,223,372,036,854,775,807                |
+| string             | str          | "text"                                                                          |
+| enum               | str          | enum string literal, eg. "BLUE", "EUROPE"                                       |
+| list               | array        | [ "key1", "key2" ]                                                              |
+| struct             | dict         | { "key1": "value1", "key2": "value2" }                                          |
+| struct with schema | dict         | { "key1": "value1", "key2": "value2", "@type": "SensorData", "@schema": "..." } |
+| tuple              | tuple        | (1, "text", 3.14, { "key": "value" })                                           |
+| union              | <value type> | Real value is translated as specified in this table                             |
 
 ### Automatic conversion
 
 KSML is able to automatically convert between types. Examples are:
 
-- To/from string conversion is handled automatically for almost all data types, including string-notations such as CSV, JSON and XML.
+- To/from string conversion is handled automatically for almost all data types, including string-notations such as CSV,
+  JSON and XML.
 - When a string is expected, but a struct is passed in, the struct is automatically converted to string.
 - When a struct is expected, but a string is passed in, the string is parsed according to the notation specified.
-- Field matching and field type conversion is done automatically. For instance, if a struct contains an integer field, but the target schema expects a string, the integer is automatically converted to string.
+- Field matching and field type conversion is done automatically. For instance, if a struct contains an integer field,
+  but the target schema expects a string, the integer is automatically converted to string.
 
 ## Function Types
 
@@ -136,11 +138,13 @@ Every function can access the `log` variable, which is mapped to a plain Java Lo
 output to the KSML log by calling its methods.
 It supports the following operations:
 
-- `error(message: str, value_params...)`  --> sends and error message to the log
-- `warn(message: str, value_params...)`  --> sends and warning message to the log
-- `info(message: str, value_params...)`  --> sends and informational message to the log
-- `debug(message: str, value_params...)`  --> sends and debug message to the log
-- `trace(message: str, value_params...)`  --> sends and trace message to the log
+| Method                                 | Description                   |
+|----------------------------------------|-------------------------------|
+| `error(message: str, value_params...)` | logs an error message         |
+| `warn(message: str, value_params...)`  | logs a warning message        |
+| `info(message: str, value_params...)`  | logs an informational message |
+| `debug(message: str, value_params...)` | logs a debug message          |
+| `trace(message: str, value_params...)` | logs a trace message          |
 
 The message contains double curly brackets `{}`, which will be substituted by the value parameters.
 Examples are:
@@ -152,6 +156,7 @@ log.debug("I'm printing five variables here: {}, {}, {}, {}, {}. Lovely isn't it
 ```
 
 Output of the above statements looks like:
+
 ```
 [LOG TIMESTAMP] ERROR function.name   Something went completely bad here!
 [LOG TIMESTAMP] INFO  function.name   Received message from topic: key=123, value={"key":"value"}

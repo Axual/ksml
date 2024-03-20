@@ -211,8 +211,17 @@ public class TopologyBuildContext {
         if (def instanceof GlobalTableDefinition globalTableDefinition) {
             final var streamKey = new StreamDataType(globalTableDefinition.keyType(), true);
             final var streamValue = new StreamDataType(globalTableDefinition.valueType(), false);
+
+            if (globalTableDefinition.store() != null) {
+                final var mat = StoreUtil.materialize(globalTableDefinition.store(), globalTableDefinition.topic());
+                return new GlobalKTableWrapper(builder.globalTable(globalTableDefinition.topic(), mat.materialized()), streamKey, streamValue);
+            }
+
+            // Set up dummy materialization for globalTables, mapping to the topic itself so we don't require an extra state store topic
+            final var store = new KeyValueStateStoreDefinition(globalTableDefinition.topic(), false, false, false, Duration.ofSeconds(900), Duration.ofSeconds(60), streamKey.userType(), streamValue.userType(), false, false);
+            final var mat = StoreUtil.materialize(store, globalTableDefinition.topic());
             final var consumed = Consumed.as(name).withKeySerde(streamKey.serde()).withValueSerde(streamValue.serde());
-            return new GlobalKTableWrapper(builder.globalTable(globalTableDefinition.topic(), consumed), streamKey, streamValue);
+            return new GlobalKTableWrapper(builder.globalTable(globalTableDefinition.topic(), consumed, mat.materialized()), streamKey, streamValue);
         }
 
         throw new TopologyException("Unknown stream type: " + def.getClass().getSimpleName());
@@ -243,7 +252,7 @@ public class TopologyBuildContext {
     // Results of pipelines can be registered in this build context for later use (see AsOperation). This is the entry
     // point for that operation to register pipeline outcomes as independent stream wrappers.
     public void registerStreamWrapper(String name, StreamWrapper wrapper) {
-        if (name==null) {
+        if (name == null) {
             throw new TopologyException("Can not register " + wrapper.toString() + " without a name");
         }
         if (streamWrappersByName.containsKey(name)) {

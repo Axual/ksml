@@ -24,12 +24,13 @@ import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.definition.GlobalTableDefinition;
+import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.stream.GlobalKTableWrapper;
 import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.kstream.Consumed;
+import org.apache.kafka.streams.kstream.Materialized;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -53,9 +54,10 @@ class GlobalTableDefinitionTest {
     @Test
     void testGlobalTableDefinition() {
         NotationLibrary.register(BinaryNotation.NOTATION_NAME, mockNotation);
+        var stringType = UserTypeParser.parse("string");
 
         // given a TableDefinition
-        var tableDefinition = new GlobalTableDefinition("topic", "string", "string");
+        var tableDefinition = new GlobalTableDefinition("topic", stringType, stringType, new KeyValueStateStoreDefinition("storename", stringType, stringType));
         var resources = new TopologyResources("test");
 
         var context = new TopologyBuildContext(builder, resources);
@@ -63,11 +65,10 @@ class GlobalTableDefinitionTest {
         var streamWrapper = context.getStreamWrapper(tableDefinition);
 
         // it adds a ktable to the builder with key and value dataType, and returns a KTableWrapper instance
-        final var stringType = UserTypeParser.parse("string");
         verify(mockNotation).serde(stringType.dataType(), true);
         verify(mockNotation).serde(stringType.dataType(), false);
 
-        verify(builder).globalTable(eq("topic"), isA(Consumed.class));
+        verify(builder).globalTable(eq("topic"), isA(Materialized.class));
         assertThat(streamWrapper, instanceOf(GlobalKTableWrapper.class));
     }
 }

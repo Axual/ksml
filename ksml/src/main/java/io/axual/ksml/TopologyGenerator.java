@@ -21,6 +21,7 @@ package io.axual.ksml;
  */
 
 
+import io.axual.ksml.definition.GlobalTableDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.generator.TopologyAnalyzer;
@@ -154,6 +155,14 @@ public class TopologyGenerator {
                     // Register the state store and mark as already created (by Kafka Streams framework, not by user)
                     specification.register(tableDef.store().name(), tableDef.store());
                     kafkaStreamsCreatedStores.add(tableDef.store().name());
+                }
+            }
+            if (def instanceof GlobalTableDefinition globalTableDef) {
+                context.getStreamWrapper(globalTableDef);
+                if (globalTableDef.store() != null) {
+                    // Register the state store and mark as already created (by Kafka Streams framework, not by user)
+                    specification.register(globalTableDef.store().name(), globalTableDef.store());
+                    kafkaStreamsCreatedStores.add(globalTableDef.store().name());
                 }
             }
         });

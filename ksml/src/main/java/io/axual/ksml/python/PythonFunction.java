@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.processor.StateStore;
 import org.graalvm.polyglot.Value;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,7 +48,6 @@ import static io.axual.ksml.data.notation.UserType.DEFAULT_NOTATION;
 public class PythonFunction extends UserFunction {
     private static final PythonDataObjectMapper MAPPER = new PythonDataObjectMapper(true);
     private static final Map<String, StateStore> EMPTY_STORES = new HashMap<>();
-    private static final LoggerBridge loggerBridge = new LoggerBridge();
     private static final String QUOTE = "\"";
     private final DataObjectConverter converter;
     private final Value function;
@@ -67,8 +67,7 @@ public class PythonFunction extends UserFunction {
     private PythonFunction(PythonContext context, String namespace, String type, String name, FunctionDefinition definition) {
         super(name, definition.parameters(), definition.resultType(), definition.storeNames());
         converter = context.converter();
-        final var loggerName = namespace + "." + type + "." + name;
-        final var pyCode = generatePythonCode(name, loggerName, definition);
+        final var pyCode = generatePythonCode(namespace, type, name, definition);
         function = context.registerFunction(pyCode, name + "_caller");
         if (function == null) {
             System.out.println("Error in generated Python code:\n" + pyCode);
@@ -94,7 +93,6 @@ public class PythonFunction extends UserFunction {
 
         // Check all parameters and copy them into the interpreter as prefixed globals
         var globalVars = new HashMap<String, Object>();
-        globalVars.put("loggerBridge", loggerBridge);
         globalVars.put("stores", stores != null ? stores : EMPTY_STORES);
         var arguments = convertParameters(globalVars, parameters);
 
@@ -133,7 +131,7 @@ public class PythonFunction extends UserFunction {
         return result;
     }
 
-    private String generatePythonCode(String name, String loggerName, FunctionDefinition definition) {
+    private String generatePythonCode(String namespace, String type, String name, FunctionDefinition definition) {
         // Prepend two spaces of indentation before the function code
         String[] functionCode = Arrays.stream(definition.code()).map(line -> "  " + line).toArray(String[]::new);
 
@@ -143,23 +141,19 @@ public class PythonFunction extends UserFunction {
         String[] callParams = Arrays.stream(definition.parameters()).map(ParameterDefinition::name).toArray(String[]::new);
 
         // prepare globalCode from the function definition
-        final var globalCode = String.join("\n", definition.globalCode()) + "\n";
+        final var globalCode = String.join("\n", injectLogVariable(namespace, type, definition.globalCode())) + "\n";
 
         // Code to include all global variables
         final var assignStores = definition.storeNames().stream()
                 .map(storeName -> "  " + storeName + " = stores[\"" + storeName + "\"]\n")
                 .collect(Collectors.joining());
         // Code to copy / initialize all global variables
-        final var includeGlobals =
-                """
-                          global stores
-                          global loggerBridge
-                        """;
-        final var initializeGlobals =
-                """
-                          stores = convert_to_python(globalVars["stores"])
-                          loggerBridge = globalVars["loggerBridge"]
-                        """;
+        final var includeGlobals = """
+                  global stores
+                """;
+        final var initializeGlobals = """
+                  stores = convert_to_python(globalVars["stores"])
+                """;
         // Code to initialize optional parameters with default values
         final var initializeOptionalParams = Arrays.stream(definition.parameters())
                 .filter(ParameterDefinition::isOptional)
@@ -170,7 +164,7 @@ public class PythonFunction extends UserFunction {
         // Prepare function (if any) and expression from the function definition
         final var functionAndExpression = "def " + name + "(" + String.join(",", defParams) + "):\n" +
                 includeGlobals +
-                "  log = loggerBridge.getLogger(\"" + loggerName + "\")\n" +
+                initLogCode(2, loggerName(namespace, type, name)) +
                 assignStores +
                 initializeOptionalParams +
                 String.join("\n", functionCode) + "\n" +
@@ -192,14 +186,12 @@ public class PythonFunction extends UserFunction {
                         ArrayList = java.type('java.util.ArrayList')
                         HashMap = java.type('java.util.HashMap')
                         TreeMap = java.type('java.util.TreeMap')
-                        loggerBridge = None
                         stores = None
                                         
                         # global Python code goes here (first argument)
                         %1$s
                                         
                         # function definition and expression go here (second argument)
-                        @polyglot.export_value
                         %2$s
                                         
                         def convert_to_python(value):
@@ -231,12 +223,52 @@ public class PythonFunction extends UserFunction {
                               result.put(convert_from_python(k), convert_from_python(v))
                             return result
                           return value
-                          
+                                                
                         # caller definition goes here (third argument)
                         @polyglot.export_value
                         %3$s
                         """;
 
         return pythonCodeTemplate.formatted(globalCode, functionAndExpression, pyCallerCode);
+    }
+
+    private String loggerName(String namespace, String type, String name) {
+        return namespace + "." + type + "." + name;
+    }
+
+    private String[] injectLogVariable(String namespace, String type, String[] code) {
+        // Look for "def func():" statements and inject log variable code after all occurrences
+        final var result = new ArrayList<String>();
+        var injectCode = false;
+        var defIndent = 0;
+        var functionName = "";
+        for (final var line : code) {
+            if (line.trim().isEmpty()) continue;
+            if (injectCode) {
+                final var indentCount = line.length() - line.stripIndent().length();
+                if (indentCount > defIndent) {
+                    result.add(initLogCode(indentCount, loggerName(namespace, type, functionName)));
+                }
+            }
+            result.add(line);
+            injectCode = false;
+            if (line.trim().startsWith("def ") && line.trim().endsWith(":")) {
+                final var function = line.trim().substring(4, line.length() - 1).trim();
+                if (function.contains("(") && function.endsWith(")")) {
+                    injectCode = true;
+                    defIndent = line.length() - line.stripIndent().length();
+                    functionName = function.substring(0, function.indexOf("("));
+                }
+            }
+        }
+        return result.toArray(String[]::new);
+    }
+
+    private String initLogCode(int indentCount, String loggerName) {
+        final var indent = " ".repeat(indentCount);
+        return indent + "global loggerBridge\n" +
+                indent + "log = None\n" +
+                indent + "if loggerBridge != None:\n" +
+                indent + "  log = loggerBridge.getLogger(\"" + loggerName + "\")\n";
     }
 }
