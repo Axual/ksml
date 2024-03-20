@@ -289,10 +289,18 @@
   - **`type`**: *(optional)* The type of the function, fixed value "generic" Default: generic. Must be one of: `["generic"]`.
 - <a id="definitions/GlobalTableDefinition"></a>**`GlobalTableDefinition`** *(object)*: Contains a definition of a GlobalTable, which can be referenced by producers and pipelines. Cannot contain additional properties.
   - **`keyType`** *(string, required)*: The key type of the global table.
+  - **`store`**: *(optional)* KeyValue state store definition.
+    - **Any of**
+      - *string*
+      - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
   - **`topic`** *(string, required)*: The name of the Kafka topic for this global table.
   - **`valueType`** *(string, required)*: The value type of the global table.
 - <a id="definitions/GlobalTableDefinitionWithOptionalTypes"></a>**`GlobalTableDefinitionWithOptionalTypes`** *(object)*: Contains a definition of a GlobalTable, which can be referenced by producers and pipelines. Cannot contain additional properties.
   - **`keyType`** *(string)*: *(optional)* The key type of the global table.
+  - **`store`**: *(optional)* KeyValue state store definition.
+    - **Any of**
+      - *string*
+      - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
   - **`topic`** *(string, required)*: The name of the Kafka topic for this global table.
   - **`valueType`** *(string)*: *(optional)* The value type of the global table.
 - <a id="definitions/GroupByKeyOperation"></a>**`GroupByKeyOperation`** *(object)*: Operation to group all messages with the same key together. Cannot contain additional properties.
