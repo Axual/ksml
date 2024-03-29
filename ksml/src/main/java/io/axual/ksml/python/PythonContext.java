@@ -29,6 +29,7 @@ import org.graalvm.polyglot.io.IOAccess;
 
 @Slf4j
 public class PythonContext {
+    private static final LoggerBridge LOGGER_BRIDGE = new LoggerBridge();
     private static final String PYTHON = "python";
     private final Context context;
     @Getter
@@ -46,6 +47,7 @@ public class PythonContext {
                     .allowHostAccess(HostAccess.ALL)
                     .allowHostClassLookup(name -> name.equals("java.util.ArrayList") || name.equals("java.util.HashMap") || name.equals("java.util.TreeMap"))
                     .build();
+            registerGlobalCode();
         } catch (Exception e) {
             log.error("Error setting up a new Python context", e);
             throw new ExecutionException("Could not setup a new Python context", e);
@@ -60,5 +62,26 @@ public class PythonContext {
             log.error("Error loading Python code", e);
         }
         return context.getPolyglotBindings().getMember(callerName);
+    }
+
+    public void registerGlobalCode() {
+        // The following code registers a global variable "loggerBridge" inside the Python context and
+        // initializes it with our static LOGGER_BRIDGE member variable. This bridge is later used by
+        // other Python code to initialize a "log" variable with the proper Python namespace and function
+        // name.
+        final var pyCode = """
+                loggerBridge = None
+                import polyglot
+                @polyglot.export_value
+                def register_ksml_logger_bridge(lb):
+                  global loggerBridge
+                  loggerBridge = lb
+                """;
+        final var register = registerFunction(pyCode, "register_ksml_logger_bridge");
+        if (register == null) {
+            throw new ExecutionException("Could not register global code for loggerBridge:\n" + pyCode);
+        }
+        // Load the global LOGGER_BRIDGE variable into the context
+        register.execute(LOGGER_BRIDGE);
     }
 }
