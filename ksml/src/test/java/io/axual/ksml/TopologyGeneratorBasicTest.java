@@ -91,6 +91,19 @@ public class TopologyGeneratorBasicTest {
         assertThat(cleanDescription("fix\r\nnewlines"), is("fix\nnewlines"));
     }
 
+    @Test
+    void loadGeneratorExample() throws Exception {
+        final var uri = ClassLoader.getSystemResource("pipelines/generator-example.yaml").toURI();
+        final var path = Paths.get(uri);
+        final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(path), JsonNode.class);
+        final var definitions = ImmutableMap.of("definition",
+                new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(definition, "test")));
+        var topologyGenerator = new TopologyGenerator("some.app.id");
+        final var topology = topologyGenerator.create(streamsBuilder, definitions);
+        final TopologyDescription description = topology.describe();
+        System.out.println(description);
+    }
+
     /**
      * Clean a description string by removing all object references ("@abcd1234") and fixing Windows line endings.
      */

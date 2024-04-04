@@ -95,7 +95,12 @@ public class KafkaProducerRunner implements Runner {
                     var valueSerde = NotationLibrary.get(target.valueType().notation()).serde(target.valueType().dataType(), false);
                     var valueSerializer = new ResolvingSerializer<>(valueSerde.serializer(), config.kafkaConfig);
                     var ep = new ExecutableProducer(generator, condition, target.topic(), target.keyType(), target.valueType(), keySerializer, valueSerializer);
-                    schedule.schedule(producer.interval().toMillis(), ep);
+                    if (producer.interval() == null) {
+                        // no interval: schedule single shot produce
+                        schedule.schedule(ep);
+                    } else {
+                        schedule.schedule(producer.interval().toMillis(), ep);
+                    }
                     log.info("Scheduled producer: {}", name);
                 });
             });

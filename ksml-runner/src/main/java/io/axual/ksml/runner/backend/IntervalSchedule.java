@@ -36,6 +36,10 @@ public class IntervalSchedule<T> {
         items.add(new ScheduledItem<>(interval, item));
     }
 
+    public void schedule(T item) {
+        schedule(0, item);
+    }
+
     public T getScheduledItem() {
         var firstScheduled = schedule.firstEntry();
         while (firstScheduled != null) {
@@ -46,10 +50,13 @@ public class IntervalSchedule<T> {
                 // Extract the scheduled item from the list
                 var result = firstScheduled.getValue().getFirst();
                 firstScheduled.getValue().removeFirst();
-                // Reschedule for the next interval
-                var nextTime = firstScheduled.getKey() + result.interval();
-                var items = schedule.computeIfAbsent(nextTime, ts -> new ArrayList<>());
-                items.add(result);
+
+                // If not single shot, eschedule for the next interval
+                if (result.interval() > 0) {
+                    var nextTime = firstScheduled.getKey() + result.interval();
+                    var items = schedule.computeIfAbsent(nextTime, ts -> new ArrayList<>());
+                    items.add(result);
+                }
                 // Finally return the scheduled item
                 return result.item;
             }
