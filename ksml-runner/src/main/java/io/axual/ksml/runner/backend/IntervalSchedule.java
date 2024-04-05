@@ -44,14 +44,16 @@ public class IntervalSchedule<T> {
         var firstScheduled = schedule.firstEntry();
         while (firstScheduled != null) {
             // If the scheduled item is in the future, then return no item
-            if (firstScheduled.getKey() >= System.currentTimeMillis()) return null;
+            if (firstScheduled.getKey() > System.currentTimeMillis()) {
+                return null;
+            }
 
             if (!firstScheduled.getValue().isEmpty()) {
                 // Extract the scheduled item from the list
                 var result = firstScheduled.getValue().getFirst();
                 firstScheduled.getValue().removeFirst();
 
-                // If not single shot, eschedule for the next interval
+                // If not single shot, reschedule for the next interval
                 if (result.interval() > 0) {
                     var nextTime = firstScheduled.getKey() + result.interval();
                     var items = schedule.computeIfAbsent(nextTime, ts -> new ArrayList<>());

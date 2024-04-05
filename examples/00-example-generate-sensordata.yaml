@@ -32,7 +32,7 @@ functions:
 producers:
   sensordata_avro_producer:
     generator: generate_sensordata_message
-#    interval: 444
+    interval: 444
     to:
       topic: ksml_sensordata_avro
       keyType: string
