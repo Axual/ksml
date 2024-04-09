@@ -1,8 +1,8 @@
 Topologies:
    Sub-topology: 0
     Source: ksml_sensordata_avro (topics: [ksml_sensordata_avro])
-      --> for_each_001
-    Processor: for_each_001 (stores: [])
+      --> test_pipelines_main
+    Processor: test_pipelines_main (stores: [])
       --> none
       <-- ksml_sensordata_avro
 
