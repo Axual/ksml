@@ -22,6 +22,18 @@ package io.axual.ksml;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
+
+import io.axual.ksml.data.notation.NotationLibrary;
+import io.axual.ksml.data.notation.avro.AvroNotation;
+import io.axual.ksml.data.notation.binary.BinaryNotation;
+import io.axual.ksml.data.notation.csv.CsvDataObjectConverter;
+import io.axual.ksml.data.notation.csv.CsvNotation;
+import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
+import io.axual.ksml.data.notation.json.JsonNotation;
+import io.axual.ksml.data.notation.soap.SOAPDataObjectConverter;
+import io.axual.ksml.data.notation.soap.SOAPNotation;
+import io.axual.ksml.data.notation.xml.XmlDataObjectConverter;
+import io.axual.ksml.data.notation.xml.XmlNotation;
 import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.generator.YAMLObjectMapper;
@@ -54,9 +66,13 @@ public class TopologyGeneratorBasicTest {
         }
     }
 
-//    @ParameterizedTest
+    @ParameterizedTest
     @ValueSource(ints = {1, 2, 3, 4, 5})
     void parseAndCheckOuput(int nr) throws Exception {
+        final var jsonNotation = new JsonNotation();
+        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(jsonNotation::serde), null);
+        NotationLibrary.register(JsonNotation.NOTATION_NAME, jsonNotation, new JsonDataObjectConverter());
+
         final var uri = ClassLoader.getSystemResource("pipelines/" + nr + "-demo.yaml").toURI();
         final var path = Paths.get(uri);
         final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(path), JsonNode.class);
@@ -68,7 +84,8 @@ public class TopologyGeneratorBasicTest {
         System.out.println(description);
 
         URI referenceURI = ClassLoader.getSystemResource("reference/" + nr + "-reference.txt").toURI();
-        String reference = Files.readString(Paths.get(referenceURI));
+        // Get the reference and clean the newlines
+        String reference = cleanDescription(Files.readString(Paths.get(referenceURI)));
 
         assertThat(cleanDescription(description.toString()), is(reference));
     }
@@ -97,6 +114,7 @@ public class TopologyGeneratorBasicTest {
     private String cleanDescription(String description) {
         return description
                 .replaceAll("@[a-fA-F-0-9]{5,}", "")
-                .replaceAll("\r\n", "\n");
+                .replaceAll("\r\n", "\n")
+                .trim();
     }
 }

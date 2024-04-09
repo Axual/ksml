@@ -1,10 +1,7 @@
 Topologies:
    Sub-topology: 0
     Source: ksml_sensordata_avro (topics: [ksml_sensordata_avro])
-      --> before-peek
-    Processor: before-peek (stores: [])
-      --> to_name_extract_001
+      --> test_before-peek
+    Processor: test_before-peek (stores: [])
+      --> none
       <-- ksml_sensordata_avro
-    Sink: to_name_extract_001 (extractor class: io.axual.ksml.user.UserTopicNameExtractor)
-      <-- before-peek
-

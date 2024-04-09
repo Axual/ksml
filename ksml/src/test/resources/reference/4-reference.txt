@@ -1,27 +1,27 @@
 Topologies:
    Sub-topology: 0
     Source: ksml_sensordata_avro (topics: [ksml_sensordata_avro])
-      --> before-peek
-    Processor: before-peek (stores: [])
-      --> branch_001
+      --> test_before-peek
+    Processor: test_before-peek (stores: [])
+      --> test_pipelines_main
       <-- ksml_sensordata_avro
-    Processor: branch_001 (stores: [])
-      --> branch_001-predicate-0, branch_001-predicate-1, branch_001-predicate-2
-      <-- before-peek
-    Processor: branch_001-predicate-0 (stores: [])
-      --> to_001
-      <-- branch_001
-    Processor: branch_001-predicate-1 (stores: [])
-      --> to_002
-      <-- branch_001
-    Processor: branch_001-predicate-2 (stores: [])
-      --> for_each_001
-      <-- branch_001
-    Processor: for_each_001 (stores: [])
+    Processor: test_pipelines_main (stores: [])
+      --> test_pipelines_main-predicate-1, test_pipelines_main-predicate-0, test_pipelines_main-predicate-2
+      <-- test_before-peek
+    Processor: test_pipelines_main-predicate-0 (stores: [])
+      --> test_to
+      <-- test_pipelines_main
+    Processor: test_pipelines_main-predicate-1 (stores: [])
+      --> test_to_001
+      <-- test_pipelines_main
+    Processor: test_pipelines_main-predicate-2 (stores: [])
+      --> test_pipelines_main_branch_branch3
+      <-- test_pipelines_main
+    Processor: test_pipelines_main_branch_branch3 (stores: [])
       --> none
-      <-- branch_001-predicate-2
-    Sink: to_001 (topic: ksml_sensordata_blue)
-      <-- branch_001-predicate-0
-    Sink: to_002 (topic: ksml_sensordata_red)
-      <-- branch_001-predicate-1
+      <-- test_pipelines_main-predicate-2
+    Sink: test_to (topic: ksml_sensordata_blue)
+      <-- test_pipelines_main-predicate-0
+    Sink: test_to_001 (topic: ksml_sensordata_red)
+      <-- test_pipelines_main-predicate-1
 
