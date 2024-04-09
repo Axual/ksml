@@ -20,23 +20,10 @@ package io.axual.ksml;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 
-import io.axual.ksml.data.notation.NotationLibrary;
-import io.axual.ksml.data.notation.avro.AvroNotation;
-import io.axual.ksml.data.notation.binary.BinaryNotation;
-import io.axual.ksml.data.notation.csv.CsvDataObjectConverter;
-import io.axual.ksml.data.notation.csv.CsvNotation;
-import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
-import io.axual.ksml.data.notation.json.JsonNotation;
-import io.axual.ksml.data.notation.soap.SOAPDataObjectConverter;
-import io.axual.ksml.data.notation.soap.SOAPNotation;
-import io.axual.ksml.data.notation.xml.XmlDataObjectConverter;
-import io.axual.ksml.data.notation.xml.XmlNotation;
-import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.definition.parser.TopologyDefinitionParser;
-import io.axual.ksml.generator.YAMLObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TopologyDescription;
 import org.graalvm.home.Version;
@@ -50,6 +37,14 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+
+import io.axual.ksml.data.notation.NotationLibrary;
+import io.axual.ksml.data.notation.binary.BinaryNotation;
+import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
+import io.axual.ksml.data.notation.json.JsonNotation;
+import io.axual.ksml.data.parser.ParseNode;
+import io.axual.ksml.definition.parser.TopologyDefinitionParser;
+import io.axual.ksml.generator.YAMLObjectMapper;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
