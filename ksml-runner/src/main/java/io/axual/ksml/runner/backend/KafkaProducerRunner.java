@@ -55,21 +55,8 @@ public class KafkaProducerRunner implements Runner {
         this.config = config;
     }
 
-    private static Map<String, String> getGenericConfigs() {
-        Map<String, String> configs = new HashMap<>();
-        configs.put(ACKS_CONFIG, "1");
-        configs.put(RETRIES_CONFIG, "0");
-        configs.put(RETRY_BACKOFF_MS_CONFIG, "1000");
-        configs.put(RECONNECT_BACKOFF_MAX_MS_CONFIG, "1000");
-        configs.put(MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, "10");
-        configs.put(KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getCanonicalName());
-        configs.put(VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getCanonicalName());
-        configs.put("specific.avro.reader", "true");
-        return configs;
-    }
-
     public void run() {
-        log.info("Starting Kafka producer(s)");
+        log.info("Registering Kafka producer(s)");
         isRunning.set(true);
         try {
             config.definitions.forEach((defName, definition) -> {
@@ -79,6 +66,7 @@ public class KafkaProducerRunner implements Runner {
                 definition.functions().forEach((name, function) -> PythonFunction.forFunction(context, definition.namespace(), name, function));
                 // Schedule all defined producers
                 definition.producers().forEach((name, producer) -> {
+                    System.out.println("producer " + name);
                     var target = producer.target();
                     var gen = producer.generator();
                     final var generator = gen.name() != null
@@ -105,9 +93,11 @@ public class KafkaProducerRunner implements Runner {
                 });
             });
 
-            try (final Producer<byte[], byte[]> producer = new ResolvingProducer<>(getProducerConfigs())) {
+            try (final Producer<byte[], byte[]> producer = createProducer(getProducerConfigs())) {
+                log.info("starting Kafka producer(s)");
                 while (!stopRunning.get()) {
                     try {
+                        System.out.println("looking for a generator");
                         var generator = schedule.getScheduledItem();
                         while (generator != null) {
                             log.info("Calling " + generator.name());
@@ -131,6 +121,16 @@ public class KafkaProducerRunner implements Runner {
         }
         isRunning.set(false);
         log.info("Producer(s) stopped");
+    }
+
+    /**
+     * Creates a producer based on the provided config.
+     * This method is package protected so we can override it for testing
+     * @param producerConfig the producer configs.
+     * @return a Kafka producer.
+     */
+    protected Producer<byte[], byte[]> createProducer(Map<String, Object> producerConfig) {
+        return new ResolvingProducer<>(producerConfig);
     }
 
     private Map<String, Object> getProducerConfigs() {

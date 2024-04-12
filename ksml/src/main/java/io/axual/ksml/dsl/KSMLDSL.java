@@ -75,6 +75,8 @@ public class KSMLDSL {
         public static final String INTERVAL = "interval";
         public static final String CONDITION = "condition";
         public static final String TARGET = "to";
+        public static final String COUNT = "count";
+        public static final String UNTIL = "until";
     }
 
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
