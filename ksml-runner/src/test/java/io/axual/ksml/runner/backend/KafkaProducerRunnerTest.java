@@ -20,67 +20,103 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.definition.ProducerDefinition;
-import io.axual.ksml.definition.TopicDefinition;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.ImmutableMap;
+import io.axual.ksml.data.notation.NotationLibrary;
+import io.axual.ksml.data.notation.binary.BinaryNotation;
+import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
+import io.axual.ksml.data.notation.json.JsonNotation;
+import io.axual.ksml.data.parser.ParseNode;
+import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.generator.TopologyDefinition;
-import org.apache.kafka.clients.producer.KafkaProducer;
+import io.axual.ksml.generator.YAMLObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.MockProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.graalvm.home.Version;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@ExtendWith(MockitoExtension.class)
+@Slf4j
 @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
-public class KafkaProducerRunnerTest {
+class KafkaProducerRunnerTest {
 
-    @Mock
-    private KafkaProducer<byte[], byte[]> mockProducer;
-
-    private KafkaProducerRunner.Config testConfig;
+    MockProducer<byte[], byte[]> mockProducer = new MockProducer<>(true, new ByteArraySerializer(), new ByteArraySerializer());
 
     private KafkaProducerRunner producerRunner;
 
-    @BeforeEach
-    void setup() {
-        testConfig = new KafkaProducerRunner.Config(new HashMap<>(), new HashMap<>());
-        producerRunner = new KafkaProducerRunner(testConfig) {
+    @Test
+    @DisplayName("when `interval` is omitted only 1 record is produced")
+    void verifySingleShot() throws Exception {
+        // given a topology with a single shot produce and a runner for it
+        var topologyDefinitionMap = loadDefinitions("produce-test-single.yaml");
+        var testConfig = new KafkaProducerRunner.Config(topologyDefinitionMap, new HashMap<>());
+        producerRunner = runnerUnderTest(testConfig);
+
+        // when the runner executes, only one record is produced.
+        try (ScheduledExecutorService stopper = Executors.newSingleThreadScheduledExecutor()) {
+            // schedule a stop for the runner loop, and result verification
+            // note: allow some time for parsing and runner setup to happen!
+            stopper.schedule(() -> {
+                log.info("scheduled stop");
+                producerRunner.stop();
+                log.info("history size={}", mockProducer.history().size());
+                assertEquals(1, mockProducer.history().size(), "only 1 record should be produced");
+            }, 10, TimeUnit.SECONDS);
+
+            // start the test
+            producerRunner.run();
+        }
+    }
+
+    /**
+     * Load a topology definition from the given file in test/resources
+     * @param filename ksml definition file
+     * @return a Map containing the parsed definition
+     * @throws IOException if loading fails
+     * @throws URISyntaxException for invalid file name
+     */
+    private Map<String, TopologyDefinition> loadDefinitions(String filename) throws IOException, URISyntaxException {
+        final var jsonNotation = new JsonNotation();
+        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(jsonNotation::serde), null);
+        NotationLibrary.register(JsonNotation.NOTATION_NAME, jsonNotation, new JsonDataObjectConverter());
+
+        final var uri = ClassLoader.getSystemResource(filename).toURI();
+        final var path = Paths.get(uri);
+        final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(path), JsonNode.class);
+        return ImmutableMap.of("definition",
+                new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(definition, "test")));
+    }
+
+    /**
+     * Create a KafkaProducerRunner from the given config, but with a mock Kafka producer.
+     * @param config a {@link io.axual.ksml.runner.backend.KafkaProducerRunner.Config}.
+     * @return a {@link KafkaProducerRunner} with a mocked producer.
+     */
+    private KafkaProducerRunner runnerUnderTest(KafkaProducerRunner.Config config) {
+        return new KafkaProducerRunner(config) {
             @Override
-            protected KafkaProducer<byte[], byte[]> createProducer(Map<String, Object> config) {
+            protected Producer<byte[], byte[]> createProducer(Map<String, Object> config) {
                 return mockProducer;
             }
         };
     }
 
-    @Test
-    void minimalSmoketest() throws InterruptedException {
-        TopologyDefinition topologyDefinition = new TopologyDefinition("test");
-        FunctionDefinition mockFunction = mock(FunctionDefinition.class);
-        TopicDefinition mockTopic = mock(TopicDefinition.class);
-        ProducerDefinition producerDefinition = new ProducerDefinition(mockFunction, null, null, mockTopic, null, null);
-        topologyDefinition.register("testProducer", producerDefinition);
-        testConfig.definitions().put("testTopology", topologyDefinition);
-
-        // schedule a stop for the runner loop
-        try (ScheduledExecutorService stopper = Executors.newSingleThreadScheduledExecutor()) {
-            stopper.schedule(() -> producerRunner.stop(), 2, TimeUnit.SECONDS);
-            producerRunner.run();
-        }
-    }
-
     static boolean isRunningOnGraalVM() {
         return Version.getCurrent().isRelease();
     }
-
 }

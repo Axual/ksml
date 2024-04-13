@@ -66,7 +66,6 @@ public class KafkaProducerRunner implements Runner {
                 definition.functions().forEach((name, function) -> PythonFunction.forFunction(context, definition.namespace(), name, function));
                 // Schedule all defined producers
                 definition.producers().forEach((name, producer) -> {
-                    System.out.println("producer " + name);
                     var target = producer.target();
                     var gen = producer.generator();
                     final var generator = gen.name() != null
@@ -89,7 +88,7 @@ public class KafkaProducerRunner implements Runner {
                     } else {
                         schedule.schedule(producer.interval().toMillis(), ep);
                     }
-                    log.info("Scheduled producer: {}", name);
+                    log.info("Scheduled producer: {} {}", name, producer.interval() == null ? "once" : producer.interval().toMillis() + "ms");
                 });
             });
 
@@ -97,10 +96,9 @@ public class KafkaProducerRunner implements Runner {
                 log.info("starting Kafka producer(s)");
                 while (!stopRunning.get()) {
                     try {
-                        System.out.println("looking for a generator");
                         var generator = schedule.getScheduledItem();
                         while (generator != null) {
-                            log.info("Calling " + generator.name());
+                            log.info("Calling {}", generator.name());
                             generator.produceMessage(producer);
                             generator = schedule.getScheduledItem();
                         }
