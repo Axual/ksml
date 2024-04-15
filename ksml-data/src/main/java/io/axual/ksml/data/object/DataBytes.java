@@ -22,6 +22,8 @@ package io.axual.ksml.data.object;
 
 import io.axual.ksml.data.type.SimpleType;
 
+import java.util.Arrays;
+
 public class DataBytes extends DataPrimitive<byte[]> {
     public static final SimpleType DATATYPE = new SimpleType(byte[].class) {
         @Override
@@ -36,7 +38,7 @@ public class DataBytes extends DataPrimitive<byte[]> {
     }
 
     public DataBytes(byte[] value) {
-        super(DATATYPE, value);
+        super(DATATYPE, Arrays.copyOf(value, value.length));
     }
 
     @Override

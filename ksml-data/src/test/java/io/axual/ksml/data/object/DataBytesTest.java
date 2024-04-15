@@ -2,9 +2,9 @@ package io.axual.ksml.data.object;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Data Library
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2024 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,21 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.SimpleType;
+import org.junit.jupiter.api.Test;
 
-public class DataBoolean extends DataPrimitive<Boolean> {
-    public static final SimpleType DATATYPE = new SimpleType(Boolean.class);
-    public static final Boolean DEFAULT = false;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
-    public DataBoolean() {
-        this(DEFAULT);
+public class DataBytesTest {
+
+    @Test
+    public void testDefaultValueConstructor() {
+        DataBytes dataBytes = new DataBytes();
+        assertArrayEquals(DataBytes.DEFAULT, dataBytes.value());
     }
 
-    public DataBoolean(Boolean value) {
-        super(DATATYPE, value);
+    @Test
+    public void testValueConstructor() {
+        DataBytes dataBytes = new DataBytes(new byte[]{1, 2, 3});
+        assertArrayEquals(new byte[]{1, 2, 3}, dataBytes.value());
     }
 }

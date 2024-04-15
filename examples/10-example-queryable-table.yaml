@@ -18,7 +18,7 @@ pipelines:
     via:
       - type: filter
         if:
-          expression: key != None
+          expression: key is not None
       - type: peek
         forEach:
           code: log.info("STORED INTO TABLE key={}, value={}", key, value)

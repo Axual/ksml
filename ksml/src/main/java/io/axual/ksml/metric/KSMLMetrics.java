@@ -1,10 +1,10 @@
-package io.axual.ksml.data.object;
+package io.axual.ksml.metric;
 
 /*-
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2024 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,19 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.SimpleType;
+import java.util.Collections;
 
-public class DataBoolean extends DataPrimitive<Boolean> {
-    public static final SimpleType DATATYPE = new SimpleType(Boolean.class);
-    public static final Boolean DEFAULT = false;
-
-    public DataBoolean() {
-        this(DEFAULT);
+public class KSMLMetrics {
+    private KSMLMetrics() {
     }
 
-    public DataBoolean(Boolean value) {
-        super(DATATYPE, value);
+    private static final AxualMetricsRegistry REGISTRY = new AxualMetricsRegistry();
+
+    public static AxualMetricsRegistry registry() {
+        return REGISTRY;
+    }
+
+    static {
+        registry().enableJmx("ksml", Collections.emptyList());
     }
 }

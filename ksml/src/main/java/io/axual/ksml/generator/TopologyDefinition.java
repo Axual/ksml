@@ -41,15 +41,8 @@ public class TopologyDefinition extends TopologyResources {
         pipelines.put(name, pipelineDefinition);
     }
 
-    public TopologyDefinition(String name) {
-        super(name);
-    }
-
-    public TopologyDefinition(TopologyResources resources) {
-        super(resources.namespace());
-        resources.functions().forEach(this::register);
-        resources.stateStores().forEach(this::register);
-        resources.topics().forEach(this::register);
+    public TopologyDefinition(String namespace) {
+        super(namespace);
     }
 
     public PipelineDefinition pipeline(String name) {

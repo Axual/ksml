@@ -8,7 +8,7 @@ functions:
   double_this_record:
     type: keyValueToKeyValueListTransformer
     code: |
-      if key == None:
+      if key is None:
         return []
     expression: "[(key+'-COPY1',value),(key+'-COPY2',value)]"
     resultType: "[(string,avro:SensorData)]"

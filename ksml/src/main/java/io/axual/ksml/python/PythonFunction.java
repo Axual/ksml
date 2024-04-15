@@ -21,6 +21,7 @@ package io.axual.ksml.python;
  */
 
 
+import com.codahale.metrics.Timer;
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.data.object.DataNull;
@@ -30,6 +31,9 @@ import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.metric.AxualMetricName;
+import io.axual.ksml.metric.AxualMetricsUtil;
+import io.axual.ksml.metric.KSMLMetrics;
 import io.axual.ksml.store.StateStores;
 import io.axual.ksml.user.UserFunction;
 import lombok.extern.slf4j.Slf4j;
@@ -51,17 +55,18 @@ public class PythonFunction extends UserFunction {
     private static final String QUOTE = "\"";
     private final DataObjectConverter converter;
     private final Value function;
+    private final Timer functionTimer;
 
     public static PythonFunction forFunction(PythonContext context, String namespace, String name, FunctionDefinition definition) {
-        return new PythonFunction(context, namespace, "functions", name, definition);
+        return new PythonFunction(context, namespace, "function", name, definition);
     }
 
     public static PythonFunction forGenerator(PythonContext context, String namespace, String name, FunctionDefinition definition) {
-        return new PythonFunction(context, namespace, "generators", name, definition);
+        return new PythonFunction(context, namespace, "generator", name, definition);
     }
 
     public static PythonFunction forPredicate(PythonContext context, String namespace, String name, FunctionDefinition definition) {
-        return new PythonFunction(context, namespace, "conditions", name, definition);
+        return new PythonFunction(context, namespace, "condition", name, definition);
     }
 
     private PythonFunction(PythonContext context, String namespace, String type, String name, FunctionDefinition definition) {
@@ -73,52 +78,60 @@ public class PythonFunction extends UserFunction {
             System.out.println("Error in generated Python code:\n" + pyCode);
             throw new ExecutionException("Error in function: " + name);
         }
+        var metricName = new AxualMetricName("execution-time", AxualMetricsUtil.metricTags("namespace", namespace, "function-name", name));
+        if (KSMLMetrics.registry().getTimer(metricName) == null) {
+            functionTimer = KSMLMetrics.registry().registerTimer(metricName);
+        } else {
+            functionTimer = KSMLMetrics.registry().getTimer(metricName);
+        }
     }
 
     @Override
     public DataObject call(StateStores stores, DataObject... parameters) {
-        // Validate that the defined parameter list matches the amount of passed in parameters
-        if (this.fixedParameterCount > parameters.length) {
-            throw new TopologyException("Parameter list does not match function spec: minimally expected " + this.parameters.length + ", got " + parameters.length);
-        }
-        if (this.parameters.length < parameters.length) {
-            throw new TopologyException("Parameter list does not match function spec: maximally expected " + this.parameters.length + ", got " + parameters.length);
-        }
-        // Validate the parameter types
-        for (int index = 0; index < parameters.length; index++) {
-            if (!this.parameters[index].type().isAssignableFrom(parameters[index])) {
-                throw new TopologyException("User function \"" + name + "\" expects parameter " + (index + 1) + " (\"" + this.parameters[index].name() + "\") to be " + this.parameters[index].type() + ", but " + parameters[index].type() + " was passed in");
+        return functionTimer.timeSupplier(() -> {
+            // Validate that the defined parameter list matches the amount of passed in parameters
+            if (this.fixedParameterCount > parameters.length) {
+                throw new TopologyException("Parameter list does not match function spec: minimally expected " + this.parameters.length + ", got " + parameters.length);
             }
-        }
-
-        // Check all parameters and copy them into the interpreter as prefixed globals
-        var globalVars = new HashMap<String, Object>();
-        globalVars.put("stores", stores != null ? stores : EMPTY_STORES);
-        var arguments = convertParameters(globalVars, parameters);
-
-        try {
-            // Call the prepared function
-            Value pyResult = function.execute(arguments);
-
-            if (pyResult.canExecute()) {
-                throw new ExecutionException("Python code results in a function instead of a value");
+            if (this.parameters.length < parameters.length) {
+                throw new TopologyException("Parameter list does not match function spec: maximally expected " + this.parameters.length + ", got " + parameters.length);
+            }
+            // Validate the parameter types
+            for (int index = 0; index < parameters.length; index++) {
+                if (!this.parameters[index].type().isAssignableFrom(parameters[index])) {
+                    throw new TopologyException("User function \"" + name + "\" expects parameter " + (index + 1) + " (\"" + this.parameters[index].name() + "\") to be " + this.parameters[index].type() + ", but " + parameters[index].type() + " was passed in");
+                }
             }
 
-            // Check if the function is supposed to return a result value
-            if (resultType != null) {
-                DataObject result = MAPPER.toDataObject(resultType.dataType(), pyResult);
-                logCall(parameters, result);
-                result = converter != null ? converter.convert(DEFAULT_NOTATION, result, resultType) : result;
-                checkType(resultType.dataType(), result);
-                return result;
-            } else {
+            // Check all parameters and copy them into the interpreter as prefixed globals
+            var globalVars = new HashMap<String, Object>();
+            globalVars.put("stores", stores != null ? stores : EMPTY_STORES);
+            var arguments = convertParameters(globalVars, parameters);
+
+            try {
+                // Call the prepared function
+                Value pyResult = function.execute(arguments);
+
+                if (pyResult.canExecute()) {
+                    throw new ExecutionException("Python code results in a function instead of a value");
+                }
+
+                // Check if the function is supposed to return a result value
+                if (resultType != null) {
+                    DataObject result = MAPPER.toDataObject(resultType.dataType(), pyResult);
+                    logCall(parameters, result);
+                    result = converter != null ? converter.convert(DEFAULT_NOTATION, result, resultType) : result;
+                    checkType(resultType.dataType(), result);
+                    return result;
+                } else {
+                    logCall(parameters, null);
+                    return DataNull.INSTANCE;
+                }
+            } catch (Exception e) {
                 logCall(parameters, null);
-                return DataNull.INSTANCE;
+                throw FatalError.reportAndExit(new TopologyException("Error while executing function " + name + ": " + e.getMessage(), e));
             }
-        } catch (Exception e) {
-            logCall(parameters, null);
-            throw FatalError.reportAndExit(new TopologyException("Error while executing function " + name + ": " + e.getMessage(), e));
-        }
+        });
     }
 
     private Object[] convertParameters(Map<String, Object> globalVariables, DataObject... parameters) {
@@ -158,7 +171,7 @@ public class PythonFunction extends UserFunction {
         final var initializeOptionalParams = Arrays.stream(definition.parameters())
                 .filter(ParameterDefinition::isOptional)
                 .filter(p -> p.defaultValue() != null)
-                .map(p -> "  if " + p.name() + " == None:\n    " + p.name() + " = " + (p.type() == DataString.DATATYPE ? QUOTE : "") + p.defaultValue() + (p.type() == DataString.DATATYPE ? QUOTE : "") + "\n")
+                .map(p -> "  if " + p.name() + " is None:\n    " + p.name() + " = " + (p.type() == DataString.DATATYPE ? QUOTE : "") + p.defaultValue() + (p.type() == DataString.DATATYPE ? QUOTE : "") + "\n")
                 .collect(Collectors.joining());
 
         // Prepare function (if any) and expression from the function definition
@@ -195,7 +208,7 @@ public class PythonFunction extends UserFunction {
                         %2$s
                                         
                         def convert_to_python(value):
-                          if value == None:
+                          if value is None:
                             return None
                           if isinstance(value, (HashMap, TreeMap)):
                             result = dict()
@@ -210,7 +223,7 @@ public class PythonFunction extends UserFunction {
                           return value
                           
                         def convert_from_python(value):
-                          if value == None:
+                          if value is None:
                             return None
                           if isinstance(value, (list, tuple)):
                             result = ArrayList()
@@ -268,7 +281,7 @@ public class PythonFunction extends UserFunction {
         final var indent = " ".repeat(indentCount);
         return indent + "global loggerBridge\n" +
                 indent + "log = None\n" +
-                indent + "if loggerBridge != None:\n" +
+                indent + "if loggerBridge is not None:\n" +
                 indent + "  log = loggerBridge.getLogger(\"" + loggerName + "\")\n";
     }
 }

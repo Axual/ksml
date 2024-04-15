@@ -59,6 +59,10 @@ public class TopologyBuildContext {
         this.pythonContext = new PythonContext();
     }
 
+    public String namespace() {
+        return resources.namespace();
+    }
+
     public DataObjectConverter getDataObjectConverter() {
         return new DataObjectConverter();
     }

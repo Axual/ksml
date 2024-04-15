@@ -26,10 +26,10 @@ pipelines:
           code: log.info("SOURCE MESSAGE - key={}, value={}", key, value)
     branch:
       - if:
-          expression: value != None and value["color"] == "blue"
+          expression: value is not None and value["color"] == "blue"
         to: sensor_blue
       - if:
-          expression: value != None and value["color"] == "red"
+          expression: value is not None and value["color"] == "red"
         to: sensor_red
       - forEach:
           code: log.warn("UNKNOWN COLOR - {}", value["color"])
