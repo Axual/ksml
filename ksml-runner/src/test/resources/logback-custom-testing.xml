@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="false">
+    <appender name="MOCK"
+              class="io.axual.ksml.runner.logging.MockAppender">
+        <encoder>
+            <pattern>%date{"yyyy-MM-dd'T'HH:mm:ss,SSSXXX", UTC} %-5level %-36logger{36} %msg%n
+            </pattern>
+        </encoder>
+        <testId>${logback.test.id:-unknown}</testId>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="MOCK"/>
+    </root>
+
+    <logger name="io.axual.ksml" level="TRACE"/>
+</configuration>

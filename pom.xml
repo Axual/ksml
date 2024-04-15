@@ -82,6 +82,7 @@
         <hamcrest.version>2.2</hamcrest.version>
         <mockito-core.version>5.7.0</mockito-core.version>
         <mockito-junit-jupiter.version>5.7.0</mockito-junit-jupiter.version>
+        <junit-pioneer.version>2.2.0</junit-pioneer.version>
 
         <!-- project and java version settings -->
         <java.source.version>21</java.source.version>
@@ -317,6 +318,12 @@
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-params</artifactId>
                 <version>${jupiter.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit-pioneer</groupId>
+                <artifactId>junit-pioneer</artifactId>
+                <version>${junit-pioneer.version}</version>
                 <scope>test</scope>
             </dependency>
 
