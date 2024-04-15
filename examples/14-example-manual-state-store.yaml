@@ -19,10 +19,10 @@ functions:
     type: forEach
     code: |
       last_value = last_sensor_data_store.get(key)
-      if last_value != None:
+      if last_value is not None:
         log.info("Found last value: {} = {}", key, last_value)
       last_sensor_data_store.put(key, value)
-      if value != None:
+      if value is not None:
         log.info("Stored new value: {} = {}", key, value)
     stores:
       - last_sensor_data_store

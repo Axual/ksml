@@ -1,10 +1,10 @@
-package io.axual.ksml.data.object;
+package io.axual.ksml.dsl;
 
 /*-
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2024 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,7 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.SimpleType;
-
-public class DataBoolean extends DataPrimitive<Boolean> {
-    public static final SimpleType DATATYPE = new SimpleType(Boolean.class);
-    public static final Boolean DEFAULT = false;
-
-    public DataBoolean() {
-        this(DEFAULT);
-    }
-
-    public DataBoolean(Boolean value) {
-        super(DATATYPE, value);
-    }
+public class KSMLHeaders {
+    public static final String KSML_PIPELINE_NAME_HEADER = "ksmlPipeline";
+    public static final String KSML_PIPELINE_START_HEADER = "ksmlPipelineStart";
 }

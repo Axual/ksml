@@ -25,6 +25,7 @@ import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.exception.TopologyException;
+import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class TopologyResources {
+    @Getter
     private final String namespace;
     // All registered user functions
     private final Map<String, FunctionDefinition> functions = new HashMap<>();
@@ -44,10 +46,6 @@ public class TopologyResources {
 
     public TopologyResources(String namespace) {
         this.namespace = namespace;
-    }
-
-    public String namespace() {
-        return namespace;
     }
 
     public void register(String name, FunctionDefinition functionDefinition) {

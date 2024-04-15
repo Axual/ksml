@@ -179,6 +179,7 @@ public class DataObjectConverter {
 
     private DataObject convertFromNull(DataType expected) {
         if (expected == null || expected == DataNull.DATATYPE) return DataNull.INSTANCE;
+        if (expected == DataBoolean.DATATYPE) return new DataBoolean();
         if (expected == DataByte.DATATYPE) return new DataByte();
         if (expected == DataShort.DATATYPE) return new DataShort();
         if (expected == DataInteger.DATATYPE) return new DataInteger();

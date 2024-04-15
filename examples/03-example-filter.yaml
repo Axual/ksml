@@ -1,5 +1,5 @@
-# This example shows how to filter messages from a simple stream. Here we only let "blue sensors" pass and discard
-# other messages after logging.
+# This example shows how to filter messages from a simple stream. Here we
+# only let "blue sensors" pass and discard other messages after logging.
 
 streams:
   sensor_source:
@@ -15,7 +15,7 @@ functions:
   sensor_is_blue:
     type: predicate
     code: |
-      if value == None:
+      if value is None:
         log.warn("No value in message with key={}", key)
         return False
       if value["color"] != "blue":
