@@ -71,8 +71,7 @@ public class BasicStreamRunTest {
         var outputTopic = driver.createOutputTopic("ksml_sensordata_copy", new StringDeserializer(), new StringDeserializer());
         inputTopic.pipeInput("key1", "value1");
         var keyValue = outputTopic.readKeyValue();
-        System.out.printf("Output topic key=%s, value=%s\n", keyValue.key, keyValue.value
-        );
+        System.out.printf("Output topic key=%s, value=%s\n", keyValue.key, keyValue.value);
 
     }
 

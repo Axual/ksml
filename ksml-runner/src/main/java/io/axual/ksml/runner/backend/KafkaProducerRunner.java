@@ -23,6 +23,7 @@ package io.axual.ksml.runner.backend;
 import io.axual.ksml.client.producer.ResolvingProducer;
 import io.axual.ksml.client.serde.ResolvingSerializer;
 import io.axual.ksml.data.notation.NotationLibrary;
+import io.axual.ksml.definition.ProducerDefinition;
 import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonFunction;
@@ -66,22 +67,7 @@ public class KafkaProducerRunner implements Runner {
                 definition.functions().forEach((name, function) -> PythonFunction.forFunction(context, definition.namespace(), name, function));
                 // Schedule all defined producers
                 definition.producers().forEach((name, producer) -> {
-                    var target = producer.target();
-                    var gen = producer.generator();
-                    final var generator = gen.name() != null
-                            ? PythonFunction.forGenerator(context, definition.namespace(), gen.name(), gen)
-                            : PythonFunction.forGenerator(context, definition.namespace(), name, gen);
-                    var cond = producer.condition();
-                    final var condition = cond != null
-                            ? cond.name() != null
-                            ? PythonFunction.forPredicate(context, definition.namespace(), cond.name(), cond)
-                            : PythonFunction.forPredicate(context, definition.namespace(), name, cond)
-                            : null;
-                    var keySerde = NotationLibrary.get(target.keyType().notation()).serde(target.keyType().dataType(), true);
-                    var keySerializer = new ResolvingSerializer<>(keySerde.serializer(), config.kafkaConfig);
-                    var valueSerde = NotationLibrary.get(target.valueType().notation()).serde(target.valueType().dataType(), false);
-                    var valueSerializer = new ResolvingSerializer<>(valueSerde.serializer(), config.kafkaConfig);
-                    var ep = new ExecutableProducer(generator, condition, target.topic(), target.keyType(), target.valueType(), keySerializer, valueSerializer);
+                    var ep = createExecutableProducer(definition.namespace(), name, producer, context);
                     if (producer.interval() == null) {
                         // no interval: schedule single shot produce
                         schedule.schedule(ep);
@@ -119,6 +105,34 @@ public class KafkaProducerRunner implements Runner {
         }
         isRunning.set(false);
         log.info("Producer(s) stopped");
+    }
+
+    /**
+     * Creates a
+     * @param namespace the definition namespace.
+     * @param name the function name.
+     * @param producer the {@link ProducerDefinition} for the producer.
+     * @param context the {@link PythonContext} the function runs in.
+     * @return an ExecutableProducer.
+     */
+    private ExecutableProducer createExecutableProducer(String namespace, String name, ProducerDefinition producer, PythonContext context) {
+        var target = producer.target();
+        var gen = producer.generator();
+        final var generator = gen.name() != null
+                ? PythonFunction.forGenerator(context, namespace, gen.name(), gen)
+                : PythonFunction.forGenerator(context, namespace, name, gen);
+        var cond = producer.condition();
+        final var condition = cond != null
+                ? cond.name() != null
+                ? PythonFunction.forPredicate(context, namespace, cond.name(), cond)
+                : PythonFunction.forPredicate(context, namespace, name, cond)
+                : null;
+        var keySerde = NotationLibrary.get(target.keyType().notation()).serde(target.keyType().dataType(), true);
+        var keySerializer = new ResolvingSerializer<>(keySerde.serializer(), config.kafkaConfig);
+        var valueSerde = NotationLibrary.get(target.valueType().notation()).serde(target.valueType().dataType(), false);
+        var valueSerializer = new ResolvingSerializer<>(valueSerde.serializer(), config.kafkaConfig);
+        var ep = new ExecutableProducer(generator, condition, target.topic(), target.keyType(), target.valueType(), keySerializer, valueSerializer);
+        return ep;
     }
 
     /**

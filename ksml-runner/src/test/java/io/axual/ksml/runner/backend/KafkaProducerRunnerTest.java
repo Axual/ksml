@@ -43,11 +43,9 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -67,20 +65,14 @@ class KafkaProducerRunnerTest {
         var testConfig = new KafkaProducerRunner.Config(topologyDefinitionMap, new HashMap<>());
         producerRunner = runnerUnderTest(testConfig);
 
-        // when the runner executes, only one record is produced.
-        try (ScheduledExecutorService stopper = Executors.newSingleThreadScheduledExecutor()) {
-            // schedule a stop for the runner loop, and result verification
-            // note: allow some time for parsing and runner setup to happen!
-            stopper.schedule(() -> {
-                log.info("scheduled stop");
-                producerRunner.stop();
-                log.info("history size={}", mockProducer.history().size());
-                assertEquals(1, mockProducer.history().size(), "only 1 record should be produced");
-            }, 10, TimeUnit.SECONDS);
+        // when the runner starts in a separate thread and runs for some time
+        new Thread(producerRunner).start();
+        Thread.sleep(Duration.ofSeconds(10));
 
-            // start the test
-            producerRunner.run();
-        }
+        // then when the runner has executed, only one record is produced.
+        producerRunner.stop();
+        log.info("history size={}", mockProducer.history().size());
+        assertEquals(1, mockProducer.history().size(), "only 1 record should be produced");
     }
 
     /**
