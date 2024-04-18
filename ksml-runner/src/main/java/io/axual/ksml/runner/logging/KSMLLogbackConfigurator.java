@@ -39,6 +39,20 @@ import ch.qos.logback.core.status.WarnStatus;
 import ch.qos.logback.core.util.Loader;
 import ch.qos.logback.core.util.OptionHelper;
 
+/**
+ * This configurator class is used to support determining and loading the logback configuration file using
+ * a path set in an environment variable.
+ * <br/>
+ * Priority of configuration is:
+ * <ol>
+ *     <li>System property <i>logback.configurationFile</i></li>
+ *     <li>Environment variable <i>LOGBACK_CONFIGURATION_FILE</i></li>
+ *     <li>Classpath file <i>logback-test.xml</i></li>
+ *     <li>Classpath file <i>logback.xml</i></li>
+ * </ol>
+ *
+ * The configurator will not proceed to the next steps if the system property or environment variable is set to an incorrect value.
+ */
 @ConfiguratorRank(value = ConfiguratorRank.CUSTOM_HIGH_PRIORITY)
 public class KSMLLogbackConfigurator extends DefaultJoranConfigurator {
     public static final String CONFIG_FILE_ENV_PROPERTY = "LOGBACK_CONFIGURATION_FILE";
@@ -55,6 +69,7 @@ public class KSMLLogbackConfigurator extends DefaultJoranConfigurator {
         }
         if (url != null) {
             try {
+                System.err.printf("Using URL to config %s%n", url);
                 configureByResource(url);
             } catch (JoranException e) {
                 context.getStatusManager().add(new WarnStatus("Could not configure KSML logging", this, e));

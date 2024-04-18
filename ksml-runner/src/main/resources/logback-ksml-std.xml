@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<included>
+    <appender name="${STD_ERR_APPENDER_NAME}" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.err</target>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>WARN</level>
+        </filter>
+        <encoder>
+            <pattern>${STDERR_LOG_PATTERN:-${STD_LOG_PATTERN:-${DEFAULT_STD_LOG_PATTERN}}}</pattern>
+        </encoder>
+    </appender>
+    <appender name="${STD_OUT_APPENDER_NAME}" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.out</target>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>TRACE</level>
+            <onMatch>ACCEPT</onMatch>
+        </filter>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level>
+            <onMatch>ACCEPT</onMatch>
+        </filter>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+        </filter>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
+            <onMatch>DENY</onMatch>
+        </filter>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>DENY</onMatch>
+        </filter>
+        <encoder>
+            <pattern>${STDOUT_LOG_PATTERN:-${STD_LOG_PATTERN:-${DEFAULT_STD_LOG_PATTERN}}}</pattern>
+        </encoder>
+    </appender>
+</included>
