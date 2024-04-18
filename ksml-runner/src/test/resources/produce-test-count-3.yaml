@@ -1,0 +1,22 @@
+# This example shows how to generate data and have it sent to a target topic in a given format.
+
+functions:
+  generate_fixed_keyvalue:
+    type: generator
+    globalCode: |
+      import time
+    code: |
+      key = "key-1"
+      value = "value-1"
+    expression: (key, value)                      # Return a message tuple with the key and value
+    resultType: (string, string)                  # Indicate the type of key and value
+
+producers:
+  fixed_data_producer:
+    generator: generate_fixed_keyvalue
+    interval: 20
+    count: 3
+    to:
+      topic: fixed_kv2
+      keyType: string
+      valueType: string

@@ -24,21 +24,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 
-public class IntervalSchedule<T> {
-    private record ScheduledItem<T>(long interval, T item) {
+public class IntervalSchedule<T extends RescheduleStrategy> {
+    private record ScheduledItem<T extends RescheduleStrategy>(T item) {
     }
 
     private final TreeMap<Long, List<ScheduledItem<T>>> schedule = new TreeMap<>();
 
-    public void schedule(long interval, T item) {
+    public void schedule(T item) {
         var firstTime = System.currentTimeMillis();
         var items = schedule.computeIfAbsent(firstTime, ts -> new ArrayList<>());
-        items.add(new ScheduledItem<>(interval, item));
+        items.add(new ScheduledItem<>(item));
     }
 
-    public void schedule(T item) {
-        schedule(0, item);
-    }
+//    public void schedule(T item) {
+//        schedule(0, item);
+//    }
 
     public T getScheduledItem() {
         var firstScheduled = schedule.firstEntry();
@@ -54,8 +54,8 @@ public class IntervalSchedule<T> {
                 firstScheduled.getValue().removeFirst();
 
                 // If not single shot, reschedule for the next interval
-                if (result.interval() > 0) {
-                    var nextTime = firstScheduled.getKey() + result.interval();
+                if (result.item.shouldReschedule()) {
+                    var nextTime = firstScheduled.getKey() + result.item.interval().toMillis();
                     var items = schedule.computeIfAbsent(nextTime, ts -> new ArrayList<>());
                     items.add(result);
                 }

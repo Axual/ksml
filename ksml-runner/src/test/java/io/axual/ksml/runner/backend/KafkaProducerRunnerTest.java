@@ -35,6 +35,7 @@ import org.apache.kafka.clients.producer.MockProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.graalvm.home.Version;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
@@ -53,9 +54,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
 class KafkaProducerRunnerTest {
 
-    MockProducer<byte[], byte[]> mockProducer = new MockProducer<>(true, new ByteArraySerializer(), new ByteArraySerializer());
+    MockProducer<byte[], byte[]> mockProducer;
 
     private KafkaProducerRunner producerRunner;
+
+    @BeforeEach
+    void cleanProducer() {
+        mockProducer = new MockProducer<>(true, new ByteArraySerializer(), new ByteArraySerializer());
+    }
 
     @Test
     @DisplayName("when `interval` is omitted only 1 record is produced")
@@ -67,12 +73,48 @@ class KafkaProducerRunnerTest {
 
         // when the runner starts in a separate thread and runs for some time
         new Thread(producerRunner).start();
-        Thread.sleep(Duration.ofSeconds(10));
+        Thread.sleep(Duration.ofSeconds(30));
 
         // then when the runner has executed, only one record is produced.
         producerRunner.stop();
         log.info("history size={}", mockProducer.history().size());
         assertEquals(1, mockProducer.history().size(), "only 1 record should be produced");
+    }
+
+    @Test
+    @DisplayName("A fixed count of records can be produced")
+    void verifyCountThreeTimes() throws Exception {
+        // given a topology with a counting produce and a runner for it
+        var topologyDefinitionMap = loadDefinitions("produce-test-count-3.yaml");
+        var testConfig = new KafkaProducerRunner.Config(topologyDefinitionMap, new HashMap<>());
+        producerRunner = runnerUnderTest(testConfig);
+
+        // when the runner starts in a separate thread and runs for some time
+        new Thread(producerRunner).start();
+        Thread.sleep(Duration.ofSeconds(30));
+
+        // then when the runner has executed, only one record is produced.
+        producerRunner.stop();
+        log.info("history size={}", mockProducer.history().size());
+        assertEquals(3, mockProducer.history().size(), "should produce 3 records");
+    }
+
+    @Test
+    @DisplayName("Producing can stop based on a condition")
+    void verifyCondition() throws Exception {
+        // given a topology with a counting produce and a runner for it
+        var topologyDefinitionMap = loadDefinitions("produce-test-condition.yaml");
+        var testConfig = new KafkaProducerRunner.Config(topologyDefinitionMap, new HashMap<>());
+        producerRunner = runnerUnderTest(testConfig);
+
+        // when the runner starts in a separate thread and runs for some time
+        new Thread(producerRunner).start();
+        Thread.sleep(Duration.ofSeconds(30));
+
+        // then when the runner has executed, only one record is produced.
+        producerRunner.stop();
+        log.info("history size={}", mockProducer.history().size());
+        assertEquals(3, mockProducer.history().size(), "should stop after producing 3 records");
     }
 
     /**
