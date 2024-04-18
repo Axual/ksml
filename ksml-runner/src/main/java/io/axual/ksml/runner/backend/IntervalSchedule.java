@@ -36,10 +36,6 @@ public class IntervalSchedule<T extends RescheduleStrategy> {
         items.add(new ScheduledItem<>(item));
     }
 
-//    public void schedule(T item) {
-//        schedule(0, item);
-//    }
-
     public T getScheduledItem() {
         var firstScheduled = schedule.firstEntry();
         while (firstScheduled != null) {

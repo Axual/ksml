@@ -20,8 +20,6 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
-import java.time.Duration;
-
 public class CountingReschedule implements RescheduleStrategy {
 
     private int count;
@@ -37,10 +35,5 @@ public class CountingReschedule implements RescheduleStrategy {
             return true;
         }
         return false;
-    }
-
-    @Override
-    public Duration interval() {
-        return null;
     }
 }
