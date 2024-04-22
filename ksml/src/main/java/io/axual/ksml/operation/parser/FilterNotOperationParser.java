@@ -42,7 +42,7 @@ public class FilterNotOperationParser extends StoreOperationParser<FilterNotOper
                 operationTypeField(),
                 operationNameField(),
                 functionField(KSMLDSL.Operations.Filter.PREDICATE, "A function that returns \"false\" when records are accepted, \"true\" otherwise", new PredicateDefinitionParser()),
-                storeField(false, "Materialized view of the filtered table", StoreType.KEYVALUE_STORE),
+                storeField(false, "Materialized view of the filtered table (only applies to tables, ignored for streams)", StoreType.KEYVALUE_STORE),
                 storeNamesField(),
                 (type, name, pred, store, stores) -> {
                     if (pred != null)

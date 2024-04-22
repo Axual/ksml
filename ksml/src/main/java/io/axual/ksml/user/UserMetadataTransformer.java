@@ -20,20 +20,24 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
+
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.mapper.RecordMetadataDataObjectMapper;
+import io.axual.ksml.data.type.RecordMetadata;
 import io.axual.ksml.python.Invoker;
 import io.axual.ksml.store.StateStores;
 
-public class UserForeachAction extends Invoker {
+public class UserMetadataTransformer extends Invoker {
     private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
+    private final RecordMetadataDataObjectMapper metaMapper = new RecordMetadataDataObjectMapper();
 
-    public UserForeachAction(UserFunction function) {
+    public UserMetadataTransformer(UserFunction function) {
         super(function);
-        verifyParameterCount(2);
-        verifyNoResult();
+        verifyParameterCount(3);
     }
 
-    public void apply(StateStores stores, Object key, Object value) {
-        function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value));
+    public RecordMetadata apply(StateStores stores, Object key, Object value, RecordMetadata metadata) {
+        final var resultMeta = function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value), metaMapper.toDataObject(metadata));
+        return metaMapper.fromDataObject(resultMeta);
     }
 }
