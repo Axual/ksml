@@ -1,10 +1,10 @@
-package io.axual.ksml.dsl;
+package io.axual.ksml.definition.parser;
 
 /*-
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2024 Axual B.V.
+ * Copyright (C) 2021 - 2023 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,15 @@ package io.axual.ksml.dsl;
  * =========================LICENSE_END==================================
  */
 
-public class KSMLHeaders {
-    public static final String KSML_PIPELINE_NAME_HEADER = "ksmlPipeline";
-    public static final String KSML_PIPELINE_START_HEADER = "ksmlPipelineStart";
+
+import io.axual.ksml.definition.MetadataTransformerDefinition;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.parser.StructParser;
+
+public class MetadataTransformerDefinitionParser extends FunctionDefinitionParser<MetadataTransformerDefinition> {
+    @Override
+    public StructParser<MetadataTransformerDefinition> parser() {
+        return parserWithStores(MetadataTransformerDefinition.class, KSMLDSL.Functions.TYPE_METADATATRANSFORMER, "metadata transformer", MetadataTransformerDefinition::new);
+    }
 }
+

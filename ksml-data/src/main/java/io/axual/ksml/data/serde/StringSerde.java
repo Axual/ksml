@@ -23,6 +23,7 @@ package io.axual.ksml.data.serde;
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.mapper.StringDataObjectMapper;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
 import org.apache.kafka.common.serialization.*;
@@ -33,7 +34,7 @@ public class StringSerde implements Serde<Object> {
     private final NativeDataObjectMapper nativeMapper;
 
     public StringSerde() {
-        this(new StringDataMapper(), DataString.DATATYPE);
+        this(new StringDataObjectMapper(), DataString.DATATYPE);
     }
 
     public StringSerde(DataObjectMapper<String> stringMapper, DataType expectedType) {

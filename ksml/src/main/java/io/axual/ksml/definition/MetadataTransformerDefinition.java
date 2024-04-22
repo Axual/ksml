@@ -1,4 +1,4 @@
-package io.axual.ksml.user;
+package io.axual.ksml.definition;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,20 +20,18 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.python.Invoker;
-import io.axual.ksml.store.StateStores;
 
-public class UserForeachAction extends Invoker {
-    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
+import io.axual.ksml.exception.TopologyException;
 
-    public UserForeachAction(UserFunction function) {
-        super(function);
-        verifyParameterCount(2);
-        verifyNoResult();
-    }
+import static io.axual.ksml.definition.DefinitionConstants.*;
 
-    public void apply(StateStores stores, Object key, Object value) {
-        function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value));
+public class MetadataTransformerDefinition extends FunctionDefinition {
+    public MetadataTransformerDefinition(FunctionDefinition definition) {
+        super(definition
+                .withParameters(mergeParameters(KEY_VALUE_METADATA_PARAMETERS, definition.parameters()))
+                .withDefaultExpression(PARAM_METADATA));
+        if (resultType() == null || !METADATA_TYPE.isAssignableFrom(resultType())) {
+            throw new TopologyException("ResultType of headerTransformer should be " + METADATA_TYPE);
+        }
     }
 }

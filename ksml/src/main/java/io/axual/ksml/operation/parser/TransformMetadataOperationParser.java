@@ -20,27 +20,27 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
-
+import io.axual.ksml.definition.parser.MetadataTransformerDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
-import io.axual.ksml.operation.ToTableOperation;
+import io.axual.ksml.operation.TransformMetadataOperation;
 import io.axual.ksml.parser.StructParser;
-import io.axual.ksml.store.StoreType;
 
-public class ToTableOperationParser extends StoreOperationParser<ToTableOperation> {
-    public ToTableOperationParser(TopologyResources resources) {
-        super(KSMLDSL.Operations.TO_TABLE, resources);
+public class TransformMetadataOperationParser extends OperationParser<TransformMetadataOperation> {
+    public TransformMetadataOperationParser(TopologyResources resources) {
+        super(KSMLDSL.Operations.TRANSFORM_METADATA, resources);
     }
 
     @Override
-    public StructParser<ToTableOperation> parser() {
+    protected StructParser<TransformMetadataOperation> parser() {
         return structParser(
-                ToTableOperation.class,
+                TransformMetadataOperation.class,
                 "",
-                "Convert a Stream into a Table",
+                "Convert the metadata of every record in the stream",
                 operationTypeField(),
                 operationNameField(),
-                storeField(false, "Materialized view of the result table", StoreType.KEYVALUE_STORE),
-                (type, name, store) -> new ToTableOperation(storeOperationConfig(name, store)));
+                functionField(KSMLDSL.Operations.Transform.MAPPER, "A function that converts the metadata (Kafka headers, timestamp) of every record in the stream", new MetadataTransformerDefinitionParser()),
+                storeNamesField(),
+                (type, name, mapper, storeNames) -> new TransformMetadataOperation(operationConfig(name, storeNames), mapper));
     }
 }

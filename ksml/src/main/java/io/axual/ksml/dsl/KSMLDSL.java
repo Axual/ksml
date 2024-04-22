@@ -52,6 +52,7 @@ public class KSMLDSL {
         public static final String TYPE_KEYVALUETOVALUELISTTRANSFORMER = "keyValueToValueListTransformer";
         public static final String TYPE_KEYVALUETRANSFORMER = "keyValueTransformer";
         public static final String TYPE_MERGER = "merger";
+        public static final String TYPE_METADATATRANSFORMER = "metadataTransformer";
         public static final String TYPE_PREDICATE = "predicate";
         public static final String TYPE_REDUCER = "reducer";
         public static final String TYPE_STREAMPARTITIONER = "streamPartitioner";
@@ -250,11 +251,11 @@ public class KSMLDSL {
         public static final String MAP_VALUE = "mapValue";
         public static final String MAP_VALUES = "mapValues";
 
-
         public static final String TRANSFORM_KEY = "transformKey";
         public static final String TRANSFORM_KEY_VALUE = "transformKeyValue";
         public static final String TRANSFORM_KEY_VALUE_TO_KEY_VALUE_LIST = "transformKeyValueToKeyValueList";
         public static final String TRANSFORM_KEY_VALUE_TO_VALUE_LIST = "transformKeyValueToValueList";
+        public static final String TRANSFORM_METADATA = "transformMetadata";
         public static final String TRANSFORM_VALUE = "transformValue";
 
         @NoArgsConstructor(access = AccessLevel.PRIVATE)

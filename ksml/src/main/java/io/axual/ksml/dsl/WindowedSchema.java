@@ -21,6 +21,7 @@ package io.axual.ksml.dsl;
  */
 
 import io.axual.ksml.data.mapper.DataTypeSchemaMapper;
+import io.axual.ksml.data.schema.KafkaStreamsSchemaMapper;
 import io.axual.ksml.data.schema.*;
 import io.axual.ksml.data.type.WindowedType;
 
