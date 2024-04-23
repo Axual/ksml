@@ -32,19 +32,16 @@
         <dependency>
             <groupId>org.graalvm.python</groupId>
             <artifactId>python-language</artifactId>
-            <version>23.1.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.graalvm.python</groupId>
             <artifactId>python-resources</artifactId>
-            <version>23.1.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.graalvm.truffle</groupId>
             <artifactId>truffle-runtime</artifactId>
-            <version>23.1.1</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -71,5 +68,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

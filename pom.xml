@@ -62,27 +62,30 @@
 
     <properties>
         <!-- compile, runtime and provided dependency versions -->
-        <apache.commons.text.version>1.11.0</apache.commons.text.version>
-        <apache.kafka.version>3.6.1</apache.kafka.version>
+        <apache.avro.version>1.11.3</apache.avro.version>
+        <apache.commons.text.version>1.12.0</apache.commons.text.version>
+        <apache.commons.compress.version>1.26.1</apache.commons.compress.version>
+        <apache.kafka.version>3.6.2</apache.kafka.version>
         <confluent.version>7.6.0</confluent.version>
-        <graalvm.version>23.1.1</graalvm.version>
-        <graalvm.polyglot.version>23.1.1</graalvm.polyglot.version>
-        <graalvm.python.version>23.1.1</graalvm.python.version>
-        <guava.version>32.0.1-jre</guava.version>
-        <jackson.version>2.16.1</jackson.version>
+        <graalvm.version>23.1.2</graalvm.version>
+        <graalvm.polyglot.version>23.1.2</graalvm.polyglot.version>
+        <graalvm.python.version>23.1.2</graalvm.python.version>
+        <guava.version>33.1.0-jre</guava.version>
+        <jackson.version>2.17.0</jackson.version>
         <jakarta.soap.version>3.0.1</jakarta.soap.version>
-        <jersey.version>3.1.5</jersey.version>
-        <logback.version>1.4.12</logback.version>
-        <lombok.version>1.18.30</lombok.version>
+        <jersey.version>3.1.6</jersey.version>
+        <logback.version>1.5.6</logback.version>
+        <lombok.version>1.18.32</lombok.version>
         <saaj.version>3.0.3</saaj.version>
-        <slf4j.version>2.0.6</slf4j.version>
+        <slf4j.version>2.0.13</slf4j.version>
 
         <!-- test dependency versions -->
-        <jupiter.version>5.10.1</jupiter.version>
+        <jupiter.version>5.10.2</jupiter.version>
         <hamcrest.version>2.2</hamcrest.version>
-        <mockito-core.version>5.7.0</mockito-core.version>
-        <mockito-junit-jupiter.version>5.7.0</mockito-junit-jupiter.version>
+        <mockito-core.version>5.11.0</mockito-core.version>
+        <mockito-junit-jupiter.version>5.11.0</mockito-junit-jupiter.version>
         <junit-pioneer.version>2.2.0</junit-pioneer.version>
+        <junit-platform.version>1.10.1</junit-platform.version>
 
         <!-- project and java version settings -->
         <java.source.version>21</java.source.version>
@@ -93,17 +96,17 @@
 
         <!-- plugin versions -->
         <maven.dependency.plugin.version>3.6.1</maven.dependency.plugin.version>
-        <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
-        <maven.jar.plugin.version>3.3.0</maven.jar.plugin.version>
+        <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
+        <maven.jar.plugin.version>3.4.1</maven.jar.plugin.version>
         <maven.install.plugin.version>3.1.1</maven.install.plugin.version>
         <maven.enforcer.plugin.version>3.4.1</maven.enforcer.plugin.version>
-        <maven.exec.plugin.version>3.1.1</maven.exec.plugin.version>
+        <maven.exec.plugin.version>3.2.0</maven.exec.plugin.version>
         <maven.license.plugin.version>2.4.0</maven.license.plugin.version>
 
-        <maven.javadoc.plugin.version>3.6.2</maven.javadoc.plugin.version>
-        <maven.surefire.plugin.version>3.2.2</maven.surefire.plugin.version>
-        <maven.failsafe.plugin.version>3.2.2</maven.failsafe.plugin.version>
-        <maven.jacoco.plugin.version>0.8.11</maven.jacoco.plugin.version>
+        <maven.javadoc.plugin.version>3.6.3</maven.javadoc.plugin.version>
+        <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
+        <maven.failsafe.plugin.version>3.2.5</maven.failsafe.plugin.version>
+        <maven.jacoco.plugin.version>0.8.12</maven.jacoco.plugin.version>
 
         <!-- following properties filled at build time by jacoco -->
         <surefireArgLine/>
@@ -201,6 +204,16 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-text</artifactId>
                 <version>${apache.commons.text.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>${apache.commons.compress.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.avro</groupId>
+                <artifactId>avro</artifactId>
+                <version>${apache.avro.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.kafka</groupId>
@@ -325,6 +338,12 @@
                 <artifactId>junit-pioneer</artifactId>
                 <version>${junit-pioneer.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.platform</groupId>
+                <artifactId>junit-platform-commons</artifactId>
+                <version>${junit-platform.version}</version>
+                <scope>compile</scope>
             </dependency>
 
             <dependency>
