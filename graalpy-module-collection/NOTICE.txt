@@ -1,7 +1,7 @@
 
 Lists of 21 third-party dependencies.
      (Bouncy Castle Licence) Bouncy Castle PKIX, CMS, EAC, TSP, PKCS, OCSP, CMP, and CRMF APIs (org.bouncycastle:bcpkix-jdk18on:1.76 - https://www.bouncycastle.org/java.html)
-     (Bouncy Castle Licence) Bouncy Castle Provider (org.bouncycastle:bcprov-jdk18on:1.76 - https://www.bouncycastle.org/java.html)
+     (Bouncy Castle Licence) Bouncy Castle Provider (org.bouncycastle:bcprov-jdk18on:1.78 - https://www.bouncycastle.org/java.html)
      (Bouncy Castle Licence) Bouncy Castle ASN.1 Extension and Utility APIs (org.bouncycastle:bcutil-jdk18on:1.76 - https://www.bouncycastle.org/java.html)
      (New BSD License (3-clause BSD license)) Sulong API (org.graalvm.llvm:llvm-api:23.1.2 - http://www.graalvm.org/)
      (Universal Permissive License, Version 1.0) Polyglot (org.graalvm.polyglot:polyglot:23.1.2 - https://github.com/oracle/graal)
