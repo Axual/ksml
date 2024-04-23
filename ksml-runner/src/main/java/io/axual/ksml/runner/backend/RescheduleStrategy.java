@@ -20,6 +20,7 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.user.UserFunction;
 
 import java.time.Duration;
@@ -33,7 +34,7 @@ public interface RescheduleStrategy {
      * Implementations indicate if the producer should be scheduled again.
      * @return
      */
-    boolean shouldReschedule();
+    boolean shouldReschedule(DataObject key, DataObject value);
 
     /**
      * The only implementation keeping track of interval is {@link AlwaysReschedule}; all others just return {@link Duration#ZERO}.

@@ -20,6 +20,8 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataObject;
+
 public class CountingReschedule implements RescheduleStrategy {
 
     private int count;
@@ -29,7 +31,7 @@ public class CountingReschedule implements RescheduleStrategy {
     }
 
     @Override
-    public boolean shouldReschedule() {
+    public boolean shouldReschedule(DataObject key, DataObject value) {
         if (count > 0) {
             count--;
             return true;

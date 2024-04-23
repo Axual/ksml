@@ -20,13 +20,15 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataObject;
+
 /**
  * Reschedule strategy which runs the function only once.
  */
 public class SingleShotReschedule implements RescheduleStrategy {
 
     @Override
-    public boolean  shouldReschedule() {
+    public boolean  shouldReschedule(DataObject key, DataObject value) {
         return false;
     }
 }

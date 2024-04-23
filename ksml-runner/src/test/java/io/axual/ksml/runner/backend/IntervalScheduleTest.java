@@ -23,84 +23,66 @@ package io.axual.ksml.runner.backend;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class IntervalScheduleTest {
+@ExtendWith(MockitoExtension.class)
+class IntervalScheduleTest {
 
-    private IntervalSchedule<TestItem> intervalSchedule;
+    @Mock
+    private ExecutableProducer one;
+    @Mock
+    private ExecutableProducer two;
+
+    private IntervalSchedule scheduler;
 
     @BeforeEach
     void setup() {
-        intervalSchedule = new IntervalSchedule<>();
+        scheduler = new IntervalSchedule();
     }
 
     @Test
-    @DisplayName("An item can be scheduled repeatedly")
-    void scheduledOnInterval() throws InterruptedException {
-        // if we schedule with interval 200ms
-        intervalSchedule.schedule(new TestItem("test", 200L));
+    @DisplayName("an item becomes available after the interval")
+    void returnsAfterInterval() throws InterruptedException {
+        // when an item is scheduled in the future
+        scheduler.schedule(one, Duration.ofMillis(300));
 
-        // at first the item is returned straight away
-        assertEquals("test", intervalSchedule.getScheduledItem().value);
+        // at first it's not returned
+        assertNull(scheduler.getScheduledItem());
 
-        // then for the duration of the interval, nothing is returned
-        assertNull(intervalSchedule.getScheduledItem(), "should not return item before interval");
-
-        // after the interval expires, the same item is returned again
-        Thread.sleep(500);
-        assertEquals("test", intervalSchedule.getScheduledItem().value);
+        // after the wait time expires, it is returned
+        Thread.sleep(400);
+        assertNotNull(scheduler.getScheduledItem());
     }
 
     @Test
-    @DisplayName("An item can be scheduled single shot")
-    void singleShot() throws InterruptedException {
-        // if we schedule without interval (will set default to 0 internally)
-        intervalSchedule.schedule(new TestItem("test", RescheduleStrategy.once()));
+    @DisplayName("the item with the shortest wait time is returned first")
+    void itemsOrderedOnTime() throws InterruptedException {
+        // when two items are scheduled with different wait times
+        scheduler.schedule(one, Duration.ofMillis(200));
+        scheduler.schedule(two, Duration.ofMillis(100));
 
-        // the item is returned straight away
-        assertEquals("test", intervalSchedule.getScheduledItem().value);
-
-        // but it is not rescheduled
-        Thread.sleep(100);
-        assertNull(intervalSchedule.getScheduledItem(), "item should be returned only once");
-    }
-
-    @Test
-    @DisplayName("Order of scheduling is maintained for equal interval")
-    void maintainsOrdering() throws InterruptedException {
-        // if we schedule two items with same timeout
-        intervalSchedule.schedule(new TestItem("test1", 500));
-        intervalSchedule.schedule(new TestItem("test2", 500));
-
-        // when they are retrieved, insertion order is maintained
-        assertEquals("test1", intervalSchedule.getScheduledItem().value);
-        assertEquals("test2", intervalSchedule.getScheduledItem().value);
-        assertNull(intervalSchedule.getScheduledItem(), "should return no more items at this point");
-
-        // after the interval expires, the same items are returned in the same order
+        // and we wait until the longest of the timeouts expire
         Thread.sleep(600);
-        assertEquals("test1", intervalSchedule.getScheduledItem().value);
-        assertEquals("test2", intervalSchedule.getScheduledItem().value);
-        assertNull(intervalSchedule.getScheduledItem(), "should return no more items at this point");
+
+        // the item that had the shortest wait time is returned first
+        assertEquals(two, scheduler.getScheduledItem());
+        assertEquals(one, scheduler.getScheduledItem());
+        assertNull(scheduler.getScheduledItem());
     }
 
-    record TestItem(String value, RescheduleStrategy rescheduleStrategy) implements RescheduleStrategy {
-        TestItem(String value, long interval) {
-            this(value, RescheduleStrategy.always(Duration.ofMillis(interval)));
-        }
+    @Test
+    @DisplayName("An item can be scheduled for immediate return")
+    void intervalDefaultsZero() {
+        // given a producer scheduled without an interval
+        scheduler.schedule(one);
 
-        @Override
-        public boolean shouldReschedule() {
-            return this.rescheduleStrategy.shouldReschedule();
-        }
-
-        @Override
-        public Duration interval() {
-            return this.rescheduleStrategy.interval();
-        }
-
+        // it will be returned straight away
+        assertNotNull(scheduler.getScheduledItem());
     }
 }

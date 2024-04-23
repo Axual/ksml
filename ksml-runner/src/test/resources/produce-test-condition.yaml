@@ -7,7 +7,7 @@ functions:
       values = ["one","two","three","four"]
       index = 0
     code: |
-      global index, values, message
+      global index
       key = "key-" + str(index)
       value = values[index]
       log.info("will produce key={}, value={}", key, value)
@@ -20,16 +20,13 @@ functions:
   stop_produce:
     type: predicate
     code: |
-      global index
-      log.info("evaluating index={}", index)
-      if not index < 2:
-        log.info("stop rescheduling")
-    expression: index < 2
+      log.info("evaluating key={} value={}", key, value)
+    expression: value == "two"  # stop producing after writing "two"
 
 producers:
   fixed_data_producer:
     generator: generate_indexed
-    interval: 20
+    interval: 50
     until: stop_produce
     to:
       topic: fixed_kv_cond

@@ -14,7 +14,7 @@ functions:
 producers:
   fixed_data_producer:
     generator: generate_fixed_keyvalue
-    interval: 20
+    interval: 50
     count: 3
     to:
       topic: fixed_kv2

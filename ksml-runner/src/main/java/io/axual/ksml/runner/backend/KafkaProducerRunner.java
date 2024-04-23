@@ -27,7 +27,6 @@ import io.axual.ksml.python.PythonFunction;
 import lombok.Builder;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
-import org.apache.kafka.common.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +38,7 @@ import static org.apache.kafka.clients.producer.ProducerConfig.*;
 
 public class KafkaProducerRunner implements Runner {
     private static final Logger log = LoggerFactory.getLogger(KafkaProducerRunner.class);
-    private static final IntervalSchedule<ExecutableProducer> schedule = new IntervalSchedule<>();
+    private final IntervalSchedule scheduler = new IntervalSchedule();
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
     private final AtomicBoolean hasFailed = new AtomicBoolean(false);
     private final AtomicBoolean stopRunning = new AtomicBoolean(false);
@@ -56,6 +55,7 @@ public class KafkaProducerRunner implements Runner {
     public void run() {
         log.info("Registering Kafka producer(s)");
         isRunning.set(true);
+
         try {
             config.definitions.forEach((defName, definition) -> {
                 // Set up the Python context for this definition
@@ -65,31 +65,26 @@ public class KafkaProducerRunner implements Runner {
                 // Schedule all defined producers
                 definition.producers().forEach((name, producer) -> {
                     var ep = ExecutableProducer.forProducer(context, definition.namespace(), name, producer, config.kafkaConfig);
-                    schedule.schedule(ep);
+                    scheduler.schedule(ep);
                     log.info("Scheduled producer: {} {}", name, producer.interval() == null ? "once" : producer.interval().toMillis() + "ms");
                 });
             });
+        } catch (Exception e) {
+            log.error("Error while registering functions and producers", e);
+            hasFailed.set(true);
+        }
 
-            try (final Producer<byte[], byte[]> producer = createProducer(getProducerConfigs())) {
-                log.info("starting Kafka producer(s)");
-                while (!stopRunning.get()) {
-                    try {
-                        var generator = schedule.getScheduledItem();
-                        while (generator != null) {
-                            log.info("Calling {}", generator.name());
-                            generator.produceMessage(producer);
-                            generator = schedule.getScheduledItem();
-                        }
-                        Utils.sleep(10);
-                    } catch (Exception e) {
-                        log.info("Produce exception.", e);
-                        hasFailed.set(true);
-                        break;
+        try (final Producer<byte[], byte[]> producer = createProducer(getProducerConfigs())) {
+            log.info("starting Kafka producer(s)");
+            while (!stopRunning.get() && !hasFailed.get()) {
+                var generator = scheduler.getScheduledItem();
+                if (generator != null) {
+                    log.info("calling {}", generator.name());
+                    generator.produceMessage(producer);
+                    if (generator.shouldReschedule()) {
+                        scheduler.schedule(generator, generator.interval());
                     }
                 }
-            } catch (Throwable e) {
-                hasFailed.set(true);
-                log.error("Unhandled producer exception", e);
             }
         } catch (Throwable e) {
             hasFailed.set(true);
@@ -103,6 +98,7 @@ public class KafkaProducerRunner implements Runner {
     /**
      * Creates a Kafka producer based on the provided config.
      * This method is package protected so we can override it for testing
+     *
      * @param producerConfig the producer configs.
      * @return a Kafka producer.
      */

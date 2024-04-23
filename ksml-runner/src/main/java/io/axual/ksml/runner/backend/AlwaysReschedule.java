@@ -20,6 +20,8 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataObject;
+
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,10 +41,10 @@ public class AlwaysReschedule implements RescheduleStrategy {
     }
 
     @Override
-    public boolean shouldReschedule() {
+    public boolean shouldReschedule(DataObject key, DataObject value) {
         var reschedule = true;
         for (var other: others) {
-            reschedule = reschedule && other.shouldReschedule();
+            reschedule = reschedule && other.shouldReschedule(key, value);
         }
         return reschedule;
     }

@@ -26,6 +26,7 @@ import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.definition.FunctionDefinition;
@@ -38,13 +39,14 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.Serializer;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import static io.axual.ksml.data.notation.UserType.DEFAULT_NOTATION;
 
 @Slf4j
-public class ExecutableProducer implements RescheduleStrategy {
+public class ExecutableProducer {
     private final UserFunction generator;
     private final UserFunction condition;
     private final String topic;
@@ -55,6 +57,9 @@ public class ExecutableProducer implements RescheduleStrategy {
     private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
     private final DataObjectConverter dataObjectConverter;
     private final RescheduleStrategy rescheduleStrategy;
+
+    private DataObject lastKey = DataNull.INSTANCE;
+    private DataObject lastValue = DataNull.INSTANCE;
 
     private ExecutableProducer(UserFunction generator,
                               UserFunction condition,
@@ -116,6 +121,10 @@ public class ExecutableProducer implements RescheduleStrategy {
             var value = tuple.get(1);
 
             if (checkCondition(key, value)) {
+                // keep produced key and value to determine rescheduling later
+                lastKey = key;
+                lastValue = value;
+
                 key = dataObjectConverter.convert(DEFAULT_NOTATION, key, keyType);
                 value = dataObjectConverter.convert(DEFAULT_NOTATION, value, valueType);
                 var okay = true;
@@ -133,8 +142,8 @@ public class ExecutableProducer implements RescheduleStrategy {
                     var keyStr = key != null ? key.toString() : "null";
                     var valueStr = value != null ? value.toString() : "null";
 
-                    keyStr = keyStr.replaceAll("\n", "\\\\n");
-                    valueStr = valueStr.replaceAll("\n", "\\\\n");
+                    keyStr = keyStr.replace("\n", "\\\\n");
+                    valueStr = valueStr.replace("\n", "\\\\n");
                     log.info("Message: key={}, value={}", keyStr, valueStr);
 
                     var serializedKey = keySerializer.serialize(topic, nativeMapper.fromDataObject(key));
@@ -162,9 +171,20 @@ public class ExecutableProducer implements RescheduleStrategy {
         }
     }
 
-    @Override
+    /**
+     * Indicate if this instance wants to be rescheduled after its most recent run.
+     * @return true if should reschedule.
+     */
     public boolean shouldReschedule() {
-        return rescheduleStrategy.shouldReschedule();
+        return rescheduleStrategy.shouldReschedule(lastKey, lastValue);
+    }
+
+    /**
+     * Indicate the desired waiting time until the next reschedule.
+     * @return the desired wait until next run.
+     */
+    public Duration interval() {
+        return rescheduleStrategy.interval();
     }
 
     private boolean checkCondition(DataObject key, DataObject value) {
