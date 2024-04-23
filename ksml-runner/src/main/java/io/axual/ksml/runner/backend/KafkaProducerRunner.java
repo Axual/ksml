@@ -111,7 +111,7 @@ public class KafkaProducerRunner implements Runner {
                         }
                         Utils.sleep(10);
                     } catch (Exception e) {
-                        log.info("Produce exception.", e);
+                        log.warn("Produce exception.", e);
                         hasFailed.set(true);
                         break;
                     }
