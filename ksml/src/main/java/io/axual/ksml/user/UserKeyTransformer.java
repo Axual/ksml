@@ -20,15 +20,15 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
-
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.python.Invoker;
 import io.axual.ksml.store.StateStores;
-import io.axual.ksml.util.DataUtil;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 
 public class UserKeyTransformer extends Invoker implements KeyValueMapper<Object, Object, Object> {
+    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
     private final static DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
 
     public UserKeyTransformer(UserFunction function) {
@@ -44,7 +44,6 @@ public class UserKeyTransformer extends Invoker implements KeyValueMapper<Object
     }
 
     public DataObject apply(StateStores stores, Object key, Object value) {
-        verifyAppliedResultType(EXPECTED_RESULT_TYPE);
-        return function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
+        return function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value));
     }
 }

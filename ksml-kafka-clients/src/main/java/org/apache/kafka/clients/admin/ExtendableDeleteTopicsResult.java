@@ -20,11 +20,9 @@ package org.apache.kafka.clients.admin;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.client.resolving.TopicResolver;
 import org.apache.kafka.common.KafkaFuture;
 import org.apache.kafka.common.Uuid;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class ExtendableDeleteTopicsResult extends DeleteTopicsResult {

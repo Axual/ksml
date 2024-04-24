@@ -21,16 +21,16 @@ package io.axual.ksml.definition;
  */
 
 
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataBoolean;
-import io.axual.ksml.data.type.UserType;
 
 import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_PARAMETERS;
 
 public class PredicateDefinition extends FunctionDefinition {
     public PredicateDefinition(FunctionDefinition definition) {
         super(definition
-                .withParameters(mergeParameters(KEY_VALUE_PARAMETERS, definition.parameters))
+                .withParameters(mergeParameters(KEY_VALUE_PARAMETERS, definition.parameters()))
                 .withDefaultExpression("True")
-                .withResult(new UserType(definition.resultType.notation(), DataBoolean.DATATYPE)));
+                .withResult(new UserType(definition.resultType().notation(), DataBoolean.DATATYPE)));
     }
 }

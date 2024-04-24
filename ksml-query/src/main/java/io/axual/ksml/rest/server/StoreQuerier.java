@@ -20,13 +20,12 @@ package io.axual.ksml.rest.server;
  * =========================LICENSE_END==================================
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.StreamsMetadata;
 
 import java.util.Collection;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class StoreQuerier {

@@ -21,22 +21,69 @@ package io.axual.ksml.definition.parser;
  */
 
 
+import io.axual.ksml.data.notation.UserType;
+import io.axual.ksml.data.parser.ParseNode;
+import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.GlobalTableDefinition;
-import io.axual.ksml.parser.BaseParser;
-import io.axual.ksml.parser.UserTypeParser;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.definition.KeyValueStateStoreDefinition;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.parser.DefinitionParser;
+import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.TopologyResourceParser;
+import io.axual.ksml.store.StoreType;
 
-import static io.axual.ksml.dsl.KSMLDSL.KEYTYPE_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.TOPIC_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.VALUETYPE_ATTRIBUTE;
+public class GlobalTableDefinitionParser extends DefinitionParser<GlobalTableDefinition> {
+    private final boolean requireKeyValueType;
 
-public class GlobalTableDefinitionParser extends BaseParser<GlobalTableDefinition> {
+    public GlobalTableDefinitionParser(boolean requireKeyValueType) {
+        this.requireKeyValueType = requireKeyValueType;
+    }
+
     @Override
-    public GlobalTableDefinition parse(YamlNode node) {
-        if (node == null) return null;
-        return new GlobalTableDefinition(
-                parseString(node, TOPIC_ATTRIBUTE),
-                UserTypeParser.parse(parseString(node, KEYTYPE_ATTRIBUTE)),
-                UserTypeParser.parse(parseString(node, VALUETYPE_ATTRIBUTE)));
+    public StructParser<GlobalTableDefinition> parser() {
+        final var keyField = userTypeField(KSMLDSL.Streams.KEY_TYPE, "The key type of the global table");
+        final var valueField = userTypeField(KSMLDSL.Streams.VALUE_TYPE, "The value type of the global table");
+        return structParser(
+                GlobalTableDefinition.class,
+                requireKeyValueType ? "" : "WithOptionalTypes",
+                "Contains a definition of a GlobalTable, which can be referenced by producers and pipelines",
+                stringField(KSMLDSL.Streams.TOPIC, "The name of the Kafka topic for this global table"),
+                requireKeyValueType ? keyField : optional(keyField),
+                requireKeyValueType ? valueField : optional(valueField),
+                storeField(),
+                (topic, keyType, valueType, store) -> {
+                    keyType = keyType != null ? keyType : UserType.UNKNOWN;
+                    valueType = valueType != null ? valueType : UserType.UNKNOWN;
+                    if (store != null) {
+                        if (!keyType.dataType().isAssignableFrom(store.keyType().dataType())) {
+                            throw new TopologyException("Incompatible key types between globalTable '" + topic + "' and its corresponding state store: " + keyType.dataType() + " and " + store.keyType().dataType());
+                        }
+                        if (!valueType.dataType().isAssignableFrom(store.valueType().dataType())) {
+                            throw new TopologyException("Incompatible value types between globalTable '" + topic + "' and its corresponding state store: " + valueType.dataType() + " and " + store.valueType().dataType());
+                        }
+                    }
+                    return new GlobalTableDefinition(topic, keyType, valueType, store);
+                });
+    }
+
+    private StructParser<KeyValueStateStoreDefinition> storeField() {
+        final var storeParser = new StateStoreDefinitionParser(StoreType.KEYVALUE_STORE);
+        final var resourceParser = new TopologyResourceParser<>("state store", KSMLDSL.Streams.STORE, "KeyValue state store definition", null, storeParser);
+        final var schema = optional(resourceParser).schema();
+        return new StructParser<>() {
+            @Override
+            public KeyValueStateStoreDefinition parse(ParseNode node) {
+                storeParser.defaultName(node.longName());
+                final var resource = resourceParser.parse(node);
+                if (resource != null && resource.definition() instanceof KeyValueStateStoreDefinition def) return def;
+                return null;
+            }
+
+            @Override
+            public StructSchema schema() {
+                return schema;
+            }
+        };
     }
 }

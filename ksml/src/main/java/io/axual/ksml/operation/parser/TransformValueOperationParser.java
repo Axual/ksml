@@ -22,25 +22,28 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.definition.parser.ValueTransformerDefinitionParser;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.TransformValueOperation;
-import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.parser.YamlNode;
-
-import static io.axual.ksml.dsl.KSMLDSL.*;
+import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.store.StoreType;
 
 public class TransformValueOperationParser extends StoreOperationParser<TransformValueOperation> {
-    private final String name;
-
-    protected TransformValueOperationParser(String name, ParseContext context) {
-        super(context);
-        this.name = name;
+    public TransformValueOperationParser(TopologyResources resources) {
+        super(KSMLDSL.Operations.TRANSFORM_VALUE, resources);
     }
 
     @Override
-    public TransformValueOperation parse(YamlNode node) {
-        if (node == null) return null;
-        return new TransformValueOperation(
-                storeOperationConfig(name, node, MATERIALIZED_ATTRIBUTE),
-                parseFunction(node, TRANSFORMVALUE_MAPPER_ATTRIBUTE, new ValueTransformerDefinitionParser()));
+    protected StructParser<TransformValueOperation> parser() {
+        return structParser(
+                TransformValueOperation.class,
+                "",
+                "Convert the value of every record in the stream to another value",
+                operationTypeField(),
+                operationNameField(),
+                functionField(KSMLDSL.Operations.Transform.MAPPER, "A function that converts the value of every record into another value", new ValueTransformerDefinitionParser()),
+                storeField(false, "Materialized view of the transformed table", StoreType.KEYVALUE_STORE),
+                storeNamesField(),
+                (type, name, mapper, store, storeNames) -> new TransformValueOperation(storeOperationConfig(name, store, storeNames), mapper));
     }
 }

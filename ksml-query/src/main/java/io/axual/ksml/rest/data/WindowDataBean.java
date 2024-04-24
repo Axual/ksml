@@ -20,9 +20,8 @@ package io.axual.ksml.rest.data;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.streams.kstream.Window;
-
 import lombok.Getter;
+import org.apache.kafka.streams.kstream.Window;
 
 @Getter
 public class WindowDataBean {

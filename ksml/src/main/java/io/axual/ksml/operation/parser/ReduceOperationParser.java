@@ -22,30 +22,30 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.definition.parser.ReducerDefinitionParser;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ReduceOperation;
-import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.parser.YamlNode;
-
-import static io.axual.ksml.dsl.KSMLDSL.REDUCE_ADDER_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.REDUCE_REDUCER_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.REDUCE_SUBTRACTOR_ATTRIBUTE;
-import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
+import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.store.StoreType;
 
 public class ReduceOperationParser extends StoreOperationParser<ReduceOperation> {
-    private final String name;
-
-    protected ReduceOperationParser(String name, ParseContext context) {
-        super(context);
-        this.name = name;
+    public ReduceOperationParser(TopologyResources resources) {
+        super(KSMLDSL.Operations.REDUCE, resources);
     }
 
     @Override
-    public ReduceOperation parse(YamlNode node) {
-        if (node == null) return null;
-        return new ReduceOperation(
-                storeOperationConfig(name, node, STORE_ATTRIBUTE),
-                parseFunction(node, REDUCE_REDUCER_ATTRIBUTE, new ReducerDefinitionParser()),
-                parseFunction(node, REDUCE_ADDER_ATTRIBUTE, new ReducerDefinitionParser()),
-                parseFunction(node, REDUCE_SUBTRACTOR_ATTRIBUTE, new ReducerDefinitionParser()));
+    public StructParser<ReduceOperation> parser() {
+        final var storeField = storeField(false, "Materialized view of the aggregation", StoreType.WINDOW_STORE);
+        return structParser(
+                ReduceOperation.class,
+                "",
+                "Operation to reduce a series of records into a single aggregate result",
+                operationTypeField(),
+                operationNameField(),
+                functionField(KSMLDSL.Operations.Reduce.REDUCER, "A function that computes a new aggregate result", new ReducerDefinitionParser()),
+                functionField(KSMLDSL.Operations.Reduce.ADDER, "A function that adds a record to the aggregate result", new ReducerDefinitionParser()),
+                functionField(KSMLDSL.Operations.Reduce.SUBTRACTOR, "A function that removes a record from the aggregate result", new ReducerDefinitionParser()),
+                storeField,
+                (type, name, reducer, add, sub, store) -> new ReduceOperation(storeOperationConfig(name, store), reducer, add, sub));
     }
 }

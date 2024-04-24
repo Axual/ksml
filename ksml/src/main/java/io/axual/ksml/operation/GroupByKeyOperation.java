@@ -21,10 +21,11 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import org.apache.kafka.streams.kstream.Grouped;
+import org.apache.kafka.streams.kstream.KGroupedStream;
 
 public class GroupByKeyOperation extends StoreOperation {
     public GroupByKeyOperation(StoreOperationConfig config) {
@@ -32,15 +33,19 @@ public class GroupByKeyOperation extends StoreOperation {
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
+        /*    Kafka Streams method signature:
+         *    KGroupedStream<K, V> groupByKey(
+         *          final Grouped<K, V> grouped)
+         */
+
         final var k = input.keyType();
         final var v = input.valueType();
-
-        final var kvStore = validateKeyValueStore(store, k, v);
-        var grouped = Grouped.with(k.getSerde(), v.getSerde());
-        if (name != null) grouped = grouped.withName(name);
-        if (kvStore != null) grouped = grouped.withName(kvStore.name());
-        final var output = input.stream.groupByKey(grouped);
+        final var kvStore = validateKeyValueStore(store(), k, v);
+        final var grouped = groupedOf(k, v, kvStore);
+        final KGroupedStream<Object, Object> output = grouped != null
+                ? input.stream.groupByKey(grouped)
+                : input.stream.groupByKey();
         return new KGroupedStreamWrapper(output, k, v);
     }
 }

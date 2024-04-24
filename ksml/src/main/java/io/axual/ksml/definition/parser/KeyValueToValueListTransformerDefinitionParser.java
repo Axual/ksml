@@ -21,14 +21,13 @@ package io.axual.ksml.definition.parser;
  */
 
 
-
 import io.axual.ksml.definition.KeyValueToValueListTransformerDefinition;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.parser.StructParser;
 
-public class KeyValueToValueListTransformerDefinitionParser extends FunctionDefinitionParser {
+public class KeyValueToValueListTransformerDefinitionParser extends FunctionDefinitionParser<KeyValueToValueListTransformerDefinition> {
     @Override
-    public KeyValueToValueListTransformerDefinition parse(YamlNode node) {
-        if (node == null) return null;
-        return new KeyValueToValueListTransformerDefinition(super.parse(node));
+    public StructParser<KeyValueToValueListTransformerDefinition> parser() {
+        return parserWithStores(KeyValueToValueListTransformerDefinition.class, KSMLDSL.Functions.TYPE_KEYVALUETOVALUELISTTRANSFORMER, "keyvalue-to-valuelist transformer", KeyValueToValueListTransformerDefinition::new);
     }
 }

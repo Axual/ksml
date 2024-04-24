@@ -21,23 +21,24 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.CountOperation;
-import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.parser.YamlNode;
-
-import static io.axual.ksml.dsl.KSMLDSL.STORE_ATTRIBUTE;
+import io.axual.ksml.parser.StructParser;
 
 public class CountOperationParser extends StoreOperationParser<CountOperation> {
-    private final String name;
-
-    protected CountOperationParser(String name, ParseContext context) {
-        super(context);
-        this.name = name;
+    public CountOperationParser(TopologyResources resources) {
+        super(KSMLDSL.Operations.COUNT, resources);
     }
 
-    @Override
-    public CountOperation parse(YamlNode node) {
-        if (node == null) return null;
-        return new CountOperation(storeOperationConfig(name, node, STORE_ATTRIBUTE));
+    public StructParser<CountOperation> parser() {
+        return structParser(
+                CountOperation.class,
+                "",
+                "Count the number of times a key is seen in a given window",
+                operationTypeField(),
+                operationNameField(),
+                storeField(false, "Materialized view of the count operation's result", null),
+                (type, name, store) -> new CountOperation(storeOperationConfig(name, store)));
     }
 }

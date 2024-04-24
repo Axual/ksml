@@ -20,31 +20,32 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.UserTupleType;
-import io.axual.ksml.data.type.UserType;
-import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.data.notation.UserTupleType;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ConvertKeyValueOperation;
-import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.parser.UserTypeParser;
-import io.axual.ksml.parser.YamlNode;
-
-import static io.axual.ksml.dsl.KSMLDSL.CONVERT_INTO_ATTRIBUTE;
+import io.axual.ksml.parser.StructParser;
 
 public class ConvertKeyValueOperationParser extends OperationParser<ConvertKeyValueOperation> {
-    private final String name;
-
-    protected ConvertKeyValueOperationParser(String name, ParseContext context) {
-        super(context);
-        this.name = name;
+    public ConvertKeyValueOperationParser(TopologyResources resources) {
+        super(KSMLDSL.Operations.CONVERT_KEY_VALUE, resources);
     }
 
     @Override
-    public ConvertKeyValueOperation parse(YamlNode node) {
-        if (node == null) return null;
-        UserType target = UserTypeParser.parse(parseString(node, CONVERT_INTO_ATTRIBUTE));
-        if (target.dataType() instanceof UserTupleType userTupleType && userTupleType.subTypeCount() == 2) {
-            return new ConvertKeyValueOperation(parseConfig(node, name), userTupleType.getUserType(0), userTupleType.getUserType(1));
-        }
-        throw FatalError.parseError(node, "The type to convert to should be a tuple consisting of two subtypes. For example '(string,avro:SomeSchema)");
+    public StructParser<ConvertKeyValueOperation> parser() {
+        return structParser(
+                ConvertKeyValueOperation.class,
+                "",
+                "An operation to convert the stream key and value types to other types. Conversion is only syntactic, eg. from Avro to XML.",
+                operationTypeField(),
+                operationNameField(),
+                userTypeField(KSMLDSL.Operations.Convert.INTO, "The tuple type to convert the stream key/value into"),
+                (type, name, into) -> {
+                    if (into.dataType() instanceof UserTupleType userTupleType && userTupleType.subTypeCount() == 2) {
+                        return new ConvertKeyValueOperation(operationConfig(name), userTupleType.getUserType(0), userTupleType.getUserType(1));
+                    }
+                    throw new TopologyException("The type to convert to should be a tuple consisting of two subtypes. For example '(string,avro:SomeSchema)");
+                });
     }
 }

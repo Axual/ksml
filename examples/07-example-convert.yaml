@@ -24,42 +24,42 @@ pipelines:
       # Change notation from AVRO to JSON
       - type: convertValue
         into: json
-        name: convert_avro_to_json
+        name: avro_to_json
       - type: peek
         forEach:
           code: log.info("AVRO TO JSON - key={}, value={}", key, value)
       # Convert from JSON to String
       - type: convertValue
         into: string
-        name: convert_json_to_string
+        name: json_to_string
       - type: peek
         forEach:
           code: log.info("JSON TO STRING - key={}, value={}", key, value)
       # Convert back from String to JSON
       - type: convertValue
         into: json
-        name: convert_string_to_json
+        name: string_to_json
       - type: peek
         forEach:
           code: log.info("STRING TO JSON - key={}, value={}", key, value)
       # Change notation from JSON to XML
       - type: convertValue
         into: xml
-        name: convert_json_to_xml
+        name: json_to_xml
       - type: peek
         forEach:
           code: log.info("JSON TO XML - key={}, value={}", key, value)
       # Convert from XML to String
       - type: convertValue
         into: string
-        name: convert_xml_to_string
+        name: xml_to_string
       - type: peek
         forEach:
           code: log.info("XML TO STRING - key={}, value={}", key, value)
       # Convert back from String to XML
       - type: convertValue
         into: xml
-        name: convert_string_to_xml
+        name: string_to_xml
       - type: peek
         forEach:
           code: log.info("STRING TO XML - key={}, value={}", key, value)

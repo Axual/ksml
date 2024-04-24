@@ -24,88 +24,17 @@ import io.axual.ksml.client.exception.NotSupportedException;
 import io.axual.ksml.client.generic.ResolvingClientConfig;
 import io.axual.ksml.client.resolving.GroupResolver;
 import io.axual.ksml.client.resolving.TopicResolver;
-import org.apache.kafka.clients.admin.AlterClientQuotasOptions;
-import org.apache.kafka.clients.admin.AlterClientQuotasResult;
-import org.apache.kafka.clients.admin.AlterConfigOp;
-import org.apache.kafka.clients.admin.AlterConfigsOptions;
-import org.apache.kafka.clients.admin.AlterConfigsResult;
-import org.apache.kafka.clients.admin.AlterConsumerGroupOffsetsOptions;
-import org.apache.kafka.clients.admin.AlterConsumerGroupOffsetsResult;
-import org.apache.kafka.clients.admin.AlterPartitionReassignmentsOptions;
-import org.apache.kafka.clients.admin.AlterPartitionReassignmentsResult;
-import org.apache.kafka.clients.admin.AlterReplicaLogDirsOptions;
-import org.apache.kafka.clients.admin.AlterReplicaLogDirsResult;
-import org.apache.kafka.clients.admin.Config;
-import org.apache.kafka.clients.admin.CreateAclsOptions;
-import org.apache.kafka.clients.admin.CreateAclsResult;
-import org.apache.kafka.clients.admin.CreatePartitionsOptions;
-import org.apache.kafka.clients.admin.CreatePartitionsResult;
-import org.apache.kafka.clients.admin.CreateTopicsOptions;
-import org.apache.kafka.clients.admin.CreateTopicsResult;
-import org.apache.kafka.clients.admin.DeleteAclsOptions;
-import org.apache.kafka.clients.admin.DeleteAclsResult;
-import org.apache.kafka.clients.admin.DeleteConsumerGroupOffsetsOptions;
-import org.apache.kafka.clients.admin.DeleteConsumerGroupOffsetsResult;
-import org.apache.kafka.clients.admin.DeleteConsumerGroupsOptions;
-import org.apache.kafka.clients.admin.DeleteConsumerGroupsResult;
-import org.apache.kafka.clients.admin.DeleteRecordsOptions;
-import org.apache.kafka.clients.admin.DeleteRecordsResult;
-import org.apache.kafka.clients.admin.DeleteTopicsOptions;
-import org.apache.kafka.clients.admin.DeleteTopicsResult;
-import org.apache.kafka.clients.admin.DescribeAclsOptions;
-import org.apache.kafka.clients.admin.DescribeAclsResult;
-import org.apache.kafka.clients.admin.DescribeClientQuotasOptions;
-import org.apache.kafka.clients.admin.DescribeClientQuotasResult;
-import org.apache.kafka.clients.admin.DescribeConfigsOptions;
-import org.apache.kafka.clients.admin.DescribeConfigsResult;
-import org.apache.kafka.clients.admin.DescribeConsumerGroupsOptions;
-import org.apache.kafka.clients.admin.DescribeConsumerGroupsResult;
-import org.apache.kafka.clients.admin.DescribeLogDirsOptions;
-import org.apache.kafka.clients.admin.DescribeLogDirsResult;
-import org.apache.kafka.clients.admin.DescribeReplicaLogDirsOptions;
-import org.apache.kafka.clients.admin.DescribeReplicaLogDirsResult;
-import org.apache.kafka.clients.admin.DescribeTopicsOptions;
-import org.apache.kafka.clients.admin.DescribeTopicsResult;
-import org.apache.kafka.clients.admin.ElectLeadersOptions;
-import org.apache.kafka.clients.admin.ElectLeadersResult;
-import org.apache.kafka.clients.admin.ForwardingAdmin;
-import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsOptions;
-import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsResult;
-import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsSpec;
-import org.apache.kafka.clients.admin.ListConsumerGroupsOptions;
-import org.apache.kafka.clients.admin.ListConsumerGroupsResult;
-import org.apache.kafka.clients.admin.ListOffsetsOptions;
-import org.apache.kafka.clients.admin.ListOffsetsResult;
-import org.apache.kafka.clients.admin.ListPartitionReassignmentsOptions;
-import org.apache.kafka.clients.admin.ListPartitionReassignmentsResult;
-import org.apache.kafka.clients.admin.ListTopicsOptions;
-import org.apache.kafka.clients.admin.ListTopicsResult;
-import org.apache.kafka.clients.admin.NewPartitionReassignment;
-import org.apache.kafka.clients.admin.NewPartitions;
-import org.apache.kafka.clients.admin.NewTopic;
-import org.apache.kafka.clients.admin.OffsetSpec;
-import org.apache.kafka.clients.admin.RecordsToDelete;
-import org.apache.kafka.clients.admin.RemoveMembersFromConsumerGroupOptions;
-import org.apache.kafka.clients.admin.RemoveMembersFromConsumerGroupResult;
+import org.apache.kafka.clients.admin.*;
 import org.apache.kafka.clients.admin.internals.CoordinatorKey;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
-import org.apache.kafka.common.ElectionType;
-import org.apache.kafka.common.KafkaFuture;
-import org.apache.kafka.common.TopicCollection;
-import org.apache.kafka.common.TopicPartition;
-import org.apache.kafka.common.TopicPartitionReplica;
+import org.apache.kafka.common.*;
 import org.apache.kafka.common.acl.AclBinding;
 import org.apache.kafka.common.acl.AclBindingFilter;
 import org.apache.kafka.common.config.ConfigResource;
 import org.apache.kafka.common.quota.ClientQuotaAlteration;
 import org.apache.kafka.common.quota.ClientQuotaFilter;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public class ResolvingAdmin extends ForwardingAdmin {
     private final TopicResolver topicResolver;
@@ -228,7 +157,7 @@ public class ResolvingAdmin extends ForwardingAdmin {
     public ListConsumerGroupOffsetsResult listConsumerGroupOffsets(Map<String, ListConsumerGroupOffsetsSpec> groupSpecs, ListConsumerGroupOffsetsOptions options) {
         // Resolve the groupSpecs
         var newGroupSpecs = new HashMap<String, ListConsumerGroupOffsetsSpec>();
-        groupSpecs.forEach((groupId, spec) -> newGroupSpecs.put(groupResolver.resolve(groupId), new ListConsumerGroupOffsetsSpec().topicPartitions(spec.topicPartitions())));
+        groupSpecs.forEach((groupId, spec) -> newGroupSpecs.put(groupResolver.resolve(groupId), new ListConsumerGroupOffsetsSpec().topicPartitions(topicResolver.resolveTopicPartitions(spec.topicPartitions()))));
 
         // Resolve the options
         if (options != null) {
@@ -335,9 +264,12 @@ public class ResolvingAdmin extends ForwardingAdmin {
         // Resolve all new topics into a new collection
         var resolvedTopics = new ArrayList<NewTopic>();
         for (var newTopic : newTopics) {
-            resolvedTopics.add(newTopic.replicasAssignments() == null
+            var resolvedTopic = newTopic.replicasAssignments() == null
                     ? new NewTopic(topicResolver.resolve(newTopic.name()), newTopic.numPartitions(), newTopic.replicationFactor())
-                    : new NewTopic(topicResolver.resolve(newTopic.name()), newTopic.replicasAssignments()));
+                    : new NewTopic(topicResolver.resolve(newTopic.name()), newTopic.replicasAssignments());
+            // Make sure that the config is added properly. Cleanup properties and timestamps are typical properties set in Streams
+            resolvedTopic.configs(newTopic.configs());
+            resolvedTopics.add(resolvedTopic);
         }
         return resolvedTopics;
     }

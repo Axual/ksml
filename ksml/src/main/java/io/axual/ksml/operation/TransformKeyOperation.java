@@ -21,40 +21,47 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.processor.OperationProcessorSupplier;
 import io.axual.ksml.operation.processor.TransformKeyProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserKeyTransformer;
-import org.apache.kafka.streams.kstream.Named;
+import org.apache.kafka.streams.kstream.KStream;
 
 public class TransformKeyOperation extends BaseOperation {
     private static final String MAPPER_NAME = "Mapper";
-    private final UserFunction mapper;
+    private final FunctionDefinition mapper;
 
-    public TransformKeyOperation(OperationConfig config, UserFunction mapper) {
+    public TransformKeyOperation(OperationConfig config, FunctionDefinition mapper) {
         super(config);
         this.mapper = mapper;
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
+        /*    Kafka Streams method signature:
+         *    <KR> KStream<KR, V> selectKey(
+         *          final KeyValueMapper<? super K, ? super V, ? extends KR> mapper,
+         *          final Named named)
+         */
+
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
         final var kr = streamDataTypeOf(firstSpecificType(mapper, k), true);
-        checkFunction(MAPPER_NAME, mapper, kr, superOf(k), superOf(v));
-
-        final var action = new UserKeyTransformer(mapper);
-        final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames);
+        final var map = userFunctionOf(context, MAPPER_NAME, mapper, kr, superOf(k), superOf(v));
+        final var userMap = new UserKeyTransformer(map);
+        final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames().toArray(TEMPLATE));
         final var supplier = new OperationProcessorSupplier<>(
                 name,
                 TransformKeyProcessor::new,
-                (stores, record) -> action.apply(stores, record.key(), record.value()),
+                (stores, record) -> userMap.apply(stores, record.key(), record.value()),
                 storeNames);
-        final var output = name != null
-                ? input.stream.process(supplier, Named.as(name), storeNames)
+        final var named = namedOf();
+        final KStream<Object, Object> output = named != null
+                ? input.stream.process(supplier, named, storeNames)
                 : input.stream.process(supplier, storeNames);
         return new KStreamWrapper(output, kr, v);
     }

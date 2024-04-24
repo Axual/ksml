@@ -20,22 +20,9 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.object.DataBoolean;
-import io.axual.ksml.data.object.DataByte;
-import io.axual.ksml.data.object.DataBytes;
-import io.axual.ksml.data.object.DataDouble;
-import io.axual.ksml.data.object.DataFloat;
-import io.axual.ksml.data.object.DataInteger;
-import io.axual.ksml.data.object.DataLong;
-import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.object.DataShort;
-import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.EnumType;
-import io.axual.ksml.data.type.ListType;
-import io.axual.ksml.data.type.StructType;
-import io.axual.ksml.data.type.TupleType;
-import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.data.notation.UserType;
+import io.axual.ksml.data.object.*;
+import io.axual.ksml.data.type.*;
 import io.axual.ksml.parser.UserTypeParser;
 
 import java.util.stream.Collectors;

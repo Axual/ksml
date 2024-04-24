@@ -32,7 +32,7 @@ import java.util.concurrent.ExecutionException;
 
 public class ResolvingDescribeConsumerGroupsResult extends ExtendableDescribeConsumerGroupsResult {
     protected final GroupResolver groupResolver;
-    Map<String, KafkaFuture<ConsumerGroupDescription>> describedGroups;
+    final Map<String, KafkaFuture<ConsumerGroupDescription>> describedGroups;
 
     public ResolvingDescribeConsumerGroupsResult(Map<String, KafkaFuture<ConsumerGroupDescription>> futures, GroupResolver groupResolver) {
         super(futures);

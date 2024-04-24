@@ -20,18 +20,10 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
-
 import io.axual.ksml.data.type.DataType;
 
 public record ParameterDefinition(String name, DataType type, boolean isOptional, String defaultValue) {
     public ParameterDefinition(String name, DataType type) {
         this(name, type, false, null);
-    }
-
-    public ParameterDefinition(String name, DataType type, boolean isOptional, String defaultValue) {
-        this.name = name;
-        this.type = type;
-        this.isOptional = isOptional;
-        this.defaultValue = defaultValue;
     }
 }

@@ -21,45 +21,50 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
-import io.axual.ksml.data.type.UserType;
-import io.axual.ksml.operation.processor.OperationProcessorSupplier;
+import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.operation.processor.FixedKeyOperationProcessorSupplier;
 import io.axual.ksml.operation.processor.TransformKeyValueToValueListProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserKeyValueToValueListTransformer;
-import org.apache.kafka.streams.kstream.Named;
 
 public class TransformKeyValueToValueListOperation extends BaseOperation {
     private static final String MAPPER_NAME = "Mapper";
-    private final UserFunction mapper;
+    private final FunctionDefinition mapper;
 
-    public TransformKeyValueToValueListOperation(OperationConfig config, UserFunction mapper) {
+    public TransformKeyValueToValueListOperation(OperationConfig config, FunctionDefinition mapper) {
         super(config);
         this.mapper = mapper;
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
+        /*    Kafka Streams method signature:
+         *    <VR> KStream<K, VR> flatMapValues(
+         *          final ValueMapper<? super V, ? extends Iterable<? extends VR>> mapper,
+         *          final Named named)
+         */
+
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var vr = streamDataTypeOf(firstSpecificType(mapper, new UserType(new ListType(v.userType().dataType()))), false);
-        final var mapperResultType = new UserType(new ListType(DataType.UNKNOWN));
-        checkFunction(MAPPER_NAME, mapper, subOf(mapperResultType), vr, superOf(k), superOf(v));
-
-        final var action = new UserKeyValueToValueListTransformer(mapper);
-        final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames);
-        final var supplier = new OperationProcessorSupplier<>(
+        final var vr = streamDataTypeOf(firstSpecificType(mapper, new UserType(new ListType(DataType.UNKNOWN))), false);
+        final var map = userFunctionOf(context, MAPPER_NAME, mapper, subOf(vr), superOf(k), superOf(v));
+        final var userMap = new UserKeyValueToValueListTransformer(map);
+        final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames().toArray(TEMPLATE));
+        final var supplier = new FixedKeyOperationProcessorSupplier<>(
                 name,
                 TransformKeyValueToValueListProcessor::new,
-                (stores, record) -> action.apply(stores, record.key(), record.value()),
+                (stores, record) -> userMap.apply(stores, record.key(), record.value()),
                 storeNames);
-        final var output = name != null
-                ? input.stream.process(supplier, Named.as(name), storeNames)
-                : input.stream.process(supplier, storeNames);
+        final var named = namedOf();
+        final var output = named != null
+                ? input.stream.processValues(supplier, named, storeNames)
+                : input.stream.processValues(supplier, storeNames);
         return new KStreamWrapper(output, k, vr);
     }
 }

@@ -21,35 +21,22 @@ package io.axual.ksml.user;
  */
 
 
+import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.python.Invoker;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.streams.processor.RecordContext;
 import org.apache.kafka.streams.processor.TopicNameExtractor;
 
-import io.axual.ksml.data.object.DataBytes;
-import io.axual.ksml.data.object.DataInteger;
-import io.axual.ksml.data.object.DataList;
-import io.axual.ksml.data.object.DataLong;
-import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.object.DataStruct;
-import io.axual.ksml.data.type.StructType;
-import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.python.Invoker;
-import io.axual.ksml.util.DataUtil;
-import lombok.extern.slf4j.Slf4j;
-
-import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA_HEADERS_FIELD;
-import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_HEADER_SCHEMA;
-import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_HEADER_SCHEMA_KEY_FIELD;
-import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA_OFFSET_FIELD;
-import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA_PARTITION_FIELD;
-import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA;
-import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA_TIMESTAMP_FIELD;
-import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA_TOPIC_FIELD;
-import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_HEADER_SCHEMA_VALUE_FIELD;
+import static io.axual.ksml.dsl.RecordContextSchema.*;
 
 @Slf4j
 public class UserTopicNameExtractor extends Invoker implements TopicNameExtractor<Object, Object> {
+    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
     private final static DataType EXPECTED_RESULT_TYPE = DataString.DATATYPE;
 
     public UserTopicNameExtractor(UserFunction function) {
@@ -60,15 +47,11 @@ public class UserTopicNameExtractor extends Invoker implements TopicNameExtracto
 
     @Override
     public String extract(Object key, Object value, RecordContext recordContext) {
-        verifyAppliedResultType(EXPECTED_RESULT_TYPE);
-        final var result = function.call(
-                DataUtil.asDataObject(key),
-                DataUtil.asDataObject(value),
-                convertRecordContext(recordContext));
+        final var result = function.call(nativeMapper.toDataObject(key), nativeMapper.toDataObject(value), convertRecordContext(recordContext));
         if (result instanceof DataString dataString) {
             return dataString.value();
         }
-        throw new KSMLExecutionException("Expected string result from function: " + function.name);
+        throw new ExecutionException("Expected string result from function: " + function.name);
     }
 
     private DataStruct convertRecordContext(RecordContext recordContext) {

@@ -95,7 +95,7 @@ public class CachedPatternResolver extends PatternResolver {
 
     private class ResolveCacheLoader extends CacheLoader<String, String> {
         @Override
-        public String load(String name) throws Exception {
+        public String load(String name) {
             return CachedPatternResolver.super.resolve(name);
         }
     }

@@ -21,11 +21,11 @@ package io.axual.ksml.operation.processor;
  */
 
 import io.axual.ksml.store.StateStores;
-import org.apache.kafka.streams.processor.api.Record;
+import org.apache.kafka.streams.processor.api.FixedKeyRecord;
 
-public class PeekProcessor extends OperationProcessor {
+public class PeekProcessor extends FixedKeyOperationProcessor {
     public interface PeekAction {
-        void apply(StateStores stores, Record<Object, Object> record);
+        void apply(StateStores stores, FixedKeyRecord<Object, Object> record);
     }
 
     private final PeekAction action;
@@ -36,7 +36,7 @@ public class PeekProcessor extends OperationProcessor {
     }
 
     @Override
-    public void process(Record<Object, Object> record) {
+    public void process(FixedKeyRecord<Object, Object> record) {
         action.apply(stores, record);
         context.forward(record);
     }

@@ -24,7 +24,6 @@ package io.axual.ksml.runner.config;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import io.axual.ksml.runner.exception.ConfigException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,16 +39,4 @@ public class KSMLRunnerConfig {
 
     @JsonProperty("kafka")
     private Map<String, String> kafkaConfig;
-
-    public void validate() throws ConfigException {
-        if (ksmlConfig == null) {
-            throw new ConfigException("ksml", ksmlConfig);
-        }
-
-        ksmlConfig.validate();
-
-        if (kafkaConfig == null) {
-            throw new ConfigException("kafka", kafkaConfig);
-        }
-    }
 }

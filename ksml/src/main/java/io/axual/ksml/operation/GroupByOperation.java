@@ -21,48 +21,51 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.data.notation.UserTupleType;
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.UserTupleType;
-import io.axual.ksml.data.type.UserType;
-import io.axual.ksml.exception.KSMLTopologyException;
-import io.axual.ksml.stream.KGroupedStreamWrapper;
-import io.axual.ksml.stream.KGroupedTableWrapper;
-import io.axual.ksml.stream.KStreamWrapper;
-import io.axual.ksml.stream.KTableWrapper;
-import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.UserFunction;
+import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.stream.*;
 import io.axual.ksml.user.UserKeyTransformer;
 import io.axual.ksml.user.UserKeyValueTransformer;
-import org.apache.kafka.streams.kstream.Grouped;
+import org.apache.kafka.streams.kstream.KGroupedStream;
+import org.apache.kafka.streams.kstream.KGroupedTable;
 
 public class GroupByOperation extends StoreOperation {
     private static final String SELECTOR_NAME = "Selector";
-    private final UserFunction selector;
+    private final FunctionDefinition selector;
 
-    public GroupByOperation(StoreOperationConfig config, UserFunction selector) {
+    public GroupByOperation(StoreOperationConfig config, FunctionDefinition selector) {
         super(config);
         this.selector = selector;
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
+        /*    Kafka Streams method signature:
+         *    <KR> KGroupedStream<KR, V> groupBy(
+         *          final KeyValueMapper<? super K, ? super V, KR> keySelector,
+         *          final Grouped<KR, V> grouped)
+         */
+
         checkNotNull(selector, SELECTOR_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
         final var kr = streamDataTypeOf(firstSpecificType(selector, k.userType()), true);
-        checkFunction(SELECTOR_NAME, selector, kr, superOf(k), superOf(v));
-
-        final var kvStore = validateKeyValueStore(store, kr, v);
-        final var mapper = new UserKeyTransformer(selector);
-        var grouped = Grouped.with(kr.getSerde(), v.getSerde());
-        if (name != null) grouped = grouped.withName(name);
-        if (kvStore != null) grouped = grouped.withName(name);
-        final var output = input.stream.groupBy(mapper, grouped);
+        final var sel = userFunctionOf(context, SELECTOR_NAME, selector, kr, superOf(k), superOf(v));
+        final var kvStore = validateKeyValueStore(store(), kr, v);
+        final var userSel = new UserKeyTransformer(sel);
+        final var grouped = groupedOf(kr, v, kvStore);
+        final KGroupedStream<Object, Object> output = grouped != null
+                ? input.stream.groupBy(userSel, grouped)
+                : input.stream.groupBy(userSel);
         return new KGroupedStreamWrapper(output, kr, v);
     }
 
     @Override
-    public StreamWrapper apply(KTableWrapper input) {
+    public StreamWrapper apply(KTableWrapper input, TopologyBuildContext context) {
         /*    Kafka Streams method signature:
          *    <KR, VR> KGroupedTable<KR, VR> groupBy(
          *          final KeyValueMapper<? super K, ? super V, KeyValue<KR, VR>> selector,
@@ -73,21 +76,21 @@ public class GroupByOperation extends StoreOperation {
         final var k = input.keyType();
         final var v = input.valueType();
         final var krAndVr = firstSpecificType(selector, new UserType(new UserTupleType(k.userType(), v.userType())));
-        checkTuple(SELECTOR_NAME + " resultType", krAndVr, DataType.UNKNOWN, DataType.UNKNOWN);
-        checkFunction(SELECTOR_NAME, selector, krAndVr, superOf(k), superOf(v));
 
         if (krAndVr.dataType() instanceof UserTupleType userTupleType && userTupleType.subTypeCount() == 2) {
+            checkTuple(SELECTOR_NAME + " resultType", krAndVr, DataType.UNKNOWN, DataType.UNKNOWN);
+            final var sel = userFunctionOf(context, SELECTOR_NAME, selector, krAndVr, superOf(k), superOf(v));
             final var kr = streamDataTypeOf(userTupleType.getUserType(0), true);
             final var vr = streamDataTypeOf(userTupleType.getUserType(1), false);
-            final var kvStore = validateKeyValueStore(store, kr, vr);
-            final var mapper = new UserKeyValueTransformer(selector);
-            var grouped = Grouped.with(kr.getSerde(), vr.getSerde());
-            if (name != null) grouped = grouped.withName(name);
-            if (kvStore != null) grouped = grouped.withName(kvStore.name());
-            final var output = input.table.groupBy(mapper, grouped);
+            final var kvStore = validateKeyValueStore(store(), kr, vr);
+            final var userSel = new UserKeyValueTransformer(sel);
+            final var grouped = groupedOf(kr, vr, kvStore);
+            final KGroupedTable<Object, Object> output = grouped != null
+                    ? input.table.groupBy(userSel, grouped)
+                    : input.table.groupBy(userSel);
             return new KGroupedTableWrapper(output, kr, vr);
         }
 
-        throw new KSMLTopologyException("Can not apply given transformer to KTable.groupBy operation");
+        throw new TopologyException("Can not apply given transformer to KTable.groupBy operation");
     }
 }

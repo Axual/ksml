@@ -24,29 +24,31 @@ package io.axual.ksml.operation.parser;
 import io.axual.ksml.definition.parser.AggregatorDefinitionParser;
 import io.axual.ksml.definition.parser.InitializerDefinitionParser;
 import io.axual.ksml.definition.parser.MergerDefinitionParser;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.AggregateOperation;
-import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.parser.YamlNode;
-
-import static io.axual.ksml.dsl.KSMLDSL.*;
+import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.store.StoreType;
 
 public class AggregateOperationParser extends StoreOperationParser<AggregateOperation> {
-    private final String name;
-
-    protected AggregateOperationParser(String name, ParseContext context) {
-        super(context);
-        this.name = name;
+    public AggregateOperationParser(TopologyResources resources) {
+        super(KSMLDSL.Operations.AGGREGATE, resources);
     }
 
     @Override
-    public AggregateOperation parse(YamlNode node) {
-        if (node == null) return null;
-        return new AggregateOperation(
-                storeOperationConfig(name, node, STORE_ATTRIBUTE),
-                parseOptionalFunction(node, AGGREGATE_INITIALIZER_ATTRIBUTE, new InitializerDefinitionParser()),
-                parseOptionalFunction(node, AGGREGATE_AGGREGATOR_ATTRIBUTE, new AggregatorDefinitionParser()),
-                parseOptionalFunction(node, AGGREGATE_MERGER_ATTRIBUTE, new MergerDefinitionParser()),
-                parseOptionalFunction(node, AGGREGATE_ADDER_ATTRIBTUE, new AggregatorDefinitionParser()),
-                parseOptionalFunction(node, AGGREGATE_SUBTRACTOR_ATTRIBUTE, new AggregatorDefinitionParser()));
+    protected StructParser<AggregateOperation> parser() {
+        return structParser(
+                AggregateOperation.class,
+                "",
+                "An aggregate operation",
+                operationTypeField(),
+                operationNameField(),
+                functionField(KSMLDSL.Operations.Aggregate.INITIALIZER, "The initializer function, which generates an initial value for every set of aggregated records", new InitializerDefinitionParser()),
+                optional(functionField(KSMLDSL.Operations.Aggregate.AGGREGATOR, "(GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result", new AggregatorDefinitionParser())),
+                optional(functionField(KSMLDSL.Operations.Aggregate.MERGER, "(SessionWindowedStream, SessionWindowedCogroupedStream) A function that combines two aggregation results", new MergerDefinitionParser())),
+                optional(functionField(KSMLDSL.Operations.Aggregate.ADDER, "(GroupedTable) A function that adds a record to the aggregation result", new AggregatorDefinitionParser())),
+                optional(functionField(KSMLDSL.Operations.Aggregate.SUBTRACTOR, "(GroupedTable) A function that removes a record from the aggregation result", new AggregatorDefinitionParser())),
+                storeField(false, "Materialized view of the aggregation", StoreType.WINDOW_STORE),
+                (type, name, init, aggr, merg, add, sub, store) -> new AggregateOperation(storeOperationConfig(name, store), init, aggr, merg, add, sub));
     }
 }

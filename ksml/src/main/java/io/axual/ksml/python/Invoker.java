@@ -21,10 +21,10 @@ package io.axual.ksml.python;
  */
 
 
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.UserType;
-import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.user.UserFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,14 +34,14 @@ public abstract class Invoker {
 
     protected Invoker(UserFunction function) {
         if (function == null) {
-            throw new KSMLTopologyException("Invoker: function can not be null");
+            throw new TopologyException("Invoker: function can not be null");
         }
         this.function = function;
     }
 
     protected void verify(boolean condition, String errorMessage) {
         if (!condition) {
-            throw new KSMLTopologyException("This function can not be used as a " + getClass().getSimpleName() + ": " + errorMessage);
+            throw new TopologyException("This function can not be used as a " + getClass().getSimpleName() + ": " + errorMessage);
         }
     }
 
@@ -54,10 +54,6 @@ public abstract class Invoker {
         verifyNoResultInternal(function.resultType);
     }
 
-    protected void verifyNoAppliedResult() {
-        verifyNoResultInternal(function.appliedResultType);
-    }
-
     private void verifyNoResultInternal(UserType type) {
         if (type != null && type.dataType() != DataNull.DATATYPE) {
             LOG.warn("Function {} used as {}: Function return value of type " + type + " will be ignored", function.name, getClass().getSimpleName());
@@ -66,10 +62,6 @@ public abstract class Invoker {
 
     protected void verifyResultType(DataType expected) {
         verifyTypeInternal(function.resultType, expected);
-    }
-
-    protected void verifyAppliedResultType(DataType expected) {
-        verifyTypeInternal(function.appliedResultType, expected);
     }
 
     private void verifyTypeInternal(UserType type, DataType expected) {

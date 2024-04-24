@@ -20,47 +20,24 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.store.StoreType;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import java.time.Duration;
-import java.util.Objects;
 
+@Getter
+@EqualsAndHashCode
 public final class WindowStateStoreDefinition extends StateStoreDefinition {
     private final Duration retention;
     private final Duration windowSize;
-    private final Boolean retainDuplicates;
+    private final boolean retainDuplicates;
 
     public WindowStateStoreDefinition(String name, Boolean persistent, Boolean timestamped, Duration retention, Duration windowSize, Boolean retainDuplicates, UserType keyType, UserType valueType, Boolean caching, Boolean logging) {
         super(StoreType.WINDOW_STORE, name, persistent, timestamped, keyType, valueType, caching, logging);
-        this.retention = retention;
-        this.windowSize = windowSize;
-        this.retainDuplicates = retainDuplicates;
-    }
-
-    public Duration retention() {
-        return retention;
-    }
-
-    public Duration windowSize() {
-        return windowSize;
-    }
-
-    public boolean retainDuplicates() {
-        return retainDuplicates != null && retainDuplicates;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (!(other instanceof WindowStateStoreDefinition def)) return false;
-        return (super.equals(other)
-                && Objects.equals(retention, def.retention)
-                && Objects.equals(windowSize, def.windowSize)
-                && Objects.equals(retainDuplicates, def.retainDuplicates));
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), retention, windowSize, retainDuplicates);
+        this.retention = retention != null ? retention : Duration.ZERO;
+        this.windowSize = windowSize != null ? retention : Duration.ZERO;
+        this.retainDuplicates = retainDuplicates != null && retainDuplicates;
     }
 }

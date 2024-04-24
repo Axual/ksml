@@ -21,30 +21,62 @@ package io.axual.ksml.definition.parser;
  */
 
 
+import io.axual.ksml.data.notation.UserType;
+import io.axual.ksml.data.parser.ParseNode;
+import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
-import io.axual.ksml.parser.BaseParser;
-import io.axual.ksml.parser.ListParser;
+import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.StringValueParser;
-import io.axual.ksml.parser.UserTypeParser;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.parser.StructParser;
 
-import static io.axual.ksml.dsl.KSMLDSL.*;
+import java.util.List;
 
-public class FunctionDefinitionParser extends BaseParser<FunctionDefinition> {
-    public FunctionDefinitionParser() {
-        super(value -> value ? "True" : "False");
+import static io.axual.ksml.dsl.KSMLDSL.Functions;
+
+public abstract class FunctionDefinitionParser<T extends FunctionDefinition> extends DefinitionParser<T> {
+    private String defaultName;
+
+    protected StructParser<T> parserWithStores(Class<T> resultClass, String functionType, String description, Constructor1<T, FunctionDefinition> constructor) {
+        return parser(resultClass, functionType, description, (name, type, params, globalCode, code, expression, resultType, stores) -> FunctionDefinition.as(name, params, globalCode, code, expression, resultType, stores), constructor);
     }
 
-    @Override
-    public FunctionDefinition parse(YamlNode node) {
-        if (node == null) return null;
-        return FunctionDefinition.as(
-                new ListParser<>("function parameter", new ParameterDefinitionParser()).parse(node.get(FUNCTION_PARAMETERS_ATTRIBUTE)).toArray(new ParameterDefinition[0]),
-                UserTypeParser.parse(parseString(node, FUNCTION_RESULTTYPE_ATTRIBUTE)),
-                parseString(node, FUNCTION_EXPRESSION_ATTRIBUTE),
-                parseMultilineText(node, FUNCTION_CODE_ATTRIBUTE),
-                parseMultilineText(node, FUNCTION_GLOBALCODE_ATTRIBUTE),
-                new ListParser<>("function store", new StringValueParser()).parse(node.get(FUNCTION_STORES_ATTRIBUTE)));
+    protected StructParser<T> parserWithoutStores(Class<T> resultClass, String functionType, String description, Constructor1<T, FunctionDefinition> constructor) {
+        return parser(resultClass, functionType, description, (name, type, params, globalCode, code, expression, resultType, stores) -> FunctionDefinition.as(name, params, globalCode, code, expression, resultType, null), constructor);
+    }
+
+    private StructParser<T> parser(Class<T> resultClass, String functionType, String description, Constructor8<FunctionDefinition, String, String, List<ParameterDefinition>, String, String, String, UserType, List<String>> innerConstructor, Constructor1<T, FunctionDefinition> outerConstructor) {
+        final var parseType = resultClass == FunctionDefinition.class;
+        final var doc = "Defines a " + description + " function, that gets injected into the Kafka Streams topology";
+        final var name = optional(stringField(Functions.NAME, "The name of the " + description + ". If this field is not defined, then the name is derived from the context."));
+        final var typeField = fixedStringField(Functions.TYPE, functionType, "The type of the function");
+        final var type = parseType ? typeField : optional(typeField);
+        final var params = optional(listField(Functions.PARAMETERS, "function parameter", "A list of parameters to be passed into the " + description, new ParameterDefinitionParser()));
+        final var globalCode = optional(codeField(Functions.GLOBAL_CODE, "Global (multiline) code that gets loaded into the Python context outside of the " + description + ". Can be used for defining eg. global variables."));
+        final var code = optional(codeField(Functions.CODE, "The (multiline) code of the " + description));
+        final var expression = optional(codeField(Functions.EXPRESSION, "The expression returned by the " + description + ". Only required for functions that return values."));
+        final var resultType = optional(userTypeField(Functions.RESULT_TYPE, "The data type returned by the " + description + ". Only required for function types, which are not pre-defined."));
+        final var stores = optional(listField(Functions.STORES, "state store name", "A list of store names that the " + description + " uses. Only required if the function wants to use a state store.", new StringValueParser()));
+        // We assume that the resultClass is always either using stores, or not using stores, but not a combination of both. Hence we do not provide a definitionVariant extension to distinguish between the two.
+        final var parser = structParser(resultClass, "", doc, name, type, params, globalCode, code, expression, resultType, stores, innerConstructor);
+        return new StructParser<>() {
+            @Override
+            public T parse(ParseNode node) {
+                var rawFunction = parser.parse(node);
+                if (rawFunction != null) {
+                    if (rawFunction.name() == null) rawFunction = rawFunction.withName(node.longName());
+                    if (rawFunction.globalCode().length > 0 || rawFunction.code().length > 0 || rawFunction.expression() != null) {
+                        return outerConstructor.construct(rawFunction);
+                    }
+                    return null;
+                }
+                return null;
+            }
+
+            @Override
+            public StructSchema schema() {
+                return parser.schema();
+            }
+        };
     }
 }

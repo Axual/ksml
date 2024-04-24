@@ -31,17 +31,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: build and push data generator
-        uses: docker/build-push-action@v4
-        with:
-          file: Dockerfile
-          target: ksml-datagen
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            axual/ksml-data-generator:snapshot
-            ghcr.io/axual/ksml-data-generator:snapshot
-
       - name: build and push KSML Runner
         uses: docker/build-push-action@v4
         with:
@@ -52,5 +41,3 @@ jobs:
           tags: |
             axual/ksml:snapshot
             ghcr.io/axual/ksml:snapshot
-            axual/ksml-axual:snapshot
-            ghcr.io/axual/ksml-axual:snapshot

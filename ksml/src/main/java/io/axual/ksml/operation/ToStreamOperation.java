@@ -21,37 +21,41 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserKeyTransformer;
-import io.axual.ksml.util.DataUtil;
+import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
-import org.apache.kafka.streams.kstream.Named;
 
 public class ToStreamOperation extends BaseOperation {
     private static final String MAPPER_NAME = "Mapper";
-    private final UserFunction mapper;
+    private final FunctionDefinition mapper;
 
-    public ToStreamOperation(OperationConfig config, UserFunction mapper) {
+    public ToStreamOperation(OperationConfig config, FunctionDefinition mapper) {
         super(config);
         this.mapper = mapper;
     }
 
     @Override
-    public StreamWrapper apply(KTableWrapper input) {
+    public StreamWrapper apply(KTableWrapper input, TopologyBuildContext context) {
         final var k = input.keyType();
         final var v = input.valueType();
         final var kr = mapper != null ? streamDataTypeOf(firstSpecificType(mapper, k), true) : k;
-        if (mapper != null) checkFunction(MAPPER_NAME, mapper, kr, superOf(k), superOf(v));
-
-        final KeyValueMapper<Object, Object, Object> userMapper = mapper != null
-                ? new UserKeyTransformer(mapper)
-                : (key, value) -> DataUtil.asDataObject(key);
-        final var output = name != null
-                ? input.table.toStream(userMapper, Named.as(name))
-                : input.table.toStream(userMapper);
+        final var map = mapper != null ? userFunctionOf(context, MAPPER_NAME, mapper, kr, superOf(k), superOf(v)) : null;
+        final KeyValueMapper<Object, Object, Object> userMap = map != null
+                ? new UserKeyTransformer(map)
+                : null;
+        final var named = namedOf();
+        final KStream<Object, Object> output = userMap != null
+                ? named != null
+                ? input.table.toStream(userMap, named)
+                : input.table.toStream(userMap)
+                : named != null
+                ? input.table.toStream(named)
+                : input.table.toStream();
         return new KStreamWrapper(output, kr, v);
     }
 }

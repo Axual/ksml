@@ -20,17 +20,16 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
-
+import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.definition.ParameterDefinition;
-import io.axual.ksml.exception.KSMLDataException;
-import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.store.StateStores;
 import org.apache.kafka.streams.KeyValue;
 import org.slf4j.Logger;
@@ -38,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+
 public class UserFunction {
     private static final Logger LOG = LoggerFactory.getLogger(UserFunction.class);
     private static final String[] TEMPLATE = new String[]{};
@@ -45,7 +45,6 @@ public class UserFunction {
     public final ParameterDefinition[] parameters;
     public final int fixedParameterCount;
     public final UserType resultType;
-    public UserType appliedResultType;
     public final String[] storeNames;
 
     public UserFunction(String name, ParameterDefinition[] parameters, UserType resultType, List<String> storeNames) {
@@ -53,11 +52,13 @@ public class UserFunction {
     }
 
     public UserFunction(String name, ParameterDefinition[] parameters, UserType resultType, String[] storeNames) {
+        if (name == null) {
+            throw new TopologyException("Function name can not be null");
+        }
         this.name = name;
         this.parameters = parameters;
         this.fixedParameterCount = getFixedParameterCount(parameters);
         this.resultType = resultType;
-        this.appliedResultType = resultType;
         this.storeNames = storeNames != null ? storeNames : TEMPLATE;
         LOG.info("Registered function '{}'", this);
     }
@@ -80,7 +81,7 @@ public class UserFunction {
         for (final var param : parameters) {
             if (!param.isOptional()) {
                 if (inOptionals) {
-                    throw new KSMLTopologyException("Error in parameter list, fixed parameters should be listed first: " + Arrays.toString(parameters));
+                    throw new TopologyException("Error in parameter list, fixed parameters should be listed first: " + Arrays.toString(parameters));
                 }
                 fixedParamCount++;
             } else {
@@ -93,7 +94,7 @@ public class UserFunction {
     protected void checkType(DataType expected, DataObject value) {
         if (value instanceof DataNull) return;
         if (expected != null && value != null && !expected.isAssignableFrom(value.type())) {
-            throw KSMLDataException.conversionFailed(expected, value.type());
+            throw DataException.conversionFailed(expected, value.type());
         }
     }
 
@@ -107,7 +108,7 @@ public class UserFunction {
             // Check all parameters and copy them into the interpreter as prefixed globals
             StringBuilder paramsAndValues = new StringBuilder();
             for (int index = 0; index < parameters.length; index++) {
-                paramsAndValues.append(paramsAndValues.length() > 0 ? ", " : "");
+                paramsAndValues.append(!paramsAndValues.isEmpty() ? ", " : "");
                 String valueQuote = parameters[index] instanceof String ? "'" : "";
                 paramsAndValues.append(this.parameters[index].name()).append("=").append(valueQuote).append(parameters[index] != null ? parameters[index] : "null").append(valueQuote);
             }
@@ -126,15 +127,11 @@ public class UserFunction {
      * @return the result of the call.
      */
     public DataObject call(StateStores stores, DataObject... parameters) {
-        throw new KSMLExecutionException("Can not call the call() method of a UserFunction directly. Override this class and the call() method.");
+        throw new ExecutionException("Can not call the call() method of a UserFunction directly. Override this class and the call() method.");
     }
 
     public final DataObject call(DataObject... parameters) {
         return call(null, parameters);
-    }
-
-    private KSMLTopologyException validateException(Object result, String expectedType) {
-        return new KSMLTopologyException("Expected " + expectedType + " from function " + name + " but got: " + (result != null ? result : "null"));
     }
 
     public KeyValue<Object, Object> convertToKeyValue(DataObject result, DataType keyType, DataType valueType) {
@@ -152,6 +149,6 @@ public class UserFunction {
             return new KeyValue<>(tuple.get(0), tuple.get(1));
         }
 
-        throw validateException(result, "(key,value)");
+        throw new TopologyException("Expected (key, value) from function " + name + " but got: " + (result != null ? result : "null"));
     }
 }

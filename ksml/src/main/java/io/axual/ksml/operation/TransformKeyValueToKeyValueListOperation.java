@@ -21,54 +21,61 @@ package io.axual.ksml.operation;
  */
 
 
+import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.notation.UserTupleType;
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.TupleType;
-import io.axual.ksml.data.type.UserTupleType;
-import io.axual.ksml.data.type.UserType;
-import io.axual.ksml.exception.KSMLExecutionException;
+import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.processor.OperationProcessorSupplier;
 import io.axual.ksml.operation.processor.TransformKeyValueToKeyValueListProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserKeyValueToKeyValueListTransformer;
-import org.apache.kafka.streams.kstream.Named;
 
 public class TransformKeyValueToKeyValueListOperation extends BaseOperation {
     private static final String MAPPER_NAME = "Mapper";
-    private final UserFunction mapper;
+    private final FunctionDefinition mapper;
 
-    public TransformKeyValueToKeyValueListOperation(OperationConfig config, UserFunction mapper) {
+    public TransformKeyValueToKeyValueListOperation(OperationConfig config, FunctionDefinition mapper) {
         super(config);
         this.mapper = mapper;
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
+        /*    Kafka Streams method signature:
+         *    <KR, VR> KStream<KR, VR> flatMap(
+         *          final KeyValueMapper<? super K, ? super V, ? extends Iterable<? extends KeyValue<? extends KR, ? extends VR>>> mapper,
+         *          final Named named)
+         */
+
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
         final var mapperResultType = firstSpecificType(mapper, new UserType(new ListType(new TupleType(DataType.UNKNOWN, DataType.UNKNOWN))));
-        checkFunction(MAPPER_NAME, mapper, subOf(mapperResultType), mapperResultType, superOf(k), superOf(v));
+        final var map = userFunctionOf(context, MAPPER_NAME, mapper, subOf(mapperResultType), superOf(k), superOf(v));
 
         if (mapperResultType.dataType() instanceof ListType mapperResultListType &&
                 mapperResultListType.valueType() instanceof UserTupleType mapperResultListTupleValueType &&
                 mapperResultListTupleValueType.subTypeCount() == 2) {
             final var kr = streamDataTypeOf(mapperResultListTupleValueType.getUserType(0), true);
             final var vr = streamDataTypeOf(mapperResultListTupleValueType.getUserType(1), false);
-            final var action = new UserKeyValueToKeyValueListTransformer(mapper);
-            final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames);
+            final var userMap = new UserKeyValueToKeyValueListTransformer(map);
+            final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames().toArray(TEMPLATE));
             final var supplier = new OperationProcessorSupplier<>(
                     name,
                     TransformKeyValueToKeyValueListProcessor::new,
-                    (stores, record) -> action.apply(stores, record.key(), record.value()),
+                    (stores, record) -> userMap.apply(stores, record.key(), record.value()),
                     storeNames);
+            final var named = namedOf();
             final var output = name != null
-                    ? input.stream.process(supplier, Named.as(name), storeNames)
+                    ? input.stream.process(supplier, named, storeNames)
                     : input.stream.process(supplier, storeNames);
             return new KStreamWrapper(output, kr, vr);
         }
-        throw new KSMLExecutionException("ResultType of keyValueToKeyValueListTransformer not correctly specified");
+        throw new ExecutionException("ResultType of keyValueToKeyValueListTransformer not correctly specified");
     }
 }

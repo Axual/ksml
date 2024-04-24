@@ -21,28 +21,36 @@ package io.axual.ksml.operation;
  */
 
 
-import org.apache.kafka.streams.kstream.Named;
-
+import io.axual.ksml.definition.StreamDefinition;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 
 public class MergeOperation extends BaseOperation {
-    private final KStreamWrapper mergeStream;
+    private final StreamDefinition mergeStream;
 
-    public MergeOperation(OperationConfig config, KStreamWrapper mergeStream) {
+    public MergeOperation(OperationConfig config, StreamDefinition mergeStream) {
         super(config);
         this.mergeStream = mergeStream;
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
+        /*    Kafka Streams method signature:
+         *    KStream<K, V> merge(
+         *          final KStream<K, V> stream,
+         *          final Named named)
+         */
+
+        final var otherStream = context.getStreamWrapper(mergeStream);
         final var k = input.keyType();
         final var v = input.valueType();
-        checkType("Merge stream keyType", mergeStream.keyType().userType(), equalTo(k));
-        checkType("Merge stream valueType", mergeStream.valueType().userType(), equalTo(v));
-        final var output = name != null
-                ? input.stream.merge(mergeStream.stream, Named.as(name))
-                : input.stream.merge(mergeStream.stream);
+        checkType("Merge stream keyType", otherStream.keyType().userType(), equalTo(k));
+        checkType("Merge stream valueType", otherStream.valueType().userType(), equalTo(v));
+        final var named = namedOf();
+        final var output = named != null
+                ? input.stream.merge(otherStream.stream, named)
+                : input.stream.merge(otherStream.stream);
         return new KStreamWrapper(output, k, v);
     }
 }

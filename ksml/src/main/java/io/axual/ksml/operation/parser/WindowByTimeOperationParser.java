@@ -21,69 +21,57 @@ package io.axual.ksml.operation.parser;
  */
 
 
-import io.axual.ksml.exception.KSMLParseException;
-import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.WindowByTimeOperation;
-import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.parser.StructParser;
 import org.apache.kafka.streams.kstream.SlidingWindows;
 import org.apache.kafka.streams.kstream.TimeWindows;
 
-import static io.axual.ksml.dsl.KSMLDSL.*;
-
 public class WindowByTimeOperationParser extends OperationParser<WindowByTimeOperation> {
-    private final String name;
-
-    protected WindowByTimeOperationParser(String name, ParseContext context) {
-        super(context);
-        this.name = name;
+    public WindowByTimeOperationParser(TopologyResources resources) {
+        super(KSMLDSL.Operations.WINDOW_BY_TIME, resources);
     }
 
     @Override
-    public WindowByTimeOperation parse(YamlNode node) {
-        if (node == null) return null;
-        String windowType = parseString(node, WINDOWBYTIME_WINDOWTYPE_ATTRIBUTE);
-        if (windowType != null) {
-            return switch (windowType) {
-                case WINDOWBYTIME_WINDOWTYPE_TUMBLING -> parseTumblingWindow(node);
-                case WINDOWBYTIME_WINDOWTYPE_HOPPING -> parseHoppingWindow(node);
-                case WINDOWBYTIME_WINDOWTYPE_SLIDING -> parseSlidingWindow(node);
-                default ->
-                        throw new KSMLParseException(node, "Unknown WindowType for windowByTime operation: " + windowType + " (choose tumbling, hopping or sliding)");
-            };
-        }
-        throw new KSMLParseException(node, "WindowType missing for windowedBy operation, choose tumbling, hopping or sliding");
-    }
-
-    private WindowByTimeOperation parseTumblingWindow(YamlNode node) {
-        final var duration = parseDuration(node, WINDOWEDBY_WINDOWTYPE_TIME_DURATION, "Missing duration attribute for tumbling window");
-        final var grace = parseDuration(node, WINDOWEDBY_WINDOWTYPE_TIME_GRACE);
-        final var timeWindows = (grace != null && grace.toMillis() > 0)
-                ? TimeWindows.ofSizeAndGrace(duration, grace)
-                : TimeWindows.ofSizeWithNoGrace(duration);
-        return new WindowByTimeOperation(parseConfig(node, name), timeWindows);
-    }
-
-    private WindowByTimeOperation parseHoppingWindow(YamlNode node) {
-        final var duration = parseDuration(node, WINDOWEDBY_WINDOWTYPE_TIME_DURATION, "Missing duration attribute for hopping window");
-        final var advanceBy = parseDuration(node, WINDOWEDBY_WINDOWTYPE_TIME_ADVANCEBY, "Missing advanceBy attribute for hopping window");
-        final var grace = parseDuration(node, WINDOWEDBY_WINDOWTYPE_TIME_GRACE);
-        if (advanceBy.toMillis() > duration.toMillis()) {
-            throw FatalError.parseError(node, "A hopping window can not advanceBy more than its duration");
-        }
-
-        final var timeWindows = (grace != null && grace.toMillis() > 0)
-                ? TimeWindows.ofSizeAndGrace(duration, grace).advanceBy(advanceBy)
-                : TimeWindows.ofSizeWithNoGrace(duration).advanceBy(advanceBy);
-        return new WindowByTimeOperation(parseConfig(node, name), timeWindows);
-    }
-
-    private WindowByTimeOperation parseSlidingWindow(YamlNode node) {
-        final var timeDifference = parseDuration(node, WINDOWEDBY_WINDOWTYPE_SLIDING_TIMEDIFFERENCE, "Missing timeDifference attribute for sliding window");
-        final var grace = parseDuration(node, WINDOWEDBY_WINDOWTYPE_SLIDING_GRACE);
-        final var slidingWindows = (grace != null && grace.toMillis() > 0)
-                ? SlidingWindows.ofTimeDifferenceAndGrace(timeDifference, grace)
-                : SlidingWindows.ofTimeDifferenceWithNoGrace(timeDifference);
-        return new WindowByTimeOperation(parseConfig(node, name), slidingWindows);
+    public StructParser<WindowByTimeOperation> parser() {
+        return structParser(
+                WindowByTimeOperation.class,
+                "",
+                "Operation to reduce a series of records into a single aggregate result",
+                operationTypeField(),
+                operationNameField(),
+                stringField(KSMLDSL.TimeWindows.WINDOW_TYPE, "The type of the operation, either \"" + KSMLDSL.TimeWindows.TYPE_TUMBLING + "\", or \"" + KSMLDSL.TimeWindows.TYPE_HOPPING + "\", or \"" + KSMLDSL.TimeWindows.TYPE_SLIDING + "\""),
+                optional(durationField(KSMLDSL.TimeWindows.DURATION, "(Tumbling) The duration of time windows")),
+                optional(durationField(KSMLDSL.TimeWindows.ADVANCE_BY, "(Hopping) The amount of time to increase time windows by")),
+                optional(durationField(KSMLDSL.TimeWindows.GRACE, "(Tumbling, Hopping, Sliding) The grace period, during which out-of-order records can still be processed")),
+                optional(durationField(KSMLDSL.TimeWindows.TIME_DIFFERENCE, "(Sliding) The maximum amount of time difference between two records")),
+                (type, name, windowType, duration, advanceBy, grace, timeDifference) -> {
+                    switch (windowType) {
+                        case KSMLDSL.TimeWindows.TYPE_TUMBLING -> {
+                            final var timeWindows = (grace != null && grace.toMillis() > 0)
+                                    ? TimeWindows.ofSizeAndGrace(duration, grace)
+                                    : TimeWindows.ofSizeWithNoGrace(duration);
+                            return new WindowByTimeOperation(operationConfig(name), timeWindows);
+                        }
+                        case KSMLDSL.TimeWindows.TYPE_HOPPING -> {
+                            if (advanceBy.toMillis() > duration.toMillis()) {
+                                throw new TopologyException("A hopping window can not advanceBy more than its duration");
+                            }
+                            final var timeWindows = (grace != null && grace.toMillis() > 0)
+                                    ? org.apache.kafka.streams.kstream.TimeWindows.ofSizeAndGrace(duration, grace).advanceBy(advanceBy)
+                                    : org.apache.kafka.streams.kstream.TimeWindows.ofSizeWithNoGrace(duration).advanceBy(advanceBy);
+                            return new WindowByTimeOperation(operationConfig(name), timeWindows);
+                        }
+                        case KSMLDSL.TimeWindows.TYPE_SLIDING -> {
+                            final var slidingWindows = (grace != null && grace.toMillis() > 0)
+                                    ? SlidingWindows.ofTimeDifferenceAndGrace(timeDifference, grace)
+                                    : SlidingWindows.ofTimeDifferenceWithNoGrace(timeDifference);
+                            return new WindowByTimeOperation(operationConfig(name), slidingWindows);
+                        }
+                    }
+                    throw new TopologyException("Unknown WindowType for windowByTime operation: " + windowType);
+                });
     }
 }

@@ -21,95 +21,36 @@ package io.axual.ksml.definition.parser;
  */
 
 
-import io.axual.ksml.definition.KeyValueStateStoreDefinition;
-import io.axual.ksml.definition.SessionStateStoreDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
-import io.axual.ksml.definition.WindowStateStoreDefinition;
-import io.axual.ksml.execution.FatalError;
-import io.axual.ksml.parser.BaseParser;
-import io.axual.ksml.parser.UserTypeParser;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.parser.ChoiceParser;
+import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.store.StoreType;
 
-import static io.axual.ksml.dsl.KSMLDSL.*;
+import java.util.HashMap;
+import java.util.Map;
 
-public class StateStoreDefinitionParser extends BaseParser<StateStoreDefinition> {
-    private final StoreType expectedType;
+import static io.axual.ksml.dsl.KSMLDSL.Stores;
 
+public class StateStoreDefinitionParser extends ChoiceParser<StateStoreDefinition> {
     public StateStoreDefinitionParser() {
         this(null);
     }
 
     public StateStoreDefinitionParser(StoreType expectedType) {
-        this(null, null);
+        super(Stores.TYPE, "state store", null, types(expectedType));
     }
 
-    public StateStoreDefinitionParser(StoreType expectedType, String defaultName) {
-        this.expectedType = expectedType;
-        setDefaultName(defaultName);
-    }
-
-    @Override
-    public StateStoreDefinition parse(YamlNode node) {
-        if (node == null) return null;
-        var type = storeTypeOf(parseString(node, STORE_TYPE_ATTRIBUTE));
-        if (type == null) {
-            if (expectedType == null) {
-                throw FatalError.parseError(node, "State store type not specified");
-            }
-            type = expectedType;
+    private static Map<String, StructParser<? extends StateStoreDefinition>> types(StoreType expectedType) {
+        final var result = new HashMap<String, StructParser<? extends StateStoreDefinition>>();
+        if (expectedType == null || expectedType == StoreType.KEYVALUE_STORE) {
+            result.put(StoreType.KEYVALUE_STORE.externalName(), new KeyValueStateStoreDefinitionParser(expectedType == null));
         }
-
-        if (expectedType != null && type != expectedType) {
-            throw FatalError.parseError(node, "Expected state store type " + expectedType + " but got " + type);
+        if (expectedType == null || expectedType == StoreType.SESSION_STORE) {
+            result.put(StoreType.SESSION_STORE.externalName(), new SessionStateStoreDefinitionParser(expectedType == null));
         }
-
-        return parseStore(node, type);
-    }
-
-    private StoreType storeTypeOf(String type) {
-        if (type == null) return null;
-        return switch (type) {
-            case STORE_TYPE_KEYVALUE -> StoreType.KEYVALUE_STORE;
-            case STORE_TYPE_SESSION -> StoreType.SESSION_STORE;
-            case STORE_TYPE_WINDOW -> StoreType.WINDOW_STORE;
-            default -> null;
-        };
-    }
-
-    private StateStoreDefinition parseStore(YamlNode node, StoreType type) {
-        return switch (type) {
-            case KEYVALUE_STORE -> new KeyValueStateStoreDefinition(
-                    parseString(node, STORE_NAME_ATTRIBUTE, getDefaultName()),
-                    parseBoolean(node, STORE_PERSISTENT_ATTRIBUTE),
-                    parseBoolean(node, STORE_TIMESTAMPED_ATTRIBUTE),
-                    parseBoolean(node, STORE_VERSIONED_ATTRIBUTE),
-                    parseDuration(node, STORE_HISTORY_RETENTION_ATTRIBUTE),
-                    parseDuration(node, STORE_SEGMENT_INTERVAL_ATTRIBUTE),
-                    UserTypeParser.parse(parseString(node, STORE_KEYTYPE_ATTRIBUTE)),
-                    UserTypeParser.parse(parseString(node, STORE_VALUETYPE_ATTRIBUTE)),
-                    parseBoolean(node, STORE_CACHING_ATTRIBUTE),
-                    parseBoolean(node, STORE_LOGGING_ATTRIBUTE));
-            case SESSION_STORE -> new SessionStateStoreDefinition(
-                    parseString(node, STORE_NAME_ATTRIBUTE, getDefaultName()),
-                    parseBoolean(node, STORE_PERSISTENT_ATTRIBUTE),
-                    parseBoolean(node, STORE_TIMESTAMPED_ATTRIBUTE),
-                    parseDuration(node, STORE_RETENTION_ATTRIBUTE),
-                    UserTypeParser.parse(parseString(node, STORE_KEYTYPE_ATTRIBUTE)),
-                    UserTypeParser.parse(parseString(node, STORE_VALUETYPE_ATTRIBUTE)),
-                    parseBoolean(node, STORE_CACHING_ATTRIBUTE),
-                    parseBoolean(node, STORE_LOGGING_ATTRIBUTE));
-            case WINDOW_STORE -> new WindowStateStoreDefinition(
-                    parseString(node, STORE_NAME_ATTRIBUTE, getDefaultName()),
-                    parseBoolean(node, STORE_PERSISTENT_ATTRIBUTE),
-                    parseBoolean(node, STORE_TIMESTAMPED_ATTRIBUTE),
-                    parseDuration(node, STORE_RETENTION_ATTRIBUTE),
-                    parseDuration(node, STORE_WINDOWSIZE_ATTRIBUTE),
-                    parseBoolean(node, STORE_RETAINDUPLICATES_ATTRIBUTE),
-                    UserTypeParser.parse(parseString(node, STORE_KEYTYPE_ATTRIBUTE)),
-                    UserTypeParser.parse(parseString(node, STORE_VALUETYPE_ATTRIBUTE)),
-                    parseBoolean(node, STORE_CACHING_ATTRIBUTE),
-                    parseBoolean(node, STORE_LOGGING_ATTRIBUTE));
-        };
+        if (expectedType == null || expectedType == StoreType.WINDOW_STORE) {
+            result.put(StoreType.WINDOW_STORE.externalName(), new WindowStateStoreDefinitionParser(expectedType == null));
+        }
+        return result;
     }
 }

@@ -20,24 +20,14 @@ package io.axual.ksml.client.consumer;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerGroupMetadata;
-import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.OffsetAndMetadata;
-import org.apache.kafka.clients.consumer.OffsetAndTimestamp;
-import org.apache.kafka.clients.consumer.OffsetCommitCallback;
+import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.Metric;
 import org.apache.kafka.common.MetricName;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 
 import java.time.Duration;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.OptionalLong;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class ForwardingConsumer<K, V> implements Consumer<K, V> {
@@ -94,6 +84,7 @@ public class ForwardingConsumer<K, V> implements Consumer<K, V> {
     }
 
     @Override
+    @Deprecated
     public ConsumerRecords<K, V> poll(long timeout) {
         return delegate.poll(timeout);
     }

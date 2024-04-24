@@ -45,7 +45,7 @@ public class ResolvingProducer<K, V> extends ForwardingProducer<K, V> {
 
     public ResolvingProducer(Map<String, Object> configs) {
         config = new ResolvingProducerConfig(configs);
-        initializeProducer(new KafkaProducer<>(config.getDownstreamConfigs()));
+        initializeProducer(new KafkaProducer<>(config.downstreamConfigs()));
     }
 
     private static RecordMetadata convertRecordMetadata(RecordMetadata input, String topic) {
@@ -64,10 +64,10 @@ public class ResolvingProducer<K, V> extends ForwardingProducer<K, V> {
         Map<TopicPartition, OffsetAndMetadata> newOffsets = new HashMap<>();
         for (Map.Entry<TopicPartition, OffsetAndMetadata> entry : offsets.entrySet()) {
             newOffsets
-                    .put(config.getTopicResolver().resolve(entry.getKey()), entry.getValue());
+                    .put(config.topicResolver().resolve(entry.getKey()), entry.getValue());
         }
         super.sendOffsetsToTransaction(newOffsets,
-                config.getGroupResolver().resolve(consumerGroupId));
+                config.groupResolver().resolve(consumerGroupId));
     }
 
     @Override
@@ -76,11 +76,11 @@ public class ResolvingProducer<K, V> extends ForwardingProducer<K, V> {
         Map<TopicPartition, OffsetAndMetadata> newOffsets = new HashMap<>();
         for (Map.Entry<TopicPartition, OffsetAndMetadata> entry : offsets.entrySet()) {
             newOffsets
-                    .put(config.getTopicResolver().resolve(entry.getKey()), entry.getValue());
+                    .put(config.topicResolver().resolve(entry.getKey()), entry.getValue());
         }
 
         super.sendOffsetsToTransaction(newOffsets, new ConsumerGroupMetadata(
-                config.getGroupResolver().resolve(groupMetadata.groupId()),
+                config.groupResolver().resolve(groupMetadata.groupId()),
                 groupMetadata.generationId(), groupMetadata.memberId(),
                 groupMetadata.groupInstanceId()));
     }
@@ -103,17 +103,13 @@ public class ResolvingProducer<K, V> extends ForwardingProducer<K, V> {
         return new ProxyFuture(future, producerRecord.topic());
     }
 
-    public void flush() {
-        super.flush();
-    }
-
     @Override
     public List<PartitionInfo> partitionsFor(String topic) {
-        List<PartitionInfo> rawResult = super.partitionsFor(config.getTopicResolver().resolve(topic));
+        List<PartitionInfo> rawResult = super.partitionsFor(config.topicResolver().resolve(topic));
         List<PartitionInfo> result = new ArrayList<>(rawResult.size());
         for (PartitionInfo info : rawResult) {
             result.add(new PartitionInfo(
-                    config.getTopicResolver().unresolve(info.topic()),
+                    config.topicResolver().unresolve(info.topic()),
                     info.partition(),
                     info.leader(),
                     info.replicas(),
@@ -127,7 +123,7 @@ public class ResolvingProducer<K, V> extends ForwardingProducer<K, V> {
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     private ProducerRecord<K, V> convertProducerRecord(ProducerRecord<K, V> producerRecord) {
-        final TopicResolver resolver = config.getTopicResolver();
+        final TopicResolver resolver = config.topicResolver();
 
         // Return a ProducerRecord with a resolved topic name
         return new ProducerRecord<>(

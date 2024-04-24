@@ -1,0 +1,56 @@
+# This example shows how to read from a binary stream, manipulate specific bytes and output
+# messages on a target stream. For validation purposes a second pipeline outputs the manipulated
+# results.
+
+# Concrete use case for this manipulation can be the manual override of a schema id, when the source
+# message contains a schema id that is not locally recognized. By changing bytes 1-4 in the value,
+# one can override the schema id for further downstream processing.
+
+# Yes, this is hacky, but it may serve a purpose for cases where binary copies are made from
+# remote Kafka clusters that contain conflicting schema ids.
+
+streams:
+  sensor_source:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: bytes
+  sensor_target:
+    topic: ksml_sensordata_manipulated
+    keyType: string
+    valueType: bytes
+
+functions:
+  replace_schema_id:
+    type: valueTransformer
+    globalCode: |
+      newSchemaId = 0x01020304
+    code: |
+      global newSchemaId
+      log.info("Replacing schema in message value: {}", value)
+      if value != None:
+        if value[0] == 0 and len(value) >= 5:
+          value[1] = (newSchemaId & 0xff000000) >> 24
+          value[2] = (newSchemaId & 0xff0000) >> 16
+          value[3] = (newSchemaId & 0xff00) >> 8
+          value[4] = newSchemaId & 0xff
+        else:
+          log.info("Value does not contain a schema id: {}", value)
+          value = None
+    expression: value
+    resultType: bytes
+
+pipelines:
+  main:
+    from: sensor_source
+    via:
+     - type: peek
+       forEach:
+         code: log.info("INPUT - key={}, value={}", key, value)
+     - type: transformValue
+       mapper: replace_schema_id
+    to: sensor_target
+
+  validate:
+    from: sensor_target
+    forEach:
+      code: log.info("OUTPUT - key={}, value={}", key, value)

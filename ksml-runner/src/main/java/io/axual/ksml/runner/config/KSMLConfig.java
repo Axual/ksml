@@ -21,67 +21,92 @@ package io.axual.ksml.runner.config;
  */
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.axual.ksml.data.notation.binary.JsonNodeNativeMapper;
+import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.runner.exception.ConfigException;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
-@Data
 public class KSMLConfig {
     private static final String DEFAULT_HOSTNAME = "0.0.0.0";
     private static final String DEFAULT_PORT = "8080";
 
+    @JsonProperty("applicationServer")
     private ApplicationServerConfig applicationServer;
     private String configDirectory;
     private String schemaDirectory;
     private String storageDirectory;
-    private KSMLErrorHandlingConfig errorHandling;
+    private boolean enableProducers;
+    private boolean enablePipelines;
 
-    private List<String> definitions;
+    @JsonProperty("errorHandling")
+    private KSMLErrorHandlingConfig errorHandling;
+    @JsonProperty("definitions")
+    private Map<String, Object> definitions;
+    @JsonProperty("schemas")
+    private Map<String, Object> schemas;
+
+    private String getDirectory(String configVariable, String directory) {
+        final var configPath = Paths.get(directory);
+        if (Files.notExists(configPath) || !Files.isDirectory(configPath)) {
+            throw new ConfigException(configVariable, directory, "The provided path does not exist or is not a directory");
+        }
+        return configPath.toAbsolutePath().normalize().toString();
+    }
+
+    public String getConfigDirectory() {
+        return getDirectory("configDirectory", configDirectory != null ? configDirectory : System.getProperty("user.dir"));
+    }
+
+    public String getSchemaDirectory() {
+        return getDirectory("schemaDirectory", schemaDirectory != null ? schemaDirectory : getConfigDirectory());
+    }
+
+    public String getStorageDirectory() {
+        return getDirectory("storageDirectory", storageDirectory != null ? storageDirectory : System.getProperty("java.io.tmpdir"));
+    }
+
+    public ApplicationServerConfig getApplicationServerConfig() {
+        return applicationServer;
+    }
 
     public KSMLErrorHandlingConfig getErrorHandlingConfig() {
         if (errorHandling == null) return new KSMLErrorHandlingConfig();
         return errorHandling;
     }
 
-    public void validate() throws ConfigException {
-        configDirectory = configDirectory != null ? configDirectory : System.getProperty("user.dir");
-        schemaDirectory = schemaDirectory != null ? schemaDirectory : configDirectory;
-        storageDirectory = storageDirectory != null ? storageDirectory : System.getProperty("java.io.tmpdir");
-
-        final var configPath = Paths.get(configDirectory);
-        if (Files.notExists(configPath) || !Files.isDirectory(configPath)) {
-            throw new ConfigException("config.directory", configDirectory, "The provided config path does not exist or is not a directory");
-        }
-        configDirectory = configPath.toAbsolutePath().normalize().toString();
-
-        final var schemaPath = Paths.get(schemaDirectory);
-        if (Files.notExists(schemaPath) || !Files.isDirectory(schemaPath)) {
-            throw new ConfigException("schema.directory", schemaDirectory, "The provided schema path does not exist or is not a directory");
-        }
-        schemaDirectory = schemaPath.toAbsolutePath().normalize().toString();
-
-        final var storagePath = Paths.get(storageDirectory);
-        if (Files.notExists(storagePath) || !Files.isDirectory(storagePath)) {
-            throw new ConfigException("storage.directory", storagePath, "The provided storage path does not exist or is not a directory");
-        }
-        storageDirectory = storagePath.toAbsolutePath().normalize().toString();
-
-        if (definitions == null || definitions.isEmpty()) {
-            throw new ConfigException("definitionFile", definitions, "At least one KSML definition file must be specified");
-        }
-
-        log.info("Using directories: config: {}, schema: {}, storage: {}", configDirectory, schemaDirectory, storageDirectory);
-
-        for (String definitionFile : definitions) {
-            final var definitionFilePath = Paths.get(getConfigDirectory(), definitionFile);
-            if (Files.notExists(definitionFilePath) || !Files.isRegularFile(definitionFilePath)) {
-                throw new ConfigException("definitionFile", definitionFilePath, "The provided KSML definition file does not exists or is not a regular file");
+    public Map<String, JsonNode> getDefinitions() {
+        final var result = new HashMap<String, JsonNode>();
+        if (definitions != null) {
+            for (Map.Entry<String, Object> definition : definitions.entrySet()) {
+                if (definition.getValue() instanceof String definitionFile) {
+                    final var definitionFilePath = Paths.get(configDirectory, definitionFile);
+                    if (Files.notExists(definitionFilePath) || !Files.isRegularFile(definitionFilePath)) {
+                        throw new ConfigException("definitionFile", definitionFilePath, "The provided KSML definition file does not exists or is not a regular file");
+                    }
+                    try {
+                        log.info("Reading KSML definition from source file: {}", definitionFilePath.toFile());
+                        final var def = YAMLObjectMapper.INSTANCE.readValue(definitionFilePath.toFile(), JsonNode.class);
+                        result.put(definition.getKey(), def);
+                    } catch (IOException e) {
+                        log.error("Could not read KSML definition from file: {}", definitionFilePath);
+                    }
+                }
+                if (definition.getValue() instanceof Map<?, ?> definitionMap) {
+                    final var mapper = new JsonNodeNativeMapper();
+                    final var root = mapper.fromNative(definitionMap);
+                    result.put(definition.getKey(), root);
+                }
             }
         }
+        return result;
     }
 }

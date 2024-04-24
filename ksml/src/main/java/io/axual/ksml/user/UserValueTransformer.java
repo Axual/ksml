@@ -21,13 +21,14 @@ package io.axual.ksml.user;
  */
 
 
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.python.Invoker;
 import io.axual.ksml.store.StateStores;
-import io.axual.ksml.util.DataUtil;
 import org.apache.kafka.streams.kstream.ValueMapperWithKey;
 
 public class UserValueTransformer extends Invoker implements ValueMapperWithKey<Object, Object, DataObject> {
+    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
 
     public UserValueTransformer(UserFunction function) {
         super(function);
@@ -41,6 +42,6 @@ public class UserValueTransformer extends Invoker implements ValueMapperWithKey<
     }
 
     public DataObject apply(StateStores stores, Object key, Object value) {
-        return function.call(stores, DataUtil.asDataObject(key), DataUtil.asDataObject(value));
+        return function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value));
     }
 }

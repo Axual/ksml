@@ -11,7 +11,7 @@
 
 
 # Step 1: Create the common base image with the ksml user and group and the required packages
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.9-1029 AS base
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.9-1137 AS base
 ENV LANG=en_US.UTF-8
 
 # Environment variable for Connect Build and Runtime
@@ -30,8 +30,8 @@ RUN set -eux \
 # Step 2: Download Graal and Maven into the base image
 FROM base AS graal-builder
 ARG TARGETARCH
-ARG GRAALVM_JDK_VERSION=21.0.1
-ARG MAVEN_VERSION=3.9.5
+ARG GRAALVM_JDK_VERSION=21.0.2
+ARG MAVEN_VERSION=3.9.6
 
 RUN set -eux \
     && JAVA_ARCH= \
@@ -81,18 +81,10 @@ USER ksml
 
 # Step 5: Create the KSML Runner image
 FROM ksml-graal AS ksml
+COPY --chown=ksml:0 --from=builder /project_dir/ksml-runner/NOTICE.txt /licences/THIRD-PARTY-LICENSES.txt
+COPY --chown=ksml:0 --from=builder /project_dir/LICENSE.txt /licences/LICENSE.txt
 COPY --chown=ksml:0 --from=builder /project_dir/ksml-runner/target/libs/ /opt/ksml/libs/
 COPY --chown=ksml:0 --from=builder /project_dir/graalpy-module-collection/target/modules/ /opt/ksml/modules/
 COPY --chown=ksml:0 --from=builder /project_dir/ksml-runner/target/ksml-runner*.jar /opt/ksml/ksml.jar
 
 ENTRYPOINT ["java", "--upgrade-module-path", "/opt/ksml/modules", "-jar", "/opt/ksml/ksml.jar"]
-
-
-# Step 6: Create the KSML Data Generator image
-FROM ksml-graal AS ksml-datagen
-COPY --chown=ksml:0 --from=builder /project_dir/ksml-data-generator/target/libs/ /opt/ksml/libs/
-COPY --chown=ksml:0 --from=builder /project_dir/graalpy-module-collection/target/modules/ /opt/ksml/modules/
-COPY --chown=ksml:0 --from=builder /project_dir/ksml-data-generator/target/ksml-data-generator-*.jar /opt/ksml/ksml-data-generator.jar
-
-ENTRYPOINT ["java", "--upgrade-module-path", "/opt/ksml/modules", "-jar", "/opt/ksml/ksml-data-generator.jar"]
-

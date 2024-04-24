@@ -27,7 +27,7 @@ import static io.axual.ksml.definition.DefinitionConstants.PARAM_AGGREGATED_VALU
 public class AggregatorDefinition extends FunctionDefinition {
     public AggregatorDefinition(FunctionDefinition definition) {
         super(definition
-                .withParameters(mergeParameters(KEY_VALUE_AGGREGATEDVALUE_PARAMETERS, definition.parameters))
+                .withParameters(mergeParameters(KEY_VALUE_AGGREGATEDVALUE_PARAMETERS, definition.parameters()))
                 .withDefaultExpression(PARAM_AGGREGATED_VALUE)
                 .withAResult());
     }

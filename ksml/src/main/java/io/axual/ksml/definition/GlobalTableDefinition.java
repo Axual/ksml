@@ -21,30 +21,22 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.data.type.UserType;
-import io.axual.ksml.generator.StreamDataType;
-import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.parser.UserTypeParser;
-import io.axual.ksml.store.StateStoreRegistry;
-import io.axual.ksml.stream.GlobalKTableWrapper;
-import io.axual.ksml.stream.StreamWrapper;
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.kstream.Consumed;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
-public class GlobalTableDefinition extends BaseStreamDefinition {
-    public GlobalTableDefinition(String topic, String keyType, String valueType) {
-        this(topic, UserTypeParser.parse(keyType), UserTypeParser.parse(valueType));
+@Getter
+@EqualsAndHashCode
+public class GlobalTableDefinition extends TopicDefinition {
+    private final KeyValueStateStoreDefinition store;
+
+    public GlobalTableDefinition(String topic, String keyType, String valueType, KeyValueStateStoreDefinition store) {
+        this(topic, UserTypeParser.parse(keyType), UserTypeParser.parse(valueType), store);
     }
 
-    public GlobalTableDefinition(String topic, UserType keyType, UserType valueType) {
-        super(topic, keyType, valueType);
-    }
-
-    @Override
-    public StreamWrapper addToBuilder(StreamsBuilder builder, String name, NotationLibrary notationLibrary, StateStoreRegistry storeRegistry) {
-        final var streamKey = new StreamDataType(notationLibrary, keyType, true);
-        final var streamValue = new StreamDataType(notationLibrary, valueType, false);
-        final var consumed = Consumed.as(name).withKeySerde(streamKey.getSerde()).withValueSerde(streamValue.getSerde());
-        return new GlobalKTableWrapper(builder.globalTable(topic, consumed), streamKey, streamValue);
+    public GlobalTableDefinition(String topic, UserType keyType, UserType valueType, KeyValueStateStoreDefinition store) {
+        super("GlobalTable", topic, keyType, valueType);
+        this.store = store;
     }
 }

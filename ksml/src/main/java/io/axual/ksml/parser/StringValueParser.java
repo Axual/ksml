@@ -20,9 +20,45 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
-public class StringValueParser extends BaseParser<String> {
+import io.axual.ksml.data.parser.ParseNode;
+import io.axual.ksml.data.parser.ParserWithSchema;
+import io.axual.ksml.data.schema.DataSchema;
+
+public class StringValueParser implements ParserWithSchema<String> {
+    public interface BooleanToStringConverter {
+        String interpret(boolean value);
+    }
+
+    private final BooleanToStringConverter converter;
+
+    public StringValueParser() {
+        this(null);
+    }
+
+    public StringValueParser(BooleanToStringConverter converter) {
+        this.converter = converter != null
+                ? converter
+                : value -> value ? "true" : "false";
+    }
+
     @Override
-    public String parse(YamlNode node) {
-        return parseStringValue(node);
+    public String parse(ParseNode node) {
+        // This implementation catches a corner case, where Jackson parses a string as boolean, whereas it was meant
+        // to be interpreted as a string literal for Python.
+        if (node != null) {
+            if (node.isBoolean()) return converter.interpret(node.asBoolean());
+            if (node.isDouble()) return "" + node.asDouble();
+            if (node.isFloat()) return "" + node.asFloat();
+            if (node.isShort()) return "" + node.asShort();
+            if (node.isInt()) return "" + node.asInt();
+            if (node.isLong()) return "" + node.asLong();
+            if (node.isString()) return node.asString();
+        }
+        return null;
+    }
+
+    @Override
+    public DataSchema schema() {
+        return DataSchema.stringSchema();
     }
 }

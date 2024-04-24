@@ -22,25 +22,26 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.definition.parser.KeyTransformerDefinitionParser;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.TransformKeyOperation;
-import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.parser.YamlNode;
-
-import static io.axual.ksml.dsl.KSMLDSL.TRANSFORMKEY_MAPPER_ATTRIBUTE;
+import io.axual.ksml.parser.StructParser;
 
 public class TransformKeyOperationParser extends OperationParser<TransformKeyOperation> {
-    private final String name;
-
-    protected TransformKeyOperationParser(String name, ParseContext context) {
-        super(context);
-        this.name = name;
+    public TransformKeyOperationParser(TopologyResources resources) {
+        super(KSMLDSL.Operations.TRANSFORM_KEY, resources);
     }
 
     @Override
-    public TransformKeyOperation parse(YamlNode node) {
-        if (node == null) return null;
-        return new TransformKeyOperation(
-                parseConfig(node, name),
-                parseFunction(node, TRANSFORMKEY_MAPPER_ATTRIBUTE, new KeyTransformerDefinitionParser()));
+    protected StructParser<TransformKeyOperation> parser() {
+        return structParser(
+                TransformKeyOperation.class,
+                "",
+                "Convert the key of every record in the stream to another key",
+                operationTypeField(),
+                operationNameField(),
+                functionField(KSMLDSL.Operations.Transform.MAPPER, "A function that computes a new key for each record", new KeyTransformerDefinitionParser()),
+                storeNamesField(),
+                (type, name, mapper, storeNames) -> new TransformKeyOperation(operationConfig(name, storeNames), mapper));
     }
 }

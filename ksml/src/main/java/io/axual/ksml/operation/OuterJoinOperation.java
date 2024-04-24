@@ -21,66 +21,83 @@ package io.axual.ksml.operation;
  */
 
 
-import io.axual.ksml.exception.KSMLTopologyException;
-import io.axual.ksml.stream.BaseStreamWrapper;
+import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.definition.StreamDefinition;
+import io.axual.ksml.definition.TableDefinition;
+import io.axual.ksml.definition.TopicDefinition;
+import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserValueJoiner;
 import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
-import org.apache.kafka.streams.kstream.Named;
-import org.apache.kafka.streams.kstream.StreamJoined;
 
 import java.time.Duration;
-import java.util.HashMap;
 
-public class OuterJoinOperation extends StoreOperation {
+public class OuterJoinOperation extends BaseJoinOperation {
     private static final String VALUEJOINER_NAME = "ValueJoiner";
-    private final BaseStreamWrapper joinStream;
-    private final UserFunction valueJoiner;
+    private final TopicDefinition joinTopic;
+    private final FunctionDefinition valueJoiner;
     private final JoinWindows joinWindows;
 
-    public OuterJoinOperation(StoreOperationConfig config, KStreamWrapper joinStream, UserFunction valueJoiner, Duration joinWindowDuration) {
+    public OuterJoinOperation(StoreOperationConfig config, StreamDefinition joinStream, FunctionDefinition valueJoiner, Duration timeDifference, Duration gracePeriod) {
         super(config);
-        this.joinStream = joinStream;
+        this.joinTopic = joinStream;
         this.valueJoiner = valueJoiner;
-        this.joinWindows = JoinWindows.ofTimeDifferenceWithNoGrace(joinWindowDuration);
+        this.joinWindows = joinWindowsOf(timeDifference, gracePeriod);
+    }
+
+    public OuterJoinOperation(StoreOperationConfig config, TableDefinition joinStream, FunctionDefinition valueJoiner) {
+        super(config);
+        this.joinTopic = joinStream;
+        this.valueJoiner = valueJoiner;
+        this.joinWindows = null;
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
         checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
 
-        if (joinStream instanceof KStreamWrapper otherStream) {
+        if (joinTopic instanceof StreamDefinition joinStream) {
+            /*    Kafka Streams method signature:
+             *    <VO, VR> KStream<K, VR> outerJoin(
+             *          final KStream<K, VO> otherStream,
+             *          final ValueJoiner<? super V, ? super VO, ? extends VR> joiner,
+             *          final JoinWindows windows,
+             *          final StreamJoined<K, V, VO> streamJoined)
+             */
+
+            final var otherStream = context.getStreamWrapper(joinStream);
+            final var ko = otherStream.keyType();
             final var vo = otherStream.valueType();
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
-            checkType("Join stream keyType", otherStream.keyType().userType().dataType(), equalTo(k));
-            checkFunction(VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vo));
-            var joined = StreamJoined.with(k.getSerde(), v.getSerde(), vo.getSerde());
-            if (name != null) joined = joined.withName(name);
-            if (store != null) {
-                if (store.name() != null) joined = joined.withStoreName(store.name());
-                joined = store.logging() ? joined.withLoggingEnabled(new HashMap<>()) : joined.withLoggingDisabled();
-            }
-            final var output = (KStream) input.stream.outerJoin(otherStream.stream, new UserValueJoiner(valueJoiner), joinWindows, joined);
-            return new KStreamWrapper(output, k, vr);
+            checkType("Join stream keyType", ko, equalTo(k));
+            final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vo));
+            final var windowedK = windowedTypeOf(k);
+            final var windowStore = validateWindowStore(store(), k, vr);
+            final var streamJoined = streamJoinedOf(windowStore, k, v, vo);
+            final var userJoiner = new UserValueJoiner(joiner);
+            final KStream<Object, Object> output = streamJoined != null
+                    ? input.stream.outerJoin(otherStream.stream, userJoiner, joinWindows, streamJoined)
+                    : input.stream.outerJoin(otherStream.stream, userJoiner, joinWindows);
+            return new KStreamWrapper(output, windowedK, vr);
         }
 
-        throw new KSMLTopologyException("Can not OUTER_JOIN stream with " + joinStream.getClass().getSimpleName());
+        throw new TopologyException("Can not OUTER_JOIN stream with " + joinTopic.getClass().getSimpleName());
     }
 
     @Override
-    public StreamWrapper apply(KTableWrapper input) {
+    public StreamWrapper apply(KTableWrapper input, TopologyBuildContext context) {
         checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
 
-        if (joinStream instanceof KTableWrapper otherTable) {
+        if (joinTopic instanceof TableDefinition joinTable) {
             /*    Kafka Streams method signature:
              *    <VO, VR> KTable<K, VR> outerJoin(
              *          final KTable<K, VO> other,
@@ -89,26 +106,26 @@ public class OuterJoinOperation extends StoreOperation {
              *          final Materialized<K, VR, KeyValueStore<Bytes, byte[]>> materialized)
              */
 
+            final var otherTable = context.getStreamWrapper(joinTable);
             checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
+            final var ko = otherTable.keyType();
             final var vo = otherTable.valueType();
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
-            checkType("Join table keyType", otherTable.keyType().userType(), equalTo(k));
-            checkFunction(VALUEJOINER_NAME, valueJoiner, subOf(vr), vr, superOf(v), superOf(vo));
-            final var kvStore = validateKeyValueStore(store, k, vr);
-
-            if (kvStore != null) {
-                final var mat = materialize(kvStore);
-                final var output = name != null
-                        ? input.table.outerJoin(otherTable.table, new UserValueJoiner(valueJoiner), Named.as(name), mat)
-                        : input.table.outerJoin(otherTable.table, new UserValueJoiner(valueJoiner), mat);
-                return new KTableWrapper(output, k, vr);
-            }
-
-            final var output = name != null
-                    ? (KTable) input.table.outerJoin(otherTable.table, new UserValueJoiner(valueJoiner), Named.as(name))
-                    : (KTable) input.table.outerJoin(otherTable.table, new UserValueJoiner(valueJoiner));
+            checkType("Join table keyType", ko, equalTo(k));
+            final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(v), superOf(vo));
+            final var userJoiner = new UserValueJoiner(joiner);
+            final var kvStore = validateKeyValueStore(store(), k, vr);
+            final var mat = materializedOf(context, kvStore);
+            final var named = namedOf();
+            final KTable<Object, Object> output = named != null
+                    ? mat != null
+                    ? input.table.outerJoin(otherTable.table, userJoiner, named, mat)
+                    : input.table.outerJoin(otherTable.table, userJoiner, named)
+                    : mat != null
+                    ? input.table.outerJoin(otherTable.table, userJoiner, mat)
+                    : input.table.outerJoin(otherTable.table, userJoiner);
             return new KTableWrapper(output, k, vr);
         }
-        throw new KSMLTopologyException("Can not OUTER_JOIN table with " + joinStream.getClass().getSimpleName());
+        throw new TopologyException("Can not OUTER_JOIN table with " + joinTopic.getClass().getSimpleName());
     }
 }

@@ -19,13 +19,12 @@ tables:
     topic: ksml_sensoralert_settings
     keyType: string
     valueType: avro:SensorAlertSettings
-    queryable: false
 
 functions:
   alert_join:
     type: valueJoiner
     code: |
-      log.info('JOINING\n\t value1={}\n\t value2={}', value1, value2)
+      log.debug('JOINING\n\t value1={}\n\t value2={}', value1, value2)
       sensordata=value1
       del sensordata["@type"]
       del sensordata["@schema"]
@@ -35,7 +34,7 @@ functions:
       if value2 != None and value2["alertSettings"] != None:
         for setting in value2["alertSettings"]:
           if setting["type"] == sensordata["type"] and setting["unit"] == sensordata["unit"] and ( (setting["alertBelow"] != None and setting["alertBelow"] > sensordata["value"]) or (setting["alertAbove"]!=None and setting["alertAbove"] < sensordata["value"]) ):
-            log.info('Triggered alert {}', setting["name"] )
+            log.info('Triggered alert {}, type={}, unit={}, value={}, alertAbove={}, alertBelow={}', setting["name"], setting["type"], setting["unit"], sensordata["value"], setting["alertAbove"], setting["alertBelow"])
             del setting["@type"]
             del setting["@schema"]
             triggeredAlertSettings.append(setting)
@@ -44,7 +43,7 @@ functions:
         "sensordata" : sensordata,
         "alerts" : triggeredAlertSettings
       }
-      log.info('JOINED sensordata= {} alerts= {}' new_value["sensordata"], new_value["alerts"])
+      log.debug('JOINED sensordata= {} alerts= {}', new_value["sensordata"], new_value["alerts"])
     expression: new_value
     resultType: json
 
@@ -66,7 +65,7 @@ functions:
             "sensordata" : sensordata
           }
           newRecords.append([new_key,new_value])
-      log.info("Returning {} records", len(newRecords))
+      log.debug("Returning {} records", len(newRecords))
     expression: newRecords
 
 pipelines:
@@ -75,7 +74,7 @@ pipelines:
     via:
       - name: filter_nulls
         type: filter
-        predicate:
+        if:
           expression: value != None
       - name: rekey_sensordata
         type: transformKeyValue
@@ -91,16 +90,20 @@ pipelines:
         type: join
         table: sensor_alert_settings
         valueJoiner: alert_join
-      - name: watch_join
+      - name: log_join_result
         type: peek
         forEach:
-          code: log.info("JOIN - key={}, value={}", key, value)
+          code: log.debug("JOIN RESULT - key={}, value={}", key, value)
       - name: expand_alerts
         type: transformKeyValueToKeyValueList
         mapper: alert_split
+      - name: log_alert
+        type: peek
+        forEach:
+          code: log.info("ALERT - key={}, value={}", key, value)
     to: sensor_alerts
 
   verify:
     from: sensor_alerts
     forEach:
-      code: log.info("OUTPUT - key={}, value={}", key, value)
+      code: log.debug("OUTPUT - key={}, value={}", key, value)

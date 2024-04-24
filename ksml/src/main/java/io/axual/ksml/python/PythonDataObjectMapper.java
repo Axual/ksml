@@ -20,17 +20,21 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.type.*;
-import io.axual.ksml.exception.KSMLExecutionException;
-import io.axual.ksml.execution.FatalError;
-import io.axual.ksml.notation.binary.NativeDataObjectMapper;
 import io.axual.ksml.util.ExecutionUtil;
 import org.graalvm.polyglot.Value;
 
 import java.util.Map;
 
 public class PythonDataObjectMapper extends NativeDataObjectMapper {
+    public PythonDataObjectMapper(boolean includeTypeInfo) {
+        super(includeTypeInfo);
+    }
+
     @Override
     public DataObject toDataObject(DataType expected, Object object) {
         // If we got a Value object, then convert it to native format first
@@ -47,16 +51,16 @@ public class PythonDataObjectMapper extends NativeDataObjectMapper {
     }
 
     private DataObject unionToDataObject(UnionType unionType, Object object) {
-        for (UserType possibleType : unionType.possibleTypes()) {
+        for (DataType possibleType : unionType.possibleTypes()) {
             try {
-                var result = toDataObject(possibleType.dataType(), object);
+                var result = toDataObject(possibleType, object);
                 if (result != null) return result;
             } catch (Exception e) {
                 // Ignore exception and move to next possible dataType
             }
         }
 
-        throw new KSMLExecutionException("Can not convert Python dataType to Union value: " + object.getClass().getSimpleName());
+        throw new ExecutionException("Can not convert Python dataType to Union value: " + object.getClass().getSimpleName());
     }
 
     private Object valueToNative(DataType expected, Value object) {
@@ -81,7 +85,7 @@ public class PythonDataObjectMapper extends NativeDataObjectMapper {
             if (result != null) return result;
         }
 
-        throw FatalError.dataError("Can not convert Python dataType to DataObject: "
+        throw new DataException("Can not convert Python dataType to DataObject: "
                 + object.getClass().getSimpleName()
                 + (expected != null ? ", expected: " + expected : ""));
     }
@@ -146,6 +150,6 @@ public class PythonDataObjectMapper extends NativeDataObjectMapper {
         if (object instanceof DataString val) return Value.asValue(val.value());
         if (object instanceof DataList val) return Value.asValue(fromDataList(val));
         if (object instanceof DataStruct val) return Value.asValue(fromDataStruct(val));
-        throw new KSMLExecutionException("Can not convert DataObject to Python dataType: " + object.getClass().getSimpleName());
+        throw new ExecutionException("Can not convert DataObject to Python dataType: " + object.getClass().getSimpleName());
     }
 }

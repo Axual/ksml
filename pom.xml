@@ -6,7 +6,7 @@
 
     <groupId>io.axual.ksml</groupId>
     <artifactId>ksml-parent</artifactId>
-    <version>0.2.0-SNAPSHOT</version>
+    <version>0.8.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <licenses>
@@ -27,8 +27,7 @@
         KSML allows low-code developers to specify a Kafka Streams topology using YAML and Python snippets.
     </description>
 
-    <url>https://axual.com/</url>
-
+    <url>https://github.com/Axual/ksml</url>
     <inceptionYear>2021</inceptionYear>
 
     <developers>
@@ -48,11 +47,15 @@
     </repositories>
 
     <modules>
+        <module>ksml-data</module>
+        <module>ksml-data-avro</module>
+        <module>ksml-data-csv</module>
+        <module>ksml-data-soap</module>
+        <module>ksml-data-xml</module>
         <module>ksml</module>
         <module>ksml-query</module>
         <module>ksml-kafka-clients</module>
         <module>ksml-runner</module>
-        <module>ksml-data-generator</module>
         <module>ksml-reporting</module>
         <module>graalpy-module-collection</module>
     </modules>
@@ -60,27 +63,31 @@
     <properties>
         <!-- compile, runtime and provided dependency versions -->
         <apache.avro.version>1.11.3</apache.avro.version>
-        <apache.commons.text.version>1.11.0</apache.commons.text.version>
-        <apache.kafka.version>3.6.0</apache.kafka.version>
-        <confluent.version>7.5.2</confluent.version>
-        <graalvm.version>23.1.0</graalvm.version>
-        <graalvm.polyglot.version>23.1.1</graalvm.polyglot.version>
-        <graalvm.python.version>23.1.1</graalvm.python.version>
-        <guava.version>32.0.1-jre</guava.version>
-        <jackson.version>2.16.0</jackson.version>
+        <apache.commons.text.version>1.12.0</apache.commons.text.version>
+        <apache.commons.compress.version>1.26.1</apache.commons.compress.version>
+        <apache.kafka.version>3.6.2</apache.kafka.version>
+        <confluent.version>7.6.0</confluent.version>
+        <graalvm.version>23.1.2</graalvm.version>
+        <graalvm.polyglot.version>23.1.2</graalvm.polyglot.version>
+        <graalvm.python.version>23.1.2</graalvm.python.version>
+        <guava.version>33.1.0-jre</guava.version>
+        <jackson.version>2.17.0</jackson.version>
         <jakarta.soap.version>3.0.1</jakarta.soap.version>
-        <jersey.version>3.1.3</jersey.version>
-        <logback.version>1.4.11</logback.version>
-        <lombok.version>1.18.30</lombok.version>
-        <opencsv.version>5.9</opencsv.version>
+        <janino.version>3.1.12</janino.version>
+        <jersey.version>3.1.6</jersey.version>
+        <logback.version>1.5.6</logback.version>
+        <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
+        <lombok.version>1.18.32</lombok.version>
         <saaj.version>3.0.3</saaj.version>
-        <slf4j.version>2.0.6</slf4j.version>
+        <slf4j.version>2.0.13</slf4j.version>
 
         <!-- test dependency versions -->
-        <jupiter.version>5.10.1</jupiter.version>
+        <jupiter.version>5.10.2</jupiter.version>
         <hamcrest.version>2.2</hamcrest.version>
-        <mockito-core.version>5.7.0</mockito-core.version>
-        <mockito-junit-jupiter.version>5.7.0</mockito-junit-jupiter.version>
+        <mockito-core.version>5.11.0</mockito-core.version>
+        <mockito-junit-jupiter.version>5.11.0</mockito-junit-jupiter.version>
+        <junit-pioneer.version>2.2.0</junit-pioneer.version>
+        <junit-platform.version>1.10.1</junit-platform.version>
 
         <!-- project and java version settings -->
         <java.source.version>21</java.source.version>
@@ -91,18 +98,17 @@
 
         <!-- plugin versions -->
         <maven.dependency.plugin.version>3.6.1</maven.dependency.plugin.version>
-        <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
-        <maven.jar.plugin.version>3.3.0</maven.jar.plugin.version>
+        <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
+        <maven.jar.plugin.version>3.4.1</maven.jar.plugin.version>
         <maven.install.plugin.version>3.1.1</maven.install.plugin.version>
         <maven.enforcer.plugin.version>3.4.1</maven.enforcer.plugin.version>
-        <maven.exec.plugin.version>3.1.1</maven.exec.plugin.version>
-        <maven.license.plugin.version>2.3.0</maven.license.plugin.version>
+        <maven.exec.plugin.version>3.2.0</maven.exec.plugin.version>
+        <maven.license.plugin.version>2.4.0</maven.license.plugin.version>
 
-        <maven.javadoc.plugin.version>3.6.2</maven.javadoc.plugin.version>
-        <maven.surefire.plugin.version>3.2.2</maven.surefire.plugin.version>
-        <maven.failsafe.plugin.version>3.2.2</maven.failsafe.plugin.version>
-        <maven.jacoco.plugin.version>0.8.11</maven.jacoco.plugin.version>
-
+        <maven.javadoc.plugin.version>3.6.3</maven.javadoc.plugin.version>
+        <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
+        <maven.failsafe.plugin.version>3.2.5</maven.failsafe.plugin.version>
+        <maven.jacoco.plugin.version>0.8.12</maven.jacoco.plugin.version>
 
         <!-- following properties filled at build time by jacoco -->
         <surefireArgLine/>
@@ -127,7 +133,27 @@
             <!-- project dependencies -->
             <dependency>
                 <groupId>io.axual.ksml</groupId>
-                <artifactId>ksml-data-generator</artifactId>
+                <artifactId>ksml-data</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml-data-avro</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml-data-csv</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml-data-soap</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml-data-xml</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -154,25 +180,22 @@
             <dependency>
                 <groupId>org.graalvm.polyglot</groupId>
                 <artifactId>polyglot</artifactId>
-                <version>${graalvm.polyglot.version}</version>
+                <version>${graalvm.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.graalvm.python</groupId>
                 <artifactId>python-language</artifactId>
-                <version>${graalvm.python.version}</version>
-                <scope>runtime</scope>
+                <version>${graalvm.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.graalvm.python</groupId>
                 <artifactId>python-resources</artifactId>
-                <version>${graalvm.python.version}</version>
-                <scope>runtime</scope>
+                <version>${graalvm.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.graalvm.truffle</groupId>
                 <artifactId>truffle-runtime</artifactId>
-                <version>${graalvm.python.version}</version>
-                <scope>runtime</scope>
+                <version>${graalvm.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.graalvm.truffle</groupId>
@@ -180,14 +203,19 @@
                 <version>${graalvm.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.avro</groupId>
-                <artifactId>avro</artifactId>
-                <version>${apache.avro.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-text</artifactId>
                 <version>${apache.commons.text.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>${apache.commons.compress.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.avro</groupId>
+                <artifactId>avro</artifactId>
+                <version>${apache.avro.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.kafka</groupId>
@@ -208,12 +236,22 @@
 
             <dependency>
                 <groupId>com.fasterxml.jackson.dataformat</groupId>
-                <artifactId>jackson-dataformat-yaml</artifactId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-csv</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.dataformat</groupId>
                 <artifactId>jackson-dataformat-xml</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-yaml</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
             <dependency>
@@ -230,11 +268,6 @@
                 <groupId>com.sun.xml.messaging.saaj</groupId>
                 <artifactId>saaj-impl</artifactId>
                 <version>${saaj.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.opencsv</groupId>
-                <artifactId>opencsv</artifactId>
-                <version>${opencsv.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.jersey.containers</groupId>
@@ -279,6 +312,16 @@
                 <version>${logback.version}</version>
             </dependency>
             <dependency>
+                <groupId>net.logstash.logback</groupId>
+                <artifactId>logstash-logback-encoder</artifactId>
+                <version>${logstash-logback-encoder.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.janino</groupId>
+                <artifactId>janino</artifactId>
+                <version>${janino.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
@@ -300,6 +343,18 @@
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-params</artifactId>
                 <version>${jupiter.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit-pioneer</groupId>
+                <artifactId>junit-pioneer</artifactId>
+                <version>${junit-pioneer.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.platform</groupId>
+                <artifactId>junit-platform-commons</artifactId>
+                <version>${junit-platform.version}</version>
                 <scope>test</scope>
             </dependency>
 
@@ -424,6 +479,7 @@
                     <version>${maven.license.plugin.version}</version>
                     <configuration>
                         <licenseName>${license.licensename}</licenseName>
+                        <outputDirectory>${project.basedir}</outputDirectory>
                         <thirdPartyFilename>NOTICE.txt</thirdPartyFilename>
                         <verbose>false</verbose>
                         <processStartTag>
@@ -533,6 +589,10 @@
                 <version>${maven.javadoc.plugin.version}</version>
             </plugin>
 
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+            </plugin>
         </plugins>
 
         <resources>

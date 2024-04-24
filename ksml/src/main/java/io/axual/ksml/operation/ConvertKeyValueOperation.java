@@ -20,40 +20,40 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.DataObjectConverter;
-import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.notation.UserType;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.util.DataUtil;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Named;
 
 public class ConvertKeyValueOperation extends BaseOperation {
-    private final DataObjectConverter mapper;
+    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
     private final UserType targetKeyType;
     private final UserType targetValueType;
 
     public ConvertKeyValueOperation(OperationConfig config, UserType targetKeyType, UserType targetValueType) {
         super(config);
-        this.mapper = new DataObjectConverter(notationLibrary);
         this.targetKeyType = targetKeyType;
         this.targetValueType = targetValueType;
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
         final var k = input.keyType();
         final var v = input.valueType();
         final var kr = streamDataTypeOf(targetKeyType, true);
         final var vr = streamDataTypeOf(targetValueType, false);
+        final var mapper = context.getDataObjectConverter();
 
         // Set up the mapping function to convert the key and value
         KeyValueMapper<Object, Object, KeyValue<Object, Object>> converter = (key, value) -> {
-            var keyAsData = DataUtil.asDataObject(key);
+            var keyAsData = nativeMapper.toDataObject(key);
             var convertedKey = mapper.convert(k.userType().notation(), keyAsData, kr.userType());
 
-            var valueAsData = DataUtil.asDataObject(value);
+            var valueAsData = nativeMapper.toDataObject(value);
             var convertedValue = mapper.convert(v.userType().notation(), valueAsData, vr.userType());
 
             return new KeyValue<>(convertedKey, convertedValue);

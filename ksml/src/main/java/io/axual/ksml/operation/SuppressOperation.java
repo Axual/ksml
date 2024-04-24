@@ -21,13 +21,13 @@ package io.axual.ksml.operation;
  */
 
 
-import org.apache.kafka.streams.kstream.Suppressed;
-import org.apache.kafka.streams.kstream.Windowed;
-
 import io.axual.ksml.data.type.WindowedType;
-import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
+import org.apache.kafka.streams.kstream.Suppressed;
+import org.apache.kafka.streams.kstream.Windowed;
 
 public class SuppressOperation extends BaseOperation {
     private final Suppressed<Windowed> suppressedWindowed;
@@ -48,7 +48,7 @@ public class SuppressOperation extends BaseOperation {
     }
 
     @Override
-    public StreamWrapper apply(KTableWrapper input) {
+    public StreamWrapper apply(KTableWrapper input, TopologyBuildContext context) {
         final var k = input.keyType();
         final var v = input.valueType();
 
@@ -65,6 +65,6 @@ public class SuppressOperation extends BaseOperation {
             return new KTableWrapper(input.table.suppress((Suppressed) suppressedWindowed), k, v);
         }
         // Throw an exception if the stream key dataType is not Windowed
-        throw new KSMLTopologyException("Can not apply suppress operation to a KTable with key dataType " + input.keyType().userType());
+        throw new TopologyException("Can not apply suppress operation to a KTable with key dataType " + input.keyType().userType());
     }
 }

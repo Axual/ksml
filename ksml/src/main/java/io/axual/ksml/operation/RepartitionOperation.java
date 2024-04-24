@@ -20,34 +20,40 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.type.UserType;
+import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserStreamPartitioner;
-import org.apache.kafka.streams.kstream.Repartitioned;
+import org.apache.kafka.streams.kstream.KStream;
 
 public class RepartitionOperation extends BaseOperation {
     private static final String PARTITIONER_NAME = "Partitioner";
-    private final UserFunction partitioner;
+    private final FunctionDefinition partitioner;
 
-    public RepartitionOperation(OperationConfig config, UserFunction partitioner) {
+    public RepartitionOperation(OperationConfig config, FunctionDefinition partitioner) {
         super(config);
         this.partitioner = partitioner;
     }
 
     @Override
-    public StreamWrapper apply(KStreamWrapper input) {
+    public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
+        /*    Kafka Streams method signature:
+         *    KStream<K, V> repartition(
+         *          final Repartitioned<K, V> repartitioned)
+         */
+
         checkNotNull(partitioner, "Partitioner must be defined");
         final var k = input.keyType();
         final var v = input.valueType();
-        checkFunction(PARTITIONER_NAME, partitioner, new UserType(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
-        var repartitioned = Repartitioned.with(k.getSerde(), v.getSerde()).withStreamPartitioner(new UserStreamPartitioner(partitioner));
-        if (name != null) repartitioned = repartitioned.withName(name);
-        final var output = input.stream.repartition(repartitioned);
+        final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, equalTo(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
+        final var userPart = part != null ? new UserStreamPartitioner(part) : null;
+        final var repartitioned = repartitionedOf(k, v, userPart);
+        final KStream<Object, Object> output = repartitioned != null
+                ? input.stream.repartition(repartitioned)
+                : input.stream.repartition();
         return new KStreamWrapper(output, k, v);
     }
 }

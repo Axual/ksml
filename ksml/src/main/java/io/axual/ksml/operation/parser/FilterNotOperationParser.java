@@ -21,27 +21,33 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.definition.parser.PredicateDefinitionParser;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.FilterNotOperation;
-import io.axual.ksml.parser.ParseContext;
-import io.axual.ksml.parser.YamlNode;
+import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.store.StoreType;
 
-import static io.axual.ksml.dsl.KSMLDSL.FILTERNOT_PREDICATE_ATTRIBUTE;
-
-public class FilterNotOperationParser extends OperationParser<FilterNotOperation> {
-    private final String name;
-
-    protected FilterNotOperationParser(String name, ParseContext context) {
-        super(context);
-        this.name = name;
+public class FilterNotOperationParser extends StoreOperationParser<FilterNotOperation> {
+    public FilterNotOperationParser(TopologyResources resources) {
+        super(KSMLDSL.Operations.FILTER_NOT, resources);
     }
 
-    @Override
-    public FilterNotOperation parse(YamlNode node) {
-        if (node == null) return null;
-        return new FilterNotOperation(
-                parseConfig(node, name),
-                parseFunction(node, FILTERNOT_PREDICATE_ATTRIBUTE, new PredicateDefinitionParser())
-        );
+    public StructParser<FilterNotOperation> parser() {
+        return structParser(
+                FilterNotOperation.class,
+                "",
+                "Filter records based on the inverse result of a predicate function",
+                operationTypeField(),
+                operationNameField(),
+                functionField(KSMLDSL.Operations.Filter.PREDICATE, "A function that returns \"false\" when records are accepted, \"true\" otherwise", new PredicateDefinitionParser()),
+                storeField(false, "Materialized view of the filtered table", StoreType.KEYVALUE_STORE),
+                storeNamesField(),
+                (type, name, pred, store, stores) -> {
+                    if (pred != null)
+                        return new FilterNotOperation(storeOperationConfig(name, store, stores), pred);
+                    throw new ExecutionException("Predicate not defined for " + type + " operation");
+                });
     }
 }

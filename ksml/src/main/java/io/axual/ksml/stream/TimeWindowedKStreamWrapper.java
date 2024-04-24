@@ -21,21 +21,21 @@ package io.axual.ksml.stream;
  */
 
 
-import org.apache.kafka.streams.kstream.TimeWindowedKStream;
-
 import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.StreamOperation;
+import org.apache.kafka.streams.kstream.TimeWindowedKStream;
 
 public class TimeWindowedKStreamWrapper extends BaseStreamWrapper {
     public final TimeWindowedKStream<Object, Object> timeWindowedKStream;
 
     public TimeWindowedKStreamWrapper(TimeWindowedKStream<Object, Object> timeWindowedKStream, StreamDataType key, StreamDataType value) {
-        super(key, value);
+        super("TimeWindowedStream", key, value);
         this.timeWindowedKStream = timeWindowedKStream;
     }
 
     @Override
-    public StreamWrapper apply(StreamOperation operation) {
-        return operation.apply(this);
+    public StreamWrapper apply(StreamOperation operation, TopologyBuildContext context) {
+        return operation.apply(this, context);
     }
 }

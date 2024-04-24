@@ -21,48 +21,60 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.data.type.UserType;
-import io.axual.ksml.exception.KSMLTopologyException;
+import io.axual.ksml.data.notation.UserType;
+import io.axual.ksml.exception.TopologyException;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
+@Getter
 public class FunctionDefinition {
     private static final String DEFINITION_LITERAL = "Definition";
     private static final String[] EMPTY_STRING_ARRAY = new String[]{};
+    private static final ParameterDefinition[] EMPTY_PARAMETER_ARRAY = new ParameterDefinition[]{};
     private static final List<String> EMPTY_STRING_LIST = new ArrayList<>();
-    public final ParameterDefinition[] parameters;
-    public final UserType resultType;
-    public final String expression;
-    public final String[] code;
-    public final String[] globalCode;
-    public final List<String> storeNames;
+    private final String name;
+    private final ParameterDefinition[] parameters;
+    private final String[] globalCode;
+    private final String[] code;
+    private final String expression;
+    private final UserType resultType;
+    private final List<String> storeNames;
 
-    public static FunctionDefinition as(ParameterDefinition[] parameters, UserType result, String expression, String[] code, String[] globalCode, List<String> storeNames) {
-        return new FunctionDefinition(parameters, result, expression, code, globalCode, storeNames);
+    public static FunctionDefinition as(String name, List<ParameterDefinition> parameters, String globalCode, String code, String expression, UserType resultType, List<String> storeNames) {
+        return new FunctionDefinition(name, parameters != null ? parameters.toArray(EMPTY_PARAMETER_ARRAY) : EMPTY_PARAMETER_ARRAY, multiline(globalCode), multiline(code), expression, resultType, storeNames);
     }
 
-    public FunctionDefinition withCode(String expression, String[] code, String[] globalCode, List<String> storeNames) {
-        return new FunctionDefinition(parameters, resultType, expression, code, globalCode, storeNames);
+    public static FunctionDefinition as(String name, ParameterDefinition[] parameters, String[] globalCode, String[] code, String expression, UserType resultType, List<String> storeNames) {
+        return new FunctionDefinition(name, parameters, globalCode, code, expression, resultType, storeNames);
+    }
+
+    public FunctionDefinition withName(String name) {
+        return new FunctionDefinition(name, parameters, globalCode, code, expression, resultType, storeNames);
     }
 
     public FunctionDefinition withParameters(ParameterDefinition[] parameters) {
-        return new FunctionDefinition(parameters, resultType, expression, code, globalCode, storeNames);
+        return new FunctionDefinition(name, parameters, globalCode, code, expression, resultType, storeNames);
+    }
+
+    public FunctionDefinition withCode(String[] globalCode, String[] code, String expression, List<String> storeNames) {
+        return new FunctionDefinition(name, parameters, globalCode, code, expression, resultType, storeNames);
     }
 
     public FunctionDefinition withoutResult() {
         return withResult(null);
     }
 
-    public FunctionDefinition withResult(UserType resultType) {
-        return new FunctionDefinition(parameters, resultType, resultType != null ? expression : null, code, globalCode, storeNames);
+    public FunctionDefinition withResult(UserType type) {
+        return new FunctionDefinition(name, parameters, globalCode, code, type != null ? expression : null, type, storeNames);
     }
 
     public FunctionDefinition withDefaultExpression(String expression) {
         if (this.expression == null) {
-            return new FunctionDefinition(parameters, resultType, expression, code, globalCode, storeNames);
+            return new FunctionDefinition(name, parameters, globalCode, code, expression, resultType, storeNames);
         }
         return this;
     }
@@ -77,17 +89,18 @@ public class FunctionDefinition {
 
     public FunctionDefinition withAResult(String functionType) {
         if (expression == null)
-            throw new KSMLTopologyException("Function type requires a result expression: " + functionType);
+            throw new TopologyException("Function type requires a result expression: " + functionType);
         if (resultType == null)
-            throw new KSMLTopologyException("Function type requires a result type: " + functionType);
+            throw new TopologyException("Function type requires a result type: " + functionType);
         return this;
     }
 
     public FunctionDefinition withStoreNames(List<String> storeNames) {
-        return new FunctionDefinition(parameters, resultType, expression, code, globalCode, storeNames);
+        return new FunctionDefinition(name, parameters, globalCode, code, expression, resultType, storeNames);
     }
 
-    private FunctionDefinition(ParameterDefinition[] parameters, UserType resultType, String expression, String[] code, String[] globalCode, List<String> storeNames) {
+    private FunctionDefinition(String name, ParameterDefinition[] parameters, String[] globalCode, String[] code, String expression, UserType resultType, List<String> storeNames) {
+        this.name = name;
         this.parameters = parameters;
         this.resultType = resultType;
         this.expression = expression;
@@ -97,6 +110,7 @@ public class FunctionDefinition {
     }
 
     protected FunctionDefinition(FunctionDefinition definition) {
+        this.name = definition.name;
         this.parameters = definition.parameters;
         this.resultType = definition.resultType;
         this.expression = definition.expression;
@@ -137,5 +151,10 @@ public class FunctionDefinition {
 
         // Return the integrated parameter list
         return result;
+    }
+
+    private static String[] multiline(String lines) {
+        if (lines == null) return EMPTY_STRING_ARRAY;
+        return lines.split("\\r?\\n");
     }
 }

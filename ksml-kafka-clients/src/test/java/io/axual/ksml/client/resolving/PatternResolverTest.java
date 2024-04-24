@@ -24,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.util.HashMap;
 
 @Slf4j
@@ -42,7 +41,7 @@ public class PatternResolverTest {
 
     @Test
     @DisplayName("Test converter patterns")
-    void testConverter() throws IOException {
+    void testConverter() {
         var vars = new HashMap<String, String>();
         vars.put(TOPIC, "topicname");
         vars.put(TENANT, "tenantnane");

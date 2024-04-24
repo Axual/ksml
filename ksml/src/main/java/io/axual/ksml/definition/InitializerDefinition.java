@@ -26,7 +26,7 @@ import static io.axual.ksml.definition.DefinitionConstants.NO_PARAMETERS;
 public class InitializerDefinition extends FunctionDefinition {
     public InitializerDefinition(FunctionDefinition definition) {
         super(definition
-                .withParameters(mergeParameters(NO_PARAMETERS, definition.parameters))
+                .withParameters(mergeParameters(NO_PARAMETERS, definition.parameters()))
                 .withAResult());
     }
 }
