@@ -31,36 +31,38 @@ import java.util.concurrent.TimeUnit;
  * Scheduler for {@link ExecutableProducer}s.
  */
 public class IntervalSchedule {
-
     private final DelayQueue<ScheduledProducer> scheduledProducers = new DelayQueue<>();
 
     /**
      * Schedule a producer for immediate return.
+     *
      * @param producer a {@link ExecutableProducer}.
      */
     public void schedule(ExecutableProducer producer) {
-        scheduledProducers.put(new ScheduledProducer(producer, Duration.ZERO));
+        scheduledProducers.put(new ScheduledProducer(producer, System.currentTimeMillis()));
     }
 
     /**
      * Schedule a producer to be returned after the specified waiting time.
+     *
      * @param producer a producer to schedule.
-     * @param waitTime {@link Duration} until the producer is returned.
+     * @param startTime {@link Duration} until the producer is returned.
      */
-    public void schedule(ExecutableProducer producer, Duration waitTime) {
-        scheduledProducers.put(new ScheduledProducer(producer, waitTime));
+    public void schedule(ExecutableProducer producer, long startTime) {
+        scheduledProducers.put(new ScheduledProducer(producer, startTime));
     }
 
     /**
      * Return the next scheduled {@link ExecutableProducer}.
      * This method will block at most 10 ms waiting for a producer to return.
+     *
      * @return the next available producer, or <code>null</code> if none available (yet).
      */
-    public ExecutableProducer getScheduledItem() {
+    public ScheduledProducer getScheduledItem() {
         try {
             var result = scheduledProducers.poll(10, TimeUnit.MILLISECONDS);
             if (result != null) {
-                return result.producer;
+                return result;
             }
             return null;
         } catch (InterruptedException e) {
@@ -72,15 +74,7 @@ public class IntervalSchedule {
     /**
      * Inner data class to keep a scheduled producer and the time it should be returned.
      */
-    public static class ScheduledProducer implements Delayed {
-        private final ExecutableProducer producer;
-        private final long startTime;
-
-        public ScheduledProducer(ExecutableProducer producer, Duration waitTime) {
-            this.producer = producer;
-            this.startTime = System.currentTimeMillis() + waitTime.toMillis();
-        }
-
+    public record ScheduledProducer(ExecutableProducer producer, long startTime) implements Delayed {
         @Override
         public long getDelay(TimeUnit unit) {
             long diff = startTime - System.currentTimeMillis();
