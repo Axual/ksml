@@ -42,13 +42,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=ksml
+          ADDITIONAL_MAVEN_ARGS: ${{ github.repository == 'Axual/ksml' && ' org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=ksml' || '' }}
+        run: mvn -B verify $ADDITIONAL_MAVEN_ARGS
         if: ${{ !github.event.pull_request.head.repo.fork }}
       - name: Build and test but no coverage, PR only
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
         run: mvn -B verify
-        if: ${{ github.event.pull_request.head.repo.fork }}
+        if: ${{ github.event.pull_request.head.repo.fork && github.repository == 'Axual/ksml'}}
       - name: verify contents of workspace
         run: |
           ls -l  ${{ github.workspace }}
