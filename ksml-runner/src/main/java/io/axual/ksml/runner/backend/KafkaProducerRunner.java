@@ -75,14 +75,14 @@ public class KafkaProducerRunner implements Runner {
         }
 
         try (final Producer<byte[], byte[]> producer = createProducer(getProducerConfigs())) {
-            log.info("starting Kafka producer(s)");
+            log.info("Starting Kafka producer(s)");
             while (!stopRunning.get() && !hasFailed.get()) {
-                var generator = scheduler.getScheduledItem();
-                if (generator != null) {
-                    log.info("calling {}", generator.name());
-                    generator.produceMessage(producer);
-                    if (generator.shouldReschedule()) {
-                        scheduler.schedule(generator, generator.interval());
+                var scheduledGenerator = scheduler.getScheduledItem();
+                if (scheduledGenerator != null) {
+                    scheduledGenerator.producer().produceMessage(producer);
+                    if (scheduledGenerator.producer().shouldReschedule()) {
+                        final long nextTime = scheduledGenerator.startTime() + scheduledGenerator.producer().interval().toMillis();
+                        scheduler.schedule(scheduledGenerator.producer(), nextTime);
                     }
                 }
             }
@@ -93,7 +93,6 @@ public class KafkaProducerRunner implements Runner {
         isRunning.set(false);
         log.info("Producer(s) stopped");
     }
-
 
     /**
      * Creates a Kafka producer based on the provided config.
