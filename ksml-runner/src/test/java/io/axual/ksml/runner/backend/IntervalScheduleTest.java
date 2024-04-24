@@ -50,7 +50,7 @@ class IntervalScheduleTest {
     @DisplayName("an item becomes available after the interval")
     void returnsAfterInterval() throws InterruptedException {
         // when an item is scheduled in the future
-        scheduler.schedule(one, Duration.ofMillis(300));
+        scheduler.schedule(one, System.currentTimeMillis() + 300);
 
         // at first it's not returned
         assertNull(scheduler.getScheduledItem());
@@ -64,15 +64,16 @@ class IntervalScheduleTest {
     @DisplayName("the item with the shortest wait time is returned first")
     void itemsOrderedOnTime() throws InterruptedException {
         // when two items are scheduled with different wait times
-        scheduler.schedule(one, Duration.ofMillis(200));
-        scheduler.schedule(two, Duration.ofMillis(100));
+        long now = System.currentTimeMillis();
+        scheduler.schedule(one, now + 200);
+        scheduler.schedule(two, now + 100);
 
         // and we wait until the longest of the timeouts expire
         Thread.sleep(600);
 
         // the item that had the shortest wait time is returned first
-        assertEquals(two, scheduler.getScheduledItem());
-        assertEquals(one, scheduler.getScheduledItem());
+        assertEquals(two, scheduler.getScheduledItem().producer());
+        assertEquals(one, scheduler.getScheduledItem().producer());
         assertNull(scheduler.getScheduledItem());
     }
 
