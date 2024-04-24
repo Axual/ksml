@@ -22,7 +22,6 @@ package io.axual.ksml.runner.backend;
 
 import com.google.common.primitives.Ints;
 
-import java.time.Duration;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
@@ -46,7 +45,7 @@ public class IntervalSchedule {
      * Schedule a producer to be returned after the specified waiting time.
      *
      * @param producer a producer to schedule.
-     * @param startTime {@link Duration} until the producer is returned.
+     * @param startTime for when the producer is scheduled to execute.
      */
     public void schedule(ExecutableProducer producer, long startTime) {
         scheduledProducers.put(new ScheduledProducer(producer, startTime));
@@ -56,15 +55,11 @@ public class IntervalSchedule {
      * Return the next scheduled {@link ExecutableProducer}.
      * This method will block at most 10 ms waiting for a producer to return.
      *
-     * @return the next available producer, or <code>null</code> if none available (yet).
+     * @return the next available ScheduledProducer, or <code>null</code> if none available (yet).
      */
     public ScheduledProducer getScheduledItem() {
         try {
-            var result = scheduledProducers.poll(10, TimeUnit.MILLISECONDS);
-            if (result != null) {
-                return result;
-            }
-            return null;
+            return scheduledProducers.poll(10, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return null;
