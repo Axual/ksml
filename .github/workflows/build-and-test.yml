@@ -48,8 +48,7 @@ jobs:
       - name: Build and test for PR
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=ksml
+        run: mvn -B verify
         if: ${{ github.event.pull_request.head.repo.fork && github.repository == 'Axual/ksml'}}
       - name: verify contents of workspace
         run: |
