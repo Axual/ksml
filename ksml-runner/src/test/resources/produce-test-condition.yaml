@@ -1,0 +1,34 @@
+# This example shows how to generate data and have it sent to a target topic in a given format.
+
+functions:
+  generate_indexed:
+    type: generator
+    globalCode: |
+      values = ["one","two","three","four"]
+      index = 0
+    code: |
+      global index
+      key = "key-" + str(index)
+      value = values[index]
+      log.info("will produce key={}, value={}", key, value)
+      index = index + 1
+      if index > 3:
+        index = 0
+    expression: (key, value)                      # Return a message tuple with the key and value
+    resultType: (string, string)                  # Indicate the type of key and value
+
+  stop_produce:
+    type: predicate
+    code: |
+      log.info("evaluating key={} value={}", key, value)
+    expression: value == "two"  # stop producing after writing "two"
+
+producers:
+  fixed_data_producer:
+    generator: generate_indexed
+    interval: 50
+    until: stop_produce
+    to:
+      topic: fixed_kv_cond
+      keyType: string
+      valueType: string
