@@ -17,7 +17,7 @@ jobs:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: download GraalVM
         run: |
-          download_url="https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-21.0.1/graalvm-community-jdk-21.0.1_linux-x64_bin.tar.gz"
+          download_url="https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-21.0.2/graalvm-community-jdk-21.0.2_linux-x64_bin.tar.gz"
           wget -O $RUNNER_TEMP/graal_package.tar.gz $download_url
       - name: Set up GraalVM
         uses: actions/setup-java@v3
@@ -38,17 +38,18 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
-      - name: Build and test coverage
+      - name: Build and test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=ksml
+          ADDITIONAL_MAVEN_ARGS: ${{ github.repository == 'Axual/ksml' && ' org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=ksml' || '' }}
+        run: mvn -B verify $ADDITIONAL_MAVEN_ARGS
         if: ${{ !github.event.pull_request.head.repo.fork }}
-      - name: Build and test but no coverage, PR only
+      - name: Build and test for PR
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
         run: mvn -B verify
-        if: ${{ github.event.pull_request.head.repo.fork }}
+        if: ${{ github.event.pull_request.head.repo.fork && github.repository == 'Axual/ksml'}}
       - name: verify contents of workspace
         run: |
           ls -l  ${{ github.workspace }}

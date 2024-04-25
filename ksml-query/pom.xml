@@ -26,7 +26,6 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -75,7 +74,6 @@
                     <groupId>com.fasterxml.jackson.module</groupId>
                     <artifactId>jackson-module-jakarta-xmlbind-annotations</artifactId>
                 </exclusion>
-
             </exclusions>
         </dependency>
     </dependencies>

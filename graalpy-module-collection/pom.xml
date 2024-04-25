@@ -30,21 +30,30 @@
         </dependency>
 
         <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>1.78</version>
+        </dependency>
+        <dependency>
             <groupId>org.graalvm.python</groupId>
             <artifactId>python-language</artifactId>
-            <version>23.1.1</version>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <!-- Exclude vulnerable dependency v1.76 in  favor of above fixed version -->
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>bcprov-jdk18on</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.graalvm.python</groupId>
             <artifactId>python-resources</artifactId>
-            <version>23.1.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.graalvm.truffle</groupId>
             <artifactId>truffle-runtime</artifactId>
-            <version>23.1.1</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -71,5 +80,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
