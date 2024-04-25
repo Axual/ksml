@@ -1,10 +1,10 @@
-package io.axual.ksml.definition;
+package io.axual.ksml.runner.backend;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Generator
+ * KSML Runner
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2024 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,22 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
-import java.time.Duration;
+import io.axual.ksml.data.object.DataObject;
 
-public record ProducerDefinition(FunctionDefinition generator, Duration interval, FunctionDefinition condition,
-                                 TopicDefinition target, Integer count, FunctionDefinition until) {
+public class CountingReschedule implements RescheduleStrategy {
+
+    private int count;
+
+    public CountingReschedule(int count) {
+        this.count = count;
+    }
+
+    @Override
+    public boolean shouldReschedule(DataObject key, DataObject value) {
+        if (count > 0) {
+            count--;
+            return true;
+        }
+        return false;
+    }
 }
