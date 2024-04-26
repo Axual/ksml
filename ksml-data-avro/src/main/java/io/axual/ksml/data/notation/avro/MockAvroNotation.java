@@ -20,6 +20,17 @@ package io.axual.ksml.data.notation.avro;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.avro.Schema;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serializer;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
@@ -27,17 +38,13 @@ import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
-import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
+import io.confluent.kafka.schemaregistry.avro.AvroSchema;
+import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
 import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
-import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serializer;
-
-import java.util.HashMap;
-import java.util.Map;
+import lombok.Getter;
 
 /**
  * An AVRO {@link Notation} which does not need a running schema registry.
@@ -49,12 +56,24 @@ public class MockAvroNotation implements Notation {
     public static final DataType DEFAULT_TYPE = new StructType();
     private static final AvroDataObjectMapper mapper = new AvroDataObjectMapper();
     private final Map<String, Object> configs = new HashMap<>();
-    private final MockSchemaRegistryClient mockSchemaRegistryClient = new MockSchemaRegistryClient();
+    @Getter
+    private final SyncMockSchemaRegistryClient mockSchemaRegistryClient = new SyncMockSchemaRegistryClient();
 
     public MockAvroNotation(Map<String, ?> configs) {
         this.configs.putAll(configs);
         this.configs.put("schema.registry.url", "mock://mock-scope");
         this.configs.put(KafkaAvroDeserializerConfig.AUTO_REGISTER_SCHEMAS, true);
+    }
+
+    public Map<String, Object> getSchemaRegistryConfigs() {
+        return Collections.unmodifiableMap(configs);
+    }
+
+    public void registerSubjectSchema(String subject, Schema schema) throws RestClientException, IOException {
+        synchronized (mockSchemaRegistryClient) {
+            var parsedSchema = mockSchemaRegistryClient.parseSchema(AvroSchema.TYPE, schema.toString(true), List.of());
+            mockSchemaRegistryClient.register(subject, parsedSchema.get());
+        }
     }
 
     @Override
@@ -72,9 +91,9 @@ public class MockAvroNotation implements Notation {
         throw new DataException("Avro serde not found for data type " + type);
     }
 
-    private static class AvroSerde implements Serde<Object> {
-        private final Serializer<Object> serializer = new KafkaAvroSerializer();
-        private final Deserializer<Object> deserializer = new KafkaAvroDeserializer();
+    private class AvroSerde implements Serde<Object> {
+        private final Serializer<Object> serializer = new KafkaAvroSerializer(mockSchemaRegistryClient);
+        private final Deserializer<Object> deserializer = new KafkaAvroDeserializer(mockSchemaRegistryClient);
         private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
 
         private final Serializer<Object> wrapSerializer =

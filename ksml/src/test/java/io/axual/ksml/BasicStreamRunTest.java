@@ -20,25 +20,13 @@ package io.axual.ksml;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
-import io.axual.ksml.data.notation.NotationLibrary;
-import io.axual.ksml.data.notation.avro.AvroNotation;
-import io.axual.ksml.data.notation.avro.AvroSchemaLoader;
-import io.axual.ksml.data.notation.avro.MockAvroNotation;
-import io.axual.ksml.data.notation.binary.BinaryNotation;
-import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
-import io.axual.ksml.data.notation.json.JsonNotation;
-import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.schema.SchemaLibrary;
-import io.axual.ksml.definition.parser.TopologyDefinitionParser;
-import io.axual.ksml.generator.YAMLObjectMapper;
-import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
-import io.confluent.kafka.serializers.KafkaAvroDeserializer;
-import io.confluent.kafka.serializers.KafkaAvroSerializer;
-import lombok.Builder;
-import org.apache.avro.generic.IndexedRecord;
-import org.apache.kafka.common.serialization.ShortDeserializer;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -50,11 +38,26 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
 
 import java.net.URI;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
+
+import io.axual.ksml.data.notation.NotationLibrary;
+import io.axual.ksml.data.notation.avro.AvroSchemaLoader;
+import io.axual.ksml.data.notation.avro.MockAvroNotation;
+import io.axual.ksml.data.notation.binary.BinaryNotation;
+import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
+import io.axual.ksml.data.notation.json.JsonNotation;
+import io.axual.ksml.data.parser.ParseNode;
+import io.axual.ksml.data.schema.SchemaLibrary;
+import io.axual.ksml.definition.parser.TopologyDefinitionParser;
+import io.axual.ksml.generator.YAMLObjectMapper;
+import io.confluent.kafka.schemaregistry.avro.AvroSchema;
+import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
+import io.confluent.kafka.serializers.KafkaAvroDeserializer;
+import io.confluent.kafka.serializers.KafkaAvroSerializer;
+import lombok.Builder;
 
 @EnabledIf(value = "onGraalVM", disabledReason = "This test needs GraalVM to run")
 public class BasicStreamRunTest {
@@ -96,7 +99,8 @@ public class BasicStreamRunTest {
         NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(jsonNotation::serde), null);
         NotationLibrary.register(JsonNotation.NOTATION_NAME, jsonNotation, new JsonDataObjectConverter());
 
-        NotationLibrary.register(MockAvroNotation.NOTATION_NAME, new MockAvroNotation(new HashMap<>()), null);
+        final var avroNotation = new MockAvroNotation(new HashMap<>());
+        NotationLibrary.register(MockAvroNotation.NOTATION_NAME, avroNotation, null);
 
         URI testDirectory = ClassLoader.getSystemResource("pipelines").toURI();
         String schemaPath = testDirectory.getPath();
@@ -113,13 +117,27 @@ public class BasicStreamRunTest {
         final TopologyDescription description = topology.describe();
         System.out.println(description);
 
-        try (TopologyTestDriver driver = new TopologyTestDriver(topology)) {
-            avroInputTopic = driver.createInputTopic("ksml_sensordata_avro", new StringSerializer(), new KafkaAvroSerializer(new MockSchemaRegistryClient()));
-            var outputTopic = driver.createOutputTopic("ksml_sensordata_copy", new StringDeserializer(), new KafkaAvroDeserializer(new MockSchemaRegistryClient()));
+        final var sensorDataSchema = new Schema.Parser().parse(ClassLoader.getSystemResourceAsStream("pipelines/SensorData.avsc"));
+        final var sensorTypeSchema = sensorDataSchema.getField("type").schema();
 
-            SensorData data = SensorData.builder()
-                    .name("test-name")
-                    .timestamp(System.currentTimeMillis()).value("AMS").type(SensorType.AREA).unit("u").build();
+        try (TopologyTestDriver driver = new TopologyTestDriver(topology)) {
+            final var kafkaAvroSerializer = new KafkaAvroSerializer(avroNotation.mockSchemaRegistryClient());
+            kafkaAvroSerializer.configure(avroNotation.getSchemaRegistryConfigs(), false);
+
+            final var kafkaAvroDeserializer = new KafkaAvroDeserializer(avroNotation.mockSchemaRegistryClient());
+            kafkaAvroDeserializer.configure(avroNotation.getSchemaRegistryConfigs(), false);
+
+            avroInputTopic = driver.createInputTopic("ksml_sensordata_avro", new StringSerializer(), kafkaAvroSerializer);
+            var outputTopic = driver.createOutputTopic("ksml_sensordata_filtered", new StringDeserializer(), kafkaAvroDeserializer);
+
+            GenericRecord data = new GenericData.Record(sensorDataSchema);
+            data.put("name", "test-name");
+            data.put("timestamp", System.currentTimeMillis());
+            data.put("value", "AMS");
+            data.put("type", new GenericData.EnumSymbol(sensorTypeSchema, "AREA"));
+            data.put("unit", "u");
+            data.put("color", "blue");
+
             avroInputTopic.pipeInput("key1", data);
             var keyValue = outputTopic.readKeyValue();
             System.out.printf("Output topic key=%s, value=%s\n", keyValue.key, keyValue.value);
