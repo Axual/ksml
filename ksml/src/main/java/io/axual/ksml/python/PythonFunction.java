@@ -22,6 +22,16 @@ package io.axual.ksml.python;
 
 
 import com.codahale.metrics.Timer;
+
+import org.apache.kafka.streams.processor.StateStore;
+import org.graalvm.polyglot.Value;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.data.object.DataNull;
@@ -37,14 +47,6 @@ import io.axual.ksml.metric.KSMLMetrics;
 import io.axual.ksml.store.StateStores;
 import io.axual.ksml.user.UserFunction;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.streams.processor.StateStore;
-import org.graalvm.polyglot.Value;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import static io.axual.ksml.data.notation.UserType.DEFAULT_NOTATION;
 
@@ -78,13 +80,15 @@ public class PythonFunction extends UserFunction {
             System.out.println("Error in generated Python code:\n" + pyCode);
             throw new ExecutionException("Error in function: " + name);
         }
-        var metricName = new AxualMetricName("execution-time", AxualMetricsUtil.metricTags("namespace", namespace, "function-name", name));
+        var metricName = new AxualMetricName("execution-time", AxualMetricsUtil.metricTags("namespace", namespace, "function-type", type, "function-name", name));
         if (KSMLMetrics.registry().getTimer(metricName) == null) {
             functionTimer = KSMLMetrics.registry().registerTimer(metricName);
         } else {
             functionTimer = KSMLMetrics.registry().getTimer(metricName);
         }
     }
+
+    //ksml:type=timers,name=execution-time,namespace=measurement_router,function-name=pipelines_provider3_via_step2_forEach
 
     @Override
     public DataObject call(StateStores stores, DataObject... parameters) {

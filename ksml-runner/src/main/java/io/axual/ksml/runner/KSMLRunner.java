@@ -23,6 +23,24 @@ package io.axual.ksml.runner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
+import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.utils.Utils;
+import org.apache.kafka.streams.state.HostInfo;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
+
 import io.axual.ksml.client.serde.ResolvingDeserializer;
 import io.axual.ksml.client.serde.ResolvingSerializer;
 import io.axual.ksml.data.mapper.DataTypeSchemaMapper;
@@ -59,23 +77,8 @@ import io.axual.ksml.runner.backend.Runner;
 import io.axual.ksml.runner.config.KSMLErrorHandlingConfig;
 import io.axual.ksml.runner.config.KSMLRunnerConfig;
 import io.axual.ksml.runner.exception.ConfigException;
+import io.axual.ksml.runner.prometheus.PrometheusExport;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.common.utils.Utils;
-import org.apache.kafka.streams.state.HostInfo;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
 
 @Slf4j
 public class KSMLRunner {
@@ -188,7 +191,8 @@ public class KSMLRunner {
                 });
 
                 Runtime.getRuntime().addShutdownHook(shutdownHook);
-                try {
+                try (var prometheusExport = new PrometheusExport(config.getKsmlConfig().getPrometheusConfig())) {
+                    prometheusExport.start();
                     final var executorService = Executors.newFixedThreadPool(2);
                     final var producerFuture = producer == null ? null : executorService.submit(producer);
                     final var streamsFuture = streams == null ? null : executorService.submit(streams);
@@ -266,11 +270,17 @@ public class KSMLRunner {
                     final var writer = new PrintWriter(filename);
                     writer.println(schema);
                     writer.close();
-                    log.info("KSML JSON schema written to file: " + filename);
+                    log.info("KSML JSON schema written to file: {}", filename);
                 } catch (Exception e) {
                     // Ignore
-                    log.error("Error writing KSML JSON schema to file: " + filename);
-                    log.error("Error: " + e.getMessage());
+                    log.atError()
+                            .setMessage("""
+                                    Error writing KSML JSON schema to file: {}
+                                    Error: {}
+                                    """)
+                            .addArgument(filename)
+                            .addArgument(e::getMessage)
+                            .log();
                 }
             } else {
                 System.out.println(schema);
