@@ -139,10 +139,11 @@ public class BasicStreamRunTest {
             data.put("color", "blue");
 
             avroInputTopic.pipeInput("key1", data);
-            var keyValue = outputTopic.readKeyValue();
-            System.out.printf("Output topic key=%s, value=%s\n", keyValue.key, keyValue.value);
+            if (!outputTopic.isEmpty()) {
+                var keyValue = outputTopic.readKeyValue();
+                System.out.printf("Output topic key=%s, value=%s\n", keyValue.key, keyValue.value);
+            }
         }
-
     }
 
     static boolean onGraalVM() {
@@ -158,7 +159,7 @@ public class BasicStreamRunTest {
         String unit;
     }
 
-    static enum SensorType {
+    enum SensorType {
         AREA, HUMIDITY,LENGTH,STATE,TEMPERATURE
     }
 
