@@ -20,23 +20,35 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
-
 import io.axual.ksml.data.notation.UserType;
-import lombok.AllArgsConstructor;
+import io.axual.ksml.store.StoreType;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-@AllArgsConstructor
 @Getter
 @EqualsAndHashCode
-public class TopicDefinition extends AbstractDefinition {
-    private final String topic;
+public abstract class GlobalStateStoreDefinition extends AbstractDefinition {
+    private final StoreType type;
+    private final String name;
+    private final boolean persistent;
+    private final boolean timestamped;
     private final UserType keyType;
     private final UserType valueType;
+    private final boolean caching;
+    private final boolean logging;
+
+    public GlobalStateStoreDefinition(StoreType type, String name, Boolean persistent, Boolean timestamped, UserType keyType, UserType valueType, Boolean caching, Boolean logging) {
+        this.type = type;
+        this.name = name;
+        this.persistent = persistent != null && persistent;
+        this.timestamped = timestamped != null && timestamped;
+        this.keyType = keyType != null ? keyType : UserType.UNKNOWN;
+        this.valueType = valueType != null ? valueType : UserType.UNKNOWN;
+        this.caching = caching != null && caching;
+        this.logging = logging != null && logging;
+    }
 
     public String toString() {
-        final var kt = keyType != null ? ", " + keyType : "";
-        final var vt = valueType != null ? ", " + valueType : "";
-        return definitionType() + "[topic=" + topic + kt + vt + "]";
+        return super.toString() + " [name=" + (name == null ? "Unnamed" : name) + "]";
     }
 }

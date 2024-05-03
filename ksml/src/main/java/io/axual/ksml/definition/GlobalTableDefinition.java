@@ -36,7 +36,7 @@ public class GlobalTableDefinition extends TopicDefinition {
     }
 
     public GlobalTableDefinition(String topic, UserType keyType, UserType valueType, KeyValueStateStoreDefinition store) {
-        super("GlobalTable", topic, keyType, valueType);
+        super(topic, keyType, valueType);
         this.store = store;
     }
 }

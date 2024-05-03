@@ -27,7 +27,7 @@ import lombok.Getter;
 
 @Getter
 @EqualsAndHashCode
-public abstract class StateStoreDefinition {
+public abstract class StateStoreDefinition extends AbstractDefinition {
     private final StoreType type;
     private final String name;
     private final boolean persistent;
@@ -49,10 +49,6 @@ public abstract class StateStoreDefinition {
     }
 
     public String toString() {
-        var type = getClass().getSimpleName();
-        if (type.toLowerCase().endsWith("definition")) {
-            type = type.substring(0, type.length() - 10);
-        }
-        return type + " [name=" + (name == null ? "Unnamed" : name) + "]";
+        return super.toString() + " [name=" + (name == null ? "Unnamed" : name) + "]";
     }
 }

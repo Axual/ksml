@@ -45,6 +45,6 @@ public class TopicDefinitionParser extends DefinitionParser<TopicDefinition> {
                 stringField(Streams.TOPIC, "The name of the Kafka topic"),
                 requireKeyValueType ? keyField : optional(keyField),
                 requireKeyValueType ? valueField : optional(valueField),
-                (topic, keyType, valueType) -> topic != null ? new TopicDefinition("Topic", topic, keyType, valueType) : null);
+                (topic, keyType, valueType) -> topic != null ? new TopicDefinition(topic, keyType, valueType) : null);
     }
 }

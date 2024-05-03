@@ -20,5 +20,10 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
-public record TopicOrTopicNameExtractorDefinition(TopicDefinition topic, FunctionDefinition topicNameExtractor, FunctionDefinition partitioner) {
+public record TopicOrTopicNameExtractorDefinition(TopicDefinition topic, FunctionDefinition topicNameExtractor,
+                                                  FunctionDefinition partitioner) implements Definition {
+    @Override
+    public String toString() {
+        return definitionType();
+    }
 }

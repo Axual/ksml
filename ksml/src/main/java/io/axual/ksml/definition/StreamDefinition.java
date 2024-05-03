@@ -30,6 +30,6 @@ public class StreamDefinition extends TopicDefinition {
     }
 
     public StreamDefinition(String topic, UserType keyType, UserType valueType) {
-        super("Stream", topic, keyType, valueType);
+        super(topic, keyType, valueType);
     }
 }
