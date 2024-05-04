@@ -20,22 +20,16 @@ package io.axual.ksml.testutil;
  * =========================LICENSE_END==================================
  */
 
-import org.junit.jupiter.api.Test;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+@Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-@Test
-public @interface KSMLTest {
+public @interface KSMLTopic {
 
-    String topology();
+    String variable();
 
-    KSMLTopic[] inputTopics();
-
-    KSMLTopic[] outputTopics();
-
+    String topic();
 }
