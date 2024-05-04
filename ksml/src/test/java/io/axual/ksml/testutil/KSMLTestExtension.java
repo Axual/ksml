@@ -72,6 +72,11 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
         String methodName = method.getName();
         KSMLTest ksmlTest = method.getAnnotation(KSMLTest.class);
 
+        if (ksmlTest == null) {
+            // no annotation
+            return;
+        }
+
         // get the KSML definition classpath relative path and load it
         String topologyName = ksmlTest.topology();
         final var uri = ClassLoader.getSystemResource(topologyName).toURI();
