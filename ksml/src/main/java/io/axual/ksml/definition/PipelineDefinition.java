@@ -26,5 +26,9 @@ import io.axual.ksml.operation.StreamOperation;
 import java.util.List;
 
 public record PipelineDefinition(String name, TopologyResource<TopicDefinition> source, List<StreamOperation> chain,
-                                 StreamOperation sink) {
+                                 StreamOperation sink) implements Definition {
+    @Override
+    public String toString() {
+        return definitionType();
+    }
 }

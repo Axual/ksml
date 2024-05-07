@@ -20,5 +20,9 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
-public record ToTopicDefinition(TopicDefinition topic, StreamPartitionerDefinition partitioner) {
+public record ToTopicDefinition(TopicDefinition topic, StreamPartitionerDefinition partitioner) implements Definition {
+    @Override
+    public String toString() {
+        return definitionType();
+    }
 }

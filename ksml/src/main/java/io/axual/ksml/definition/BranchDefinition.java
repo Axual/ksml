@@ -21,5 +21,9 @@ package io.axual.ksml.definition;
  */
 
 
-public record BranchDefinition(FunctionDefinition predicate, PipelineDefinition pipeline) {
+public record BranchDefinition(FunctionDefinition predicate, PipelineDefinition pipeline) implements Definition {
+    @Override
+    public String toString() {
+        return definitionType();
+    }
 }

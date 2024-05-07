@@ -31,8 +31,7 @@ import java.util.HashSet;
 import java.util.List;
 
 @Getter
-public class FunctionDefinition {
-    private static final String DEFINITION_LITERAL = "Definition";
+public class FunctionDefinition extends AbstractDefinition {
     private static final String[] EMPTY_STRING_ARRAY = new String[]{};
     private static final ParameterDefinition[] EMPTY_PARAMETER_ARRAY = new ParameterDefinition[]{};
     private static final List<String> EMPTY_STRING_LIST = new ArrayList<>();
@@ -80,18 +79,10 @@ public class FunctionDefinition {
     }
 
     public FunctionDefinition withAResult() {
-        var type = getClass().getSimpleName();
-        if (DEFINITION_LITERAL.equals(type.substring(type.length() - DEFINITION_LITERAL.length()))) {
-            type = type.substring(0, type.length() - DEFINITION_LITERAL.length());
-        }
-        return withAResult(type);
-    }
-
-    public FunctionDefinition withAResult(String functionType) {
         if (expression == null)
-            throw new TopologyException("Function type requires a result expression: " + functionType);
+            throw new TopologyException("Function type requires a result expression: " + definitionType());
         if (resultType == null)
-            throw new TopologyException("Function type requires a result type: " + functionType);
+            throw new TopologyException("Function type requires a result type: " + definitionType());
         return this;
     }
 
