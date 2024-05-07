@@ -20,9 +20,13 @@ package io.axual.ksml.dsl;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.*;
-
 import java.util.ArrayList;
+
+import io.axual.ksml.data.schema.AnySchema;
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.DataSchemaConstants;
+import io.axual.ksml.data.schema.StructSchema;
 
 public class HeaderSchema {
     private HeaderSchema() {

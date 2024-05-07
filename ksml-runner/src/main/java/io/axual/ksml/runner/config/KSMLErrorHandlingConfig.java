@@ -21,10 +21,17 @@ package io.axual.ksml.runner.config;
  */
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.jackson.Jacksonized;
 
 @Getter
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Builder
+@Jacksonized
 public class KSMLErrorHandlingConfig {
     private ErrorHandlingConfig consume;
     private ErrorHandlingConfig produce;

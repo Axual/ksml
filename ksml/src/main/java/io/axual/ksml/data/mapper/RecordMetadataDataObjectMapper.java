@@ -20,16 +20,19 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.common.header.internals.RecordHeaders;
+
 import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.RecordMetadata;
-import org.apache.kafka.common.header.internals.RecordHeaders;
 
 import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA_HEADERS_FIELD;
 import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA_TIMESTAMP_FIELD;
-import static io.axual.ksml.dsl.RecordMetadataSchema.*;
+import static io.axual.ksml.dsl.RecordMetadataSchema.RECORD_METADATA_SCHEMA;
+import static io.axual.ksml.dsl.RecordMetadataSchema.RECORD_METADATA_SCHEMA_HEADERS_FIELD;
+import static io.axual.ksml.dsl.RecordMetadataSchema.RECORD_METADATA_SCHEMA_TIMESTAMP_FIELD;
 
 public class RecordMetadataDataObjectMapper implements DataObjectMapper<RecordMetadata> {
     private static final HeaderDataObjectMapper HEADER_MAPPER = new HeaderDataObjectMapper();

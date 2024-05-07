@@ -15,9 +15,6 @@
 
     <properties>
         <!-- Compress excluded from avro CVE-2024-25710 CVE-2024-26308  -->
-        <apache.commons.compress.version>1.26.0</apache.commons.compress.version>
-
-        <apache.avro.version>1.11.3</apache.avro.version>
         <sonar.coverage.jacoco.xmlReportPaths>../ksml-reporting/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
@@ -31,7 +28,6 @@
         <dependency>
             <groupId>org.apache.avro</groupId>
             <artifactId>avro</artifactId>
-            <version>${apache.avro.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.commons</groupId>
@@ -59,6 +55,10 @@
                     <groupId>org.yaml</groupId>
                     <artifactId>snakeyaml</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-compress</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 
@@ -71,7 +71,6 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
-            <version>${apache.commons.compress.version}</version>
         </dependency>
     </dependencies>
 

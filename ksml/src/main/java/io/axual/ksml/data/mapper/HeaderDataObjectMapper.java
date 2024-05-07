@@ -20,12 +20,18 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.object.*;
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeaders;
+
+import io.axual.ksml.data.object.DataBytes;
+import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.serde.StringSerde;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
-import org.apache.kafka.common.header.Headers;
-import org.apache.kafka.common.header.internals.RecordHeaders;
 
 public class HeaderDataObjectMapper implements DataObjectMapper<Headers> {
     private static final StringSerde STRING_SERDE = new StringSerde();

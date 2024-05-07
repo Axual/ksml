@@ -20,13 +20,18 @@ package io.axual.ksml.metric;
  * =========================LICENSE_END==================================
  */
 
-import com.codahale.metrics.*;
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Histogram;
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.Metric;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
 import com.codahale.metrics.jmx.JmxReporter;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 /**
@@ -41,7 +46,6 @@ import java.util.function.Supplier;
 public class AxualMetricsRegistry {
     private final MetricRegistry metricRegistry;
     private JmxReporter jmxReporter;
-    private final ConsoleReporter reporter;
 
     private final Map<AxualMetricName, Metric> registeredMetrics = new HashMap<>();
 
@@ -52,8 +56,6 @@ public class AxualMetricsRegistry {
     // For testing
     AxualMetricsRegistry(MetricRegistry registry) {
         this.metricRegistry = registry;
-        reporter = ConsoleReporter.forRegistry(registry).outputTo(System.err).build();
-        reporter.start(5, TimeUnit.SECONDS);
     }
 
     /**

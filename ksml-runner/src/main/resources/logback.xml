@@ -1,44 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="false">
-    <appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
-        <target>System.err</target>
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>WARN</level>
-        </filter>
-        <encoder>
-            <pattern>%date{"yyyy-MM-dd'T'HH:mm:ss,SSSXXX", UTC} %-5level %-36logger{36} %msg%n</pattern>
-        </encoder>
-    </appender>
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <target>System.out</target>
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <level>TRACE</level>
-            <onMatch>ACCEPT</onMatch>
-        </filter>
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <level>DEBUG</level>
-            <onMatch>ACCEPT</onMatch>
-        </filter>
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <level>INFO</level>
-            <onMatch>ACCEPT</onMatch>
-        </filter>
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <level>WARN</level>
-            <onMatch>DENY</onMatch>
-        </filter>
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <level>ERROR</level>
-            <onMatch>DENY</onMatch>
-        </filter>
-        <encoder>
-            <pattern>%date{"yyyy-MM-dd'T'HH:mm:ss,SSSXXX", UTC} %-5level %-36logger{36} %msg%n</pattern>
-        </encoder>
-    </appender>
+    <variable resource="logback-defaults.properties"/>
+
+    <if condition='"true".equalsIgnoreCase( property( "LOGBACK_USE_JSON" ) )'>
+        <then>
+            <include resource="logback-ksml-json.xml"/>
+        </then>
+        <else>
+            <include resource="logback-ksml-std.xml"/>
+        </else>
+    </if>
 
     <root level="INFO">
-        <appender-ref ref="STDOUT" />
-        <appender-ref ref="STDERR" />
+        <appender-ref ref="${STD_OUT_APPENDER_NAME}"/>
+        <appender-ref ref="${STD_ERR_APPENDER_NAME}"/>
     </root>
 
     <logger name="io.axual" level="WARN"/>
@@ -50,6 +25,4 @@
     <logger name="org.apache.kafka.streams.StreamsConfig" level="ERROR"/>
     <logger name="io.confluent" level="WARN"/>
     <logger name="io.axual.ksml" level="INFO"/>
-    <logger name="io.axual.client" level="WARN"/>
-    <logger name="io.axual.discovery.client.fetcher" level="DEBUG"/>
 </configuration>

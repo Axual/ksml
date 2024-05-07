@@ -21,12 +21,9 @@ package io.axual.ksml.runner.config;
  */
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.axual.ksml.data.notation.binary.JsonNodeNativeMapper;
-import io.axual.ksml.generator.YAMLObjectMapper;
-import io.axual.ksml.runner.exception.ConfigException;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -34,13 +31,31 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.axual.ksml.data.notation.binary.JsonNodeNativeMapper;
+import io.axual.ksml.generator.YAMLObjectMapper;
+import io.axual.ksml.runner.exception.ConfigException;
+import lombok.Builder;
+import lombok.extern.jackson.Jacksonized;
+import lombok.extern.slf4j.Slf4j;
+
 @Slf4j
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Builder
+@Jacksonized
 public class KSMLConfig {
-    private static final String DEFAULT_HOSTNAME = "0.0.0.0";
-    private static final String DEFAULT_PORT = "8080";
+    private static final PrometheusConfig DEFAULT_PROMETHEUS_CONFIG = PrometheusConfig.builder()
+            .enabled(false)
+            .build();
+    private static final ApplicationServerConfig DEFAULT_APPSERVER_CONFIG = ApplicationServerConfig.builder()
+            .enabled(false)
+            .build();
 
     @JsonProperty("applicationServer")
-    private ApplicationServerConfig applicationServer;
+    @Builder.Default
+    private ApplicationServerConfig applicationServer = DEFAULT_APPSERVER_CONFIG;
+    @JsonProperty("prometheus")
+    @Builder.Default
+    private PrometheusConfig prometheusConfig = DEFAULT_PROMETHEUS_CONFIG;
     private String configDirectory;
     private String schemaDirectory;
     private String storageDirectory;
@@ -78,8 +93,12 @@ public class KSMLConfig {
         return applicationServer;
     }
 
+    public PrometheusConfig getPrometheusConfig(){
+        return prometheusConfig;
+    }
+
     public KSMLErrorHandlingConfig getErrorHandlingConfig() {
-        if (errorHandling == null) return new KSMLErrorHandlingConfig();
+        if (errorHandling == null) return KSMLErrorHandlingConfig.builder().build();
         return errorHandling;
     }
 
@@ -88,7 +107,7 @@ public class KSMLConfig {
         if (definitions != null) {
             for (Map.Entry<String, Object> definition : definitions.entrySet()) {
                 if (definition.getValue() instanceof String definitionFile) {
-                    final var definitionFilePath = Paths.get(configDirectory, definitionFile);
+                    final var definitionFilePath = Paths.get(getConfigDirectory(), definitionFile);
                     if (Files.notExists(definitionFilePath) || !Files.isRegularFile(definitionFilePath)) {
                         throw new ConfigException("definitionFile", definitionFilePath, "The provided KSML definition file does not exists or is not a regular file");
                     }

@@ -22,15 +22,19 @@ package io.axual.ksml;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
+import io.axual.ksml.data.notation.NotationLibrary;
+import io.axual.ksml.data.notation.binary.BinaryNotation;
+import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
+import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TopologyDescription;
 import org.graalvm.home.Version;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -41,22 +45,19 @@ import java.nio.file.Paths;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.fail;
 
 public class TopologyGeneratorBasicTest {
 
     private final StreamsBuilder streamsBuilder = new StreamsBuilder();
 
-    @BeforeAll
-    public static void checkGraalVM() {
-        if (!Version.getCurrent().isRelease()) {
-            fail("This test needs GraalVM to work.");
-        }
-    }
-
-//    @ParameterizedTest
+    @ParameterizedTest
+    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
     @ValueSource(ints = {1, 2, 3, 4, 5})
     void parseAndCheckOuput(int nr) throws Exception {
+        final var jsonNotation = new JsonNotation();
+        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(jsonNotation::serde), null);
+        NotationLibrary.register(JsonNotation.NOTATION_NAME, jsonNotation, new JsonDataObjectConverter());
+
         final var uri = ClassLoader.getSystemResource("pipelines/" + nr + "-demo.yaml").toURI();
         final var path = Paths.get(uri);
         final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(path), JsonNode.class);
@@ -68,9 +69,17 @@ public class TopologyGeneratorBasicTest {
         System.out.println(description);
 
         URI referenceURI = ClassLoader.getSystemResource("reference/" + nr + "-reference.txt").toURI();
-        String reference = Files.readString(Paths.get(referenceURI));
+        // Get the reference and clean the newlines
+        String reference = cleanDescription(Files.readString(Paths.get(referenceURI)));
 
         assertThat(cleanDescription(description.toString()), is(reference));
+    }
+
+    /**
+     * Evaluates the condition for the test above.
+     */
+    static boolean isRunningOnGraalVM() {
+        return Version.getCurrent().isRelease();
     }
 
     @ParameterizedTest
@@ -97,6 +106,7 @@ public class TopologyGeneratorBasicTest {
     private String cleanDescription(String description) {
         return description
                 .replaceAll("@[a-fA-F-0-9]{5,}", "")
-                .replaceAll("\r\n", "\n");
+                .replaceAll("\r\n", "\n")
+                .trim();
     }
 }

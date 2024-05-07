@@ -2,9 +2,9 @@ package io.axual.ksml.runner.backend;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Generator
+ * KSML Runner
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2024 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,42 +20,66 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TreeMap;
+import com.google.common.primitives.Ints;
 
-public class IntervalSchedule<T> {
-    private record ScheduledItem<T>(long interval, T item) {
+import java.util.concurrent.DelayQueue;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * Scheduler for {@link ExecutableProducer}s.
+ */
+public class IntervalSchedule {
+    private final DelayQueue<ScheduledProducer> scheduledProducers = new DelayQueue<>();
+
+    /**
+     * Schedule a producer for immediate return.
+     *
+     * @param producer a {@link ExecutableProducer}.
+     */
+    public void schedule(ExecutableProducer producer) {
+        scheduledProducers.put(new ScheduledProducer(producer, System.currentTimeMillis()));
     }
 
-    private final TreeMap<Long, List<ScheduledItem<T>>> schedule = new TreeMap<>();
-
-    public void schedule(long interval, T item) {
-        var firstTime = System.currentTimeMillis();
-        var items = schedule.computeIfAbsent(firstTime, ts -> new ArrayList<>());
-        items.add(new ScheduledItem<>(interval, item));
+    /**
+     * Schedule a producer to be returned after the specified waiting time.
+     *
+     * @param producer a producer to schedule.
+     * @param startTime for when the producer is scheduled to execute.
+     */
+    public void schedule(ExecutableProducer producer, long startTime) {
+        scheduledProducers.put(new ScheduledProducer(producer, startTime));
     }
 
-    public T getScheduledItem() {
-        var firstScheduled = schedule.firstEntry();
-        while (firstScheduled != null) {
-            // If the scheduled item is in the future, then return no item
-            if (firstScheduled.getKey() >= System.currentTimeMillis()) return null;
-
-            if (!firstScheduled.getValue().isEmpty()) {
-                // Extract the scheduled item from the list
-                var result = firstScheduled.getValue().getFirst();
-                firstScheduled.getValue().removeFirst();
-                // Reschedule for the next interval
-                var nextTime = firstScheduled.getKey() + result.interval();
-                var items = schedule.computeIfAbsent(nextTime, ts -> new ArrayList<>());
-                items.add(result);
-                // Finally return the scheduled item
-                return result.item;
-            }
-            schedule.remove(firstScheduled.getKey());
-            firstScheduled = schedule.firstEntry();
+    /**
+     * Return the next scheduled {@link ExecutableProducer}.
+     * This method will block at most 10 ms waiting for a producer to return.
+     *
+     * @return the next available ScheduledProducer, or <code>null</code> if none available (yet).
+     */
+    public ScheduledProducer getScheduledItem() {
+        try {
+            return scheduledProducers.poll(10, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
         }
-        return null;
+    }
+
+    /**
+     * Inner data class to keep a scheduled producer and the time it should be returned.
+     */
+    public record ScheduledProducer(ExecutableProducer producer, long startTime) implements Delayed {
+        @Override
+        public long getDelay(TimeUnit unit) {
+            long diff = startTime - System.currentTimeMillis();
+            return unit.convert(diff, TimeUnit.MILLISECONDS);
+        }
+
+        @Override
+        public int compareTo(Delayed other) {
+            return Ints.saturatedCast(
+                    this.startTime - ((ScheduledProducer) other).startTime);
+        }
     }
 }

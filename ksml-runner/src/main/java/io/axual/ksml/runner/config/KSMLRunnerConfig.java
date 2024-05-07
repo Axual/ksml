@@ -21,16 +21,23 @@ package io.axual.ksml.runner.config;
  */
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 
+import lombok.Builder;
+import lombok.Data;
+import lombok.extern.jackson.Jacksonized;
+import lombok.extern.slf4j.Slf4j;
+
 @Slf4j
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Builder
+@Jacksonized
 public class KSMLRunnerConfig {
     private static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 
