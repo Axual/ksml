@@ -24,13 +24,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.TopologyGenerator;
 import io.axual.ksml.data.notation.NotationLibrary;
+import io.axual.ksml.data.notation.avro.AvroSchemaLoader;
+import io.axual.ksml.data.notation.avro.MockAvroNotation;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
 import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.data.parser.ParseNode;
+import io.axual.ksml.data.schema.SchemaLibrary;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.generator.YAMLObjectMapper;
+import io.confluent.kafka.serializers.KafkaAvroDeserializer;
+import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -41,19 +48,23 @@ import org.junit.jupiter.api.extension.*;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
 @Slf4j
 public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback, BeforeEachCallback, AfterEachCallback {
 
-    private final StreamsBuilder streamsBuilder = new StreamsBuilder();
+    private StreamsBuilder streamsBuilder;
 
     private Set<Field> modifiedFields = new HashSet<>();
 
     private TopologyTestDriver topologyTestDriver;
+
+    final MockAvroNotation avroNotation = new MockAvroNotation(new HashMap<>());
 
     /**
      * Check if the test(s) are running on GraalVM.
@@ -86,11 +97,12 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
         final var jsonNotation = new JsonNotation();
         NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(jsonNotation::serde), null);
         NotationLibrary.register(JsonNotation.NOTATION_NAME, jsonNotation, new JsonDataObjectConverter());
-
+        NotationLibrary.register(MockAvroNotation.NOTATION_NAME, avroNotation, null);
     }
 
     @Override
     public void beforeEach(ExtensionContext extensionContext) throws Exception {
+        streamsBuilder = new StreamsBuilder();
         if (extensionContext.getTestMethod().isEmpty()) {
             return;
         }
@@ -105,8 +117,19 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
             return;
         }
 
+        log.debug("Setting up KSML test");
+        // if a schema path is specified, set up AVRO
+        if (!ksmlTest.schemapath().equals(ksmlTest.NO_SCHEMAS)) {
+            log.debug("register schema path: `{}`", ksmlTest.schemapath());
+            URI schemaDirectory = ClassLoader.getSystemResource(ksmlTest.schemapath()).toURI();
+            String schemaPath = schemaDirectory.getPath();
+            SchemaLibrary.registerLoader(MockAvroNotation.NOTATION_NAME, new AvroSchemaLoader(schemaPath));
+            log.debug("registered schema path: {}", schemaPath);
+        }
+
         // get the KSML definition classpath relative path and load it
         String topologyName = ksmlTest.topology();
+        log.debug("loading topology {}", topologyName);
         final var uri = ClassLoader.getSystemResource(topologyName).toURI();
         final var path = Paths.get(uri);
         final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(path), JsonNode.class);
@@ -125,14 +148,14 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
             log.debug("set variable {} to topic {}", ksmlTopic.variable(), ksmlTopic.topic());
             Field inputTopicField = testClass.getDeclaredField(ksmlTopic.variable());
             inputTopicField.setAccessible(true);
-            inputTopicField.set(testInstance, topologyTestDriver.createInputTopic(ksmlTopic.topic(), new StringSerializer(), new StringSerializer()));
+            inputTopicField.set(testInstance, topologyTestDriver.createInputTopic(ksmlTopic.topic(), getKeySerializer(ksmlTopic), getValueSerializer(ksmlTopic)));
             modifiedFields.add(inputTopicField);
         }
         for (KSMLTopic ksmlTopic: ksmlTest.outputTopics()) {
             log.debug("set variable {} to topic {}", ksmlTopic.variable(), ksmlTopic.topic());
             Field outputTopicField = testClass.getDeclaredField(ksmlTopic.variable());
             outputTopicField.setAccessible(true);
-            outputTopicField.set(testInstance, topologyTestDriver.createOutputTopic(ksmlTopic.topic(), new StringDeserializer(), new StringDeserializer()));
+            outputTopicField.set(testInstance, topologyTestDriver.createOutputTopic(ksmlTopic.topic(), getKeyDeserializer(ksmlTopic), getValueDeserializer(ksmlTopic)));
             modifiedFields.add(outputTopicField);
         }
     }
@@ -149,17 +172,65 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
             // method was not annotated, nothing to do
             return;
         }
+        // TODO unregister schema directory? But not like this
+        SchemaLibrary.registerLoader(MockAvroNotation.NOTATION_NAME, null);
 
         // clean up
-        topologyTestDriver.close();
-        topologyTestDriver = null;
+        if (topologyTestDriver != null) {
+            topologyTestDriver.close();
+            topologyTestDriver = null;
+        }
 
         // clear any set fields
         var testInstance = context.getRequiredTestInstance();
         for (Field field: modifiedFields) {
             field.setAccessible(true);
             field.set(testInstance, null);
-
         }
+    }
+
+    private Serializer<?> getKeySerializer(KSMLTopic ksmlTopic) {
+        return switch (ksmlTopic.keySerde()) {
+            case AVRO -> {
+                var result = new KafkaAvroSerializer(avroNotation.mockSchemaRegistryClient());
+                result.configure(avroNotation.getSchemaRegistryConfigs(), true);
+                yield result;
+            }
+            case STRING -> new StringSerializer();
+            default -> new StringSerializer();
+        };
+    }
+
+    private Serializer<?> getValueSerializer(KSMLTopic ksmlTopic) {
+        return switch (ksmlTopic.valueSerde()) {
+            case AVRO -> {
+                var result = new KafkaAvroSerializer(avroNotation.mockSchemaRegistryClient());
+                result.configure(avroNotation.getSchemaRegistryConfigs(), false);
+                yield result;
+            }
+            case STRING -> new StringSerializer();
+        };
+    }
+
+    private Deserializer<?> getKeyDeserializer(KSMLTopic kamlTopic) {
+        return switch (kamlTopic.keySerde()) {
+            case AVRO -> {
+                var result = new KafkaAvroDeserializer(avroNotation.mockSchemaRegistryClient());
+                result.configure(avroNotation.getSchemaRegistryConfigs(), true);
+                yield  result;
+            }
+            case STRING -> new StringDeserializer();
+        };
+    }
+
+    private Deserializer<?> getValueDeserializer(KSMLTopic kamlTopic) {
+        return switch (kamlTopic.valueSerde()) {
+            case AVRO -> {
+                var result = new KafkaAvroDeserializer(avroNotation.mockSchemaRegistryClient());
+                result.configure(avroNotation.getSchemaRegistryConfigs(), false);
+                yield result;
+            }
+            case STRING -> new StringDeserializer();
+        };
     }
 }

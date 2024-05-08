@@ -27,12 +27,19 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Annotation used to mark a test as a KSML topology test.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Test
 public @interface KSMLTest {
 
+    String NO_SCHEMAS = "";
+
     String topology();
+
+    String schemapath() default NO_SCHEMAS;
 
     KSMLTopic[] inputTopics();
 

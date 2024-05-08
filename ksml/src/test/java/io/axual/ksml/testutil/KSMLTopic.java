@@ -25,6 +25,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Annotation used to pass on information used to match a topic in the topology to a variable in the test code.
+ */
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface KSMLTopic {
@@ -32,4 +35,10 @@ public @interface KSMLTopic {
     String variable();
 
     String topic();
+
+    SerdeType keySerde() default SerdeType.STRING;
+
+    SerdeType valueSerde() default SerdeType.STRING;
+
+    static enum SerdeType { STRING, AVRO }
 }

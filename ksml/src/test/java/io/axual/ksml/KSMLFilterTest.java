@@ -78,7 +78,7 @@ class KSMLFilterTest {
     }
 
     @Test
-    void testFilterAvroRecords() throws Exception {
+    void testFilterAvroRecordsOld() throws Exception {
         log.debug("testFilterAvroRecords()");
 
         final var avroNotation = new MockAvroNotation(new HashMap<>());
@@ -99,8 +99,6 @@ class KSMLFilterTest {
         final TopologyDescription description = topology.describe();
         System.out.println(description);
 
-        final var sensorDataSchema = new Schema.Parser().parse(ClassLoader.getSystemResourceAsStream("pipelines/SensorData.avsc"));
-        final var sensorTypeSchema = sensorDataSchema.getField("type").schema();
 
         try (TopologyTestDriver driver = new TopologyTestDriver(topology)) {
             final var kafkaAvroSerializer = new KafkaAvroSerializer(avroNotation.mockSchemaRegistryClient());
@@ -111,6 +109,10 @@ class KSMLFilterTest {
 
             inputTopic = driver.createInputTopic("ksml_sensordata_avro", new StringSerializer(), kafkaAvroSerializer);
             outputTopic = driver.createOutputTopic("ksml_sensordata_filtered", new StringDeserializer(), kafkaAvroDeserializer);
+
+            // schema's only used for sending data
+            final var sensorDataSchema = new Schema.Parser().parse(ClassLoader.getSystemResourceAsStream("pipelines/SensorData.avsc"));
+            final var sensorTypeSchema = sensorDataSchema.getField("type").schema();
 
             GenericRecord data = new GenericData.Record(sensorDataSchema);
             data.put("name", "test-name");
@@ -126,5 +128,28 @@ class KSMLFilterTest {
                 System.out.printf("Output topic key=%s, value=%s\n", keyValue.key, keyValue.value);
             }
         }
+    }
+
+    @KSMLTest(topology = "pipelines/03-example-filter.yaml", schemapath = "pipelines",
+            inputTopics = {@KSMLTopic(variable = "inputTopic", topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)},
+            outputTopics = {@KSMLTopic(variable = "outputTopic", topic = "ksml_sensordata_filtered", valueSerde = KSMLTopic.SerdeType.AVRO)})
+    void testFilterAvroRecords() throws Exception {
+        log.debug("testFilterAvroRecords()");
+            final var sensorDataSchema = new Schema.Parser().parse(ClassLoader.getSystemResourceAsStream("pipelines/SensorData.avsc"));
+            final var sensorTypeSchema = sensorDataSchema.getField("type").schema();
+
+            GenericRecord data = new GenericData.Record(sensorDataSchema);
+            data.put("name", "test-name");
+            data.put("timestamp", System.currentTimeMillis());
+            data.put("value", "AMS");
+            data.put("type", new GenericData.EnumSymbol(sensorTypeSchema, "AREA"));
+            data.put("unit", "u");
+            data.put("color", "blue");
+
+            inputTopic.pipeInput("key1", data);
+            if (!outputTopic.isEmpty()) {
+                var keyValue = outputTopic.readKeyValue();
+                System.out.printf("Output topic key=%s, value=%s\n", keyValue.key, keyValue.value);
+            }
     }
 }
