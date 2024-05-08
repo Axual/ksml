@@ -25,23 +25,23 @@ functions:
     parameters:
       - name: format
         type: string
-    code: log.info("Consumed {} message - key={}, value={}, headers={}", format, key, value, headers)
+    code: log.info("Consumed {} message - key={}, value={}, format, key, value, headers)
 
 pipelines:
   # Every pipeline logs its own message, passing in the format parameter to log_message above
   consume_avro:
     from: sensor_source_avro
     forEach:
-      code: log_message(key, value, headers, format="AVRO")
+      code: log_message(key, value, format="AVRO")
   consume_csv:
     from: sensor_source_csv
     forEach:
-      code: log_message(key, value, headers, format="CSV")
+      code: log_message(key, value, format="CSV")
   consume_json:
     from: sensor_source_json
     forEach:
-      code: log_message(key, value, headers, format="JSON")
+      code: log_message(key, value, format="JSON")
   consume_xml:
     from: sensor_source_xml
     forEach:
-      code: log_message(key, value, headers, format="XML")
+      code: log_message(key, value, format="XML")

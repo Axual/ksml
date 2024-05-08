@@ -20,12 +20,18 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.HostAccess;
+import org.graalvm.polyglot.PolyglotAccess;
+import org.graalvm.polyglot.Source;
+import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.io.IOAccess;
+
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataObjectConverter;
+import io.axual.ksml.metric.KSMLMetrics;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.graalvm.polyglot.*;
-import org.graalvm.polyglot.io.IOAccess;
 
 @Slf4j
 public class PythonContext {
@@ -34,9 +40,11 @@ public class PythonContext {
     private final Context context;
     @Getter
     private final DataObjectConverter converter;
+    private final MetricsBridge metricsBridge;
 
     public PythonContext() {
         this.converter = new DataObjectConverter();
+        this.metricsBridge = new MetricsBridge(KSMLMetrics.registry());
 
         log.debug("Setting up new Python context");
         try {
@@ -45,7 +53,7 @@ public class PythonContext {
                     .allowNativeAccess(true)
                     .allowPolyglotAccess(PolyglotAccess.ALL)
                     .allowHostAccess(HostAccess.ALL)
-                    .allowHostClassLookup(name -> name.equals("java.util.ArrayList") || name.equals("java.util.HashMap") || name.equals("java.util.TreeMap"))
+                    .allowHostClassLookup(name -> name.equals("io.axual.ksml.data.value.Pair") || name.equals("java.util.ArrayList") || name.equals("java.util.HashMap") || name.equals("java.util.TreeMap"))
                     .build();
             registerGlobalCode();
         } catch (Exception e) {
@@ -71,17 +79,46 @@ public class PythonContext {
         // name.
         final var pyCode = """
                 loggerBridge = None
+                metricsBridge = None
                 import polyglot
+                import java
+                import typing
+                ArrayList = java.type('java.util.ArrayList')
+                Pair = java.type('io.axual.ksml.data.value.Pair')
                 @polyglot.export_value
-                def register_ksml_logger_bridge(lb):
+                def register_ksml_bridges(lb, mb):
                   global loggerBridge
+                  global metricsBridge
                   loggerBridge = lb
+                  metricsBridge = mb
+                
+                def metrics_get_timer( name: str, tags: typing.Dict[str,str] = None ) :
+                  tagList = ArrayList()
+                  if tags is not None:
+                    for tagKey in tags:
+                      tagList.add( Pair( str(tagKey), str(tags[tagKey]) ) )
+                  return metricsBridge.timer( name, tagList )
+
+                def metrics_get_counter( name: str, tags: typing.Dict[str,str] = None ) :
+                  tagList = ArrayList()
+                  if tags is not None:
+                    for tagKey in tags:
+                      tagList.add( Pair( str(tagKey), str(tags[tagKey]) ) )
+                  return metricsBridge.counter( name, tagList )
+
+                def metrics_get_meter( name: str, tags: typing.Dict[str,str] = None ) :
+                  tagList = ArrayList()
+                  if tags is not None:
+                    for tagKey in tags:
+                      tagList.add( Pair( str(tagKey), str(tags[tagKey]) ) )
+                  return metricsBridge.meter( name, tagList )
+
                 """;
-        final var register = registerFunction(pyCode, "register_ksml_logger_bridge");
+        final var register = registerFunction(pyCode, "register_ksml_bridges");
         if (register == null) {
             throw new ExecutionException("Could not register global code for loggerBridge:\n" + pyCode);
         }
         // Load the global LOGGER_BRIDGE variable into the context
-        register.execute(LOGGER_BRIDGE);
+        register.execute(LOGGER_BRIDGE, metricsBridge);
     }
 }
