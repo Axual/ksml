@@ -135,21 +135,21 @@ class KSMLFilterTest {
             outputTopics = {@KSMLTopic(variable = "outputTopic", topic = "ksml_sensordata_filtered", valueSerde = KSMLTopic.SerdeType.AVRO)})
     void testFilterAvroRecords() throws Exception {
         log.debug("testFilterAvroRecords()");
-            final var sensorDataSchema = new Schema.Parser().parse(ClassLoader.getSystemResourceAsStream("pipelines/SensorData.avsc"));
-            final var sensorTypeSchema = sensorDataSchema.getField("type").schema();
+        final var sensorDataSchema = new Schema.Parser().parse(ClassLoader.getSystemResourceAsStream("pipelines/SensorData.avsc"));
+        final var sensorTypeSchema = sensorDataSchema.getField("type").schema();
 
-            GenericRecord data = new GenericData.Record(sensorDataSchema);
-            data.put("name", "test-name");
-            data.put("timestamp", System.currentTimeMillis());
-            data.put("value", "AMS");
-            data.put("type", new GenericData.EnumSymbol(sensorTypeSchema, "AREA"));
-            data.put("unit", "u");
-            data.put("color", "blue");
+        GenericRecord data = new GenericData.Record(sensorDataSchema);
+        data.put("name", "test-name");
+        data.put("timestamp", System.currentTimeMillis());
+        data.put("value", "AMS");
+        data.put("type", new GenericData.EnumSymbol(sensorTypeSchema, "AREA"));
+        data.put("unit", "u");
+        data.put("color", "blue");
 
-            inputTopic.pipeInput("key1", data);
-            if (!outputTopic.isEmpty()) {
-                var keyValue = outputTopic.readKeyValue();
-                System.out.printf("Output topic key=%s, value=%s\n", keyValue.key, keyValue.value);
-            }
+        inputTopic.pipeInput("key1", data);
+        if (!outputTopic.isEmpty()) {
+            var keyValue = outputTopic.readKeyValue();
+            System.out.printf("Output topic key=%s, value=%s\n", keyValue.key, keyValue.value);
+        }
     }
 }
