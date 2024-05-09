@@ -20,6 +20,7 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataList;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 
 import io.axual.ksml.data.object.DataLong;
@@ -51,7 +52,7 @@ public class RecordMetadataDataObjectMapper implements DataObjectMapper<RecordMe
             throw new IllegalArgumentException("Can not convert to RecordMetadata from type " + value);
         }
         final var timestamp = valueStruct.getAs(RECORD_CONTEXT_SCHEMA_TIMESTAMP_FIELD, DataLong.class);
-        final var headers = valueStruct.getAs(RECORD_CONTEXT_SCHEMA_HEADERS_FIELD, DataStruct.class);
+        final var headers = valueStruct.getAs(RECORD_CONTEXT_SCHEMA_HEADERS_FIELD, DataList.class);
         return new RecordMetadata(
                 timestamp != null ? timestamp.value() : null,
                 headers != null ? HEADER_MAPPER.fromDataObject(headers) : new RecordHeaders()

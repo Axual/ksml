@@ -20,11 +20,6 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
-<<<<<<< HEAD
-import io.axual.ksml.data.object.*;
-import io.axual.ksml.data.type.DataType;
-=======
->>>>>>> jeroen/metrics-implementation
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.streams.processor.RecordContext;
 import org.apache.kafka.streams.processor.internals.ProcessorRecordContext;

@@ -13,7 +13,7 @@ functions:
     parameters:
       - name: pipeline
         type: string
-    code: log.info("Consumed {} message - key={}, value={}, headers={}", pipeline, key, value, headers)
+    code: log.info("Consumed {} message - key={}, value={}", pipeline, key, value)
 
 pipelines:
   # Every pipeline logs its own message and then ends by naming the pipeline for further processing using the "as"
@@ -24,7 +24,7 @@ pipelines:
     via:
       - type: peek
         forEach:
-          code: log_message(key, value, headers, pipeline="FIRST")
+          code: log_message(key, value, pipeline="FIRST")
     # Close the pipeline by saving its output under a self-defined name
     as: first_pipeline_result
 
@@ -34,7 +34,7 @@ pipelines:
     via:
       - type: peek
         forEach:
-          code: log_message(key, value, headers, pipeline="SECOND")
+          code: log_message(key, value, pipeline="SECOND")
     # Close the pipeline by saving its output under a self-defined name
     as: second_pipeline_result
 
@@ -44,7 +44,7 @@ pipelines:
     via:
       - type: peek
         forEach:
-          code: log_message(key, value, headers, pipeline="THIRD")
+          code: log_message(key, value, pipeline="THIRD")
     # Close the pipeline implicitly by saving its output under the pipeline's own name
 
   fourth:
@@ -53,11 +53,11 @@ pipelines:
     via:
       - type: peek
         forEach:
-          code: log_message(key, value, headers, pipeline="FOURTH")
+          code: log_message(key, value, pipeline="FOURTH")
     # Close the pipeline implicitly by saving its output under the pipeline's own name
 
   last:
     # Use the result from the fourth pipeline as input
     from: fourth
     forEach:
-      code: log_message(key, value, headers, pipeline="LAST")
+      code: log_message(key, value, pipeline="LAST")

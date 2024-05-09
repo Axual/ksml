@@ -20,30 +20,26 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.*;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 
-import io.axual.ksml.data.object.DataBytes;
-import io.axual.ksml.data.object.DataList;
-import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.serde.StringSerde;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
 
+import static io.axual.ksml.dsl.HeaderSchema.*;
+
 public class HeaderDataObjectMapper implements DataObjectMapper<Headers> {
     private static final StringSerde STRING_SERDE = new StringSerde();
-    private static final DataType HEADER_TYPE = new TupleType(DataString.DATATYPE, DataType.UNKNOWN);
 
     @Override
     public DataObject toDataObject(DataType expected, Headers value) {
         final var result = new DataList(HEADER_TYPE);
         value.forEach(header -> {
-            final var element = new DataList(DataString.DATATYPE);
-            element.add(new DataString(header.key()));
-            element.add(convertHeaderValue(header.value()));
+            final var element = new DataStruct(HEADER_SCHEMA);
+            element.put(HEADER_SCHEMA_KEY_FIELD, new DataString(header.key()));
+            element.put(HEADER_SCHEMA_VALUE_FIELD, convertHeaderValue(header.value()));
             result.add(element);
         });
         return result;
@@ -75,19 +71,19 @@ public class HeaderDataObjectMapper implements DataObjectMapper<Headers> {
             throw new IllegalArgumentException("Invalid Kafka Headers type: " + value.type());
         }
         for (final var element : headers) {
-            if (!(HEADER_TYPE.isAssignableFrom(element)) || !(element instanceof DataTuple header)) {
+            if (!(HEADER_TYPE.isAssignableFrom(element)) || !(element instanceof DataStruct header)) {
                 throw new IllegalArgumentException("Invalid Kafka Header type: " + element.type());
             }
             if (header.size() != 2) {
                 throw new IllegalArgumentException("Invalid Kafka Header: " + header);
             }
-            final var hKey = header.get(0);
-            final var hValue = header.get(1);
+            final var hKey = header.get(HEADER_SCHEMA_KEY_FIELD);
+            final var hValue = header.get(HEADER_SCHEMA_VALUE_FIELD);
             if (!(hKey instanceof DataString headerKey)) {
                 throw new IllegalArgumentException("Invalid Kafka Header key type: " + hKey.type());
             }
             result.add(headerKey.value(), convertHeaderValue(hValue));
         }
-        return null;
+        return result;
     }
 }

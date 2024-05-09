@@ -22,11 +22,9 @@ package io.axual.ksml.dsl;
 
 import java.util.ArrayList;
 
-import io.axual.ksml.data.schema.AnySchema;
-import io.axual.ksml.data.schema.DataField;
-import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.DataSchemaConstants;
-import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.schema.*;
+import io.axual.ksml.data.type.DataType;
+import org.apache.avro.util.SchemaUtil;
 
 public class HeaderSchema {
     private HeaderSchema() {
@@ -34,6 +32,7 @@ public class HeaderSchema {
 
     // Public constants are the fixed schemas and the field names
     public static final StructSchema HEADER_SCHEMA = generateHeaderSchema();
+    public static final DataType HEADER_TYPE = KafkaStreamsSchemaMapper.SUPPLIER().create().fromDataSchema(HEADER_SCHEMA);
     public static final String HEADER_SCHEMA_NAME = "Header";
     public static final String HEADER_SCHEMA_KEY_FIELD = "key";
     public static final String HEADER_SCHEMA_VALUE_FIELD = "value";

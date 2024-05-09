@@ -103,7 +103,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
                 final var child = node.get(field.name());
                 return child != null ? valueParser.parse(child) : null;
             } catch (Exception e) {
-                throw new ParseException(node, e.getMessage());
+                throw new ParseException(node, e.getMessage(), e);
             }
         }
     }

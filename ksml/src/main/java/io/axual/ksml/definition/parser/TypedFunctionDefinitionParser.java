@@ -49,6 +49,7 @@ public class TypedFunctionDefinitionParser extends ChoiceParser<FunctionDefiniti
         result.put(Functions.TYPE_KEYVALUEMAPPER, new KeyValueMapperDefinitionParser());
         result.put(Functions.TYPE_KEYVALUETRANSFORMER, new KeyValueTransformerDefinitionParser());
         result.put(Functions.TYPE_KEYVALUEPRINTER, new KeyValuePrinterDefinitionParser());
+        result.put(Functions.TYPE_METADATATRANSFORMER, new MetadataTransformerDefinitionParser());
         result.put(Functions.TYPE_MERGER, new MergerDefinitionParser());
         result.put(Functions.TYPE_PREDICATE, new PredicateDefinitionParser());
         result.put(Functions.TYPE_REDUCER, new ReducerDefinitionParser());

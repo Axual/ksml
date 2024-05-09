@@ -1,0 +1,32 @@
+# This example shows how to transform timestamp and header information of messages
+
+streams:
+  sensor_source:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+  sensor_copy:
+    topic: ksml_sensordata_copy
+    keyType: string
+    valueType: avro:SensorData
+
+functions:
+  addTime:
+    type: metadataTransformer
+    code: |
+      log.info("Transforming {} / {}", metadata["timestamp"], metadata["headers"])
+      metadata["headers"] = metadata["headers"] + [ { "key": "somekey", "value": "somevalue" } ]
+      log.info("Transformed {} / {}", metadata["timestamp"], metadata["headers"])
+    expression: metadata
+
+pipelines:
+  # The main pipeline reads messages, outputs them and saves a copy in a target topic
+  main_transform_pipeline:
+    from: sensor_source
+    via:
+      - type: transformMetadata
+        mapper: addTime
+      - type: peek
+        forEach:
+          code: log.info("MAIN PIPELINE - key={}, value={}", key, value)
+    to: sensor_copy

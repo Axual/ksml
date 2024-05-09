@@ -21,6 +21,7 @@ package io.axual.ksml.definition;
  */
 
 
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.exception.TopologyException;
 
 import static io.axual.ksml.definition.DefinitionConstants.*;
@@ -29,9 +30,7 @@ public class MetadataTransformerDefinition extends FunctionDefinition {
     public MetadataTransformerDefinition(FunctionDefinition definition) {
         super(definition
                 .withParameters(mergeParameters(KEY_VALUE_METADATA_PARAMETERS, definition.parameters()))
+                .withResult(new UserType(METADATA_TYPE))
                 .withDefaultExpression(PARAM_METADATA));
-        if (resultType() == null || !METADATA_TYPE.isAssignableFrom(resultType())) {
-            throw new TopologyException("ResultType of headerTransformer should be " + METADATA_TYPE);
-        }
     }
 }
