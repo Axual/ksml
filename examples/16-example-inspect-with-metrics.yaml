@@ -1,0 +1,80 @@
+# This example shows how to read from four simple streams and log all messages
+
+streams:
+  sensor_source_avro:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+  sensor_source_csv:
+    topic: ksml_sensordata_csv
+    keyType: string
+    valueType: csv:SensorData
+  sensor_source_json:
+    topic: ksml_sensordata_json
+    keyType: string
+    valueType: json:SensorData
+  sensor_source_xml:
+    topic: ksml_sensordata_xml
+    keyType: string
+    valueType: xml:SensorData
+
+functions:
+  # Log the message using the built-in log variable that is passed in from Java
+  log_message:
+    type: forEach
+    parameters:
+      - name: format
+        type: string
+    globalCode: |
+      import random 
+      counters = {}
+      timers = {}
+      meters = {}
+
+      # Global counter to count how often this method is called, no tags are provided to make unique identification possible
+      methodCalledCounter = metrics_get_counter("method-called")
+
+    code: |
+      global counters
+      methodCalledCounter.increment()
+      
+      if counters.get(format) is None:
+        log.info("Creating counter for format {}", format)
+        # Create a counter metric with the name received-records and tags format and other used to uniquely identify the metric instance
+        counters[format] = metrics_get_counter( 'received-records', { "format" : format, "other" : "bother" } )
+
+      global timers
+      if timers.get(format) is None:
+        log.info("Creating timer for format {}", format)
+        # Create a timer metric with the name received-records-processing-time and tags format and other used to uniquely identify the metric instance
+        timers[format] = metrics_get_timer( 'received-records-processing-time', { "format" : format, "other" : "bother" } )
+
+      global meters
+      if meters.get(format) is None:
+        log.info("Creating meter for format {}", format)
+        # Create a meter metric with the name records-in and tags format and other used to uniquely identify the metric instance
+        meters[format] = metrics_get_meter( 'records-in', { "format" : format, "other" : "bother" } )
+      
+      counters[format].increment()
+      timers[format].updateMillis(random.randint(1,100))
+      meters[format].mark()
+      log.info("Consumed {} message - key={}, value={}", format, key, value)
+
+pipelines:
+  # Every pipeline logs its own message, passing in the format parameter to log_message above
+  consume_avro:
+    from: sensor_source_avro
+    forEach:
+      code: log_message(key, value, format="AVRO")
+  consume_csv:
+    from: sensor_source_csv
+    forEach:
+      code: log_message(key, value, format="CSV")
+  consume_json:
+    from: sensor_source_json
+    forEach:
+      code: log_message(key, value, format="JSON")
+  consume_xml:
+    from: sensor_source_xml
+    forEach:
+      code: log_message(key, value, format="XML")

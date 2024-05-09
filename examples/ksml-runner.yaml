@@ -1,10 +1,11 @@
 ksml:
   # The examples directory is mounted to /ksml in the run script
-  configDirectory: /ksml # When not set defaults to the working directory
-  schemaDirectory: /ksml # When not set defaults to the config directory
-  storageDirectory: /tmp # When not set defaults to the default JVM temp directory
+#  configDirectory: /ksml # When not set defaults to the working directory
+#  schemaDirectory: /ksml # When not set defaults to the config directory
+#  storageDirectory: /tmp # When not set defaults to the default JVM temp directory
+  prometheus:
   definitions:
-    inspect: 01-example-inspect.yaml
+#    inspect: 01-example-inspect.yaml
 #    copy: 02-example-copy.yaml
 #    filter: 03-example-filter.yaml
 #    branch: 04-example-branch.yaml
@@ -19,13 +20,16 @@ ksml:
 #    join: 13-example-join.yaml
 #    manual_state_store: 14-example-manual-state-store.yaml
 #    pipeline_linking: 15-example-pipeline-linking.yaml
+    inspect_with_metrics: 16-example-inspect-with-metrics.yaml
 
 # This setup connects to the Kafka broker and schema registry started with the example docker-compose file
 # These examples are intended to run from a inside a container on the same network
 kafka:
-  bootstrap.servers: broker:9093
   application.id: io.ksml.example.streaming
-  schema.registry.url: http://schema_registry:8081
+  bootstrap.servers: localhost:9092
+  schema.registry.url: http://localhost:8081
+#  bootstrap.servers: broker:9093
+#  schema.registry.url: http://schema_registry:8081
   security.protocol: PLAINTEXT
   auto.offset.reset: earliest
   acks: all
