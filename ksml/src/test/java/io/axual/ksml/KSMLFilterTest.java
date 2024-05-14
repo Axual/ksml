@@ -51,7 +51,11 @@ import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+/**
+ * @deprecated This class is superseded by {@link KSMLCopyAndFilterTest} and should probably be deleted.
+ */
 @Slf4j
+@Deprecated(forRemoval = true)
 @ExtendWith({KSMLTestExtension.class})
 class KSMLFilterTest {
 
