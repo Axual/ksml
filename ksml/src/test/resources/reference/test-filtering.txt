@@ -1,0 +1,13 @@
+Topologies:
+   Sub-topology: 0
+    Source: ksml_sensordata_avro (topics: [ksml_sensordata_avro])
+      --> test_before-peek
+    Processor: test_before-peek (stores: [])
+      --> test_message-filter
+      <-- ksml_sensordata_avro
+    Processor: test_message-filter (stores: [])
+      --> test_to
+      <-- test_before-peek
+    Sink: test_to (topic: ksml_sensordata_filtered)
+      <-- test_message-filter
+

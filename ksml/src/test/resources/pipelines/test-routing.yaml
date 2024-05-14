@@ -1,0 +1,38 @@
+streams:
+  sensor_stream:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: string
+  sensor_0:
+    topic: ksml_sensordata_sensor0
+    keyType: string
+    valueType: string
+  sensor_1:
+    topic: ksml_sensordata_sensor1
+    keyType: string
+    valueType: string
+  sensor_2:
+    topic: ksml_sensordata_sensor2
+    keyType: string
+    valueType: string
+
+functions:
+  print_message:
+    type: forEach
+    code: log.info("key={}, value={}", key, value)
+
+pipelines:
+  main:
+    from: sensor_stream
+    via:
+      - name: before_peek
+        type: peek
+        forEach: print_message
+    toExtractor:
+      code: |
+        if key == 'sensor1':
+          return 'ksml_sensordata_sensor1'
+        elif key == 'sensor2':
+          return 'ksml_sensordata_sensor2'
+        else:
+          return 'ksml_sensordata_sensor0'

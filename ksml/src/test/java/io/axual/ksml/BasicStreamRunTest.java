@@ -24,9 +24,6 @@ import com.google.common.collect.ImmutableMap;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -41,7 +38,6 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.List;
 
 import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.avro.AvroSchemaLoader;
@@ -53,11 +49,8 @@ import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.SchemaLibrary;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.generator.YAMLObjectMapper;
-import io.confluent.kafka.schemaregistry.avro.AvroSchema;
-import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
-import lombok.Builder;
 
 @EnabledIf(value = "onGraalVM", disabledReason = "This test needs GraalVM to run")
 public class BasicStreamRunTest {
@@ -74,7 +67,7 @@ public class BasicStreamRunTest {
         NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(jsonNotation::serde), null);
         NotationLibrary.register(JsonNotation.NOTATION_NAME, jsonNotation, new JsonDataObjectConverter());
 
-        final var uri = ClassLoader.getSystemResource("pipelines/2-demo.yaml").toURI();
+        final var uri = ClassLoader.getSystemResource("pipelines/test-copying.yaml").toURI();
         final var path = Paths.get(uri);
         final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(path), JsonNode.class);
         final var definitions = ImmutableMap.of("definition",
@@ -107,7 +100,7 @@ public class BasicStreamRunTest {
         System.out.println("schemaPath = " + schemaPath);
         SchemaLibrary.registerLoader(MockAvroNotation.NOTATION_NAME, new AvroSchemaLoader(schemaPath));
 
-        final var uri = ClassLoader.getSystemResource("pipelines/03-example-filter.yaml").toURI();
+        final var uri = ClassLoader.getSystemResource("pipelines/test-filtering.yaml").toURI();
         final var path = Paths.get(uri);
         final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(path), JsonNode.class);
         final var definitions = ImmutableMap.of("definition",
@@ -116,9 +109,6 @@ public class BasicStreamRunTest {
         final var topology = topologyGenerator.create(streamsBuilder, definitions);
         final TopologyDescription description = topology.describe();
         System.out.println(description);
-
-        final var sensorDataSchema = new Schema.Parser().parse(ClassLoader.getSystemResourceAsStream("pipelines/SensorData.avsc"));
-        final var sensorTypeSchema = sensorDataSchema.getField("type").schema();
 
         try (TopologyTestDriver driver = new TopologyTestDriver(topology)) {
             final var kafkaAvroSerializer = new KafkaAvroSerializer(avroNotation.mockSchemaRegistryClient());
@@ -130,15 +120,9 @@ public class BasicStreamRunTest {
             avroInputTopic = driver.createInputTopic("ksml_sensordata_avro", new StringSerializer(), kafkaAvroSerializer);
             var outputTopic = driver.createOutputTopic("ksml_sensordata_filtered", new StringDeserializer(), kafkaAvroDeserializer);
 
-            GenericRecord data = new GenericData.Record(sensorDataSchema);
-            data.put("name", "test-name");
-            data.put("timestamp", System.currentTimeMillis());
-            data.put("value", "AMS");
-            data.put("type", new GenericData.EnumSymbol(sensorTypeSchema, "AREA"));
-            data.put("unit", "u");
-            data.put("color", "blue");
+            SensorData build = SensorData.builder().name("name").timestamp(System.currentTimeMillis()).value("AMS").type(SensorData.SensorType.AREA).unit("u").color("blue").build();
 
-            avroInputTopic.pipeInput("key1", data);
+            avroInputTopic.pipeInput("key1", build.toRecord());
             if (!outputTopic.isEmpty()) {
                 var keyValue = outputTopic.readKeyValue();
                 System.out.printf("Output topic key=%s, value=%s\n", keyValue.key, keyValue.value);
@@ -149,18 +133,4 @@ public class BasicStreamRunTest {
     static boolean onGraalVM() {
         return Version.getCurrent().isRelease();
     }
-
-    @Builder
-    static class SensorData {
-        String name;
-        long timestamp;
-        String value;
-        SensorType type;
-        String unit;
-    }
-
-    enum SensorType {
-        AREA, HUMIDITY,LENGTH,STATE,TEMPERATURE
-    }
-
 }

@@ -65,7 +65,7 @@ class KSMLFilterTest {
 
     TestOutputTopic<String, String> myOutput;
 
-    @KSMLTest(topology="pipelines/2-demo.yaml",
+    @KSMLTest(topology= "pipelines/test-copying.yaml",
             inputTopics = {@KSMLTopic(variable="myInput", topic="ksml_sensordata_avro")},
             outputTopics = {@KSMLTopic(variable="myOutput", topic="ksml_sensordata_copy")})
     void testCopying() throws Exception {
@@ -89,7 +89,7 @@ class KSMLFilterTest {
         System.out.println("schemaPath = " + schemaPath);
         SchemaLibrary.registerLoader(MockAvroNotation.NOTATION_NAME, new AvroSchemaLoader(schemaPath));
 
-        final var uri = ClassLoader.getSystemResource("pipelines/03-example-filter.yaml").toURI();
+        final var uri = ClassLoader.getSystemResource("pipelines/test-filtering.yaml").toURI();
         final var path = Paths.get(uri);
         final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(path), JsonNode.class);
         final var definitions = ImmutableMap.of("definition",
@@ -130,7 +130,7 @@ class KSMLFilterTest {
         }
     }
 
-    @KSMLTest(topology = "pipelines/03-example-filter.yaml", schemapath = "pipelines",
+    @KSMLTest(topology = "pipelines/test-filtering.yaml", schemapath = "pipelines",
             inputTopics = {@KSMLTopic(variable = "inputTopic", topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)},
             outputTopics = {@KSMLTopic(variable = "outputTopic", topic = "ksml_sensordata_filtered", valueSerde = KSMLTopic.SerdeType.AVRO)})
     void testFilterAvroRecords() throws Exception {

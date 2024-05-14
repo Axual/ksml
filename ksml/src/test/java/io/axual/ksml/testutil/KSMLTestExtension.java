@@ -197,7 +197,6 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
                 yield result;
             }
             case STRING -> new StringSerializer();
-            default -> new StringSerializer();
         };
     }
 
