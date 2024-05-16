@@ -78,6 +78,5 @@ public class KSMLRoutingTest {
         assertEquals(2, keyValues2.size(), "2 sensor2 readings were routed to output2");
         assertEquals(4, keyValues1.size(), "4 sensor1 readings were routed to output1");
         assertEquals(4, keyValues0.size(), "4 other readings were routed to output0");
-
     }
 }
