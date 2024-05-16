@@ -53,7 +53,6 @@ public class KSMLRoutingTest {
                             @KSMLTopic(variable = "outputSensor2", topic = "ksml_sensordata_sensor2")
             }
     )
-    @Disabled("This test has problems with routing execution and TopologyTestDriver")
     void testRouting() {
         // the pipeline routes readings based on key: generate some records
         inputTopic.pipeInput("sensor1","some_value");
