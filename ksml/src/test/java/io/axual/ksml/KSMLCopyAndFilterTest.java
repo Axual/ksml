@@ -46,7 +46,7 @@ class KSMLCopyAndFilterTest {
     @KSMLTest(topology= "pipelines/test-copying.yaml",
             inputTopics = {@KSMLTopic(variable="inputTopic", topic="ksml_sensordata_avro")},
             outputTopics = {@KSMLTopic(variable="outputTopic", topic="ksml_sensordata_copy")})
-    void testCopying() throws Exception {
+    void testCopying() {
         log.debug("testCopying()");
 
         inputTopic.pipeInput("key1", "value1");
@@ -59,7 +59,7 @@ class KSMLCopyAndFilterTest {
             inputTopics = {@KSMLTopic(variable = "inputTopic", topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)},
             outputTopics = {@KSMLTopic(variable = "outputTopic", topic = "ksml_sensordata_filtered", valueSerde = KSMLTopic.SerdeType.AVRO)})
     @DisplayName("Records can be filtered by KSML")
-    void testFilterAvroRecords() throws Exception {
+    void testFilterAvroRecords() {
         log.debug("testFilterAvroRecords()");
 
         // the KSML pipeline filters on color "blue": generate some records with varying colors

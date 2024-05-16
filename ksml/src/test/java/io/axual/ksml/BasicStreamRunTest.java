@@ -52,14 +52,16 @@ import io.axual.ksml.generator.YAMLObjectMapper;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+/**
+ * Basic stream run test.
+ * See {@link io.axual.ksml.testutil.KSMLTestExtension} for a solution that abstracts away the boilerplate code.
+ */
 @EnabledIf(value = "onGraalVM", disabledReason = "This test needs GraalVM to run")
 public class BasicStreamRunTest {
 
     private final StreamsBuilder streamsBuilder = new StreamsBuilder();
-
-    private TestInputTopic<String, String> inputTopic;
-
-    private TestInputTopic<String, Object> avroInputTopic;
 
     @Test
     void parseAndCheckOuput() throws Exception {
@@ -77,13 +79,14 @@ public class BasicStreamRunTest {
         final TopologyDescription description = topology.describe();
         System.out.println(description);
 
-        TopologyTestDriver driver = new TopologyTestDriver(topology);
-        inputTopic = driver.createInputTopic("ksml_sensordata_avro", new StringSerializer(), new StringSerializer());
-        var outputTopic = driver.createOutputTopic("ksml_sensordata_copy", new StringDeserializer(), new StringDeserializer());
-        inputTopic.pipeInput("key1", "value1");
-        var keyValue = outputTopic.readKeyValue();
-        System.out.printf("Output topic key=%s, value=%s\n", keyValue.key, keyValue.value);
-
+        try (TopologyTestDriver driver = new TopologyTestDriver(topology)) {
+            TestInputTopic<String, String> inputTopic = driver.createInputTopic("ksml_sensordata_avro", new StringSerializer(), new StringSerializer());
+            var outputTopic = driver.createOutputTopic("ksml_sensordata_copy", new StringDeserializer(), new StringDeserializer());
+            inputTopic.pipeInput("key1", "value1");
+            var keyValue = outputTopic.readKeyValue();
+            assertEquals("key1", keyValue.key);
+            assertEquals("value1", keyValue.value);
+        }
     }
 
     @Test
@@ -117,7 +120,7 @@ public class BasicStreamRunTest {
             final var kafkaAvroDeserializer = new KafkaAvroDeserializer(avroNotation.mockSchemaRegistryClient());
             kafkaAvroDeserializer.configure(avroNotation.getSchemaRegistryConfigs(), false);
 
-            avroInputTopic = driver.createInputTopic("ksml_sensordata_avro", new StringSerializer(), kafkaAvroSerializer);
+            TestInputTopic<String, Object> avroInputTopic = driver.createInputTopic("ksml_sensordata_avro", new StringSerializer(), kafkaAvroSerializer);
             var outputTopic = driver.createOutputTopic("ksml_sensordata_filtered", new StringDeserializer(), kafkaAvroDeserializer);
 
             SensorData build = SensorData.builder().name("name").timestamp(System.currentTimeMillis()).value("AMS").type(SensorData.SensorType.AREA).unit("u").color("blue").build();
@@ -125,6 +128,7 @@ public class BasicStreamRunTest {
             avroInputTopic.pipeInput("key1", build.toRecord());
             if (!outputTopic.isEmpty()) {
                 var keyValue = outputTopic.readKeyValue();
+                assertEquals("key1", keyValue.key);
                 System.out.printf("Output topic key=%s, value=%s\n", keyValue.key, keyValue.value);
             }
         }

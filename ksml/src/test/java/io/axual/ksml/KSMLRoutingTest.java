@@ -29,6 +29,9 @@ import org.apache.kafka.streams.TestOutputTopic;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @Slf4j
@@ -50,7 +53,7 @@ public class KSMLRoutingTest {
                             @KSMLTopic(variable = "outputSensor2", topic = "ksml_sensordata_sensor2")
             }
     )
-    @Disabled("This test has problems with routing extecution")
+    @Disabled("This test has problems with routing execution and TopologyTestDriver")
     void testRouting() {
         // the pipeline routes readings based on key: generate some records
         inputTopic.pipeInput("sensor1","some_value");
@@ -68,13 +71,13 @@ public class KSMLRoutingTest {
         assertFalse(outputSensor1.isEmpty());
         assertFalse(outputSensor2.isEmpty());
 
-//        List keyValues0 = outputSensor0.readKeyValuesToList();
-//        List keyValues1 = outputSensor1.readKeyValuesToList();
-//        List keyValues2 = outputSensor2.readKeyValuesToList();
-//
-//        assertEquals(2, keyValues2.size());
-//        assertEquals(4, keyValues1.size());
-//        assertEquals(4, keyValues0.size());
+        List keyValues0 = outputSensor0.readKeyValuesToList();
+        List keyValues1 = outputSensor1.readKeyValuesToList();
+        List keyValues2 = outputSensor2.readKeyValuesToList();
+
+        assertEquals(2, keyValues2.size(), "2 sensor2 readings were routed to output2");
+        assertEquals(4, keyValues1.size(), "4 sensor1 readings were routed to output1");
+        assertEquals(4, keyValues0.size(), "4 other readings were routed to output0");
 
     }
 }

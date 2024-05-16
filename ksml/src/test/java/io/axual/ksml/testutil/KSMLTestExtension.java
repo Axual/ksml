@@ -58,9 +58,7 @@ import java.util.Set;
 @Slf4j
 public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback, BeforeEachCallback, AfterEachCallback {
 
-    private StreamsBuilder streamsBuilder;
-
-    private Set<Field> modifiedFields = new HashSet<>();
+    private final Set<Field> modifiedFields = new HashSet<>();
 
     private TopologyTestDriver topologyTestDriver;
 
@@ -89,10 +87,9 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
     /**
      * Register the required notations before executing the tests.
      * @param extensionContext
-     * @throws Exception
      */
     @Override
-    public void beforeAll(ExtensionContext extensionContext) throws Exception {
+    public void beforeAll(ExtensionContext extensionContext) {
         log.debug("registering notations");
         final var jsonNotation = new JsonNotation();
         NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(jsonNotation::serde), null);
@@ -102,7 +99,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
 
     @Override
     public void beforeEach(ExtensionContext extensionContext) throws Exception {
-        streamsBuilder = new StreamsBuilder();
+        StreamsBuilder streamsBuilder = new StreamsBuilder();
         if (extensionContext.getTestMethod().isEmpty()) {
             return;
         }
@@ -172,7 +169,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
             // method was not annotated, nothing to do
             return;
         }
-        // TODO unregister schema directory? But not like this
+        // to decide: unregister schema directory? But not like this probably
         SchemaLibrary.registerLoader(MockAvroNotation.NOTATION_NAME, null);
 
         // clean up
@@ -187,24 +184,22 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
             field.setAccessible(true);
             field.set(testInstance, null);
         }
+        modifiedFields.clear();
     }
 
     private Serializer<?> getKeySerializer(KSMLTopic ksmlTopic) {
-        return switch (ksmlTopic.keySerde()) {
-            case AVRO -> {
-                var result = new KafkaAvroSerializer(avroNotation.mockSchemaRegistryClient());
-                result.configure(avroNotation.getSchemaRegistryConfigs(), true);
-                yield result;
-            }
-            case STRING -> new StringSerializer();
-        };
+        return getSerializer(ksmlTopic, true);
     }
 
     private Serializer<?> getValueSerializer(KSMLTopic ksmlTopic) {
+        return getSerializer(ksmlTopic, false);
+    }
+
+    private Serializer<?> getSerializer(KSMLTopic ksmlTopic, boolean isKey) {
         return switch (ksmlTopic.valueSerde()) {
             case AVRO -> {
                 var result = new KafkaAvroSerializer(avroNotation.mockSchemaRegistryClient());
-                result.configure(avroNotation.getSchemaRegistryConfigs(), false);
+                result.configure(avroNotation.getSchemaRegistryConfigs(), isKey);
                 yield result;
             }
             case STRING -> new StringSerializer();
@@ -212,21 +207,18 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
     }
 
     private Deserializer<?> getKeyDeserializer(KSMLTopic kamlTopic) {
-        return switch (kamlTopic.keySerde()) {
-            case AVRO -> {
-                var result = new KafkaAvroDeserializer(avroNotation.mockSchemaRegistryClient());
-                result.configure(avroNotation.getSchemaRegistryConfigs(), true);
-                yield  result;
-            }
-            case STRING -> new StringDeserializer();
-        };
+        return getDeserializer(kamlTopic, true);
     }
 
     private Deserializer<?> getValueDeserializer(KSMLTopic kamlTopic) {
+        return getDeserializer(kamlTopic, false);
+    }
+
+    private Deserializer<?> getDeserializer(KSMLTopic kamlTopic, boolean isKey) {
         return switch (kamlTopic.valueSerde()) {
             case AVRO -> {
                 var result = new KafkaAvroDeserializer(avroNotation.mockSchemaRegistryClient());
-                result.configure(avroNotation.getSchemaRegistryConfigs(), false);
+                result.configure(avroNotation.getSchemaRegistryConfigs(), isKey);
                 yield result;
             }
             case STRING -> new StringDeserializer();
