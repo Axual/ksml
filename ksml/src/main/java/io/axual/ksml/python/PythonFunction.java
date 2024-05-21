@@ -21,6 +21,15 @@ package io.axual.ksml.python;
  */
 
 
+import org.apache.kafka.streams.processor.StateStore;
+import org.graalvm.polyglot.Value;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.data.object.DataNull;
@@ -33,14 +42,6 @@ import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.store.StateStores;
 import io.axual.ksml.user.UserFunction;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.streams.processor.StateStore;
-import org.graalvm.polyglot.Value;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import static io.axual.ksml.data.notation.UserType.DEFAULT_NOTATION;
 
@@ -86,6 +87,10 @@ public class PythonFunction extends UserFunction {
         }
         // Validate the parameter types
         for (int index = 0; index < parameters.length; index++) {
+            if(parameters[index] instanceof DataNull){
+                // A DataNull should always be acceptable as a function argument
+                continue;
+            }
             if (!this.parameters[index].type().isAssignableFrom(parameters[index])) {
                 throw new TopologyException("User function \"" + name + "\" expects parameter " + (index + 1) + " (\"" + this.parameters[index].name() + "\") to be " + this.parameters[index].type() + ", but " + parameters[index].type() + " was passed in");
             }
