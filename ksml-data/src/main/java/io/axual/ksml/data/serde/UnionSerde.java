@@ -20,10 +20,6 @@ package io.axual.ksml.data.serde;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.ExecutionException;
-import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.UnionType;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
@@ -31,6 +27,12 @@ import org.apache.kafka.common.serialization.Serializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.UnionType;
 
 public class UnionSerde implements Serde<Object> {
     private record PossibleType(DataType type, Serializer<Object> serializer,
@@ -52,6 +54,10 @@ public class UnionSerde implements Serde<Object> {
 
         @Override
         public byte[] serialize(String topic, Object data) {
+            if (data == null || data instanceof DataNull) {
+                return new byte[0];
+            }
+
             for (PossibleType possibleType : possibleTypes) {
                 // Check if we are serializing a DataObject. If so, then check compatibility
                 // using its own data dataType, else check compatibility with Java native dataType.
@@ -65,7 +71,7 @@ public class UnionSerde implements Serde<Object> {
                     }
                 }
             }
-            throw new ExecutionException("Can not serialize object as union alternative: " + (data != null ? data.getClass().getSimpleName() : "null"));
+            throw new ExecutionException("Can not serialize object as union alternative: " + data.getClass().getSimpleName());
         }
     }
 
@@ -79,6 +85,10 @@ public class UnionSerde implements Serde<Object> {
 
         @Override
         public Object deserialize(String topic, byte[] data) {
+            if (data == null || data.length == 0) {
+                return DataNull.INSTANCE;
+            }
+
             for (PossibleType possibleType : possibleTypes) {
                 try {
                     Object result = possibleType.deserializer.deserialize(topic, data);
@@ -89,7 +99,7 @@ public class UnionSerde implements Serde<Object> {
                     // Not properly deserialized, so ignore and try next alternative
                 }
             }
-            throw new ExecutionException("Can not deserialize data as union possible dataType" + (data != null ? data : "null"));
+            throw new ExecutionException("Can not deserialize data as union possible dataType" + possibleTypes);
         }
     }
 
