@@ -56,10 +56,7 @@ public class DataObjectDeserializer implements Deserializer<DataObject> {
 
     @Override
     public DataObject deserialize(String topic, byte[] data) {
-        if(data == null || data.length == 0) {
-            return DataNull.INSTANCE;
-        }
-
+        if (data == null || data.length == 0) return DataNull.INSTANCE;
         final var wrapper = jsonDeserializer.deserialize(topic, data);
         if (wrapper == null) {
             throw new ExecutionException("Retrieved unexpected null wrapper from state store " + topic);

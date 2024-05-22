@@ -18,7 +18,7 @@ pipelines:
         name: group_by_owner
         mapper:
           code: |
-            if value == None or not "owner" in value:
+            if value is None or not "owner" in value:
               return "no owner"
           expression: value["owner"]
           resultType: string

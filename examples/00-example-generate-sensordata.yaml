@@ -26,6 +26,11 @@ functions:
       value["color"] = random.choice([ "black", "blue", "red", "yellow", "white" ])
       value["owner"] = random.choice([ "Alice", "Bob", "Charlie", "Dave", "Evan" ])
       value["city"] = random.choice([ "Amsterdam", "Xanten", "Utrecht", "Alkmaar", "Leiden" ])
+      
+      if random.randrange(10) == 0:
+        key = None
+      if random.randrange(10) == 0:
+        value = None
     expression: (key, value)                      # Return a message tuple with the key and value
     resultType: (string, json)                    # Indicate the type of key and value
 

@@ -71,7 +71,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     }
 
     public DataObject toDataObject(DataType expected, Object value) {
-        if (value == null) return DataNull.INSTANCE;
+        if (value == null) return convertFromNull(expected);
         if (value instanceof DataObject val) return val;
         if (value instanceof Boolean val) return new DataBoolean(val);
         if (value instanceof Byte val) {
@@ -120,6 +120,24 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
             return nativeToDataStruct((Map<String, Object>) val, expected instanceof StructType expectedStruct ? expectedStruct.schema() : null);
         if (value instanceof Tuple<?> val) return toDataTuple((Tuple<Object>) val);
         throw new ExecutionException("Can not convert to DataObject: " + value.getClass().getSimpleName());
+    }
+
+    public static DataObject convertFromNull(DataType expected) {
+        if (expected == null || expected == DataNull.DATATYPE || expected == DataType.UNKNOWN) return DataNull.INSTANCE;
+        if (expected == DataBoolean.DATATYPE) return new DataBoolean();
+        if (expected == DataByte.DATATYPE) return new DataByte();
+        if (expected == DataShort.DATATYPE) return new DataShort();
+        if (expected == DataInteger.DATATYPE) return new DataInteger();
+        if (expected == DataLong.DATATYPE) return new DataLong();
+        if (expected == DataFloat.DATATYPE) return new DataFloat();
+        if (expected == DataDouble.DATATYPE) return new DataDouble();
+        if (expected == DataBytes.DATATYPE) return new DataBytes();
+        if (expected == DataString.DATATYPE) return new DataString();
+        if (expected instanceof ListType listType) return new DataList(listType.valueType());
+        if (expected instanceof StructType structType) return new DataStruct(structType.schema());
+        if (expected instanceof UnionType unionType)
+            return new DataUnion(unionType, DataNull.INSTANCE);
+        throw new ExecutionException("Can not convert NULL to " + expected);
     }
 
     private DataType inferType(Object value) {

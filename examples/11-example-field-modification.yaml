@@ -16,7 +16,7 @@ functions:
   replace_owner:
     type: valueTransformer
     code: |
-      if value != None:
+      if value is not None:
         value["owner"] = "Zack"
     expression: value
     resultType: avro:SensorData
@@ -28,7 +28,7 @@ functions:
   remove_color:
     type: valueTransformer
     code: |
-      if value != None:
+      if value is not None:
         del value["@type"] # Remove preloaded type information from the value, so KSML does not associate it with an internally cached schema
         schema = value["@schema"]
         schema["name"] = schema["name"] + "NoColor"

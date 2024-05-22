@@ -41,6 +41,33 @@ public class UnionSerde implements Serde<Object> {
 
     private final List<PossibleType> possibleTypes = new ArrayList<>();
 
+    public UnionSerde(UnionType type, boolean isKey, SerdeSupplier serdeSupplier) {
+        for (int index = 0; index < type.possibleTypes().length; index++) {
+            var possibleType = type.possibleTypes()[index];
+            try (final var serde = serdeSupplier.get(possibleType, isKey)) {
+                possibleTypes.add(new PossibleType(possibleType, serde.serializer(), serde.deserializer()));
+            }
+        }
+    }
+
+    @Override
+    public void configure(Map<String, ?> configs, boolean isKey) {
+        for (PossibleType possibleType : possibleTypes) {
+            possibleType.serializer.configure(configs, isKey);
+            possibleType.deserializer.configure(configs, isKey);
+        }
+    }
+
+    @Override
+    public Serializer<Object> serializer() {
+        return new UnionSerializer();
+    }
+
+    @Override
+    public Deserializer<Object> deserializer() {
+        return new UnionDeserializer();
+    }
+
     // This serializer walks through all its possible types and checks if there is a serializer
     // that understands the given input dataType. If so, then it returns the serialized bytes using
     // that serializer. If not, then it throws a runtime exception.
@@ -54,10 +81,6 @@ public class UnionSerde implements Serde<Object> {
 
         @Override
         public byte[] serialize(String topic, Object data) {
-            if (data == null || data instanceof DataNull) {
-                return new byte[0];
-            }
-
             for (PossibleType possibleType : possibleTypes) {
                 // Check if we are serializing a DataObject. If so, then check compatibility
                 // using its own data dataType, else check compatibility with Java native dataType.
@@ -101,32 +124,5 @@ public class UnionSerde implements Serde<Object> {
             }
             throw new ExecutionException("Can not deserialize data as union possible dataType" + possibleTypes);
         }
-    }
-
-    public UnionSerde(UnionType type, boolean isKey, SerdeSupplier serdeSupplier) {
-        for (int index = 0; index < type.possibleTypes().length; index++) {
-            var possibleType = type.possibleTypes()[index];
-            try (final var serde = serdeSupplier.get(possibleType, isKey)) {
-                possibleTypes.add(new PossibleType(possibleType, serde.serializer(), serde.deserializer()));
-            }
-        }
-    }
-
-    @Override
-    public void configure(Map<String, ?> configs, boolean isKey) {
-        for (PossibleType possibleType : possibleTypes) {
-            possibleType.serializer.configure(configs, isKey);
-            possibleType.deserializer.configure(configs, isKey);
-        }
-    }
-
-    @Override
-    public Serializer<Object> serializer() {
-        return new UnionSerializer();
-    }
-
-    @Override
-    public Deserializer<Object> deserializer() {
-        return new UnionDeserializer();
     }
 }

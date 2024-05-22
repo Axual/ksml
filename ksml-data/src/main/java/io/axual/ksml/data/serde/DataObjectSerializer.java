@@ -58,9 +58,7 @@ public class DataObjectSerializer implements Serializer<DataObject> {
 
     @Override
     public byte[] serialize(String topic, DataObject data) {
-        if (data == null || data instanceof DataNull) {
-            return new byte[0];
-        }
+        if (data == null || data == DataNull.INSTANCE) return null;
         if (!expectedType.isAssignableFrom(data.type())) {
             throw new ExecutionException("Incorrect type passed in: expected=" + expectedType + ", got " + data.type());
         }

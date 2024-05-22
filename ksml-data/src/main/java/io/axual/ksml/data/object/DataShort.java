@@ -24,10 +24,9 @@ import io.axual.ksml.data.type.SimpleType;
 
 public class DataShort extends DataPrimitive<Short> {
     public static final SimpleType DATATYPE = new SimpleType(Short.class);
-    public static final Short DEFAULT = (byte) 0;
 
     public DataShort() {
-        this(DEFAULT);
+        this(null);
     }
 
     public DataShort(Short value) {

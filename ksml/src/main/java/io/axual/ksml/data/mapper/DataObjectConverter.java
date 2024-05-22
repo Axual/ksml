@@ -49,6 +49,9 @@ public class DataObjectConverter {
         if (targetType == null || value == null || targetType.dataType().isAssignableFrom(value.type()))
             return value;
 
+        // If the value represents a NULL, then convert it directly
+        if (value == DataNull.INSTANCE) return NativeDataObjectMapper.convertFromNull(targetType.dataType());
+
         // Perform type conversions recursively, going into complex types if necessary
 
         // Recurse into union types
@@ -153,7 +156,7 @@ public class DataObjectConverter {
 
         // Come up with default values if we convert from Null
         if (value == null || value instanceof DataNull)
-            return convertFromNull(targetType);
+            return NativeDataObjectMapper.convertFromNull(targetType);
 
         // Convert from anything to String
         if (targetType == DataString.DATATYPE) return convertToString(value);
@@ -175,32 +178,6 @@ public class DataObjectConverter {
 
         // If no conversion was found suitable, then just return the object itself
         return value;
-    }
-
-    private DataObject convertFromNull(DataType expected) {
-        if (expected == null || expected == DataNull.DATATYPE) return DataNull.INSTANCE;
-        if (expected == DataByte.DATATYPE) return new DataByte();
-        if (expected == DataShort.DATATYPE) return new DataShort();
-        if (expected == DataInteger.DATATYPE) return new DataInteger();
-        if (expected == DataLong.DATATYPE) return new DataLong();
-        if (expected == DataFloat.DATATYPE) return new DataFloat();
-        if (expected == DataDouble.DATATYPE) return new DataDouble();
-        if (expected == DataBytes.DATATYPE) return new DataBytes();
-        if (expected == DataString.DATATYPE) return new DataString();
-        if (expected instanceof ListType listType) return new DataList(listType.valueType());
-        if (expected instanceof StructType structType) return new DataStruct(structType.schema());
-        if (expected instanceof TupleType tupleType) return createEmptyTuple(tupleType);
-        if (expected instanceof UnionType unionType)
-            return new DataUnion(unionType, DataNull.INSTANCE);
-        throw new ExecutionException("Can not convert NULL to " + expected);
-    }
-
-    private DataTuple createEmptyTuple(TupleType tupleType) {
-        // Create a tuple with given type using default values for all tuple elements
-        var elements = new DataObject[tupleType.subTypeCount()];
-        for (int index = 0; index < elements.length; index++)
-            elements[index] = convertFromNull(tupleType.subType(index));
-        return new DataTuple(elements);
     }
 
     private DataString convertToString(DataObject value) {

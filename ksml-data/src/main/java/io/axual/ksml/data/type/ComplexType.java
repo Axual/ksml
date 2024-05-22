@@ -40,8 +40,8 @@ public abstract class ComplexType implements DataType {
     @Override
     public String toString() {
         var subTypeStr = new StringBuilder();
-        for (DataType subType : subTypes) {
-            subTypeStr.append(subTypeStr.length() > 0 ? ", " : "").append(subType);
+        for (final var subType : subTypes) {
+            subTypeStr.append(!subTypeStr.isEmpty() ? ", " : "").append(subType);
         }
         return containerName() + "<" + subTypeStr + ">";
     }
@@ -103,11 +103,6 @@ public abstract class ComplexType implements DataType {
             if (!subTypes[i].isAssignableFrom(type.subTypes[i])) return false;
         }
         return true;
-    }
-
-    @Override
-    public boolean isAssignableFrom(Object value) {
-        return isAssignableFrom(value.getClass());
     }
 
     public boolean equals(Object obj) {

@@ -53,7 +53,6 @@ public class AvroDataObjectMapper extends NativeDataObjectMapper {
             }
             return result;
         }
-
         return super.toDataObject(expected, value);
     }
 

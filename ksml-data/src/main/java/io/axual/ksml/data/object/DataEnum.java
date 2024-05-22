@@ -32,6 +32,7 @@ public class DataEnum extends DataPrimitive<String> {
     }
 
     private boolean validateValue(String value) {
+        if (value == null) return true;
         for (String symbol : ((EnumType) type()).symbols()) {
             if (symbol.equals(value)) return true;
         }

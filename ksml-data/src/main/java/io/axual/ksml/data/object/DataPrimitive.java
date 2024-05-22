@@ -31,25 +31,21 @@ public class DataPrimitive<T> implements DataObject {
     private final DataType type;
     private final T value;
 
-    protected DataPrimitive(DataType type) {
-        this(type, null);
-    }
-
     protected DataPrimitive(DataType type, T value) {
-        checkType(type, value);
         this.type = type;
         this.value = value;
+        checkValue();
     }
 
-    private void checkType(DataType type, T value) {
-        if (!type.isAssignableFrom(value)) {
-            var valueStr = value != null ? value.toString() : "null";
-            throw new ExecutionException("Value assigned to " + type + " can not be \"" + valueStr + "\"");
-        }
+    private void checkValue() {
+        boolean valid = value instanceof DataObject dataObject
+                ? type.isAssignableFrom(dataObject)
+                : type.isAssignableFrom(value);
+        if (!valid) throw new ExecutionException("Value assigned to " + type + " can not be \"" + this + "\"");
     }
 
     @Override
     public String toString() {
-        return value != null ? value.toString() : "null";
+        return value != null ? value.toString() : type + ": null";
     }
 }
