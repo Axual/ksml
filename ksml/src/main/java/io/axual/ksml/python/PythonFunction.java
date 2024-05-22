@@ -100,6 +100,7 @@ public class PythonFunction extends UserFunction {
 
         try {
             // Call the prepared function
+            log.debug("Calling Python function \"{}\" with arguments {}", name, arguments);
             Value pyResult = function.execute(arguments);
 
             if (pyResult.canExecute()) {
@@ -197,7 +198,7 @@ public class PythonFunction extends UserFunction {
                         %2$s
 
                         def convert_to_python(value):
-                          if value is None:
+                          if value == None: # don't modify to "is" operator, since that Java's null is not exactly the same as None
                             return None
                           if isinstance(value, (HashMap, TreeMap)):
                             result = dict()
@@ -212,7 +213,7 @@ public class PythonFunction extends UserFunction {
                           return value
 
                         def convert_from_python(value):
-                          if value is None:
+                          if value == None: # don't modify to "is" operator, since that Java's null is not exactly the same as None
                             return None
                           if isinstance(value, (list, tuple)):
                             result = ArrayList()
@@ -246,11 +247,9 @@ public class PythonFunction extends UserFunction {
         var functionName = "";
         for (final var line : code) {
             if (line.trim().isEmpty()) continue;
-            if (injectCode) {
-                final var indentCount = line.length() - line.stripIndent().length();
-                if (indentCount > defIndent) {
-                    result.add(initLogCode(indentCount, loggerName(namespace, type, functionName)));
-                }
+            int lineIndent = line.length() - line.stripIndent().length();
+            if (injectCode && lineIndent > defIndent) {
+                result.add(initLogCode(lineIndent, loggerName(namespace, type, functionName)));
             }
             result.add(line);
             injectCode = false;
@@ -258,7 +257,7 @@ public class PythonFunction extends UserFunction {
                 final var function = line.trim().substring(4, line.length() - 1).trim();
                 if (function.contains("(") && function.endsWith(")")) {
                     injectCode = true;
-                    defIndent = line.length() - line.stripIndent().length();
+                    defIndent = lineIndent;
                     functionName = function.substring(0, function.indexOf("("));
                 }
             }
