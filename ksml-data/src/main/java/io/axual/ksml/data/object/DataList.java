@@ -46,6 +46,10 @@ public class DataList implements DataObject, Iterable<DataObject> {
         type = valueType != null ? new ListType(valueType) : LIST_OF_UNKNOWN;
     }
 
+    public boolean isNull() {
+        return contents == null;
+    }
+
     public void addIfNotNull(DataObject value) {
         if (value != null) add(value);
     }

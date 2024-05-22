@@ -41,14 +41,16 @@ public class AvroDataObjectMapper extends NativeDataObjectMapper {
 
     @Override
     public DataObject toDataObject(DataType expected, Object value) {
-        if (value == null || value == JsonProperties.NULL_VALUE) return DataNull.INSTANCE;
+        if (value == null || value == JsonProperties.NULL_VALUE)
+            return NativeDataObjectMapper.convertFromNull(expected);
         if (value instanceof Utf8 utf8) return new DataString(utf8.toString());
         if (value instanceof GenericData.EnumSymbol) {
             return new DataString(value.toString());
         }
         if (value instanceof GenericRecord rec) {
-            DataStruct result = new DataStruct(AVRO_SCHEMA_MAPPER.toDataSchema(rec.getSchema().getNamespace(), rec.getSchema().getName(), rec.getSchema()));
-            for (Schema.Field field : rec.getSchema().getFields()) {
+            final var schema = rec.getSchema();
+            DataStruct result = new DataStruct(AVRO_SCHEMA_MAPPER.toDataSchema(schema.getNamespace(), schema.getName(), schema));
+            for (Schema.Field field : schema.getFields()) {
                 result.put(field.name(), toDataObject(rec.get(field.name())));
             }
             return result;
@@ -60,6 +62,7 @@ public class AvroDataObjectMapper extends NativeDataObjectMapper {
     public Object fromDataObject(DataObject value) {
         if (value instanceof DataNull) return null;
         if (value instanceof DataStruct rec) {
+            if (rec.isNull()) return null;
             return new AvroObject(rec.type().schema(), fromDataStruct(rec));
         }
         return super.fromDataObject(value);

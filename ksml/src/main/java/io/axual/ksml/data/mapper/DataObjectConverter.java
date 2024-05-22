@@ -63,50 +63,20 @@ public class DataObjectConverter {
         }
 
         // Recurse into lists
-        if (targetType.dataType() instanceof ListType targetListType
-                && value instanceof DataList valueList) {
-            var result = new DataList(targetListType.valueType());
-            var expectedValueType = new UserType(targetListType.valueType());
-            for (int index = 0; index < valueList.size(); index++) {
-                result.add(convert(DEFAULT_NOTATION, valueList.get(index), expectedValueType));
-            }
-            return result;
+        if (targetType.dataType() instanceof ListType targetListType && value instanceof DataList valueList) {
+            return convertList(targetListType, valueList);
         }
 
         // Recurse into structs
-        if (targetType.dataType() instanceof StructType targetStructType
-                && value instanceof DataStruct valueStruct) {
-            // Don't recurse into structs without a schema, just return those plainly
-            if (targetStructType.schema() == null) return value;
-            // Recurse and convert struct entries
-            DataStruct result = new DataStruct(targetStructType.schema());
-            for (var entry : valueStruct.entrySet()) {
-                // Determine the new value type
-                var field = targetStructType.schema().field(entry.getKey());
-                // Only copy if the field exists in the target structure
-                if (field != null) {
-                    var newValueType = new UserType(SCHEMA_MAPPER.fromDataSchema(field.schema()));
-                    // Convert to that type if necessary
-                    result.put(entry.getKey(), convert(DEFAULT_NOTATION, entry.getValue(), newValueType));
-                }
-            }
-            return result;
+        if (targetType.dataType() instanceof StructType targetStructType && value instanceof DataStruct valueStruct) {
+            return convertStruct(targetStructType, valueStruct);
         }
 
         // Recurse into tuples
         if (targetType.dataType() instanceof TupleType targetTupleType
                 && value instanceof DataTuple valueTuple
                 && targetTupleType.subTypeCount() == valueTuple.size()) {
-            var convertedDataObjects = new DataObject[valueTuple.size()];
-            for (int index = 0; index < valueTuple.size(); index++) {
-                // If the tuple type contains the notation, then use that notation for conversion, otherwise use the
-                // default notation
-                var elementType = targetTupleType instanceof UserTupleType targetUserTupleType
-                        ? targetUserTupleType.getUserType(index)
-                        : new UserType(targetTupleType.subType(index));
-                convertedDataObjects[index] = convert(DEFAULT_NOTATION, valueTuple.get(index), elementType);
-            }
-            return new DataTuple(convertedDataObjects);
+            return convertTuple(targetTupleType, valueTuple);
         }
 
         // First step is to use the converters from the notations to convert the type into the desired target type
@@ -135,14 +105,14 @@ public class DataObjectConverter {
         // First we see if the target notation is able to interpret the source value
         var targetConverter = NotationLibrary.converter(targetType.notation());
         if (targetConverter != null) {
-            var target = targetConverter.convert(value, targetType);
+            final var target = targetConverter.convert(value, targetType);
             if (target != null && targetType.dataType().isAssignableFrom(target.type())) return target;
         }
 
         // If the target notation was not able to convert, then try the source notation
         var sourceConverter = NotationLibrary.converter(sourceNotation);
         if (sourceConverter != null) {
-            var target = sourceConverter.convert(value, targetType);
+            final var target = sourceConverter.convert(value, targetType);
             if (target != null && targetType.dataType().isAssignableFrom(target.type())) return target;
         }
 
@@ -203,38 +173,55 @@ public class DataObjectConverter {
     }
 
     private DataObject convertList(ListType expected, DataList value) {
-        var valueType = expected.valueType();
-
         // If the target list type does not have a specific value type, then simply return
+        final var valueType = expected.valueType();
         if (valueType == null || valueType == DataType.UNKNOWN) return value;
 
         // Create a new List with the give value type
-        var result = new DataList(valueType);
-
+        final var result = new DataList(valueType, value.isNull());
+        final var valueUserType = new UserType(valueType);
         // Copy all list elements into the new list, possibly making sub-elements compatible
-        for (var element : value) {
-            result.add(convert(element, valueType));
+        for (int index = 0; index < value.size(); index++) {
+            result.add(convert(valueUserType.notation(), value.get(index), valueUserType));
         }
-
         // Return the List with made-compatible elements
         return result;
     }
 
     private DataObject convertStruct(StructType expected, DataStruct value) {
-        var schema = expected.schema();
+        // Don't recurse into Structs without a schema, just return those plainly
+        final var schema = expected.schema();
         if (schema == null) return value;
 
-        // Create a new Struct with the given schema type
-        var result = new DataStruct(expected.schema());
+        // Create a new Struct with the same schema type
+        final var result = new DataStruct(expected.schema(), value.isNull());
 
         // Copy all struct fields into the new struct, possibly making sub-elements compatible
-        for (var entry : value.entrySet()) {
-            var fieldName = entry.getKey();
-            var fieldType = SCHEMA_MAPPER.fromDataSchema(schema.field(fieldName).schema());
-            result.put(entry.getKey(), convert(entry.getValue(), fieldType));
+        for (final var entry : value.entrySet()) {
+            // Determine the new value type
+            final var field = schema.field(entry.getKey());
+            // Only copy if the field exists in the target structure
+            if (field != null) {
+                final var fieldType = new UserType(SCHEMA_MAPPER.fromDataSchema(field.schema()));
+                // Convert to that type if necessary
+                result.put(entry.getKey(), convert(fieldType.notation(), entry.getValue(), fieldType));
+            }
         }
 
         // Return the Struct with compatible fields
         return result;
+    }
+
+    private DataObject convertTuple(TupleType expected, DataTuple value) {
+        final var convertedDataObjects = new DataObject[value.size()];
+        for (int index = 0; index < value.size(); index++) {
+            // If the tuple type contains the notation, then use that notation for conversion, otherwise use the
+            // default notation
+            final var elementType = expected instanceof UserTupleType targetUserTupleType
+                    ? targetUserTupleType.getUserType(index)
+                    : new UserType(expected.subType(index));
+            convertedDataObjects[index] = convert(DEFAULT_NOTATION, value.get(index), elementType);
+        }
+        return new DataTuple(convertedDataObjects);
     }
 }

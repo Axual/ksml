@@ -133,8 +133,8 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         if (expected == DataDouble.DATATYPE) return new DataDouble();
         if (expected == DataBytes.DATATYPE) return new DataBytes();
         if (expected == DataString.DATATYPE) return new DataString();
-        if (expected instanceof ListType listType) return new DataList(listType.valueType());
-        if (expected instanceof StructType structType) return new DataStruct(structType.schema());
+        if (expected instanceof ListType listType) return new DataList(listType.valueType(), true);
+        if (expected instanceof StructType structType) return new DataStruct(structType.schema(), true);
         if (expected instanceof UnionType unionType)
             return new DataUnion(unionType, DataNull.INSTANCE);
         throw new ExecutionException("Can not convert NULL to " + expected);
@@ -286,12 +286,14 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     }
 
     public List<Object> fromDataList(DataList list) {
+        if (list.isNull()) return null;
         List<Object> result = new ArrayList<>();
         list.forEach(element -> result.add(fromDataObject(element)));
         return result;
     }
 
     public Map<String, Object> fromDataStruct(DataStruct struct) {
+        if (struct.isNull()) return null;
         Map<String, Object> result = new TreeMap<>(DataStruct.COMPARATOR);
         struct.forEach((key, value) -> result.put(key, fromDataObject(value)));
 
