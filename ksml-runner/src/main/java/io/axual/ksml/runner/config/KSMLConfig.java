@@ -88,7 +88,7 @@ public class KSMLConfig {
         if (definitions != null) {
             for (Map.Entry<String, Object> definition : definitions.entrySet()) {
                 if (definition.getValue() instanceof String definitionFile) {
-                    final var definitionFilePath = Paths.get(configDirectory, definitionFile);
+                    final var definitionFilePath = Paths.get(getConfigDirectory(), definitionFile);
                     if (Files.notExists(definitionFilePath) || !Files.isRegularFile(definitionFilePath)) {
                         throw new ConfigException("definitionFile", definitionFilePath, "The provided KSML definition file does not exists or is not a regular file");
                     }
