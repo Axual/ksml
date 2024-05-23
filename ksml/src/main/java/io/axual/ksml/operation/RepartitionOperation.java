@@ -49,7 +49,7 @@ public class RepartitionOperation extends BaseOperation {
         final var k = input.keyType();
         final var v = input.valueType();
         final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, equalTo(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
-        final var userPart = part != null ? new UserStreamPartitioner(part) : null;
+        final var userPart = part != null ? new UserStreamPartitioner(part, tags) : null;
         final var repartitioned = repartitionedOf(k, v, userPart);
         final KStream<Object, Object> output = repartitioned != null
                 ? input.stream.repartition(repartitioned)

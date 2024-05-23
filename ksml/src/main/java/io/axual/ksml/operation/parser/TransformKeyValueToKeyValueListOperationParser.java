@@ -42,6 +42,6 @@ public class TransformKeyValueToKeyValueListOperationParser extends OperationPar
                 operationNameField(),
                 functionField(KSMLDSL.Operations.Transform.MAPPER, "A function that converts every record of a stream to a list of output records.", new KeyValueToKeyValueListTransformerDefinitionParser()),
                 storeNamesField(),
-                (type, name, mapper, storeNames) -> new TransformKeyValueToKeyValueListOperation(operationConfig(name, storeNames), mapper));
+                (type, name, mapper, storeNames, tags) -> new TransformKeyValueToKeyValueListOperation(operationConfig(name, tags, storeNames), mapper));
     }
 }

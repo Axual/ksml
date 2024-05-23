@@ -42,11 +42,11 @@ public class WindowBySessionOperationParser extends OperationParser<WindowBySess
                 operationNameField(),
                 durationField(KSMLDSL.SessionWindows.INACTIVITY_GAP, "The inactivity gap, below which two messages are considered to be of the same session"),
                 optional(durationField(KSMLDSL.SessionWindows.GRACE, "(Tumbling, Hopping) The grace period, during which out-of-order records can still be processed")),
-                (type, name, inactivityGap, grace) -> {
+                (type, name, inactivityGap, grace, tags) -> {
                     final var sessionWindows = (grace != null && grace.toMillis() > 0)
                             ? SessionWindows.ofInactivityGapAndGrace(inactivityGap, grace)
                             : SessionWindows.ofInactivityGapWithNoGrace(inactivityGap);
-                    return new WindowBySessionOperation(operationConfig(name), sessionWindows);
+                    return new WindowBySessionOperation(operationConfig(name, tags), sessionWindows);
                 });
     }
 }

@@ -46,7 +46,7 @@ public class ToStreamOperation extends BaseOperation {
         final var kr = mapper != null ? streamDataTypeOf(firstSpecificType(mapper, k), true) : k;
         final var map = mapper != null ? userFunctionOf(context, MAPPER_NAME, mapper, kr, superOf(k), superOf(v)) : null;
         final KeyValueMapper<Object, Object, Object> userMap = map != null
-                ? new UserKeyTransformer(map)
+                ? new UserKeyTransformer(map, tags)
                 : null;
         final var named = namedOf();
         final KStream<Object, Object> output = userMap != null

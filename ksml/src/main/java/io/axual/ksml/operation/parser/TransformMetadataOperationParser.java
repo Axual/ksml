@@ -41,6 +41,6 @@ public class TransformMetadataOperationParser extends OperationParser<TransformM
                 operationNameField(),
                 functionField(KSMLDSL.Operations.Transform.MAPPER, "A function that converts the metadata (Kafka headers, timestamp) of every record in the stream", new MetadataTransformerDefinitionParser()),
                 storeNamesField(),
-                (type, name, mapper, storeNames) -> new TransformMetadataOperation(operationConfig(name, storeNames), mapper));
+                (type, name, mapper, storeNames, tags) -> new TransformMetadataOperation(operationConfig(name, tags, storeNames), mapper));
     }
 }

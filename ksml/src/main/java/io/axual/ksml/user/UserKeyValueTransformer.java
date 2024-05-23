@@ -21,8 +21,10 @@ package io.axual.ksml.user;
  */
 
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.python.Invoker;
 import io.axual.ksml.store.StateStores;
 import org.apache.kafka.streams.KeyValue;
@@ -32,8 +34,8 @@ public class UserKeyValueTransformer extends Invoker implements KeyValueMapper<O
     private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
     private final static DataType EXPECTED_RESULT_TYPE = new TupleType(DataType.UNKNOWN, DataType.UNKNOWN);
 
-    public UserKeyValueTransformer(UserFunction function) {
-        super(function);
+    public UserKeyValueTransformer(UserFunction function, ContextTags tags) {
+        super(function, tags, KSMLDSL.Functions.TYPE_KEYTRANSFORMER);
         verifyParameterCount(2);
         verifyResultType(EXPECTED_RESULT_TYPE);
     }

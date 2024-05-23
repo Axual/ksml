@@ -28,6 +28,7 @@ import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.jmx.JmxReporter;
+import io.axual.ksml.data.tag.ContextTag;
 
 import java.util.HashMap;
 import java.util.List;
@@ -37,24 +38,24 @@ import java.util.function.Supplier;
 /**
  * The MetricsRegistry is a simple registry for metrics. The metrics created in an instance can be exposed as JMX MBeans.
  * <p>
- * Unique names for a metric are generated from the provided {@link AxualMetricName}. There can be no duplicate metrics using the same name.
+ * Unique names for a metric are generated from the provided {@link MetricName}. There can be no duplicate metrics using the same name.
  * <p>
- * The JMX Domain is provided when the JMX Exposure is started, and additional {@link AxualMetricTag} can be provided which will be added to the JMX MBean name.
+ * The JMX Domain is provided when the JMX Exposure is started, and additional {@link ContextTag} can be provided which will be added to the JMX MBean name.
  * <p>
  * The MBean name will be <i>{@literal <domain>:type=<metricType>,name=<metricName.name>,[any additional tags],[metricName.tags] }</i>
  */
-public class AxualMetricsRegistry {
+public class MetricsRegistry {
     private final MetricRegistry metricRegistry;
     private JmxReporter jmxReporter;
 
-    private final Map<AxualMetricName, Metric> registeredMetrics = new HashMap<>();
+    private final Map<MetricName, Metric> registeredMetrics = new HashMap<>();
 
-    public AxualMetricsRegistry() {
+    public MetricsRegistry() {
         this(new MetricRegistry());
     }
 
     // For testing
-    AxualMetricsRegistry(MetricRegistry registry) {
+    MetricsRegistry(MetricRegistry registry) {
         this.metricRegistry = registry;
     }
 
@@ -64,7 +65,7 @@ public class AxualMetricsRegistry {
      * @param metricName the name for the counter
      * @return the counter registered to the provided name
      */
-    public Counter registerCounter(AxualMetricName metricName) {
+    public Counter registerCounter(MetricName metricName) {
         return register(metricName, () -> metricRegistry.counter(encodeName(metricName)));
     }
 
@@ -75,7 +76,7 @@ public class AxualMetricsRegistry {
      * @return the counter registered to the provided name, or null
      * @throws MetricRegistrationException if the metric name was used for another metric type
      */
-    public Counter getCounter(AxualMetricName metricName) {
+    public Counter getCounter(MetricName metricName) {
         return get(metricName, Counter.class);
     }
 
@@ -85,7 +86,7 @@ public class AxualMetricsRegistry {
      * @param metricName the name for the meter
      * @return the meter registered to the provided name
      */
-    public Meter registerMeter(AxualMetricName metricName) {
+    public Meter registerMeter(MetricName metricName) {
         return register(metricName, () -> metricRegistry.meter(encodeName(metricName)));
     }
 
@@ -96,7 +97,7 @@ public class AxualMetricsRegistry {
      * @return the meter registered to the provided name, or null
      * @throws MetricRegistrationException if the metric name was used for another metric type
      */
-    public Meter getMeter(AxualMetricName metricName) {
+    public Meter getMeter(MetricName metricName) {
         return get(metricName, Meter.class);
     }
 
@@ -107,7 +108,7 @@ public class AxualMetricsRegistry {
      * @param valueSupplier the supplied to use to get the metric value
      * @return the gauge registered to the provided name
      */
-    public <T> Gauge<T> registerGauge(AxualMetricName metricName, Supplier<T> valueSupplier) {
+    public <T> Gauge<T> registerGauge(MetricName metricName, Supplier<T> valueSupplier) {
         final Gauge<T> metricSupplier = valueSupplier::get;
         return register(metricName, () -> metricRegistry.gauge(encodeName(metricName), () -> metricSupplier));
     }
@@ -120,7 +121,7 @@ public class AxualMetricsRegistry {
      * @throws MetricRegistrationException if the metric name was used for another metric type
      */
     @SuppressWarnings("unchecked")
-    public <T> Gauge<T> getGauge(AxualMetricName metricName) {
+    public <T> Gauge<T> getGauge(MetricName metricName) {
         return get(metricName, Gauge.class);
     }
 
@@ -130,7 +131,7 @@ public class AxualMetricsRegistry {
      * @param metricName the name for the histogram
      * @return the histogram registered to the provided name
      */
-    public Histogram registerHistogram(AxualMetricName metricName) {
+    public Histogram registerHistogram(MetricName metricName) {
         return register(metricName, () -> metricRegistry.histogram(encodeName(metricName)));
     }
 
@@ -141,7 +142,7 @@ public class AxualMetricsRegistry {
      * @return the histogram registered to the provided name, or null
      * @throws MetricRegistrationException if the metric name was used for another metric type
      */
-    public Histogram getHistogram(AxualMetricName metricName) {
+    public Histogram getHistogram(MetricName metricName) {
         return get(metricName, Histogram.class);
     }
 
@@ -151,7 +152,7 @@ public class AxualMetricsRegistry {
      * @param metricName the name for the timer
      * @return the timer registered to the provided name
      */
-    public Timer registerTimer(AxualMetricName metricName) {
+    public Timer registerTimer(MetricName metricName) {
         return register(metricName, () -> metricRegistry.timer(encodeName(metricName)));
     }
 
@@ -162,7 +163,7 @@ public class AxualMetricsRegistry {
      * @return the timer registered to the provided name, or null
      * @throws MetricRegistrationException if the metric name was used for another metric type
      */
-    public Timer getTimer(AxualMetricName metricName) {
+    public Timer getTimer(MetricName metricName) {
         return get(metricName, Timer.class);
     }
 
@@ -172,13 +173,13 @@ public class AxualMetricsRegistry {
      * @param metricName the name of the metric to be removed
      * @return true if the metric was removed
      */
-    public synchronized boolean remove(AxualMetricName metricName) {
+    public synchronized boolean remove(MetricName metricName) {
         registeredMetrics.remove(metricName);
         return metricRegistry.remove(encodeName(metricName));
     }
 
-    private String encodeName(AxualMetricName metricName) {
-        return AxualMetricObjectNaming.stringFromMetricName(metricName);
+    private String encodeName(MetricName metricName) {
+        return MetricObjectNaming.stringFromMetricName(metricName);
     }
 
 
@@ -189,12 +190,12 @@ public class AxualMetricsRegistry {
      * @param domain     the JMX domain where the metrics are exposed
      * @param commonTags These tags are added to every MBean to allow unique names for JMX. For example the name and task id for a connector task.
      */
-    public void enableJmx(String domain, List<AxualMetricTag> commonTags) {
+    public void enableJmx(String domain, List<ContextTag> commonTags) {
         disableJmx();
 
         jmxReporter = JmxReporter.forRegistry(metricRegistry)
                 .inDomain(domain)
-                .createsObjectNamesWith(new AxualMetricObjectNameFactory(commonTags))
+                .createsObjectNamesWith(new MetricObjectNameFactory(commonTags))
                 .build();
         jmxReporter.start();
     }
@@ -210,7 +211,7 @@ public class AxualMetricsRegistry {
         }
     }
 
-    private synchronized <M extends Metric> M register(AxualMetricName metricName, Supplier<M> metricSupplier) {
+    private synchronized <M extends Metric> M register(MetricName metricName, Supplier<M> metricSupplier) {
         if (registeredMetrics.containsKey(metricName)) {
             throw new MetricRegistrationException("Metric %s is already registered".formatted(metricName));
         }
@@ -219,7 +220,7 @@ public class AxualMetricsRegistry {
         return newInstance;
     }
 
-    private synchronized <M extends Metric> M get(AxualMetricName metricName, Class<M> clazz) {
+    private synchronized <M extends Metric> M get(MetricName metricName, Class<M> clazz) {
         var metric = registeredMetrics.get(metricName);
         if (metric == null) {
             return null;

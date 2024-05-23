@@ -39,6 +39,6 @@ public class CountOperationParser extends StoreOperationParser<CountOperation> {
                 operationTypeField(),
                 operationNameField(),
                 storeField(false, "Materialized view of the count operation's result", null),
-                (type, name, store) -> new CountOperation(storeOperationConfig(name, store)));
+                (type, name, store, tags) -> new CountOperation(storeOperationConfig(name, tags, store)));
     }
 }

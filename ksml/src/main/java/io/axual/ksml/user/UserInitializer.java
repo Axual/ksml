@@ -22,13 +22,15 @@ package io.axual.ksml.user;
 
 
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.tag.ContextTags;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.python.Invoker;
 import org.apache.kafka.streams.kstream.Initializer;
 
 public class UserInitializer extends Invoker implements Initializer<Object> {
 
-    public UserInitializer(UserFunction function) {
-        super(function);
+    public UserInitializer(UserFunction function, ContextTags tags) {
+        super(function, tags, KSMLDSL.Functions.TYPE_INITIALIZER);
         verifyParameterCount(0);
     }
 

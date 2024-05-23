@@ -25,7 +25,9 @@ import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.mapper.RecordContextDataObjectMapper;
 import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.python.Invoker;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.processor.RecordContext;
@@ -37,8 +39,8 @@ public class UserTopicNameExtractor extends Invoker implements TopicNameExtracto
     private final RecordContextDataObjectMapper recordContextMapper = new RecordContextDataObjectMapper();
     private final static DataType EXPECTED_RESULT_TYPE = DataString.DATATYPE;
 
-    public UserTopicNameExtractor(UserFunction function) {
-        super(function);
+    public UserTopicNameExtractor(UserFunction function, ContextTags tags) {
+        super(function, tags, KSMLDSL.Functions.TYPE_TOPICNAMEEXTRACTOR);
         verifyParameterCount(3);
         verifyResultType(EXPECTED_RESULT_TYPE);
     }

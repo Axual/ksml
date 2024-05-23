@@ -28,6 +28,10 @@ import io.axual.ksml.parser.StructParser;
 public class InitializerDefinitionParser extends FunctionDefinitionParser<InitializerDefinition> {
     @Override
     public StructParser<InitializerDefinition> parser() {
-        return parserWithoutStores(InitializerDefinition.class, KSMLDSL.Functions.TYPE_INITIALIZER, "initializer", InitializerDefinition::new);
+        return parserWithoutStores(
+                InitializerDefinition.class,
+                KSMLDSL.Functions.TYPE_INITIALIZER,
+                "initializer",
+                (function, tags) -> new InitializerDefinition(function));
     }
 }

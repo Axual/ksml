@@ -56,7 +56,7 @@ public class TransformValueOperation extends StoreOperation {
         final var v = input.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(mapper, v.userType()), false);
         final var map = userFunctionOf(context, MAPPER_NAME, mapper, vr, superOf(k), superOf(v));
-        final var userMap = new UserValueTransformer(map);
+        final var userMap = new UserValueTransformer(map, tags);
         final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames().toArray(TEMPLATE));
         final var supplier = new FixedKeyOperationProcessorSupplier<>(
                 name,
@@ -84,7 +84,7 @@ public class TransformValueOperation extends StoreOperation {
         final var v = input.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(mapper, v.userType()), false);
         final var map = userFunctionOf(context, MAPPER_NAME, mapper, vr, superOf(k), superOf(v));
-        final var userMap = new UserValueTransformerWithKey(map);
+        final var userMap = new UserValueTransformerWithKey(map, tags);
         final var kvStore = validateKeyValueStore(store(), k, vr);
         final ValueTransformerWithKeySupplier<Object, Object, DataObject> supplier = () -> userMap;
         final var named = namedOf();

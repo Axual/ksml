@@ -20,6 +20,7 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.dsl.KSMLDSL;
@@ -67,13 +68,14 @@ public abstract class OperationParser<T extends BaseOperation> extends ContextAw
         return optional(listField(KSMLDSL.Operations.STORE_NAMES_ATTRIBUTE, "state store name", "The names of all state stores used by the function", new StringValueParser()));
     }
 
-    protected OperationConfig operationConfig(String name) {
-        return operationConfig(name, null);
+    protected OperationConfig operationConfig(String name, ContextTags context) {
+        return operationConfig(name, context, null);
     }
 
-    protected OperationConfig operationConfig(String name, List<String> storeNames) {
+    protected OperationConfig operationConfig(String name, ContextTags context, List<String> storeNames) {
         return new OperationConfig(
                 resources().getUniqueOperationName(name != null ? name : type),
+                context,
                 storeNames != null ? storeNames.toArray(new String[]{}) : null);
     }
 }

@@ -42,6 +42,6 @@ public class TransformKeyValueOperationParser extends OperationParser<TransformK
                 operationNameField(),
                 functionField(KSMLDSL.Operations.Transform.MAPPER, "A function that computes a new key/value for each record", new KeyValueTransformerDefinitionParser()),
                 storeNamesField(),
-                (type, name, mapper, storeNames) -> new TransformKeyValueOperation(operationConfig(name, storeNames), mapper));
+                (type, name, mapper, storeNames, tags) -> new TransformKeyValueOperation(operationConfig(name, tags, storeNames), mapper));
     }
 }

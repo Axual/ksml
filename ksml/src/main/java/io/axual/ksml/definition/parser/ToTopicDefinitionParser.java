@@ -38,6 +38,6 @@ public class ToTopicDefinitionParser extends ContextAwareParser<ToTopicDefinitio
                 "Writes out pipeline messages to a topic",
                 new TopicDefinitionParser(false),
                 new StreamPartitionerDefinitionParser(),
-                (topic, partitioner) -> topic != null ? new ToTopicDefinition(topic, partitioner) : null);
+                (topic, partitioner, tags) -> topic != null ? new ToTopicDefinition(topic, partitioner) : null);
     }
 }

@@ -32,6 +32,6 @@ public class StreamPartitionerDefinitionParser extends FunctionDefinitionParser<
                 StreamPartitionerDefinition.class,
                 KSMLDSL.Functions.TYPE_STREAMPARTITIONER,
                 "stream partitioner",
-                (partitioner) -> partitioner != null ? new StreamPartitionerDefinition(partitioner) : null);
+                (partitioner, tags) -> partitioner != null ? new StreamPartitionerDefinition(partitioner) : null);
     }
 }

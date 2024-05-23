@@ -53,7 +53,7 @@ public class KeyValueStateStoreDefinitionParser extends DefinitionParser<KeyValu
                 optional(userTypeField(KSMLDSL.Stores.VALUE_TYPE, "The value type of the keyValue store")),
                 optional(booleanField(KSMLDSL.Stores.CACHING, "\"true\" if changed to the keyValue store need to be buffered and periodically released, \"false\" to emit all changes directly")),
                 optional(booleanField(KSMLDSL.Stores.LOGGING, "\"true\" if a changelog topic should be set up on Kafka for this keyValue store, \"false\" otherwise")),
-                (type, name, persistent, timestamped, versioned, history, segment, keyType, valueType, caching, logging) -> {
+                (type, name, persistent, timestamped, versioned, history, segment, keyType, valueType, caching, logging, tags) -> {
                     // Validate the type field if one was provided
                     if (type != null && !StoreType.KEYVALUE_STORE.externalName().equals(type)) {
                         return parseError("Expected store type \"" + StoreType.KEYVALUE_STORE.externalName() + "\"");

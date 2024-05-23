@@ -56,7 +56,7 @@ public class GroupByOperation extends StoreOperation {
         final var kr = streamDataTypeOf(firstSpecificType(selector, k.userType()), true);
         final var sel = userFunctionOf(context, SELECTOR_NAME, selector, kr, superOf(k), superOf(v));
         final var kvStore = validateKeyValueStore(store(), kr, v);
-        final var userSel = new UserKeyTransformer(sel);
+        final var userSel = new UserKeyTransformer(sel, tags);
         final var grouped = groupedOf(kr, v, kvStore);
         final KGroupedStream<Object, Object> output = grouped != null
                 ? input.stream.groupBy(userSel, grouped)
@@ -83,7 +83,7 @@ public class GroupByOperation extends StoreOperation {
             final var kr = streamDataTypeOf(userTupleType.getUserType(0), true);
             final var vr = streamDataTypeOf(userTupleType.getUserType(1), false);
             final var kvStore = validateKeyValueStore(store(), kr, vr);
-            final var userSel = new UserKeyValueTransformer(sel);
+            final var userSel = new UserKeyValueTransformer(sel, tags);
             final var grouped = groupedOf(kr, vr, kvStore);
             final KGroupedTable<Object, Object> output = grouped != null
                     ? input.table.groupBy(userSel, grouped)

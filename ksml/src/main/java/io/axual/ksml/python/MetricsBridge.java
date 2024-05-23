@@ -31,13 +31,13 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.data.value.Pair;
-import io.axual.ksml.metric.AxualMetricName;
-import io.axual.ksml.metric.AxualMetricTag;
-import io.axual.ksml.metric.AxualMetricsRegistry;
+import io.axual.ksml.metric.MetricName;
+import io.axual.ksml.data.tag.ContextTag;
+import io.axual.ksml.metric.MetricsRegistry;
 
-import static io.axual.ksml.metric.AxualMetricsUtil.metricName;
-import static io.axual.ksml.metric.AxualMetricsUtil.metricTag;
+import static io.axual.ksml.metric.MetricsUtil.metricTag;
 
 /**
  * Bridge class to create metrics from a supplied context.
@@ -47,10 +47,10 @@ import static io.axual.ksml.metric.AxualMetricsUtil.metricTag;
  * All metrics registered using this bridge will be removed when closing the bridge
  */
 public class MetricsBridge implements Closeable {
-    private final AxualMetricsRegistry metricRegistry;
+    private final MetricsRegistry metricRegistry;
     private final List<MetricBridge<?>> registeredBridges = new ArrayList<>();
 
-    public MetricsBridge(AxualMetricsRegistry metricRegistry) {
+    public MetricsBridge(MetricsRegistry metricRegistry) {
         this.metricRegistry = metricRegistry;
     }
 
@@ -67,7 +67,7 @@ public class MetricsBridge implements Closeable {
      * @param tags Additional key value pairs to used to identify the metric
      * @return The {@link TimerBridge} instance that is to be used to update the timer metric
      */
-    public TimerBridge timer(String name, List<Pair<String, String>> tags) {
+    public TimerBridge timer(String name, ContextTags tags) {
         var metricName = createMetricName(name, tags);
         var timer = metricRegistry.getTimer(metricName);
         if (timer == null) {
@@ -86,8 +86,8 @@ public class MetricsBridge implements Closeable {
      * @param tags Additional key value pairs to used to identify the metric
      * @return The {@link CounterBridge} instance that is to be used to update the timer metric
      */
-    public CounterBridge counter(String name, List<Pair<String, String>> tags) {
-        var metricName = createMetricName(name, tags);
+    public CounterBridge counter(String name, ContextTags tags) {
+        var metricName = new MetricName(name, tags);
         var counter = metricRegistry.getCounter(metricName);
         if (counter == null) {
             counter = metricRegistry.registerCounter(metricName);
@@ -105,7 +105,7 @@ public class MetricsBridge implements Closeable {
      * @param tags Additional key value pairs to used to identify the metric
      * @return The {@link MeterBridge} instance that is to be used to update the timer metric
      */
-    public MeterBridge meter(String name, List<Pair<String, String>> tags) {
+    public MeterBridge meter(String name, ContextTags tags) {
         var metricName = createMetricName(name, tags);
         var meter = metricRegistry.getMeter(metricName);
         if (meter == null) {
@@ -118,16 +118,12 @@ public class MetricsBridge implements Closeable {
     }
 
 
-    private AxualMetricName createMetricName(String name, List<Pair<String, String>> tags) {
-        return metricName("user-defined-metrics", createMetricTags(name, tags));
+    private MetricName createMetricName(String name, ContextTags tags) {
+        return new MetricName("user-defined-metrics", createMetricTags(name, tags));
     }
 
-
-    private List<AxualMetricTag> createMetricTags(String name, List<Pair<String, String>> tags) {
-        var metricTags = new ArrayList<AxualMetricTag>();
-        metricTags.add(metricTag("custom-name", name));
-        metricTags.addAll(tags.stream().map(pair -> metricTag(pair.left(), pair.right())).toList());
-        return metricTags;
+    private ContextTags createMetricTags(String name, ContextTags tags) {
+        return tags.append("custom-name", name);
     }
 
     private <K extends Metric, R extends MetricBridge<K>> R registerForClose(R bridge) {
@@ -140,10 +136,10 @@ public class MetricsBridge implements Closeable {
      * Base class for the metric proxy
      */
     public static abstract class MetricBridge<M extends Metric> {
-        protected final AxualMetricName name;
+        protected final MetricName name;
         protected final M metric;
 
-        private MetricBridge(AxualMetricName name, M metric) {
+        private MetricBridge(MetricName name, M metric) {
             this.name = name;
             this.metric = metric;
         }
@@ -154,7 +150,7 @@ public class MetricsBridge implements Closeable {
      * Metric proxy for a timer metric
      */
     public static class TimerBridge extends MetricBridge<Timer> {
-        private TimerBridge(AxualMetricName name, Timer metric) {
+        private TimerBridge(MetricName name, Timer metric) {
             super(name, metric);
         }
 
@@ -194,7 +190,7 @@ public class MetricsBridge implements Closeable {
      * Metric proxy for a counter metric
      */
     public static class CounterBridge extends MetricBridge<Counter> {
-        private CounterBridge(AxualMetricName name, Counter metric) {
+        private CounterBridge(MetricName name, Counter metric) {
             super(name, metric);
         }
 
@@ -219,7 +215,7 @@ public class MetricsBridge implements Closeable {
      * Metric proxy for a meter metric
      */
     public static class MeterBridge extends MetricBridge<Meter> {
-        private MeterBridge(AxualMetricName name, Meter metric) {
+        private MeterBridge(MetricName name, Meter metric) {
             super(name, metric);
         }
 

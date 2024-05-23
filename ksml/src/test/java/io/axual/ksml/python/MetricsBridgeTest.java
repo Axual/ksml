@@ -27,15 +27,13 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
-
-import io.axual.ksml.metric.AxualMetricsRegistry;
+import io.axual.ksml.metric.MetricsRegistry;
 
 @ExtendWith(MockitoExtension.class)
 class MetricsBridgeTest {
 
     @Mock(answer = Answers.RETURNS_MOCKS)
-    AxualMetricsRegistry mockedRegistry;
+    MetricsRegistry mockedRegistry;
 
     MetricsBridge metricsBridge;
 

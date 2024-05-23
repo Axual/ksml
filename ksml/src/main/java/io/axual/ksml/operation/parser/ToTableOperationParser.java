@@ -41,6 +41,6 @@ public class ToTableOperationParser extends StoreOperationParser<ToTableOperatio
                 operationTypeField(),
                 operationNameField(),
                 storeField(false, "Materialized view of the result table", StoreType.KEYVALUE_STORE),
-                (type, name, store) -> new ToTableOperation(storeOperationConfig(name, store)));
+                (type, name, store, tags) -> new ToTableOperation(storeOperationConfig(name, tags, store)));
     }
 }

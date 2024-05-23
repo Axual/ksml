@@ -38,11 +38,11 @@ public abstract class FunctionDefinitionParser<T extends FunctionDefinition> ext
     private String defaultName;
 
     protected StructParser<T> parserWithStores(Class<T> resultClass, String functionType, String description, Constructor1<T, FunctionDefinition> constructor) {
-        return parser(resultClass, functionType, description, (name, type, params, globalCode, code, expression, resultType, stores) -> FunctionDefinition.as(name, params, globalCode, code, expression, resultType, stores), constructor);
+        return parser(resultClass, functionType, description, (name, type, params, globalCode, code, expression, resultType, stores, tags) -> FunctionDefinition.as(name, params, globalCode, code, expression, resultType, stores), constructor);
     }
 
     protected StructParser<T> parserWithoutStores(Class<T> resultClass, String functionType, String description, Constructor1<T, FunctionDefinition> constructor) {
-        return parser(resultClass, functionType, description, (name, type, params, globalCode, code, expression, resultType, stores) -> FunctionDefinition.as(name, params, globalCode, code, expression, resultType, null), constructor);
+        return parser(resultClass, functionType, description, (name, type, params, globalCode, code, expression, resultType, stores, tags) -> FunctionDefinition.as(name, params, globalCode, code, expression, resultType, null), constructor);
     }
 
     private StructParser<T> parser(Class<T> resultClass, String functionType, String description, Constructor8<FunctionDefinition, String, String, List<ParameterDefinition>, String, String, String, UserType, List<String>> innerConstructor, Constructor1<T, FunctionDefinition> outerConstructor) {
@@ -66,7 +66,7 @@ public abstract class FunctionDefinitionParser<T extends FunctionDefinition> ext
                 if (rawFunction != null) {
                     if (rawFunction.name() == null) rawFunction = rawFunction.withName(node.longName());
                     if (rawFunction.globalCode().length > 0 || rawFunction.code().length > 0 || rawFunction.expression() != null) {
-                        return outerConstructor.construct(rawFunction);
+                        return outerConstructor.construct(rawFunction, node.tags());
                     }
                     return null;
                 }

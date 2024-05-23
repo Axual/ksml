@@ -47,13 +47,13 @@ public class WindowByTimeOperationParser extends OperationParser<WindowByTimeOpe
                 optional(durationField(KSMLDSL.TimeWindows.ADVANCE_BY, "(Hopping) The amount of time to increase time windows by")),
                 optional(durationField(KSMLDSL.TimeWindows.GRACE, "(Tumbling, Hopping, Sliding) The grace period, during which out-of-order records can still be processed")),
                 optional(durationField(KSMLDSL.TimeWindows.TIME_DIFFERENCE, "(Sliding) The maximum amount of time difference between two records")),
-                (type, name, windowType, duration, advanceBy, grace, timeDifference) -> {
+                (type, name, windowType, duration, advanceBy, grace, timeDifference, tags) -> {
                     switch (windowType) {
                         case KSMLDSL.TimeWindows.TYPE_TUMBLING -> {
                             final var timeWindows = (grace != null && grace.toMillis() > 0)
                                     ? TimeWindows.ofSizeAndGrace(duration, grace)
                                     : TimeWindows.ofSizeWithNoGrace(duration);
-                            return new WindowByTimeOperation(operationConfig(name), timeWindows);
+                            return new WindowByTimeOperation(operationConfig(name, tags), timeWindows);
                         }
                         case KSMLDSL.TimeWindows.TYPE_HOPPING -> {
                             if (advanceBy.toMillis() > duration.toMillis()) {
@@ -62,13 +62,13 @@ public class WindowByTimeOperationParser extends OperationParser<WindowByTimeOpe
                             final var timeWindows = (grace != null && grace.toMillis() > 0)
                                     ? org.apache.kafka.streams.kstream.TimeWindows.ofSizeAndGrace(duration, grace).advanceBy(advanceBy)
                                     : org.apache.kafka.streams.kstream.TimeWindows.ofSizeWithNoGrace(duration).advanceBy(advanceBy);
-                            return new WindowByTimeOperation(operationConfig(name), timeWindows);
+                            return new WindowByTimeOperation(operationConfig(name, tags), timeWindows);
                         }
                         case KSMLDSL.TimeWindows.TYPE_SLIDING -> {
                             final var slidingWindows = (grace != null && grace.toMillis() > 0)
                                     ? SlidingWindows.ofTimeDifferenceAndGrace(timeDifference, grace)
                                     : SlidingWindows.ofTimeDifferenceWithNoGrace(timeDifference);
-                            return new WindowByTimeOperation(operationConfig(name), slidingWindows);
+                            return new WindowByTimeOperation(operationConfig(name, tags), slidingWindows);
                         }
                     }
                     throw new TopologyException("Unknown WindowType for windowByTime operation: " + windowType);

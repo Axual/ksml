@@ -52,7 +52,7 @@ public class TableDefinitionParser extends DefinitionParser<TableDefinition> {
                 requireKeyValueType ? keyField : optional(keyField),
                 requireKeyValueType ? valueField : optional(valueField),
                 storeField(),
-                (topic, keyType, valueType, store) -> {
+                (topic, keyType, valueType, store, tags) -> {
                     keyType = keyType != null ? keyType : UserType.UNKNOWN;
                     valueType = valueType != null ? valueType : UserType.UNKNOWN;
                     if (store != null) {

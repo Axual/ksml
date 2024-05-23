@@ -23,7 +23,9 @@ package io.axual.ksml.user;
 
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.mapper.RecordMetadataDataObjectMapper;
+import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.data.type.RecordMetadata;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.python.Invoker;
 import io.axual.ksml.store.StateStores;
 
@@ -31,8 +33,8 @@ public class UserMetadataTransformer extends Invoker {
     private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
     private final RecordMetadataDataObjectMapper metaMapper = new RecordMetadataDataObjectMapper();
 
-    public UserMetadataTransformer(UserFunction function) {
-        super(function);
+    public UserMetadataTransformer(UserFunction function, ContextTags tags) {
+        super(function, tags, KSMLDSL.Functions.TYPE_METADATATRANSFORMER);
         verifyParameterCount(3);
     }
 

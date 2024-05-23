@@ -20,7 +20,9 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
-public record TopologyResource<T>(String name, T definition) implements Definition {
+import io.axual.ksml.data.tag.ContextTags;
+
+public record TopologyResource<T>(String name, T definition, ContextTags tags) implements Definition {
     @Override
     public String toString() {
         return definitionType();

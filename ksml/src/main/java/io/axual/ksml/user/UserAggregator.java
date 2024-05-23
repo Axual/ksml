@@ -23,19 +23,21 @@ package io.axual.ksml.user;
 
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.tag.ContextTags;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.python.Invoker;
 import org.apache.kafka.streams.kstream.Aggregator;
 
 public class UserAggregator extends Invoker implements Aggregator<Object, Object, Object> {
     private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
 
-    public UserAggregator(UserFunction function) {
-        super(function);
+    public UserAggregator(UserFunction function, ContextTags tags) {
+        super(function, tags, KSMLDSL.Functions.TYPE_AGGREGATOR);
         verifyParameterCount(3);
     }
 
     @Override
     public DataObject apply(Object key, Object value, Object aggregatedValue) {
-        return function.call(nativeMapper.toDataObject(key), nativeMapper.toDataObject(value), nativeMapper.toDataObject(aggregatedValue));
+        return this.execute(() -> function.call(nativeMapper.toDataObject(key), nativeMapper.toDataObject(value), nativeMapper.toDataObject(aggregatedValue)));
     }
 }

@@ -38,6 +38,6 @@ public class ConvertKeyOperationParser extends OperationParser<ConvertKeyOperati
                 operationTypeField(),
                 operationNameField(),
                 userTypeField(KSMLDSL.Operations.Convert.INTO, "The type to convert the stream key into"),
-                (type, name, into) -> new ConvertKeyOperation(operationConfig(name), into));
+                (type, name, into, tags) -> new ConvertKeyOperation(operationConfig(name, tags), into));
     }
 }

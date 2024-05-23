@@ -21,6 +21,7 @@ package io.axual.ksml.metric;
  */
 
 import com.codahale.metrics.jmx.ObjectNameFactory;
+import io.axual.ksml.data.tag.ContextTag;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.management.MalformedObjectNameException;
@@ -32,14 +33,14 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 @Slf4j
-class AxualMetricObjectNameFactory implements ObjectNameFactory {
-    private static final String TAG_KEY_NAME = AxualMetricObjectNaming.NAME_TAG_KEY;
+class MetricObjectNameFactory implements ObjectNameFactory {
+    private static final String TAG_KEY_NAME = MetricObjectNaming.NAME_TAG_KEY;
     private static final String TAG_KEY_TYPE = "type";
     private static final Set<String> INVALID_TAG_KEYS = Set.of(TAG_KEY_NAME, TAG_KEY_TYPE);
 
-    private final List<AxualMetricTag> staticTags;
+    private final List<ContextTag> staticTags;
 
-    AxualMetricObjectNameFactory(List<AxualMetricTag> staticTags) {
+    MetricObjectNameFactory(List<ContextTag> staticTags) {
         if (staticTags.stream().anyMatch(tag -> tag == null || INVALID_TAG_KEYS.contains(tag.key()))) {
             throw new IllegalArgumentException("Invalid tags provided");
         }
@@ -48,11 +49,11 @@ class AxualMetricObjectNameFactory implements ObjectNameFactory {
 
     @Override
     public ObjectName createName(String type, String domain, String name) {
-        final var metricName = AxualMetricObjectNaming.metricNameFromString(name);
-        final var metricTags = metricName.axualMetricTags();
+        final var metricName = MetricObjectNaming.metricNameFromString(name);
+        final var metricTags = metricName.tags();
 
-        final var tagList = new ArrayList<AxualMetricTag>(staticTags.size() + 1 + metricTags.size());
-        tagList.add(AxualMetricsUtil.metricTag(TAG_KEY_NAME, metricName.name()));
+        final var tagList = new ArrayList<ContextTag>(staticTags.size() + 1 + metricTags.size());
+        tagList.add(MetricsUtil.metricTag(TAG_KEY_NAME, metricName.name()));
         tagList.addAll(staticTags);
         tagList.addAll(metricTags);
 
@@ -73,11 +74,11 @@ class AxualMetricObjectNameFactory implements ObjectNameFactory {
         } catch (MalformedObjectNameException e) {
             log.warn("Could not create object name for name {}, type {}, static tags {} metric tags {}. Using alternative name", metricName.name(), type, staticTags, metricTags, e);
 
-            final var altName = AxualMetricObjectNaming.stringFromMetricsTags(tagList);
+            final var altName = MetricObjectNaming.stringFromMetricsTags(tagList);
             try {
                 return new ObjectName(jmxSanitize(domain), "name", ObjectName.quote(altName));
             } catch (MalformedObjectNameException ex) {
-                throw new AxualMetricObjectNamingException(ex);
+                throw new MetricObjectNamingException(ex);
             }
         }
     }

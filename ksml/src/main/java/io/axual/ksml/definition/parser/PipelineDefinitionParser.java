@@ -55,7 +55,7 @@ public class PipelineDefinitionParser extends ContextAwareParser<PipelineDefinit
         final var printParser = new PrintOperationParser(resources());
         final var toParser = new ToOperationParser(resources());
 
-        final var sourceField = topologyResourceField("source", KSMLDSL.Pipelines.FROM, "Pipeline source", resources()::topic, new TopicDefinitionParser(true));
+        final var sourceField = topologyResourceField("source", KSMLDSL.Pipelines.FROM, "Pipeline source", (name, tags) -> resources().topic(name), new TopicDefinitionParser(true));
 
         return structParser(
                 PipelineDefinition.class,
@@ -69,7 +69,7 @@ public class PipelineDefinitionParser extends ContextAwareParser<PipelineDefinit
                 optional(forEachParser),
                 optional(printParser),
                 optional(toParser),
-                (name, from, via, as, branch, forEach, print, to) -> {
+                (name, from, via, as, branch, forEach, print, to, tags) -> {
                     name = validateName("Pipeline", name, defaultName, false);
                     via = via != null ? via : new ArrayList<>();
                     if (as != null) return new PipelineDefinition(name, from, via, as);
@@ -80,7 +80,7 @@ public class PipelineDefinitionParser extends ContextAwareParser<PipelineDefinit
                     // If no sink operation was specified, then we create an AS operation here with the name provided.
                     // This means that pipeline results can be referred to by other pipelines using the pipeline's name
                     // as identifier.
-                    var sinkOperation = name != null ? new AsOperation(new OperationConfig(resources().getUniqueOperationName(name), null), name) : null;
+                    var sinkOperation = name != null ? new AsOperation(new OperationConfig(resources().getUniqueOperationName(name), tags, null), name) : null;
                     return new PipelineDefinition(name, from, via, sinkOperation);
                 });
     }

@@ -48,7 +48,7 @@ public class ReduceOperation extends StoreOperation {
         final var k = input.keyType();
         final var v = input.valueType();
         final var red = userFunctionOf(context, REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
-        final var userRed = new UserReducer(red);
+        final var userRed = new UserReducer(red, tags);
         final var kvStore = validateKeyValueStore(store(), k, v);
         final var mat = materializedOf(context, kvStore);
         final var named = namedOf();
@@ -73,9 +73,9 @@ public class ReduceOperation extends StoreOperation {
         final var k = input.keyType();
         final var v = input.valueType();
         final var add = userFunctionOf(context, ADDER_NAME, adder, v, equalTo(v), equalTo(v));
-        final var userAdd = new UserReducer(add);
+        final var userAdd = new UserReducer(add, tags);
         final var sub = userFunctionOf(context, SUBTRACTOR_NAME, subtractor, v, equalTo(v), equalTo(v));
-        final var userSub = new UserReducer(sub);
+        final var userSub = new UserReducer(sub, tags);
         final var kvStore = validateKeyValueStore(store(), k, v);
         final var mat = materializedOf(context, kvStore);
         final var named = namedOf();
@@ -100,7 +100,7 @@ public class ReduceOperation extends StoreOperation {
         final var v = input.valueType();
         final var windowedK = windowedTypeOf(k);
         final var red = userFunctionOf(context, REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
-        final var userRed = new UserReducer(red);
+        final var userRed = new UserReducer(red, tags);
         final var sessionStore = validateSessionStore(store(), k, v);
         final var mat = materializedOf(context, sessionStore);
         final var named = namedOf();
@@ -125,7 +125,7 @@ public class ReduceOperation extends StoreOperation {
         final var v = input.valueType();
         final var windowedK = windowedTypeOf(k);
         final var red = userFunctionOf(context, REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
-        final var userRed = new UserReducer(red);
+        final var userRed = new UserReducer(red, tags);
         final var windowStore = validateWindowStore(store(), k, v);
         final var mat = materializedOf(context, windowStore);
         final var named = namedOf();

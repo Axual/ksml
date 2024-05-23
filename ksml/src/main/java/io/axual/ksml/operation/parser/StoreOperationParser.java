@@ -22,6 +22,7 @@ package io.axual.ksml.operation.parser;
 
 import io.axual.ksml.data.exception.ParseException;
 import io.axual.ksml.data.parser.NamedObjectParser;
+import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.StateStoreDefinition;
@@ -41,20 +42,17 @@ public abstract class StoreOperationParser<T extends StoreOperation> extends Ope
         super(type, resources);
     }
 
-    protected StoreOperationConfig storeOperationConfig(String name, StateStoreDefinition store) {
-        return storeOperationConfig(name, store, null);
+    protected StoreOperationConfig storeOperationConfig(String name, ContextTags tags, StateStoreDefinition store) {
+        return storeOperationConfig(name, tags, store, null);
     }
 
-    protected StoreOperationConfig storeOperationConfig(String name, StateStoreDefinition store, List<String> storeNames) {
-        return new StoreOperationConfig(
-                resources().getUniqueOperationName(name != null ? name : type),
-                store,
-                storeNames);
+    protected StoreOperationConfig storeOperationConfig(String name, ContextTags tags, StateStoreDefinition store, List<String> storeNames) {
+        return new StoreOperationConfig(resources().getUniqueOperationName(name != null ? name : type), tags, store, storeNames);
     }
 
     protected StructParser<StateStoreDefinition> storeField(boolean required, String doc, StoreType expectedStoreType) {
         final var stateStoreParser = new StateStoreDefinitionParser(expectedStoreType);
-        final var resourceParser = new TopologyResourceParser<>("state store", KSMLDSL.Operations.STORE_ATTRIBUTE, doc, resources()::stateStore, stateStoreParser);
+        final var resourceParser = new TopologyResourceParser<>("state store", KSMLDSL.Operations.STORE_ATTRIBUTE, doc, (name, context) -> resources().stateStore(name), stateStoreParser);
         final var schema = required ? resourceParser.schema() : optional(resourceParser).schema();
         return new StructParser<>() {
             @Override

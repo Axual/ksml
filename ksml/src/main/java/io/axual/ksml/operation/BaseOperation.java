@@ -29,6 +29,7 @@ import io.axual.ksml.definition.*;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.user.UserFunction;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.utils.Bytes;
@@ -65,6 +66,7 @@ public class BaseOperation implements StreamOperation {
     }
 
     protected final String name;
+    protected final ContextTags tags;
     protected final String[] storeNames;
 
     public BaseOperation(OperationConfig config) {
@@ -75,6 +77,7 @@ public class BaseOperation implements StreamOperation {
         } else {
             name = config.name();
         }
+        tags = config.tags().append("operation-name", name);
         storeNames = config.storeNames() != null ? config.storeNames() : new String[0];
     }
 
@@ -263,7 +266,7 @@ public class BaseOperation implements StreamOperation {
         // Copy the remainder of the parameters into the new array
         System.arraycopy(function.parameters(), parameters.length, newParams, parameters.length, function.parameters().length - parameters.length);
         // Update the function with its new parameter types
-        return context.createUserFunction(function.withParameters(newParams));
+        return context.createUserFunction(function.withParameters(newParams), tags);
     }
 
     protected void checkTuple(String faultDescription, UserType type, DataType... elements) {

@@ -36,6 +36,6 @@ public class ParameterDefinitionParser extends DefinitionParser<ParameterDefinit
                 stringField(Functions.Parameters.NAME, true, null, "The name of the parameter"),
                 userTypeField(Functions.Parameters.TYPE, "The type of the parameter"),
                 optional(stringField(Functions.Parameters.DEFAULT_VALUE, "The default value for the parameter")),
-                (name, type, defaultValue) -> new ParameterDefinition(name, type.dataType(), true, defaultValue));
+                (name, type, defaultValue, tags) -> new ParameterDefinition(name, type.dataType(), true, defaultValue));
     }
 }

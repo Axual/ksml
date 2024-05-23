@@ -42,6 +42,6 @@ public class GroupByOperationParser extends StoreOperationParser<GroupByOperatio
                 operationNameField(),
                 functionField(KSMLDSL.Operations.GroupBy.MAPPER, "Function to map records to a key they can be grouped on", new KeyValueMapperDefinitionParser()),
                 storeField(false, "Materialized view of the grouped stream or table", StoreType.KEYVALUE_STORE),
-                (type, name, mapper, store) -> new GroupByOperation(storeOperationConfig(name, store), mapper));
+                (type, name, mapper, store, tags) -> new GroupByOperation(storeOperationConfig(name, tags, store), mapper));
     }
 }

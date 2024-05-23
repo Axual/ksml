@@ -20,6 +20,8 @@ package io.axual.ksml.metric;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.tag.ContextTag;
+import io.axual.ksml.data.tag.ContextTags;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -28,36 +30,35 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import static io.axual.ksml.metric.AxualMetricsUtil.metricName;
-import static io.axual.ksml.metric.AxualMetricsUtil.metricTag;
+import static io.axual.ksml.metric.MetricsUtil.metricTag;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-class AxualMetricObjectNaming {
+class MetricObjectNaming {
     public static final String NAME_TAG_KEY = "name";
     private static final String TAG_SEPARATOR = "#";
     private static final String KEY_VALUE_SEPARATOR = "=";
 
-    static String stringFromMetricName(AxualMetricName metricName) {
-        return stringFromNameAndMetricsTags(metricName.name(), metricName.axualMetricTags());
+    static String stringFromMetricName(MetricName metricName) {
+        return stringFromNameAndMetricsTags(metricName.name(), metricName.tags());
     }
 
-    static String stringFromNameAndMetricsTags(String name, List<AxualMetricTag> tags) {
-        final var tagsWithName = new ArrayList<AxualMetricTag>(tags.size() + 1);
+    static String stringFromNameAndMetricsTags(String name, List<ContextTag> tags) {
+        final var tagsWithName = new ArrayList<ContextTag>(tags.size() + 1);
         tagsWithName.add(metricTag(NAME_TAG_KEY, name));
         tagsWithName.addAll(tags);
         return stringFromMetricsTags(tagsWithName);
     }
 
-    static String stringFromMetricsTags(List<AxualMetricTag> tags) {
+    static String stringFromMetricsTags(List<ContextTag> tags) {
         final var keys = new HashSet<String>();
         var builder = new StringBuilder();
 
         for (var tag : tags) {
             if (!keys.add(tag.key())) {
-                throw new AxualMetricObjectNamingException("Same tag key exists %s".formatted(tag.key()));
+                throw new MetricObjectNamingException("Same tag key exists %s".formatted(tag.key()));
             }
 
-            if(!builder.isEmpty()){
+            if (!builder.isEmpty()) {
                 builder.append(TAG_SEPARATOR);
             }
             builder.append(tag.key())
@@ -67,24 +68,24 @@ class AxualMetricObjectNaming {
         return builder.toString();
     }
 
-    static List<AxualMetricTag> metricTagsFromString(String name) {
+    static ContextTags metricTagsFromString(String name) {
         var keyValues = StringUtils.splitByWholeSeparator(name, TAG_SEPARATOR);
-        var tags = new ArrayList<AxualMetricTag>();
+        var tags = new ContextTags();
         for (var kvString : keyValues) {
             if (kvString == null || kvString.isBlank()) {
                 continue;
             }
             var keyValue = StringUtils.splitByWholeSeparator(kvString, KEY_VALUE_SEPARATOR, 2);
             if (keyValue.length != 2) {
-                throw new AxualMetricObjectNamingException("KeyValue String doesn't contain separator. Failing part %s  of name %s".formatted(kvString, name));
+                throw new MetricObjectNamingException("KeyValue String doesn't contain separator. Failing part %s  of name %s".formatted(kvString, name));
             }
-            tags.add(metricTag(keyValue[0], keyValue[1]));
+            tags.append(keyValue[0], keyValue[1]);
         }
 
         return tags;
     }
 
-    static AxualMetricName metricNameFromString(String name) {
+    static MetricName metricNameFromString(String name) {
         var tags = metricTagsFromString(name);
         // Find the name tag
         var nameTag = tags.stream()
@@ -92,6 +93,6 @@ class AxualMetricObjectNaming {
                 .findAny()
                 .orElseThrow(() -> new IllegalArgumentException("Provided String does not contain name tag"));
         tags.remove(nameTag);
-        return metricName(nameTag.value(), tags);
+        return new MetricName(nameTag.value(), tags);
     }
 }

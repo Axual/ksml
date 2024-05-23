@@ -20,23 +20,14 @@ package io.axual.ksml.metric;
  * =========================LICENSE_END==================================
  */
 
-/**
- * A key value pair used to identify a unique instance of a metric.
- */
-public record AxualMetricTag(String key, String value) {
-    /**
-     * Create a new metric tag instance.
-     *
-     * @param key   cannot be null, empty or only contains whitespace/control characters
-     * @param value cannot be null, empty or only contains whitespace/control characters
-     * @throws IllegalArgumentException if the key or value is null, empty or only contains whitespace/control characters
-     */
-    public AxualMetricTag {
-        if (key == null || key.isBlank()) {
-            throw new IllegalArgumentException("Key cannot be null or empty");
-        }
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException("Value cannot be null or empty");
-        }
+import javax.management.MalformedObjectNameException;
+
+class MetricObjectNamingException extends RuntimeException {
+    MetricObjectNamingException(MalformedObjectNameException cause) {
+        super(cause);
+    }
+
+    MetricObjectNamingException(String message) {
+        super(message);
     }
 }

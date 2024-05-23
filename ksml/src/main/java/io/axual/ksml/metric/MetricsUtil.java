@@ -20,14 +20,27 @@ package io.axual.ksml.metric;
  * =========================LICENSE_END==================================
  */
 
-import javax.management.MalformedObjectNameException;
+import io.axual.ksml.data.tag.ContextTag;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-class AxualMetricObjectNamingException extends RuntimeException {
-    AxualMetricObjectNamingException(MalformedObjectNameException cause) {
-        super(cause);
-    }
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
-    AxualMetricObjectNamingException(String message) {
-        super(message);
+/**
+ * Collection of convenience methods for creating or handling Metric related classes and records
+ */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class MetricsUtil {
+    /**
+     * Create a new Tag instance.
+     *
+     * @param key   the metric tag key to use
+     * @param value the metric tag value to use
+     * @return the new metric tags
+     */
+    public static ContextTag metricTag(String key, String value) {
+        return new ContextTag(key, value);
     }
 }

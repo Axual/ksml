@@ -44,7 +44,7 @@ public class TopologyResourcesParser extends DefinitionParser<TopologyResources>
                 optional(mapField(GLOBAL_TABLES, "globalTable definition", "GlobalTables that can be referenced in producers and pipelines", new GlobalTableDefinitionParser(true))),
                 optional(mapField(STORES, "state store definition", "State stores that can be referenced in producers and pipelines", new StateStoreDefinitionParser())),
                 optional(mapField(FUNCTIONS, "function definition", "Functions that can be referenced in producers and pipelines", new TypedFunctionDefinitionParser())),
-                (streams, tables, globalTables, stores, functions) -> {
+                (streams, tables, globalTables, stores, functions, tags) -> {
                     final var result = new TopologyResources(namespace);
                     if (streams != null) streams.forEach(result::register);
                     if (tables != null) tables.forEach(result::register);

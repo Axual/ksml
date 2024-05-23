@@ -56,9 +56,9 @@ public class OuterJoinOperationParser extends StoreOperationParser<OuterJoinOper
                 durationField(KSMLDSL.Operations.Join.TIME_DIFFERENCE, "(Stream joins) The maximum time difference for a join over two streams on the same key"),
                 optional(durationField(KSMLDSL.Operations.Join.GRACE, "(Stream joins) The window grace period (the time to admit out-of-order events after the end of the window)")),
                 storeField(false, "Materialized view of the joined streams", null),
-                (type, name, stream, valueJoiner, timeDifference, grace, store) -> {
+                (type, name, stream, valueJoiner, timeDifference, grace, store, tags) -> {
                     if (stream instanceof StreamDefinition streamDef) {
-                        return new OuterJoinOperation(storeOperationConfig(name, store), streamDef, valueJoiner, timeDifference, grace);
+                        return new OuterJoinOperation(storeOperationConfig(name, tags, store), streamDef, valueJoiner, timeDifference, grace);
                     }
                     throw new TopologyException("Join stream not correct, should be a defined Stream");
                 });
@@ -72,9 +72,9 @@ public class OuterJoinOperationParser extends StoreOperationParser<OuterJoinOper
                 topicField(KSMLDSL.Operations.Join.WITH_TABLE, "(Required for Table joins) A reference to the Table, or an inline definition of the Table to join with", new TableDefinitionParser(false)),
                 functionField(KSMLDSL.Operations.Join.VALUE_JOINER, "(Table joins) A function that joins two values", new ValueJoinerDefinitionParser()),
                 storeField(false, "Materialized view of the joined streams", null),
-                (type, name, table, valueJoiner, store) -> {
+                (type, name, table, valueJoiner, store, tags) -> {
                     if (table instanceof TableDefinition tableDef) {
-                        return new OuterJoinOperation(storeOperationConfig(name, store), tableDef, valueJoiner);
+                        return new OuterJoinOperation(storeOperationConfig(name, tags, store), tableDef, valueJoiner);
                     }
                     throw new TopologyException("Join table not correct, should be a defined Table");
                 });

@@ -29,6 +29,7 @@ import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataTuple;
+import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ProducerDefinition;
 import io.axual.ksml.python.PythonContext;
@@ -62,12 +63,12 @@ public class ExecutableProducer {
     private DataObject lastValue = DataNull.INSTANCE;
 
     private ExecutableProducer(UserFunction generator,
-                              UserFunction condition,
-                              String topic,
-                              UserType keyType,
-                              UserType valueType,
-                              Serializer<Object> keySerializer,
-                              Serializer<Object> valueSerializer,
+                               UserFunction condition,
+                               String topic,
+                               UserType keyType,
+                               UserType valueType,
+                               Serializer<Object> keySerializer,
+                               Serializer<Object> valueSerializer,
                                RescheduleStrategy rescheduleStrategy) {
         this.dataObjectConverter = new DataObjectConverter();
         this.generator = generator;
@@ -82,30 +83,32 @@ public class ExecutableProducer {
 
     /**
      * Return a new instance based on the givan parameters.
-     * @param context the {@link PythonContext}.
-     * @param namespace the namespace for the function.
-     * @param name the name for the function definition.
+     *
+     * @param context            the {@link PythonContext}.
+     * @param namespace          the namespace for the function.
+     * @param name               the name for the function definition.
      * @param producerDefinition the {@link ProducerDefinition} for this producer.
-     * @param kafkaConfig the Kafka configuration for this producer.
+     * @param kafkaConfig        the Kafka configuration for this producer.
      * @return a new ExecutableProducer instance.
      */
     public static ExecutableProducer forProducer(PythonContext context, String namespace, String name, ProducerDefinition producerDefinition, Map<String, String> kafkaConfig) {
-        var target = producerDefinition.target();
-        var gen = producerDefinition.generator();
+        final var target = producerDefinition.target();
+        final var gen = producerDefinition.generator();
+        final var tags = new ContextTags().append("namespace", namespace);
         final var generator = gen.name() != null
-                ? PythonFunction.forGenerator(context, namespace, gen.name(), gen)
-                : PythonFunction.forGenerator(context, namespace, name, gen);
-        var cond = producerDefinition.condition();
+                ? PythonFunction.forGenerator(context, tags, namespace, gen.name(), gen)
+                : PythonFunction.forGenerator(context, tags, namespace, name, gen);
+        final var cond = producerDefinition.condition();
         final var condition = cond != null
                 ? cond.name() != null
-                ? PythonFunction.forPredicate(context, namespace, cond.name(), cond)
-                : PythonFunction.forPredicate(context, namespace, name, cond)
+                ? PythonFunction.forPredicate(context, tags, namespace, cond.name(), cond)
+                : PythonFunction.forPredicate(context, tags, namespace, name, cond)
                 : null;
-        var keySerde = NotationLibrary.get(target.keyType().notation()).serde(target.keyType().dataType(), true);
-        var keySerializer = new ResolvingSerializer<>(keySerde.serializer(), kafkaConfig);
-        var valueSerde = NotationLibrary.get(target.valueType().notation()).serde(target.valueType().dataType(), false);
-        var valueSerializer = new ResolvingSerializer<>(valueSerde.serializer(), kafkaConfig);
-        var reschedulingStrategy = setupRescheduling(producerDefinition, context, namespace, name);
+        final var keySerde = NotationLibrary.get(target.keyType().notation()).serde(target.keyType().dataType(), true);
+        final var keySerializer = new ResolvingSerializer<>(keySerde.serializer(), kafkaConfig);
+        final var valueSerde = NotationLibrary.get(target.valueType().notation()).serde(target.valueType().dataType(), false);
+        final var valueSerializer = new ResolvingSerializer<>(valueSerde.serializer(), kafkaConfig);
+        final var reschedulingStrategy = setupRescheduling(producerDefinition, context, namespace, name);
 
         return new ExecutableProducer(generator, condition, target.topic(), target.keyType(), target.valueType(), keySerializer, valueSerializer, reschedulingStrategy);
     }
@@ -173,6 +176,7 @@ public class ExecutableProducer {
 
     /**
      * Indicate if this instance wants to be rescheduled after its most recent run.
+     *
      * @return true if should reschedule.
      */
     public boolean shouldReschedule() {
@@ -181,6 +185,7 @@ public class ExecutableProducer {
 
     /**
      * Indicate the desired waiting time until the next reschedule.
+     *
      * @return the desired wait until next run.
      */
     public Duration interval() {
@@ -208,9 +213,10 @@ public class ExecutableProducer {
 
         if (definition.until() != null) {
             FunctionDefinition untilDefinition = definition.until();
+            final var tags = new ContextTags().append("namespace", namespace);
             final var untilFunction = untilDefinition.name() != null
-                    ? PythonFunction.forPredicate(context, namespace, untilDefinition.name(), untilDefinition)
-                    : PythonFunction.forPredicate(context, namespace, name, untilDefinition);
+                    ? PythonFunction.forPredicate(context, tags, namespace, untilDefinition.name(), untilDefinition)
+                    : PythonFunction.forPredicate(context, tags, namespace, name, untilDefinition);
             strategy.combine(RescheduleStrategy.until(untilFunction));
         }
 

@@ -28,6 +28,10 @@ import io.axual.ksml.parser.StructParser;
 public class PredicateDefinitionParser extends FunctionDefinitionParser<PredicateDefinition> {
     @Override
     public StructParser<PredicateDefinition> parser() {
-        return parserWithStores(PredicateDefinition.class, KSMLDSL.Functions.TYPE_PREDICATE, "Function that returns true or false based on key/value input", PredicateDefinition::new);
+        return parserWithStores(
+                PredicateDefinition.class,
+                KSMLDSL.Functions.TYPE_PREDICATE,
+                "Function that returns true or false based on key/value input",
+                (function, tags) -> new PredicateDefinition(function));
     }
 }

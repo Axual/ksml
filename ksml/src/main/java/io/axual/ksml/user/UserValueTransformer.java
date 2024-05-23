@@ -23,6 +23,8 @@ package io.axual.ksml.user;
 
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.tag.ContextTags;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.python.Invoker;
 import io.axual.ksml.store.StateStores;
 import org.apache.kafka.streams.kstream.ValueMapperWithKey;
@@ -30,8 +32,8 @@ import org.apache.kafka.streams.kstream.ValueMapperWithKey;
 public class UserValueTransformer extends Invoker implements ValueMapperWithKey<Object, Object, DataObject> {
     private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
 
-    public UserValueTransformer(UserFunction function) {
-        super(function);
+    public UserValueTransformer(UserFunction function, ContextTags tags) {
+        super(function, tags, KSMLDSL.Functions.TYPE_VALUETRANSFORMER);
         verifyParameterCount(2);
     }
 

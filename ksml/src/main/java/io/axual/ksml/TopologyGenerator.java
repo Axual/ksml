@@ -21,6 +21,7 @@ package io.axual.ksml;
  */
 
 
+import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.definition.GlobalTableDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.TableDefinition;
@@ -138,7 +139,7 @@ public class TopologyGenerator {
         });
 
         // Preload the function into the Python context
-        specification.functions().forEach((name, func) -> context.createUserFunction(func));
+        specification.functions().forEach((name, func) -> context.createUserFunction(func, new ContextTags().append("namespace", context.namespace())));
 
         // Figure out which state stores to create manually. Mechanism:
         // 1. run through all pipelines and scan for StoreOperations, don't create the stores referenced

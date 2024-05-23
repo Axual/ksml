@@ -52,7 +52,7 @@ public class TransformKeyOperation extends BaseOperation {
         final var v = input.valueType();
         final var kr = streamDataTypeOf(firstSpecificType(mapper, k), true);
         final var map = userFunctionOf(context, MAPPER_NAME, mapper, kr, superOf(k), superOf(v));
-        final var userMap = new UserKeyTransformer(map);
+        final var userMap = new UserKeyTransformer(map, tags);
         final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames().toArray(TEMPLATE));
         final var supplier = new OperationProcessorSupplier<>(
                 name,

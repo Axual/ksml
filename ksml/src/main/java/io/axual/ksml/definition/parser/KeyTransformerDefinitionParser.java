@@ -28,6 +28,10 @@ import io.axual.ksml.parser.StructParser;
 public class KeyTransformerDefinitionParser extends FunctionDefinitionParser<KeyTransformerDefinition> {
     @Override
     public StructParser<KeyTransformerDefinition> parser() {
-        return parserWithStores(KeyTransformerDefinition.class, KSMLDSL.Functions.TYPE_KEYTRANSFORMER, "key transformer", KeyTransformerDefinition::new);
+        return parserWithStores(
+                KeyTransformerDefinition.class,
+                KSMLDSL.Functions.TYPE_KEYTRANSFORMER,
+                "key transformer",
+                (function, tags) -> new KeyTransformerDefinition(function));
     }
 }

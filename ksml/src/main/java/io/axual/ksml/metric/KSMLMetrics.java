@@ -26,9 +26,9 @@ public class KSMLMetrics {
     private KSMLMetrics() {
     }
 
-    private static final AxualMetricsRegistry REGISTRY = new AxualMetricsRegistry();
+    private static final MetricsRegistry REGISTRY = new MetricsRegistry();
 
-    public static AxualMetricsRegistry registry() {
+    public static MetricsRegistry registry() {
         return REGISTRY;
     }
 

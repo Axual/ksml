@@ -28,6 +28,10 @@ import io.axual.ksml.parser.StructParser;
 public class ForEachActionDefinitionParser extends FunctionDefinitionParser<ForEachActionDefinition> {
     @Override
     public StructParser<ForEachActionDefinition> parser() {
-        return parserWithStores(ForEachActionDefinition.class, KSMLDSL.Functions.TYPE_FOREACHACTION, "foreach action", ForEachActionDefinition::new);
+        return parserWithStores(
+                ForEachActionDefinition.class,
+                KSMLDSL.Functions.TYPE_FOREACHACTION,
+                "foreach action",
+                (function, tags) -> new ForEachActionDefinition(function));
     }
 }

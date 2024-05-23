@@ -40,6 +40,6 @@ public class GroupByKeyOperationParser extends StoreOperationParser<GroupByKeyOp
                 operationTypeField(),
                 operationNameField(),
                 storeField(false, "Materialized view of the grouped stream", StoreType.KEYVALUE_STORE),
-                (type, name, store) -> new GroupByKeyOperation(storeOperationConfig(name, store)));
+                (type, name, store, tags) -> new GroupByKeyOperation(storeOperationConfig(name, tags, store)));
     }
 }
