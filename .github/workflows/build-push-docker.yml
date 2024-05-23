@@ -39,8 +39,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            axual/ksml-data-generator:snapshot
-            ghcr.io/axual/ksml-data-generator:snapshot
+            axual/ksml-data-generator:0.2-snapshot
+            ghcr.io/axual/ksml-data-generator:0.2-snapshot
 
       - name: build and push KSML Runner
         uses: docker/build-push-action@v4
@@ -50,5 +50,5 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            axual/ksml:snapshot
-            ghcr.io/axual/ksml:snapshot
+            axual/ksml:0.2-snapshot
+            ghcr.io/axual/ksml:0.2-snapshot
