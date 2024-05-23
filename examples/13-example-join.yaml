@@ -44,7 +44,7 @@ functions:
         "sensordata" : sensordata,
         "alerts" : triggeredAlertSettings
       }
-      log.info('JOINED sensordata= {} alerts= {}' new_value["sensordata"], new_value["alerts"])
+      log.info('JOINED sensordata= {} alerts= {}', new_value["sensordata"], new_value["alerts"])
     expression: new_value
     resultType: json
 
@@ -75,7 +75,7 @@ pipelines:
     via:
       - name: filter_nulls
         type: filter
-        predicate:
+        if:
           expression: value != None
       - name: rekey_sensordata
         type: transformKeyValue

@@ -20,10 +20,18 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.value.Tuple;
+import java.util.Arrays;
+
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
+import io.axual.ksml.data.value.Tuple;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
+// This is a bit of an odd-one-out class for holding tuples of DataObjects. It can explicitly NOT hold represent a
+// NULL tuple for now. We should look into this more in the future to see if this makes sense or not.
+@Getter
+@EqualsAndHashCode
 public class DataTuple extends Tuple<DataObject> implements DataObject {
     private final DataType type;
 
@@ -33,28 +41,7 @@ public class DataTuple extends Tuple<DataObject> implements DataObject {
     }
 
     private static DataType[] convertElements(DataObject... elements) {
-        DataType[] result = new DataType[elements.length];
-        for (int index = 0; index < elements.length; index++) {
-            result[index] = elements[index].type();
-        }
-        return result;
-    }
-
-    @Override
-    public DataType type() {
-        return type;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (!super.equals(other)) return false;
-        if (!(other instanceof DataTuple)) return false;
-        return type.equals(((DataTuple) other).type);
-    }
-
-    @Override
-    public int hashCode() {
-        return type.hashCode() + 31 * super.hashCode();
+        return Arrays.stream(elements).map(DataObject::type).toArray(DataType[]::new);
     }
 
     @Override

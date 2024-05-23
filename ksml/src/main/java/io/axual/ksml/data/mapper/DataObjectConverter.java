@@ -27,6 +27,7 @@ import io.axual.ksml.exception.KSMLExecutionException;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.notation.NotationLibrary;
+import io.axual.ksml.notation.binary.NativeDataObjectMapper;
 
 import static io.axual.ksml.data.type.UserType.DEFAULT_NOTATION;
 
@@ -51,6 +52,9 @@ public class DataObjectConverter {
         if (targetType == null || value == null || targetType.dataType().isAssignableFrom(value.type()))
             return value;
 
+        // If the value represents a NULL, then convert it directly
+        if (value == DataNull.INSTANCE) return NativeDataObjectMapper.convertFromNull(targetType.dataType());
+
         // Perform type conversions recursively, going into complex types if necessary
 
         // Recurse into union types
@@ -60,7 +64,6 @@ public class DataObjectConverter {
                 if (convertedValue != null) return convertedValue;
             }
         }
-
         // Recurse into lists
         if (targetType.dataType() instanceof ListType targetListType
                 && value instanceof DataList valueList) {
@@ -158,7 +161,7 @@ public class DataObjectConverter {
 
         // Come up with default values if we convert from Null
         if (value == null || value instanceof DataNull)
-            return convertFromNull(targetType);
+            return NativeDataObjectMapper.convertFromNull(targetType);
 
         // Convert from anything to String
         if (targetType == DataString.DATATYPE) return convertToString(value);
@@ -182,29 +185,11 @@ public class DataObjectConverter {
         return value;
     }
 
-    private DataObject convertFromNull(DataType expected) {
-        if (expected == null || expected == DataNull.DATATYPE) return DataNull.INSTANCE;
-        if (expected == DataByte.DATATYPE) return new DataByte();
-        if (expected == DataShort.DATATYPE) return new DataShort();
-        if (expected == DataInteger.DATATYPE) return new DataInteger();
-        if (expected == DataLong.DATATYPE) return new DataLong();
-        if (expected == DataFloat.DATATYPE) return new DataFloat();
-        if (expected == DataDouble.DATATYPE) return new DataDouble();
-        if (expected == DataBytes.DATATYPE) return new DataBytes();
-        if (expected == DataString.DATATYPE) return new DataString();
-        if (expected instanceof ListType listType) return new DataList(listType.valueType());
-        if (expected instanceof StructType structType) return new DataStruct(structType.schema());
-        if (expected instanceof TupleType tupleType) return createEmptyTuple(tupleType);
-        if (expected instanceof UnionType unionType)
-            return new DataUnion(unionType, DataNull.INSTANCE);
-        throw new KSMLExecutionException("Can not convert NULL to " + expected);
-    }
-
     private DataTuple createEmptyTuple(TupleType tupleType) {
         // Create a tuple with given type using default values for all tuple elements
         var elements = new DataObject[tupleType.subTypeCount()];
         for (int index = 0; index < elements.length; index++)
-            elements[index] = convertFromNull(tupleType.subType(index));
+            elements[index] = NativeDataObjectMapper.convertFromNull(tupleType.subType(index));
         return new DataTuple(elements);
     }
 

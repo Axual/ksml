@@ -21,13 +21,14 @@ package io.axual.ksml.notation.json;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
+import java.io.StringWriter;
+
 import io.axual.ksml.exception.KSMLDataException;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.notation.binary.JsonNodeNativeMapper;
 import io.axual.ksml.notation.string.StringMapper;
-
-import java.io.IOException;
-import java.io.StringWriter;
 
 public class JsonStringMapper implements StringMapper<Object> {
     protected final ObjectMapper mapper = new ObjectMapper();
@@ -35,22 +36,25 @@ public class JsonStringMapper implements StringMapper<Object> {
 
     @Override
     public Object fromString(String value) {
+        if (value == null)
+            return null; // Allow null strings as input, returning null as native output
         try {
             var tree = mapper.readTree(value);
             return NATIVE_MAPPER.toNative(tree);
         } catch (Exception mapException) {
-            throw new KSMLDataException("Could not parse string to object: " + (value != null ? value : "null"));
+            throw new KSMLDataException("Could not parse string to object: " + value);
         }
     }
 
     @Override
     public String toString(Object value) {
+        if (value == null) return null; // Allow null as native input, return null string as output
         try {
             final var writer = new StringWriter();
             mapper.writeTree(mapper.createGenerator(writer), NATIVE_MAPPER.fromNative(value));
             return writer.toString();
         } catch (IOException e) {
-            throw FatalError.dataError("Can not convert object to JSON string: " + (value != null ? value.toString() : "null"), e);
+            throw FatalError.dataError("Can not convert object to JSON string: " + value, e);
         }
     }
 }

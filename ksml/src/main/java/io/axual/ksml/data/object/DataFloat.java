@@ -24,10 +24,9 @@ import io.axual.ksml.data.type.SimpleType;
 
 public class DataFloat extends DataPrimitive<Float> {
     public static final SimpleType DATATYPE = new SimpleType(Float.class);
-    public static final Float DEFAULT = 0f;
 
     public DataFloat() {
-        this(DEFAULT);
+        this(null);
     }
 
     public DataFloat(Float value) {

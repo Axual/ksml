@@ -35,32 +35,36 @@ functions:
 
       city = random.choice(sensorCities)
 
-      if city in ("Amsterdam","Utrecht"):
-        settings.append(generateHumidityAlert(city, "90","60"))
-        settings.append(generateHumidityAlert(city, "88","58"))
-        settings.append(generateHumidityAlert(city, "86","56"))
-        settings.append(generateTemperatureAlert(city, "84","54","F"))
-        settings.append(generateTemperatureAlert(city, "82","52","F"))
-        settings.append(generateTemperatureAlert(city, "80","50","F"))
-        settings.append(generateTemperatureAlert(city, "78","48","F"))
-        settings.append(generateTemperatureAlert(city, "76","46","F"))
-        settings.append(generateTemperatureAlert(city, "74","44","F"))
+      if random.randrange(10)==0 :
+        result = None
+      else:
 
-      if city in ("Alkmaar","Leiden"):
-        settings.append(generateHumidityAlert(city, "72","70"))
-        settings.append(generateHumidityAlert(city, "72","70"))
-        settings.append(generateHumidityAlert(city, "72","70"))
-        settings.append(generateHumidityAlert(city, "72","70"))
-        settings.append(generateHumidityAlert(city, "72","70"))
-        settings.append(generateHumidityAlert(city, "72","70"))
-        settings.append(generateTemperatureAlert(city, "25","0","C"))
-        settings.append(generateTemperatureAlert(city, "25","0","C"))
-        settings.append(generateTemperatureAlert(city, "25","0","C"))
-
-      result = dict()
-      result["city"] = city
-      result["alertSettings"] = settings
-      result["@type"] = "SensorAlertSettings"
+        if city in ("Amsterdam","Utrecht"):
+          settings.append(generateHumidityAlert(city, "90","60"))
+          settings.append(generateHumidityAlert(city, "88","58"))
+          settings.append(generateHumidityAlert(city, "86","56"))
+          settings.append(generateTemperatureAlert(city, "84","54","F"))
+          settings.append(generateTemperatureAlert(city, "82","52","F"))
+          settings.append(generateTemperatureAlert(city, "80","50","F"))
+          settings.append(generateTemperatureAlert(city, "78","48","F"))
+          settings.append(generateTemperatureAlert(city, "76","46","F"))
+          settings.append(generateTemperatureAlert(city, "74","44","F"))
+  
+        if city in ("Alkmaar","Leiden"):
+          settings.append(generateHumidityAlert(city, "72","70"))
+          settings.append(generateHumidityAlert(city, "72","70"))
+          settings.append(generateHumidityAlert(city, "72","70"))
+          settings.append(generateHumidityAlert(city, "72","70"))
+          settings.append(generateHumidityAlert(city, "72","70"))
+          settings.append(generateHumidityAlert(city, "72","70"))
+          settings.append(generateTemperatureAlert(city, "25","0","C"))
+          settings.append(generateTemperatureAlert(city, "25","0","C"))
+          settings.append(generateTemperatureAlert(city, "25","0","C"))
+  
+        result = dict()
+        result["city"] = city
+        result["alertSettings"] = settings
+        result["@type"] = "SensorAlertSettings"
     expression: (city,result)
     resultType: (string,json)
 

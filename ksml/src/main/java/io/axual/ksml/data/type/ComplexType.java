@@ -102,11 +102,6 @@ public abstract class ComplexType implements DataType {
         return true;
     }
 
-    @Override
-    public boolean isAssignableFrom(Object value) {
-        return isAssignableFrom(value.getClass());
-    }
-
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;

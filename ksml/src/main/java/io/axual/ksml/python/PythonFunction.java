@@ -32,6 +32,8 @@ import io.axual.ksml.exception.KSMLTopologyException;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.store.StateStores;
 import io.axual.ksml.user.UserFunction;
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.kafka.streams.processor.StateStore;
 import org.graalvm.polyglot.Value;
 
@@ -42,6 +44,7 @@ import java.util.stream.Collectors;
 
 import static io.axual.ksml.data.type.UserType.DEFAULT_NOTATION;
 
+@Slf4j
 public class PythonFunction extends UserFunction {
     private static final PythonDataObjectMapper MAPPER = new PythonDataObjectMapper();
     private static final Map<String, StateStore> EMPTY_STORES = new HashMap<>();
@@ -79,6 +82,14 @@ public class PythonFunction extends UserFunction {
             throw new KSMLTopologyException("Parameter list does not match function spec: maximally expected " + this.parameters.length + ", got " + parameters.length);
         }
 
+        // Validate the parameter types
+        for (int index = 0; index < parameters.length; index++) {
+            // If the parameter is not null, then validate the type of the parameter value
+            if (parameters[index] != DataNull.INSTANCE && !this.parameters[index].type().isAssignableFrom(parameters[index])) {
+                throw new KSMLTopologyException("User function \"" + name + "\" expects parameter " + (index + 1) + " (\"" + this.parameters[index].name() + "\") to be " + this.parameters[index].type() + ", but " + parameters[index].type() + " was passed in");
+            }
+        }
+
         // Check all parameters and copy them into the interpreter as prefixed globals
         var globalVars = new HashMap<String, Object>();
         globalVars.put("loggerBridge", loggerBridge);
@@ -87,6 +98,7 @@ public class PythonFunction extends UserFunction {
 
         try {
             // Call the prepared function
+            log.debug("Calling Python function \"{}\" with arguments {}", name, arguments);
             Value pyResult = function.execute(arguments);
 
             if (pyResult.canExecute()) {
@@ -151,7 +163,7 @@ public class PythonFunction extends UserFunction {
         final var initializeOptionalParams = Arrays.stream(definition.parameters)
                 .filter(ParameterDefinition::isOptional)
                 .filter(p -> p.defaultValue() != null)
-                .map(p -> "  if " + p.name() + " == None:\n    " + p.name() + " = " + (p.type() == DataString.DATATYPE ? QUOTE : "") + p.defaultValue() + (p.type() == DataString.DATATYPE ? QUOTE : "") + "\n")
+                .map(p -> "  if " + p.name() + " is None:\n    " + p.name() + " = " + (p.type() == DataString.DATATYPE ? QUOTE : "") + p.defaultValue() + (p.type() == DataString.DATATYPE ? QUOTE : "") + "\n")
                 .collect(Collectors.joining());
 
         // Prepare function (if any) and expression from the function definition
@@ -189,7 +201,7 @@ public class PythonFunction extends UserFunction {
                 %2$s
                                 
                 def convert_to_python(value):
-                  if value == None:
+                  if value == None: # don't modify to "is" operator, since that Java's null is not exactly the same as None
                     return None
                   if isinstance(value, (HashMap, TreeMap)):
                     result = dict()
@@ -204,7 +216,7 @@ public class PythonFunction extends UserFunction {
                   return value
                   
                 def convert_from_python(value):
-                  if value == None:
+                  if value == None: # don't modify to "is" operator, since that Java's null is not exactly the same as None
                     return None
                   if isinstance(value, (list, tuple)):
                     result = ArrayList()

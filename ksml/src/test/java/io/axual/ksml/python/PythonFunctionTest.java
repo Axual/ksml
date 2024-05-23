@@ -20,18 +20,22 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataPrimitive;
+import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.UserType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.notation.binary.BinaryNotation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 public class PythonFunctionTest {
     PythonContext context = new PythonContext(null);
@@ -92,5 +96,34 @@ public class PythonFunctionTest {
 
         DataPrimitive result = (DataPrimitive) adder.call(arg1, arg2);
         assertEquals(sum, result.value());
+    }
+
+    @Test
+    /**
+     * Test that Null Key/Values are accepted as parameters
+     */
+    void testNullKeyValue() {
+        final var stringResultType = new UserType(BinaryNotation.NOTATION_NAME, DataString.DATATYPE);
+        final var concatDef = FunctionDefinition.as( params, stringResultType, "str(one is None) + ' ' + str(two is None)", null, null,null);
+        final var concat = PythonFunction.fromAnon(context, "test", concatDef,"concatLog");
+
+        final var nullArg = DataNull.INSTANCE;
+        final var nonNullArg = new DataInteger(1);
+
+        final var expectedResultNullKey = "True False";
+        var resultNullKey = concat.call(nullArg, nonNullArg);
+        assertInstanceOf(DataString.class, resultNullKey);
+        assertEquals(expectedResultNullKey, ((DataString) resultNullKey).value());
+
+        final var expectedResultNullValue = "False True";
+        var resultNullValue = concat.call(nonNullArg, nullArg);
+        assertInstanceOf(DataString.class, resultNullValue);
+        assertEquals(expectedResultNullValue, ((DataString) resultNullValue).value());
+
+        final var expectedResultNullKeyValue = "True True";
+        var resultNullKeyValue = concat.call(nullArg, nullArg);
+        assertInstanceOf(DataString.class, resultNullKeyValue);
+        assertEquals(expectedResultNullKeyValue, ((DataString) resultNullKeyValue).value());
+
     }
 }

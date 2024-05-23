@@ -20,17 +20,16 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.SimpleType;
 
 public class DataBoolean extends DataPrimitive<Boolean> {
     public static final SimpleType DATATYPE = new SimpleType(Boolean.class);
 
-    public DataBoolean(Boolean value) {
-        super(DATATYPE, value);
+    public DataBoolean() {
+        this(null);
     }
 
-    public static boolean isBoolean(DataType type) {
-        return DATATYPE == type;
+    public DataBoolean(Boolean value) {
+        super(DATATYPE, value);
     }
 }

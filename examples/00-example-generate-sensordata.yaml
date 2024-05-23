@@ -35,6 +35,11 @@ functions:
           return { "type": "TEMPERATURE", "unit": "C", "value": str(random.randrange(-10, 35)) }
         return { "type": "TEMPERATURE", "unit": "F", "value": str(random.randrange(14, 95)) }
 
+      if random.randrange(10) == 0:
+        key = None
+      if random.randrange(10) == 0:
+        value = None
+
     code: |
       global sensorCounter
       global sensorColors
