@@ -22,6 +22,7 @@ package io.axual.ksml.data.serde;
 
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataTypeSchemaMapper;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.DataField;
@@ -55,6 +56,7 @@ public class DataObjectDeserializer implements Deserializer<DataObject> {
 
     @Override
     public DataObject deserialize(String topic, byte[] data) {
+        if (data == null || data.length == 0) return DataNull.INSTANCE;
         final var wrapper = jsonDeserializer.deserialize(topic, data);
         if (wrapper == null) {
             throw new ExecutionException("Retrieved unexpected null wrapper from state store " + topic);

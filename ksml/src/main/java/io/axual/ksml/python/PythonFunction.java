@@ -21,6 +21,15 @@ package io.axual.ksml.python;
  */
 
 
+import org.apache.kafka.streams.processor.StateStore;
+import org.graalvm.polyglot.Value;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.data.object.DataNull;
@@ -33,14 +42,6 @@ import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.store.StateStores;
 import io.axual.ksml.user.UserFunction;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.streams.processor.StateStore;
-import org.graalvm.polyglot.Value;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import static io.axual.ksml.data.notation.UserType.DEFAULT_NOTATION;
 
@@ -86,7 +87,8 @@ public class PythonFunction extends UserFunction {
         }
         // Validate the parameter types
         for (int index = 0; index < parameters.length; index++) {
-            if (!this.parameters[index].type().isAssignableFrom(parameters[index])) {
+            // If the parameter is not null, then validate the type of the parameter value
+            if (parameters[index] != DataNull.INSTANCE && !this.parameters[index].type().isAssignableFrom(parameters[index])) {
                 throw new TopologyException("User function \"" + name + "\" expects parameter " + (index + 1) + " (\"" + this.parameters[index].name() + "\") to be " + this.parameters[index].type() + ", but " + parameters[index].type() + " was passed in");
             }
         }
@@ -98,6 +100,7 @@ public class PythonFunction extends UserFunction {
 
         try {
             // Call the prepared function
+            log.debug("Calling Python function \"{}\" with arguments {}", name, arguments);
             Value pyResult = function.execute(arguments);
 
             if (pyResult.canExecute()) {
@@ -158,7 +161,7 @@ public class PythonFunction extends UserFunction {
         final var initializeOptionalParams = Arrays.stream(definition.parameters())
                 .filter(ParameterDefinition::isOptional)
                 .filter(p -> p.defaultValue() != null)
-                .map(p -> "  if " + p.name() + " == None:\n    " + p.name() + " = " + (p.type() == DataString.DATATYPE ? QUOTE : "") + p.defaultValue() + (p.type() == DataString.DATATYPE ? QUOTE : "") + "\n")
+                .map(p -> "  if " + p.name() + " is None:\n    " + p.name() + " = " + (p.type() == DataString.DATATYPE ? QUOTE : "") + p.defaultValue() + (p.type() == DataString.DATATYPE ? QUOTE : "") + "\n")
                 .collect(Collectors.joining());
 
         // Prepare function (if any) and expression from the function definition
@@ -182,20 +185,20 @@ public class PythonFunction extends UserFunction {
                 """
                         import polyglot
                         import java
-                                        
+
                         ArrayList = java.type('java.util.ArrayList')
                         HashMap = java.type('java.util.HashMap')
                         TreeMap = java.type('java.util.TreeMap')
                         stores = None
-                                        
+
                         # global Python code goes here (first argument)
                         %1$s
-                                        
+
                         # function definition and expression go here (second argument)
                         %2$s
-                                        
+
                         def convert_to_python(value):
-                          if value == None:
+                          if value == None: # don't modify to "is" operator, since that Java's null is not exactly the same as None
                             return None
                           if isinstance(value, (HashMap, TreeMap)):
                             result = dict()
@@ -208,9 +211,9 @@ public class PythonFunction extends UserFunction {
                               result.append(convert_to_python(e))
                             return result
                           return value
-                          
+
                         def convert_from_python(value):
-                          if value == None:
+                          if value == None: # don't modify to "is" operator, since that Java's null is not exactly the same as None
                             return None
                           if isinstance(value, (list, tuple)):
                             result = ArrayList()
@@ -223,7 +226,7 @@ public class PythonFunction extends UserFunction {
                               result.put(convert_from_python(k), convert_from_python(v))
                             return result
                           return value
-                                                
+
                         # caller definition goes here (third argument)
                         @polyglot.export_value
                         %3$s
@@ -244,11 +247,9 @@ public class PythonFunction extends UserFunction {
         var functionName = "";
         for (final var line : code) {
             if (line.trim().isEmpty()) continue;
-            if (injectCode) {
-                final var indentCount = line.length() - line.stripIndent().length();
-                if (indentCount > defIndent) {
-                    result.add(initLogCode(indentCount, loggerName(namespace, type, functionName)));
-                }
+            int lineIndent = line.length() - line.stripIndent().length();
+            if (injectCode && lineIndent > defIndent) {
+                result.add(initLogCode(lineIndent, loggerName(namespace, type, functionName)));
             }
             result.add(line);
             injectCode = false;
@@ -256,7 +257,7 @@ public class PythonFunction extends UserFunction {
                 final var function = line.trim().substring(4, line.length() - 1).trim();
                 if (function.contains("(") && function.endsWith(")")) {
                     injectCode = true;
-                    defIndent = line.length() - line.stripIndent().length();
+                    defIndent = lineIndent;
                     functionName = function.substring(0, function.indexOf("("));
                 }
             }
@@ -268,7 +269,7 @@ public class PythonFunction extends UserFunction {
         final var indent = " ".repeat(indentCount);
         return indent + "global loggerBridge\n" +
                 indent + "log = None\n" +
-                indent + "if loggerBridge != None:\n" +
+                indent + "if loggerBridge is not None:\n" +
                 indent + "  log = loggerBridge.getLogger(\"" + loggerName + "\")\n";
     }
 }

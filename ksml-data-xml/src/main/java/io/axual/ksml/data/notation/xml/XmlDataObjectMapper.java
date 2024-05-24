@@ -23,6 +23,8 @@ package io.axual.ksml.data.notation.xml;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataObjectMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
@@ -80,6 +82,7 @@ public class XmlDataObjectMapper implements DataObjectMapper<String> {
 
     @Override
     public DataObject toDataObject(DataType expected, String value) {
+        if (value == null) return NativeDataObjectMapper.convertFromNull(expected);
         try {
             var doc = documentBuilder.parse(new ByteArrayInputStream(value.getBytes()));
             doc.getDocumentElement().normalize();
@@ -178,8 +181,10 @@ public class XmlDataObjectMapper implements DataObjectMapper<String> {
 
     @Override
     public String fromDataObject(DataObject value) {
+        if (value == null || value == DataNull.INSTANCE) return null; // Return null document on null input value
+
         var doc = documentBuilder.newDocument();
-        if (value instanceof DataStruct valueStruct) {
+        if (value instanceof DataStruct valueStruct && !valueStruct.isNull()) {
             var rootName = valueStruct.type().schemaName();
             var rootElement = doc.createElement(rootName);
             elementFromDataObject(doc::createElement, rootElement, valueStruct);
@@ -191,10 +196,11 @@ public class XmlDataObjectMapper implements DataObjectMapper<String> {
                 transformer.transform(new DOMSource(doc), new StreamResult(writer));
                 return writer.toString();
             } catch (TransformerException e) {
-                throw new ExecutionException("Could not transform value to XML", e);
+                throw new ExecutionException("Could not transform value to XML: " + value, e);
             }
         }
-        throw new ExecutionException("Could not transform value to XML");
+
+        throw new ExecutionException("Could not transform value to XML: " + value);
     }
 
     private void elementFromDataObject(ElementCreator elementCreator, Element element, DataObject value) {

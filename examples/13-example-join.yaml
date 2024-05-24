@@ -31,9 +31,9 @@ functions:
 
       triggeredAlertSettings=[]
       
-      if value2 != None and value2["alertSettings"] != None:
+      if value2 is not None and value2["alertSettings"] is not None:
         for setting in value2["alertSettings"]:
-          if setting["type"] == sensordata["type"] and setting["unit"] == sensordata["unit"] and ( (setting["alertBelow"] != None and setting["alertBelow"] > sensordata["value"]) or (setting["alertAbove"]!=None and setting["alertAbove"] < sensordata["value"]) ):
+          if setting["type"] == sensordata["type"] and setting["unit"] == sensordata["unit"] and ( (setting["alertBelow"] is not None and setting["alertBelow"] > sensordata["value"]) or (setting["alertAbove"] is not None and setting["alertAbove"] < sensordata["value"]) ):
             log.info('Triggered alert {}, type={}, unit={}, value={}, alertAbove={}, alertBelow={}', setting["name"], setting["type"], setting["unit"], sensordata["value"], setting["alertAbove"], setting["alertBelow"])
             del setting["@type"]
             del setting["@schema"]
@@ -52,7 +52,7 @@ functions:
     resultType: "[(json,json)]"
     code: |
       newRecords=[]
-      if value != None and len(value["alerts"]) > 0 :
+      if value is not None and len(value["alerts"]) > 0 :
         sensordata = value["sensordata"]
         new_key={
           "name" : sensordata["name"],
@@ -75,7 +75,7 @@ pipelines:
       - name: filter_nulls
         type: filter
         if:
-          expression: value != None
+          expression: value is not None
       - name: rekey_sensordata
         type: transformKeyValue
         mapper:

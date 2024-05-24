@@ -31,14 +31,14 @@ public class UnionType extends ComplexType {
     private final DataType[] possibleTypes;
 
     public UnionType(DataType... possibleTypes) {
-        super(Object.class, userTypesToDataTypes(possibleTypes));
+        super(Object.class, varListToArray(possibleTypes));
         this.possibleTypes = possibleTypes;
     }
 
-    private static DataType[] userTypesToDataTypes(DataType... userTypes) {
-        var dataTypes = new DataType[userTypes.length];
-        System.arraycopy(userTypes, 0, dataTypes, 0, userTypes.length);
-        return dataTypes;
+    private static DataType[] varListToArray(DataType... dataTypes) {
+        var result = new DataType[dataTypes.length];
+        System.arraycopy(dataTypes, 0, result, 0, dataTypes.length);
+        return result;
     }
 
     public DataType[] possibleTypes() {
@@ -60,7 +60,7 @@ public class UnionType extends ComplexType {
         if (this == type) return true;
 
         // If the other dataType is a union, then compare the union with this dataType
-        if (type instanceof UnionType otherUnion && equalsOtherUnion(otherUnion)) return true;
+        if (type instanceof UnionType otherUnion && isAssignableFromOtherUnion(otherUnion)) return true;
 
         // If the union did not match in its entirety, then check for assignable subtypes
         for (var possibleType : possibleTypes) {
@@ -69,7 +69,7 @@ public class UnionType extends ComplexType {
         return false;
     }
 
-    private boolean equalsOtherUnion(UnionType other) {
+    private boolean isAssignableFromOtherUnion(UnionType other) {
         var otherPossibleTypes = other.possibleTypes();
         if (possibleTypes.length != otherPossibleTypes.length) return false;
         for (int index = 0; index < possibleTypes.length; index++) {
@@ -92,7 +92,7 @@ public class UnionType extends ComplexType {
     @Override
     public boolean equals(Object other) {
         if (!super.equals(other)) return false;
-        return equalsOtherUnion((UnionType) other);
+        return isAssignableFromOtherUnion((UnionType) other);
     }
 
     @Override

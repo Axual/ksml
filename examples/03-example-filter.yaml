@@ -15,11 +15,14 @@ functions:
   sensor_is_blue:
     type: predicate
     code: |
-      if value == None:
-        log.warn("No value in message with key={}", key)
+      if value is None:
+        if key is None:
+          log.warn("Skipping message without key and value")
+        else:
+          log.warn("No value in message with key={}", key)
         return False
       if value["color"] != "blue":
-        log.warn("Unknown color: {}", value["color"])
+        log.warn("Unknown color: {}", value["color"] if "color" in value else "None")
         return False
     expression: True
 

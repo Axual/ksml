@@ -56,7 +56,7 @@ public class DataStruct implements DataObject {
         void apply(T value) throws Exception;
     }
 
-    private final TreeMap<String, DataObject> contents = new TreeMap<>(COMPARATOR);
+    private final TreeMap<String, DataObject> contents;
     private final transient StructType type;
 
     public DataStruct() {
@@ -64,27 +64,32 @@ public class DataStruct implements DataObject {
     }
 
     public DataStruct(StructSchema schema) {
+        this(schema, false);
+    }
+
+    public DataStruct(StructSchema schema, boolean isNull) {
+        contents = !isNull ? new TreeMap<>(COMPARATOR) : null;
         type = new StructType(schema);
     }
 
+    public boolean isNull() {
+        return contents == null;
+    }
+
     public boolean containsKey(String key) {
-        return contents.containsKey(key);
+        return contents != null && contents.containsKey(key);
     }
 
     public Set<Map.Entry<String, DataObject>> entrySet() {
-        return contents.entrySet();
+        return contents != null ? contents.entrySet() : Collections.EMPTY_SET;
     }
 
     public void forEach(BiConsumer<String, DataObject> action) {
-        contents.forEach(action);
+        if (contents != null) contents.forEach(action);
     }
 
     public DataObject get(String key) {
-        return contents.get(key);
-    }
-
-    public void getIfPresent(String key, DataStructApplier<DataObject> applier) {
-        getIfPresent(key, DataObject.class, applier);
+        return contents != null ? contents.get(key) : null;
     }
 
     public <T> void getIfPresent(String key, Class<T> clazz, DataStructApplier<T> applier) {
@@ -111,11 +116,13 @@ public class DataStruct implements DataObject {
     }
 
     public DataString getAsString(String key) {
-        var result = contents.get(key);
+        var result = get(key);
         return result instanceof DataString str ? str : result != null ? new DataString(result.toString()) : null;
     }
 
     public void put(String key, DataObject value) {
+        if (contents == null)
+            throw new ExecutionException("Can not add item to a NULL Struct: (" + (key != null ? key : "null") + ", " + (value != null ? value : "null") + ")");
         contents.put(key, value);
     }
 
@@ -124,19 +131,24 @@ public class DataStruct implements DataObject {
     }
 
     public int size() {
-        return contents.size();
+        return contents != null ? contents.size() : 0;
     }
 
     @Override
     public String toString() {
         var schemaName = type.schemaName() + ": ";
+
+        // Return NULL as value
+        if (isNull()) return schemaName + "null";
+
         Iterator<Map.Entry<String, DataObject>> i = entrySet().iterator();
-        if (!i.hasNext())
-            return schemaName + "{}";
+
+        // Return empty struct as value
+        if (!i.hasNext()) return schemaName + "{}";
 
         StringBuilder sb = new StringBuilder();
         sb.append(schemaName).append('{');
-        for (; ; ) {
+        while (true) {
             Map.Entry<String, DataObject> e = i.next();
             String key = e.getKey();
             DataObject value = e.getValue();
