@@ -9,7 +9,7 @@ stores:
     keyType: string
     valueType: json
     persistent: false
-    type: keyValue
+    type: keyValueStore
     retention: 1h
     caching: false
     logging: false
