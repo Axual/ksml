@@ -25,11 +25,12 @@ import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 
 public class DataList implements DataObject, Iterable<DataObject> {
     private static final ListType LIST_OF_UNKNOWN = new ListType(DataType.UNKNOWN);
-    private final ArrayList<DataObject> contents = new ArrayList<>();
+    private final ArrayList<DataObject> contents;
     private final transient ListType type;
 
     public DataList() {
@@ -37,7 +38,16 @@ public class DataList implements DataObject, Iterable<DataObject> {
     }
 
     public DataList(DataType valueType) {
+        this(valueType, false);
+    }
+
+    public DataList(DataType valueType, boolean isNull) {
+        contents = !isNull ? new ArrayList<>() : null;
         type = valueType != null ? new ListType(valueType) : LIST_OF_UNKNOWN;
+    }
+
+    public boolean isNull() {
+        return contents == null;
     }
 
     public void addIfNotNull(DataObject value) {
@@ -74,11 +84,12 @@ public class DataList implements DataObject, Iterable<DataObject> {
 
     @Override
     public Iterator<DataObject> iterator() {
+        if (contents == null) return Collections.emptyIterator();
         return contents.iterator();
     }
 
     public int size() {
-        return contents.size();
+        return contents != null ? contents.size() : 0;
     }
 
     public DataObject get(int index) {

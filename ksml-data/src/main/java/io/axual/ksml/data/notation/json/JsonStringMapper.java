@@ -34,22 +34,24 @@ public class JsonStringMapper implements StringMapper<Object> {
 
     @Override
     public Object fromString(String value) {
+        if (value == null) return null; // Allow null strings as input, returning null as native output
         try {
             var tree = mapper.readTree(value);
             return NATIVE_MAPPER.toNative(tree);
         } catch (Exception mapException) {
-            throw new DataException("Could not parse string to object: " + (value != null ? value : "null"));
+            throw new DataException("Could not parse string to object: " + value);
         }
     }
 
     @Override
     public String toString(Object value) {
+        if (value == null) return null; // Allow null as native input, return null string as output
         try {
             final var writer = new StringWriter();
             mapper.writeTree(mapper.createGenerator(writer), NATIVE_MAPPER.fromNative(value));
             return writer.toString();
         } catch (IOException e) {
-            throw new DataException("Can not convert object to JSON string: " + (value != null ? value.toString() : "null"), e);
+            throw new DataException("Can not convert object to JSON string: " + value.toString(), e);
         }
     }
 }

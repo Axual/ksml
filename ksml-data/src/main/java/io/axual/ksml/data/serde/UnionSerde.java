@@ -20,10 +20,6 @@ package io.axual.ksml.data.serde;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.ExecutionException;
-import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.UnionType;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
@@ -32,12 +28,45 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.UnionType;
+
 public class UnionSerde implements Serde<Object> {
     private record PossibleType(DataType type, Serializer<Object> serializer,
                                 Deserializer<Object> deserializer) {
     }
 
     private final List<PossibleType> possibleTypes = new ArrayList<>();
+
+    public UnionSerde(UnionType type, boolean isKey, SerdeSupplier serdeSupplier) {
+        for (int index = 0; index < type.possibleTypes().length; index++) {
+            var possibleType = type.possibleTypes()[index];
+            try (final var serde = serdeSupplier.get(possibleType, isKey)) {
+                possibleTypes.add(new PossibleType(possibleType, serde.serializer(), serde.deserializer()));
+            }
+        }
+    }
+
+    @Override
+    public void configure(Map<String, ?> configs, boolean isKey) {
+        for (PossibleType possibleType : possibleTypes) {
+            possibleType.serializer.configure(configs, isKey);
+            possibleType.deserializer.configure(configs, isKey);
+        }
+    }
+
+    @Override
+    public Serializer<Object> serializer() {
+        return new UnionSerializer();
+    }
+
+    @Override
+    public Deserializer<Object> deserializer() {
+        return new UnionDeserializer();
+    }
 
     // This serializer walks through all its possible types and checks if there is a serializer
     // that understands the given input dataType. If so, then it returns the serialized bytes using
@@ -65,7 +94,7 @@ public class UnionSerde implements Serde<Object> {
                     }
                 }
             }
-            throw new ExecutionException("Can not serialize object as union alternative: " + (data != null ? data.getClass().getSimpleName() : "null"));
+            throw new ExecutionException("Can not serialize object as union alternative: " + data.getClass().getSimpleName());
         }
     }
 
@@ -79,6 +108,10 @@ public class UnionSerde implements Serde<Object> {
 
         @Override
         public Object deserialize(String topic, byte[] data) {
+            if (data == null || data.length == 0) {
+                return DataNull.INSTANCE;
+            }
+
             for (PossibleType possibleType : possibleTypes) {
                 try {
                     Object result = possibleType.deserializer.deserialize(topic, data);
@@ -89,34 +122,7 @@ public class UnionSerde implements Serde<Object> {
                     // Not properly deserialized, so ignore and try next alternative
                 }
             }
-            throw new ExecutionException("Can not deserialize data as union possible dataType" + (data != null ? data : "null"));
+            throw new ExecutionException("Can not deserialize data as union possible dataType" + possibleTypes);
         }
-    }
-
-    public UnionSerde(UnionType type, boolean isKey, SerdeSupplier serdeSupplier) {
-        for (int index = 0; index < type.possibleTypes().length; index++) {
-            var possibleType = type.possibleTypes()[index];
-            try (final var serde = serdeSupplier.get(possibleType, isKey)) {
-                possibleTypes.add(new PossibleType(possibleType, serde.serializer(), serde.deserializer()));
-            }
-        }
-    }
-
-    @Override
-    public void configure(Map<String, ?> configs, boolean isKey) {
-        for (PossibleType possibleType : possibleTypes) {
-            possibleType.serializer.configure(configs, isKey);
-            possibleType.deserializer.configure(configs, isKey);
-        }
-    }
-
-    @Override
-    public Serializer<Object> serializer() {
-        return new UnionSerializer();
-    }
-
-    @Override
-    public Deserializer<Object> deserializer() {
-        return new UnionDeserializer();
     }
 }

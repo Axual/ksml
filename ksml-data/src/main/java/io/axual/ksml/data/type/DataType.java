@@ -21,6 +21,7 @@ package io.axual.ksml.data.type;
  */
 
 
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 
 public interface DataType {
@@ -31,12 +32,14 @@ public interface DataType {
     boolean isAssignableFrom(DataType type);
 
     default boolean isAssignableFrom(DataObject value) {
-        return isAssignableFrom(value.type());
+        return (value == DataNull.INSTANCE || isAssignableFrom(value.type()));
     }
 
     boolean isAssignableFrom(Class<?> type);
 
-    boolean isAssignableFrom(Object value);
+    default boolean isAssignableFrom(Object value) {
+        return value == null || isAssignableFrom(value.getClass());
+    }
 
     DataType UNKNOWN = new DataType() {
         @Override

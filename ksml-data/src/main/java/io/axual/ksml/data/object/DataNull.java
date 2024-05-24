@@ -39,6 +39,6 @@ public class DataNull extends DataPrimitive<Object> {
     public static final DataNull INSTANCE = new DataNull();
 
     private DataNull() {
-        super(DATATYPE);
+        super(DATATYPE, null);
     }
 }

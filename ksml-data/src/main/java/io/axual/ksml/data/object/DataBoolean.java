@@ -24,10 +24,9 @@ import io.axual.ksml.data.type.SimpleType;
 
 public class DataBoolean extends DataPrimitive<Boolean> {
     public static final SimpleType DATATYPE = new SimpleType(Boolean.class);
-    public static final Boolean DEFAULT = false;
 
     public DataBoolean() {
-        this(DEFAULT);
+        this(null);
     }
 
     public DataBoolean(Boolean value) {

@@ -28,6 +28,8 @@ import lombok.Getter;
 
 import java.util.Arrays;
 
+// This is a bit of an odd-one-out class for holding tuples of DataObjects. It can explicitly NOT hold represent a
+// NULL tuple for now. We should look into this more in the future to see if this makes sense or not.
 @Getter
 @EqualsAndHashCode
 public class DataTuple extends Tuple<DataObject> implements DataObject {
