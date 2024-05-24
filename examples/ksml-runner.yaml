@@ -2,7 +2,7 @@ ksml:
   # The examples directory is mounted to /ksml in the run script
   configDirectory: /ksml # When not set defaults to the working directory
   schemaDirectory: /ksml # When not set defaults to the config directory
-  storageDirectory: /tmp # When not set defaults to the default JVM temp directory
+  storageDirectory: /opt # When not set defaults to the default JVM temp directory
   definitions:
   - 01-example-inspect.yaml
 #  - 02-example-copy.yaml
