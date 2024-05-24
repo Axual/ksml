@@ -35,6 +35,9 @@ import io.axual.ksml.definition.ProducerDefinition;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonFunction;
 import io.axual.ksml.user.UserFunction;
+import io.axual.ksml.user.UserGenerator;
+import io.axual.ksml.user.UserPredicate;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -48,15 +51,17 @@ import static io.axual.ksml.data.notation.UserType.DEFAULT_NOTATION;
 
 @Slf4j
 public class ExecutableProducer {
-    private final UserFunction generator;
-    private final UserFunction condition;
+    @Getter
+    private final String name;
+    private final UserGenerator generator;
+    private final UserPredicate condition;
     private final String topic;
     private final UserType keyType;
     private final UserType valueType;
     private final Serializer<Object> keySerializer;
     private final Serializer<Object> valueSerializer;
     private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
-    private final DataObjectConverter dataObjectConverter;
+    private final DataObjectConverter dataObjectConverter = new DataObjectConverter();
     private final RescheduleStrategy rescheduleStrategy;
 
     private DataObject lastKey = DataNull.INSTANCE;
@@ -64,15 +69,16 @@ public class ExecutableProducer {
 
     private ExecutableProducer(UserFunction generator,
                                UserFunction condition,
+                               ContextTags tags,
                                String topic,
                                UserType keyType,
                                UserType valueType,
                                Serializer<Object> keySerializer,
                                Serializer<Object> valueSerializer,
                                RescheduleStrategy rescheduleStrategy) {
-        this.dataObjectConverter = new DataObjectConverter();
-        this.generator = generator;
-        this.condition = condition;
+        this.name = generator.name;
+        this.generator = new UserGenerator(generator, tags);
+        this.condition = condition != null ? new UserPredicate(condition, tags) : null;
         this.topic = topic;
         this.keyType = keyType;
         this.valueType = valueType;
@@ -110,20 +116,16 @@ public class ExecutableProducer {
         final var valueSerializer = new ResolvingSerializer<>(valueSerde.serializer(), kafkaConfig);
         final var reschedulingStrategy = setupRescheduling(producerDefinition, context, namespace, name);
 
-        return new ExecutableProducer(generator, condition, target.topic(), target.keyType(), target.valueType(), keySerializer, valueSerializer, reschedulingStrategy);
-    }
-
-    public String name() {
-        return generator.name;
+        return new ExecutableProducer(generator, condition, tags, target.topic(), target.keyType(), target.valueType(), keySerializer, valueSerializer, reschedulingStrategy);
     }
 
     public void produceMessage(Producer<byte[], byte[]> producer) {
-        DataObject result = generator.call();
+        DataObject result = generator.apply();
         if (result instanceof DataTuple tuple && tuple.size() == 2) {
             var key = tuple.get(0);
             var value = tuple.get(1);
 
-            if (checkCondition(key, value)) {
+            if (condition == null || condition.test(key, value)) {
                 // keep produced key and value to determine rescheduling later
                 lastKey = key;
                 lastValue = value;
@@ -190,13 +192,6 @@ public class ExecutableProducer {
      */
     public Duration interval() {
         return rescheduleStrategy.interval();
-    }
-
-    private boolean checkCondition(DataObject key, DataObject value) {
-        if (condition == null) return true;
-        DataObject result = condition.call(key, value);
-        if (result instanceof DataBoolean resultBoolean) return resultBoolean.value();
-        throw new io.axual.ksml.data.exception.ExecutionException("Producer condition did not return a boolean value: " + condition.name);
     }
 
     private static RescheduleStrategy setupRescheduling(ProducerDefinition definition, PythonContext context, String namespace, String name) {

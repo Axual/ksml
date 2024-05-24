@@ -27,12 +27,14 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class MapParser<V> implements Parser<Map<String, V>> {
+    private final String childTagKey;
+    private final String childTagValuePrefix;
     private final Parser<V> valueParser;
-    private final String whatToParse;
 
-    public MapParser(String whatToParse, Parser<V> valueParser) {
+    public MapParser(String childTagKey, String childTagValuePrefix, Parser<V> valueParser) {
+        this.childTagKey = childTagKey;
+        this.childTagValuePrefix = childTagValuePrefix;
         this.valueParser = valueParser;
-        this.whatToParse = whatToParse;
     }
 
     @Override
@@ -40,14 +42,14 @@ public class MapParser<V> implements Parser<Map<String, V>> {
         // Parse into a LinkedHashMap to preserve insertion order
         Map<String, V> result = new LinkedHashMap<>();
         if (node != null) {
-            for (ParseNode child : node.children("")) {
+            for (ParseNode child : node.children(childTagKey, "")) {
                 try {
                     var name = child.name();
                     if (valueParser instanceof NamedObjectParser nop)
                         nop.defaultName(name);
                     result.put(name, valueParser.parse(child));
                 } catch (RuntimeException e) {
-                    throw new ParseException(node, "Error in " + whatToParse + " \"" + child.name() + "\"", e);
+                    throw new ParseException(node, "Error in " + childTagValuePrefix + " \"" + child.name() + "\"", e);
                 }
             }
         }

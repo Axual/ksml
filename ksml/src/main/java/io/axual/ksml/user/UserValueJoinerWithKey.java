@@ -41,6 +41,6 @@ public class UserValueJoinerWithKey extends Invoker implements ValueJoinerWithKe
 
     @Override
     public DataObject apply(Object key, Object value1, Object value2) {
-        return function.call(nativeMapper.toDataObject(key), nativeMapper.toDataObject(value1), nativeMapper.toDataObject(value2));
+        return time(() -> function.call(nativeMapper.toDataObject(key), nativeMapper.toDataObject(value1), nativeMapper.toDataObject(value2)));
     }
 }

@@ -47,7 +47,7 @@ public class UserTopicNameExtractor extends Invoker implements TopicNameExtracto
 
     @Override
     public String extract(Object key, Object value, RecordContext recordContext) {
-        final var result = function.call(nativeMapper.toDataObject(key), nativeMapper.toDataObject(value), recordContextMapper.toDataObject(recordContext));
+        final var result = time(() -> function.call(nativeMapper.toDataObject(key), nativeMapper.toDataObject(value), recordContextMapper.toDataObject(recordContext)));
         if (result instanceof DataString dataString) {
             return dataString.value();
         }

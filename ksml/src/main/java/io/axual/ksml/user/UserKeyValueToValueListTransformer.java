@@ -50,7 +50,7 @@ public class UserKeyValueToValueListTransformer extends Invoker implements Value
     }
 
     public Iterable<Object> apply(StateStores stores, Object key, Object value) {
-        final var result = function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value));
+        final var result = time(() -> function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value)));
         if (result instanceof DataList list) {
             final var newList = new ArrayList<>();
             list.forEach(newList::add);

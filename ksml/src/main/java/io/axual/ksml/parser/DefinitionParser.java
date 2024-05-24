@@ -192,12 +192,12 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         };
     }
 
-    protected <TYPE> StructParser<List<TYPE>> listField(String childName, String whatToParse, String doc, ParserWithSchema<TYPE> valueParser) {
-        return new FieldParser<>(childName, false, new ArrayList<>(), doc, new ListWithSchemaParser<>(whatToParse, valueParser));
+    protected <TYPE> StructParser<List<TYPE>> listField(String childName, String childTagKey, String childTagValuePrefix, String doc, ParserWithSchema<TYPE> valueParser) {
+        return new FieldParser<>(childName, false, new ArrayList<>(), doc, new ListWithSchemaParser<>(childTagKey, childTagValuePrefix, valueParser));
     }
 
-    protected <TYPE> StructParser<Map<String, TYPE>> mapField(String childName, String whatToParse, String doc, ParserWithSchema<TYPE> valueParser) {
-        return new FieldParser<>(childName, false, new HashMap<>(), doc, new MapWithSchemaParser<>(whatToParse, valueParser));
+    protected <TYPE> StructParser<Map<String, TYPE>> mapField(String childName, String childTagKey, String childTagValuePrefix, String doc, ParserWithSchema<TYPE> valueParser) {
+        return new FieldParser<>(childName, false, new HashMap<>(), doc, new MapWithSchemaParser<>(childTagKey, childTagValuePrefix, valueParser));
     }
 
     protected <TYPE> StructParser<TYPE> customField(String childName, String doc, StructParser<TYPE> valueParser) {

@@ -47,7 +47,7 @@ public class UserPredicate extends Invoker implements Predicate<Object, Object> 
     }
 
     public boolean test(StateStores stores, Object key, Object value) {
-        final var result = function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value));
+        final var result = time(() -> function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value)));
         if (result instanceof DataBoolean dataBoolean) {
             return dataBoolean.value();
         }

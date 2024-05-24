@@ -65,7 +65,7 @@ public abstract class OperationParser<T extends BaseOperation> extends ContextAw
     }
 
     protected StructParser<List<String>> storeNamesField() {
-        return optional(listField(KSMLDSL.Operations.STORE_NAMES_ATTRIBUTE, "state store name", "The names of all state stores used by the function", new StringValueParser()));
+        return optional(listField(KSMLDSL.Operations.STORE_NAMES_ATTRIBUTE, "store", "state store name", "The names of all state stores used by the function", new StringValueParser()));
     }
 
     protected OperationConfig operationConfig(String name, ContextTags context) {

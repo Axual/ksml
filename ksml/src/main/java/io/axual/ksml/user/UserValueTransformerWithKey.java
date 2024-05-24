@@ -49,7 +49,7 @@ public class UserValueTransformerWithKey extends Invoker implements ValueTransfo
     }
 
     public DataObject transform(StateStores stores, Object key, Object value) {
-        return function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value));
+        return time(() -> function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value)));
     }
 
     @Override

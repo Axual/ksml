@@ -84,14 +84,15 @@ public class ParseNode {
         return new ParseNode(this, node, appendName, tags);
     }
 
-    public List<ParseNode> children(String elementPrefix) {
+    public List<ParseNode> children(String childTagKey, String elementPrefix) {
         List<ParseNode> result = new ArrayList<>();
         Set<JsonNode> seen = new HashSet<>();
         Iterator<Map.Entry<String, JsonNode>> fieldIterator = node.fields();
         while (fieldIterator.hasNext()) {
             Map.Entry<String, JsonNode> field = fieldIterator.next();
             seen.add(field.getValue());
-            result.add(new ParseNode(this, field.getValue(), elementPrefix + field.getKey(), tags));
+            final var childTagValue = elementPrefix + field.getKey();
+            result.add(new ParseNode(this, field.getValue(), childTagValue, childTagKey != null ? tags.append(childTagKey, childTagValue) : tags));
         }
 
         Iterator<JsonNode> elementIterator = node.elements();
@@ -99,7 +100,8 @@ public class ParseNode {
         while (elementIterator.hasNext()) {
             JsonNode element = elementIterator.next();
             if (!seen.contains(element)) {
-                result.add(new ParseNode(this, element, elementPrefix + index++, tags));
+                final var childTagValue = elementPrefix + index++;
+                result.add(new ParseNode(this, element, childTagValue, childTagKey != null ? tags.append(childTagKey, childTagValue) : tags));
             }
         }
         return result;

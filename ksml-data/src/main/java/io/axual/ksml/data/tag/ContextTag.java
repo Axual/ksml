@@ -39,4 +39,9 @@ public record ContextTag(String key, String value) {
             throw new IllegalArgumentException("Value cannot be null or empty");
         }
     }
+
+    @Override
+    public String toString() {
+        return key + "=" + (value != null ? value : "null");
+    }
 }

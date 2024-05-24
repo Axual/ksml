@@ -38,6 +38,6 @@ public class UserForeignKeyExtractor extends Invoker implements Function<Object,
 
     @Override
     public DataObject apply(Object value) {
-        return function.call(nativeMapper.toDataObject(value));
+        return time(() -> function.call(nativeMapper.toDataObject(value)));
     }
 }

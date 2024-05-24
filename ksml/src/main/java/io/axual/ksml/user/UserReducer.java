@@ -39,6 +39,6 @@ public class UserReducer extends Invoker implements Reducer<Object> {
 
     @Override
     public DataObject apply(Object value1, Object value2) {
-        return function.call(nativeMapper.toDataObject(value1), nativeMapper.toDataObject(value2));
+        return time(() -> function.call(nativeMapper.toDataObject(value1), nativeMapper.toDataObject(value2)));
     }
 }

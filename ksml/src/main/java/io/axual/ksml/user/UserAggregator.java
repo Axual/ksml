@@ -38,6 +38,6 @@ public class UserAggregator extends Invoker implements Aggregator<Object, Object
 
     @Override
     public DataObject apply(Object key, Object value, Object aggregatedValue) {
-        return this.execute(() -> function.call(nativeMapper.toDataObject(key), nativeMapper.toDataObject(value), nativeMapper.toDataObject(aggregatedValue)));
+        return time(() -> function.call(nativeMapper.toDataObject(key), nativeMapper.toDataObject(value), nativeMapper.toDataObject(aggregatedValue)));
     }
 }

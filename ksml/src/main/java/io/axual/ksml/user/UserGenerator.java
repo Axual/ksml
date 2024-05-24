@@ -21,20 +21,20 @@ package io.axual.ksml.user;
  */
 
 
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.python.Invoker;
-import org.apache.kafka.streams.kstream.Initializer;
+import org.apache.kafka.streams.kstream.Aggregator;
 
-public class UserInitializer extends Invoker implements Initializer<Object> {
+public class UserGenerator extends Invoker {
 
-    public UserInitializer(UserFunction function, ContextTags tags) {
-        super(function, tags, KSMLDSL.Functions.TYPE_INITIALIZER);
+    public UserGenerator(UserFunction function, ContextTags tags) {
+        super(function, tags, KSMLDSL.Functions.TYPE_GENERATOR);
         verifyParameterCount(0);
     }
 
-    @Override
     public DataObject apply() {
         return time(function::call);
     }

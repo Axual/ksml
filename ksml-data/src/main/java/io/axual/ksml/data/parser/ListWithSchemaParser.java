@@ -30,8 +30,8 @@ import java.util.List;
 public class ListWithSchemaParser<T> extends ListParser<T> implements ParserWithSchema<List<T>> {
     private final DataSchema schema;
 
-    public ListWithSchemaParser(String whatToParse, ParserWithSchema<T> valueParser) {
-        super(whatToParse, valueParser);
+    public ListWithSchemaParser(String childTagKey, String childTagValuePrefix, ParserWithSchema<T> valueParser) {
+        super(childTagKey, childTagValuePrefix, valueParser);
         schema = new ListSchema(valueParser.schema());
     }
 }

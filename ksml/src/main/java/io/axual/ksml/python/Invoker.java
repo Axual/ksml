@@ -53,7 +53,7 @@ public abstract class Invoker {
         this.function = function;
     }
 
-    protected <V> V execute(Supplier<V> callback) {
+    protected <V> V time(Supplier<V> callback) {
         return timer.timeSupplier(callback);
     }
 
