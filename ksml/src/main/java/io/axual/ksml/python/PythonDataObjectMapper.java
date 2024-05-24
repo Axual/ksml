@@ -60,7 +60,7 @@ public class PythonDataObjectMapper extends NativeDataObjectMapper {
     }
 
     private Object valueToNative(DataType expected, Value object) {
-        if (object.isNull()) return DataNull.INSTANCE;
+        if (object.isNull()) return convertFromNull(expected);
         if (object.isBoolean() && (expected == null || expected == DataBoolean.DATATYPE))
             return object.asBoolean();
 

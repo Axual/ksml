@@ -26,11 +26,13 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 
 import java.io.IOException;
 
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 
 public class DataObjectSerializer extends JsonSerializer<DataObject> {
     @Override
     public void serialize(DataObject dataObject, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
-        jsonGenerator.writeObject(dataObject);
+        if (dataObject != null && dataObject != DataNull.INSTANCE)
+            jsonGenerator.writeObject(dataObject);
     }
 }

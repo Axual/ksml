@@ -21,6 +21,7 @@ package io.axual.ksml.notation.xml;
  */
 
 import io.axual.ksml.data.mapper.DataObjectMapper;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
@@ -28,6 +29,8 @@ import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.notation.binary.NativeDataObjectMapper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -76,6 +79,7 @@ public class XmlDataObjectMapper implements DataObjectMapper<String> {
 
     @Override
     public DataObject toDataObject(DataType expected, String value) {
+        if (value == null) return NativeDataObjectMapper.convertFromNull(expected);
         try {
             var doc = documentBuilder.parse(new ByteArrayInputStream(value.getBytes()));
             doc.getDocumentElement().normalize();
@@ -174,8 +178,10 @@ public class XmlDataObjectMapper implements DataObjectMapper<String> {
 
     @Override
     public String fromDataObject(DataObject value) {
+        if (value == null || value == DataNull.INSTANCE) return null; // Return null document on null input value
+
         var doc = documentBuilder.newDocument();
-        if (value instanceof DataStruct valueStruct) {
+        if (value instanceof DataStruct valueStruct && !valueStruct.isNull()) {
             var rootName = valueStruct.type().schemaName();
             var rootElement = doc.createElement(rootName);
             elementFromDataObject(doc::createElement, rootElement, valueStruct);

@@ -20,6 +20,7 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.schema.StructSchema;
 
 import java.util.Objects;
@@ -67,6 +68,7 @@ public class StructType extends MapType {
 
     @Override
     public boolean isAssignableFrom(DataType type) {
+        if (type== DataNull.DATATYPE) return true; // Always allow Structs to be NULL (Kafka tombstones)
         if (!super.isAssignableFrom(type)) return false;
         if (!(type instanceof StructType structType)) return false;
         if (schema == null) return true;

@@ -60,11 +60,6 @@ public class SimpleType implements DataType {
         return containerClass.isAssignableFrom(type);
     }
 
-    @Override
-    public boolean isAssignableFrom(Object value) {
-        return containerClass.isAssignableFrom(value.getClass());
-    }
-
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;

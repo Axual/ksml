@@ -20,6 +20,7 @@ package io.axual.ksml.serde;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.UnionType;
@@ -66,7 +67,7 @@ public class UnionSerde implements Serde<Object> {
                     }
                 }
             }
-            throw new KSMLExecutionException("Can not serialize object as union alternative: " + (data != null ? data.getClass().getSimpleName() : "null"));
+            throw new KSMLExecutionException("Can not serialize object as union alternative: " + possibleTypes);
         }
     }
 
@@ -80,6 +81,10 @@ public class UnionSerde implements Serde<Object> {
 
         @Override
         public Object deserialize(String topic, byte[] data) {
+            if (data == null || data.length == 0) {
+                return DataNull.INSTANCE;
+            }
+
             for (PossibleType possibleType : possibleTypes) {
                 try {
                     Object result = possibleType.deserializer.deserialize(topic, data);
@@ -90,7 +95,7 @@ public class UnionSerde implements Serde<Object> {
                     // Not properly deserialized, so ignore and try next alternative
                 }
             }
-            throw new KSMLExecutionException("Can not deserialize data as union possible dataType" + (data != null ? data : "null"));
+            throw new KSMLExecutionException("Can not deserialize data as union possible dataType" + possibleTypes);
         }
     }
 

@@ -58,7 +58,7 @@ public class UnionType extends ComplexType {
         if (this == type) return true;
 
         // If the other dataType is a union, then compare the union with this dataType
-        if (type instanceof UnionType otherUnion && equalsOtherUnion(otherUnion)) return true;
+        if (type instanceof UnionType otherUnion && isAssignableFromOtherUnion(otherUnion)) return true;
 
         // If the union did not match in its entirety, then check for assignable subtypes
         for (UserType possibleType : possibleTypes) {
@@ -67,7 +67,7 @@ public class UnionType extends ComplexType {
         return false;
     }
 
-    private boolean equalsOtherUnion(UnionType other) {
+    private boolean isAssignableFromOtherUnion(UnionType other) {
         var otherPossibleTypes = other.possibleTypes();
         if (possibleTypes.length != otherPossibleTypes.length) return false;
         for (int index = 0; index < possibleTypes.length; index++) {
@@ -90,7 +90,7 @@ public class UnionType extends ComplexType {
     @Override
     public boolean equals(Object other) {
         if (!super.equals(other)) return false;
-        return equalsOtherUnion((UnionType) other);
+        return isAssignableFromOtherUnion((UnionType) other);
     }
 
     @Override

@@ -28,6 +28,8 @@ kafka:
   security.protocol: PLAINTEXT
   auto.offset.reset: earliest
   acks: all
+  topology.optimization: all
+  group.instance.id: example
 
 # These are Kafka SSL configuration properties. Check the documentation at1
 # Check the documentation at https://kafka.apache.org/documentation/#producerconfigs for more properties

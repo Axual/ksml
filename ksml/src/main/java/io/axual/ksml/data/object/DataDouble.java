@@ -24,10 +24,9 @@ import io.axual.ksml.data.type.SimpleType;
 
 public class DataDouble extends DataPrimitive<Double> {
     public static final SimpleType DATATYPE = new SimpleType(Double.class);
-    public static final Double DEFAULT = 0d;
 
     public DataDouble() {
-        this(DEFAULT);
+        this(null);
     }
 
     public DataDouble(Double value) {

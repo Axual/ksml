@@ -42,6 +42,7 @@ import io.axual.ksml.data.type.EnumType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.TupleType;
+import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.data.value.Tuple;
 import io.axual.ksml.exception.KSMLDataException;
 import io.axual.ksml.exception.KSMLExecutionException;
@@ -66,7 +67,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     }
 
     public DataObject toDataObject(DataType expected, Object value) {
-        if (value == null) return DataNull.INSTANCE;
+        if (value == null) return convertFromNull(expected);
         if (value instanceof DataObject val) return val;
         if (value instanceof Boolean val) return new DataBoolean(val);
         if (value instanceof Byte val) return new DataByte(val);
@@ -83,6 +84,24 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
             return nativeToDataStruct((Map<String, Object>) val, expected instanceof StructType expectedStruct ? expectedStruct.schema() : null);
         if (value instanceof Tuple<?> val) return toDataTuple((Tuple<Object>) val);
         throw new KSMLExecutionException("Can not convert to DataObject: " + value.getClass().getSimpleName());
+    }
+
+    public static DataObject convertFromNull(DataType expected) {
+        if (expected == null || expected == DataNull.DATATYPE || expected == DataType.UNKNOWN) return DataNull.INSTANCE;
+        if (expected == DataBoolean.DATATYPE) return new DataBoolean();
+        if (expected == DataByte.DATATYPE) return new DataByte();
+        if (expected == DataShort.DATATYPE) return new DataShort();
+        if (expected == DataInteger.DATATYPE) return new DataInteger();
+        if (expected == DataLong.DATATYPE) return new DataLong();
+        if (expected == DataFloat.DATATYPE) return new DataFloat();
+        if (expected == DataDouble.DATATYPE) return new DataDouble();
+        if (expected == DataBytes.DATATYPE) return new DataBytes();
+        if (expected == DataString.DATATYPE) return new DataString();
+        if (expected instanceof ListType listType) return new DataList(listType.valueType(), true);
+        if (expected instanceof StructType structType) return new DataStruct(structType.schema(), true);
+        if (expected instanceof UnionType unionType)
+            return new DataUnion(unionType, DataNull.INSTANCE);
+        throw new KSMLExecutionException("Can not convert NULL to " + expected);
     }
 
     private DataType inferType(Object value) {
@@ -227,12 +246,14 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     }
 
     public List<Object> fromDataList(DataList list) {
+        if (list.isNull()) return null;
         List<Object> result = new ArrayList<>();
         list.forEach(element -> result.add(fromDataObject(element)));
         return result;
     }
 
     public Map<String, Object> fromDataStruct(DataStruct struct) {
+        if (struct.isNull()) return null;
         Map<String, Object> result = new TreeMap<>(DataStruct.COMPARATOR);
         struct.forEach((key, value) -> result.put(key, fromDataObject(value)));
 

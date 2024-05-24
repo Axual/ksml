@@ -82,7 +82,7 @@ services:
                        kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic io.ksml.example.processor-ownerCount-changelog'"
 
   example-producer:
-    image: axual/ksml-data-generator:snapshot
+    image: axual/ksml-data-generator:local
     hostname: kafka-data-generator
     restart: always
     networks:
@@ -96,3 +96,18 @@ services:
       - broker
       - schema_registry
       - kafka-setup
+
+  console:
+    image: redpandadata/console:v2.5.2
+    hostname: console
+    ports:
+      - "8082:8080"
+    networks:
+      - ksml
+    restart: always
+    environment:
+      SERVER_LISTEN_PORT: 8082
+      KAFKA_BROKERS: 'broker:9093'
+      KAFKA_SCHEMAREGISTRY_ENABLED: 'true'
+      KAFKA_SCHEMAREGISTRY_URLS: 'http://schema_registry:8081'
+

@@ -24,10 +24,9 @@ import io.axual.ksml.data.type.SimpleType;
 
 public class DataByte extends DataPrimitive<Byte> {
     public static final SimpleType DATATYPE = new SimpleType(Byte.class);
-    public static final Byte DEFAULT = (byte) 0;
 
     public DataByte() {
-        this(DEFAULT);
+        this(null);
     }
 
     public DataByte(Byte value) {
