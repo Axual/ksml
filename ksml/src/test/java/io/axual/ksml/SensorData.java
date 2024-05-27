@@ -58,6 +58,7 @@ class SensorData {
     SensorType type;
     String unit;
     String color;
+    String city;
 
     enum SensorType {
         AREA, HUMIDITY,LENGTH,STATE,TEMPERATURE
@@ -71,6 +72,7 @@ class SensorData {
         data.put("type", new GenericData.EnumSymbol(SENSOR_TYPE_SCHEMA, type == null ? AREA : type));
         data.put("unit", unit == null ? "NOT SET" : unit);
         data.put("color", color == null ? "NOT SET" : color);
+        data.put("city", city == null ? "NOT SET" : city);
         return data;
     }
 }

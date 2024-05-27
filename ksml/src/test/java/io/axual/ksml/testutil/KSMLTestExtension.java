@@ -86,7 +86,6 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
 
     /**
      * Register the required notations before executing the tests.
-     * @param extensionContext
      */
     @Override
     public void beforeAll(ExtensionContext extensionContext) {
@@ -124,7 +123,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
             log.debug("registered schema path: {}", schemaPath);
         }
 
-        // get the KSML definition classpath relative path and load it
+        // get the KSML definition classpath relative path and load the topology into the test driver
         String topologyName = ksmlTest.topology();
         log.debug("loading topology {}", topologyName);
         final var uri = ClassLoader.getSystemResource(topologyName).toURI();
@@ -138,7 +137,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
         System.out.println(description);
         topologyTestDriver = new TopologyTestDriver(topology);
 
-        // set up topology and assign in- and output topics
+        // create in- and output topics and assign them to variables in the test
         Class<?> testClass = extensionContext.getRequiredTestClass();
         Object testInstance = extensionContext.getRequiredTestInstance();
         for (KSMLTopic ksmlTopic: ksmlTest.inputTopics()) {
@@ -196,7 +195,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
     }
 
     private Serializer<?> getSerializer(KSMLTopic ksmlTopic, boolean isKey) {
-        return switch (ksmlTopic.valueSerde()) {
+        return switch (isKey ? ksmlTopic.keySerde() : ksmlTopic.valueSerde()) {
             case AVRO -> {
                 var result = new KafkaAvroSerializer(avroNotation.mockSchemaRegistryClient());
                 result.configure(avroNotation.getSchemaRegistryConfigs(), isKey);
@@ -215,7 +214,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
     }
 
     private Deserializer<?> getDeserializer(KSMLTopic kamlTopic, boolean isKey) {
-        return switch (kamlTopic.valueSerde()) {
+        return switch (isKey ? kamlTopic.keySerde() : kamlTopic.valueSerde()) {
             case AVRO -> {
                 var result = new KafkaAvroDeserializer(avroNotation.mockSchemaRegistryClient());
                 result.configure(avroNotation.getSchemaRegistryConfigs(), isKey);
