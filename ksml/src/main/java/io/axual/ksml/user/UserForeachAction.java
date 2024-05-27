@@ -36,6 +36,6 @@ public class UserForeachAction extends Invoker {
     }
 
     public void apply(StateStores stores, Object key, Object value) {
-        time(() -> function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value)));
+        timeExecutionOf(() -> function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value)));
     }
 }

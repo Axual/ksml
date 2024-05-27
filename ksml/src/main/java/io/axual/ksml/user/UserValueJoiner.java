@@ -44,6 +44,6 @@ public class UserValueJoiner extends Invoker implements ValueJoiner<Object, Obje
     public DataObject apply(Object value1, Object value2) {
         // ValueJoiners in KSML are always defined as ValueJoinerWithKey, meaning they take a key and two value
         // parameters. Since we are calling from a traditional ValueJoiner, we pass in a NULL key to the function.
-        return time(() -> function.call(DataNull.INSTANCE, nativeMapper.toDataObject(value1), nativeMapper.toDataObject(value2)));
+        return timeExecutionOf(() -> function.call(DataNull.INSTANCE, nativeMapper.toDataObject(value1), nativeMapper.toDataObject(value2)));
     }
 }

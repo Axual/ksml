@@ -21,12 +21,10 @@ package io.axual.ksml.user;
  */
 
 
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.python.Invoker;
-import org.apache.kafka.streams.kstream.Aggregator;
 
 public class UserGenerator extends Invoker {
 
@@ -36,6 +34,6 @@ public class UserGenerator extends Invoker {
     }
 
     public DataObject apply() {
-        return time(function::call);
+        return timeExecutionOf(function::call);
     }
 }

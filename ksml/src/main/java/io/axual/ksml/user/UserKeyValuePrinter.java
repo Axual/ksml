@@ -40,7 +40,7 @@ public class UserKeyValuePrinter extends Invoker implements KeyValueMapper<Objec
 
     @Override
     public String apply(Object key, Object value) {
-        final var result = time(() -> function.call(nativeMapper.toDataObject(key), nativeMapper.toDataObject(value)));
+        final var result = timeExecutionOf(() -> function.call(nativeMapper.toDataObject(key), nativeMapper.toDataObject(value)));
         if (result instanceof DataString str) return str.value();
         return result.toString();
     }
