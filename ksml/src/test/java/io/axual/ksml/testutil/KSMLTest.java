@@ -45,4 +45,5 @@ public @interface KSMLTest {
 
     KSMLTopic[] outputTopics();
 
+    String stateStoreMap() default "";
 }

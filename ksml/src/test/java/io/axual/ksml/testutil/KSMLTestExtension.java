@@ -53,6 +53,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Slf4j
@@ -153,6 +154,16 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
             outputTopicField.setAccessible(true);
             outputTopicField.set(testInstance, topologyTestDriver.createOutputTopic(ksmlTopic.topic(), getKeyDeserializer(ksmlTopic), getValueDeserializer(ksmlTopic)));
             modifiedFields.add(outputTopicField);
+        }
+
+        // if a variable if configured for state stores, set it
+        if (!Objects.equals(ksmlTest.stateStoreMap(), "")) {
+            String mapName = ksmlTest.stateStoreMap();
+            log.debug("assign state stores to {}", mapName);
+            Field mapField = testClass.getDeclaredField(mapName);
+            mapField.setAccessible(true);
+            mapField.set(testInstance, topologyTestDriver.getAllStateStores());
+            modifiedFields.add(mapField);
         }
     }
 
