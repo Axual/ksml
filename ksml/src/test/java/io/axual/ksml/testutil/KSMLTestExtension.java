@@ -156,14 +156,14 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
             modifiedFields.add(outputTopicField);
         }
 
-        // if a variable if configured for state stores, set it
-        if (!Objects.equals(ksmlTest.stateStoreMap(), "")) {
-            String mapName = ksmlTest.stateStoreMap();
-            log.debug("assign state stores to {}", mapName);
-            Field mapField = testClass.getDeclaredField(mapName);
-            mapField.setAccessible(true);
-            mapField.set(testInstance, topologyTestDriver.getAllStateStores());
-            modifiedFields.add(mapField);
+        // if a variable is configured for the test driver reference, set it
+        if (!Objects.equals("", ksmlTest.testDriverRef())) {
+            String varName = ksmlTest.testDriverRef();
+            log.debug("assigning topologyTestDriver to {}", varName);
+            Field testDriverField = testClass.getDeclaredField(varName);
+            testDriverField.setAccessible(true);
+            testDriverField.set(testInstance, topologyTestDriver);
+            modifiedFields.add(testDriverField);
         }
     }
 

@@ -26,11 +26,9 @@ import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import org.apache.kafka.streams.TestInputTopic;
-import org.apache.kafka.streams.processor.StateStore;
-import org.apache.kafka.streams.state.internals.MeteredKeyValueStore;
+import org.apache.kafka.streams.TopologyTestDriver;
+import org.apache.kafka.streams.state.KeyValueStore;
 import org.junit.jupiter.api.extension.ExtendWith;
-
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -39,10 +37,11 @@ public class KSMLStateStoreTest {
 
     TestInputTopic sensorIn;
 
-    Map<String, StateStore> stateStores;
+    TopologyTestDriver topologyTestDriver;
 
     @KSMLTest(topology = "pipelines/test-state-store.yaml", schemapath = "pipelines",
-        inputTopics = {@KSMLTopic(topic = "ksml_sensordata_avro", variable = "sensorIn", valueSerde = KSMLTopic.SerdeType.AVRO)}, outputTopics = {}, stateStoreMap = "stateStores")
+        inputTopics = {@KSMLTopic(topic = "ksml_sensordata_avro", variable = "sensorIn", valueSerde = KSMLTopic.SerdeType.AVRO)}
+            , outputTopics = {}, testDriverRef = "topologyTestDriver")
     void testJoin() throws Exception {
 
         // given that we get events with a higher reading in matching cities
@@ -58,6 +57,7 @@ public class KSMLStateStoreTest {
                 .unit("C")
                 .value("26")
                 .build().toRecord());
+
         // and a new value for sensor1
         sensorIn.pipeInput("sensor1", SensorData.builder()
                 .city("Amsterdam")
@@ -65,11 +65,10 @@ public class KSMLStateStoreTest {
                 .unit("%")
                 .value("70")
                 .build().toRecord());
-        System.out.println("stateStores = " + stateStores.size());
 
-        // the last value is present in the store for key "sensor1"
-        MeteredKeyValueStore keyValueStore = (MeteredKeyValueStore) stateStores.get("last_sensor_data_store");
-        DataStruct sensor1Data = (DataStruct) keyValueStore.get("sensor1");
+        // the last value for sensor1 is present in the store named "last_sensor_data_store"
+        KeyValueStore<Object, Object> lastSensorDataStore = topologyTestDriver.getKeyValueStore("last_sensor_data_store");
+        DataStruct sensor1Data = (DataStruct) lastSensorDataStore.get("sensor1");
         assertEquals(new DataString("Amsterdam"), sensor1Data.get("city"));
         assertEquals(new DataString("70"), sensor1Data.get("value"));
     }

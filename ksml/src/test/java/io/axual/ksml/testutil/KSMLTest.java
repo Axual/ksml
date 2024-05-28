@@ -45,5 +45,5 @@ public @interface KSMLTest {
 
     KSMLTopic[] outputTopics();
 
-    String stateStoreMap() default "";
+    String testDriverRef() default "";
 }
