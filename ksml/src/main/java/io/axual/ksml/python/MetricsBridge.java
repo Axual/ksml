@@ -87,7 +87,7 @@ public class MetricsBridge implements Closeable {
      * @return The {@link CounterBridge} instance that is to be used to update the timer metric
      */
     public CounterBridge counter(String name, ContextTags tags) {
-        var metricName = new MetricName(name, tags);
+        var metricName = createMetricName(name, tags);
         var counter = metricRegistry.getCounter(metricName);
         if (counter == null) {
             counter = metricRegistry.registerCounter(metricName);

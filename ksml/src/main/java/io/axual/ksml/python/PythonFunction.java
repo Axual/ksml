@@ -88,8 +88,6 @@ public class PythonFunction extends UserFunction {
         }
     }
 
-    //ksml:type=timers,name=execution-time,namespace=measurement_router,function-name=pipelines_provider3_via_step2_forEach
-
     @Override
     public DataObject call(StateStores stores, DataObject... parameters) {
         return functionTimer.timeSupplier(() -> {
@@ -198,54 +196,54 @@ public class PythonFunction extends UserFunction {
 
         final var pythonCodeTemplate =
                 """
-                                                import polyglot
-                                                import java
+                        import polyglot
+                        import java
 
-                                                ArrayList = java.type('java.util.ArrayList')
-                                                HashMap = java.type('java.util.HashMap')
-                                                TreeMap = java.type('java.util.TreeMap')
-                                                stores = None
+                        ArrayList = java.type('java.util.ArrayList')
+                        HashMap = java.type('java.util.HashMap')
+                        TreeMap = java.type('java.util.TreeMap')
+                        stores = None
 
-                                                # global Python code goes here (first argument)
-                                                %1$s
+                        # global Python code goes here (first argument)
+                        %1$s
 
-                                                # function definition and expression go here (second argument)
-                                                %2$s
+                        # function definition and expression go here (second argument)
+                        %2$s
 
-                                                def convert_to_python(value):
-                                                  if value == None: # don't modify to "is" operator, since that Java's null is not exactly the same as None
-                                                    return None
-                                                  if isinstance(value, (HashMap, TreeMap)):
-                                                    result = dict()
-                                                    for k, v in value.entrySet():
-                                                      result[convert_to_python(k)] = convert_to_python(v)
-                                                    return result
-                                                  if isinstance(value, ArrayList):
-                                                    result = []
-                                                    for e in value:
-                                                      result.append(convert_to_python(e))
-                                                    return result
-                                                  return value
+                        def convert_to_python(value):
+                          if value == None: # don't modify to "is" operator, since that Java's null is not exactly the same as None
+                            return None
+                          if isinstance(value, (HashMap, TreeMap)):
+                            result = dict()
+                            for k, v in value.entrySet():
+                              result[convert_to_python(k)] = convert_to_python(v)
+                            return result
+                          if isinstance(value, ArrayList):
+                            result = []
+                            for e in value:
+                              result.append(convert_to_python(e))
+                            return result
+                          return value
 
-                                                def convert_from_python(value):
-                                                  if value == None: # don't modify to "is" operator, since that Java's null is not exactly the same as None
-                                                    return None
-                                                  if isinstance(value, (list, tuple)):
-                                                    result = ArrayList()
-                                                    for e in value:
-                                                      result.add(convert_from_python(e))
-                                                    return result
-                                                  if type(value) is dict:
-                                                    result = HashMap()
-                                                    for k, v in value.items():
-                                                      result.put(convert_from_python(k), convert_from_python(v))
-                                                    return result
-                                                  return value
+                        def convert_from_python(value):
+                          if value == None: # don't modify to "is" operator, since that Java's null is not exactly the same as None
+                            return None
+                          if isinstance(value, (list, tuple)):
+                            result = ArrayList()
+                            for e in value:
+                              result.add(convert_from_python(e))
+                            return result
+                          if type(value) is dict:
+                            result = HashMap()
+                            for k, v in value.items():
+                              result.put(convert_from_python(k), convert_from_python(v))
+                            return result
+                          return value
 
-                                                # caller definition goes here (third argument)
-                                                @polyglot.export_value
-                                                %3$s
-                                                """;
+                        # caller definition goes here (third argument)
+                        @polyglot.export_value
+                        %3$s
+                        """;
 
         return pythonCodeTemplate.formatted(globalCode, functionAndExpression, pyCallerCode);
     }

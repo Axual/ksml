@@ -33,10 +33,18 @@ import io.axual.ksml.metric.KSMLMetrics;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
+
 @Slf4j
 public class PythonContext {
     private static final LoggerBridge LOGGER_BRIDGE = new LoggerBridge();
     private static final String PYTHON = "python";
+    private static final List<String> ALLOWED_JAVA_CLASSES = List.of(
+            "io.axual.ksml.data.tag.ContextTags",
+            "io.axual.ksml.data.tag.ContextTag",
+            "java.util.ArrayList",
+            "java.util.HashMap",
+            "java.util.TreeMap");
     private final Context context;
     @Getter
     private final DataObjectConverter converter;
@@ -49,11 +57,31 @@ public class PythonContext {
         log.debug("Setting up new Python context");
         try {
             context = Context.newBuilder(PYTHON)
+                    .allowIO(IOAccess.newBuilder()
+                            .allowHostFileAccess(true)
+                            .allowHostSocketAccess(false)
+                            .build())
                     .allowIO(IOAccess.ALL)
+                    .allowNativeAccess(false)
                     .allowNativeAccess(true)
                     .allowPolyglotAccess(PolyglotAccess.ALL)
+//                            PolyglotAccess.newBuilder()
+//                            .allowBindingsAccess(PYTHON)
+//                            .build())
                     .allowHostAccess(HostAccess.ALL)
-                    .allowHostClassLookup(name -> name.equals("io.axual.ksml.data.value.Pair") || name.equals("java.util.ArrayList") || name.equals("java.util.HashMap") || name.equals("java.util.TreeMap"))
+//                            HostAccess.newBuilder()
+//                            .allowPublicAccess(true)
+//                            .allowAllImplementations(false)
+//                            .allowAllClassImplementations(false)
+//                            .allowArrayAccess(false)
+//                            .allowListAccess(true)
+//                            .allowBufferAccess(false)
+//                            .allowIterableAccess(true)
+//                            .allowIteratorAccess(true)
+//                            .allowMapAccess(true)
+//                            .allowAccessInheritance(false)
+//                            .build())
+                    .allowHostClassLookup(ALLOWED_JAVA_CLASSES::contains)
                     .build();
             registerGlobalCode();
         } catch (Exception e) {
@@ -84,33 +112,34 @@ public class PythonContext {
                 import java
                 import typing
                 ArrayList = java.type('java.util.ArrayList')
-                Pair = java.type('io.axual.ksml.data.value.Pair')
+                ContextTags = java.type('io.axual.ksml.data.tag.ContextTags')
+                ContextTag = java.type('io.axual.ksml.data.tag.ContextTag')
                 @polyglot.export_value
                 def register_ksml_bridges(lb, mb):
                   global loggerBridge
                   global metricsBridge
                   loggerBridge = lb
                   metricsBridge = mb
-                
+
                 def metrics_get_timer( name: str, tags: typing.Dict[str,str] = None ) :
-                  tagList = ArrayList()
+                  tagList = ContextTags()
                   if tags is not None:
                     for tagKey in tags:
-                      tagList.add( Pair( str(tagKey), str(tags[tagKey]) ) )
+                      tagList.add( ContextTag( str(tagKey), str(tags[tagKey]) ) )
                   return metricsBridge.timer( name, tagList )
 
                 def metrics_get_counter( name: str, tags: typing.Dict[str,str] = None ) :
-                  tagList = ArrayList()
+                  tagList = ContextTags()
                   if tags is not None:
                     for tagKey in tags:
-                      tagList.add( Pair( str(tagKey), str(tags[tagKey]) ) )
+                      tagList.add( ContextTag( str(tagKey), str(tags[tagKey]) ) )
                   return metricsBridge.counter( name, tagList )
 
                 def metrics_get_meter( name: str, tags: typing.Dict[str,str] = None ) :
-                  tagList = ArrayList()
+                  tagList = ContextTags()
                   if tags is not None:
                     for tagKey in tags:
-                      tagList.add( Pair( str(tagKey), str(tags[tagKey]) ) )
+                      tagList.add( ContextTag( str(tagKey), str(tags[tagKey]) ) )
                   return metricsBridge.meter( name, tagList )
 
                 """;

@@ -20,7 +20,8 @@ ksml:
 #    join: 13-example-join.yaml
 #    manual_state_store: 14-example-manual-state-store.yaml
 #    pipeline_linking: 15-example-pipeline-linking.yaml
-    inspect_with_metrics: 16-example-inspect-with-metrics.yaml
+#    transform_metadata: 16-example-transform-metadata.yaml
+#    inspect_with_metrics: 17-example-inspect-with-metrics.yaml
 
 # This setup connects to the Kafka broker and schema registry started with the example docker-compose file
 # These examples are intended to run from a inside a container on the same network
