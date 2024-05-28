@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import io.axual.ksml.metric.KSMLMetrics;
 import io.axual.ksml.runner.config.PrometheusConfig;
 import io.prometheus.client.Collector;
 import io.prometheus.client.CollectorRegistry;
@@ -64,6 +65,7 @@ public class PrometheusExport implements Closeable {
 
     @Synchronized
     public void start() throws Exception {
+        KSMLMetrics.init();
         if (!config.isEnabled()) {
             log.info("Prometheus export is disabled");
             return;

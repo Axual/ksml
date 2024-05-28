@@ -32,7 +32,7 @@ public class KSMLMetrics {
         return REGISTRY;
     }
 
-    static {
+    public static synchronized void init() {
         registry().enableJmx("ksml", Collections.emptyList());
     }
 }

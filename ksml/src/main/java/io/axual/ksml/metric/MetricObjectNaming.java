@@ -79,7 +79,7 @@ class MetricObjectNaming {
             if (keyValue.length != 2) {
                 throw new MetricObjectNamingException("KeyValue String doesn't contain separator. Failing part %s  of name %s".formatted(kvString, name));
             }
-            tags.append(keyValue[0], keyValue[1]);
+            tags = tags.append(keyValue[0], keyValue[1]);
         }
 
         return tags;
