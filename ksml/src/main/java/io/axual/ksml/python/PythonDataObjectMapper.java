@@ -78,7 +78,7 @@ public class PythonDataObjectMapper extends NativeDataObjectMapper {
         }
 
         // By default, try to decode a dict as a struct
-        if (object.hasHashEntries() ) {
+        if (object.hasHashEntries()) {
             // TODO: Check if the following conditions should also make us go in this statement block
             // expected == null || expected instanceof MapType || expected.isAssignableFrom(new StructType())
             var result = mapToNative(expected, object);
@@ -150,6 +150,7 @@ public class PythonDataObjectMapper extends NativeDataObjectMapper {
         if (object instanceof DataString val) return Value.asValue(val.value());
         if (object instanceof DataList val) return Value.asValue(fromDataList(val));
         if (object instanceof DataStruct val) return Value.asValue(fromDataStruct(val));
+        if (object instanceof DataUnion val) return fromDataObject(val.value());
         throw new ExecutionException("Can not convert DataObject to Python dataType: " + object.getClass().getSimpleName());
     }
 }
