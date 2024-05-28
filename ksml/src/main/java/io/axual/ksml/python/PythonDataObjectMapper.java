@@ -166,7 +166,7 @@ public class PythonDataObjectMapper extends NativeDataObjectMapper {
         if (object instanceof DataString val) return Value.asValue(val.value());
         if (object instanceof DataList val) return Value.asValue(fromDataList(val));
         if (object instanceof DataStruct val) return Value.asValue(fromDataStruct(val));
-        if (object instanceof DataUnion val) fromDataObject(val.value());
+        if (object instanceof DataUnion val) return fromDataObject(val.value());
         throw new KSMLExecutionException("Can not convert DataObject to Python dataType: " + object.getClass().getSimpleName());
     }
 }
