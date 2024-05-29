@@ -29,6 +29,8 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.jmx.JmxReporter;
 import io.axual.ksml.data.tag.ContextTag;
+import io.axual.ksml.exception.MetricRegistrationException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +46,7 @@ import java.util.function.Supplier;
  * <p>
  * The MBean name will be <i>{@literal <domain>:type=<metricType>,name=<metricName.name>,[any additional tags],[metricName.tags] }</i>
  */
+@Slf4j
 public class MetricsRegistry {
     private final MetricRegistry metricRegistry;
     private JmxReporter jmxReporter;
@@ -171,11 +174,11 @@ public class MetricsRegistry {
      * Remove a metric with the provided name
      *
      * @param metricName the name of the metric to be removed
-     * @return true if the metric was removed
      */
-    public synchronized boolean remove(MetricName metricName) {
+    public synchronized void remove(MetricName metricName) {
         registeredMetrics.remove(metricName);
-        return metricRegistry.remove(encodeName(metricName));
+        metricRegistry.remove(encodeName(metricName));
+        log.warn("Removed metric: {}", metricName);
     }
 
     private String encodeName(MetricName metricName) {
@@ -217,6 +220,7 @@ public class MetricsRegistry {
         }
         M newInstance = metricSupplier.get();
         registeredMetrics.put(metricName, newInstance);
+        log.warn("Created metric: {}", metricName);
         return newInstance;
     }
 

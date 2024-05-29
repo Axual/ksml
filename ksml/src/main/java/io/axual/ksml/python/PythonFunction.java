@@ -157,7 +157,7 @@ public class PythonFunction extends UserFunction {
         String[] callParams = Arrays.stream(definition.parameters()).map(ParameterDefinition::name).toArray(String[]::new);
 
         // prepare globalCode from the function definition
-        final var globalCode = String.join("\n", injectLogVariable(namespace, type, definition.globalCode())) + "\n";
+        final var globalCode = String.join("\n", injectFunctionLocalVariables(namespace, type, definition.globalCode())) + "\n";
 
         // Code to include all global variables
         final var assignStores = definition.storeNames().stream()
@@ -180,7 +180,7 @@ public class PythonFunction extends UserFunction {
         // Prepare function (if any) and expression from the function definition
         final var functionAndExpression = "def " + name + "(" + String.join(",", defParams) + "):\n" +
                 includeGlobals +
-                initLogCode(2, loggerName(namespace, type, name)) +
+                initFunctionLocalVariables(2, loggerName(namespace, type, name)) +
                 assignStores +
                 initializeOptionalParams +
                 String.join("\n", functionCode) + "\n" +
@@ -252,7 +252,7 @@ public class PythonFunction extends UserFunction {
         return namespace + "." + type + "." + name;
     }
 
-    private String[] injectLogVariable(String namespace, String type, String[] code) {
+    private String[] injectFunctionLocalVariables(String namespace, String type, String[] code) {
         // Look for "def func():" statements and inject log variable code after all occurrences
         final var result = new ArrayList<String>();
         var injectCode = false;
@@ -262,7 +262,7 @@ public class PythonFunction extends UserFunction {
             if (line.trim().isEmpty()) continue;
             int lineIndent = line.length() - line.stripIndent().length();
             if (injectCode && lineIndent > defIndent) {
-                result.add(initLogCode(lineIndent, loggerName(namespace, type, functionName)));
+                result.add(initFunctionLocalVariables(lineIndent, loggerName(namespace, type, functionName)));
             }
             result.add(line);
             injectCode = false;
@@ -278,11 +278,12 @@ public class PythonFunction extends UserFunction {
         return result.toArray(String[]::new);
     }
 
-    private String initLogCode(int indentCount, String loggerName) {
+    private String initFunctionLocalVariables(int indentCount, String loggerName) {
         final var indent = " ".repeat(indentCount);
         return indent + "global loggerBridge\n" +
                 indent + "log = None\n" +
                 indent + "if loggerBridge is not None:\n" +
-                indent + "  log = loggerBridge.getLogger(\"" + loggerName + "\")\n";
+                indent + "  log = loggerBridge.getLogger(\"" + loggerName + "\")\n" +
+                indent + "global metrics\n";
     }
 }

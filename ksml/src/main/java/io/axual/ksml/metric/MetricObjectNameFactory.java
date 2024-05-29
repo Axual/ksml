@@ -22,6 +22,7 @@ package io.axual.ksml.metric;
 
 import com.codahale.metrics.jmx.ObjectNameFactory;
 import io.axual.ksml.data.tag.ContextTag;
+import io.axual.ksml.exception.MetricObjectNamingException;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.management.MalformedObjectNameException;
@@ -53,7 +54,7 @@ class MetricObjectNameFactory implements ObjectNameFactory {
         final var metricTags = metricName.tags();
 
         final var tagList = new ArrayList<ContextTag>(staticTags.size() + 1 + metricTags.size());
-        tagList.add(MetricsUtil.metricTag(TAG_KEY_NAME, metricName.name()));
+        tagList.add(new ContextTag(TAG_KEY_NAME, metricName.name()));
         tagList.addAll(staticTags);
         tagList.addAll(metricTags);
 
@@ -78,7 +79,7 @@ class MetricObjectNameFactory implements ObjectNameFactory {
             try {
                 return new ObjectName(jmxSanitize(domain), "name", ObjectName.quote(altName));
             } catch (MalformedObjectNameException ex) {
-                throw new MetricObjectNamingException(ex);
+                throw new MetricObjectNamingException(ex.getMessage(), ex);
             }
         }
     }

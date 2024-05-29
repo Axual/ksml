@@ -20,6 +20,7 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.metric.KSMLMetrics;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,7 +40,7 @@ class MetricsBridgeTest {
 
     @BeforeEach
     void setUp() {
-        metricsBridge = new MetricsBridge(mockedRegistry);
+        metricsBridge = new MetricsBridge(KSMLMetrics.registry());
     }
 
     @Test

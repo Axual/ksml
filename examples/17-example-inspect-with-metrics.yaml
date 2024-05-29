@@ -31,29 +31,29 @@ functions:
       timers = {}
       meters = {}
 
-      # Global counter to count how often this method is called, no tags are provided to make unique identification possible
-      methodCalledCounter = metrics_get_counter("method-called")
+      # Global counter to count how often log_message is called, no additional metric tags are provided
+      callCounter = metrics.counter("log_message-calls")
 
     code: |
-      global counters
-      methodCalledCounter.increment()
+      callCounter.increment()
       
+      global counters
       if counters.get(format) is None:
         log.info("Creating counter for format {}", format)
         # Create a counter metric with the name received-records and tags format and other used to uniquely identify the metric instance
-        counters[format] = metrics_get_counter( 'received-records', { "format" : format, "other" : "bother" } )
-
-      global timers
-      if timers.get(format) is None:
-        log.info("Creating timer for format {}", format)
-        # Create a timer metric with the name received-records-processing-time and tags format and other used to uniquely identify the metric instance
-        timers[format] = metrics_get_timer( 'received-records-processing-time', { "format" : format, "other" : "bother" } )
+        counters[format] = metrics.counter( 'received-records', { "format" : format, "other" : "bother" } )
 
       global meters
       if meters.get(format) is None:
         log.info("Creating meter for format {}", format)
         # Create a meter metric with the name records-in and tags format and other used to uniquely identify the metric instance
-        meters[format] = metrics_get_meter( 'records-in', { "format" : format, "other" : "bother" } )
+        meters[format] = metrics.meter( 'records-in', { "format" : format, "other" : "bother" } )
+      
+      global timers
+      if timers.get(format) is None:
+        log.info("Creating timer for format {}", format)
+        # Create a timer metric with the name received-records-processing-time and tags format and other used to uniquely identify the metric instance
+        timers[format] = metrics.timer( 'received-records-processing-time', { "format" : format, "other" : "bother" } )
       
       counters[format].increment()
       timers[format].updateMillis(random.randint(1,100))

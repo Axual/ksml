@@ -44,10 +44,14 @@ public record MetricName(String name, ContextTags tags) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Metric name can not be null or empty");
         }
-        log.warn("Created metric: name={}, tags={}", name, tags);
     }
 
     public MetricName(String name) {
         this(name, new ContextTags());
+    }
+
+    @Override
+    public String toString() {
+        return "name=" + name + (!tags.isEmpty() ? "," : "") + tags;
     }
 }

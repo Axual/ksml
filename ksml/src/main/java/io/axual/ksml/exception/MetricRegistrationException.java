@@ -1,4 +1,4 @@
-package io.axual.ksml.metric;
+package io.axual.ksml.exception;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,27 +20,19 @@ package io.axual.ksml.metric;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.tag.ContextTag;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import io.axual.ksml.data.exception.BaseException;
 
 /**
- * Collection of convenience methods for creating or handling Metric related classes and records
+ * Exception used during metric creation, update and deletion activities
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class MetricsUtil {
-    /**
-     * Create a new Tag instance.
-     *
-     * @param key   the metric tag key to use
-     * @param value the metric tag value to use
-     * @return the new metric tags
-     */
-    public static ContextTag metricTag(String key, String value) {
-        return new ContextTag(key, value);
+public class MetricRegistrationException extends BaseException {
+    private static final String ACTIVITY = "Metric registration";
+
+    public MetricRegistrationException(String message) {
+        super(ACTIVITY, message);
+    }
+
+    public MetricRegistrationException(String message, Throwable t) {
+        super(ACTIVITY, message, t);
     }
 }

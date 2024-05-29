@@ -38,21 +38,18 @@ import java.util.List;
 @Slf4j
 public class PythonContext {
     private static final LoggerBridge LOGGER_BRIDGE = new LoggerBridge();
+    private static final MetricsBridge METRICS_BRIDGE = new MetricsBridge(KSMLMetrics.registry());
     private static final String PYTHON = "python";
     private static final List<String> ALLOWED_JAVA_CLASSES = List.of(
-            "io.axual.ksml.data.tag.ContextTags",
-            "io.axual.ksml.data.tag.ContextTag",
             "java.util.ArrayList",
             "java.util.HashMap",
             "java.util.TreeMap");
     private final Context context;
     @Getter
     private final DataObjectConverter converter;
-    private final MetricsBridge metricsBridge;
 
     public PythonContext() {
         this.converter = new DataObjectConverter();
-        this.metricsBridge = new MetricsBridge(KSMLMetrics.registry());
 
         log.debug("Setting up new Python context");
         try {
@@ -66,22 +63,22 @@ public class PythonContext {
 //                    .allowNativeAccess(true)
                     .allowPolyglotAccess(
                             PolyglotAccess.newBuilder()
-                            .allowBindingsAccess(PYTHON)
-                            .build())
+                                    .allowBindingsAccess(PYTHON)
+                                    .build())
 //                    .allowPolyglotAccess(PolyglotAccess.ALL)
                     .allowHostAccess(
                             HostAccess.newBuilder()
-                            .allowPublicAccess(true)
-                            .allowAllImplementations(false)
-                            .allowAllClassImplementations(false)
-                            .allowArrayAccess(false)
-                            .allowListAccess(true)
-                            .allowBufferAccess(false)
-                            .allowIterableAccess(true)
-                            .allowIteratorAccess(true)
-                            .allowMapAccess(true)
-                            .allowAccessInheritance(false)
-                            .build())
+                                    .allowPublicAccess(true)
+                                    .allowAllImplementations(false)
+                                    .allowAllClassImplementations(false)
+                                    .allowArrayAccess(false)
+                                    .allowListAccess(true)
+                                    .allowBufferAccess(false)
+                                    .allowIterableAccess(true)
+                                    .allowIteratorAccess(true)
+                                    .allowMapAccess(true)
+                                    .allowAccessInheritance(false)
+                                    .build())
 //                    .allowHostAccess(HostAccess.ALL)
                     .allowHostClassLookup(ALLOWED_JAVA_CLASSES::contains)
                     .build();
@@ -103,53 +100,26 @@ public class PythonContext {
     }
 
     public void registerGlobalCode() {
-        // The following code registers a global variable "loggerBridge" inside the Python context and
-        // initializes it with our static LOGGER_BRIDGE member variable. This bridge is later used by
-        // other Python code to initialize a "log" variable with the proper Python namespace and function
-        // name.
+        // The following code registers a global variables "loggerBridge" and "metricsBridge" inside the Python
+        // context and initializes it with our static LOGGER_BRIDGE member variable. This bridge is later used
+        // by other Python code to initialize a "log" variable with the proper Python namespace and function name.
         final var pyCode = """
                 loggerBridge = None
-                metricsBridge = None
+                metrics = None
                 import polyglot
-                import java
-                import typing
-                ArrayList = java.type('java.util.ArrayList')
-                ContextTags = java.type('io.axual.ksml.data.tag.ContextTags')
-                ContextTag = java.type('io.axual.ksml.data.tag.ContextTag')
+
                 @polyglot.export_value
                 def register_ksml_bridges(lb, mb):
                   global loggerBridge
-                  global metricsBridge
                   loggerBridge = lb
-                  metricsBridge = mb
-
-                def metrics_get_timer( name: str, tags: typing.Dict[str,str] = None ) :
-                  tagList = ContextTags()
-                  if tags is not None:
-                    for tagKey in tags:
-                      tagList.add( ContextTag( str(tagKey), str(tags[tagKey]) ) )
-                  return metricsBridge.timer( name, tagList )
-
-                def metrics_get_counter( name: str, tags: typing.Dict[str,str] = None ) :
-                  tagList = ContextTags()
-                  if tags is not None:
-                    for tagKey in tags:
-                      tagList.add( ContextTag( str(tagKey), str(tags[tagKey]) ) )
-                  return metricsBridge.counter( name, tagList )
-
-                def metrics_get_meter( name: str, tags: typing.Dict[str,str] = None ) :
-                  tagList = ContextTags()
-                  if tags is not None:
-                    for tagKey in tags:
-                      tagList.add( ContextTag( str(tagKey), str(tags[tagKey]) ) )
-                  return metricsBridge.meter( name, tagList )
-
+                  global metrics
+                  metrics = mb
                 """;
         final var register = registerFunction(pyCode, "register_ksml_bridges");
         if (register == null) {
             throw new ExecutionException("Could not register global code for loggerBridge:\n" + pyCode);
         }
         // Load the global LOGGER_BRIDGE variable into the context
-        register.execute(LOGGER_BRIDGE, metricsBridge);
+        register.execute(LOGGER_BRIDGE, METRICS_BRIDGE);
     }
 }

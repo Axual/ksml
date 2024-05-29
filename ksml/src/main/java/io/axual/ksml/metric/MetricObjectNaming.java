@@ -22,6 +22,7 @@ package io.axual.ksml.metric;
 
 import io.axual.ksml.data.tag.ContextTag;
 import io.axual.ksml.data.tag.ContextTags;
+import io.axual.ksml.exception.MetricObjectNamingException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -29,8 +30,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-
-import static io.axual.ksml.metric.MetricsUtil.metricTag;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 class MetricObjectNaming {
@@ -44,7 +43,7 @@ class MetricObjectNaming {
 
     static String stringFromNameAndMetricsTags(String name, List<ContextTag> tags) {
         final var tagsWithName = new ArrayList<ContextTag>(tags.size() + 1);
-        tagsWithName.add(metricTag(NAME_TAG_KEY, name));
+        tagsWithName.add(new ContextTag(NAME_TAG_KEY, name));
         tagsWithName.addAll(tags);
         return stringFromMetricsTags(tagsWithName);
     }

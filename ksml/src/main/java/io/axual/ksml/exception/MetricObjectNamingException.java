@@ -1,4 +1,4 @@
-package io.axual.ksml.metric;
+package io.axual.ksml.exception;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,11 +20,18 @@ package io.axual.ksml.metric;
  * =========================LICENSE_END==================================
  */
 
-/**
- * Exception used during metric creation, update and deletion activities
- */
-public class MetricRegistrationException extends RuntimeException {
-    public MetricRegistrationException(String message) {
-        super(message);
+import io.axual.ksml.data.exception.BaseException;
+
+import javax.management.MalformedObjectNameException;
+
+public class MetricObjectNamingException extends BaseException {
+    private static final String ACTIVITY = "Metric object naming";
+
+    public MetricObjectNamingException(String message) {
+        super(ACTIVITY, message);
+    }
+
+    public MetricObjectNamingException(String message, Throwable t) {
+        super(ACTIVITY, message, t);
     }
 }
