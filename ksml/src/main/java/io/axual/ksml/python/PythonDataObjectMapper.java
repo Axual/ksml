@@ -133,7 +133,7 @@ public class PythonDataObjectMapper extends NativeDataObjectMapper {
     private DataObject mapToNative(DataType expected, Value object) {
         Map<?, ?> map = ExecutionUtil.tryThis(() -> object.as(Map.class));
         if (map == null) return null;
-        return nativeToDataStruct((Map<String, Object>) map, expected instanceof StructType rec ? rec.schema() : null);
+        return nativeToDataStruct((Map<String, Object>) map, expected instanceof StructType structType ? structType.schema() : null);
     }
 
     @Override
