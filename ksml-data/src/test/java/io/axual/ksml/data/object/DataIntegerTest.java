@@ -29,7 +29,7 @@ public class DataIntegerTest {
     @Test
     public void testDefaultValueConstructor() {
         DataInteger dataInteger = new DataInteger();
-        assertEquals(DataInteger.DEFAULT, dataInteger.value());
+        assertEquals(null, dataInteger.value());
     }
 
     @Test

@@ -29,7 +29,7 @@ public class DataByteTest {
     @Test
     public void testDefaultValueConstructor() {
         DataByte dataByte = new DataByte();
-        assertEquals(DataByte.DEFAULT, dataByte.value());
+        assertEquals(null, dataByte.value());
     }
 
     @Test

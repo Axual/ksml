@@ -29,7 +29,7 @@ public class DataBooleanTest {
     @Test
     public void testDefaultValueConstructor() {
         DataBoolean dataBoolean = new DataBoolean();
-        assertEquals(DataBoolean.DEFAULT, dataBoolean.value());
+        assertEquals(null, dataBoolean.value());
     }
 
     @Test

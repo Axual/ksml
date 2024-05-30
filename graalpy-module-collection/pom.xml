@@ -12,7 +12,7 @@
     <artifactId>graalpy-module-collection</artifactId>
 
     <properties>
-        <bouncycastke.override.version>1.78</bouncycastke.override.version>
+        <bouncycastle.override.version>1.78.1</bouncycastle.override.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -33,17 +33,17 @@
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk18on</artifactId>
-            <version>${bouncycastke.override.version}</version>
+            <version>${bouncycastle.override.version}</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcutil-jdk18on</artifactId>
-            <version>${bouncycastke.override.version}</version>
+            <version>${bouncycastle.override.version}</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
-            <version>${bouncycastke.override.version}</version>
+            <version>${bouncycastle.override.version}</version>
         </dependency>
         <dependency>
             <groupId>org.graalvm.python</groupId>

@@ -80,6 +80,7 @@ public class PythonFunction extends UserFunction {
             System.out.println("Error in generated Python code:\n" + pyCode);
             throw new ExecutionException("Error in function: " + name);
         }
+        if (tags == null) tags = new ContextTags();
         var metricName = new MetricName("execution-time", tags.append("function-type", type).append("function-name", name));
         if (KSMLMetrics.registry().getTimer(metricName) == null) {
             functionTimer = KSMLMetrics.registry().registerTimer(metricName);

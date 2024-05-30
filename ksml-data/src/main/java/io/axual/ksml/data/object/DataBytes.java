@@ -37,12 +37,14 @@ public class DataBytes extends DataPrimitive<byte[]> {
     }
 
     public DataBytes(byte[] value) {
-        super(DATATYPE, Arrays.copyOf(value, value.length));
+        super(DATATYPE, value != null ? Arrays.copyOf(value, value.length) : null);
     }
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder(type().toString()).append(": [");
+        StringBuilder builder = new StringBuilder(type().toString()).append(": ");
+        if (value() == null) return builder.append("null").toString();
+        builder.append("[");
         for (int index = 0; index < value().length; index++) {
             if (index > 0) builder.append(", ");
             builder.append(String.format("%02X ", value()[index]));

@@ -29,7 +29,7 @@ public class DataBytesTest {
     @Test
     public void testDefaultValueConstructor() {
         DataBytes dataBytes = new DataBytes();
-        assertArrayEquals(DataBytes.DEFAULT, dataBytes.value());
+        assertArrayEquals(null, dataBytes.value());
     }
 
     @Test

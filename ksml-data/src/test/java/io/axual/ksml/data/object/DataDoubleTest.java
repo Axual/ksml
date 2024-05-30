@@ -29,7 +29,7 @@ public class DataDoubleTest {
     @Test
     public void testDefaultValueConstructor() {
         DataDouble dataDouble = new DataDouble();
-        assertEquals(DataDouble.DEFAULT, dataDouble.value());
+        assertEquals(null, dataDouble.value());
     }
 
     @Test
