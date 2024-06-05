@@ -78,6 +78,10 @@ public class PythonFunction extends UserFunction {
 
     @Override
     public DataObject call(StateStores stores, DataObject... parameters) {
+        if (log.isDebugEnabled()) {
+            var paramString = Arrays.stream(parameters).map(Object::toString).collect(Collectors.joining(","));
+            log.debug("call {}({})", name, paramString);
+        }
         // Validate that the defined parameter list matches the amount of passed in parameters
         if (this.fixedParameterCount > parameters.length) {
             throw new TopologyException("Parameter list does not match function spec: minimally expected " + this.parameters.length + ", got " + parameters.length);
