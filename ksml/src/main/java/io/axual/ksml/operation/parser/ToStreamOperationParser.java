@@ -41,6 +41,6 @@ public class ToStreamOperationParser extends OperationParser<ToStreamOperation> 
                 operationTypeField(),
                 operationNameField(),
                 functionField(KSMLDSL.Operations.ToStream.MAPPER, "A function that computes the output key for every record", new KeyTransformerDefinitionParser()),
-                (type, name, mapper) -> new ToStreamOperation(operationConfig(name), mapper));
+                (type, name, mapper, tags) -> new ToStreamOperation(operationConfig(name, tags), mapper));
     }
 }

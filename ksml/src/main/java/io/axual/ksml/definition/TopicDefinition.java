@@ -29,8 +29,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 @EqualsAndHashCode
-public class TopicDefinition {
-    private final String type;
+public class TopicDefinition extends AbstractDefinition {
     private final String topic;
     private final UserType keyType;
     private final UserType valueType;
@@ -38,6 +37,6 @@ public class TopicDefinition {
     public String toString() {
         final var kt = keyType != null ? ", " + keyType : "";
         final var vt = valueType != null ? ", " + valueType : "";
-        return type + "[topic=" + topic + kt + vt + "]";
+        return definitionType() + "[topic=" + topic + kt + vt + "]";
     }
 }

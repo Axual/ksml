@@ -36,6 +36,6 @@ public class AsOperationParser extends OperationParser<AsOperation> {
                 "",
                 "An operation to close the pipeline and save the result under a given name",
                 stringField(KSMLDSL.Operations.AS, "The name to register the pipeline result under, which can be used as source by follow-up pipelines"),
-                name -> name != null ? new AsOperation(operationConfig(name), name) : null);
+                (name, tags) -> name != null ? new AsOperation(operationConfig(name, tags), name) : null);
     }
 }

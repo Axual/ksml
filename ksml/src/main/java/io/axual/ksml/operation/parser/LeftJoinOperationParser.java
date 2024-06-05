@@ -57,9 +57,9 @@ public class LeftJoinOperationParser extends StoreOperationParser<LeftJoinOperat
                 durationField(Operations.Join.TIME_DIFFERENCE, "(Stream joins) The maximum time difference for a join over two streams on the same key"),
                 optional(durationField(Operations.Join.GRACE, "(Stream joins) The window grace period (the time to admit out-of-order events after the end of the window)")),
                 storeField(false, "Materialized view of the joined streams", null),
-                (type, name, stream, valueJoiner, timeDifference, grace, store) -> {
+                (type, name, stream, valueJoiner, timeDifference, grace, store, tags) -> {
                     if (stream instanceof StreamDefinition streamDef) {
-                        return new LeftJoinOperation(storeOperationConfig(name, store), streamDef, valueJoiner, timeDifference, grace);
+                        return new LeftJoinOperation(storeOperationConfig(name, tags, store), streamDef, valueJoiner, timeDifference, grace);
                     }
                     throw new TopologyException("Join stream not correct, should be a defined Stream");
                 });
@@ -77,9 +77,9 @@ public class LeftJoinOperationParser extends StoreOperationParser<LeftJoinOperat
                 optional(functionField(Operations.Join.PARTITIONER, "(Table joins) A function that partitions the records on the primary table", new StreamPartitionerDefinitionParser())),
                 optional(functionField(Operations.Join.OTHER_PARTITIONER, "(Table joins) A function that partitions the records on the join table", new StreamPartitionerDefinitionParser())),
                 storeField(false, "Materialized view of the joined streams", null),
-                (type, name, table, foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner, store) -> {
+                (type, name, table, foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner, store, tags) -> {
                     if (table instanceof TableDefinition tableDef) {
-                        return new LeftJoinOperation(storeOperationConfig(name, store), tableDef, foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner);
+                        return new LeftJoinOperation(storeOperationConfig(name, tags, store), tableDef, foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner);
                     }
                     throw new TopologyException("Join table not correct, should be a defined Table");
                 });
@@ -94,9 +94,9 @@ public class LeftJoinOperationParser extends StoreOperationParser<LeftJoinOperat
                 functionField(Operations.Join.MAPPER, "(GlobalTable joins) A function that maps the key value from the stream with the primary key of the GlobalTable", new ValueJoinerDefinitionParser()),
                 functionField(Operations.Join.VALUE_JOINER, "(GlobalTable joins) A function that joins two values", new ValueJoinerDefinitionParser()),
                 storeField(false, "Materialized view of the joined streams", null),
-                (type, name, globalTable, mapper, valueJoiner, store) -> {
+                (type, name, globalTable, mapper, valueJoiner, store, tags) -> {
                     if (globalTable instanceof GlobalTableDefinition globalTableDef) {
-                        return new LeftJoinOperation(storeOperationConfig(name, store), globalTableDef, mapper, valueJoiner);
+                        return new LeftJoinOperation(storeOperationConfig(name, tags, store), globalTableDef, mapper, valueJoiner);
                     }
                     throw new TopologyException("Join table not correct, should be a defined Table");
                 });

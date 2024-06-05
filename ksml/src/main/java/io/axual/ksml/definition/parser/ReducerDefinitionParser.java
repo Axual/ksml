@@ -28,6 +28,10 @@ import io.axual.ksml.parser.StructParser;
 public class ReducerDefinitionParser extends FunctionDefinitionParser<ReducerDefinition> {
     @Override
     public StructParser<ReducerDefinition> parser() {
-        return parserWithoutStores(ReducerDefinition.class, KSMLDSL.Functions.TYPE_REDUCER, "reducer", ReducerDefinition::new);
+        return parserWithoutStores(
+                ReducerDefinition.class,
+                KSMLDSL.Functions.TYPE_REDUCER,
+                "reducer",
+                (function, tags) -> new ReducerDefinition(function));
     }
 }

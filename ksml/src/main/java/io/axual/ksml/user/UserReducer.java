@@ -22,14 +22,16 @@ package io.axual.ksml.user;
 
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.tag.ContextTags;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.python.Invoker;
 import org.apache.kafka.streams.kstream.Reducer;
 
 public class UserReducer extends Invoker implements Reducer<Object> {
     private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
 
-    public UserReducer(UserFunction function) {
-        super(function);
+    public UserReducer(UserFunction function, ContextTags tags) {
+        super(function, tags, KSMLDSL.Functions.TYPE_REDUCER);
         verifyParameterCount(2);
         verify(function.parameters[0].type().equals(function.parameters[1].type()), "Reducer should take two parameters of the same dataType");
         verifyResultType(function.parameters[0].type());
@@ -37,6 +39,6 @@ public class UserReducer extends Invoker implements Reducer<Object> {
 
     @Override
     public DataObject apply(Object value1, Object value2) {
-        return function.call(nativeMapper.toDataObject(value1), nativeMapper.toDataObject(value2));
+        return timeExecutionOf(() -> function.call(nativeMapper.toDataObject(value1), nativeMapper.toDataObject(value2)));
     }
 }

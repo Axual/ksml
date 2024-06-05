@@ -28,6 +28,10 @@ import io.axual.ksml.parser.StructParser;
 public class GeneratorDefinitionParser extends FunctionDefinitionParser<GeneratorDefinition> {
     @Override
     public StructParser<GeneratorDefinition> parser() {
-        return parserWithoutStores(GeneratorDefinition.class, KSMLDSL.Functions.TYPE_GENERATOR, "message generator", GeneratorDefinition::new);
+        return parserWithoutStores(
+                GeneratorDefinition.class,
+                KSMLDSL.Functions.TYPE_GENERATOR,
+                "message generator",
+                (function, tags) -> new GeneratorDefinition(function));
     }
 }

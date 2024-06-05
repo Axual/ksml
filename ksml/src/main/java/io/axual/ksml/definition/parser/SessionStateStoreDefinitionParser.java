@@ -51,7 +51,7 @@ public class SessionStateStoreDefinitionParser extends DefinitionParser<SessionS
                 optional(userTypeField(KSMLDSL.Stores.VALUE_TYPE, "The value type of the session store")),
                 optional(booleanField(KSMLDSL.Stores.CACHING, "\"true\" if changed to the session store need to be buffered and periodically released, \"false\" to emit all changes directly")),
                 optional(booleanField(KSMLDSL.Stores.LOGGING, "\"true\" if a changelog topic should be set up on Kafka for this session store, \"false\" otherwise")),
-                (type, name, persistent, timestamped, retention, keyType, valueType, caching, logging) -> {
+                (type, name, persistent, timestamped, retention, keyType, valueType, caching, logging, tags) -> {
                     // Validate the type field if one was provided
                     if (type != null && !StoreType.SESSION_STORE.externalName().equals(type)) {
                         return parseError("Expected store type \"" + StoreType.SESSION_STORE.externalName() + "\"");

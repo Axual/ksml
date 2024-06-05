@@ -22,6 +22,8 @@ package io.axual.ksml.user;
 
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.tag.ContextTags;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.python.Invoker;
 
 import java.util.function.Function;
@@ -29,13 +31,13 @@ import java.util.function.Function;
 public class UserForeignKeyExtractor extends Invoker implements Function<Object, Object> {
     private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
 
-    public UserForeignKeyExtractor(UserFunction function) {
-        super(function);
+    public UserForeignKeyExtractor(UserFunction function, ContextTags tags) {
+        super(function, tags, KSMLDSL.Functions.TYPE_FOREIGN_KEY_EXTRACTOR);
         verifyParameterCount(1);
     }
 
     @Override
     public DataObject apply(Object value) {
-        return function.call(nativeMapper.toDataObject(value));
+        return timeExecutionOf(() -> function.call(nativeMapper.toDataObject(value)));
     }
 }

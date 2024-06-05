@@ -46,6 +46,6 @@ public class ReduceOperationParser extends StoreOperationParser<ReduceOperation>
                 functionField(KSMLDSL.Operations.Reduce.ADDER, "A function that adds a record to the aggregate result", new ReducerDefinitionParser()),
                 functionField(KSMLDSL.Operations.Reduce.SUBTRACTOR, "A function that removes a record from the aggregate result", new ReducerDefinitionParser()),
                 storeField,
-                (type, name, reducer, add, sub, store) -> new ReduceOperation(storeOperationConfig(name, store), reducer, add, sub));
+                (type, name, reducer, add, sub, store, tags) -> new ReduceOperation(storeOperationConfig(name, tags, store), reducer, add, sub));
     }
 }

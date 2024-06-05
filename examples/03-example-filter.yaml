@@ -1,5 +1,5 @@
-# This example shows how to filter messages from a simple stream. Here we only let "blue sensors" pass and discard
-# other messages after logging.
+# This example shows how to filter messages from a simple stream. Here we
+# only let "blue sensors" pass and discard other messages after logging.
 
 streams:
   sensor_source:

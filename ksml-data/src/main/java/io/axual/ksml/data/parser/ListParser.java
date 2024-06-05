@@ -28,11 +28,13 @@ import java.util.List;
 
 public class ListParser<V> implements Parser<List<V>> {
     private final Parser<V> valueParser;
-    private final String whatToParse;
+    private final String childTagKey;
+    private final String childTagValuePrefix;
 
-    public ListParser(String whatToParse, Parser<V> valueParser) {
+    public ListParser(String childTagKey, String childTagValuePrefix, Parser<V> valueParser) {
+        this.childTagKey = childTagKey;
+        this.childTagValuePrefix = childTagValuePrefix;
         this.valueParser = valueParser;
-        this.whatToParse = whatToParse;
     }
 
     @Override
@@ -40,12 +42,12 @@ public class ListParser<V> implements Parser<List<V>> {
         List<V> result = new ArrayList<>();
         if (node != null) {
             var index = 0;
-            for (ParseNode childNode : node.children(whatToParse)) {
+            for (ParseNode childNode : node.children(childTagKey, childTagValuePrefix)) {
                 try {
                     index++;
                     result.add(valueParser.parse(childNode));
                 } catch (RuntimeException e) {
-                    throw new ParseException(node, "Error in " + whatToParse + " entry " + index, e);
+                    throw new ParseException(node, "Error in " + childTagValuePrefix + " entry " + index, e);
                 }
             }
         }

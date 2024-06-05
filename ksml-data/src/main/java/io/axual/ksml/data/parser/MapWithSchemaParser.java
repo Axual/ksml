@@ -30,8 +30,8 @@ import java.util.Map;
 public class MapWithSchemaParser<T> extends MapParser<T> implements ParserWithSchema<Map<String, T>> {
     private final DataSchema schema;
 
-    public MapWithSchemaParser(String whatToParse, ParserWithSchema<T> valueParser) {
-        super(whatToParse, valueParser);
+    public MapWithSchemaParser(String childTagKey, String childTagValuePrefix, ParserWithSchema<T> valueParser) {
+        super(childTagKey, childTagValuePrefix, valueParser);
         schema = new MapSchema(valueParser.schema());
     }
 }

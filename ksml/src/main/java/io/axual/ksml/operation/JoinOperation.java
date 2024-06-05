@@ -110,7 +110,7 @@ public class JoinOperation extends BaseJoinOperation {
             final var windowedK = windowedTypeOf(k);
             final var windowStore = validateWindowStore(store(), k, vr);
             final var streamJoined = streamJoinedOf(windowStore, k, v, vo);
-            final var userJoiner = new UserValueJoinerWithKey(joiner);
+            final var userJoiner = new UserValueJoinerWithKey(joiner, tags);
             final KStream<Object, Object> output = streamJoined != null
                     ? input.stream.join(otherStream.stream, userJoiner, joinWindows, streamJoined)
                     : input.stream.join(otherStream.stream, userJoiner, joinWindows);
@@ -132,7 +132,7 @@ public class JoinOperation extends BaseJoinOperation {
             checkType("Join table keyType", kt, equalTo(k));
             final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vt));
             final var joined = joinedOf(name, k, v, vt, gracePeriod);
-            final var userJoiner = new UserValueJoinerWithKey(joiner);
+            final var userJoiner = new UserValueJoinerWithKey(joiner, tags);
             final KStream<Object, Object> output = joined != null
                     ? input.stream.join(otherTable.table, userJoiner, joined)
                     : input.stream.join(otherTable.table, userJoiner);
@@ -156,8 +156,8 @@ public class JoinOperation extends BaseJoinOperation {
             checkType("Join globalKTable keyType", gk, equalTo(k));
             final var sel = userFunctionOf(context, KEYSELECTOR_NAME, keySelector, subOf(gk), superOf(k), superOf(v));
             final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(rv), superOf(k), superOf(v), superOf(gv));
-            final var userSel = new UserKeyTransformer(sel);
-            final var userJoiner = new UserValueJoinerWithKey(joiner);
+            final var userSel = new UserKeyTransformer(sel, tags);
+            final var userJoiner = new UserValueJoinerWithKey(joiner, tags);
             final var named = namedOf();
             final KStream<Object, Object> output = named != null
                     ? input.stream.join(otherGlobalKTable.globalTable, userSel, userJoiner, named)
@@ -191,13 +191,13 @@ public class JoinOperation extends BaseJoinOperation {
                  *          final Materialized<K, VR, KeyValueStore<Bytes, byte[]>> materialized)
                  */
 
-                final var userFkExtract = new UserForeignKeyExtractor(fkExtract);
+                final var userFkExtract = new UserForeignKeyExtractor(fkExtract, tags);
                 final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, equalTo(vr), equalTo(v), equalTo(vo));
-                final var userJoiner = new UserValueJoiner(joiner);
+                final var userJoiner = new UserValueJoiner(joiner, tags);
                 final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, equalTo(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
-                final var userPart = part != null ? new UserStreamPartitioner(part) : null;
+                final var userPart = part != null ? new UserStreamPartitioner(part, tags) : null;
                 final var otherPart = userFunctionOf(context, PARTITIONER_NAME, otherPartitioner, equalTo(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
-                final var userOtherPart = part != null ? new UserStreamPartitioner(otherPart) : null;
+                final var userOtherPart = part != null ? new UserStreamPartitioner(otherPart, tags) : null;
                 final var tableJoined = tableJoinedOf(userPart, userOtherPart);
                 final var kvStore = validateKeyValueStore(store(), k, vr);
                 final var mat = materializedOf(context, kvStore);
@@ -219,7 +219,7 @@ public class JoinOperation extends BaseJoinOperation {
                  */
 
                 final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(v), superOf(vo));
-                final var userJoiner = new UserValueJoiner(joiner);
+                final var userJoiner = new UserValueJoiner(joiner, tags);
                 final var kvStore = validateKeyValueStore(store(), k, vr);
                 final var mat = materializedOf(context, kvStore);
                 final var named = namedOf();

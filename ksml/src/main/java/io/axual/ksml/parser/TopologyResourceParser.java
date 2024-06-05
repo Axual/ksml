@@ -22,6 +22,7 @@ package io.axual.ksml.parser;
 
 
 import io.axual.ksml.data.exception.ParseException;
+import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.parser.ParserWithSchema;
 import io.axual.ksml.data.schema.DataField;
@@ -31,7 +32,7 @@ import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.definition.TopologyResource;
 
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 // Certain KSML resources (like streams, tables and functions) can be referenced from pipelines,
 // or they can be defined inline. This parser distinguishes between the two.
@@ -39,15 +40,15 @@ public class TopologyResourceParser<T, F extends T> extends DefinitionParser<Top
     private final String resourceType;
     private final String childName;
     private final String doc;
-    private final Function<String, T> lookup;
+    private final BiFunction<String, ContextTags, T> lookup;
     private final ParserWithSchema<F> inlineParser;
     private final boolean allowLookupFail;
 
-    public TopologyResourceParser(String resourceType, String childName, String doc, Function<String, T> lookup, ParserWithSchema<F> inlineParser) {
+    public TopologyResourceParser(String resourceType, String childName, String doc, BiFunction<String, ContextTags, T> lookup, ParserWithSchema<F> inlineParser) {
         this(resourceType, childName, doc, lookup, inlineParser, false);
     }
 
-    public TopologyResourceParser(String resourceType, String childName, String doc, Function<String, T> lookup, ParserWithSchema<F> inlineParser, boolean allowLookupFail) {
+    public TopologyResourceParser(String resourceType, String childName, String doc, BiFunction<String, ContextTags, T> lookup, ParserWithSchema<F> inlineParser, boolean allowLookupFail) {
         this.resourceType = resourceType;
         this.childName = childName;
         this.doc = doc;
@@ -68,22 +69,22 @@ public class TopologyResourceParser<T, F extends T> extends DefinitionParser<Top
                 // Check if the node is a text node --> parse as direct reference
                 final var resourceToFind = stringParser.parse(node);
                 if (resourceToFind != null) {
-                    final var resource = lookup.apply(resourceToFind);
+                    final var resource = lookup.apply(resourceToFind, node.tags());
                     if (resource == null && !allowLookupFail) {
                         throw new ParseException(node, "Unknown " + resourceType + " \"" + resourceToFind + "\"");
                     }
-                    return new TopologyResource<>(resourceToFind, resource);
+                    return new TopologyResource<>(resourceToFind, resource, node.tags());
                 }
 
                 // Parse as anonymous inline definition using the supplied inline parser
                 final var childNode = node.get(childName);
                 if (childNode != null) {
                     final var name = childNode.longName();
-                    return new TopologyResource<>(name, inlineParser.parse(childNode));
+                    return new TopologyResource<>(name, inlineParser.parse(childNode), childNode.tags());
                 }
 
                 final var name = node.appendName(childName).longName();
-                return new TopologyResource<>(name, null);
+                return new TopologyResource<>(name, null, node.tags());
             }
 
             @Override

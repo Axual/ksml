@@ -28,6 +28,10 @@ import io.axual.ksml.parser.StructParser;
 public class AggregatorDefinitionParser extends FunctionDefinitionParser<AggregatorDefinition> {
     @Override
     public StructParser<AggregatorDefinition> parser() {
-        return parserWithoutStores(AggregatorDefinition.class, KSMLDSL.Functions.TYPE_AGGREGATOR, "aggregator", AggregatorDefinition::new);
+        return parserWithoutStores(
+                AggregatorDefinition.class,
+                KSMLDSL.Functions.TYPE_AGGREGATOR,
+                "aggregator",
+                (function, tags) -> new AggregatorDefinition(function));
     }
 }

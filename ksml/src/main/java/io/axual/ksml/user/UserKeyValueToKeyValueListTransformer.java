@@ -24,9 +24,11 @@ import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.TupleType;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.python.Invoker;
 import io.axual.ksml.store.StateStores;
 import org.apache.kafka.streams.KeyValue;
@@ -39,8 +41,8 @@ public class UserKeyValueToKeyValueListTransformer extends Invoker implements Ke
     private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
     private final static DataType EXPECTED_RESULT_TYPE = new ListType(new TupleType(DataType.UNKNOWN, DataType.UNKNOWN));
 
-    public UserKeyValueToKeyValueListTransformer(UserFunction function) {
-        super(function);
+    public UserKeyValueToKeyValueListTransformer(UserFunction function, ContextTags tags) {
+        super(function, tags, KSMLDSL.Functions.TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER);
         verifyParameterCount(2);
         verifyResultType(EXPECTED_RESULT_TYPE);
     }
@@ -57,7 +59,7 @@ public class UserKeyValueToKeyValueListTransformer extends Invoker implements Ke
         final var kr = tupleType.subType(0);
         final var vr = tupleType.subType(1);
 
-        final var result = function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value));
+        final var result = timeExecutionOf(() -> function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value)));
         if (result == null) return Collections.emptyList();
 
         // We need to convert the resulting messages to KeyValue tuples as per the method signature

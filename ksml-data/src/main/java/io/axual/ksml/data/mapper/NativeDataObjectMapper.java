@@ -280,7 +280,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         if (value instanceof DataStruct val) return fromDataStruct(val);
         if (value instanceof DataTuple val) return fromDataTuple(val);
 
-        if (value instanceof DataUnion val) return val.value();
+        if (value instanceof DataUnion val) return fromDataObject(val.value());
 
         throw new ExecutionException("Can not convert DataObject to native dataType: " + value.getClass().getSimpleName());
     }

@@ -47,18 +47,18 @@ public class SuppressOperationParser extends OperationParser<SuppressOperation> 
                 optional(stringField(Operations.Suppress.BUFFER_MAXBYTES, "The maximum number of bytes in the buffer")),
                 optional(stringField(Operations.Suppress.BUFFER_MAXRECORDS, "The maximum number of records in the buffer")),
                 optional(stringField(Operations.Suppress.BUFFER_FULL_STRATEGY, "What to do when the buffer is full, either \"" + Operations.Suppress.BUFFER_FULL_STRATEGY_EMIT + "\", or \"" + Operations.Suppress.BUFFER_FULL_STRATEGY_SHUTDOWN + "\"")),
-                (type, name, until, duration, maxBytes, maxRecords, strategy) -> {
+                (type, name, until, duration, maxBytes, maxRecords, strategy, tags) -> {
                     switch (until) {
                         case Operations.Suppress.UNTIL_TIME_LIMIT -> {
                             final var bufferConfig = bufferConfig(maxBytes, maxRecords, strategy);
                             return SuppressOperation.create(
-                                    operationConfig(name),
+                                    operationConfig(name, tags),
                                     Suppressed.untilTimeLimit(duration, bufferConfig));
                         }
                         case Operations.Suppress.UNTIL_WINDOW_CLOSES -> {
                             final var bufferConfig = strictBufferConfig(bufferConfig(maxBytes, maxRecords, strategy));
                             return SuppressOperation.createWindowed(
-                                    operationConfig(name),
+                                    operationConfig(name, tags),
                                     Suppressed.untilWindowCloses(bufferConfig));
                         }
                     }

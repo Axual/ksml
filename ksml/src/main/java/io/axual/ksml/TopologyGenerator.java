@@ -21,15 +21,14 @@ package io.axual.ksml;
  */
 
 
+import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.definition.GlobalTableDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.generator.TopologyAnalyzer;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.generator.TopologyDefinition;
-import io.axual.ksml.operation.StoreOperation;
-import io.axual.ksml.operation.StreamOperation;
-import io.axual.ksml.operation.ToOperation;
+import io.axual.ksml.operation.*;
 import io.axual.ksml.stream.StreamWrapper;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
@@ -140,7 +139,7 @@ public class TopologyGenerator {
         });
 
         // Preload the function into the Python context
-        specification.functions().forEach((name, func) -> context.createUserFunction(func));
+        specification.functions().forEach((name, func) -> context.createUserFunction(func, new ContextTags().append("namespace", context.namespace())));
 
         // Figure out which state stores to create manually. Mechanism:
         // 1. run through all pipelines and scan for StoreOperations, don't create the stores referenced

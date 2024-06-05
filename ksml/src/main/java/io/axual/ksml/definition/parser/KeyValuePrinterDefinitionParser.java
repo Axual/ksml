@@ -28,6 +28,10 @@ import io.axual.ksml.parser.StructParser;
 public class KeyValuePrinterDefinitionParser extends FunctionDefinitionParser<KeyValuePrinterDefinition> {
     @Override
     public StructParser<KeyValuePrinterDefinition> parser() {
-        return parserWithoutStores(KeyValuePrinterDefinition.class, KSMLDSL.Functions.TYPE_KEYVALUEPRINTER, "keyvalue printer", KeyValuePrinterDefinition::new);
+        return parserWithoutStores(
+                KeyValuePrinterDefinition.class,
+                KSMLDSL.Functions.TYPE_KEYVALUEPRINTER,
+                "keyvalue printer",
+                (function, tags) -> new KeyValuePrinterDefinition(function));
     }
 }

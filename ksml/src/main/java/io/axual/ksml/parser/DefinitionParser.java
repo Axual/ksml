@@ -24,6 +24,7 @@ import io.axual.ksml.data.exception.ParseException;
 import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.parser.*;
 import io.axual.ksml.data.schema.*;
+import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.exception.TopologyException;
 import lombok.Getter;
 import lombok.Setter;
@@ -103,7 +104,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
                 final var child = node.get(field.name());
                 return child != null ? valueParser.parse(child) : null;
             } catch (Exception e) {
-                throw new ParseException(node, e.getMessage());
+                throw new ParseException(node, e.getMessage(), e);
             }
         }
     }
@@ -191,12 +192,12 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         };
     }
 
-    protected <TYPE> StructParser<List<TYPE>> listField(String childName, String whatToParse, String doc, ParserWithSchema<TYPE> valueParser) {
-        return new FieldParser<>(childName, false, new ArrayList<>(), doc, new ListWithSchemaParser<>(whatToParse, valueParser));
+    protected <TYPE> StructParser<List<TYPE>> listField(String childName, String childTagKey, String childTagValuePrefix, String doc, ParserWithSchema<TYPE> valueParser) {
+        return new FieldParser<>(childName, false, new ArrayList<>(), doc, new ListWithSchemaParser<>(childTagKey, childTagValuePrefix, valueParser));
     }
 
-    protected <TYPE> StructParser<Map<String, TYPE>> mapField(String childName, String whatToParse, String doc, ParserWithSchema<TYPE> valueParser) {
-        return new FieldParser<>(childName, false, new HashMap<>(), doc, new MapWithSchemaParser<>(whatToParse, valueParser));
+    protected <TYPE> StructParser<Map<String, TYPE>> mapField(String childName, String childTagKey, String childTagValuePrefix, String doc, ParserWithSchema<TYPE> valueParser) {
+        return new FieldParser<>(childName, false, new HashMap<>(), doc, new MapWithSchemaParser<>(childTagKey, childTagValuePrefix, valueParser));
     }
 
     protected <TYPE> StructParser<TYPE> customField(String childName, String doc, StructParser<TYPE> valueParser) {
@@ -219,98 +220,98 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
     }
 
     public interface Constructor0<RESULT> {
-        RESULT construct();
+        RESULT construct(ContextTags tags);
     }
 
     public interface Constructor1<RESULT, A> {
-        RESULT construct(A a);
+        RESULT construct(A a, ContextTags tags);
     }
 
     public interface Constructor2<RESULT, A, B> {
-        RESULT construct(A a, B b);
+        RESULT construct(A a, B b, ContextTags tags);
     }
 
     public interface Constructor3<RESULT, A, B, C> {
-        RESULT construct(A a, B b, C c);
+        RESULT construct(A a, B b, C c, ContextTags tags);
     }
 
     public interface Constructor4<RESULT, A, B, C, D> {
-        RESULT construct(A a, B b, C c, D d);
+        RESULT construct(A a, B b, C c, D d, ContextTags tags);
     }
 
     public interface Constructor5<RESULT, A, B, C, D, E> {
-        RESULT construct(A a, B b, C c, D d, E e);
+        RESULT construct(A a, B b, C c, D d, E e, ContextTags tags);
     }
 
     public interface Constructor6<RESULT, A, B, C, D, E, F> {
-        RESULT construct(A a, B b, C c, D d, E e, F f);
+        RESULT construct(A a, B b, C c, D d, E e, F f, ContextTags tags);
     }
 
     public interface Constructor7<RESULT, A, B, C, D, E, F, G> {
-        RESULT construct(A a, B b, C c, D d, E e, F f, G g);
+        RESULT construct(A a, B b, C c, D d, E e, F f, G g, ContextTags tags);
     }
 
     public interface Constructor8<RESULT, A, B, C, D, E, F, G, H> {
-        RESULT construct(A a, B b, C c, D d, E e, F f, G g, H h);
+        RESULT construct(A a, B b, C c, D d, E e, F f, G g, H h, ContextTags tags);
     }
 
     public interface Constructor9<RESULT, A, B, C, D, E, F, G, H, I> {
-        RESULT construct(A a, B b, C c, D d, E e, F f, G g, H h, I i);
+        RESULT construct(A a, B b, C c, D d, E e, F f, G g, H h, I i, ContextTags tags);
     }
 
     public interface Constructor10<RESULT, A, B, C, D, E, F, G, H, I, J> {
-        RESULT construct(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j);
+        RESULT construct(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, ContextTags tags);
     }
 
     public interface Constructor11<RESULT, A, B, C, D, E, F, G, H, I, J, K> {
-        RESULT construct(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k);
+        RESULT construct(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, ContextTags tags);
     }
 
     protected <TYPE> StructParser<TYPE> structParser(Class<TYPE> resultClass, String definitionVariant, String doc, Constructor0<TYPE> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(), node -> constructor.construct());
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(), node -> constructor.construct(node.tags()));
     }
 
     protected <TYPE, A> StructParser<TYPE> structParser(Class<TYPE> resultClass, String definitionVariant, String doc, StructParser<A> a, Constructor1<TYPE, A> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a), node -> constructor.construct(a.parse(node)));
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a), node -> constructor.construct(a.parse(node), node.tags()));
     }
 
     protected <TYPE, A, B> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String definitionVariant, String doc, StructParser<A> a, StructParser<B> b, Constructor2<TYPE, A, B> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b), node -> constructor.construct(a.parse(node), b.parse(node)));
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b), node -> constructor.construct(a.parse(node), b.parse(node), node.tags()));
     }
 
     protected <TYPE, A, B, C> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String definitionVariant, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, Constructor3<TYPE, A, B, C> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node)));
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), node.tags()));
     }
 
     protected <TYPE, A, B, C, D> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String definitionVariant, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, Constructor4<TYPE, A, B, C, D> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node)));
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), node.tags()));
     }
 
     protected <TYPE, A, B, C, D, E> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String definitionVariant, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, Constructor5<TYPE, A, B, C, D, E> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node)));
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), node.tags()));
     }
 
     protected <TYPE, A, B, C, D, E, F> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String definitionVariant, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, StructParser<F> f, Constructor6<TYPE, A, B, C, D, E, F> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e, f), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node)));
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e, f), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), node.tags()));
     }
 
     protected <TYPE, A, B, C, D, E, F, G> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String definitionVariant, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, StructParser<F> f, StructParser<G> g, Constructor7<TYPE, A, B, C, D, E, F, G> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e, f, g), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node)));
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e, f, g), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node), node.tags()));
     }
 
     protected <TYPE, A, B, C, D, E, F, G, H> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String definitionVariant, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, StructParser<F> f, StructParser<G> g, StructParser<H> h, Constructor8<TYPE, A, B, C, D, E, F, G, H> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e, f, g, h), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node), h.parse(node)));
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e, f, g, h), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node), h.parse(node), node.tags()));
     }
 
     protected <TYPE, A, B, C, D, E, F, G, H, I> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String definitionVariant, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, StructParser<F> f, StructParser<G> g, StructParser<H> h, StructParser<I> i, Constructor9<TYPE, A, B, C, D, E, F, G, H, I> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e, f, g, h, i), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node), h.parse(node), i.parse(node)));
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e, f, g, h, i), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node), h.parse(node), i.parse(node), node.tags()));
     }
 
     protected <TYPE, A, B, C, D, E, F, G, H, I, J> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String definitionVariant, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, StructParser<F> f, StructParser<G> g, StructParser<H> h, StructParser<I> i, StructParser<J> j, Constructor10<TYPE, A, B, C, D, E, F, G, H, I, J> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e, f, g, h, i, j), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node), h.parse(node), i.parse(node), j.parse(node)));
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e, f, g, h, i, j), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node), h.parse(node), i.parse(node), j.parse(node), node.tags()));
     }
 
     protected <TYPE, A, B, C, D, E, F, G, H, I, J, K> StructParser<TYPE> structParser(Class<? extends TYPE> resultClass, String definitionVariant, String doc, StructParser<A> a, StructParser<B> b, StructParser<C> c, StructParser<D> d, StructParser<E> e, StructParser<F> f, StructParser<G> g, StructParser<H> h, StructParser<I> i, StructParser<J> j, StructParser<K> k, Constructor11<TYPE, A, B, C, D, E, F, G, H, I, J, K> constructor) {
-        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e, f, g, h, i, j, k), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node), h.parse(node), i.parse(node), j.parse(node), k.parse(node)));
+        return new ValueStructParser<>(resultClass.getSimpleName() + definitionVariant, doc, List.of(a, b, c, d, e, f, g, h, i, j, k), node -> constructor.construct(a.parse(node), b.parse(node), c.parse(node), d.parse(node), e.parse(node), f.parse(node), g.parse(node), h.parse(node), i.parse(node), j.parse(node), k.parse(node), node.tags()));
     }
 }

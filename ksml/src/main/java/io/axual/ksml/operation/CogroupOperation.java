@@ -51,7 +51,7 @@ public class CogroupOperation extends StoreOperation {
         final var v = input.valueType();
         final var vOut = streamDataTypeOf(aggregator.resultType(), false);
         final var aggr = userFunctionOf(context, AGGREGATOR_NAME, aggregator, vOut, superOf(k), superOf(v), equalTo(vOut));
-        final var userAggr = new UserAggregator(aggr);
+        final var userAggr = new UserAggregator(aggr, tags);
         final CogroupedKStream<Object, Object> output = input.groupedStream.cogroup(userAggr);
         return new CogroupedKStreamWrapper(output, k, vOut);
     }

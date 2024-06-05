@@ -38,6 +38,6 @@ public class ConvertValueOperationParser extends OperationParser<ConvertValueOpe
                 operationTypeField(),
                 operationNameField(),
                 userTypeField(KSMLDSL.Operations.Convert.INTO, "The type to convert the stream value into"),
-                (type, name, into) -> new ConvertValueOperation(operationConfig(name), into));
+                (type, name, into, tags) -> new ConvertValueOperation(operationConfig(name, tags), into));
     }
 }

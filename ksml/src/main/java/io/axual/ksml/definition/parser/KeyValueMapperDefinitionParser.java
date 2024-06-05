@@ -28,6 +28,10 @@ import io.axual.ksml.parser.StructParser;
 public class KeyValueMapperDefinitionParser extends FunctionDefinitionParser<KeyValueMapperDefinition> {
     @Override
     public StructParser<KeyValueMapperDefinition> parser() {
-        return parserWithoutStores(KeyValueMapperDefinition.class, KSMLDSL.Functions.TYPE_KEYVALUEMAPPER, "keyvalue mapper", KeyValueMapperDefinition::new);
+        return parserWithoutStores(
+                KeyValueMapperDefinition.class,
+                KSMLDSL.Functions.TYPE_KEYVALUEMAPPER,
+                "keyvalue mapper",
+                (function, tags) -> new KeyValueMapperDefinition(function));
     }
 }

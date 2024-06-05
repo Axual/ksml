@@ -42,9 +42,9 @@ public class ToTopicNameExtractorDefinitionParser extends ContextAwareParser<ToT
                         "topic name extractor",
                         KSMLDSL.Operations.To.TOPIC_NAME_EXTRACTOR,
                         "Reference to a pre-defined topic name extractor, or an inline definition of a topic name extractor and an optional stream partitioner",
-                        resources()::function,
+                        (name, tags) -> resources().function(name),
                         new TopicNameExtractorDefinitionParser())),
                 new StreamPartitionerDefinitionParser(),
-                (tne, partitioner) -> tne != null ? new ToTopicNameExtractorDefinition(new TopicNameExtractorDefinition(tne), partitioner) : null);
+                (tne, partitioner, tags) -> tne != null ? new ToTopicNameExtractorDefinition(new TopicNameExtractorDefinition(tne), partitioner) : null);
     }
 }

@@ -30,6 +30,6 @@ import java.util.List;
 public class DataFieldsParser extends BaseParser<List<DataField>> {
     @Override
     public List<DataField> parse(ParseNode node) {
-        return new ListParser<>("data field", new DataFieldParser()).parse(node.get(DataSchemaDSL.STRUCT_SCHEMA_FIELDS_FIELD, "field"));
+        return new ListParser<>("field", "field", new DataFieldParser()).parse(node.get(DataSchemaDSL.STRUCT_SCHEMA_FIELDS_FIELD, "field"));
     }
 }

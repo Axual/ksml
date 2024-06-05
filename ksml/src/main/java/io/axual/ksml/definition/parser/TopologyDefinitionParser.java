@@ -41,8 +41,8 @@ public class TopologyDefinitionParser extends DefinitionParser<TopologyDefinitio
     @Override
     public StructParser<TopologyDefinition> parser() {
         final var dummyResources = new TopologyResources("dummy");
-        final var pipelinesParser = optional(mapField(PIPELINES, "pipeline", "Collection of named pipelines", new PipelineDefinitionParser(dummyResources)));
-        final var producersParser = optional(mapField(PRODUCERS, "producer", "Collection of named producers", new ProducerDefinitionParser(dummyResources)));
+        final var pipelinesParser = optional(mapField(PIPELINES, "pipeline", "pipeline", "Collection of named pipelines", new PipelineDefinitionParser(dummyResources)));
+        final var producersParser = optional(mapField(PRODUCERS, "producer", "producer", "Collection of named producers", new ProducerDefinitionParser(dummyResources)));
 
         final var fields = resourcesParser.fields();
         fields.addAll(pipelinesParser.fields());
@@ -59,9 +59,9 @@ public class TopologyDefinitionParser extends DefinitionParser<TopologyDefinitio
                 resources.stateStores().forEach(result::register);
                 resources.functions().forEach(result::register);
                 // Parse all defined pipelines, using this topology's name as operation prefix
-                new MapParser<>("pipeline definition", new PipelineDefinitionParser(resources)).parse(node.get(PIPELINES)).forEach(result::register);
+                new MapParser<>("pipeline", "pipeline definition", new PipelineDefinitionParser(resources)).parse(node.get(PIPELINES)).forEach(result::register);
                 // Parse all defined producers, using this topology's name as operation prefix
-                new MapParser<>("producer definition", new ProducerDefinitionParser(resources)).parse(node.get(PRODUCERS)).forEach(result::register);
+                new MapParser<>("producer", "producer definition", new ProducerDefinitionParser(resources)).parse(node.get(PRODUCERS)).forEach(result::register);
                 return result;
             }
 

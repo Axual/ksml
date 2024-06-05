@@ -25,6 +25,9 @@ import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.MapType;
+import io.axual.ksml.data.type.StructType;
+
+import static io.axual.ksml.dsl.RecordMetadataSchema.RECORD_METADATA_SCHEMA;
 
 public class DefinitionConstants {
     public static final String PARAM_AGGREGATED_VALUE = "aggregatedValue";
@@ -35,6 +38,8 @@ public class DefinitionConstants {
     public static final String PARAM_VALUE = "value";
     public static final String PARAM_VALUE1 = "value1";
     public static final String PARAM_VALUE2 = "value2";
+    public static final String PARAM_METADATA = "metadata";
+    public static final DataType METADATA_TYPE = new StructType(RECORD_METADATA_SCHEMA);
 
     private DefinitionConstants() {
     }
@@ -53,6 +58,10 @@ public class DefinitionConstants {
     public static final ParameterDefinition[] KEY_VALUE_PARAMETERS = new ParameterDefinition[]{
             new ParameterDefinition(PARAM_KEY, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_VALUE, DataType.UNKNOWN)};
+    public static final ParameterDefinition[] KEY_VALUE_METADATA_PARAMETERS = new ParameterDefinition[]{
+            new ParameterDefinition(PARAM_KEY, DataType.UNKNOWN),
+            new ParameterDefinition(PARAM_VALUE, DataType.UNKNOWN),
+            new ParameterDefinition(PARAM_METADATA, METADATA_TYPE)};
     public static final ParameterDefinition[] STREAM_PARTITIONER_PARAMETERS = new ParameterDefinition[]{
             new ParameterDefinition(PARAM_TOPIC, DataString.DATATYPE),
             new ParameterDefinition(PARAM_KEY, DataType.UNKNOWN),

@@ -22,14 +22,16 @@ package io.axual.ksml.user;
 
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.tag.ContextTags;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.python.Invoker;
 import org.apache.kafka.streams.kstream.Merger;
 
 public class UserMerger extends Invoker implements Merger<Object, Object> {
     private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
 
-    public UserMerger(UserFunction function) {
-        super(function);
+    public UserMerger(UserFunction function, ContextTags tags) {
+        super(function, tags, KSMLDSL.Functions.TYPE_MERGER);
         verifyParameterCount(3);
         verify(function.parameters[1].type().equals(function.parameters[2].type()), "Merger should take two value parameters of the same dataType");
         verifyResultType(function.parameters[1].type());
@@ -37,6 +39,6 @@ public class UserMerger extends Invoker implements Merger<Object, Object> {
 
     @Override
     public DataObject apply(Object key, Object value1, Object value2) {
-        return function.call(nativeMapper.toDataObject(key), nativeMapper.toDataObject(value1), nativeMapper.toDataObject(value2));
+        return timeExecutionOf(() -> function.call(nativeMapper.toDataObject(key), nativeMapper.toDataObject(value1), nativeMapper.toDataObject(value2)));
     }
 }

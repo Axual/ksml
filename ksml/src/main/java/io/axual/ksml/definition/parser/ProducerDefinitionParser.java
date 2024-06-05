@@ -21,10 +21,14 @@ package io.axual.ksml.definition.parser;
  */
 
 
+import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ProducerDefinition;
+import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.parser.ContextAwareParser;
 import io.axual.ksml.parser.StructParser;
+
+import java.time.Duration;
 
 import static io.axual.ksml.dsl.KSMLDSL.Producers;
 
@@ -45,6 +49,6 @@ public class ProducerDefinitionParser extends ContextAwareParser<ProducerDefinit
                 topicField(Producers.TARGET, "The topic to produce to", new TopicDefinitionParser(false)),
                 optional(integerField(Producers.COUNT, "The number of messages to produce.")),
                 optional(functionField(Producers.UNTIL, "A predicate that returns true to indicate producing should stop.", new PredicateDefinitionParser())),
-                ProducerDefinition::new);
+                (generator, interval, condition, target, count, until, tags) -> new ProducerDefinition(generator, interval, condition, target, count, until));
     }
 }

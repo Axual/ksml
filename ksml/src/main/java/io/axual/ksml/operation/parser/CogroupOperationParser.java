@@ -44,7 +44,7 @@ public class CogroupOperationParser extends StoreOperationParser<CogroupOperatio
                 operationTypeField(),
                 operationNameField(),
                 functionField(Operations.Aggregate.AGGREGATOR, "(GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result", new AggregatorDefinitionParser()),
-                storeField(false, "Materialized view of the cogroup", StoreType.WINDOW_STORE),
-                (type, name, aggr, store) -> new CogroupOperation(storeOperationConfig(name, store), aggr));
+                storeField(false, "Materialized view of the co-grouped stream", StoreType.WINDOW_STORE),
+                (type, name, aggr, store, tags) -> new CogroupOperation(storeOperationConfig(name, tags, store), aggr));
     }
 }

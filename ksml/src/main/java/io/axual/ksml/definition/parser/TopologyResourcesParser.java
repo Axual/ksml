@@ -39,12 +39,12 @@ public class TopologyResourcesParser extends DefinitionParser<TopologyResources>
                 TopologyResources.class,
                 "",
                 "Contains a list of streams, functions and state stores to be used in producers and pipelines",
-                optional(mapField(STREAMS, "stream definition", "Streams that can be referenced in producers and pipelines", new StreamDefinitionParser(true))),
-                optional(mapField(TABLES, "table definition", "Tables that can be referenced in producers and pipelines", new TableDefinitionParser(true))),
-                optional(mapField(GLOBAL_TABLES, "globalTable definition", "GlobalTables that can be referenced in producers and pipelines", new GlobalTableDefinitionParser(true))),
-                optional(mapField(STORES, "state store definition", "State stores that can be referenced in producers and pipelines", new StateStoreDefinitionParser())),
-                optional(mapField(FUNCTIONS, "function definition", "Functions that can be referenced in producers and pipelines", new TypedFunctionDefinitionParser())),
-                (streams, tables, globalTables, stores, functions) -> {
+                optional(mapField(STREAMS, "stream", "stream definition", "Streams that can be referenced in producers and pipelines", new StreamDefinitionParser(true))),
+                optional(mapField(TABLES, "table", "table definition", "Tables that can be referenced in producers and pipelines", new TableDefinitionParser(true))),
+                optional(mapField(GLOBAL_TABLES, "globalTable", "globalTable definition", "GlobalTables that can be referenced in producers and pipelines", new GlobalTableDefinitionParser(true))),
+                optional(mapField(STORES, "store", "state store definition", "State stores that can be referenced in producers and pipelines", new StateStoreDefinitionParser())),
+                optional(mapField(FUNCTIONS, "function", "function definition", "Functions that can be referenced in producers and pipelines", new TypedFunctionDefinitionParser())),
+                (streams, tables, globalTables, stores, functions, tags) -> {
                     final var result = new TopologyResources(namespace);
                     if (streams != null) streams.forEach(result::register);
                     if (tables != null) tables.forEach(result::register);

@@ -78,7 +78,7 @@ public class ToOperation extends BaseOperation {
             checkType("Target topic keyType", kt, superOf(k));
             checkType("Target topic valueType", vt, superOf(v));
             final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, equalTo(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
-            final var userPart = part != null ? new UserStreamPartitioner(part) : null;
+            final var userPart = part != null ? new UserStreamPartitioner(part, tags) : null;
             final var produced = producedOf(kt, vt, userPart);
             if (produced != null)
                 input.stream.to(topic.topic(), produced);
@@ -99,9 +99,9 @@ public class ToOperation extends BaseOperation {
             final var topicNameType = new UserType(DataString.DATATYPE);
             final var recordContextType = new UserType(new StructType(RECORD_CONTEXT_SCHEMA));
             final var extract = userFunctionOf(context, TOPICNAMEEXTRACTOR_NAME, topicNameExtractor, topicNameType, superOf(k), superOf(v), superOf(recordContextType));
-            final var userExtract = new UserTopicNameExtractor(extract);
+            final var userExtract = new UserTopicNameExtractor(extract, tags);
             final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, equalTo(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
-            final var userPart = part != null ? new UserStreamPartitioner(part) : null;
+            final var userPart = part != null ? new UserStreamPartitioner(part, tags) : null;
             final var produced = producedOf(k, v, userPart);
             if (produced != null)
                 input.stream.to(userExtract, produced);

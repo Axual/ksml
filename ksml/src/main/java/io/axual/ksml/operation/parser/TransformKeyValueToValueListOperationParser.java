@@ -40,8 +40,8 @@ public class TransformKeyValueToValueListOperationParser extends OperationParser
                 "Convert every record in the stream to a list of output records with the same key",
                 operationTypeField(),
                 operationNameField(),
-                functionField(KSMLDSL.Operations.Transform.MAPPER, "A function that converts every key/value into a list of result values, which will be combined with the original key in the output stream", new KeyValueToValueListTransformerDefinitionParser()),
+                functionField(KSMLDSL.Operations.Transform.MAPPER, "A function that converts every key/value into a list of result values, each of which will be combined with the original key to form a new message in the output stream", new KeyValueToValueListTransformerDefinitionParser()),
                 storeNamesField(),
-                (type, name, mapper, storeNames) -> new TransformKeyValueToValueListOperation(operationConfig(name, storeNames), mapper));
+                (type, name, mapper, storeNames, tags) -> new TransformKeyValueToValueListOperation(operationConfig(name, tags, storeNames), mapper));
     }
 }

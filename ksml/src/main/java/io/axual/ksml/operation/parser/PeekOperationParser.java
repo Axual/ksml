@@ -41,6 +41,6 @@ public class PeekOperationParser extends OperationParser<PeekOperation> {
                 operationNameField(),
                 functionField(KSMLDSL.Operations.FOR_EACH, "A function that gets called for every message in the stream", new ForEachActionDefinitionParser()),
                 storeNamesField(),
-                (type, name, action, stores) -> new PeekOperation(operationConfig(name, stores), action));
+                (type, name, action, stores, tags) -> new PeekOperation(operationConfig(name, tags, stores), action));
     }
 }

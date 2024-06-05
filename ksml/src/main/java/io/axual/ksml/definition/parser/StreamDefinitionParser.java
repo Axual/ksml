@@ -21,6 +21,7 @@ package io.axual.ksml.definition.parser;
  */
 
 
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.StructParser;
@@ -45,6 +46,6 @@ public class StreamDefinitionParser extends DefinitionParser<StreamDefinition> {
                 stringField(Streams.TOPIC, "The name of the Kafka topic for this stream"),
                 requireKeyValueType ? keyField : optional(keyField),
                 requireKeyValueType ? valueField : optional(valueField),
-                StreamDefinition::new);
+                (topic, keyType, valueType, tags) -> new StreamDefinition(topic, keyType, valueType));
     }
 }

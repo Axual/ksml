@@ -41,9 +41,9 @@ public class ConvertKeyValueOperationParser extends OperationParser<ConvertKeyVa
                 operationTypeField(),
                 operationNameField(),
                 userTypeField(KSMLDSL.Operations.Convert.INTO, "The tuple type to convert the stream key/value into"),
-                (type, name, into) -> {
+                (type, name, into, tags) -> {
                     if (into.dataType() instanceof UserTupleType userTupleType && userTupleType.subTypeCount() == 2) {
-                        return new ConvertKeyValueOperation(operationConfig(name), userTupleType.getUserType(0), userTupleType.getUserType(1));
+                        return new ConvertKeyValueOperation(operationConfig(name, tags), userTupleType.getUserType(0), userTupleType.getUserType(1));
                     }
                     throw new TopologyException("The type to convert to should be a tuple consisting of two subtypes. For example '(string,avro:SomeSchema)");
                 });

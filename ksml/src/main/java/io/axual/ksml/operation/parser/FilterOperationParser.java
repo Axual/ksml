@@ -42,11 +42,11 @@ public class FilterOperationParser extends StoreOperationParser<FilterOperation>
                 operationTypeField(),
                 operationNameField(),
                 functionField(KSMLDSL.Operations.Filter.PREDICATE, "A function that returns \"true\" when records are accepted, \"false\" otherwise", new PredicateDefinitionParser()),
-                storeField(false, "Materialized view of the filtered table", StoreType.KEYVALUE_STORE),
+                storeField(false, "Materialized view of the filtered table (only applies to tables, ignored for streams)", StoreType.KEYVALUE_STORE),
                 storeNamesField(),
-                (type, name, pred, store, stores) -> {
+                (type, name, pred, store, stores, tags) -> {
                     if (pred != null)
-                        return new FilterOperation(storeOperationConfig(name, store, stores), pred);
+                        return new FilterOperation(storeOperationConfig(name, tags, store, stores), pred);
                     throw new ExecutionException("Predicate not defined for " + type + " operation");
                 });
     }

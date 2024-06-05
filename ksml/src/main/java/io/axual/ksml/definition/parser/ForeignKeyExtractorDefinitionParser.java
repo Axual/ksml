@@ -28,6 +28,10 @@ import io.axual.ksml.parser.StructParser;
 public class ForeignKeyExtractorDefinitionParser extends FunctionDefinitionParser<ForeignKeyExtractorDefinition> {
     @Override
     public StructParser<ForeignKeyExtractorDefinition> parser() {
-        return parserWithoutStores(ForeignKeyExtractorDefinition.class, KSMLDSL.Functions.TYPE_FOREACHACTION, "foreign key extractor", ForeignKeyExtractorDefinition::new);
+        return parserWithoutStores(
+                ForeignKeyExtractorDefinition.class,
+                KSMLDSL.Functions.TYPE_FOREACHACTION,
+                "foreign key extractor",
+                (function, tags) -> new ForeignKeyExtractorDefinition(function));
     }
 }

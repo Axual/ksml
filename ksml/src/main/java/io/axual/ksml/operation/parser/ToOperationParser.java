@@ -50,12 +50,12 @@ public class ToOperationParser extends OperationParser<ToOperation> {
                     "Either a topic or topic name extractor that defines where to write pipeline messages to",
                     optional(topicParser),
                     optional(tneParser),
-                    (toTopic, toTne) -> {
+                    (toTopic, toTne, tags) -> {
                         if (toTopic != null && toTopic.topic() != null) {
-                            return new ToOperation(operationConfig(null), toTopic.topic(), toTopic.partitioner());
+                            return new ToOperation(operationConfig(null, tags), toTopic.topic(), toTopic.partitioner());
                         }
                         if (toTne != null && toTne.topicNameExtractor() != null) {
-                            return new ToOperation(operationConfig(null), toTne.topicNameExtractor(), toTne.partitioner());
+                            return new ToOperation(operationConfig(null, tags), toTne.topicNameExtractor(), toTne.partitioner());
                         }
                         throw new TopologyException("Unknown target for pipeline \"to\" operation");
                     });
@@ -68,16 +68,16 @@ public class ToOperationParser extends OperationParser<ToOperation> {
                 "topic",
                 KSMLDSL.Operations.TO,
                 "Ends the pipeline by sending all messages to a fixed topic, or to a topic returned by a topic name extractor function",
-                name -> {
+                (name, tags) -> {
                     // First try to find a corresponding topic definition
                     final var topic = resources().topic(name);
                     if (topic != null) {
-                        return new ToOperation(operationConfig(null), topic, null);
+                        return new ToOperation(operationConfig(null, tags), topic, null);
                     }
                     // Then try to find a corresponding topic name extractor function
                     final var tne = resources().function(name);
                     if (tne != null) {
-                        return new ToOperation(operationConfig(null), tne, null);
+                        return new ToOperation(operationConfig(null, tags), tne, null);
                     }
                     return null;
                 },

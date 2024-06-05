@@ -39,6 +39,6 @@ public class ForEachOperationParser extends OperationParser<ForEachOperation> {
                 operationNameField(),
                 functionField(KSMLDSL.Operations.FOR_EACH, "A function that gets called for every message in the stream", new ForEachActionDefinitionParser()),
                 storeNamesField(),
-                (name, action, stores) -> action != null ? new ForEachOperation(operationConfig(name, stores), action) : null);
+                (name, action, stores, tags) -> action != null ? new ForEachOperation(operationConfig(name, tags, stores), action) : null);
     }
 }

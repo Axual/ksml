@@ -20,17 +20,30 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.HostAccess;
+import org.graalvm.polyglot.PolyglotAccess;
+import org.graalvm.polyglot.Source;
+import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.io.IOAccess;
+
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataObjectConverter;
+import io.axual.ksml.metric.KSMLMetrics;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.graalvm.polyglot.*;
-import org.graalvm.polyglot.io.IOAccess;
+
+import java.util.List;
 
 @Slf4j
 public class PythonContext {
     private static final LoggerBridge LOGGER_BRIDGE = new LoggerBridge();
+    private static final MetricsBridge METRICS_BRIDGE = new MetricsBridge(KSMLMetrics.registry());
     private static final String PYTHON = "python";
+    private static final List<String> ALLOWED_JAVA_CLASSES = List.of(
+            "java.util.ArrayList",
+            "java.util.HashMap",
+            "java.util.TreeMap");
     private final Context context;
     @Getter
     private final DataObjectConverter converter;
@@ -41,11 +54,33 @@ public class PythonContext {
         log.debug("Setting up new Python context");
         try {
             context = Context.newBuilder(PYTHON)
-                    .allowIO(IOAccess.ALL)
-                    .allowNativeAccess(true)
-                    .allowPolyglotAccess(PolyglotAccess.ALL)
-                    .allowHostAccess(HostAccess.ALL)
-                    .allowHostClassLookup(name -> name.equals("java.util.ArrayList") || name.equals("java.util.HashMap") || name.equals("java.util.TreeMap"))
+                    .allowIO(IOAccess.newBuilder()
+                            .allowHostFileAccess(true)
+                            .allowHostSocketAccess(false)
+                            .build())
+//                    .allowIO(IOAccess.ALL)
+                    .allowNativeAccess(false)
+//                    .allowNativeAccess(true)
+                    .allowPolyglotAccess(
+                            PolyglotAccess.newBuilder()
+                                    .allowBindingsAccess(PYTHON)
+                                    .build())
+//                    .allowPolyglotAccess(PolyglotAccess.ALL)
+                    .allowHostAccess(
+                            HostAccess.newBuilder()
+                                    .allowPublicAccess(true)
+                                    .allowAllImplementations(false)
+                                    .allowAllClassImplementations(false)
+                                    .allowArrayAccess(false)
+                                    .allowListAccess(true)
+                                    .allowBufferAccess(false)
+                                    .allowIterableAccess(true)
+                                    .allowIteratorAccess(true)
+                                    .allowMapAccess(true)
+                                    .allowAccessInheritance(false)
+                                    .build())
+//                    .allowHostAccess(HostAccess.ALL)
+                    .allowHostClassLookup(ALLOWED_JAVA_CLASSES::contains)
                     .build();
             registerGlobalCode();
         } catch (Exception e) {
@@ -65,23 +100,26 @@ public class PythonContext {
     }
 
     public void registerGlobalCode() {
-        // The following code registers a global variable "loggerBridge" inside the Python context and
-        // initializes it with our static LOGGER_BRIDGE member variable. This bridge is later used by
-        // other Python code to initialize a "log" variable with the proper Python namespace and function
-        // name.
+        // The following code registers a global variables "loggerBridge" and "metricsBridge" inside the Python
+        // context and initializes it with our static LOGGER_BRIDGE member variable. This bridge is later used
+        // by other Python code to initialize a "log" variable with the proper Python namespace and function name.
         final var pyCode = """
                 loggerBridge = None
+                metrics = None
                 import polyglot
+
                 @polyglot.export_value
-                def register_ksml_logger_bridge(lb):
+                def register_ksml_bridges(lb, mb):
                   global loggerBridge
                   loggerBridge = lb
+                  global metrics
+                  metrics = mb
                 """;
-        final var register = registerFunction(pyCode, "register_ksml_logger_bridge");
+        final var register = registerFunction(pyCode, "register_ksml_bridges");
         if (register == null) {
             throw new ExecutionException("Could not register global code for loggerBridge:\n" + pyCode);
         }
         // Load the global LOGGER_BRIDGE variable into the context
-        register.execute(LOGGER_BRIDGE);
+        register.execute(LOGGER_BRIDGE, METRICS_BRIDGE);
     }
 }

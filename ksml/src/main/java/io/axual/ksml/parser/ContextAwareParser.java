@@ -21,6 +21,7 @@ package io.axual.ksml.parser;
  */
 
 
+import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.FunctionDefinition;
@@ -29,7 +30,7 @@ import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 public abstract class ContextAwareParser<T> extends DefinitionParser<T> {
     // The set of streams, functions and stores that producers and pipelines can reference
@@ -45,11 +46,11 @@ public abstract class ContextAwareParser<T> extends DefinitionParser<T> {
     }
 
     protected <F extends FunctionDefinition> StructParser<FunctionDefinition> functionField(String childName, String doc, DefinitionParser<F> parser) {
-        final var resourceParser = new TopologyResourceParser<>("function", childName, doc, resources::function, parser);
+        final var resourceParser = new TopologyResourceParser<>("function", childName, doc, (name, tags) -> resources.function(name), parser);
         return StructParser.of(resourceParser::parseDefinition, resourceParser.schema());
     }
 
-    protected <S> StructParser<S> lookupField(String resourceType, String childName, String doc, Function<String, S> lookup, DefinitionParser<? extends S> parser) {
+    protected <S> StructParser<S> lookupField(String resourceType, String childName, String doc, BiFunction<String, ContextTags, S> lookup, DefinitionParser<? extends S> parser) {
         final var resourceParser = new TopologyResourceParser<>(resourceType, childName, doc, lookup, parser);
         final var schema = resourceParser.schema();
         return new StructParser<>() {
@@ -67,12 +68,12 @@ public abstract class ContextAwareParser<T> extends DefinitionParser<T> {
         };
     }
 
-    protected <S> StructParser<TopologyResource<S>> topologyResourceField(String resourceType, String childName, String doc, Function<String, S> lookup, DefinitionParser<S> parser) {
+    protected <S> StructParser<TopologyResource<S>> topologyResourceField(String resourceType, String childName, String doc, BiFunction<String, ContextTags, S> lookup, DefinitionParser<S> parser) {
         final var resourceParser = new TopologyResourceParser<>(resourceType, childName, doc, lookup, parser, true);
         return StructParser.of(resourceParser::parse, resourceParser.schema());
     }
 
     public StructParser<TopicDefinition> topicField(String childName, String doc, DefinitionParser<? extends TopicDefinition> parser) {
-        return lookupField("topic", childName, doc, resources::topic, parser);
+        return lookupField("topic", childName, doc, (name, context) -> resources.topic(name), parser);
     }
 }

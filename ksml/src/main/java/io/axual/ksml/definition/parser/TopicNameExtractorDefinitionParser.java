@@ -28,6 +28,10 @@ import io.axual.ksml.parser.StructParser;
 public class TopicNameExtractorDefinitionParser extends FunctionDefinitionParser<TopicNameExtractorDefinition> {
     @Override
     public StructParser<TopicNameExtractorDefinition> parser() {
-        return parserWithoutStores(TopicNameExtractorDefinition.class, KSMLDSL.Functions.TYPE_TOPICNAMEEXTRACTOR, "topic name extractor", TopicNameExtractorDefinition::new);
+        return parserWithoutStores(
+                TopicNameExtractorDefinition.class,
+                KSMLDSL.Functions.TYPE_TOPICNAMEEXTRACTOR,
+                "topic name extractor",
+                (function, tags) -> new TopicNameExtractorDefinition(function));
     }
 }

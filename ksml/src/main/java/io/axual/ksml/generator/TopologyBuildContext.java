@@ -21,6 +21,7 @@ package io.axual.ksml.generator;
  */
 
 import io.axual.ksml.data.mapper.DataObjectConverter;
+import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.definition.*;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.python.PythonContext;
@@ -57,6 +58,10 @@ public class TopologyBuildContext {
         this.builder = builder;
         this.resources = resources;
         this.pythonContext = new PythonContext();
+    }
+
+    public String namespace() {
+        return resources.namespace();
     }
 
     public DataObjectConverter getDataObjectConverter() {
@@ -262,7 +267,7 @@ public class TopologyBuildContext {
     }
 
     // Create a new function in the Python context, using the definition in the parameter
-    public UserFunction createUserFunction(FunctionDefinition definition) {
-        return PythonFunction.forFunction(pythonContext, resources.namespace(), definition.name(), definition);
+    public UserFunction createUserFunction(FunctionDefinition definition, ContextTags tags) {
+        return PythonFunction.forFunction(pythonContext, tags, resources.namespace(), definition.name(), definition);
     }
 }

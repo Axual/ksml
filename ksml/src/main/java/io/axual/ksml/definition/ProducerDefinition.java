@@ -23,5 +23,9 @@ package io.axual.ksml.definition;
 import java.time.Duration;
 
 public record ProducerDefinition(FunctionDefinition generator, Duration interval, FunctionDefinition condition,
-                                 TopicDefinition target, Integer count, FunctionDefinition until) {
+                                 TopicDefinition target, Integer count, FunctionDefinition until) implements Definition{
+    @Override
+    public String toString() {
+        return definitionType();
+    }
 }

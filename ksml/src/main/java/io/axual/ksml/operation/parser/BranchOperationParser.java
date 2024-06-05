@@ -44,8 +44,9 @@ public class BranchOperationParser extends OperationParser<BranchOperation> {
                 listField(
                         KSMLDSL.Operations.BRANCH,
                         "branch",
+                        "branch",
                         "Defines a single branch, consisting of a condition and a pipeline to execute for messages that fulfil the predicate",
                         new BranchDefinitionParser(resources(), includePipelineSchema)),
-                (name, branches) -> branches != null ? new BranchOperation(operationConfig(name), branches) : null);
+                (name, branches, tags) -> branches != null ? new BranchOperation(operationConfig(name, tags), branches) : null);
     }
 }

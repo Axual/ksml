@@ -61,7 +61,7 @@ public class TransformKeyValueOperation extends BaseOperation {
         if (kvTuple.dataType() instanceof UserTupleType userTupleType && userTupleType.subTypeCount() == 2) {
             final var kr = streamDataTypeOf(userTupleType.getUserType(0), true);
             final var vr = streamDataTypeOf(userTupleType.getUserType(1), false);
-            final var userMap = new UserKeyValueTransformer(map);
+            final var userMap = new UserKeyValueTransformer(map, tags);
             final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames().toArray(TEMPLATE));
             final var supplier = new OperationProcessorSupplier<>(
                     name,

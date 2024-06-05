@@ -21,22 +21,40 @@ package io.axual.ksml.python;
  */
 
 
+import com.codahale.metrics.Timer;
 import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.metric.*;
 import io.axual.ksml.user.UserFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.function.Supplier;
+
 public abstract class Invoker {
     private static final Logger LOG = LoggerFactory.getLogger(Invoker.class);
+    private final Timer timer;
     protected final UserFunction function;
 
-    protected Invoker(UserFunction function) {
+    protected Invoker(UserFunction function, ContextTags metricTags, String functionType) {
         if (function == null) {
             throw new TopologyException("Invoker: function can not be null");
         }
+        final var metricName = new MetricName("execution-time", metricTags.append("function-type", functionType).append("function-name", function.name));
+
+        if (KSMLMetrics.registry().getTimer(metricName) == null) {
+            timer = KSMLMetrics.registry().registerTimer(metricName);
+        } else {
+            timer = KSMLMetrics.registry().getTimer(metricName);
+        }
         this.function = function;
+    }
+
+    protected <V> V timeExecutionOf(Supplier<V> callback) {
+        return timer.timeSupplier(callback);
     }
 
     protected void verify(boolean condition, String errorMessage) {

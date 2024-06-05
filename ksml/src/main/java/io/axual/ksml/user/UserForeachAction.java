@@ -20,28 +20,22 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
-
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.tag.ContextTags;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.python.Invoker;
 import io.axual.ksml.store.StateStores;
-import org.apache.kafka.streams.kstream.ForeachAction;
 
-public class UserForeachAction extends Invoker implements ForeachAction<Object, Object> {
+public class UserForeachAction extends Invoker {
     private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
 
-    public UserForeachAction(UserFunction function) {
-        super(function);
+    public UserForeachAction(UserFunction function, ContextTags tags) {
+        super(function, tags, KSMLDSL.Functions.TYPE_FOREACHACTION);
         verifyParameterCount(2);
         verifyNoResult();
     }
 
-    @Override
-    public void apply(Object key, Object value) {
-        verifyNoStoresUsed();
-        apply(null, key, value);
-    }
-
     public void apply(StateStores stores, Object key, Object value) {
-        function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value));
+        timeExecutionOf(() -> function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value)));
     }
 }

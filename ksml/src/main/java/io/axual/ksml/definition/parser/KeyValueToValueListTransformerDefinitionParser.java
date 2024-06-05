@@ -28,6 +28,10 @@ import io.axual.ksml.parser.StructParser;
 public class KeyValueToValueListTransformerDefinitionParser extends FunctionDefinitionParser<KeyValueToValueListTransformerDefinition> {
     @Override
     public StructParser<KeyValueToValueListTransformerDefinition> parser() {
-        return parserWithStores(KeyValueToValueListTransformerDefinition.class, KSMLDSL.Functions.TYPE_KEYVALUETOVALUELISTTRANSFORMER, "keyvalue-to-valuelist transformer", KeyValueToValueListTransformerDefinition::new);
+        return parserWithStores(
+                KeyValueToValueListTransformerDefinition.class,
+                KSMLDSL.Functions.TYPE_KEYVALUETOVALUELISTTRANSFORMER,
+                "keyvalue-to-valuelist transformer",
+                (function, tags) -> new KeyValueToValueListTransformerDefinition(function));
     }
 }

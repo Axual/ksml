@@ -28,6 +28,10 @@ import io.axual.ksml.parser.StructParser;
 public class GenericFunctionDefinitionParser extends FunctionDefinitionParser<GenericFunctionDefinition> {
     @Override
     public StructParser<GenericFunctionDefinition> parser() {
-        return parserWithoutStores(GenericFunctionDefinition.class, KSMLDSL.Functions.TYPE_GENERIC, "generic function", GenericFunctionDefinition::new);
+        return parserWithoutStores(
+                GenericFunctionDefinition.class,
+                KSMLDSL.Functions.TYPE_GENERIC,
+                "generic function",
+                (function, tags) -> new GenericFunctionDefinition(function));
     }
 }

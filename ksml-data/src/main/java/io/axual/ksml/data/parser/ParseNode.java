@@ -22,6 +22,7 @@ package io.axual.ksml.data.parser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.tag.ContextTags;
 import lombok.Getter;
 
 import java.util.*;
@@ -33,15 +34,18 @@ public class ParseNode {
     private final ParseNode parent;
     @Getter
     private final String name;
+    @Getter
+    private final ContextTags tags;
 
-    public static ParseNode fromRoot(JsonNode root, String name) {
-        return new ParseNode(null, root, name);
+    public static ParseNode fromRoot(JsonNode root, String namespace) {
+        return new ParseNode(null, root, namespace, new ContextTags().append("namespace", namespace));
     }
 
-    private ParseNode(ParseNode parent, JsonNode child, String name) {
+    private ParseNode(ParseNode parent, JsonNode child, String name, ContextTags tags) {
         this.parent = parent;
         this.node = child;
         this.name = name;
+        this.tags = tags;
     }
 
     private String getPathInternal(boolean includeRoot, String separator) {
@@ -60,9 +64,13 @@ public class ParseNode {
     }
 
     public ParseNode get(String childName, String displayName) {
+        return get(childName, displayName, tags);
+    }
+
+    public ParseNode get(String childName, String displayName, ContextTags tags) {
         JsonNode child = node.get(childName);
         if (child != null) {
-            return new ParseNode(this, child, displayName);
+            return new ParseNode(this, child, displayName, tags);
         }
         return null;
     }
@@ -73,17 +81,18 @@ public class ParseNode {
 
     public ParseNode appendName(String appendName) {
         // Trick to append "appendName" to the named output, without traversing to an actual child JsonNode
-        return new ParseNode(this, node, appendName);
+        return new ParseNode(this, node, appendName, tags);
     }
 
-    public List<ParseNode> children(String elementPrefix) {
+    public List<ParseNode> children(String childTagKey, String elementPrefix) {
         List<ParseNode> result = new ArrayList<>();
         Set<JsonNode> seen = new HashSet<>();
         Iterator<Map.Entry<String, JsonNode>> fieldIterator = node.fields();
         while (fieldIterator.hasNext()) {
             Map.Entry<String, JsonNode> field = fieldIterator.next();
             seen.add(field.getValue());
-            result.add(new ParseNode(this, field.getValue(), elementPrefix + field.getKey()));
+            final var childTagValue = elementPrefix + field.getKey();
+            result.add(new ParseNode(this, field.getValue(), childTagValue, childTagKey != null ? tags.append(childTagKey, childTagValue) : tags));
         }
 
         Iterator<JsonNode> elementIterator = node.elements();
@@ -91,7 +100,8 @@ public class ParseNode {
         while (elementIterator.hasNext()) {
             JsonNode element = elementIterator.next();
             if (!seen.contains(element)) {
-                result.add(new ParseNode(this, element, elementPrefix + index++));
+                final var childTagValue = elementPrefix + index++;
+                result.add(new ParseNode(this, element, childTagValue, childTagKey != null ? tags.append(childTagKey, childTagValue) : tags));
             }
         }
         return result;

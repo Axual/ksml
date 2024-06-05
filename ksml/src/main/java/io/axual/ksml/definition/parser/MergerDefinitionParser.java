@@ -28,6 +28,9 @@ import io.axual.ksml.parser.StructParser;
 public class MergerDefinitionParser extends FunctionDefinitionParser<MergerDefinition> {
     @Override
     public StructParser<MergerDefinition> parser() {
-        return parserWithoutStores(MergerDefinition.class, KSMLDSL.Functions.TYPE_MERGER, "merger", MergerDefinition::new);
+        return parserWithoutStores(MergerDefinition.class,
+                KSMLDSL.Functions.TYPE_MERGER,
+                "merger",
+                (function, tags) -> new MergerDefinition(function));
     }
 }
