@@ -6,9 +6,6 @@ on:
       - main
     types:
       - closed
-  push:
-    branches:
-      - 'fix-test-github-action'
 
 jobs:
   build-push-docker:
