@@ -73,7 +73,7 @@ class KafkaProducerRunnerTest {
 
         // when the runner starts in a separate thread and runs for some time
         new Thread(producerRunner).start();
-        Thread.sleep(Duration.ofSeconds(30));
+        Thread.sleep(Duration.ofSeconds(60));
 
         // then when the runner has executed, only one record is produced.
         producerRunner.stop();
@@ -91,7 +91,7 @@ class KafkaProducerRunnerTest {
 
         // when the runner starts in a separate thread and runs for some time
         new Thread(producerRunner).start();
-        Thread.sleep(Duration.ofSeconds(30));
+        Thread.sleep(Duration.ofSeconds(60));
 
         // then when the runner has executed, only one record is produced.
         producerRunner.stop();
@@ -109,7 +109,7 @@ class KafkaProducerRunnerTest {
 
         // when the runner starts in a separate thread and runs for some time
         new Thread(producerRunner).start();
-        Thread.sleep(Duration.ofSeconds(30));
+        Thread.sleep(Duration.ofSeconds(60));
 
         // then when the runner has executed, only 'one' and 'two' were produced.
         producerRunner.stop();
