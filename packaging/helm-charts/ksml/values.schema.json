@@ -1,181 +1,177 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Generated schema for Root",
-  "type": "object",
-  "properties": {
-    "replicaCount": {
-      "type": "number"
-    },
-    "image": {
-      "type": "object",
-      "properties": {
-        "repository": {
-          "type": "string"
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "affinity": {
+            "type": "object"
         },
-        "pullPolicy": {
-          "type": "string"
-        },
-        "tag": {
-          "type": "string"
-        }
-      },
-      "required": []
-    },
-    "imagePullSecrets": {
-      "type": "array",
-      "items": {}
-    },
-    "nameOverride": {
-      "type": "string"
-    },
-    "fullnameOverride": {
-      "type": "string"
-    },
-    "ksmlRunnerConfig": {
-      "type": "object",
-      "properties": {},
-      "required": []
-    },
-    "ksmlDefinitions": {
-      "type": "object",
-      "properties": {},
-      "required": []
-    },
-    "schemaDefinitions": {
-      "type": "object",
-      "properties": {},
-      "required": []
-    },
-    "serviceAccount": {
-      "type": "object",
-      "properties": {
-        "create": {
-          "type": "boolean"
-        },
-        "automount": {
-          "type": "boolean"
-        },
-        "annotations": {
-          "type": "object",
-          "properties": {},
-          "required": []
-        },
-        "name": {
-          "type": "string"
-        }
-      },
-      "required": []
-    },
-    "podAnnotations": {
-      "type": "object",
-      "properties": {},
-      "required": []
-    },
-    "podLabels": {
-      "type": "object",
-      "properties": {},
-      "required": []
-    },
-    "podSecurityContext": {
-      "type": "object",
-      "properties": {},
-      "required": []
-    },
-    "securityContext": {
-      "type": "object",
-      "properties": {},
-      "required": []
-    },
-    "service": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "type": "string"
-        },
-        "port": {
-          "type": "number"
-        }
-      },
-      "required": []
-    },
-    "ingress": {
-      "type": "object",
-      "properties": {
-        "enabled": {
-          "type": "boolean"
-        },
-        "className": {
-          "type": "string"
-        },
-        "annotations": {
-          "type": "object",
-          "properties": {},
-          "required": []
-        },
-        "hosts": {
-          "type": "array",
-          "items": {
+        "applicationServer": {
             "type": "object",
             "properties": {
-              "host": {
-                "type": "string"
-              },
-              "paths": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "path": {
-                      "type": "string"
-                    },
-                    "pathType": {
-                      "type": "string"
-                    }
-                  },
-                  "required": []
+                "port": {
+                    "type": "string"
                 }
-              }
-            },
-            "required": []
-          }
+            }
         },
-        "tls": {
-          "type": "array",
-          "items": {}
+        "fullnameOverride": {
+            "type": "string"
+        },
+        "image": {
+            "type": "object",
+            "properties": {
+                "pullPolicy": {
+                    "type": "string"
+                },
+                "repository": {
+                    "type": "string"
+                },
+                "tag": {
+                    "type": "string"
+                }
+            }
+        },
+        "imagePullSecrets": {
+            "type": "array"
+        },
+        "ingress": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "type": "object"
+                },
+                "className": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "hosts": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "host": {
+                                "type": "string"
+                            },
+                            "paths": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "path": {
+                                            "type": "string"
+                                        },
+                                        "pathType": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tls": {
+                    "type": "array"
+                }
+            }
+        },
+        "ksmlDefinitions": {
+            "type": "object"
+        },
+        "ksmlRunnerConfig": {
+            "type": "object"
+        },
+        "nameOverride": {
+            "type": "string"
+        },
+        "nodeSelector": {
+            "type": "object"
+        },
+        "podAnnotations": {
+            "type": "object"
+        },
+        "podLabels": {
+            "type": "object"
+        },
+        "podSecurityContext": {
+            "type": "object"
+        },
+        "prometheus": {
+            "type": "object",
+            "properties": {
+                "port": {
+                    "type": "string"
+                }
+            }
+        },
+        "replicaCount": {
+            "type": "integer"
+        },
+        "resources": {
+            "type": "object"
+        },
+        "schemaDefinitions": {
+            "type": "object"
+        },
+        "securityContext": {
+            "type": "object"
+        },
+        "service": {
+            "type": "object",
+            "properties": {
+                "port": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "serviceAccount": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "type": "object"
+                },
+                "automount": {
+                    "type": "boolean"
+                },
+                "create": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "serviceMonitor": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "interval": {
+                    "type": "string"
+                },
+                "labels": {
+                    "type": "object"
+                },
+                "scrapeTimeout": {
+                    "type": "string"
+                }
+            }
+        },
+        "tolerations": {
+            "type": "array"
+        },
+        "topologySpreadConstraints": {
+            "type": "array"
+        },
+        "volumeMounts": {
+            "type": "array"
+        },
+        "volumes": {
+            "type": "array"
         }
-      },
-      "required": []
-    },
-    "resources": {
-      "type": "object",
-      "properties": {},
-      "required": []
-    },
-    "volumes": {
-      "type": "array",
-      "items": {}
-    },
-    "volumeMounts": {
-      "type": "array",
-      "items": {}
-    },
-    "nodeSelector": {
-      "type": "object",
-      "properties": {},
-      "required": []
-    },
-    "tolerations": {
-      "type": "array",
-      "items": {}
-    },
-    "affinity": {
-      "type": "object",
-      "properties": {},
-      "required": []
     }
-  },
-  "required": [
-    "ksmlRunnerConfig",
-    "ksmlDefinitions"
-  ]
 }
