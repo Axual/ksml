@@ -1,4 +1,7 @@
 items:
+  - title: Home
+    url: index.html
+
   - title: Introduction
     url: introduction.html
 
