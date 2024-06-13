@@ -4,10 +4,9 @@
 
 ### Table of Contents
 1. [Introduction](#introduction)
-2. [Generic configuration](#generic-configuration)
-    * [Kafka runner](#kafka-runner)
-    * [Axual runner](#axual-runner)
-3. [Starting a container](#starting-a-container)
+2. [Starting a demo setup](#starting-a-demo-setup)
+3. [Starting a KSML runner](#starting-a-ksml-runner)
+4. [Next steps](#next-steps)
 
 ## Introduction
 KSML comes with an example setup, where a producer outputs SensorData messages to Kafka, which are then processed by KSML pipelines.
@@ -72,6 +71,6 @@ This will start the KSML docker container. You should see the following typical 
 
 ## Next steps
 
-Check out the examples in the [Examples](../examples/) directory. By modifying the file `examples/ksml-runner.yaml` you can select the example(s) to run.
+Check out the examples in the [Examples]({{ site.github.repository_url }}/examples/) directory. By modifying the file `examples/ksml-runner.yaml` you can select the example(s) to run.
 
 For a more elaborate introduction, you can start [here](introduction.md) or refer to the [documentation](index.md).
