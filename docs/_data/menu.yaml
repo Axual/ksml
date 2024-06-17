@@ -6,7 +6,7 @@ items:
     url: introduction.html
 
   - title: Stream Types
-    url: types.html
+    url: streams.html
 
   - title: Functions
     url: functions.html
