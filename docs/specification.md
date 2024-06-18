@@ -1,4 +1,4 @@
-# TopologyDefinition
+# Language Specification
 
 *KSML definition*
 

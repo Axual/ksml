@@ -1,6 +1,6 @@
 [<< Back to index](index.md)
 
-# Pipeline
+# Pipelines
 
 ### Table of Contents
 

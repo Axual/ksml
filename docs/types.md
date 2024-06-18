@@ -1,6 +1,6 @@
 [<< Back to index](index.md)
 
-# Types
+# Data Types
 
 ### Table of Contents
 1. [Introduction](#introduction)

@@ -1,6 +1,6 @@
 [<< Back to index](index.md)
 
-# Streams
+# Stream Types
 
 ### Table of Contents
 1. [Introduction](#introduction)
