@@ -11,6 +11,14 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
     {% include head-custom.html %}
+    <style type="text/css">
+        menu {
+            display: block;
+            float: left;
+            list-style: none;
+            border: 1px dotted;
+        }
+    </style>
 </head>
 <body>
 <a id="skip-to-content" href="#content">Skip to the content.</a>
@@ -31,6 +39,11 @@
 
 </header>
 <main id="content" class="main-content" role="main">
+    <menu>
+        {% for item in site.data.menu.items %}
+        <li><a href="{{ item.url }}">{{ item.title }}</a></li>
+        {% endfor %}
+    </menu>
     {{ content }}
 
     <footer class="site-footer">
