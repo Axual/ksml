@@ -45,11 +45,6 @@
 </menu>
 
 <main id="content" class="main-content" role="main">
-    <menu>
-        {% for item in site.data.menu.items %}
-        <li><a href="{{ item.url }}">{{ item.title }}</a></li>
-        {% endfor %}
-    </menu>
     {{ content }}
 
     <footer class="site-footer">
