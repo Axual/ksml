@@ -1,5 +1,3 @@
-[<< Back to index](index.md)
-
 # Streams
 
 ### Table of Contents

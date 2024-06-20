@@ -1,9 +1,11 @@
-[<< Back to index](index.md)
-
 # KSML: Kafka Streams for Low Code Environments
 
 ## Abstract
-Kafka Streams has captured the hearts and minds of many developers that want to develop streaming applications on top of Kafka. But as powerful as the framework is, Kafka Streams has had a hard time getting around the requirement of writing Java code and setting up build pipelines. There were some attempts to rebuild Kafka Streams, but up until now popular languages like Python did not receive equally powerful (and maintained) stream processing frameworks. In this article we will present a new declarative approach to unlock Kafka Streams, called KSML. By the time you finish reading this document, you will be able to write streaming applications yourself, using only a few simple basic rules and Python snippets.
+Kafka Streams has captured the hearts and minds of many developers that want to develop streaming applications on top of Kafka. But as powerful as the framework is, Kafka 
+Streams has had a hard time getting around the requirement of writing Java code and setting up build pipelines. There were some attempts to rebuild Kafka Streams, but up 
+until now popular languages like Python did not receive equally powerful (and maintained) stream processing frameworks. In this article we will present a new declarative
+approach to unlock Kafka Streams, called KSML. By the time you finish reading this document, you will be able to write streaming applications yourself, using 
+only a few simple basic rules and Python snippets.
 
 * [Setting up a test environment](#setting-up-a-test-environment)
 * [KSML in practice](#ksml-in-practice)
@@ -17,8 +19,10 @@ Kafka Streams has captured the hearts and minds of many developers that want to 
 
 ## Setting up a test environment
 
-To demonstrate KSML's capabilities, you will need a working Kafka cluster, or an Axual Platform/Cloud environment. Check out the [Runners](runners.md) page to configure KSML
-we set up a test topic, called `ksml_sensordata_avro` with key/value types of `String`/`SensorData`. The [SensorData](../examples/SensorData.avsc) schema was created for demo purposes only and contains several fields to demonstratie KSML capabilities:
+To demonstrate KSML's capabilities, you will need a working Kafka cluster, or an Axual Platform/Cloud environment. Check out the [Runners](runners.md) page to configure KSML.
+<br>
+We set up a test topic, called `ksml_sensordata_avro` with key/value types of `String`/`SensorData`. The [SensorData]({{ site.github.repository_url }}/tree/main/examples/SensorData.avsc) schema 
+was created for demo purposes only and contains several fields to demonstratie KSML capabilities:
 
 ```json
 {
