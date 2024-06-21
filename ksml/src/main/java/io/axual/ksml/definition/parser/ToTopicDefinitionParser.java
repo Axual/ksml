@@ -22,10 +22,10 @@ package io.axual.ksml.definition.parser;
 
 import io.axual.ksml.definition.ToTopicDefinition;
 import io.axual.ksml.generator.TopologyResources;
-import io.axual.ksml.parser.ContextAwareParser;
+import io.axual.ksml.parser.TopologyResourceAwareParser;
 import io.axual.ksml.parser.StructParser;
 
-public class ToTopicDefinitionParser extends ContextAwareParser<ToTopicDefinition> {
+public class ToTopicDefinitionParser extends TopologyResourceAwareParser<ToTopicDefinition> {
     public ToTopicDefinitionParser(TopologyResources resources) {
         super(resources);
     }
@@ -36,7 +36,7 @@ public class ToTopicDefinitionParser extends ContextAwareParser<ToTopicDefinitio
                 ToTopicDefinition.class,
                 "",
                 "Writes out pipeline messages to a topic",
-                new TopicDefinitionParser(false),
+                new TopicDefinitionParser(resources(), false),
                 new StreamPartitionerDefinitionParser(),
                 (topic, partitioner, tags) -> topic != null ? new ToTopicDefinition(topic, partitioner) : null);
     }

@@ -24,11 +24,11 @@ import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.BranchDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
-import io.axual.ksml.parser.ContextAwareParser;
+import io.axual.ksml.parser.TopologyResourceAwareParser;
 import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.util.ListUtil;
 
-public class BranchDefinitionParser extends ContextAwareParser<BranchDefinition> {
+public class BranchDefinitionParser extends TopologyResourceAwareParser<BranchDefinition> {
     private final boolean includePipelineSchema;
 
     public BranchDefinitionParser(TopologyResources resources, boolean includePipelineSchema) {

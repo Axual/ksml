@@ -25,32 +25,63 @@ import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.TableDefinition;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.TopologyException;
-import io.axual.ksml.parser.DefinitionParser;
+import io.axual.ksml.generator.TopologyBaseResources;
+import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.parser.TopologyBaseResourceAwareParser;
+import io.axual.ksml.parser.TopologyResourceAwareParser;
 import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.store.StoreType;
 
 import static io.axual.ksml.dsl.KSMLDSL.Streams;
 
-public class TableDefinitionParser extends DefinitionParser<TableDefinition> {
-    private final boolean requireKeyValueType;
+public class TableDefinitionParser extends TopologyBaseResourceAwareParser<TableDefinition> {
+    private static final String DOC = "Contains a definition of a Table, which can be referenced by producers and pipelines";
+    private static final String TOPIC_DOC = "The name of the Kafka topic for this table";
+    private final boolean isSource;
 
-    public TableDefinitionParser(boolean requireKeyValueType) {
-        this.requireKeyValueType = requireKeyValueType;
+    public TableDefinitionParser(TopologyBaseResources resources, boolean isSource) {
+        super(resources);
+        this.isSource = isSource;
     }
 
     @Override
     public StructParser<TableDefinition> parser() {
         final var keyField = userTypeField(Streams.KEY_TYPE, "The key type of the table");
         final var valueField = userTypeField(Streams.VALUE_TYPE, "The value type of the table");
+        if (isSource) return structParser(
+                TableDefinition.class,
+                "",
+                DOC,
+                stringField(Streams.TOPIC, TOPIC_DOC),
+                keyField,
+                valueField,
+                optional(functionField(KSMLDSL.Streams.TIMESTAMP_EXTRACTOR, "A function extracts the event time from a consumed record", new TimestampExtractorDefinitionParser())),
+                optional(stringField(KSMLDSL.Streams.RESET_POLICY, "Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted)")),
+                storeField(),
+                (topic, keyType, valueType, tsExtractor, resetPolicy, store, tags) -> {
+                    keyType = keyType != null ? keyType : UserType.UNKNOWN;
+                    valueType = valueType != null ? valueType : UserType.UNKNOWN;
+                    final var policy = OffsetResetPolicyParser.parseResetPolicy(resetPolicy);
+                    if (store != null) {
+                        if (!keyType.dataType().isAssignableFrom(store.keyType().dataType())) {
+                            throw new TopologyException("Incompatible key types between table '" + topic + "' and its corresponding state store: " + keyType.dataType() + " and " + store.keyType().dataType());
+                        }
+                        if (!valueType.dataType().isAssignableFrom(store.valueType().dataType())) {
+                            throw new TopologyException("Incompatible value types between table '" + topic + "' and its corresponding state store: " + valueType.dataType() + " and " + store.valueType().dataType());
+                        }
+                    }
+                    return new TableDefinition(topic, keyType, valueType, tsExtractor, policy, store);
+                });
         return structParser(
                 TableDefinition.class,
-                requireKeyValueType ? "" : "WithOptionalTypes",
-                "Contains a definition of a Table, which can be referenced by producers and pipelines",
-                stringField(Streams.TOPIC, "The name of the Kafka topic for this table"),
-                requireKeyValueType ? keyField : optional(keyField),
-                requireKeyValueType ? valueField : optional(valueField),
+                "Intermediate",
+                DOC,
+                stringField(Streams.TOPIC, TOPIC_DOC),
+                optional(keyField),
+                optional(valueField),
                 storeField(),
                 (topic, keyType, valueType, store, tags) -> {
                     keyType = keyType != null ? keyType : UserType.UNKNOWN;
@@ -63,7 +94,7 @@ public class TableDefinitionParser extends DefinitionParser<TableDefinition> {
                             throw new TopologyException("Incompatible value types between table '" + topic + "' and its corresponding state store: " + valueType.dataType() + " and " + store.valueType().dataType());
                         }
                     }
-                    return new TableDefinition(topic, keyType, valueType, store);
+                    return new TableDefinition(topic, keyType, valueType, null, null, store);
                 });
     }
 

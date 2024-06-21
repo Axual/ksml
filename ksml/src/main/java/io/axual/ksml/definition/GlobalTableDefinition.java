@@ -25,18 +25,19 @@ import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.parser.UserTypeParser;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.apache.kafka.streams.Topology;
 
 @Getter
 @EqualsAndHashCode
 public class GlobalTableDefinition extends TopicDefinition {
     private final KeyValueStateStoreDefinition store;
 
-    public GlobalTableDefinition(String topic, String keyType, String valueType, KeyValueStateStoreDefinition store) {
-        this(topic, UserTypeParser.parse(keyType), UserTypeParser.parse(valueType), store);
+    public GlobalTableDefinition(String topic, String keyType, String valueType, FunctionDefinition tsExtractor, Topology.AutoOffsetReset resetPolicy, KeyValueStateStoreDefinition store) {
+        this(topic, UserTypeParser.parse(keyType), UserTypeParser.parse(valueType), tsExtractor, resetPolicy, store);
     }
 
-    public GlobalTableDefinition(String topic, UserType keyType, UserType valueType, KeyValueStateStoreDefinition store) {
-        super(topic, keyType, valueType);
+    public GlobalTableDefinition(String topic, UserType keyType, UserType valueType, FunctionDefinition tsExtractor, Topology.AutoOffsetReset resetPolicy, KeyValueStateStoreDefinition store) {
+        super(topic, keyType, valueType, tsExtractor, resetPolicy);
         this.store = store;
     }
 }

@@ -54,6 +54,7 @@ public class TypedFunctionDefinitionParser extends ChoiceParser<FunctionDefiniti
         result.put(Functions.TYPE_PREDICATE, new PredicateDefinitionParser());
         result.put(Functions.TYPE_REDUCER, new ReducerDefinitionParser());
         result.put(Functions.TYPE_STREAMPARTITIONER, new StreamPartitionerDefinitionParser());
+        result.put(Functions.TYPE_TIMESTAMPEXTRACTOR,new TimestampExtractorDefinitionParser());
         result.put(Functions.TYPE_TOPICNAMEEXTRACTOR, new TopicNameExtractorDefinitionParser());
         result.put(Functions.TYPE_VALUEJOINER, new ValueJoinerDefinitionParser());
         result.put(Functions.TYPE_VALUETRANSFORMER, new ValueTransformerDefinitionParser());

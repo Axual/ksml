@@ -29,10 +29,14 @@ import io.axual.ksml.python.PythonFunction;
 import io.axual.ksml.store.StoreUtil;
 import io.axual.ksml.stream.*;
 import io.axual.ksml.user.UserFunction;
+import io.axual.ksml.user.UserTimestampExtractor;
+import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.Materialized;
+import org.apache.kafka.streams.processor.TimestampExtractor;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.SessionStore;
 import org.apache.kafka.streams.state.WindowStore;
@@ -138,7 +142,7 @@ public class TopologyBuildContext {
                 if (topicDefinition instanceof StreamDefinition || topicDefinition instanceof TableDefinition || topicDefinition instanceof GlobalTableDefinition) {
                     result = getStreamWrapper(topicDefinition, getStreamWrapperClass(topicDefinition, null));
                 } else {
-                    result = getStreamWrapper(new StreamDefinition(topicDefinition.topic(), topicDefinition.keyType(), topicDefinition.valueType()));
+                    result = getStreamWrapper(new StreamDefinition(topicDefinition.topic(), topicDefinition.keyType(), topicDefinition.valueType(), topicDefinition.tsExtractor(), topicDefinition.resetPolicy()));
                 }
             }
 
@@ -187,45 +191,47 @@ public class TopologyBuildContext {
         return result;
     }
 
+    private <K, V> Consumed<K, V> consumedOf(String name, Serde<K> keySerde, Serde<V> valueSerde, FunctionDefinition tsExtractor, Topology.AutoOffsetReset resetPolicy) {
+        var result = Consumed.<K, V>as(name);
+        if (keySerde != null) result = result.withKeySerde(keySerde);
+        if (valueSerde != null) result = result.withValueSerde(valueSerde);
+        if (tsExtractor != null) {
+            final var tags = defaultContextTags();
+            result = result.withTimestampExtractor(new UserTimestampExtractor(createUserFunction(tsExtractor, tags), tags.append("caller", name)));
+        }
+        if (resetPolicy != null) result = result.withOffsetResetPolicy(resetPolicy);
+        return result;
+    }
+
     private StreamWrapper buildWrapper(String name, TopicDefinition def) {
         if (def instanceof StreamDefinition streamDefinition) {
-            var streamKey = new StreamDataType(streamDefinition.keyType(), true);
-            var streamValue = new StreamDataType(streamDefinition.valueType(), false);
-            return new KStreamWrapper(
-                    builder.stream(streamDefinition.topic(), Consumed.with(streamKey.serde(), streamValue.serde()).withName(name)),
-                    streamKey,
-                    streamValue);
+            final var streamKey = new StreamDataType(streamDefinition.keyType(), true);
+            final var streamValue = new StreamDataType(streamDefinition.valueType(), false);
+            final var consumed = consumedOf(name, streamKey.serde(), streamValue.serde(), def.tsExtractor(), def.resetPolicy());
+            return new KStreamWrapper(builder.stream(streamDefinition.topic(), consumed), streamKey, streamValue);
         }
 
         if (def instanceof TableDefinition tableDefinition) {
             final var streamKey = new StreamDataType(tableDefinition.keyType(), true);
             final var streamValue = new StreamDataType(tableDefinition.valueType(), false);
-
-            if (tableDefinition.store() != null) {
-                final var mat = StoreUtil.materialize(tableDefinition.store(), tableDefinition.topic());
-                return new KTableWrapper(builder.table(tableDefinition.topic(), mat.materialized()), streamKey, streamValue);
-            }
-
-            // Set up dummy materialization for tables, mapping to the topic itself so we don't require an extra state store topic
-            final var store = new KeyValueStateStoreDefinition(tableDefinition.topic(), false, false, false, Duration.ofSeconds(900), Duration.ofSeconds(60), streamKey.userType(), streamValue.userType(), false, false);
+            final var store = tableDefinition.store() != null
+                    ? tableDefinition.store()
+                    // Set up dummy store for tables, mapping to the topic itself, so we don't require an extra state store topic
+                    : new KeyValueStateStoreDefinition(tableDefinition.topic(), false, false, false, Duration.ofSeconds(900), Duration.ofSeconds(60), streamKey.userType(), streamValue.userType(), false, false);
             final var mat = StoreUtil.materialize(store, tableDefinition.topic());
-            final var consumed = Consumed.as(name).withKeySerde(mat.keySerde()).withValueSerde(mat.valueSerde());
+            final var consumed = consumedOf(name, mat.keySerde(), mat.valueSerde(), def.tsExtractor(), def.resetPolicy());
             return new KTableWrapper(builder.table(tableDefinition.topic(), consumed, mat.materialized()), streamKey, streamValue);
         }
 
         if (def instanceof GlobalTableDefinition globalTableDefinition) {
             final var streamKey = new StreamDataType(globalTableDefinition.keyType(), true);
             final var streamValue = new StreamDataType(globalTableDefinition.valueType(), false);
-
-            if (globalTableDefinition.store() != null) {
-                final var mat = StoreUtil.materialize(globalTableDefinition.store(), globalTableDefinition.topic());
-                return new GlobalKTableWrapper(builder.globalTable(globalTableDefinition.topic(), mat.materialized()), streamKey, streamValue);
-            }
-
-            // Set up dummy materialization for globalTables, mapping to the topic itself so we don't require an extra state store topic
-            final var store = new KeyValueStateStoreDefinition(globalTableDefinition.topic(), false, false, false, Duration.ofSeconds(900), Duration.ofSeconds(60), streamKey.userType(), streamValue.userType(), false, false);
+            final var store = globalTableDefinition.store() != null
+                    ? globalTableDefinition.store()
+                    // Set up dummy store for globalTables, mapping to the topic itself, so we don't require an extra state store topic
+                    : new KeyValueStateStoreDefinition(globalTableDefinition.topic(), false, false, false, Duration.ofSeconds(900), Duration.ofSeconds(60), streamKey.userType(), streamValue.userType(), false, false);
             final var mat = StoreUtil.materialize(store, globalTableDefinition.topic());
-            final var consumed = Consumed.as(name).withKeySerde(streamKey.serde()).withValueSerde(streamValue.serde());
+            final var consumed = consumedOf(name, mat.keySerde(), mat.valueSerde(), def.tsExtractor(), def.resetPolicy());
             return new GlobalKTableWrapper(builder.globalTable(globalTableDefinition.topic(), consumed, mat.materialized()), streamKey, streamValue);
         }
 
@@ -264,6 +270,10 @@ public class TopologyBuildContext {
             throw new TopologyException("Can not register " + wrapper.toString() + " as " + name + ": name must be unique");
         }
         streamWrappersByName.put(name, wrapper);
+    }
+
+    public ContextTags defaultContextTags() {
+        return new ContextTags().append("namespace", namespace());
     }
 
     // Create a new function in the Python context, using the definition in the parameter

@@ -25,6 +25,7 @@ import io.axual.ksml.data.notation.UserType;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.apache.kafka.streams.Topology;
 
 @AllArgsConstructor
 @Getter
@@ -33,10 +34,14 @@ public class TopicDefinition extends AbstractDefinition {
     private final String topic;
     private final UserType keyType;
     private final UserType valueType;
+    private final FunctionDefinition tsExtractor;
+    private final Topology.AutoOffsetReset resetPolicy;
 
     public String toString() {
         final var kt = keyType != null ? ", " + keyType : "";
         final var vt = valueType != null ? ", " + valueType : "";
-        return definitionType() + "[topic=" + topic + kt + vt + "]";
+        final var te = tsExtractor != null ? ", " + tsExtractor : "";
+        final var rp = resetPolicy != null ? ", " + resetPolicy : "";
+        return definitionType() + "[topic=" + topic + kt + vt + te + rp + "]";
     }
 }

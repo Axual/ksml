@@ -21,31 +21,48 @@ package io.axual.ksml.definition.parser;
  */
 
 
-import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.definition.StreamDefinition;
-import io.axual.ksml.parser.DefinitionParser;
+import io.axual.ksml.generator.TopologyBaseResources;
+import io.axual.ksml.parser.TopologyBaseResourceAwareParser;
+import io.axual.ksml.parser.TopologyResourceAwareParser;
 import io.axual.ksml.parser.StructParser;
 
 import static io.axual.ksml.dsl.KSMLDSL.Streams;
 
-public class StreamDefinitionParser extends DefinitionParser<StreamDefinition> {
-    private final boolean requireKeyValueType;
+public class StreamDefinitionParser extends TopologyBaseResourceAwareParser<StreamDefinition> {
+    private static final String DOC = "Contains a definition of a Stream, which can be referenced by producers and pipelines";
+    private static final String TOPIC_DOC = "The name of the Kafka topic for this stream";
+    private final boolean isSource;
 
-    public StreamDefinitionParser(boolean requireKeyValueType) {
-        this.requireKeyValueType = requireKeyValueType;
+    public StreamDefinitionParser(TopologyBaseResources resources, boolean isSource) {
+        super(resources);
+        this.isSource = isSource;
     }
 
     @Override
     public StructParser<StreamDefinition> parser() {
         final var keyField = userTypeField(Streams.KEY_TYPE, "The key type of the stream");
         final var valueField = userTypeField(Streams.VALUE_TYPE, "The value type of the stream");
+        if (isSource) return structParser(
+                StreamDefinition.class,
+                "",
+                DOC,
+                stringField(Streams.TOPIC, TOPIC_DOC),
+                keyField,
+                valueField,
+                optional(functionField(Streams.TIMESTAMP_EXTRACTOR, "A function extracts the event time from a consumed record", new TimestampExtractorDefinitionParser())),
+                optional(stringField(Streams.RESET_POLICY, "Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted)")),
+                (topic, keyType, valueType, tsExtractor, resetPolicy, tags) -> {
+                    final var policy = OffsetResetPolicyParser.parseResetPolicy(resetPolicy);
+                    return new StreamDefinition(topic, keyType, valueType, tsExtractor, policy);
+                });
         return structParser(
                 StreamDefinition.class,
-                requireKeyValueType ? "" : "WithOptionalTypes",
-                "Contains a definition of a Stream, which can be referenced by producers and pipelines",
-                stringField(Streams.TOPIC, "The name of the Kafka topic for this stream"),
-                requireKeyValueType ? keyField : optional(keyField),
-                requireKeyValueType ? valueField : optional(valueField),
-                (topic, keyType, valueType, tags) -> new StreamDefinition(topic, keyType, valueType));
+                "Intermediate",
+                DOC,
+                stringField(Streams.TOPIC, TOPIC_DOC),
+                optional(keyField),
+                optional(valueField),
+                (topic, keyType, valueType, tags) -> new StreamDefinition(topic, keyType, valueType, null, null));
     }
 }

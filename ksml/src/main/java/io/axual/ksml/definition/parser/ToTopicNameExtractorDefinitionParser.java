@@ -24,10 +24,10 @@ import io.axual.ksml.definition.ToTopicNameExtractorDefinition;
 import io.axual.ksml.definition.TopicNameExtractorDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
-import io.axual.ksml.parser.ContextAwareParser;
+import io.axual.ksml.parser.TopologyResourceAwareParser;
 import io.axual.ksml.parser.StructParser;
 
-public class ToTopicNameExtractorDefinitionParser extends ContextAwareParser<ToTopicNameExtractorDefinition> {
+public class ToTopicNameExtractorDefinitionParser extends TopologyResourceAwareParser<ToTopicNameExtractorDefinition> {
     public ToTopicNameExtractorDefinitionParser(TopologyResources resources) {
         super(resources);
     }

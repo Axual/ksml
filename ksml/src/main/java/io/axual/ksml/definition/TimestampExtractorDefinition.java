@@ -22,15 +22,16 @@ package io.axual.ksml.definition;
 
 
 import io.axual.ksml.data.notation.UserType;
-import io.axual.ksml.parser.UserTypeParser;
-import org.apache.kafka.streams.Topology;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataString;
 
-public class StreamDefinition extends TopicDefinition {
-    public StreamDefinition(String topic, String keyType, String valueType, FunctionDefinition tsExtractor, Topology.AutoOffsetReset resetPolicy) {
-        this(topic, UserTypeParser.parse(keyType), UserTypeParser.parse(valueType), tsExtractor, resetPolicy);
-    }
+import static io.axual.ksml.definition.DefinitionConstants.TIMESTAMP_EXTRACTOR_PARAMETERS;
+import static io.axual.ksml.definition.DefinitionConstants.TOPIC_NAME_EXTRACTOR_PARAMETERS;
 
-    public StreamDefinition(String topic, UserType keyType, UserType valueType, FunctionDefinition tsExtractor, Topology.AutoOffsetReset resetPolicy) {
-        super(topic, keyType, valueType, tsExtractor, resetPolicy);
+public class TimestampExtractorDefinition extends FunctionDefinition {
+    public TimestampExtractorDefinition(FunctionDefinition definition) {
+        super(definition
+                .withParameters(mergeParameters(TIMESTAMP_EXTRACTOR_PARAMETERS, definition.parameters()))
+                .withResult(new UserType(definition.resultType().notation(), DataLong.DATATYPE)));
     }
 }
