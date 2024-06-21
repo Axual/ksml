@@ -5,7 +5,7 @@ ksml:
 #  storageDirectory: /tmp # When not set defaults to the default JVM temp directory
   prometheus:
   definitions:
-#    inspect: 01-example-inspect.yaml
+    inspect: 01-example-inspect.yaml
 #    copy: 02-example-copy.yaml
 #    filter: 03-example-filter.yaml
 #    branch: 04-example-branch.yaml
@@ -27,10 +27,10 @@ ksml:
 # These examples are intended to run from a inside a container on the same network
 kafka:
   application.id: io.ksml.example.streaming
-  bootstrap.servers: localhost:9092
-  schema.registry.url: http://localhost:8081
-#  bootstrap.servers: broker:9093
-#  schema.registry.url: http://schema_registry:8081
+#  bootstrap.servers: localhost:9092
+#  schema.registry.url: http://localhost:8081
+  bootstrap.servers: broker:9093
+  schema.registry.url: http://schema_registry:8081
   security.protocol: PLAINTEXT
   auto.offset.reset: earliest
   acks: all
