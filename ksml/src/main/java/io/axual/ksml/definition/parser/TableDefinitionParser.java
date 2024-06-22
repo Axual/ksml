@@ -28,9 +28,7 @@ import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyBaseResources;
-import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.parser.TopologyBaseResourceAwareParser;
-import io.axual.ksml.parser.TopologyResourceAwareParser;
 import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.store.StoreType;
@@ -59,7 +57,7 @@ public class TableDefinitionParser extends TopologyBaseResourceAwareParser<Table
                 keyField,
                 valueField,
                 optional(functionField(KSMLDSL.Streams.TIMESTAMP_EXTRACTOR, "A function extracts the event time from a consumed record", new TimestampExtractorDefinitionParser())),
-                optional(stringField(KSMLDSL.Streams.RESET_POLICY, "Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted)")),
+                optional(stringField(KSMLDSL.Streams.OFFSET_RESET_POLICY, "Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted)")),
                 storeField(),
                 (topic, keyType, valueType, tsExtractor, resetPolicy, store, tags) -> {
                     keyType = keyType != null ? keyType : UserType.UNKNOWN;

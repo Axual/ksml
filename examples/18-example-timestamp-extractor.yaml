@@ -1,0 +1,33 @@
+# This example shows how to apply a timestamp extractor and offset reset policy to an input stream
+
+streams:
+  sensor_source_avro:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+    offsetResetPolicy: earliest
+    timestampExtractor:
+      globalCode: |
+        counter = 0
+      code: |
+        log.info("Record={}, prevTs={}", record, previousTimestamp)
+        global counter
+        counter = counter + 1
+        log.info("Returning timestamp {}", counter)
+      expression: counter
+
+functions:
+  # Log the message using the built-in log variable that is passed in from Java
+  log_message:
+    type: forEach
+    parameters:
+      - name: format
+        type: string
+    code: log.info("Consumed {} message - key={}, value={}", format, key, value)
+
+pipelines:
+  # Every pipeline logs its own message, passing in the format parameter to log_message above
+  consume_avro:
+    from: sensor_source_avro
+    forEach:
+      code: log_message(key, value, format="AVRO")

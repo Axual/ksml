@@ -43,7 +43,7 @@ import org.apache.kafka.streams.processor.TopicNameExtractor;
 public class UserTimestampExtractor extends Invoker implements TimestampExtractor {
     private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
     private final RecordContextDataObjectMapper recordContextMapper = new RecordContextDataObjectMapper();
-    private final static DataType EXPECTED_RESULT_TYPE = DataString.DATATYPE;
+    private final static DataType EXPECTED_RESULT_TYPE = DataLong.DATATYPE;
 
     public UserTimestampExtractor(UserFunction function, ContextTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_TIMESTAMPEXTRACTOR);

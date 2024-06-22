@@ -313,7 +313,7 @@ public class KSMLDSL {
         public static final String KEY_TYPE = "keyType";
         public static final String VALUE_TYPE = "valueType";
         public static final String TIMESTAMP_EXTRACTOR = "timestampExtractor";
-        public static final String RESET_POLICY = "resetPolicy";
+        public static final String OFFSET_RESET_POLICY = "offsetResetPolicy";
     }
 
     @NoArgsConstructor(access = AccessLevel.PRIVATE)

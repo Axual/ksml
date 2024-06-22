@@ -23,7 +23,6 @@ package io.axual.ksml.definition.parser;
 
 import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.generator.TopologyBaseResources;
-import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.parser.TopologyBaseResourceAwareParser;
 
@@ -51,7 +50,7 @@ public class TopicDefinitionParser extends TopologyBaseResourceAwareParser<Topic
                 keyField,
                 valueField,
                 optional(functionField(Streams.TIMESTAMP_EXTRACTOR, "A function extracts the event time from a consumed record", new TimestampExtractorDefinitionParser())),
-                optional(stringField(Streams.RESET_POLICY, "Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted)")),
+                optional(stringField(Streams.OFFSET_RESET_POLICY, "Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted)")),
                 (topic, keyType, valueType, tsExtractor, resetPolicy, tags) -> topic != null ? new TopicDefinition(topic, keyType, valueType, tsExtractor, OffsetResetPolicyParser.parseResetPolicy(resetPolicy)) : null);
         return structParser(
                 TopicDefinition.class,

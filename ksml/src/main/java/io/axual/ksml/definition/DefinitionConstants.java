@@ -81,5 +81,5 @@ public class DefinitionConstants {
             new ParameterDefinition(PARAM_VALUE2, DataType.UNKNOWN)};
     public static final ParameterDefinition[] TIMESTAMP_EXTRACTOR_PARAMETERS = new ParameterDefinition[]{
             new ParameterDefinition(PARAM_RECORD, CONSUMER_RECORD_TYPE),
-            new ParameterDefinition(PARAM_VALUE2, DataLong.DATATYPE)};
+            new ParameterDefinition(PARAM_PREVIOUS_TIMESTAMP, DataLong.DATATYPE)};
 }
