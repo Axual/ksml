@@ -44,7 +44,7 @@ public class ToTopicNameExtractorDefinitionParser extends TopologyResourceAwareP
                         "Reference to a pre-defined topic name extractor, or an inline definition of a topic name extractor and an optional stream partitioner",
                         (name, tags) -> resources().function(name),
                         new TopicNameExtractorDefinitionParser())),
-                new StreamPartitionerDefinitionParser(),
+                optional(functionField(KSMLDSL.Operations.To.PARTITIONER, "A function that partitions the records in the output topic", new StreamPartitionerDefinitionParser())),
                 (tne, partitioner, tags) -> tne != null ? new ToTopicNameExtractorDefinition(new TopicNameExtractorDefinition(tne), partitioner) : null);
     }
 }

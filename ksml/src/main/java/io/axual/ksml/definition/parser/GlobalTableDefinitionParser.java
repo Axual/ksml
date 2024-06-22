@@ -51,7 +51,7 @@ public class GlobalTableDefinitionParser extends TopologyBaseResourceAwareParser
         final var valueField = userTypeField(KSMLDSL.Streams.VALUE_TYPE, "The value type of the global table");
         if (isSource) return structParser(
                 GlobalTableDefinition.class,
-                "",
+                "Source",
                 DOC,
                 stringField(KSMLDSL.Streams.TOPIC, TOPIC_DOC),
                 keyField,
@@ -75,7 +75,7 @@ public class GlobalTableDefinitionParser extends TopologyBaseResourceAwareParser
                 });
         return structParser(
                 GlobalTableDefinition.class,
-                "Intermediate",
+                "",
                 DOC,
                 stringField(KSMLDSL.Streams.TOPIC, TOPIC_DOC),
                 optional(keyField),

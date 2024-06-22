@@ -21,7 +21,7 @@ package io.axual.ksml.definition;
  */
 
 public record ToTopicNameExtractorDefinition(TopicNameExtractorDefinition topicNameExtractor,
-                                             StreamPartitionerDefinition partitioner) implements Definition {
+                                             FunctionDefinition partitioner) implements Definition {
     @Override
     public String toString() {
         return definitionType();

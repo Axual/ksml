@@ -44,7 +44,7 @@ public class StreamDefinitionParser extends TopologyBaseResourceAwareParser<Stre
         final var valueField = userTypeField(Streams.VALUE_TYPE, "The value type of the stream");
         if (isSource) return structParser(
                 StreamDefinition.class,
-                "",
+                "Source",
                 DOC,
                 stringField(Streams.TOPIC, TOPIC_DOC),
                 keyField,
@@ -57,7 +57,7 @@ public class StreamDefinitionParser extends TopologyBaseResourceAwareParser<Stre
                 });
         return structParser(
                 StreamDefinition.class,
-                "Intermediate",
+                "",
                 DOC,
                 stringField(Streams.TOPIC, TOPIC_DOC),
                 optional(keyField),

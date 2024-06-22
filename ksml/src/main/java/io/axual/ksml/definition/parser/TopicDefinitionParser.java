@@ -44,7 +44,7 @@ public class TopicDefinitionParser extends TopologyBaseResourceAwareParser<Topic
         final var valueField = userTypeField(Streams.VALUE_TYPE, "The value type of the topic");
         if (isSource) return structParser(
                 TopicDefinition.class,
-                "",
+                "Source",
                 DOC,
                 stringField(Streams.TOPIC, TOPIC_DOC),
                 keyField,
@@ -54,7 +54,7 @@ public class TopicDefinitionParser extends TopologyBaseResourceAwareParser<Topic
                 (topic, keyType, valueType, tsExtractor, resetPolicy, tags) -> topic != null ? new TopicDefinition(topic, keyType, valueType, tsExtractor, OffsetResetPolicyParser.parseResetPolicy(resetPolicy)) : null);
         return structParser(
                 TopicDefinition.class,
-                "Intermediate",
+                "",
                 DOC,
                 stringField(Streams.TOPIC, TOPIC_DOC),
                 optional(keyField),

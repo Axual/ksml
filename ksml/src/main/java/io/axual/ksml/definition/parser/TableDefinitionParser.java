@@ -51,7 +51,7 @@ public class TableDefinitionParser extends TopologyBaseResourceAwareParser<Table
         final var valueField = userTypeField(Streams.VALUE_TYPE, "The value type of the table");
         if (isSource) return structParser(
                 TableDefinition.class,
-                "",
+                "Source",
                 DOC,
                 stringField(Streams.TOPIC, TOPIC_DOC),
                 keyField,
@@ -75,7 +75,7 @@ public class TableDefinitionParser extends TopologyBaseResourceAwareParser<Table
                 });
         return structParser(
                 TableDefinition.class,
-                "Intermediate",
+                "",
                 DOC,
                 stringField(Streams.TOPIC, TOPIC_DOC),
                 optional(keyField),
