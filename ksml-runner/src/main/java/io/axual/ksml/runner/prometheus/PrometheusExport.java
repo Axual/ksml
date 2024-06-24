@@ -105,6 +105,7 @@ public class PrometheusExport implements Closeable {
         Optional.ofNullable(httpServer).ifPresent(HTTPServer::close);
         httpServer = null;
         Optional.ofNullable(registry).ifPresent(r -> collectorList.forEach(r::unregister));
+        registry = null;
         collectorList.clear();
     }
 
