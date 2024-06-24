@@ -34,12 +34,11 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
 
 import io.axual.ksml.client.serde.ResolvingDeserializer;
 import io.axual.ksml.client.serde.ResolvingSerializer;
@@ -88,32 +87,14 @@ public class KSMLRunner {
     public static void main(String[] args) {
         try {
             // Load name and version from manifest
-            var executableName = "KSML Runner";
-            var executableVersion = "";
-            try {
-                ClassLoader cl = KSMLRunner.class.getClassLoader();
-
-                try (InputStream url = cl.getResourceAsStream("META-INF/MANIFEST.MF")) {
-                    Manifest manifest = new Manifest(url);
-                    Attributes attr = manifest.getMainAttributes();
-                    String attrName = attr.getValue("Implementation-Title");
-                    if (attrName != null) {
-                        executableName = attrName;
-                    }
-
-                    String attrVersion = attr.getValue("Implementation-Version");
-                    if (attrVersion != null) {
-                        executableVersion = attrVersion;
-                    }
-                }
-            } catch (IOException e) {
-                log.info("Could not load manifest file, using default values");
-            }
+            var ksmlTitle = determineTitle();
 
             // Check if we need to output the schema and then exit
             checkForSchemaOutput(args);
 
-            log.info("Starting {} {}", executableName, executableVersion);
+            log.info("Starting {}", ksmlTitle);
+
+            // Begin loading config file
             final var configFile = new File(args.length == 0 ? DEFAULT_CONFIG_FILE_SHORT : args[0]);
             if (!configFile.exists()) {
                 log.error("Configuration file '{}' not found", configFile);
@@ -255,6 +236,34 @@ public class KSMLRunner {
             log.error("Unhandled exception", t);
             throw FatalError.reportAndExit(t);
         }
+    }
+
+    private static String determineTitle() {
+        var ksmlTitle = "KSML";
+
+        try {
+            ClassLoader cl = KSMLRunner.class.getClassLoader();
+
+            try (InputStream url = cl.getResourceAsStream("ksml/ksml-info.properties")) {
+                Properties ksmlInfo = new Properties();
+                ksmlInfo.load(url);
+                var titleBuilder = new StringBuilder()
+                        .append(ksmlInfo.getProperty("name", "KSML"));
+                if (ksmlInfo.containsKey("version")) {
+                    titleBuilder.append(" ").append(ksmlInfo.getProperty("version"));
+                }
+                if (ksmlInfo.containsKey("buildTime")) {
+                    titleBuilder.append(" (")
+                            .append(ksmlInfo.getProperty("buildTime"))
+                            .append(")");
+                }
+                ksmlTitle = titleBuilder.toString();
+            }
+
+        } catch (IOException e) {
+            log.info("Could not load manifest file, using default values");
+        }
+        return ksmlTitle;
     }
 
     private static void checkForSchemaOutput(String[] args) {
