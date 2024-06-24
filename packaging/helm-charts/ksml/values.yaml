@@ -20,14 +20,20 @@ nameOverride: ""
 fullnameOverride: ""
 
 # KSML runner configuration. See https://axual.github.io/ksml/runners.html
-ksmlRunnerConfig: {}
-  # configDirectory: /ksml
-  # schemaDirectory: /ksml
-  # storageDirectory: /ksml
+ksmlRunnerConfig:
+  definitions: {}
+  kafka: {}
   # definitions:
   # - my-definition.yaml
   # kafka:
   #   bootstrap.servers: "localhost:9092"
+
+# Directory containing KSML Definition files
+ksmlDefinitionDirectory: '/ksml'
+# Directory containing Schema files
+ksmlSchemaDirectory: '/ksml'
+# Location of Prometheus JMX Exporter config file
+ksmlMetricsExporterConfigFile: '/ksml/kafka-metrics-config.yml'
 
 # Kafka streams topology definitions. See https://axual.github.io/ksml/introduction.html
 ksmlDefinitions: {}
@@ -138,8 +144,38 @@ applicationServer:
   # -- Port on which Application server should be initialized
   port: "8080"
 
+# -- Logging configuration settings for KSML.
+logging:
+  # -- Enable JSON logging
+  jsonEnabled: false
+  # -- The logback log pattern to use
+  patterns:
+    stdout: '%date{"yyyy-MM-dd''T''HH:mm:ss,SSSXXX", UTC} [%t] %-5level %logger{36} - %msg%n'
+    stderr: '%date{"yyyy-MM-dd''T''HH:mm:ss,SSSXXX", UTC} [%t] %-5level %logger{36} - %msg%n'
+  # -- The default log level to use for all loggers
+  rootLogLevel: INFO
+  # -- Specify log levels for specific loggers.
+  loggers: {}
+  # -- Specify default loggers set for all deployments to minimize excessive logging
+  defaultLoggers:
+    io.axual.ksml: INFO
+    org.apache.kafka: WARN
+    org.apache.kafka.clients.consumer.ConsumerConfig: WARN
+    org.apache.kafka.clients.producer.ProducerConfig: WARN
+    org.apache.kafka.clients.admin.AdminClientConfig: WARN
+    org.apache.kafka.streams.StreamsConfig: WARN
+    io.confluent: WARN
+
+store:
+  spec:
+    accessModes: [ "ReadWriteOnce" ]
+    resources:
+      requests:
+        storage: 1Gi
+
 # -- KSML prometheus server port defined in the statefulset. Note that this must match the port defined in ksmlRunnerConfig.
 prometheus:
+  enabled: false
   # -- Port on which Prometheus metrics endpoint should be initialized
   port: "9999"
 
