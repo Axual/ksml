@@ -30,6 +30,7 @@ import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.stream.GlobalKTableWrapper;
 import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,7 +58,7 @@ class GlobalTableDefinitionTest {
         var stringType = UserTypeParser.parse("string");
 
         // given a TableDefinition
-        var tableDefinition = new GlobalTableDefinition("topic", stringType, stringType, new KeyValueStateStoreDefinition("storename", stringType, stringType));
+        var tableDefinition = new GlobalTableDefinition("topic", stringType, stringType, null, null, new KeyValueStateStoreDefinition("storename", stringType, stringType));
         var resources = new TopologyResources("test");
 
         var context = new TopologyBuildContext(builder, resources);
@@ -68,7 +69,7 @@ class GlobalTableDefinitionTest {
         verify(mockNotation).serde(stringType.dataType(), true);
         verify(mockNotation).serde(stringType.dataType(), false);
 
-        verify(builder).globalTable(eq("topic"), isA(Materialized.class));
+        verify(builder).globalTable(eq("topic"), isA(Consumed.class), isA(Materialized.class));
         assertThat(streamWrapper, instanceOf(GlobalKTableWrapper.class));
     }
 }

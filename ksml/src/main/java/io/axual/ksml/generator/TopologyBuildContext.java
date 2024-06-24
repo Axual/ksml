@@ -197,7 +197,7 @@ public class TopologyBuildContext {
         if (valueSerde != null) result = result.withValueSerde(valueSerde);
         if (tsExtractor != null) {
             final var tags = defaultContextTags();
-            result = result.withTimestampExtractor(new UserTimestampExtractor(createUserFunction(tsExtractor, tags), tags.append("caller", name)));
+            result = result.withTimestampExtractor(new UserTimestampExtractor(createUserFunction(tsExtractor, tags), tags.append("topic", name)));
         }
         if (resetPolicy != null) result = result.withOffsetResetPolicy(resetPolicy);
         return result;
