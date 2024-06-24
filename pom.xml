@@ -104,6 +104,7 @@
         <maven.enforcer.plugin.version>3.4.1</maven.enforcer.plugin.version>
         <maven.exec.plugin.version>3.2.0</maven.exec.plugin.version>
         <maven.license.plugin.version>2.4.0</maven.license.plugin.version>
+        <maven.resources.plugin.version>3.3.1</maven.resources.plugin.version>
 
         <maven.javadoc.plugin.version>3.6.3</maven.javadoc.plugin.version>
         <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
@@ -533,6 +534,12 @@
                             <phase>process-sources</phase>
                         </execution>
                     </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>${maven.resources.plugin.version}</version>
                 </plugin>
 
                 <plugin>
