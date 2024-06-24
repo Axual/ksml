@@ -22,11 +22,13 @@ package io.axual.ksml.definition;
 
 
 import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
 
+import static io.axual.ksml.dsl.ConsumerRecordSchema.CONSUMER_RECORD_SCHEMA;
 import static io.axual.ksml.dsl.RecordMetadataSchema.RECORD_METADATA_SCHEMA;
 
 public class DefinitionConstants {
@@ -40,6 +42,9 @@ public class DefinitionConstants {
     public static final String PARAM_VALUE2 = "value2";
     public static final String PARAM_METADATA = "metadata";
     public static final DataType METADATA_TYPE = new StructType(RECORD_METADATA_SCHEMA);
+    public static final String PARAM_RECORD = "record";
+    public static final String PARAM_PREVIOUS_TIMESTAMP = "previousTimestamp";
+    public static final DataType CONSUMER_RECORD_TYPE = new StructType(CONSUMER_RECORD_SCHEMA);
 
     private DefinitionConstants() {
     }
@@ -74,4 +79,7 @@ public class DefinitionConstants {
     public static final ParameterDefinition[] TWO_VALUE_PARAMETERS = new ParameterDefinition[]{
             new ParameterDefinition(PARAM_VALUE1, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_VALUE2, DataType.UNKNOWN)};
+    public static final ParameterDefinition[] TIMESTAMP_EXTRACTOR_PARAMETERS = new ParameterDefinition[]{
+            new ParameterDefinition(PARAM_RECORD, CONSUMER_RECORD_TYPE),
+            new ParameterDefinition(PARAM_PREVIOUS_TIMESTAMP, DataLong.DATATYPE)};
 }

@@ -24,10 +24,10 @@ import io.axual.ksml.definition.ToTopicNameExtractorDefinition;
 import io.axual.ksml.definition.TopicNameExtractorDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
-import io.axual.ksml.parser.ContextAwareParser;
+import io.axual.ksml.parser.TopologyResourceAwareParser;
 import io.axual.ksml.parser.StructParser;
 
-public class ToTopicNameExtractorDefinitionParser extends ContextAwareParser<ToTopicNameExtractorDefinition> {
+public class ToTopicNameExtractorDefinitionParser extends TopologyResourceAwareParser<ToTopicNameExtractorDefinition> {
     public ToTopicNameExtractorDefinitionParser(TopologyResources resources) {
         super(resources);
     }
@@ -44,7 +44,7 @@ public class ToTopicNameExtractorDefinitionParser extends ContextAwareParser<ToT
                         "Reference to a pre-defined topic name extractor, or an inline definition of a topic name extractor and an optional stream partitioner",
                         (name, tags) -> resources().function(name),
                         new TopicNameExtractorDefinitionParser())),
-                new StreamPartitionerDefinitionParser(),
+                optional(functionField(KSMLDSL.Operations.To.PARTITIONER, "A function that partitions the records in the output topic", new StreamPartitionerDefinitionParser())),
                 (tne, partitioner, tags) -> tne != null ? new ToTopicNameExtractorDefinition(new TopicNameExtractorDefinition(tne), partitioner) : null);
     }
 }

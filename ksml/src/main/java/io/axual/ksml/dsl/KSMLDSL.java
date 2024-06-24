@@ -56,6 +56,7 @@ public class KSMLDSL {
         public static final String TYPE_PREDICATE = "predicate";
         public static final String TYPE_REDUCER = "reducer";
         public static final String TYPE_STREAMPARTITIONER = "streamPartitioner";
+        public static final String TYPE_TIMESTAMPEXTRACTOR = "timestampExtractor";
         public static final String TYPE_TOPICNAMEEXTRACTOR = "topicNameExtractor";
         public static final String TYPE_VALUEJOINER = "valueJoiner";
         public static final String TYPE_VALUETRANSFORMER = "valueTransformer";
@@ -311,6 +312,8 @@ public class KSMLDSL {
         public static final String TOPIC = "topic";
         public static final String KEY_TYPE = "keyType";
         public static final String VALUE_TYPE = "valueType";
+        public static final String TIMESTAMP_EXTRACTOR = "timestampExtractor";
+        public static final String OFFSET_RESET_POLICY = "offsetResetPolicy";
     }
 
     @NoArgsConstructor(access = AccessLevel.PRIVATE)

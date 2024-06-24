@@ -22,29 +22,43 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.TopicDefinition;
-import io.axual.ksml.parser.DefinitionParser;
+import io.axual.ksml.generator.TopologyBaseResources;
 import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.TopologyBaseResourceAwareParser;
 
 import static io.axual.ksml.dsl.KSMLDSL.Streams;
 
-public class TopicDefinitionParser extends DefinitionParser<TopicDefinition> {
-    private final boolean requireKeyValueType;
+public class TopicDefinitionParser extends TopologyBaseResourceAwareParser<TopicDefinition> {
+    private static final String DOC = "Contains a definition of a Kafka topic, to be used by producers and pipelines";
+    private static final String TOPIC_DOC = "The name of the Kafka topic";
+    private final boolean isSource;
 
-    public TopicDefinitionParser(boolean requireKeyValueType) {
-        this.requireKeyValueType = requireKeyValueType;
+    public TopicDefinitionParser(TopologyBaseResources resources, boolean isSource) {
+        super(resources);
+        this.isSource = isSource;
     }
 
     @Override
     public StructParser<TopicDefinition> parser() {
         final var keyField = userTypeField(Streams.KEY_TYPE, "The key type of the topic");
         final var valueField = userTypeField(Streams.VALUE_TYPE, "The value type of the topic");
+        if (isSource) return structParser(
+                TopicDefinition.class,
+                "Source",
+                DOC,
+                stringField(Streams.TOPIC, TOPIC_DOC),
+                keyField,
+                valueField,
+                optional(functionField(Streams.TIMESTAMP_EXTRACTOR, "A function extracts the event time from a consumed record", new TimestampExtractorDefinitionParser())),
+                optional(stringField(Streams.OFFSET_RESET_POLICY, "Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted)")),
+                (topic, keyType, valueType, tsExtractor, resetPolicy, tags) -> topic != null ? new TopicDefinition(topic, keyType, valueType, tsExtractor, OffsetResetPolicyParser.parseResetPolicy(resetPolicy)) : null);
         return structParser(
                 TopicDefinition.class,
-                requireKeyValueType ? "" : "WithOptionalTypes",
-                "Contains a definition of a Kafka topic, to be used by producers and pipelines",
-                stringField(Streams.TOPIC, "The name of the Kafka topic"),
-                requireKeyValueType ? keyField : optional(keyField),
-                requireKeyValueType ? valueField : optional(valueField),
-                (topic, keyType, valueType, tags) -> topic != null ? new TopicDefinition(topic, keyType, valueType) : null);
+                "",
+                DOC,
+                stringField(Streams.TOPIC, TOPIC_DOC),
+                optional(keyField),
+                optional(valueField),
+                (topic, keyType, valueType, tags) -> topic != null ? new TopicDefinition(topic, keyType, valueType, null, null) : null);
     }
 }

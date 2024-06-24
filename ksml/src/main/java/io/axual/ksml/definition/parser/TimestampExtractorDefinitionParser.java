@@ -1,4 +1,4 @@
-package io.axual.ksml.definition;
+package io.axual.ksml.definition.parser;
 
 /*-
  * ========================LICENSE_START=================================
@@ -21,16 +21,19 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.data.notation.UserType;
-import io.axual.ksml.parser.UserTypeParser;
-import org.apache.kafka.streams.Topology;
+import io.axual.ksml.definition.TimestampExtractorDefinition;
+import io.axual.ksml.definition.TopicNameExtractorDefinition;
+import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.parser.StructParser;
+import org.apache.kafka.streams.processor.TimestampExtractor;
 
-public class StreamDefinition extends TopicDefinition {
-    public StreamDefinition(String topic, String keyType, String valueType, FunctionDefinition tsExtractor, Topology.AutoOffsetReset resetPolicy) {
-        this(topic, UserTypeParser.parse(keyType), UserTypeParser.parse(valueType), tsExtractor, resetPolicy);
-    }
-
-    public StreamDefinition(String topic, UserType keyType, UserType valueType, FunctionDefinition tsExtractor, Topology.AutoOffsetReset resetPolicy) {
-        super(topic, keyType, valueType, tsExtractor, resetPolicy);
+public class TimestampExtractorDefinitionParser extends FunctionDefinitionParser<TimestampExtractorDefinition> {
+    @Override
+    public StructParser<TimestampExtractorDefinition> parser() {
+        return parserWithoutStores(
+                TimestampExtractorDefinition.class,
+                KSMLDSL.Functions.TYPE_TIMESTAMPEXTRACTOR,
+                "timestamp extractor",
+                (function, tags) -> new TimestampExtractorDefinition(function));
     }
 }

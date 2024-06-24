@@ -55,7 +55,7 @@ class StreamDefinitionTest {
         NotationLibrary.register(BinaryNotation.NOTATION_NAME, mockNotation);
 
         // given a StreamDefinition
-        var streamDefinition = new StreamDefinition("topic", "string", "string");
+        var streamDefinition = new StreamDefinition("topic", "string", "string", null, null);
         var resources = new TopologyResources("test");
 
         var context = new TopologyBuildContext(builder, resources);

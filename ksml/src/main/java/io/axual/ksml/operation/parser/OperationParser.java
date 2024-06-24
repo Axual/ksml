@@ -27,7 +27,7 @@ import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.BaseOperation;
 import io.axual.ksml.operation.OperationConfig;
-import io.axual.ksml.parser.ContextAwareParser;
+import io.axual.ksml.parser.TopologyResourceAwareParser;
 import io.axual.ksml.parser.StringValueParser;
 import io.axual.ksml.parser.StructParser;
 import lombok.Getter;
@@ -35,7 +35,7 @@ import lombok.Getter;
 import java.util.List;
 
 @Getter
-public abstract class OperationParser<T extends BaseOperation> extends ContextAwareParser<T> {
+public abstract class OperationParser<T extends BaseOperation> extends TopologyResourceAwareParser<T> {
     protected final String type;
 
     public OperationParser(String type, TopologyResources resources) {
