@@ -4,7 +4,7 @@ package io.axual.ksml.definition;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2024 Axual B.V.
+ * Copyright (C) 2021 - 2023 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,18 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
-public record ToTopicNameExtractorDefinition(TopicNameExtractorDefinition topicNameExtractor,
-                                             FunctionDefinition partitioner) implements Definition {
-    @Override
-    public String toString() {
-        return definitionType();
+
+import io.axual.ksml.data.notation.UserType;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataString;
+
+import static io.axual.ksml.definition.DefinitionConstants.TIMESTAMP_EXTRACTOR_PARAMETERS;
+import static io.axual.ksml.definition.DefinitionConstants.TOPIC_NAME_EXTRACTOR_PARAMETERS;
+
+public class TimestampExtractorDefinition extends FunctionDefinition {
+    public TimestampExtractorDefinition(FunctionDefinition definition) {
+        super(definition
+                .withParameters(mergeParameters(TIMESTAMP_EXTRACTOR_PARAMETERS, definition.parameters()))
+                .withResult(new UserType(definition.resultType().notation(), DataLong.DATATYPE)));
     }
 }

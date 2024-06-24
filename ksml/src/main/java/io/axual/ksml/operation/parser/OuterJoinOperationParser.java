@@ -51,7 +51,7 @@ public class OuterJoinOperationParser extends StoreOperationParser<OuterJoinOper
                 "Operation to join with a stream",
                 operationTypeField(),
                 operationNameField(),
-                topicField(KSMLDSL.Operations.Join.WITH_STREAM, "(Required for Stream joins) A reference to the Stream, or an inline definition of the Stream to join with", new StreamDefinitionParser(false)),
+                topicField(KSMLDSL.Operations.Join.WITH_STREAM, "(Required for Stream joins) A reference to the Stream, or an inline definition of the Stream to join with", new StreamDefinitionParser(resources(), false)),
                 functionField(KSMLDSL.Operations.Join.VALUE_JOINER, "(Stream joins) A function that joins two values", new ValueJoinerDefinitionParser()),
                 durationField(KSMLDSL.Operations.Join.TIME_DIFFERENCE, "(Stream joins) The maximum time difference for a join over two streams on the same key"),
                 optional(durationField(KSMLDSL.Operations.Join.GRACE, "(Stream joins) The window grace period (the time to admit out-of-order events after the end of the window)")),
@@ -69,7 +69,7 @@ public class OuterJoinOperationParser extends StoreOperationParser<OuterJoinOper
                 "Operation to join with a table",
                 operationTypeField(),
                 operationNameField(),
-                topicField(KSMLDSL.Operations.Join.WITH_TABLE, "(Required for Table joins) A reference to the Table, or an inline definition of the Table to join with", new TableDefinitionParser(false)),
+                topicField(KSMLDSL.Operations.Join.WITH_TABLE, "(Required for Table joins) A reference to the Table, or an inline definition of the Table to join with", new TableDefinitionParser(resources(), false)),
                 functionField(KSMLDSL.Operations.Join.VALUE_JOINER, "(Table joins) A function that joins two values", new ValueJoinerDefinitionParser()),
                 storeField(false, "Materialized view of the joined streams", null),
                 (type, name, table, valueJoiner, store, tags) -> {

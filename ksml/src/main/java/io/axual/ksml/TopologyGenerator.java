@@ -139,7 +139,7 @@ public class TopologyGenerator {
         });
 
         // Preload the function into the Python context
-        specification.functions().forEach((name, func) -> context.createUserFunction(func, new ContextTags().append("namespace", context.namespace())));
+        specification.functions().forEach((name, func) -> context.createUserFunction(func, null));
 
         // Figure out which state stores to create manually. Mechanism:
         // 1. run through all pipelines and scan for StoreOperations, don't create the stores referenced

@@ -28,13 +28,13 @@ import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.AsOperation;
 import io.axual.ksml.operation.OperationConfig;
 import io.axual.ksml.operation.parser.*;
-import io.axual.ksml.parser.ContextAwareParser;
+import io.axual.ksml.parser.TopologyResourceAwareParser;
 import io.axual.ksml.parser.IgnoreParser;
 import io.axual.ksml.parser.StructParser;
 
 import java.util.ArrayList;
 
-public class PipelineDefinitionParser extends ContextAwareParser<PipelineDefinition> implements NamedObjectParser {
+public class PipelineDefinitionParser extends TopologyResourceAwareParser<PipelineDefinition> implements NamedObjectParser {
     private final boolean parseSource;
     private String defaultName;
 
@@ -55,7 +55,7 @@ public class PipelineDefinitionParser extends ContextAwareParser<PipelineDefinit
         final var printParser = new PrintOperationParser(resources());
         final var toParser = new ToOperationParser(resources());
 
-        final var sourceField = topologyResourceField("source", KSMLDSL.Pipelines.FROM, "Pipeline source", (name, tags) -> resources().topic(name), new TopicDefinitionParser(true));
+        final var sourceField = topologyResourceField("source", KSMLDSL.Pipelines.FROM, "Pipeline source", (name, tags) -> resources().topic(name), new TopicDefinitionParser(resources(), true));
 
         return structParser(
                 PipelineDefinition.class,

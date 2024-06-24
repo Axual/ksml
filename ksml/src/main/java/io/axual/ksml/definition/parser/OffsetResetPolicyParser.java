@@ -1,4 +1,4 @@
-package io.axual.ksml.definition;
+package io.axual.ksml.definition.parser;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,10 +20,16 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
-public record ToTopicNameExtractorDefinition(TopicNameExtractorDefinition topicNameExtractor,
-                                             FunctionDefinition partitioner) implements Definition {
-    @Override
-    public String toString() {
-        return definitionType();
+import io.axual.ksml.exception.TopologyException;
+import org.apache.kafka.streams.Topology;
+
+public class OffsetResetPolicyParser {
+    public static Topology.AutoOffsetReset parseResetPolicy(String resetPolicy) {
+        if (resetPolicy == null || resetPolicy.isEmpty()) return null;
+        if (Topology.AutoOffsetReset.EARLIEST.name().equalsIgnoreCase(resetPolicy))
+            return Topology.AutoOffsetReset.EARLIEST;
+        if (Topology.AutoOffsetReset.LATEST.name().equalsIgnoreCase(resetPolicy))
+            return Topology.AutoOffsetReset.LATEST;
+        throw new TopologyException("Unknown offset reset policy: " + resetPolicy);
     }
 }

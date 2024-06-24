@@ -35,8 +35,6 @@ import java.util.List;
 import static io.axual.ksml.dsl.KSMLDSL.Functions;
 
 public abstract class FunctionDefinitionParser<T extends FunctionDefinition> extends DefinitionParser<T> {
-    private String defaultName;
-
     protected StructParser<T> parserWithStores(Class<T> resultClass, String functionType, String description, Constructor1<T, FunctionDefinition> constructor) {
         return parser(resultClass, functionType, description, (name, type, params, globalCode, code, expression, resultType, stores, tags) -> FunctionDefinition.as(name, params, globalCode, code, expression, resultType, stores), constructor);
     }

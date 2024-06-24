@@ -42,13 +42,13 @@ public class JoinTargetDefinitionParser extends BaseParser<TopologyResource<Topi
     public TopologyResource<TopicDefinition> parse(ParseNode node) {
         if (node == null) return null;
         if (node.get(Operations.Join.WITH_STREAM) != null) {
-            return new TopologyResourceParser<>("stream", Operations.Join.WITH_STREAM, null, (name, tags) -> resources.topic(name), new StreamDefinitionParser(false)).parse(node);
+            return new TopologyResourceParser<>("stream", Operations.Join.WITH_STREAM, null, (name, tags) -> resources.topic(name), new StreamDefinitionParser(resources, false)).parse(node);
         }
         if (parseString(node, Operations.Join.WITH_TABLE) != null) {
-            return new TopologyResourceParser<>("table", Operations.Join.WITH_TABLE, null, (name, tags) -> resources.topic(name), new TableDefinitionParser(false)).parse(node);
+            return new TopologyResourceParser<>("table", Operations.Join.WITH_TABLE, null, (name, tags) -> resources.topic(name), new TableDefinitionParser(resources, false)).parse(node);
         }
         if (parseString(node, Operations.Join.WITH_GLOBAL_TABLE) != null) {
-            return new TopologyResourceParser<>("globalTable", Operations.Join.WITH_GLOBAL_TABLE, null, (name, tags) -> resources.topic(name), new GlobalTableDefinitionParser(false)).parse(node);
+            return new TopologyResourceParser<>("globalTable", Operations.Join.WITH_GLOBAL_TABLE, null, (name, tags) -> resources.topic(name), new GlobalTableDefinitionParser(resources, false)).parse(node);
         }
         throw new ParseException(node, "Stream definition missing");
     }
