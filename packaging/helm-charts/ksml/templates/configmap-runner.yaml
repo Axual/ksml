@@ -1,0 +1,91 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ksml.fullname" . }}-runner
+  labels:
+    {{- include "ksml.labels" . | nindent 4 }}
+data:
+  ksml-runner.yaml: |
+    ksml:
+      configDirectory: {{ .Values.ksmlRunnerConfig.definitionDirectory | quote }}
+      schemaDirectory: {{ .Values.ksmlRunnerConfig.schemaDirectory | quote }}
+      storageDirectory: "/ksml-store"
+      enableProducers: {{ .Values.ksmlRunnerConfig.enableProducers }}
+      enablePipelines: {{ .Values.ksmlRunnerConfig.enablePipelines }}
+      errorHandling:
+        consume:
+          log: {{ .Values.ksmlRunnerConfig.errorHandling.consume.log }}
+          logPayload: {{ .Values.ksmlRunnerConfig.errorHandling.consume.logPayload }}
+          loggerName: {{ .Values.ksmlRunnerConfig.errorHandling.consume.loggerName }}
+          handler: {{ ternary "stopOnFail" "continueOnFail" .Values.ksmlRunnerConfig.errorHandling.consume.stopOnError }}
+        produce:
+          log: {{ .Values.ksmlRunnerConfig.errorHandling.produce.log }}
+          logPayload: {{ .Values.ksmlRunnerConfig.errorHandling.produce.logPayload }}
+          loggerName: {{ .Values.ksmlRunnerConfig.errorHandling.produce.loggerName }}
+          handler: {{ ternary "stopOnFail" "continueOnFail" .Values.ksmlRunnerConfig.errorHandling.produce.stopOnError }}
+        process:
+          log: {{ .Values.ksmlRunnerConfig.errorHandling.process.log }}
+          logPayload: {{ .Values.ksmlRunnerConfig.errorHandling.process.logPayload }}
+          loggerName: {{ .Values.ksmlRunnerConfig.errorHandling.process.loggerName }}
+          handler: {{ ternary "stopOnFail" "continueOnFail" .Values.ksmlRunnerConfig.errorHandling.process.stopOnError }}
+      applicationServer:
+        enabled: {{ .Values.applicationServer.enabled }}
+        port: {{ .Values.applicationServer.port }}
+      prometheus:
+        enabled: {{ .Values.prometheus.enabled }}
+        port: {{ .Values.prometheus.port  }}
+        configFile: {{ .Values.prometheus.configFile | quote }}
+      definitions:
+{{- with .Values.ksmlRunnerConfig.definitions }}
+  {{- toYaml . | nindent 8 }}
+{{- end }}
+    kafka:
+      config.providers: env
+      config.providers.env.class: 'org.apache.kafka.common.config.provider.EnvVarConfigProvider'
+      group.instance.id: '${env:KSML_GROUP_INSTANCE_ID}'
+{{- with .Values.ksmlRunnerConfig.kafka }}
+  {{- toYaml . | nindent 6 }}
+{{- end }}
+
+{{- with .Values.ksmlDefinitions }}
+  {{- toYaml . | nindent 2 }}
+{{- end }}
+{{- with .Values.schemaDefinitions }}
+  {{- toYaml . | nindent 2 }}
+{{- end }}
+
+  kafka-metrics-config.yml: |
+    lowercaseOutputName: true
+    lowercaseOutputLabelNames: true
+    rules:
+    - pattern: 'ksml<type=app-info, app-id=(.+), app-name=(.+), app-version=(.+), build-time=(.+)>Value:'
+      name: ksml_app_info
+      labels:
+        app_id: "$1"
+        name: "$2"
+        version: "$3"
+        build_time: "$4"
+      type: GAUGE
+      value: 1
+      cached: true
+    - pattern: 'ksml<type=user_defined_counter, .*>'
+      type: COUNTER
+    - pattern: 'ksml<type=.+, .*>'
+      type: GAUGE
+    - pattern: 'kafka.streams<type=stream-(.+-)?metrics, .*>'
+      type: GAUGE
+    - pattern: 'kafka.producer<type=producer-(.+-)?metrics, .*>'
+      type: GAUGE
+    - pattern: 'kafka.consumer<type=consumer-(.+-)?metrics, .*>'
+      type: GAUGE
+    - pattern: 'kafka.admin.client<type=admin-client-(.+-)?metrics, .*>'
+      type: GAUGE
+    - pattern: 'java.lang<type=OperatingSystem><>(committed_virtual_memory|free_physical_memory|free_swap_space|total_physical_memory|total_swap_space)_size:'
+      name: os_$1_bytes
+      type: GAUGE
+      attrNameSnakeCase: true
+    - pattern: 'java.lang<type=OperatingSystem><>((?!process_cpu_time)\w+):'
+      name: os_$1
+      type: GAUGE
+      attrNameSnakeCase: true
+    - pattern: .*

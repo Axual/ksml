@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ksml.fullname" . }}-logging
+  labels:
+    {{- include "ksml.labels" . | nindent 4 }}
+data:
+  logback.xml: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <configuration scan="true" scanPeriod="5 seconds">
+
+      <appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
+      {{- if .Values.logging.jsonEnabled }}
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+      {{- else }}
+        <encoder>
+            <pattern>{{ .Values.logging.patterns.stderr }}</pattern>
+        </encoder>
+      {{- end }}
+
+        <target>System.err</target>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+          <level>WARN</level>
+        </filter>
+      </appender>
+      <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+      {{- if .Values.logging.jsonEnabled }}
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+      {{- else }}
+        <encoder>
+            <pattern>{{ .Values.logging.patterns.stdout }}</pattern>
+        </encoder>
+      {{- end }}
+
+        <target>System.out</target>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+          <level>TRACE</level>
+          <onMatch>ACCEPT</onMatch>
+        </filter>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+          <level>DEBUG</level>
+          <onMatch>ACCEPT</onMatch>
+        </filter>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+          <level>INFO</level>
+          <onMatch>ACCEPT</onMatch>
+        </filter>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+          <level>WARN</level>
+          <onMatch>DENY</onMatch>
+        </filter>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+          <level>ERROR</level>
+          <onMatch>DENY</onMatch>
+        </filter>
+      </appender>
+
+
+
+      <root level="{{ .Values.logging.rootLogLevel }}">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="STDERR"/>
+      </root>
+
+    {{- range $key, $value := (mergeOverwrite .Values.logging.defaultLoggers .Values.logging.loggers ) }}
+      <logger name="{{ $key  }}" level="{{ $value  }}" />
+    {{- end }}
+
+    </configuration>
+

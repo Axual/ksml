@@ -8,6 +8,9 @@
         "applicationServer": {
             "type": "object",
             "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
                 "port": {
                     "type": "string"
                 }
@@ -76,10 +79,113 @@
             }
         },
         "ksmlDefinitions": {
-            "type": "object"
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
         },
         "ksmlRunnerConfig": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "definitionDirectory": {
+                    "type": "string"
+                },
+                "schemaDirectory": {
+                    "type": "string"
+                },
+                "enableProducers": {
+                    "type": "boolean"
+                },
+                "enablePipelines": {
+                    "type": "boolean"
+                },
+                "errorHandling": {
+                    "type": "object",
+                    "properties": {
+                        "consume" : {"$ref": "#/definitions/ErrorHandling"},
+                        "produce" : {"$ref": "#/definitions/ErrorHandling"},
+                        "process" : {"$ref": "#/definitions/ErrorHandling"}
+                    }
+                },
+                "definitions": {
+                    "type": "object",
+                    "minProperties": 1,
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "kafka": {
+                    "type": "object",
+                    "properties": {
+                        "application.id": {
+                            "type": "string"
+                        },
+                        "bootstrap.servers": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "boolean"
+                            }
+                        ]
+                    },
+                    "required": [
+                        "application.id",
+                        "bootstrap.servers"
+                    ]
+                }
+            },
+            "required": [
+                "definitionDirectory",
+                "schemaDirectory",
+                "definitions",
+                "kafka"
+            ]
+        },
+        "logging": {
+            "type": "object",
+            "properties": {
+                "configFile": {
+                    "type": "string"
+                },
+                "jsonEnabled": {
+                    "type": "boolean"
+                },
+                "patters": {
+                    "type": "object",
+                    "properties": {
+                        "stdout": {
+                            "type": "string"
+                        },
+                        "stderr": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "rootLogLevel": {
+                    "$ref": "#/definitions/LogLevel"
+                },
+                "loggers": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/LogLevel"
+                    }
+                },
+                "defaultLoggers": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/LogLevel"
+                    }
+                }
+            }
         },
         "nameOverride": {
             "type": "string"
@@ -99,19 +205,29 @@
         "prometheus": {
             "type": "object",
             "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
                 "port": {
+                    "type": "string"
+                },
+                "configFile": {
                     "type": "string"
                 }
             }
         },
         "replicaCount": {
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0
         },
         "resources": {
             "type": "object"
         },
         "schemaDefinitions": {
-            "type": "object"
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
         },
         "securityContext": {
             "type": "object"
@@ -144,6 +260,9 @@
                 }
             }
         },
+        "store": {
+            "type": "object"
+        },
         "serviceMonitor": {
             "type": "object",
             "properties": {
@@ -172,6 +291,40 @@
         },
         "volumes": {
             "type": "array"
+        }
+    },
+    "definitions": {
+        "LogLevel": {
+            "enum": [
+                "TRACE",
+                "DEBUG",
+                "INFO",
+                "WARN",
+                "ERROR",
+                "trace",
+                "debug",
+                "info",
+                "warn",
+                "error"
+            ]
+        },
+        "ErrorHandling": {
+            "type": "object",
+            "properties": {
+                "log": {
+                    "type": "boolean"
+                },
+                "logPayload": {
+                    "type": "boolean"
+                },
+                "stopOnError": {
+                    "type": "boolean"
+                },
+                "logger": {
+                    "type": "string",
+                    "minLength": 1
+                }
+            }
         }
     }
 }
