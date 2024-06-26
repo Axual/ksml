@@ -1,5 +1,3 @@
-[<< Back to index](index.md)
-
 # State Stores
 
 [Duration]: pipelines.md#duration

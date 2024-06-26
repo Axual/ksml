@@ -21,9 +21,6 @@ package io.axual.ksml.python;
  */
 
 
-import com.codahale.metrics.Timer;
-
-import io.axual.ksml.data.tag.ContextTags;
 import org.apache.kafka.streams.processor.StateStore;
 import org.graalvm.polyglot.Value;
 
@@ -42,8 +39,6 @@ import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.execution.FatalError;
-import io.axual.ksml.metric.MetricName;
-import io.axual.ksml.metric.KSMLMetrics;
 import io.axual.ksml.store.StateStores;
 import io.axual.ksml.user.UserFunction;
 import lombok.extern.slf4j.Slf4j;
@@ -57,21 +52,20 @@ public class PythonFunction extends UserFunction {
     private static final String QUOTE = "\"";
     private final DataObjectConverter converter;
     private final Value function;
-    private final Timer functionTimer;
 
-    public static PythonFunction forFunction(PythonContext context, ContextTags tags, String namespace, String name, FunctionDefinition definition) {
-        return new PythonFunction(context, namespace, tags, "function", name, definition);
+    public static PythonFunction forFunction(PythonContext context, String namespace, String name, FunctionDefinition definition) {
+        return new PythonFunction(context, namespace, "function", name, definition);
     }
 
-    public static PythonFunction forGenerator(PythonContext context, ContextTags tags, String namespace, String name, FunctionDefinition definition) {
-        return new PythonFunction(context, namespace, tags, "generator", name, definition);
+    public static PythonFunction forGenerator(PythonContext context, String namespace, String name, FunctionDefinition definition) {
+        return new PythonFunction(context, namespace, "generator", name, definition);
     }
 
-    public static PythonFunction forPredicate(PythonContext context, ContextTags tags, String namespace, String name, FunctionDefinition definition) {
-        return new PythonFunction(context, namespace, tags, "condition", name, definition);
+    public static PythonFunction forPredicate(PythonContext context, String namespace, String name, FunctionDefinition definition) {
+        return new PythonFunction(context, namespace, "condition", name, definition);
     }
 
-    private PythonFunction(PythonContext context, String namespace, ContextTags tags, String type, String name, FunctionDefinition definition) {
+    private PythonFunction(PythonContext context, String namespace, String type, String name, FunctionDefinition definition) {
         super(name, definition.parameters(), definition.resultType(), definition.storeNames());
         converter = context.converter();
         final var pyCode = generatePythonCode(namespace, type, name, definition);
@@ -80,18 +74,10 @@ public class PythonFunction extends UserFunction {
             System.out.println("Error in generated Python code:\n" + pyCode);
             throw new ExecutionException("Error in function: " + name);
         }
-        if (tags == null) tags = new ContextTags();
-        var metricName = new MetricName("execution-time", tags.append("function-type", type).append("function-name", name));
-        if (KSMLMetrics.registry().getTimer(metricName) == null) {
-            functionTimer = KSMLMetrics.registry().registerTimer(metricName);
-        } else {
-            functionTimer = KSMLMetrics.registry().getTimer(metricName);
-        }
     }
 
     @Override
     public DataObject call(StateStores stores, DataObject... parameters) {
-        return functionTimer.timeSupplier(() -> {
             // Validate that the defined parameter list matches the amount of passed in parameters
             if (this.fixedParameterCount > parameters.length) {
                 throw new TopologyException("Parameter list does not match function spec: minimally expected " + this.parameters.length + ", got " + parameters.length);
@@ -135,7 +121,6 @@ public class PythonFunction extends UserFunction {
                 logCall(parameters, null);
                 throw FatalError.reportAndExit(new TopologyException("Error while executing function " + name + ": " + e.getMessage(), e));
             }
-        });
     }
 
     private Object[] convertParameters(Map<String, Object> globalVariables, DataObject... parameters) {

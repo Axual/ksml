@@ -1,5 +1,3 @@
-[<< Back to index](index.md)
-
 # Operations
 
 ### Table of Contents

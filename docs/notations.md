@@ -1,5 +1,3 @@
-[<< Back to index](index.md)
-
 # Notations
 
 ### Table of Contents

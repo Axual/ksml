@@ -21,15 +21,6 @@ package io.axual.ksml;
  */
 
 
-import io.axual.ksml.data.tag.ContextTags;
-import io.axual.ksml.definition.GlobalTableDefinition;
-import io.axual.ksml.definition.StateStoreDefinition;
-import io.axual.ksml.definition.TableDefinition;
-import io.axual.ksml.generator.TopologyAnalyzer;
-import io.axual.ksml.generator.TopologyBuildContext;
-import io.axual.ksml.generator.TopologyDefinition;
-import io.axual.ksml.operation.*;
-import io.axual.ksml.stream.StreamWrapper;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.slf4j.Logger;
@@ -38,6 +29,17 @@ import org.slf4j.LoggerFactory;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import io.axual.ksml.definition.GlobalTableDefinition;
+import io.axual.ksml.definition.StateStoreDefinition;
+import io.axual.ksml.definition.TableDefinition;
+import io.axual.ksml.generator.TopologyAnalyzer;
+import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.generator.TopologyDefinition;
+import io.axual.ksml.operation.StoreOperation;
+import io.axual.ksml.operation.StreamOperation;
+import io.axual.ksml.operation.ToOperation;
+import io.axual.ksml.stream.StreamWrapper;
 
 public class TopologyGenerator {
     private static final Logger LOG = LoggerFactory.getLogger(TopologyGenerator.class);
@@ -139,7 +141,7 @@ public class TopologyGenerator {
         });
 
         // Preload the function into the Python context
-        specification.functions().forEach((name, func) -> context.createUserFunction(func, null));
+        specification.functions().forEach((name, func) -> context.createUserFunction(func));
 
         // Figure out which state stores to create manually. Mechanism:
         // 1. run through all pipelines and scan for StoreOperations, don't create the stores referenced

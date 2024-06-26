@@ -52,7 +52,7 @@ public class MetricsBridge {
      * @return The {@link CounterBridge} instance that is to be used to update the timer metric
      */
     public CounterBridge counter(String name, Map<?, ?> tags) {
-        final var metricName = createMetricName(name, tags);
+        final var metricName = createMetricName("counter", name, tags);
         if (counters.containsKey(metricName)) {
             return counters.get(metricName);
         }
@@ -82,7 +82,7 @@ public class MetricsBridge {
      * @return The {@link MeterBridge} instance that is to be used to update the timer metric
      */
     public MeterBridge meter(String name, Map<?, ?> tags) {
-        final var metricName = createMetricName(name, tags);
+        final var metricName = createMetricName("meter", name, tags);
         if (meters.containsKey(metricName)) {
             return meters.get(metricName);
         }
@@ -112,7 +112,7 @@ public class MetricsBridge {
      * @return The {@link TimerBridge} instance that is to be used to update the timer metric
      */
     public TimerBridge timer(String name, Map<?, ?> tags) {
-        final var metricName = createMetricName(name, tags);
+        final var metricName = createMetricName("timer", name, tags);
         if (timers.containsKey(metricName)) {
             return timers.get(metricName);
         }
@@ -134,14 +134,14 @@ public class MetricsBridge {
         return timer(name, null);
     }
 
-    private MetricName createMetricName(String name, Map<?, ?> tagMap) {
-        var tags = new ContextTags();
+    private MetricName createMetricName(String type, String name, Map<?, ?> tagMap) {
+        var tags = new ContextTags().append("custom-name", name);
         if (tagMap != null) {
             for (Map.Entry<?, ?> entry : tagMap.entrySet()) {
                 tags = tags.append(entry.getKey().toString(), entry.getValue().toString());
             }
         }
-        return new MetricName("user-defined-metrics", tags.append("custom-name", name));
+        return new MetricName("user-defined-" + type, tags);
     }
 
     private void removeMetric(MetricName metricName, Map<MetricName, ?> metricMap) {

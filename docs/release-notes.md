@@ -1,5 +1,3 @@
-[<< Back to index](index.md)
-
 # Release Notes
 
 ## Releases

@@ -1,5 +1,3 @@
-[<< Back to index](index.md)
-
 # Types
 
 ### Table of Contents
