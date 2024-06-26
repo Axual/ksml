@@ -28,7 +28,8 @@ import io.axual.ksml.parser.StructsParser;
 
 public class SessionStateStoreDefinitionParser extends DefinitionParser<SessionStateStoreDefinition> implements NamedObjectParser {
     private final boolean requireType;
-    private String defaultName;
+    private String defaultShortName;
+    private String defaultLongName;
 
     public SessionStateStoreDefinitionParser(boolean requireType) {
         this.requireType = requireType;
@@ -49,13 +50,18 @@ public class SessionStateStoreDefinitionParser extends DefinitionParser<SessionS
                 optional(booleanField(KSMLDSL.Stores.CACHING, "\"true\" if changed to the session store need to be buffered and periodically released, \"false\" to emit all changes directly")),
                 optional(booleanField(KSMLDSL.Stores.LOGGING, "\"true\" if a changelog topic should be set up on Kafka for this session store, \"false\" otherwise")),
                 (name, persistent, timestamped, retention, keyType, valueType, caching, logging, tags) -> {
-                    name = validateName("Session state store", name, defaultName);
+                    name = validateName("Session state store", name, defaultShortName);
                     return new SessionStateStoreDefinition(name, persistent, timestamped, retention, keyType, valueType, caching, logging);
                 });
     }
 
     @Override
-    public void defaultName(String name) {
-        defaultName = name;
+    public void defaultShortName(String name) {
+        defaultShortName = name;
+    }
+
+    @Override
+    public void defaultLongName(String name) {
+        defaultLongName = name;
     }
 }

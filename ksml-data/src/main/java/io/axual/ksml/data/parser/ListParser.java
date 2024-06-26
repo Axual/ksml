@@ -45,6 +45,10 @@ public class ListParser<V> implements Parser<List<V>> {
             for (ParseNode childNode : node.children(childTagKey, childTagValuePrefix)) {
                 try {
                     index++;
+                    if (valueParser instanceof NamedObjectParser nop) {
+                        nop.defaultShortName(childNode.name());
+                        nop.defaultLongName(childNode.longName());
+                    }
                     result.add(valueParser.parse(childNode));
                 } catch (RuntimeException e) {
                     throw new ParseException(node, "Error in " + childTagValuePrefix + " entry " + index, e);

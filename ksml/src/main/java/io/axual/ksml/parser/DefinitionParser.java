@@ -28,7 +28,6 @@ import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.util.SchemaUtil;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
@@ -90,14 +89,11 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         return new StructSchema(SCHEMA_NAMESPACE, name, doc, fields);
     }
 
-    private static class FieldParser<V> implements StructsParser<V>, NamedObjectParser {
+    private static class FieldParser<V> implements StructsParser<V> {
         private final DataField field;
         @Getter
         private final List<StructSchema> schemas;
         private final ParserWithSchemas<V> valueParser;
-        @Getter
-        @Setter
-        private String defaultName;
 
         public FieldParser(String childName, boolean constant, V valueIfNull, String doc, ParserWithSchema<V> valueParser) {
             this(childName, constant, valueIfNull, doc, ParserWithSchemas.of(valueParser::parse, valueParser.schema()));

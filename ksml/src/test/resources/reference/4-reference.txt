@@ -3,25 +3,24 @@ Topologies:
     Source: ksml_sensordata_avro (topics: [ksml_sensordata_avro])
       --> test_before-peek
     Processor: test_before-peek (stores: [])
-      --> test_pipelines_main
+      --> test_pipelines_main_branch
       <-- ksml_sensordata_avro
-    Processor: test_pipelines_main (stores: [])
-      --> test_pipelines_main-predicate-1, test_pipelines_main-predicate-0, test_pipelines_main-predicate-2
+    Processor: test_pipelines_main_branch (stores: [])
+      --> test_pipelines_main_branch-predicate-2, test_pipelines_main_branch-predicate-0, test_pipelines_main_branch-predicate-1
       <-- test_before-peek
-    Processor: test_pipelines_main-predicate-0 (stores: [])
-      --> test_to
-      <-- test_pipelines_main
-    Processor: test_pipelines_main-predicate-1 (stores: [])
-      --> test_to_001
-      <-- test_pipelines_main
-    Processor: test_pipelines_main-predicate-2 (stores: [])
-      --> test_pipelines_main_branch_branch3
-      <-- test_pipelines_main
-    Processor: test_pipelines_main_branch_branch3 (stores: [])
+    Processor: test_pipelines_main_branch-predicate-0 (stores: [])
+      --> test_pipelines_main_branch_branch1_to
+      <-- test_pipelines_main_branch
+    Processor: test_pipelines_main_branch-predicate-1 (stores: [])
+      --> test_pipelines_main_branch_branch2_to
+      <-- test_pipelines_main_branch
+    Processor: test_pipelines_main_branch-predicate-2 (stores: [])
+      --> test_pipelines_main_branch_branch3_forEach
+      <-- test_pipelines_main_branch
+    Sink: test_pipelines_main_branch_branch1_to (topic: ksml_sensordata_blue)
+      <-- test_pipelines_main_branch-predicate-0
+    Sink: test_pipelines_main_branch_branch2_to (topic: ksml_sensordata_red)
+      <-- test_pipelines_main_branch-predicate-1
+    Processor: test_pipelines_main_branch_branch3_forEach (stores: [])
       --> none
-      <-- test_pipelines_main-predicate-2
-    Sink: test_to (topic: ksml_sensordata_blue)
-      <-- test_pipelines_main-predicate-0
-    Sink: test_to_001 (topic: ksml_sensordata_red)
-      <-- test_pipelines_main-predicate-1
-
+      <-- test_pipelines_main_branch-predicate-2

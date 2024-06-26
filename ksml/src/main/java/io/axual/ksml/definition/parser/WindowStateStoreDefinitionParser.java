@@ -28,7 +28,8 @@ import io.axual.ksml.parser.StructsParser;
 
 public class WindowStateStoreDefinitionParser extends DefinitionParser<WindowStateStoreDefinition> implements NamedObjectParser {
     private final boolean requireType;
-    private String defaultName;
+    private String defaultShortName;
+    private String defaultLongName;
 
     public WindowStateStoreDefinitionParser(boolean requireType) {
         this.requireType = requireType;
@@ -51,13 +52,18 @@ public class WindowStateStoreDefinitionParser extends DefinitionParser<WindowSta
                 optional(booleanField(KSMLDSL.Stores.CACHING, "\"true\" if changed to the window store need to be buffered and periodically released, \"false\" to emit all changes directly")),
                 optional(booleanField(KSMLDSL.Stores.LOGGING, "\"true\" if a changelog topic should be set up on Kafka for this window store, \"false\" otherwise")),
                 (name, persistent, timestamped, retention, windowSize, retainDuplicates, keyType, valueType, caching, logging, tags) -> {
-                    name = validateName("Window state store", name, defaultName);
+                    name = validateName("Window state store", name, defaultShortName);
                     return new WindowStateStoreDefinition(name, persistent, timestamped, retention, windowSize, retainDuplicates, keyType, valueType, caching, logging);
                 });
     }
 
     @Override
-    public void defaultName(String name) {
-        defaultName = name;
+    public void defaultShortName(String name) {
+        defaultShortName = name;
+    }
+
+    @Override
+    public void defaultLongName(String name) {
+        defaultLongName = name;
     }
 }

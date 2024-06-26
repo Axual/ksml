@@ -22,6 +22,7 @@ package io.axual.ksml.operation.parser;
 
 import io.axual.ksml.data.exception.ParseException;
 import io.axual.ksml.data.parser.NamedObjectParser;
+import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
@@ -47,7 +48,8 @@ public abstract class StoreOperationParser<T extends StoreOperation> extends Ope
     }
 
     protected StoreOperationConfig storeOperationConfig(String name, ContextTags tags, StateStoreDefinition store, List<String> storeNames) {
-        return new StoreOperationConfig(resources().getUniqueOperationName(name != null ? name : type), tags, store, storeNames);
+        name = validateName("Store", name, defaultShortName(), true);
+        return new StoreOperationConfig(name != null ? resources().getUniqueOperationName(name) : resources().getUniqueOperationName(tags), tags, store, storeNames);
     }
 
     protected StructsParser<StateStoreDefinition> storeField(boolean required, String doc, StoreType expectedStoreType) {
@@ -57,8 +59,10 @@ public abstract class StoreOperationParser<T extends StoreOperation> extends Ope
         return new StructsParser<>() {
             @Override
             public StateStoreDefinition parse(ParseNode node) {
-                if (stateStoreParser instanceof NamedObjectParser nop)
-                    nop.defaultName(node.longName());
+                if (stateStoreParser instanceof NamedObjectParser nop) {
+                    nop.defaultShortName(node.name());
+                    nop.defaultLongName(node.longName());
+                }
                 final var resource = resourceParser.parse(node);
                 if (resource != null && resource.definition() instanceof StateStoreDefinition def) return def;
                 if (!required) return null;
@@ -70,5 +74,10 @@ public abstract class StoreOperationParser<T extends StoreOperation> extends Ope
                 return schemas;
             }
         };
+    }
+
+    @Override
+    public DataSchema schema() {
+        return super.schema();
     }
 }

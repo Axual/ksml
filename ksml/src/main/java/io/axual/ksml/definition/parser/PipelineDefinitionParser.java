@@ -25,8 +25,7 @@ import io.axual.ksml.data.parser.NamedObjectParser;
 import io.axual.ksml.definition.PipelineDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
-import io.axual.ksml.operation.AsOperation;
-import io.axual.ksml.operation.OperationConfig;
+import io.axual.ksml.operation.*;
 import io.axual.ksml.operation.parser.*;
 import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyResourceAwareParser;
@@ -36,6 +35,11 @@ import java.util.ArrayList;
 
 public class PipelineDefinitionParser extends TopologyResourceAwareParser<PipelineDefinition> implements NamedObjectParser {
     private final boolean parseSource;
+    private final AsOperationParser asParser;
+    private final BranchOperationParser branchParser;
+    private final ForEachOperationParser forEachParser;
+    private final PrintOperationParser printParser;
+    private final ToOperationParser toParser;
     private String defaultName;
 
     protected PipelineDefinitionParser(TopologyResources resources) {
@@ -45,16 +49,15 @@ public class PipelineDefinitionParser extends TopologyResourceAwareParser<Pipeli
     protected PipelineDefinitionParser(TopologyResources resources, boolean parseSource) {
         super(resources);
         this.parseSource = parseSource;
+        asParser = new AsOperationParser(resources());
+        branchParser = new BranchOperationParser(resources(), parseSource);
+        forEachParser = new ForEachOperationParser(resources());
+        printParser = new PrintOperationParser(resources());
+        toParser = new ToOperationParser(resources());
     }
 
     @Override
     public StructsParser<PipelineDefinition> parser() {
-        final var asParser = new AsOperationParser(resources());
-        final var branchParser = new BranchOperationParser(resources(), parseSource);
-        final var forEachParser = new ForEachOperationParser(resources());
-        final var printParser = new PrintOperationParser(resources());
-        final var toParser = new ToOperationParser(resources());
-
         final var sourceField = topologyResourceField("source", KSMLDSL.Pipelines.FROM, "Pipeline source", (name, tags) -> resources().topic(name), new TopicDefinitionParser(resources(), true));
 
         return structsParser(
@@ -86,7 +89,22 @@ public class PipelineDefinitionParser extends TopologyResourceAwareParser<Pipeli
     }
 
     @Override
-    public void defaultName(String name) {
+    public void defaultShortName(String name) {
         this.defaultName = name;
+        asParser.defaultShortName(name);
+        branchParser.defaultShortName(name);
+        forEachParser.defaultShortName(name);
+        printParser.defaultShortName(name);
+        toParser.defaultShortName(name);
+    }
+
+    @Override
+    public void defaultLongName(String name) {
+        this.defaultName = name;
+        asParser.defaultLongName(name);
+        branchParser.defaultLongName(name);
+        forEachParser.defaultLongName(name);
+        printParser.defaultLongName(name);
+        toParser.defaultLongName(name);
     }
 }

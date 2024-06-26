@@ -20,18 +20,21 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.parser.NamedObjectParser;
 import io.axual.ksml.definition.BranchDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyResourceAwareParser;
 
-public class BranchDefinitionParser extends TopologyResourceAwareParser<BranchDefinition> {
+public class BranchDefinitionParser extends TopologyResourceAwareParser<BranchDefinition> implements NamedObjectParser {
     private final boolean includePipelineSchema;
+    private final PipelineDefinitionParser pipelineParser;
 
     public BranchDefinitionParser(TopologyResources resources, boolean includePipelineSchema) {
         super(resources);
         this.includePipelineSchema = includePipelineSchema;
+        pipelineParser = new PipelineDefinitionParser(resources(), false);
     }
 
     @Override
@@ -39,7 +42,6 @@ public class BranchDefinitionParser extends TopologyResourceAwareParser<BranchDe
         // This parser uses the PipelineDefinitionParser recursively, hence requires a special implementation to not
         // make the associated DataSchema recurse infinitely.
         final var predParser = optional(functionField(KSMLDSL.Operations.Branch.PREDICATE, "Defines the condition under which messages get sent down this branch", new PredicateDefinitionParser(false)));
-        final var pipelineParser = new PipelineDefinitionParser(resources(), false);
         if (includePipelineSchema) return structsParser(
                 BranchDefinition.class,
                 "WithPipeline",
@@ -55,5 +57,15 @@ public class BranchDefinitionParser extends TopologyResourceAwareParser<BranchDe
                 predParser,
                 (predicate, tags) -> new BranchDefinition(predicate, null)
         );
+    }
+
+    @Override
+    public void defaultShortName(String name) {
+        pipelineParser.defaultShortName(name);
+    }
+
+    @Override
+    public void defaultLongName(String name) {
+        pipelineParser.defaultLongName(name);
     }
 }

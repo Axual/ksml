@@ -105,7 +105,8 @@ public class GlobalTableDefinitionParser extends TopologyBaseResourceAwareParser
         return new StructsParser<>() {
             @Override
             public KeyValueStateStoreDefinition parse(ParseNode node) {
-                storeParser.defaultName(node.longName());
+                storeParser.defaultShortName(node.name());
+                storeParser.defaultLongName(node.longName());
                 final var resource = resourceParser.parse(node);
                 if (resource != null && resource.definition() instanceof KeyValueStateStoreDefinition def) return def;
                 return null;

@@ -87,9 +87,16 @@ public class ChoiceParser<T> extends BaseParser<T> implements StructsParser<T>, 
     }
 
     @Override
-    public void defaultName(String name) {
+    public void defaultShortName(String name) {
         parsers.values().forEach(p -> {
-            if (p instanceof NamedObjectParser nop) nop.defaultName(name);
+            if (p instanceof NamedObjectParser nop) nop.defaultShortName(name);
+        });
+    }
+
+    @Override
+    public void defaultLongName(String name) {
+        parsers.values().forEach(p -> {
+            if (p instanceof NamedObjectParser nop) nop.defaultLongName(name);
         });
     }
 }

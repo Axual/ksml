@@ -28,7 +28,8 @@ import io.axual.ksml.parser.StructsParser;
 
 public class KeyValueStateStoreDefinitionParser extends DefinitionParser<KeyValueStateStoreDefinition> implements NamedObjectParser {
     private final boolean requireType;
-    private String defaultName;
+    private String defaultShortName;
+    private String defaultLongName;
 
     public KeyValueStateStoreDefinitionParser(boolean requireType) {
         this.requireType = requireType;
@@ -51,13 +52,18 @@ public class KeyValueStateStoreDefinitionParser extends DefinitionParser<KeyValu
                 optional(booleanField(KSMLDSL.Stores.CACHING, "\"true\" if changed to the keyValue store need to be buffered and periodically released, \"false\" to emit all changes directly")),
                 optional(booleanField(KSMLDSL.Stores.LOGGING, "\"true\" if a changelog topic should be set up on Kafka for this keyValue store, \"false\" otherwise")),
                 (name, persistent, timestamped, versioned, history, segment, keyType, valueType, caching, logging, tags) -> {
-                    name = validateName("KeyValue state store", name, defaultName);
+                    name = validateName("KeyValue state store", name, defaultShortName);
                     return new KeyValueStateStoreDefinition(name, persistent, timestamped, versioned, history, segment, keyType, valueType, caching, logging);
                 });
     }
 
     @Override
-    public void defaultName(String name) {
-        defaultName = name;
+    public void defaultShortName(String name) {
+        defaultShortName = name;
+    }
+
+    @Override
+    public void defaultLongName(String name) {
+        defaultLongName = name;
     }
 }
