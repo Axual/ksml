@@ -131,9 +131,9 @@ public class KSMLRunner {
 
             final var errorHandling = ksmlConfig.getErrorHandlingConfig();
             if (errorHandling != null) {
-                ExecutionContext.INSTANCE.setConsumeHandler(getErrorHandler(errorHandling.getConsume(), "ConsumeError"));
-                ExecutionContext.INSTANCE.setProduceHandler(getErrorHandler(errorHandling.getProduce(), "ProduceError"));
-                ExecutionContext.INSTANCE.setProcessHandler(getErrorHandler(errorHandling.getProcess(), "ProcessError"));
+                ExecutionContext.INSTANCE.setConsumeHandler(getErrorHandler(errorHandling.getConsumerErrorHandlingConfig()));
+                ExecutionContext.INSTANCE.setProduceHandler(getErrorHandler(errorHandling.getProducerErrorHandlingConfig()));
+                ExecutionContext.INSTANCE.setProcessHandler(getErrorHandler(errorHandling.getProcessErrorHandlingConfig()));
             }
             ExecutionContext.INSTANCE.setSerdeWrapper(
                     serde -> new Serdes.WrapperSerde<>(
@@ -148,6 +148,16 @@ public class KSMLRunner {
                 if (!specification.producers().isEmpty()) producerSpecs.put(name, specification);
                 if (!specification.pipelines().isEmpty()) pipelineSpecs.put(name, specification);
             });
+
+
+            if (!ksmlConfig.isEnableProducers() && !producerSpecs.isEmpty()) {
+                log.warn("Producers are disabled for this runner. The supplied producer specifications will be ignored.");
+                producerSpecs.clear();
+            }
+            if (!ksmlConfig.isEnablePipelines() && !pipelineSpecs.isEmpty()) {
+                log.warn("Pipelines are disabled for this runner. The supplied pipeline specifications will be ignored.");
+                pipelineSpecs.clear();
+            }
 
             final var producer = producerSpecs.isEmpty() ? null : new KafkaProducerRunner(KafkaProducerRunner.Config.builder()
                     .definitions(producerSpecs)
@@ -303,9 +313,8 @@ public class KSMLRunner {
         throw new ConfigException("No configuration found");
     }
 
-    private static ErrorHandler getErrorHandler(KSMLErrorHandlingConfig.ErrorHandlingConfig config, String
-            loggerName) {
-        if (config == null) return new ErrorHandler(true, false, loggerName, ErrorHandler.HandlerType.STOP_ON_FAIL);
+
+    private static ErrorHandler getErrorHandler(KSMLErrorHandlingConfig.ErrorHandlingConfig config) {
         final var handlerType = switch (config.getHandler()) {
             case CONTINUE -> ErrorHandler.HandlerType.CONTINUE_ON_FAIL;
             case STOP -> ErrorHandler.HandlerType.STOP_ON_FAIL;
@@ -313,7 +322,7 @@ public class KSMLRunner {
         return new ErrorHandler(
                 config.isLog(),
                 config.isLogPayload(),
-                config.getLoggerName() != null ? config.getLoggerName() : loggerName,
+                config.getLoggerName(),
                 handlerType);
     }
 }
