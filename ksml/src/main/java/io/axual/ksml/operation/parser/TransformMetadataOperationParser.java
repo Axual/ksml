@@ -24,7 +24,7 @@ import io.axual.ksml.definition.parser.MetadataTransformerDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.TransformMetadataOperation;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 
 public class TransformMetadataOperationParser extends OperationParser<TransformMetadataOperation> {
     public TransformMetadataOperationParser(TopologyResources resources) {
@@ -32,15 +32,14 @@ public class TransformMetadataOperationParser extends OperationParser<TransformM
     }
 
     @Override
-    protected StructParser<TransformMetadataOperation> parser() {
-        return structParser(
+    protected StructsParser<TransformMetadataOperation> parser() {
+        return structsParser(
                 TransformMetadataOperation.class,
                 "",
                 "Convert the metadata of every record in the stream",
-                operationTypeField(),
                 operationNameField(),
-                functionField(KSMLDSL.Operations.Transform.MAPPER, "A function that converts the metadata (Kafka headers, timestamp) of every record in the stream", new MetadataTransformerDefinitionParser()),
+                functionField(KSMLDSL.Operations.Transform.MAPPER, "A function that converts the metadata (Kafka headers, timestamp) of every record in the stream", new MetadataTransformerDefinitionParser(false)),
                 storeNamesField(),
-                (type, name, mapper, storeNames, tags) -> new TransformMetadataOperation(operationConfig(name, tags, storeNames), mapper));
+                (name, mapper, storeNames, tags) -> new TransformMetadataOperation(operationConfig(name, tags, storeNames), mapper));
     }
 }

@@ -28,10 +28,12 @@ import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyBaseResources;
+import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyBaseResourceAwareParser;
-import io.axual.ksml.parser.StructParser;
 import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.store.StoreType;
+
+import java.util.List;
 
 import static io.axual.ksml.dsl.KSMLDSL.Streams;
 
@@ -46,17 +48,17 @@ public class TableDefinitionParser extends TopologyBaseResourceAwareParser<Table
     }
 
     @Override
-    public StructParser<TableDefinition> parser() {
+    public StructsParser<TableDefinition> parser() {
         final var keyField = userTypeField(Streams.KEY_TYPE, "The key type of the table");
         final var valueField = userTypeField(Streams.VALUE_TYPE, "The value type of the table");
-        if (isSource) return structParser(
+        if (isSource) return structsParser(
                 TableDefinition.class,
                 "Source",
                 DOC,
                 stringField(Streams.TOPIC, TOPIC_DOC),
                 keyField,
                 valueField,
-                optional(functionField(KSMLDSL.Streams.TIMESTAMP_EXTRACTOR, "A function extracts the event time from a consumed record", new TimestampExtractorDefinitionParser())),
+                optional(functionField(KSMLDSL.Streams.TIMESTAMP_EXTRACTOR, "A function extracts the event time from a consumed record", new TimestampExtractorDefinitionParser(false))),
                 optional(stringField(KSMLDSL.Streams.OFFSET_RESET_POLICY, "Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted)")),
                 storeField(),
                 (topic, keyType, valueType, tsExtractor, resetPolicy, store, tags) -> {
@@ -73,7 +75,7 @@ public class TableDefinitionParser extends TopologyBaseResourceAwareParser<Table
                     }
                     return new TableDefinition(topic, keyType, valueType, tsExtractor, policy, store);
                 });
-        return structParser(
+        return structsParser(
                 TableDefinition.class,
                 "",
                 DOC,
@@ -96,11 +98,11 @@ public class TableDefinitionParser extends TopologyBaseResourceAwareParser<Table
                 });
     }
 
-    private StructParser<KeyValueStateStoreDefinition> storeField() {
+    private StructsParser<KeyValueStateStoreDefinition> storeField() {
         final var storeParser = new StateStoreDefinitionParser(StoreType.KEYVALUE_STORE);
         final var resourceParser = new TopologyResourceParser<>("state store", Streams.STORE, "KeyValue state store definition", null, storeParser);
-        final var schema = optional(resourceParser).schema();
-        return new StructParser<>() {
+        final var schemas = optional(resourceParser).schemas();
+        return new StructsParser<>() {
             @Override
             public KeyValueStateStoreDefinition parse(ParseNode node) {
                 storeParser.defaultName(node.longName());
@@ -110,8 +112,8 @@ public class TableDefinitionParser extends TopologyBaseResourceAwareParser<Table
             }
 
             @Override
-            public StructSchema schema() {
-                return schema;
+            public List<StructSchema> schemas() {
+                return schemas;
             }
         };
     }

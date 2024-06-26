@@ -24,8 +24,8 @@ import io.axual.ksml.definition.ToTopicNameExtractorDefinition;
 import io.axual.ksml.definition.TopicNameExtractorDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyResourceAwareParser;
-import io.axual.ksml.parser.StructParser;
 
 public class ToTopicNameExtractorDefinitionParser extends TopologyResourceAwareParser<ToTopicNameExtractorDefinition> {
     public ToTopicNameExtractorDefinitionParser(TopologyResources resources) {
@@ -33,18 +33,18 @@ public class ToTopicNameExtractorDefinitionParser extends TopologyResourceAwareP
     }
 
     @Override
-    protected StructParser<ToTopicNameExtractorDefinition> parser() {
-        return structParser(
+    protected StructsParser<ToTopicNameExtractorDefinition> parser() {
+        return structsParser(
                 ToTopicNameExtractorDefinition.class,
                 "",
                 "Writes out pipeline messages to a topic as given by a topic name extractor",
                 optional(lookupField(
                         "topic name extractor",
                         KSMLDSL.Operations.To.TOPIC_NAME_EXTRACTOR,
-                        "Reference to a pre-defined topic name extractor, or an inline definition of a topic name extractor and an optional stream partitioner",
+                        "Reference to a pre-defined topic name extractor, or an inline definition of a topic name extractor",
                         (name, tags) -> resources().function(name),
-                        new TopicNameExtractorDefinitionParser())),
-                optional(functionField(KSMLDSL.Operations.To.PARTITIONER, "A function that partitions the records in the output topic", new StreamPartitionerDefinitionParser())),
+                        new TopicNameExtractorDefinitionParser(false))),
+                optional(functionField(KSMLDSL.Operations.To.PARTITIONER, "A function that partitions the records in the output topic", new StreamPartitionerDefinitionParser(false))),
                 (tne, partitioner, tags) -> tne != null ? new ToTopicNameExtractorDefinition(new TopicNameExtractorDefinition(tne), partitioner) : null);
     }
 }

@@ -28,9 +28,9 @@ import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.AsOperation;
 import io.axual.ksml.operation.OperationConfig;
 import io.axual.ksml.operation.parser.*;
+import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyResourceAwareParser;
 import io.axual.ksml.parser.IgnoreParser;
-import io.axual.ksml.parser.StructParser;
 
 import java.util.ArrayList;
 
@@ -48,7 +48,7 @@ public class PipelineDefinitionParser extends TopologyResourceAwareParser<Pipeli
     }
 
     @Override
-    public StructParser<PipelineDefinition> parser() {
+    public StructsParser<PipelineDefinition> parser() {
         final var asParser = new AsOperationParser(resources());
         final var branchParser = new BranchOperationParser(resources(), parseSource);
         final var forEachParser = new ForEachOperationParser(resources());
@@ -57,7 +57,7 @@ public class PipelineDefinitionParser extends TopologyResourceAwareParser<Pipeli
 
         final var sourceField = topologyResourceField("source", KSMLDSL.Pipelines.FROM, "Pipeline source", (name, tags) -> resources().topic(name), new TopicDefinitionParser(resources(), true));
 
-        return structParser(
+        return structsParser(
                 PipelineDefinition.class,
                 parseSource ? "" : "WithoutSource",
                 "Defines a pipeline through a source, a series of operations to perform on it and a sink operation to close the stream with",

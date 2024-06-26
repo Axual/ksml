@@ -23,8 +23,8 @@ package io.axual.ksml.definition.parser;
 
 import io.axual.ksml.definition.ProducerDefinition;
 import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyResourceAwareParser;
-import io.axual.ksml.parser.StructParser;
 
 import static io.axual.ksml.dsl.KSMLDSL.Producers;
 
@@ -34,17 +34,17 @@ public class ProducerDefinitionParser extends TopologyResourceAwareParser<Produc
     }
 
     @Override
-    public StructParser<ProducerDefinition> parser() {
-        return structParser(
+    public StructsParser<ProducerDefinition> parser() {
+        return structsParser(
                 ProducerDefinition.class,
                 "",
                 "Definition of a Producer that regularly generates messages for a topic",
-                functionField(Producers.GENERATOR, "The function that generates records", new GeneratorDefinitionParser()),
+                functionField(Producers.GENERATOR, "The function that generates records", new GeneratorDefinitionParser(false)),
                 durationField(Producers.INTERVAL, "The interval with which the generator is called"),
-                optional(functionField(Producers.CONDITION, "A function that validates the generator's result message. Returns \"true\" when the message may be produced on the topic, \"false\" otherwise.", new PredicateDefinitionParser())),
+                optional(functionField(Producers.CONDITION, "A function that validates the generator's result message. Returns \"true\" when the message may be produced on the topic, \"false\" otherwise.", new PredicateDefinitionParser(false))),
                 topicField(Producers.TARGET, "The topic to produce to", new TopicDefinitionParser(resources(), false)),
                 optional(integerField(Producers.COUNT, "The number of messages to produce.")),
-                optional(functionField(Producers.UNTIL, "A predicate that returns true to indicate producing should stop.", new PredicateDefinitionParser())),
+                optional(functionField(Producers.UNTIL, "A predicate that returns true to indicate producing should stop.", new PredicateDefinitionParser(false))),
                 (generator, interval, condition, target, count, until, tags) -> new ProducerDefinition(generator, interval, condition, target, count, until));
     }
 }

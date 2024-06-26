@@ -25,22 +25,21 @@ import io.axual.ksml.definition.parser.ForEachActionDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.PeekOperation;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 
 public class PeekOperationParser extends OperationParser<PeekOperation> {
     public PeekOperationParser(TopologyResources resources) {
         super(KSMLDSL.Operations.PEEK, resources);
     }
 
-    public StructParser<PeekOperation> parser() {
-        return structParser(
+    public StructsParser<PeekOperation> parser() {
+        return structsParser(
                 PeekOperation.class,
                 "",
                 "Operation to peek into a stream, without modifying the stream contents",
-                operationTypeField(),
                 operationNameField(),
-                functionField(KSMLDSL.Operations.FOR_EACH, "A function that gets called for every message in the stream", new ForEachActionDefinitionParser()),
+                functionField(KSMLDSL.Operations.FOR_EACH, "A function that gets called for every message in the stream", new ForEachActionDefinitionParser(false)),
                 storeNamesField(),
-                (type, name, action, stores, tags) -> new PeekOperation(operationConfig(name, tags, stores), action));
+                (name, action, stores, tags) -> new PeekOperation(operationConfig(name, tags, stores), action));
     }
 }

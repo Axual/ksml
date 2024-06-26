@@ -23,14 +23,14 @@ package io.axual.ksml.definition.parser;
 
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.parser.DefinitionParser;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 
 import static io.axual.ksml.dsl.KSMLDSL.Functions;
 
 public class ParameterDefinitionParser extends DefinitionParser<ParameterDefinition> {
     @Override
-    public StructParser<ParameterDefinition> parser() {
-        return structParser(ParameterDefinition.class,
+    public StructsParser<ParameterDefinition> parser() {
+        return structsParser(ParameterDefinition.class,
                 "",
                 "Defines a parameter for a user function",
                 stringField(Functions.Parameters.NAME, true, null, "The name of the parameter"),

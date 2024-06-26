@@ -20,6 +20,7 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.parser.ToTopicDefinitionParser;
 import io.axual.ksml.definition.parser.ToTopicNameExtractorDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
@@ -27,24 +28,28 @@ import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ToOperation;
 import io.axual.ksml.parser.DefinitionParser;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ToOperationParser extends OperationParser<ToOperation> {
     private final ToTopicDefinitionParser topicParser;
     private final ToTopicNameExtractorDefinitionParser tneParser;
+    private final List<StructSchema> schemas = new ArrayList<>();
 
     public ToOperationParser(TopologyResources resources) {
         super(KSMLDSL.Operations.TO, resources);
         topicParser = new ToTopicDefinitionParser(resources());
         tneParser = new ToTopicNameExtractorDefinitionParser(resources());
-        final var fields = topicParser.fields();
-        fields.addAll(tneParser.fields());
+        schemas.addAll(topicParser.schemas());
+        schemas.addAll(tneParser.schemas());
     }
 
     private class ToOperationDefinitionParser extends DefinitionParser<ToOperation> {
         @Override
-        protected StructParser<ToOperation> parser() {
-            return structParser(
+        protected StructsParser<ToOperation> parser() {
+            return structsParser(
                     ToOperation.class,
                     "",
                     "Either a topic or topic name extractor that defines where to write pipeline messages to",
@@ -63,7 +68,7 @@ public class ToOperationParser extends OperationParser<ToOperation> {
     }
 
     @Override
-    public StructParser<ToOperation> parser() {
+    public StructsParser<ToOperation> parser() {
         return lookupField(
                 "topic",
                 KSMLDSL.Operations.TO,

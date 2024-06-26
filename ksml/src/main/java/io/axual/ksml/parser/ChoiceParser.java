@@ -24,30 +24,51 @@ import io.axual.ksml.data.exception.ParseException;
 import io.axual.ksml.data.parser.BaseParser;
 import io.axual.ksml.data.parser.NamedObjectParser;
 import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.parser.ParserWithSchemas;
-import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.schema.*;
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
-public class ChoiceParser<T> extends BaseParser<T> implements ParserWithSchemas<T>, NamedObjectParser {
+public class ChoiceParser<T> extends BaseParser<T> implements StructsParser<T>, NamedObjectParser {
     private final String childName;
     private final String parsedType;
     private final String defaultValue;
-    private final Map<String, StructParser<? extends T>> parsers;
+    private final Map<String, StructsParser<? extends T>> parsers;
     @Getter
     private final List<StructSchema> schemas = new ArrayList<>();
 
-    public ChoiceParser(String childName, String description, String defaultValue, Map<String, StructParser<? extends T>> parsers) {
+    public ChoiceParser(String childName, String enumType, String description, String defaultValue, Map<String, StructsParser<? extends T>> parsers) {
         this.childName = childName;
         this.parsedType = description;
         this.defaultValue = defaultValue;
-        this.parsers = new TreeMap<>(parsers); // Sort by name for nicer JSON Schema output
-        this.parsers.forEach((name, parser)-> schemas.add(parser.schema()));
+
+        this.parsers = new HashMap<>(parsers);
+
+        // To generate proper JSON Schema, first map all parseable schema to fixed values associated with them
+        final Map<StructSchema, List<String>> schemaToChildValues = new HashMap<>();
+        this.parsers.forEach((name, parser) -> {
+            final var schemas = parser.schemas();
+            for (final var schema : schemas) {
+                schemaToChildValues.putIfAbsent(schema, new ArrayList<>());
+                schemaToChildValues.get(schema).add(name);
+            }
+        });
+
+        // Now generate new schema by adding the parsed child attribute (ie. "type") as a parsed field
+        Map<String, StructSchema> convertedSchema = new TreeMap<>();
+        for (final var entry : schemaToChildValues.entrySet()) {
+            final var schema = entry.getKey();
+            final var doc = "The " + childName + " of the " + description;
+            final var newFields = new ArrayList<>(schema.fields());
+            newFields.add(new DataField(childName, new EnumSchema(schema.namespace(), enumType, doc, entry.getValue(), null), doc, -1, schemaToChildValues.size() > 1, defaultValue != null, defaultValue != null ? new DataValue(defaultValue) : null));
+            final var newSchema = new StructSchema(schema.namespace(), schema.name(), schema.doc(), newFields);
+            // Put in a map to deduplicate by name
+            convertedSchema.put(schema.name(), newSchema);
+        }
+
+        // Finally, copy all converted schema into a list of schemas that this parser handles
+        schemas.addAll(convertedSchema.values());
     }
 
     @Override

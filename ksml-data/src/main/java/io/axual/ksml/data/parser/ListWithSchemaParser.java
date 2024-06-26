@@ -22,6 +22,7 @@ package io.axual.ksml.data.parser;
 
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.ListSchema;
+import io.axual.ksml.data.schema.UnionSchema;
 import lombok.Getter;
 
 import java.util.List;
@@ -33,5 +34,12 @@ public class ListWithSchemaParser<T> extends ListParser<T> implements ParserWith
     public ListWithSchemaParser(String childTagKey, String childTagValuePrefix, ParserWithSchema<T> valueParser) {
         super(childTagKey, childTagValuePrefix, valueParser);
         schema = new ListSchema(valueParser.schema());
+    }
+
+    public ListWithSchemaParser(String childTagKey, String childTagValuePrefix, ParserWithSchemas<T> valueParser) {
+        super(childTagKey, childTagValuePrefix, valueParser);
+        schema = valueParser.schemas().size() == 1
+                ? new ListSchema(valueParser.schemas().getFirst())
+                : new ListSchema(new UnionSchema(valueParser.schemas().toArray(DataSchema[]::new)));
     }
 }

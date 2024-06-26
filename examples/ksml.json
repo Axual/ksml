@@ -11,7 +11,7 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/AggregatorDefinition"
+              "$ref": "#/definitions/AggregatorDefinitionWithImplicitType"
             }
           ],
           "description": "*(optional)* (GroupedTable) A function that adds a record to the aggregation result"
@@ -22,7 +22,7 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/AggregatorDefinition"
+              "$ref": "#/definitions/AggregatorDefinitionWithImplicitType"
             }
           ],
           "description": "*(optional)* (GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result"
@@ -33,7 +33,7 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/InitializerDefinition"
+              "$ref": "#/definitions/InitializerDefinitionWithImplicitType"
             }
           ],
           "description": "The initializer function, which generates an initial value for every set of aggregated records"
@@ -44,13 +44,13 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/MergerDefinition"
+              "$ref": "#/definitions/MergerDefinitionWithImplicitType"
             }
           ],
           "description": "*(optional)* (SessionWindowedStream, SessionWindowedCogroupedStream) A function that combines two aggregation results"
         },
         "name": {
-          "description": "The name of the operation processor Default: aggregate",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "store": {
@@ -70,22 +70,21 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/AggregatorDefinition"
+              "$ref": "#/definitions/AggregatorDefinitionWithImplicitType"
             }
           ],
           "description": "*(optional)* (GroupedTable) A function that removes a record from the aggregation result"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"aggregate\" Default: aggregate",
+          "description": "The type of the operation",
           "enum": [
             "aggregate"
           ]
         }
       },
       "required": [
-        "type",
-        "name",
-        "initializer"
+        "initializer",
+        "type"
       ],
       "title": "AggregateOperation",
       "type": "object"
@@ -100,6 +99,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -109,6 +111,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -122,6 +127,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -132,7 +140,7 @@
           "type": "string"
         },
         "parameters": {
-          "description": "*(optional)* A list of parameters to be passed into the aggregator Default: []",
+          "description": "*(optional)* A list of parameters to be passed into the aggregator",
           "items": {
             "$ref": "#/definitions/ParameterDefinition"
           },
@@ -143,34 +151,109 @@
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* A list of store names that the aggregator uses. Only required if the function wants to use a state store. Default: []",
+          "description": "*(optional)* A list of store names that the aggregator uses. Only required if the function wants to use a state store.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "*(optional)* The type of the function, fixed value \"aggregator\" Default: aggregator",
+          "description": "The type of the function",
           "enum": [
             "aggregator"
           ]
         }
       },
+      "required": [
+        "type"
+      ],
       "title": "AggregatorDefinition",
       "type": "object"
     },
-    "BranchDefinition": {
+    "AggregatorDefinitionWithImplicitType": {
       "additionalProperties": false,
-      "description": "Defines one branch in a BranchOperation",
+      "description": "Defines a aggregator function, that gets injected into the Kafka Streams topology",
+      "properties": {
+        "code": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The (multiline) code of the aggregator"
+        },
+        "expression": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The expression returned by the aggregator. Only required for functions that return values."
+        },
+        "globalCode": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* Global (multiline) code that gets loaded into the Python context outside of the aggregator. Can be used for defining eg. global variables."
+        },
+        "name": {
+          "description": "*(optional)* The name of the aggregator. If this field is not defined, then the name is derived from the context.",
+          "type": "string"
+        },
+        "parameters": {
+          "description": "*(optional)* A list of parameters to be passed into the aggregator",
+          "items": {
+            "$ref": "#/definitions/ParameterDefinition"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "description": "*(optional)* The data type returned by the aggregator. Only required for function types, which are not pre-defined.",
+          "type": "string"
+        },
+        "stores": {
+          "description": "*(optional)* A list of store names that the aggregator uses. Only required if the function wants to use a state store.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "title": "AggregatorDefinitionWithImplicitType",
+      "type": "object"
+    },
+    "BranchDefinitionWithPipeline": {
+      "additionalProperties": false,
+      "description": "Defines a branch with sub-pipeline in a BranchOperation",
       "properties": {
         "as": {
           "description": "*(optional)* The name to register the pipeline result under, which can be used as source by follow-up pipelines",
           "type": "string"
         },
         "branch": {
-          "description": "*(optional)* Defines a single branch, consisting of a condition and a pipeline to execute for messages that fulfil the predicate Default: []",
+          "description": "*(optional)* Defines a single branch, consisting of a condition and a pipeline to execute for messages that fulfil the predicate",
           "items": {
-            "$ref": "#/definitions/BranchDefinition"
+            "$ref": "#/definitions/StringOrInlinePredicateDefinitionWithImplicitType"
           },
           "type": "array"
         },
@@ -180,7 +263,7 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/ForEachActionDefinition"
+              "$ref": "#/definitions/ForEachActionDefinitionWithImplicitType"
             }
           ],
           "description": "*(optional)* A function that gets called for every message in the stream"
@@ -191,13 +274,13 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/PredicateDefinition"
+              "$ref": "#/definitions/PredicateDefinitionWithImplicitType"
             }
           ],
           "description": "*(optional)* Defines the condition under which messages get sent down this branch"
         },
         "name": {
-          "description": "*(optional)* The name of the operation processor Default: forEach",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "print": {
@@ -205,7 +288,7 @@
           "description": "*(optional)* The specification of where to print messages to"
         },
         "stores": {
-          "description": "*(optional)* The names of all state stores used by the function Default: []",
+          "description": "*(optional)* The names of all state stores used by the function",
           "items": {
             "type": "string"
           },
@@ -223,7 +306,7 @@
           "description": "*(optional)* Ends the pipeline by sending all messages to a fixed topic, or to a topic returned by a topic name extractor function"
         },
         "via": {
-          "description": "*(optional)* A series of operations performed on the input stream Default: []",
+          "description": "*(optional)* A series of operations performed on the input stream",
           "items": {
             "anyOf": [
               {
@@ -245,49 +328,43 @@
                 "$ref": "#/definitions/CountOperation"
               },
               {
-                "$ref": "#/definitions/FilterOperation"
-              },
-              {
                 "$ref": "#/definitions/FilterNotOperation"
               },
               {
-                "$ref": "#/definitions/TransformKeyValueToKeyValueListOperation"
-              },
-              {
-                "$ref": "#/definitions/TransformKeyValueToValueListOperation"
-              },
-              {
-                "$ref": "#/definitions/GroupByOperation"
+                "$ref": "#/definitions/FilterOperation"
               },
               {
                 "$ref": "#/definitions/GroupByKeyOperation"
               },
               {
-                "$ref": "#/definitions/JoinOperation"
+                "$ref": "#/definitions/GroupByOperation"
               },
               {
-                "$ref": "#/definitions/JoinOperation"
+                "$ref": "#/definitions/JoinOperationWithGlobalTable"
               },
               {
-                "$ref": "#/definitions/TransformKeyValueOperation"
+                "$ref": "#/definitions/JoinOperationWithStream"
               },
               {
-                "$ref": "#/definitions/TransformKeyOperation"
+                "$ref": "#/definitions/JoinOperationWithTable"
               },
               {
-                "$ref": "#/definitions/TransformKeyValueOperation"
+                "$ref": "#/definitions/LeftJoinOperationWithGlobalTable"
               },
               {
-                "$ref": "#/definitions/TransformValueOperation"
+                "$ref": "#/definitions/LeftJoinOperationWithStream"
               },
               {
-                "$ref": "#/definitions/TransformValueOperation"
+                "$ref": "#/definitions/LeftJoinOperationWithTable"
               },
               {
                 "$ref": "#/definitions/MergeOperation"
               },
               {
-                "$ref": "#/definitions/JoinOperation"
+                "$ref": "#/definitions/OuterJoinOperationWithStream"
+              },
+              {
+                "$ref": "#/definitions/OuterJoinOperationWithTable"
               },
               {
                 "$ref": "#/definitions/PeekOperation"
@@ -297,9 +374,6 @@
               },
               {
                 "$ref": "#/definitions/RepartitionOperation"
-              },
-              {
-                "$ref": "#/definitions/TransformKeyOperation"
               },
               {
                 "$ref": "#/definitions/SuppressOperation"
@@ -339,7 +413,7 @@
           "type": "array"
         }
       },
-      "title": "BranchDefinition",
+      "title": "BranchDefinitionWithPipeline",
       "type": "object"
     },
     "CogroupOperation": {
@@ -352,13 +426,13 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/AggregatorDefinition"
+              "$ref": "#/definitions/AggregatorDefinitionWithImplicitType"
             }
           ],
           "description": "(GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result"
         },
         "name": {
-          "description": "The name of the operation processor Default: cogroup",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "store": {
@@ -373,16 +447,15 @@
           "description": "*(optional)* Materialized view of the co-grouped stream"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"cogroup\" Default: cogroup",
+          "description": "The type of the operation",
           "enum": [
             "cogroup"
           ]
         }
       },
       "required": [
-        "type",
-        "name",
-        "aggregator"
+        "aggregator",
+        "type"
       ],
       "title": "CogroupOperation",
       "type": "object"
@@ -396,20 +469,19 @@
           "type": "string"
         },
         "name": {
-          "description": "The name of the operation processor Default: convertKey",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"convertKey\" Default: convertKey",
+          "description": "The type of the operation",
           "enum": [
             "convertKey"
           ]
         }
       },
       "required": [
-        "type",
-        "name",
-        "into"
+        "into",
+        "type"
       ],
       "title": "ConvertKeyOperation",
       "type": "object"
@@ -423,20 +495,19 @@
           "type": "string"
         },
         "name": {
-          "description": "The name of the operation processor Default: convertKeyValue",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"convertKeyValue\" Default: convertKeyValue",
+          "description": "The type of the operation",
           "enum": [
             "convertKeyValue"
           ]
         }
       },
       "required": [
-        "type",
-        "name",
-        "into"
+        "into",
+        "type"
       ],
       "title": "ConvertKeyValueOperation",
       "type": "object"
@@ -450,20 +521,19 @@
           "type": "string"
         },
         "name": {
-          "description": "The name of the operation processor Default: convertValue",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"convertValue\" Default: convertValue",
+          "description": "The type of the operation",
           "enum": [
             "convertValue"
           ]
         }
       },
       "required": [
-        "type",
-        "name",
-        "into"
+        "into",
+        "type"
       ],
       "title": "ConvertValueOperation",
       "type": "object"
@@ -473,7 +543,7 @@
       "description": "Count the number of times a key is seen in a given window",
       "properties": {
         "name": {
-          "description": "The name of the operation processor Default: count",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "store": {
@@ -494,15 +564,14 @@
           "description": "*(optional)* Materialized view of the count operation's result"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"count\" Default: count",
+          "description": "The type of the operation",
           "enum": [
             "count"
           ]
         }
       },
       "required": [
-        "type",
-        "name"
+        "type"
       ],
       "title": "CountOperation",
       "type": "object"
@@ -517,13 +586,13 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/PredicateDefinition"
+              "$ref": "#/definitions/PredicateDefinitionWithImplicitType"
             }
           ],
           "description": "A function that returns \"false\" when records are accepted, \"true\" otherwise"
         },
         "name": {
-          "description": "The name of the operation processor Default: filterNot",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "store": {
@@ -538,23 +607,22 @@
           "description": "*(optional)* Materialized view of the filtered table (only applies to tables, ignored for streams)"
         },
         "stores": {
-          "description": "*(optional)* The names of all state stores used by the function Default: []",
+          "description": "*(optional)* The names of all state stores used by the function",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"filterNot\" Default: filterNot",
+          "description": "The type of the operation",
           "enum": [
             "filterNot"
           ]
         }
       },
       "required": [
-        "type",
-        "name",
-        "if"
+        "if",
+        "type"
       ],
       "title": "FilterNotOperation",
       "type": "object"
@@ -569,13 +637,13 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/PredicateDefinition"
+              "$ref": "#/definitions/PredicateDefinitionWithImplicitType"
             }
           ],
           "description": "A function that returns \"true\" when records are accepted, \"false\" otherwise"
         },
         "name": {
-          "description": "The name of the operation processor Default: filter",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "store": {
@@ -590,23 +658,22 @@
           "description": "*(optional)* Materialized view of the filtered table (only applies to tables, ignored for streams)"
         },
         "stores": {
-          "description": "*(optional)* The names of all state stores used by the function Default: []",
+          "description": "*(optional)* The names of all state stores used by the function",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"filter\" Default: filter",
+          "description": "The type of the operation",
           "enum": [
             "filter"
           ]
         }
       },
       "required": [
-        "type",
-        "name",
-        "if"
+        "if",
+        "type"
       ],
       "title": "FilterOperation",
       "type": "object"
@@ -621,6 +688,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -630,6 +700,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -643,6 +716,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -653,7 +729,7 @@
           "type": "string"
         },
         "parameters": {
-          "description": "*(optional)* A list of parameters to be passed into the foreach action Default: []",
+          "description": "*(optional)* A list of parameters to be passed into the foreach action",
           "items": {
             "$ref": "#/definitions/ParameterDefinition"
           },
@@ -664,20 +740,95 @@
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* A list of store names that the foreach action uses. Only required if the function wants to use a state store. Default: []",
+          "description": "*(optional)* A list of store names that the foreach action uses. Only required if the function wants to use a state store.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "*(optional)* The type of the function, fixed value \"forEach\" Default: forEach",
+          "description": "The type of the function",
           "enum": [
             "forEach"
           ]
         }
       },
+      "required": [
+        "type"
+      ],
       "title": "ForEachActionDefinition",
+      "type": "object"
+    },
+    "ForEachActionDefinitionWithImplicitType": {
+      "additionalProperties": false,
+      "description": "Defines a foreach action function, that gets injected into the Kafka Streams topology",
+      "properties": {
+        "code": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The (multiline) code of the foreach action"
+        },
+        "expression": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The expression returned by the foreach action. Only required for functions that return values."
+        },
+        "globalCode": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* Global (multiline) code that gets loaded into the Python context outside of the foreach action. Can be used for defining eg. global variables."
+        },
+        "name": {
+          "description": "*(optional)* The name of the foreach action. If this field is not defined, then the name is derived from the context.",
+          "type": "string"
+        },
+        "parameters": {
+          "description": "*(optional)* A list of parameters to be passed into the foreach action",
+          "items": {
+            "$ref": "#/definitions/ParameterDefinition"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "description": "*(optional)* The data type returned by the foreach action. Only required for function types, which are not pre-defined.",
+          "type": "string"
+        },
+        "stores": {
+          "description": "*(optional)* A list of store names that the foreach action uses. Only required if the function wants to use a state store.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "title": "ForEachActionDefinitionWithImplicitType",
       "type": "object"
     },
     "ForeignKeyExtractorDefinition": {
@@ -688,6 +839,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -701,6 +855,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -710,6 +867,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -722,7 +882,7 @@
           "type": "string"
         },
         "parameters": {
-          "description": "*(optional)* A list of parameters to be passed into the foreign key extractor Default: []",
+          "description": "*(optional)* A list of parameters to be passed into the foreign key extractor",
           "items": {
             "$ref": "#/definitions/ParameterDefinition"
           },
@@ -733,19 +893,22 @@
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* A list of store names that the foreign key extractor uses. Only required if the function wants to use a state store. Default: []",
+          "description": "*(optional)* A list of store names that the foreign key extractor uses. Only required if the function wants to use a state store.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "*(optional)* The type of the function, fixed value \"forEach\" Default: forEach",
+          "description": "The type of the function",
           "enum": [
-            "forEach"
+            "foreignKeyExtractor"
           ]
         }
       },
+      "required": [
+        "type"
+      ],
       "title": "ForeignKeyExtractorDefinition",
       "type": "object"
     },
@@ -759,6 +922,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -768,6 +934,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -781,6 +950,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -791,7 +963,7 @@
           "type": "string"
         },
         "parameters": {
-          "description": "*(optional)* A list of parameters to be passed into the message generator Default: []",
+          "description": "*(optional)* A list of parameters to be passed into the message generator",
           "items": {
             "$ref": "#/definitions/ParameterDefinition"
           },
@@ -802,20 +974,95 @@
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* A list of store names that the message generator uses. Only required if the function wants to use a state store. Default: []",
+          "description": "*(optional)* A list of store names that the message generator uses. Only required if the function wants to use a state store.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "*(optional)* The type of the function, fixed value \"generator\" Default: generator",
+          "description": "The type of the function",
           "enum": [
             "generator"
           ]
         }
       },
+      "required": [
+        "type"
+      ],
       "title": "GeneratorDefinition",
+      "type": "object"
+    },
+    "GeneratorDefinitionWithImplicitType": {
+      "additionalProperties": false,
+      "description": "Defines a message generator function, that gets injected into the Kafka Streams topology",
+      "properties": {
+        "code": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The (multiline) code of the message generator"
+        },
+        "expression": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The expression returned by the message generator. Only required for functions that return values."
+        },
+        "globalCode": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* Global (multiline) code that gets loaded into the Python context outside of the message generator. Can be used for defining eg. global variables."
+        },
+        "name": {
+          "description": "*(optional)* The name of the message generator. If this field is not defined, then the name is derived from the context.",
+          "type": "string"
+        },
+        "parameters": {
+          "description": "*(optional)* A list of parameters to be passed into the message generator",
+          "items": {
+            "$ref": "#/definitions/ParameterDefinition"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "description": "*(optional)* The data type returned by the message generator. Only required for function types, which are not pre-defined.",
+          "type": "string"
+        },
+        "stores": {
+          "description": "*(optional)* A list of store names that the message generator uses. Only required if the function wants to use a state store.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "title": "GeneratorDefinitionWithImplicitType",
       "type": "object"
     },
     "GenericFunctionDefinition": {
@@ -826,6 +1073,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -839,6 +1089,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -848,6 +1101,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -860,7 +1116,7 @@
           "type": "string"
         },
         "parameters": {
-          "description": "*(optional)* A list of parameters to be passed into the generic function Default: []",
+          "description": "*(optional)* A list of parameters to be passed into the generic function",
           "items": {
             "$ref": "#/definitions/ParameterDefinition"
           },
@@ -871,19 +1127,22 @@
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* A list of store names that the generic function uses. Only required if the function wants to use a state store. Default: []",
+          "description": "*(optional)* A list of store names that the generic function uses. Only required if the function wants to use a state store.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "*(optional)* The type of the function, fixed value \"generic\" Default: generic",
+          "description": "The type of the function",
           "enum": [
             "generic"
           ]
         }
       },
+      "required": [
+        "type"
+      ],
       "title": "GenericFunctionDefinition",
       "type": "object"
     },
@@ -950,7 +1209,7 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/TimestampExtractorDefinition"
+              "$ref": "#/definitions/TimestampExtractorDefinitionWithImplicitType"
             }
           ],
           "description": "*(optional)* A function extracts the event time from a consumed record"
@@ -977,7 +1236,7 @@
       "description": "Operation to group all messages with the same key together",
       "properties": {
         "name": {
-          "description": "The name of the operation processor Default: groupByKey",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "store": {
@@ -992,15 +1251,14 @@
           "description": "*(optional)* Materialized view of the grouped stream"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"groupByKey\" Default: groupByKey",
+          "description": "The type of the operation",
           "enum": [
             "groupByKey"
           ]
         }
       },
       "required": [
-        "type",
-        "name"
+        "type"
       ],
       "title": "GroupByKeyOperation",
       "type": "object"
@@ -1015,13 +1273,13 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/KeyValueMapperDefinition"
+              "$ref": "#/definitions/KeyValueMapperDefinitionWithImplicitType"
             }
           ],
           "description": "Function to map records to a key they can be grouped on"
         },
         "name": {
-          "description": "The name of the operation processor Default: groupBy",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "store": {
@@ -1036,16 +1294,15 @@
           "description": "*(optional)* Materialized view of the grouped stream or table"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"groupBy\" Default: groupBy",
+          "description": "The type of the operation",
           "enum": [
             "groupBy"
           ]
         }
       },
       "required": [
-        "type",
-        "name",
-        "mapper"
+        "mapper",
+        "type"
       ],
       "title": "GroupByOperation",
       "type": "object"
@@ -1060,6 +1317,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -1069,6 +1329,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -1082,6 +1345,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -1092,7 +1358,7 @@
           "type": "string"
         },
         "parameters": {
-          "description": "*(optional)* A list of parameters to be passed into the initializer Default: []",
+          "description": "*(optional)* A list of parameters to be passed into the initializer",
           "items": {
             "$ref": "#/definitions/ParameterDefinition"
           },
@@ -1103,37 +1369,101 @@
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* A list of store names that the initializer uses. Only required if the function wants to use a state store. Default: []",
+          "description": "*(optional)* A list of store names that the initializer uses. Only required if the function wants to use a state store.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "*(optional)* The type of the function, fixed value \"initializer\" Default: initializer",
+          "description": "The type of the function",
           "enum": [
             "initializer"
           ]
         }
       },
+      "required": [
+        "type"
+      ],
       "title": "InitializerDefinition",
       "type": "object"
     },
-    "JoinOperation": {
+    "InitializerDefinitionWithImplicitType": {
       "additionalProperties": false,
-      "description": "Defines a join operation",
+      "description": "Defines a initializer function, that gets injected into the Kafka Streams topology",
       "properties": {
-        "foreignKeyExtractor": {
+        "code": {
           "anyOf": [
             {
-              "type": "string"
+              "type": "boolean"
             },
             {
-              "$ref": "#/definitions/ValueJoinerDefinition"
+              "type": "number"
+            },
+            {
+              "type": "string"
             }
           ],
-          "description": "(Table joins) A function that can translate the join table value to a primary key"
+          "description": "*(optional)* The (multiline) code of the initializer"
         },
+        "expression": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The expression returned by the initializer. Only required for functions that return values."
+        },
+        "globalCode": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* Global (multiline) code that gets loaded into the Python context outside of the initializer. Can be used for defining eg. global variables."
+        },
+        "name": {
+          "description": "*(optional)* The name of the initializer. If this field is not defined, then the name is derived from the context.",
+          "type": "string"
+        },
+        "parameters": {
+          "description": "*(optional)* A list of parameters to be passed into the initializer",
+          "items": {
+            "$ref": "#/definitions/ParameterDefinition"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "description": "*(optional)* The data type returned by the initializer. Only required for function types, which are not pre-defined.",
+          "type": "string"
+        },
+        "stores": {
+          "description": "*(optional)* A list of store names that the initializer uses. Only required if the function wants to use a state store.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "title": "InitializerDefinitionWithImplicitType",
+      "type": "object"
+    },
+    "JoinOperationWithGlobalTable": {
+      "additionalProperties": false,
+      "description": "Operation to join with a table",
+      "properties": {
         "globalTable": {
           "anyOf": [
             {
@@ -1143,8 +1473,72 @@
               "$ref": "#/definitions/GlobalTableDefinition"
             }
           ],
-          "description": "(Required for GlobalTable joins) A reference to the GlobalTable, or an inline definition of the GlobalTable to join with"
+          "description": "A reference to the globalTable, or an inline definition of the globalTable to join with"
         },
+        "mapper": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/ValueJoinerDefinitionWithImplicitType"
+            }
+          ],
+          "description": "A function that maps the key value from the stream with the primary key of the globalTable"
+        },
+        "name": {
+          "description": "*(optional)* The name of the operation processor",
+          "type": "string"
+        },
+        "store": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/KeyValueStateStoreDefinition"
+            },
+            {
+              "$ref": "#/definitions/SessionStateStoreDefinition"
+            },
+            {
+              "$ref": "#/definitions/WindowStateStoreDefinition"
+            }
+          ],
+          "description": "*(optional)* Materialized view of the joined streams"
+        },
+        "type": {
+          "description": "The type of the operation",
+          "enum": [
+            "join"
+          ]
+        },
+        "valueJoiner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/ValueJoinerDefinitionWithImplicitType"
+            }
+          ],
+          "description": "A function that joins two values"
+        }
+      },
+      "required": [
+        "type",
+        "globalTable",
+        "mapper",
+        "valueJoiner",
+        "type"
+      ],
+      "title": "JoinOperationWithGlobalTable",
+      "type": "object"
+    },
+    "JoinOperationWithStream": {
+      "additionalProperties": false,
+      "description": "Operation to join with a stream",
+      "properties": {
         "grace": {
           "anyOf": [
             {
@@ -1154,44 +1548,11 @@
               "type": "string"
             }
           ],
-          "description": "*(optional)* (Table joins) The window grace period (the time to admit out-of-order events after the end of the window)"
-        },
-        "mapper": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "$ref": "#/definitions/ValueJoinerDefinition"
-            }
-          ],
-          "description": "(GlobalTable joins) A function that maps the key value from the stream with the primary key of the GlobalTable"
+          "description": "*(optional)* The window grace period (the time to admit out-of-order events after the end of the window)"
         },
         "name": {
-          "description": "The name of the operation processor Default: join",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
-        },
-        "otherPartitioner": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "$ref": "#/definitions/StreamPartitionerDefinition"
-            }
-          ],
-          "description": "*(optional)* (Table joins) A function that partitions the records on the join table"
-        },
-        "partitioner": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "$ref": "#/definitions/StreamPartitionerDefinition"
-            }
-          ],
-          "description": "*(optional)* (Table joins) A function that partitions the records on the primary table"
         },
         "store": {
           "anyOf": [
@@ -1219,7 +1580,114 @@
               "$ref": "#/definitions/StreamDefinition"
             }
           ],
-          "description": "(Required for Stream joins) A reference to the Stream, or an inline definition of the Stream to join with"
+          "description": "A reference to the Stream, or an inline definition of the stream to join with"
+        },
+        "timeDifference": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The maximum time difference for a join over two streams on the same key"
+        },
+        "type": {
+          "description": "The type of the operation",
+          "enum": [
+            "join"
+          ]
+        },
+        "valueJoiner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/ValueJoinerDefinitionWithImplicitType"
+            }
+          ],
+          "description": "A function that joins two values"
+        }
+      },
+      "required": [
+        "stream",
+        "valueJoiner",
+        "timeDifference",
+        "type"
+      ],
+      "title": "JoinOperationWithStream",
+      "type": "object"
+    },
+    "JoinOperationWithTable": {
+      "additionalProperties": false,
+      "description": "Operation to join with a table",
+      "properties": {
+        "foreignKeyExtractor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/ValueJoinerDefinitionWithImplicitType"
+            }
+          ],
+          "description": "*(optional)* A function that can translate the join table value to a primary key"
+        },
+        "grace": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The window grace period (the time to admit out-of-order events after the end of the window)"
+        },
+        "name": {
+          "description": "*(optional)* The name of the operation processor",
+          "type": "string"
+        },
+        "otherPartitioner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/StreamPartitionerDefinitionWithImplicitType"
+            }
+          ],
+          "description": "*(optional)* A function that partitions the records on the join table"
+        },
+        "partitioner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/StreamPartitionerDefinitionWithImplicitType"
+            }
+          ],
+          "description": "*(optional)* A function that partitions the records on the primary table"
+        },
+        "store": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/KeyValueStateStoreDefinition"
+            },
+            {
+              "$ref": "#/definitions/SessionStateStoreDefinition"
+            },
+            {
+              "$ref": "#/definitions/WindowStateStoreDefinition"
+            }
+          ],
+          "description": "*(optional)* Materialized view of the joined streams"
         },
         "table": {
           "anyOf": [
@@ -1230,11 +1698,13 @@
               "$ref": "#/definitions/TableDefinition"
             }
           ],
-          "description": "(Required for Table joins) A reference to the Table, or an inline definition of the Table to join with"
+          "description": "A reference to the table, or an inline definition of the table to join with"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"join\"",
-          "type": "string"
+          "description": "The type of the operation",
+          "enum": [
+            "join"
+          ]
         },
         "valueJoiner": {
           "anyOf": [
@@ -1242,41 +1712,19 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/ValueJoinerDefinition"
+              "$ref": "#/definitions/ValueJoinerDefinitionWithImplicitType"
             }
           ],
-          "description": "(GlobalTable joins) A function that joins two values"
-        },
-        "window": {
-          "anyOf": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "string"
-            }
-          ],
-          "description": "(Stream joins) The maximum time difference for a join over two streams on the same key"
+          "description": "A function that joins two values"
         }
       },
       "required": [
         "type",
-        "name",
-        "stream",
-        "valueJoiner",
-        "window",
-        "type",
-        "name",
         "table",
-        "foreignKeyExtractor",
         "valueJoiner",
-        "type",
-        "name",
-        "globalTable",
-        "mapper",
-        "valueJoiner"
+        "type"
       ],
-      "title": "JoinOperation",
+      "title": "JoinOperationWithTable",
       "type": "object"
     },
     "KeyTransformerDefinition": {
@@ -1287,6 +1735,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -1300,6 +1751,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -1309,6 +1763,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -1321,7 +1778,7 @@
           "type": "string"
         },
         "parameters": {
-          "description": "*(optional)* A list of parameters to be passed into the key transformer Default: []",
+          "description": "*(optional)* A list of parameters to be passed into the key transformer",
           "items": {
             "$ref": "#/definitions/ParameterDefinition"
           },
@@ -1332,20 +1789,95 @@
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* A list of store names that the key transformer uses. Only required if the function wants to use a state store. Default: []",
+          "description": "*(optional)* A list of store names that the key transformer uses. Only required if the function wants to use a state store.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "*(optional)* The type of the function, fixed value \"keyTransformer\" Default: keyTransformer",
+          "description": "The type of the function",
           "enum": [
             "keyTransformer"
           ]
         }
       },
+      "required": [
+        "type"
+      ],
       "title": "KeyTransformerDefinition",
+      "type": "object"
+    },
+    "KeyTransformerDefinitionWithImplicitType": {
+      "additionalProperties": false,
+      "description": "Defines a key transformer function, that gets injected into the Kafka Streams topology",
+      "properties": {
+        "code": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The (multiline) code of the key transformer"
+        },
+        "expression": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The expression returned by the key transformer. Only required for functions that return values."
+        },
+        "globalCode": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* Global (multiline) code that gets loaded into the Python context outside of the key transformer. Can be used for defining eg. global variables."
+        },
+        "name": {
+          "description": "*(optional)* The name of the key transformer. If this field is not defined, then the name is derived from the context.",
+          "type": "string"
+        },
+        "parameters": {
+          "description": "*(optional)* A list of parameters to be passed into the key transformer",
+          "items": {
+            "$ref": "#/definitions/ParameterDefinition"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "description": "*(optional)* The data type returned by the key transformer. Only required for function types, which are not pre-defined.",
+          "type": "string"
+        },
+        "stores": {
+          "description": "*(optional)* A list of store names that the key transformer uses. Only required if the function wants to use a state store.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "title": "KeyTransformerDefinitionWithImplicitType",
       "type": "object"
     },
     "KeyValueMapperDefinition": {
@@ -1356,6 +1888,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -1369,6 +1904,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -1378,6 +1916,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -1390,7 +1931,7 @@
           "type": "string"
         },
         "parameters": {
-          "description": "*(optional)* A list of parameters to be passed into the keyvalue mapper Default: []",
+          "description": "*(optional)* A list of parameters to be passed into the keyvalue mapper",
           "items": {
             "$ref": "#/definitions/ParameterDefinition"
           },
@@ -1401,20 +1942,95 @@
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* A list of store names that the keyvalue mapper uses. Only required if the function wants to use a state store. Default: []",
+          "description": "*(optional)* A list of store names that the keyvalue mapper uses. Only required if the function wants to use a state store.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "*(optional)* The type of the function, fixed value \"keyValueMapper\" Default: keyValueMapper",
+          "description": "The type of the function",
           "enum": [
             "keyValueMapper"
           ]
         }
       },
+      "required": [
+        "type"
+      ],
       "title": "KeyValueMapperDefinition",
+      "type": "object"
+    },
+    "KeyValueMapperDefinitionWithImplicitType": {
+      "additionalProperties": false,
+      "description": "Defines a keyvalue mapper function, that gets injected into the Kafka Streams topology",
+      "properties": {
+        "code": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The (multiline) code of the keyvalue mapper"
+        },
+        "expression": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The expression returned by the keyvalue mapper. Only required for functions that return values."
+        },
+        "globalCode": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* Global (multiline) code that gets loaded into the Python context outside of the keyvalue mapper. Can be used for defining eg. global variables."
+        },
+        "name": {
+          "description": "*(optional)* The name of the keyvalue mapper. If this field is not defined, then the name is derived from the context.",
+          "type": "string"
+        },
+        "parameters": {
+          "description": "*(optional)* A list of parameters to be passed into the keyvalue mapper",
+          "items": {
+            "$ref": "#/definitions/ParameterDefinition"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "description": "*(optional)* The data type returned by the keyvalue mapper. Only required for function types, which are not pre-defined.",
+          "type": "string"
+        },
+        "stores": {
+          "description": "*(optional)* A list of store names that the keyvalue mapper uses. Only required if the function wants to use a state store.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "title": "KeyValueMapperDefinitionWithImplicitType",
       "type": "object"
     },
     "KeyValuePrinterDefinition": {
@@ -1425,6 +2041,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -1438,6 +2057,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -1447,6 +2069,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -1459,7 +2084,7 @@
           "type": "string"
         },
         "parameters": {
-          "description": "*(optional)* A list of parameters to be passed into the keyvalue printer Default: []",
+          "description": "*(optional)* A list of parameters to be passed into the keyvalue printer",
           "items": {
             "$ref": "#/definitions/ParameterDefinition"
           },
@@ -1470,20 +2095,95 @@
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* A list of store names that the keyvalue printer uses. Only required if the function wants to use a state store. Default: []",
+          "description": "*(optional)* A list of store names that the keyvalue printer uses. Only required if the function wants to use a state store.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "*(optional)* The type of the function, fixed value \"keyValuePrinter\" Default: keyValuePrinter",
+          "description": "The type of the function",
           "enum": [
             "keyValuePrinter"
           ]
         }
       },
+      "required": [
+        "type"
+      ],
       "title": "KeyValuePrinterDefinition",
+      "type": "object"
+    },
+    "KeyValuePrinterDefinitionWithImplicitType": {
+      "additionalProperties": false,
+      "description": "Defines a keyvalue printer function, that gets injected into the Kafka Streams topology",
+      "properties": {
+        "code": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The (multiline) code of the keyvalue printer"
+        },
+        "expression": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The expression returned by the keyvalue printer. Only required for functions that return values."
+        },
+        "globalCode": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* Global (multiline) code that gets loaded into the Python context outside of the keyvalue printer. Can be used for defining eg. global variables."
+        },
+        "name": {
+          "description": "*(optional)* The name of the keyvalue printer. If this field is not defined, then the name is derived from the context.",
+          "type": "string"
+        },
+        "parameters": {
+          "description": "*(optional)* A list of parameters to be passed into the keyvalue printer",
+          "items": {
+            "$ref": "#/definitions/ParameterDefinition"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "description": "*(optional)* The data type returned by the keyvalue printer. Only required for function types, which are not pre-defined.",
+          "type": "string"
+        },
+        "stores": {
+          "description": "*(optional)* A list of store names that the keyvalue printer uses. Only required if the function wants to use a state store.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "title": "KeyValuePrinterDefinitionWithImplicitType",
       "type": "object"
     },
     "KeyValueStateStoreDefinition": {
@@ -1491,7 +2191,7 @@
       "description": "Definition of a keyValue state store",
       "properties": {
         "caching": {
-          "description": "*(optional)* \"true\" if changed to the keyValue store need to be buffered and periodically released, \"false\" to emit all changes directly Default: false",
+          "description": "*(optional)* \"true\" if changed to the keyValue store need to be buffered and periodically released, \"false\" to emit all changes directly",
           "type": "boolean"
         },
         "historyRetention": {
@@ -1510,7 +2210,7 @@
           "type": "string"
         },
         "logging": {
-          "description": "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this keyValue store, \"false\" otherwise Default: false",
+          "description": "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this keyValue store, \"false\" otherwise",
           "type": "boolean"
         },
         "name": {
@@ -1518,7 +2218,7 @@
           "type": "string"
         },
         "persistent": {
-          "description": "*(optional)* \"true\" if this keyValue store needs to be stored on disk, \"false\" otherwise Default: false",
+          "description": "*(optional)* \"true\" if this keyValue store needs to be stored on disk, \"false\" otherwise",
           "type": "boolean"
         },
         "segmentInterval": {
@@ -1533,11 +2233,11 @@
           "description": "*(optional)* Size of segments for storing old record versions (must be positive). Old record versions for the same key in a single segment are stored (updated and accessed) together. The only impact of this parameter is performance. If segments are large and a workload results in many record versions for the same key being collected in a single segment, performance may degrade as a result. On the other hand, historical reads (which access older segments) and out-of-order writes may slow down if there are too many segments."
         },
         "timestamped": {
-          "description": "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise Default: false",
+          "description": "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise",
           "type": "boolean"
         },
         "type": {
-          "description": "The type of the state store, fixed value \"keyValue\" Default: keyValue",
+          "description": "The type of the state store",
           "enum": [
             "keyValue"
           ]
@@ -1547,7 +2247,7 @@
           "type": "string"
         },
         "versioned": {
-          "description": "*(optional)* \"true\" if elements in the store are versioned, \"false\" otherwise Default: false",
+          "description": "*(optional)* \"true\" if elements in the store are versioned, \"false\" otherwise",
           "type": "boolean"
         }
       },
@@ -1562,7 +2262,7 @@
       "description": "Definition of a keyValue state store",
       "properties": {
         "caching": {
-          "description": "*(optional)* \"true\" if changed to the keyValue store need to be buffered and periodically released, \"false\" to emit all changes directly Default: false",
+          "description": "*(optional)* \"true\" if changed to the keyValue store need to be buffered and periodically released, \"false\" to emit all changes directly",
           "type": "boolean"
         },
         "historyRetention": {
@@ -1581,7 +2281,7 @@
           "type": "string"
         },
         "logging": {
-          "description": "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this keyValue store, \"false\" otherwise Default: false",
+          "description": "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this keyValue store, \"false\" otherwise",
           "type": "boolean"
         },
         "name": {
@@ -1589,7 +2289,7 @@
           "type": "string"
         },
         "persistent": {
-          "description": "*(optional)* \"true\" if this keyValue store needs to be stored on disk, \"false\" otherwise Default: false",
+          "description": "*(optional)* \"true\" if this keyValue store needs to be stored on disk, \"false\" otherwise",
           "type": "boolean"
         },
         "segmentInterval": {
@@ -1604,11 +2304,11 @@
           "description": "*(optional)* Size of segments for storing old record versions (must be positive). Old record versions for the same key in a single segment are stored (updated and accessed) together. The only impact of this parameter is performance. If segments are large and a workload results in many record versions for the same key being collected in a single segment, performance may degrade as a result. On the other hand, historical reads (which access older segments) and out-of-order writes may slow down if there are too many segments."
         },
         "timestamped": {
-          "description": "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise Default: false",
+          "description": "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise",
           "type": "boolean"
         },
         "type": {
-          "description": "*(optional)* The type of the state store, fixed value \"keyValue\" Default: keyValue",
+          "description": "The type of the state store",
           "enum": [
             "keyValue"
           ]
@@ -1618,7 +2318,7 @@
           "type": "string"
         },
         "versioned": {
-          "description": "*(optional)* \"true\" if elements in the store are versioned, \"false\" otherwise Default: false",
+          "description": "*(optional)* \"true\" if elements in the store are versioned, \"false\" otherwise",
           "type": "boolean"
         }
       },
@@ -1635,6 +2335,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -1644,6 +2347,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -1657,6 +2363,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -1667,7 +2376,7 @@
           "type": "string"
         },
         "parameters": {
-          "description": "*(optional)* A list of parameters to be passed into the keyvalue-to-keyvaluelist transformer Default: []",
+          "description": "*(optional)* A list of parameters to be passed into the keyvalue-to-keyvaluelist transformer",
           "items": {
             "$ref": "#/definitions/ParameterDefinition"
           },
@@ -1678,20 +2387,95 @@
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* A list of store names that the keyvalue-to-keyvaluelist transformer uses. Only required if the function wants to use a state store. Default: []",
+          "description": "*(optional)* A list of store names that the keyvalue-to-keyvaluelist transformer uses. Only required if the function wants to use a state store.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "*(optional)* The type of the function, fixed value \"keyValueToKeyValueListTransformer\" Default: keyValueToKeyValueListTransformer",
+          "description": "The type of the function",
           "enum": [
             "keyValueToKeyValueListTransformer"
           ]
         }
       },
+      "required": [
+        "type"
+      ],
       "title": "KeyValueToKeyValueListTransformerDefinition",
+      "type": "object"
+    },
+    "KeyValueToKeyValueListTransformerDefinitionWithImplicitType": {
+      "additionalProperties": false,
+      "description": "Defines a keyvalue-to-keyvaluelist transformer function, that gets injected into the Kafka Streams topology",
+      "properties": {
+        "code": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The (multiline) code of the keyvalue-to-keyvaluelist transformer"
+        },
+        "expression": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The expression returned by the keyvalue-to-keyvaluelist transformer. Only required for functions that return values."
+        },
+        "globalCode": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* Global (multiline) code that gets loaded into the Python context outside of the keyvalue-to-keyvaluelist transformer. Can be used for defining eg. global variables."
+        },
+        "name": {
+          "description": "*(optional)* The name of the keyvalue-to-keyvaluelist transformer. If this field is not defined, then the name is derived from the context.",
+          "type": "string"
+        },
+        "parameters": {
+          "description": "*(optional)* A list of parameters to be passed into the keyvalue-to-keyvaluelist transformer",
+          "items": {
+            "$ref": "#/definitions/ParameterDefinition"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "description": "*(optional)* The data type returned by the keyvalue-to-keyvaluelist transformer. Only required for function types, which are not pre-defined.",
+          "type": "string"
+        },
+        "stores": {
+          "description": "*(optional)* A list of store names that the keyvalue-to-keyvaluelist transformer uses. Only required if the function wants to use a state store.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "title": "KeyValueToKeyValueListTransformerDefinitionWithImplicitType",
       "type": "object"
     },
     "KeyValueToValueListTransformerDefinition": {
@@ -1702,6 +2486,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -1715,6 +2502,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -1724,6 +2514,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -1736,7 +2529,7 @@
           "type": "string"
         },
         "parameters": {
-          "description": "*(optional)* A list of parameters to be passed into the keyvalue-to-valuelist transformer Default: []",
+          "description": "*(optional)* A list of parameters to be passed into the keyvalue-to-valuelist transformer",
           "items": {
             "$ref": "#/definitions/ParameterDefinition"
           },
@@ -1747,20 +2540,95 @@
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* A list of store names that the keyvalue-to-valuelist transformer uses. Only required if the function wants to use a state store. Default: []",
+          "description": "*(optional)* A list of store names that the keyvalue-to-valuelist transformer uses. Only required if the function wants to use a state store.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "*(optional)* The type of the function, fixed value \"keyValueToValueListTransformer\" Default: keyValueToValueListTransformer",
+          "description": "The type of the function",
           "enum": [
             "keyValueToValueListTransformer"
           ]
         }
       },
+      "required": [
+        "type"
+      ],
       "title": "KeyValueToValueListTransformerDefinition",
+      "type": "object"
+    },
+    "KeyValueToValueListTransformerDefinitionWithImplicitType": {
+      "additionalProperties": false,
+      "description": "Defines a keyvalue-to-valuelist transformer function, that gets injected into the Kafka Streams topology",
+      "properties": {
+        "code": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The (multiline) code of the keyvalue-to-valuelist transformer"
+        },
+        "expression": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The expression returned by the keyvalue-to-valuelist transformer. Only required for functions that return values."
+        },
+        "globalCode": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* Global (multiline) code that gets loaded into the Python context outside of the keyvalue-to-valuelist transformer. Can be used for defining eg. global variables."
+        },
+        "name": {
+          "description": "*(optional)* The name of the keyvalue-to-valuelist transformer. If this field is not defined, then the name is derived from the context.",
+          "type": "string"
+        },
+        "parameters": {
+          "description": "*(optional)* A list of parameters to be passed into the keyvalue-to-valuelist transformer",
+          "items": {
+            "$ref": "#/definitions/ParameterDefinition"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "description": "*(optional)* The data type returned by the keyvalue-to-valuelist transformer. Only required for function types, which are not pre-defined.",
+          "type": "string"
+        },
+        "stores": {
+          "description": "*(optional)* A list of store names that the keyvalue-to-valuelist transformer uses. Only required if the function wants to use a state store.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "title": "KeyValueToValueListTransformerDefinitionWithImplicitType",
       "type": "object"
     },
     "KeyValueTransformerDefinition": {
@@ -1771,6 +2639,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -1784,6 +2655,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -1793,6 +2667,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -1805,7 +2682,7 @@
           "type": "string"
         },
         "parameters": {
-          "description": "*(optional)* A list of parameters to be passed into the keyvalue transformer Default: []",
+          "description": "*(optional)* A list of parameters to be passed into the keyvalue transformer",
           "items": {
             "$ref": "#/definitions/ParameterDefinition"
           },
@@ -1816,20 +2693,360 @@
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* A list of store names that the keyvalue transformer uses. Only required if the function wants to use a state store. Default: []",
+          "description": "*(optional)* A list of store names that the keyvalue transformer uses. Only required if the function wants to use a state store.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "*(optional)* The type of the function, fixed value \"keyValueTransformer\" Default: keyValueTransformer",
+          "description": "The type of the function",
           "enum": [
             "keyValueTransformer"
           ]
         }
       },
+      "required": [
+        "type"
+      ],
       "title": "KeyValueTransformerDefinition",
+      "type": "object"
+    },
+    "KeyValueTransformerDefinitionWithImplicitType": {
+      "additionalProperties": false,
+      "description": "Defines a keyvalue transformer function, that gets injected into the Kafka Streams topology",
+      "properties": {
+        "code": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The (multiline) code of the keyvalue transformer"
+        },
+        "expression": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The expression returned by the keyvalue transformer. Only required for functions that return values."
+        },
+        "globalCode": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* Global (multiline) code that gets loaded into the Python context outside of the keyvalue transformer. Can be used for defining eg. global variables."
+        },
+        "name": {
+          "description": "*(optional)* The name of the keyvalue transformer. If this field is not defined, then the name is derived from the context.",
+          "type": "string"
+        },
+        "parameters": {
+          "description": "*(optional)* A list of parameters to be passed into the keyvalue transformer",
+          "items": {
+            "$ref": "#/definitions/ParameterDefinition"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "description": "*(optional)* The data type returned by the keyvalue transformer. Only required for function types, which are not pre-defined.",
+          "type": "string"
+        },
+        "stores": {
+          "description": "*(optional)* A list of store names that the keyvalue transformer uses. Only required if the function wants to use a state store.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "title": "KeyValueTransformerDefinitionWithImplicitType",
+      "type": "object"
+    },
+    "LeftJoinOperationWithGlobalTable": {
+      "additionalProperties": false,
+      "description": "Operation to leftJoin with a globalTable",
+      "properties": {
+        "globalTable": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/GlobalTableDefinition"
+            }
+          ],
+          "description": "A reference to the globalTable, or an inline definition of the globalTable to join with"
+        },
+        "mapper": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/ValueJoinerDefinitionWithImplicitType"
+            }
+          ],
+          "description": "A function that maps the key value from the stream with the primary key of the globalTable"
+        },
+        "name": {
+          "description": "*(optional)* The name of the operation processor",
+          "type": "string"
+        },
+        "store": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/KeyValueStateStoreDefinition"
+            },
+            {
+              "$ref": "#/definitions/SessionStateStoreDefinition"
+            },
+            {
+              "$ref": "#/definitions/WindowStateStoreDefinition"
+            }
+          ],
+          "description": "*(optional)* Materialized view of the leftJoined streams"
+        },
+        "type": {
+          "description": "The type of the operation",
+          "enum": [
+            "leftJoin"
+          ]
+        },
+        "valueJoiner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/ValueJoinerDefinitionWithImplicitType"
+            }
+          ],
+          "description": "A function that joins two values"
+        }
+      },
+      "required": [
+        "globalTable",
+        "mapper",
+        "valueJoiner",
+        "type"
+      ],
+      "title": "LeftJoinOperationWithGlobalTable",
+      "type": "object"
+    },
+    "LeftJoinOperationWithStream": {
+      "additionalProperties": false,
+      "description": "Operation to leftJoin with a stream",
+      "properties": {
+        "grace": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The window grace period (the time to admit out-of-order events after the end of the window)"
+        },
+        "name": {
+          "description": "*(optional)* The name of the operation processor",
+          "type": "string"
+        },
+        "store": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/KeyValueStateStoreDefinition"
+            },
+            {
+              "$ref": "#/definitions/SessionStateStoreDefinition"
+            },
+            {
+              "$ref": "#/definitions/WindowStateStoreDefinition"
+            }
+          ],
+          "description": "*(optional)* Materialized view of the joined streams"
+        },
+        "stream": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/StreamDefinition"
+            }
+          ],
+          "description": "A reference to the stream, or an inline definition of the stream to leftJoin with"
+        },
+        "timeDifference": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The maximum time difference for a leftJoin over two streams on the same key"
+        },
+        "type": {
+          "description": "The type of the operation",
+          "enum": [
+            "leftJoin"
+          ]
+        },
+        "valueJoiner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/ValueJoinerDefinitionWithImplicitType"
+            }
+          ],
+          "description": "A function that joins two values"
+        }
+      },
+      "required": [
+        "stream",
+        "valueJoiner",
+        "timeDifference",
+        "type"
+      ],
+      "title": "LeftJoinOperationWithStream",
+      "type": "object"
+    },
+    "LeftJoinOperationWithTable": {
+      "additionalProperties": false,
+      "description": "Operation to leftJoin with a table",
+      "properties": {
+        "foreignKeyExtractor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/ValueJoinerDefinitionWithImplicitType"
+            }
+          ],
+          "description": "*(optional)* A function that can translate the join table value to a primary key"
+        },
+        "grace": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The window grace period (the time to admit out-of-order events after the end of the window)"
+        },
+        "name": {
+          "description": "*(optional)* The name of the operation processor",
+          "type": "string"
+        },
+        "otherPartitioner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/StreamPartitionerDefinitionWithImplicitType"
+            }
+          ],
+          "description": "*(optional)* A function that partitions the records on the join table"
+        },
+        "partitioner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/StreamPartitionerDefinitionWithImplicitType"
+            }
+          ],
+          "description": "*(optional)* A function that partitions the records on the primary table"
+        },
+        "store": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/KeyValueStateStoreDefinition"
+            },
+            {
+              "$ref": "#/definitions/SessionStateStoreDefinition"
+            },
+            {
+              "$ref": "#/definitions/WindowStateStoreDefinition"
+            }
+          ],
+          "description": "*(optional)* Materialized view of the joined streams"
+        },
+        "table": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/TableDefinition"
+            }
+          ],
+          "description": "A reference to the Table, or an inline definition of the Table to join with"
+        },
+        "type": {
+          "description": "The type of the operation",
+          "enum": [
+            "leftJoin"
+          ]
+        },
+        "valueJoiner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/ValueJoinerDefinitionWithImplicitType"
+            }
+          ],
+          "description": "A function that joins two values"
+        }
+      },
+      "required": [
+        "table",
+        "valueJoiner",
+        "type"
+      ],
+      "title": "LeftJoinOperationWithTable",
       "type": "object"
     },
     "MergeOperation": {
@@ -1837,7 +3054,7 @@
       "description": "A merge operation to join two Streams",
       "properties": {
         "name": {
-          "description": "The name of the operation processor Default: merge",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "stream": {
@@ -1852,16 +3069,15 @@
           "description": "The stream to merge with"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"merge\" Default: merge",
+          "description": "The type of the operation",
           "enum": [
             "merge"
           ]
         }
       },
       "required": [
-        "type",
-        "name",
-        "stream"
+        "stream",
+        "type"
       ],
       "title": "MergeOperation",
       "type": "object"
@@ -1876,6 +3092,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -1885,6 +3104,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -1898,6 +3120,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -1908,7 +3133,7 @@
           "type": "string"
         },
         "parameters": {
-          "description": "*(optional)* A list of parameters to be passed into the merger Default: []",
+          "description": "*(optional)* A list of parameters to be passed into the merger",
           "items": {
             "$ref": "#/definitions/ParameterDefinition"
           },
@@ -1919,20 +3144,95 @@
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* A list of store names that the merger uses. Only required if the function wants to use a state store. Default: []",
+          "description": "*(optional)* A list of store names that the merger uses. Only required if the function wants to use a state store.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "*(optional)* The type of the function, fixed value \"merger\" Default: merger",
+          "description": "The type of the function",
           "enum": [
             "merger"
           ]
         }
       },
+      "required": [
+        "type"
+      ],
       "title": "MergerDefinition",
+      "type": "object"
+    },
+    "MergerDefinitionWithImplicitType": {
+      "additionalProperties": false,
+      "description": "Defines a merger function, that gets injected into the Kafka Streams topology",
+      "properties": {
+        "code": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The (multiline) code of the merger"
+        },
+        "expression": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The expression returned by the merger. Only required for functions that return values."
+        },
+        "globalCode": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* Global (multiline) code that gets loaded into the Python context outside of the merger. Can be used for defining eg. global variables."
+        },
+        "name": {
+          "description": "*(optional)* The name of the merger. If this field is not defined, then the name is derived from the context.",
+          "type": "string"
+        },
+        "parameters": {
+          "description": "*(optional)* A list of parameters to be passed into the merger",
+          "items": {
+            "$ref": "#/definitions/ParameterDefinition"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "description": "*(optional)* The data type returned by the merger. Only required for function types, which are not pre-defined.",
+          "type": "string"
+        },
+        "stores": {
+          "description": "*(optional)* A list of store names that the merger uses. Only required if the function wants to use a state store.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "title": "MergerDefinitionWithImplicitType",
       "type": "object"
     },
     "MetadataTransformerDefinition": {
@@ -1943,6 +3243,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -1956,6 +3259,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -1965,6 +3271,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -1977,7 +3286,7 @@
           "type": "string"
         },
         "parameters": {
-          "description": "*(optional)* A list of parameters to be passed into the metadata transformer Default: []",
+          "description": "*(optional)* A list of parameters to be passed into the metadata transformer",
           "items": {
             "$ref": "#/definitions/ParameterDefinition"
           },
@@ -1988,20 +3297,242 @@
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* A list of store names that the metadata transformer uses. Only required if the function wants to use a state store. Default: []",
+          "description": "*(optional)* A list of store names that the metadata transformer uses. Only required if the function wants to use a state store.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "*(optional)* The type of the function, fixed value \"metadataTransformer\" Default: metadataTransformer",
+          "description": "The type of the function",
           "enum": [
             "metadataTransformer"
           ]
         }
       },
+      "required": [
+        "type"
+      ],
       "title": "MetadataTransformerDefinition",
+      "type": "object"
+    },
+    "MetadataTransformerDefinitionWithImplicitType": {
+      "additionalProperties": false,
+      "description": "Defines a metadata transformer function, that gets injected into the Kafka Streams topology",
+      "properties": {
+        "code": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The (multiline) code of the metadata transformer"
+        },
+        "expression": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The expression returned by the metadata transformer. Only required for functions that return values."
+        },
+        "globalCode": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* Global (multiline) code that gets loaded into the Python context outside of the metadata transformer. Can be used for defining eg. global variables."
+        },
+        "name": {
+          "description": "*(optional)* The name of the metadata transformer. If this field is not defined, then the name is derived from the context.",
+          "type": "string"
+        },
+        "parameters": {
+          "description": "*(optional)* A list of parameters to be passed into the metadata transformer",
+          "items": {
+            "$ref": "#/definitions/ParameterDefinition"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "description": "*(optional)* The data type returned by the metadata transformer. Only required for function types, which are not pre-defined.",
+          "type": "string"
+        },
+        "stores": {
+          "description": "*(optional)* A list of store names that the metadata transformer uses. Only required if the function wants to use a state store.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "title": "MetadataTransformerDefinitionWithImplicitType",
+      "type": "object"
+    },
+    "OuterJoinOperationWithStream": {
+      "additionalProperties": false,
+      "description": "Operation to outerJoin with a stream",
+      "properties": {
+        "grace": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The window grace period (the time to admit out-of-order events after the end of the window)"
+        },
+        "name": {
+          "description": "*(optional)* The name of the operation processor",
+          "type": "string"
+        },
+        "store": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/KeyValueStateStoreDefinition"
+            },
+            {
+              "$ref": "#/definitions/SessionStateStoreDefinition"
+            },
+            {
+              "$ref": "#/definitions/WindowStateStoreDefinition"
+            }
+          ],
+          "description": "*(optional)* Materialized view of the outerJoined streams"
+        },
+        "stream": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/StreamDefinition"
+            }
+          ],
+          "description": "A reference to the stream, or an inline definition of the stream to outerJoin with"
+        },
+        "timeDifference": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The maximum time difference for an outerJoin over two streams on the same key"
+        },
+        "type": {
+          "description": "The type of the operation",
+          "enum": [
+            "outerJoin"
+          ]
+        },
+        "valueJoiner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/ValueJoinerDefinitionWithImplicitType"
+            }
+          ],
+          "description": "A function that joins two values"
+        }
+      },
+      "required": [
+        "stream",
+        "valueJoiner",
+        "timeDifference",
+        "type"
+      ],
+      "title": "OuterJoinOperationWithStream",
+      "type": "object"
+    },
+    "OuterJoinOperationWithTable": {
+      "additionalProperties": false,
+      "description": "Operation to outerJoin with a table",
+      "properties": {
+        "name": {
+          "description": "*(optional)* The name of the operation processor",
+          "type": "string"
+        },
+        "store": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/KeyValueStateStoreDefinition"
+            },
+            {
+              "$ref": "#/definitions/SessionStateStoreDefinition"
+            },
+            {
+              "$ref": "#/definitions/WindowStateStoreDefinition"
+            }
+          ],
+          "description": "*(optional)* Materialized view of the outerJoined streams"
+        },
+        "table": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/TableDefinition"
+            }
+          ],
+          "description": "A reference to the table, or an inline definition of the table to outerJoin with"
+        },
+        "type": {
+          "description": "The type of the operation",
+          "enum": [
+            "outerJoin"
+          ]
+        },
+        "valueJoiner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/ValueJoinerDefinitionWithImplicitType"
+            }
+          ],
+          "description": "A function that joins two values"
+        }
+      },
+      "required": [
+        "table",
+        "valueJoiner",
+        "type"
+      ],
+      "title": "OuterJoinOperationWithTable",
       "type": "object"
     },
     "ParameterDefinition": {
@@ -2038,33 +3569,32 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/ForEachActionDefinition"
+              "$ref": "#/definitions/ForEachActionDefinitionWithImplicitType"
             }
           ],
           "description": "A function that gets called for every message in the stream"
         },
         "name": {
-          "description": "The name of the operation processor Default: peek",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* The names of all state stores used by the function Default: []",
+          "description": "*(optional)* The names of all state stores used by the function",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"peek\" Default: peek",
+          "description": "The type of the operation",
           "enum": [
             "peek"
           ]
         }
       },
       "required": [
-        "type",
-        "name",
-        "forEach"
+        "forEach",
+        "type"
       ],
       "title": "PeekOperation",
       "type": "object"
@@ -2078,9 +3608,9 @@
           "type": "string"
         },
         "branch": {
-          "description": "*(optional)* Defines a single branch, consisting of a condition and a pipeline to execute for messages that fulfil the predicate Default: []",
+          "description": "*(optional)* Defines a single branch, consisting of a condition and a pipeline to execute for messages that fulfil the predicate",
           "items": {
-            "$ref": "#/definitions/BranchDefinition"
+            "$ref": "#/definitions/BranchDefinitionWithPipeline"
           },
           "type": "array"
         },
@@ -2090,7 +3620,7 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/ForEachActionDefinition"
+              "$ref": "#/definitions/ForEachActionDefinitionWithImplicitType"
             }
           ],
           "description": "*(optional)* A function that gets called for every message in the stream"
@@ -2107,7 +3637,7 @@
           "description": "Pipeline source"
         },
         "name": {
-          "description": "*(optional)* The name of the operation processor Default: forEach",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "print": {
@@ -2115,7 +3645,7 @@
           "description": "*(optional)* The specification of where to print messages to"
         },
         "stores": {
-          "description": "*(optional)* The names of all state stores used by the function Default: []",
+          "description": "*(optional)* The names of all state stores used by the function",
           "items": {
             "type": "string"
           },
@@ -2133,7 +3663,7 @@
           "description": "*(optional)* Ends the pipeline by sending all messages to a fixed topic, or to a topic returned by a topic name extractor function"
         },
         "via": {
-          "description": "*(optional)* A series of operations performed on the input stream Default: []",
+          "description": "*(optional)* A series of operations performed on the input stream",
           "items": {
             "anyOf": [
               {
@@ -2155,49 +3685,43 @@
                 "$ref": "#/definitions/CountOperation"
               },
               {
-                "$ref": "#/definitions/FilterOperation"
-              },
-              {
                 "$ref": "#/definitions/FilterNotOperation"
               },
               {
-                "$ref": "#/definitions/TransformKeyValueToKeyValueListOperation"
-              },
-              {
-                "$ref": "#/definitions/TransformKeyValueToValueListOperation"
-              },
-              {
-                "$ref": "#/definitions/GroupByOperation"
+                "$ref": "#/definitions/FilterOperation"
               },
               {
                 "$ref": "#/definitions/GroupByKeyOperation"
               },
               {
-                "$ref": "#/definitions/JoinOperation"
+                "$ref": "#/definitions/GroupByOperation"
               },
               {
-                "$ref": "#/definitions/JoinOperation"
+                "$ref": "#/definitions/JoinOperationWithGlobalTable"
               },
               {
-                "$ref": "#/definitions/TransformKeyValueOperation"
+                "$ref": "#/definitions/JoinOperationWithStream"
               },
               {
-                "$ref": "#/definitions/TransformKeyOperation"
+                "$ref": "#/definitions/JoinOperationWithTable"
               },
               {
-                "$ref": "#/definitions/TransformKeyValueOperation"
+                "$ref": "#/definitions/LeftJoinOperationWithGlobalTable"
               },
               {
-                "$ref": "#/definitions/TransformValueOperation"
+                "$ref": "#/definitions/LeftJoinOperationWithStream"
               },
               {
-                "$ref": "#/definitions/TransformValueOperation"
+                "$ref": "#/definitions/LeftJoinOperationWithTable"
               },
               {
                 "$ref": "#/definitions/MergeOperation"
               },
               {
-                "$ref": "#/definitions/JoinOperation"
+                "$ref": "#/definitions/OuterJoinOperationWithStream"
+              },
+              {
+                "$ref": "#/definitions/OuterJoinOperationWithTable"
               },
               {
                 "$ref": "#/definitions/PeekOperation"
@@ -2207,9 +3731,6 @@
               },
               {
                 "$ref": "#/definitions/RepartitionOperation"
-              },
-              {
-                "$ref": "#/definitions/TransformKeyOperation"
               },
               {
                 "$ref": "#/definitions/SuppressOperation"
@@ -2265,6 +3786,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -2274,6 +3798,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -2287,6 +3814,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -2297,7 +3827,7 @@
           "type": "string"
         },
         "parameters": {
-          "description": "*(optional)* A list of parameters to be passed into the Function that returns true or false based on key/value input Default: []",
+          "description": "*(optional)* A list of parameters to be passed into the Function that returns true or false based on key/value input",
           "items": {
             "$ref": "#/definitions/ParameterDefinition"
           },
@@ -2308,20 +3838,95 @@
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* A list of store names that the Function that returns true or false based on key/value input uses. Only required if the function wants to use a state store. Default: []",
+          "description": "*(optional)* A list of store names that the Function that returns true or false based on key/value input uses. Only required if the function wants to use a state store.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "*(optional)* The type of the function, fixed value \"predicate\" Default: predicate",
+          "description": "The type of the function",
           "enum": [
             "predicate"
           ]
         }
       },
+      "required": [
+        "type"
+      ],
       "title": "PredicateDefinition",
+      "type": "object"
+    },
+    "PredicateDefinitionWithImplicitType": {
+      "additionalProperties": false,
+      "description": "Defines a Function that returns true or false based on key/value input function, that gets injected into the Kafka Streams topology",
+      "properties": {
+        "code": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The (multiline) code of the Function that returns true or false based on key/value input"
+        },
+        "expression": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The expression returned by the Function that returns true or false based on key/value input. Only required for functions that return values."
+        },
+        "globalCode": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* Global (multiline) code that gets loaded into the Python context outside of the Function that returns true or false based on key/value input. Can be used for defining eg. global variables."
+        },
+        "name": {
+          "description": "*(optional)* The name of the Function that returns true or false based on key/value input. If this field is not defined, then the name is derived from the context.",
+          "type": "string"
+        },
+        "parameters": {
+          "description": "*(optional)* A list of parameters to be passed into the Function that returns true or false based on key/value input",
+          "items": {
+            "$ref": "#/definitions/ParameterDefinition"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "description": "*(optional)* The data type returned by the Function that returns true or false based on key/value input. Only required for function types, which are not pre-defined.",
+          "type": "string"
+        },
+        "stores": {
+          "description": "*(optional)* A list of store names that the Function that returns true or false based on key/value input uses. Only required if the function wants to use a state store.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "title": "PredicateDefinitionWithImplicitType",
       "type": "object"
     },
     "PrintOperation": {
@@ -2342,19 +3947,16 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/KeyValuePrinterDefinition"
+              "$ref": "#/definitions/KeyValuePrinterDefinitionWithImplicitType"
             }
           ],
           "description": "*(optional)* A function to convert record into a string for output"
         },
         "name": {
-          "description": "The name of the operation processor Default: print",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         }
       },
-      "required": [
-        "name"
-      ],
       "title": "PrintOperation",
       "type": "object"
     },
@@ -2368,7 +3970,7 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/PredicateDefinition"
+              "$ref": "#/definitions/PredicateDefinitionWithImplicitType"
             }
           ],
           "description": "*(optional)* A function that validates the generator's result message. Returns \"true\" when the message may be produced on the topic, \"false\" otherwise."
@@ -2382,7 +3984,7 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/GeneratorDefinition"
+              "$ref": "#/definitions/GeneratorDefinitionWithImplicitType"
             }
           ],
           "description": "The function that generates records"
@@ -2415,7 +4017,7 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/PredicateDefinition"
+              "$ref": "#/definitions/PredicateDefinitionWithImplicitType"
             }
           ],
           "description": "*(optional)* A predicate that returns true to indicate producing should stop."
@@ -2439,13 +4041,13 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/ReducerDefinition"
+              "$ref": "#/definitions/ReducerDefinitionWithImplicitType"
             }
           ],
           "description": "A function that adds a record to the aggregate result"
         },
         "name": {
-          "description": "The name of the operation processor Default: reduce",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "reducer": {
@@ -2454,7 +4056,7 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/ReducerDefinition"
+              "$ref": "#/definitions/ReducerDefinitionWithImplicitType"
             }
           ],
           "description": "A function that computes a new aggregate result"
@@ -2476,24 +4078,23 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/ReducerDefinition"
+              "$ref": "#/definitions/ReducerDefinitionWithImplicitType"
             }
           ],
           "description": "A function that removes a record from the aggregate result"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"reduce\" Default: reduce",
+          "description": "The type of the operation",
           "enum": [
             "reduce"
           ]
         }
       },
       "required": [
-        "type",
-        "name",
         "reducer",
         "adder",
-        "subtractor"
+        "subtractor",
+        "type"
       ],
       "title": "ReduceOperation",
       "type": "object"
@@ -2508,6 +4109,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -2517,6 +4121,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -2530,6 +4137,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -2540,7 +4150,7 @@
           "type": "string"
         },
         "parameters": {
-          "description": "*(optional)* A list of parameters to be passed into the reducer Default: []",
+          "description": "*(optional)* A list of parameters to be passed into the reducer",
           "items": {
             "$ref": "#/definitions/ParameterDefinition"
           },
@@ -2551,20 +4161,95 @@
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* A list of store names that the reducer uses. Only required if the function wants to use a state store. Default: []",
+          "description": "*(optional)* A list of store names that the reducer uses. Only required if the function wants to use a state store.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "*(optional)* The type of the function, fixed value \"reducer\" Default: reducer",
+          "description": "The type of the function",
           "enum": [
             "reducer"
           ]
         }
       },
+      "required": [
+        "type"
+      ],
       "title": "ReducerDefinition",
+      "type": "object"
+    },
+    "ReducerDefinitionWithImplicitType": {
+      "additionalProperties": false,
+      "description": "Defines a reducer function, that gets injected into the Kafka Streams topology",
+      "properties": {
+        "code": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The (multiline) code of the reducer"
+        },
+        "expression": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The expression returned by the reducer. Only required for functions that return values."
+        },
+        "globalCode": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* Global (multiline) code that gets loaded into the Python context outside of the reducer. Can be used for defining eg. global variables."
+        },
+        "name": {
+          "description": "*(optional)* The name of the reducer. If this field is not defined, then the name is derived from the context.",
+          "type": "string"
+        },
+        "parameters": {
+          "description": "*(optional)* A list of parameters to be passed into the reducer",
+          "items": {
+            "$ref": "#/definitions/ParameterDefinition"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "description": "*(optional)* The data type returned by the reducer. Only required for function types, which are not pre-defined.",
+          "type": "string"
+        },
+        "stores": {
+          "description": "*(optional)* A list of store names that the reducer uses. Only required if the function wants to use a state store.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "title": "ReducerDefinitionWithImplicitType",
       "type": "object"
     },
     "RepartitionOperation": {
@@ -2572,7 +4257,7 @@
       "description": "Operation to (re)partition a stream",
       "properties": {
         "name": {
-          "description": "The name of the operation processor Default: repartition",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "partitioner": {
@@ -2581,22 +4266,21 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/StreamPartitionerDefinition"
+              "$ref": "#/definitions/StreamPartitionerDefinitionWithImplicitType"
             }
           ],
           "description": "A function that partitions stream records"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"repartition\" Default: repartition",
+          "description": "The type of the operation",
           "enum": [
             "repartition"
           ]
         }
       },
       "required": [
-        "type",
-        "name",
-        "partitioner"
+        "partitioner",
+        "type"
       ],
       "title": "RepartitionOperation",
       "type": "object"
@@ -2606,7 +4290,7 @@
       "description": "Definition of a session state store",
       "properties": {
         "caching": {
-          "description": "*(optional)* \"true\" if changed to the session store need to be buffered and periodically released, \"false\" to emit all changes directly Default: false",
+          "description": "*(optional)* \"true\" if changed to the session store need to be buffered and periodically released, \"false\" to emit all changes directly",
           "type": "boolean"
         },
         "keyType": {
@@ -2614,7 +4298,7 @@
           "type": "string"
         },
         "logging": {
-          "description": "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this session store, \"false\" otherwise Default: false",
+          "description": "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this session store, \"false\" otherwise",
           "type": "boolean"
         },
         "name": {
@@ -2622,7 +4306,7 @@
           "type": "string"
         },
         "persistent": {
-          "description": "*(optional)* \"true\" if this session store needs to be stored on disk, \"false\" otherwise Default: false",
+          "description": "*(optional)* \"true\" if this session store needs to be stored on disk, \"false\" otherwise",
           "type": "boolean"
         },
         "retention": {
@@ -2637,11 +4321,11 @@
           "description": "*(optional)* The duration for which elements in the session store are retained"
         },
         "timestamped": {
-          "description": "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise Default: false",
+          "description": "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise",
           "type": "boolean"
         },
         "type": {
-          "description": "The type of the state store, fixed value \"session\" Default: session",
+          "description": "The type of the state store",
           "enum": [
             "session"
           ]
@@ -2698,7 +4382,7 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/TimestampExtractorDefinition"
+              "$ref": "#/definitions/TimestampExtractorDefinitionWithImplicitType"
             }
           ],
           "description": "*(optional)* A function extracts the event time from a consumed record"
@@ -2730,6 +4414,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -2739,6 +4426,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -2752,6 +4442,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -2762,7 +4455,7 @@
           "type": "string"
         },
         "parameters": {
-          "description": "*(optional)* A list of parameters to be passed into the stream partitioner Default: []",
+          "description": "*(optional)* A list of parameters to be passed into the stream partitioner",
           "items": {
             "$ref": "#/definitions/ParameterDefinition"
           },
@@ -2773,20 +4466,114 @@
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* A list of store names that the stream partitioner uses. Only required if the function wants to use a state store. Default: []",
+          "description": "*(optional)* A list of store names that the stream partitioner uses. Only required if the function wants to use a state store.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "*(optional)* The type of the function, fixed value \"streamPartitioner\" Default: streamPartitioner",
+          "description": "The type of the function",
           "enum": [
             "streamPartitioner"
           ]
         }
       },
+      "required": [
+        "type"
+      ],
       "title": "StreamPartitionerDefinition",
+      "type": "object"
+    },
+    "StreamPartitionerDefinitionWithImplicitType": {
+      "additionalProperties": false,
+      "description": "Defines a stream partitioner function, that gets injected into the Kafka Streams topology",
+      "properties": {
+        "code": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The (multiline) code of the stream partitioner"
+        },
+        "expression": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The expression returned by the stream partitioner. Only required for functions that return values."
+        },
+        "globalCode": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* Global (multiline) code that gets loaded into the Python context outside of the stream partitioner. Can be used for defining eg. global variables."
+        },
+        "name": {
+          "description": "*(optional)* The name of the stream partitioner. If this field is not defined, then the name is derived from the context.",
+          "type": "string"
+        },
+        "parameters": {
+          "description": "*(optional)* A list of parameters to be passed into the stream partitioner",
+          "items": {
+            "$ref": "#/definitions/ParameterDefinition"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "description": "*(optional)* The data type returned by the stream partitioner. Only required for function types, which are not pre-defined.",
+          "type": "string"
+        },
+        "stores": {
+          "description": "*(optional)* A list of store names that the stream partitioner uses. Only required if the function wants to use a state store.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "title": "StreamPartitionerDefinitionWithImplicitType",
+      "type": "object"
+    },
+    "StringOrInlinePredicateDefinitionWithImplicitType": {
+      "additionalProperties": false,
+      "description": "Defines the condition under which messages get sent down this branch",
+      "properties": {
+        "if": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/PredicateDefinitionWithImplicitType"
+            }
+          ],
+          "description": "*(optional)* Defines the condition under which messages get sent down this branch"
+        }
+      },
+      "title": "StringOrInlinePredicateDefinitionWithImplicitType",
       "type": "object"
     },
     "SuppressOperation": {
@@ -2817,11 +4604,11 @@
           "type": "string"
         },
         "name": {
-          "description": "The name of the operation processor Default: suppress",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"suppress\" Default: suppress",
+          "description": "The type of the operation",
           "enum": [
             "suppress"
           ]
@@ -2832,10 +4619,9 @@
         }
       },
       "required": [
-        "type",
-        "name",
         "until",
-        "duration"
+        "duration",
+        "type"
       ],
       "title": "SuppressOperation",
       "type": "object"
@@ -2903,7 +4689,7 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/TimestampExtractorDefinition"
+              "$ref": "#/definitions/TimestampExtractorDefinitionWithImplicitType"
             }
           ],
           "description": "*(optional)* A function extracts the event time from a consumed record"
@@ -2935,6 +4721,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -2944,6 +4733,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -2957,6 +4749,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -2967,7 +4762,7 @@
           "type": "string"
         },
         "parameters": {
-          "description": "*(optional)* A list of parameters to be passed into the timestamp extractor Default: []",
+          "description": "*(optional)* A list of parameters to be passed into the timestamp extractor",
           "items": {
             "$ref": "#/definitions/ParameterDefinition"
           },
@@ -2978,20 +4773,95 @@
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* A list of store names that the timestamp extractor uses. Only required if the function wants to use a state store. Default: []",
+          "description": "*(optional)* A list of store names that the timestamp extractor uses. Only required if the function wants to use a state store.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "*(optional)* The type of the function, fixed value \"timestampExtractor\" Default: timestampExtractor",
+          "description": "The type of the function",
           "enum": [
             "timestampExtractor"
           ]
         }
       },
+      "required": [
+        "type"
+      ],
       "title": "TimestampExtractorDefinition",
+      "type": "object"
+    },
+    "TimestampExtractorDefinitionWithImplicitType": {
+      "additionalProperties": false,
+      "description": "Defines a timestamp extractor function, that gets injected into the Kafka Streams topology",
+      "properties": {
+        "code": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The (multiline) code of the timestamp extractor"
+        },
+        "expression": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The expression returned by the timestamp extractor. Only required for functions that return values."
+        },
+        "globalCode": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* Global (multiline) code that gets loaded into the Python context outside of the timestamp extractor. Can be used for defining eg. global variables."
+        },
+        "name": {
+          "description": "*(optional)* The name of the timestamp extractor. If this field is not defined, then the name is derived from the context.",
+          "type": "string"
+        },
+        "parameters": {
+          "description": "*(optional)* A list of parameters to be passed into the timestamp extractor",
+          "items": {
+            "$ref": "#/definitions/ParameterDefinition"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "description": "*(optional)* The data type returned by the timestamp extractor. Only required for function types, which are not pre-defined.",
+          "type": "string"
+        },
+        "stores": {
+          "description": "*(optional)* A list of store names that the timestamp extractor uses. Only required if the function wants to use a state store.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "title": "TimestampExtractorDefinitionWithImplicitType",
       "type": "object"
     },
     "ToOperation": {
@@ -3004,7 +4874,7 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/StreamPartitionerDefinition"
+              "$ref": "#/definitions/StreamPartitionerDefinitionWithImplicitType"
             }
           ],
           "description": "*(optional)* A function that partitions the records in the output topic"
@@ -3026,10 +4896,10 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/TopicNameExtractorDefinition"
+              "$ref": "#/definitions/TopicNameExtractorDefinitionWithImplicitType"
             }
           ],
-          "description": "*(optional)* Reference to a pre-defined topic name extractor, or an inline definition of a topic name extractor and an optional stream partitioner"
+          "description": "*(optional)* Reference to a pre-defined topic name extractor, or an inline definition of a topic name extractor"
         }
       },
       "title": "ToOperation",
@@ -3045,26 +4915,24 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/KeyTransformerDefinition"
+              "$ref": "#/definitions/KeyTransformerDefinitionWithImplicitType"
             }
           ],
-          "description": "A function that computes the output key for every record"
+          "description": "*(optional)* A function that computes the output key for every record"
         },
         "name": {
-          "description": "The name of the operation processor Default: toStream",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"toStream\" Default: toStream",
+          "description": "The type of the operation",
           "enum": [
             "toStream"
           ]
         }
       },
       "required": [
-        "type",
-        "name",
-        "mapper"
+        "type"
       ],
       "title": "ToStreamOperation",
       "type": "object"
@@ -3074,7 +4942,7 @@
       "description": "Convert a Stream into a Table",
       "properties": {
         "name": {
-          "description": "The name of the operation processor Default: toTable",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "store": {
@@ -3089,15 +4957,14 @@
           "description": "*(optional)* Materialized view of the result table"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"toTable\" Default: toTable",
+          "description": "The type of the operation",
           "enum": [
             "toTable"
           ]
         }
       },
       "required": [
-        "type",
-        "name"
+        "type"
       ],
       "title": "ToTableOperation",
       "type": "object"
@@ -3143,7 +5010,7 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/TimestampExtractorDefinition"
+              "$ref": "#/definitions/TimestampExtractorDefinitionWithImplicitType"
             }
           ],
           "description": "*(optional)* A function extracts the event time from a consumed record"
@@ -3175,6 +5042,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -3184,6 +5054,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -3197,6 +5070,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -3207,7 +5083,7 @@
           "type": "string"
         },
         "parameters": {
-          "description": "*(optional)* A list of parameters to be passed into the topic name extractor Default: []",
+          "description": "*(optional)* A list of parameters to be passed into the topic name extractor",
           "items": {
             "$ref": "#/definitions/ParameterDefinition"
           },
@@ -3218,20 +5094,95 @@
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* A list of store names that the topic name extractor uses. Only required if the function wants to use a state store. Default: []",
+          "description": "*(optional)* A list of store names that the topic name extractor uses. Only required if the function wants to use a state store.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "*(optional)* The type of the function, fixed value \"topicNameExtractor\" Default: topicNameExtractor",
+          "description": "The type of the function",
           "enum": [
             "topicNameExtractor"
           ]
         }
       },
+      "required": [
+        "type"
+      ],
       "title": "TopicNameExtractorDefinition",
+      "type": "object"
+    },
+    "TopicNameExtractorDefinitionWithImplicitType": {
+      "additionalProperties": false,
+      "description": "Defines a topic name extractor function, that gets injected into the Kafka Streams topology",
+      "properties": {
+        "code": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The (multiline) code of the topic name extractor"
+        },
+        "expression": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The expression returned by the topic name extractor. Only required for functions that return values."
+        },
+        "globalCode": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* Global (multiline) code that gets loaded into the Python context outside of the topic name extractor. Can be used for defining eg. global variables."
+        },
+        "name": {
+          "description": "*(optional)* The name of the topic name extractor. If this field is not defined, then the name is derived from the context.",
+          "type": "string"
+        },
+        "parameters": {
+          "description": "*(optional)* A list of parameters to be passed into the topic name extractor",
+          "items": {
+            "$ref": "#/definitions/ParameterDefinition"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "description": "*(optional)* The data type returned by the topic name extractor. Only required for function types, which are not pre-defined.",
+          "type": "string"
+        },
+        "stores": {
+          "description": "*(optional)* A list of store names that the topic name extractor uses. Only required if the function wants to use a state store.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "title": "TopicNameExtractorDefinitionWithImplicitType",
       "type": "object"
     },
     "TransformKeyOperation": {
@@ -3244,33 +5195,34 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/KeyTransformerDefinition"
+              "$ref": "#/definitions/KeyTransformerDefinitionWithImplicitType"
             }
           ],
           "description": "A function that computes a new key for each record"
         },
         "name": {
-          "description": "The name of the operation processor Default: transformKey",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* The names of all state stores used by the function Default: []",
+          "description": "*(optional)* The names of all state stores used by the function",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"transformKey\" Default: transformKey",
+          "description": "The type of the operation",
           "enum": [
-            "transformKey"
+            "transformKey",
+            "mapKey",
+            "selectKey"
           ]
         }
       },
       "required": [
-        "type",
-        "name",
-        "mapper"
+        "mapper",
+        "type"
       ],
       "title": "TransformKeyOperation",
       "type": "object"
@@ -3285,33 +5237,34 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/KeyValueTransformerDefinition"
+              "$ref": "#/definitions/KeyValueTransformerDefinitionWithImplicitType"
             }
           ],
           "description": "A function that computes a new key/value for each record"
         },
         "name": {
-          "description": "The name of the operation processor Default: transformKeyValue",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* The names of all state stores used by the function Default: []",
+          "description": "*(optional)* The names of all state stores used by the function",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"transformKeyValue\" Default: transformKeyValue",
+          "description": "The type of the operation",
           "enum": [
+            "mapKeyValue",
+            "map",
             "transformKeyValue"
           ]
         }
       },
       "required": [
-        "type",
-        "name",
-        "mapper"
+        "mapper",
+        "type"
       ],
       "title": "TransformKeyValueOperation",
       "type": "object"
@@ -3326,33 +5279,33 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/KeyValueToKeyValueListTransformerDefinition"
+              "$ref": "#/definitions/KeyValueToKeyValueListTransformerDefinitionWithImplicitType"
             }
           ],
           "description": "A function that converts every record of a stream to a list of output records."
         },
         "name": {
-          "description": "The name of the operation processor Default: transformKeyValueToKeyValueList",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* The names of all state stores used by the function Default: []",
+          "description": "*(optional)* The names of all state stores used by the function",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"transformKeyValueToKeyValueList\" Default: transformKeyValueToKeyValueList",
+          "description": "The type of the operation",
           "enum": [
-            "transformKeyValueToKeyValueList"
+            "transformKeyValueToKeyValueList",
+            "flatMap"
           ]
         }
       },
       "required": [
-        "type",
-        "name",
-        "mapper"
+        "mapper",
+        "type"
       ],
       "title": "TransformKeyValueToKeyValueListOperation",
       "type": "object"
@@ -3367,33 +5320,33 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/KeyValueToValueListTransformerDefinition"
+              "$ref": "#/definitions/KeyValueToValueListTransformerDefinitionWithImplicitType"
             }
           ],
           "description": "A function that converts every key/value into a list of result values, each of which will be combined with the original key to form a new message in the output stream"
         },
         "name": {
-          "description": "The name of the operation processor Default: transformKeyValueToValueList",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* The names of all state stores used by the function Default: []",
+          "description": "*(optional)* The names of all state stores used by the function",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"transformKeyValueToValueList\" Default: transformKeyValueToValueList",
+          "description": "The type of the operation",
           "enum": [
-            "transformKeyValueToValueList"
+            "transformKeyValueToValueList",
+            "flatMapValues"
           ]
         }
       },
       "required": [
-        "type",
-        "name",
-        "mapper"
+        "mapper",
+        "type"
       ],
       "title": "TransformKeyValueToValueListOperation",
       "type": "object"
@@ -3408,33 +5361,32 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/MetadataTransformerDefinition"
+              "$ref": "#/definitions/MetadataTransformerDefinitionWithImplicitType"
             }
           ],
           "description": "A function that converts the metadata (Kafka headers, timestamp) of every record in the stream"
         },
         "name": {
-          "description": "The name of the operation processor Default: transformMetadata",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* The names of all state stores used by the function Default: []",
+          "description": "*(optional)* The names of all state stores used by the function",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"transformMetadata\" Default: transformMetadata",
+          "description": "The type of the operation",
           "enum": [
             "transformMetadata"
           ]
         }
       },
       "required": [
-        "type",
-        "name",
-        "mapper"
+        "mapper",
+        "type"
       ],
       "title": "TransformMetadataOperation",
       "type": "object"
@@ -3449,13 +5401,13 @@
               "type": "string"
             },
             {
-              "$ref": "#/definitions/ValueTransformerDefinition"
+              "$ref": "#/definitions/ValueTransformerDefinitionWithImplicitType"
             }
           ],
           "description": "A function that converts the value of every record into another value"
         },
         "name": {
-          "description": "The name of the operation processor Default: transformValue",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "store": {
@@ -3470,23 +5422,24 @@
           "description": "*(optional)* Materialized view of the transformed table (only applies to tables, ignored for streams)"
         },
         "stores": {
-          "description": "*(optional)* The names of all state stores used by the function Default: []",
+          "description": "*(optional)* The names of all state stores used by the function",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"transformValue\" Default: transformValue",
+          "description": "The type of the operation",
           "enum": [
-            "transformValue"
+            "mapValue",
+            "transformValue",
+            "mapValues"
           ]
         }
       },
       "required": [
-        "type",
-        "name",
-        "mapper"
+        "mapper",
+        "type"
       ],
       "title": "TransformValueOperation",
       "type": "object"
@@ -3501,6 +5454,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -3510,6 +5466,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -3523,6 +5482,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -3533,7 +5495,7 @@
           "type": "string"
         },
         "parameters": {
-          "description": "*(optional)* A list of parameters to be passed into the value joiner Default: []",
+          "description": "*(optional)* A list of parameters to be passed into the value joiner",
           "items": {
             "$ref": "#/definitions/ParameterDefinition"
           },
@@ -3544,20 +5506,95 @@
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* A list of store names that the value joiner uses. Only required if the function wants to use a state store. Default: []",
+          "description": "*(optional)* A list of store names that the value joiner uses. Only required if the function wants to use a state store.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "*(optional)* The type of the function, fixed value \"valueJoiner\" Default: valueJoiner",
+          "description": "The type of the function",
           "enum": [
             "valueJoiner"
           ]
         }
       },
+      "required": [
+        "type"
+      ],
       "title": "ValueJoinerDefinition",
+      "type": "object"
+    },
+    "ValueJoinerDefinitionWithImplicitType": {
+      "additionalProperties": false,
+      "description": "Defines a value joiner function, that gets injected into the Kafka Streams topology",
+      "properties": {
+        "code": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The (multiline) code of the value joiner"
+        },
+        "expression": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The expression returned by the value joiner. Only required for functions that return values."
+        },
+        "globalCode": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* Global (multiline) code that gets loaded into the Python context outside of the value joiner. Can be used for defining eg. global variables."
+        },
+        "name": {
+          "description": "*(optional)* The name of the value joiner. If this field is not defined, then the name is derived from the context.",
+          "type": "string"
+        },
+        "parameters": {
+          "description": "*(optional)* A list of parameters to be passed into the value joiner",
+          "items": {
+            "$ref": "#/definitions/ParameterDefinition"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "description": "*(optional)* The data type returned by the value joiner. Only required for function types, which are not pre-defined.",
+          "type": "string"
+        },
+        "stores": {
+          "description": "*(optional)* A list of store names that the value joiner uses. Only required if the function wants to use a state store.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "title": "ValueJoinerDefinitionWithImplicitType",
       "type": "object"
     },
     "ValueTransformerDefinition": {
@@ -3568,6 +5605,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -3581,6 +5621,9 @@
               "type": "boolean"
             },
             {
+              "type": "number"
+            },
+            {
               "type": "string"
             }
           ],
@@ -3590,6 +5633,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "string"
@@ -3602,7 +5648,7 @@
           "type": "string"
         },
         "parameters": {
-          "description": "*(optional)* A list of parameters to be passed into the value transformer Default: []",
+          "description": "*(optional)* A list of parameters to be passed into the value transformer",
           "items": {
             "$ref": "#/definitions/ParameterDefinition"
           },
@@ -3613,20 +5659,95 @@
           "type": "string"
         },
         "stores": {
-          "description": "*(optional)* A list of store names that the value transformer uses. Only required if the function wants to use a state store. Default: []",
+          "description": "*(optional)* A list of store names that the value transformer uses. Only required if the function wants to use a state store.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
-          "description": "*(optional)* The type of the function, fixed value \"valueTransformer\" Default: valueTransformer",
+          "description": "The type of the function",
           "enum": [
             "valueTransformer"
           ]
         }
       },
+      "required": [
+        "type"
+      ],
       "title": "ValueTransformerDefinition",
+      "type": "object"
+    },
+    "ValueTransformerDefinitionWithImplicitType": {
+      "additionalProperties": false,
+      "description": "Defines a value transformer function, that gets injected into the Kafka Streams topology",
+      "properties": {
+        "code": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The (multiline) code of the value transformer"
+        },
+        "expression": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* The expression returned by the value transformer. Only required for functions that return values."
+        },
+        "globalCode": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "*(optional)* Global (multiline) code that gets loaded into the Python context outside of the value transformer. Can be used for defining eg. global variables."
+        },
+        "name": {
+          "description": "*(optional)* The name of the value transformer. If this field is not defined, then the name is derived from the context.",
+          "type": "string"
+        },
+        "parameters": {
+          "description": "*(optional)* A list of parameters to be passed into the value transformer",
+          "items": {
+            "$ref": "#/definitions/ParameterDefinition"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "description": "*(optional)* The data type returned by the value transformer. Only required for function types, which are not pre-defined.",
+          "type": "string"
+        },
+        "stores": {
+          "description": "*(optional)* A list of store names that the value transformer uses. Only required if the function wants to use a state store.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "title": "ValueTransformerDefinitionWithImplicitType",
       "type": "object"
     },
     "WindowBySessionOperation": {
@@ -3656,20 +5777,19 @@
           "description": "The inactivity gap, below which two messages are considered to be of the same session"
         },
         "name": {
-          "description": "The name of the operation processor Default: windowBySession",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"windowBySession\" Default: windowBySession",
+          "description": "The type of the operation",
           "enum": [
             "windowBySession"
           ]
         }
       },
       "required": [
-        "type",
-        "name",
-        "inactivityGap"
+        "inactivityGap",
+        "type"
       ],
       "title": "WindowBySessionOperation",
       "type": "object"
@@ -3712,7 +5832,7 @@
           "description": "*(optional)* (Tumbling, Hopping, Sliding) The grace period, during which out-of-order records can still be processed"
         },
         "name": {
-          "description": "The name of the operation processor Default: windowByTime",
+          "description": "*(optional)* The name of the operation processor",
           "type": "string"
         },
         "timeDifference": {
@@ -3727,7 +5847,7 @@
           "description": "*(optional)* (Sliding) The maximum amount of time difference between two records"
         },
         "type": {
-          "description": "The type of the operation, fixed value \"windowByTime\" Default: windowByTime",
+          "description": "The type of the operation",
           "enum": [
             "windowByTime"
           ]
@@ -3738,9 +5858,8 @@
         }
       },
       "required": [
-        "type",
-        "name",
-        "windowType"
+        "windowType",
+        "type"
       ],
       "title": "WindowByTimeOperation",
       "type": "object"
@@ -3750,7 +5869,7 @@
       "description": "Definition of a window state store",
       "properties": {
         "caching": {
-          "description": "*(optional)* \"true\" if changed to the window store need to be buffered and periodically released, \"false\" to emit all changes directly Default: false",
+          "description": "*(optional)* \"true\" if changed to the window store need to be buffered and periodically released, \"false\" to emit all changes directly",
           "type": "boolean"
         },
         "keyType": {
@@ -3758,7 +5877,7 @@
           "type": "string"
         },
         "logging": {
-          "description": "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this window store, \"false\" otherwise Default: false",
+          "description": "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this window store, \"false\" otherwise",
           "type": "boolean"
         },
         "name": {
@@ -3766,11 +5885,11 @@
           "type": "string"
         },
         "persistent": {
-          "description": "*(optional)* \"true\" if this window store needs to be stored on disk, \"false\" otherwise Default: false",
+          "description": "*(optional)* \"true\" if this window store needs to be stored on disk, \"false\" otherwise",
           "type": "boolean"
         },
         "retainDuplicates": {
-          "description": "*(optional)* Whether or not to retain duplicates Default: false",
+          "description": "*(optional)* Whether or not to retain duplicates",
           "type": "boolean"
         },
         "retention": {
@@ -3785,11 +5904,11 @@
           "description": "*(optional)* The duration for which elements in the window store are retained"
         },
         "timestamped": {
-          "description": "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise Default: false",
+          "description": "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise",
           "type": "boolean"
         },
         "type": {
-          "description": "The type of the state store, fixed value \"window\" Default: window",
+          "description": "The type of the state store",
           "enum": [
             "window"
           ]
@@ -3821,7 +5940,7 @@
       "description": "Definition of a window state store",
       "properties": {
         "caching": {
-          "description": "*(optional)* \"true\" if changed to the window store need to be buffered and periodically released, \"false\" to emit all changes directly Default: false",
+          "description": "*(optional)* \"true\" if changed to the window store need to be buffered and periodically released, \"false\" to emit all changes directly",
           "type": "boolean"
         },
         "keyType": {
@@ -3829,7 +5948,7 @@
           "type": "string"
         },
         "logging": {
-          "description": "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this window store, \"false\" otherwise Default: false",
+          "description": "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this window store, \"false\" otherwise",
           "type": "boolean"
         },
         "name": {
@@ -3837,11 +5956,11 @@
           "type": "string"
         },
         "persistent": {
-          "description": "*(optional)* \"true\" if this window store needs to be stored on disk, \"false\" otherwise Default: false",
+          "description": "*(optional)* \"true\" if this window store needs to be stored on disk, \"false\" otherwise",
           "type": "boolean"
         },
         "retainDuplicates": {
-          "description": "*(optional)* Whether or not to retain duplicates Default: false",
+          "description": "*(optional)* Whether or not to retain duplicates",
           "type": "boolean"
         },
         "retention": {
@@ -3856,11 +5975,11 @@
           "description": "*(optional)* The duration for which elements in the window store are retained"
         },
         "timestamped": {
-          "description": "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise Default: false",
+          "description": "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise",
           "type": "boolean"
         },
         "type": {
-          "description": "*(optional)* The type of the state store, fixed value \"window\" Default: window",
+          "description": "The type of the state store",
           "enum": [
             "window"
           ]
@@ -3888,7 +6007,7 @@
   "description": "KSML definition",
   "properties": {
     "functions": {
-      "description": "*(optional)* Functions that can be referenced in producers and pipelines Default: {}",
+      "description": "*(optional)* Functions that can be referenced in producers and pipelines",
       "patternProperties": {
         "^[a-zA-Z0-9_]+$": {
           "anyOf": [
@@ -3961,7 +6080,7 @@
       "type": "object"
     },
     "globalTables": {
-      "description": "*(optional)* GlobalTables that can be referenced in producers and pipelines Default: {}",
+      "description": "*(optional)* GlobalTables that can be referenced in producers and pipelines",
       "patternProperties": {
         "^[a-zA-Z0-9_]+$": {
           "$ref": "#/definitions/GlobalTableDefinitionSource"
@@ -3970,7 +6089,7 @@
       "type": "object"
     },
     "pipelines": {
-      "description": "*(optional)* Collection of named pipelines Default: {}",
+      "description": "*(optional)* Collection of named pipelines",
       "patternProperties": {
         "^[a-zA-Z0-9_]+$": {
           "$ref": "#/definitions/PipelineDefinition"
@@ -3979,7 +6098,7 @@
       "type": "object"
     },
     "producers": {
-      "description": "*(optional)* Collection of named producers Default: {}",
+      "description": "*(optional)* Collection of named producers",
       "patternProperties": {
         "^[a-zA-Z0-9_]+$": {
           "$ref": "#/definitions/ProducerDefinition"
@@ -3988,7 +6107,7 @@
       "type": "object"
     },
     "stores": {
-      "description": "*(optional)* State stores that can be referenced in producers and pipelines Default: {}",
+      "description": "*(optional)* State stores that can be referenced in producers and pipelines",
       "patternProperties": {
         "^[a-zA-Z0-9_]+$": {
           "anyOf": [
@@ -4007,7 +6126,7 @@
       "type": "object"
     },
     "streams": {
-      "description": "*(optional)* Streams that can be referenced in producers and pipelines Default: {}",
+      "description": "*(optional)* Streams that can be referenced in producers and pipelines",
       "patternProperties": {
         "^[a-zA-Z0-9_]+$": {
           "$ref": "#/definitions/StreamDefinitionSource"
@@ -4016,7 +6135,7 @@
       "type": "object"
     },
     "tables": {
-      "description": "*(optional)* Tables that can be referenced in producers and pipelines Default: {}",
+      "description": "*(optional)* Tables that can be referenced in producers and pipelines",
       "patternProperties": {
         "^[a-zA-Z0-9_]+$": {
           "$ref": "#/definitions/TableDefinitionSource"

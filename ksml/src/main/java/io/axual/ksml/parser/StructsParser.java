@@ -22,33 +22,41 @@ package io.axual.ksml.parser;
 
 import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.parser.ParserWithSchema;
+import io.axual.ksml.data.parser.ParserWithSchemas;
 import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.schema.UnionSchema;
 
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public interface StructParser<T> extends ParserWithSchema<T> {
-    StructSchema schema();
+public interface StructsParser<T> extends ParserWithSchemas<T> {
+    List<StructSchema> schemas();
 
-    default List<DataField> fields() {
-        return schema().fields();
+    default DataSchema schema() {
+        final var schemas = schemas();
+        return schemas.size() == 1 ? schemas.getFirst() : new UnionSchema(schemas.toArray(DataSchema[]::new));
     }
 
-    static <T> StructParser<T> of(final Function<ParseNode, T> parseFunc, StructSchema schema) {
-        return of(parseFunc, () -> schema);
+    static <T> StructsParser<T> of(final Function<ParseNode, T> parseFunc, StructSchema schema) {
+        return of(parseFunc, () -> List.of(schema));
     }
 
-    static <T> StructParser<T> of(final Function<ParseNode, T> parseFunc, Supplier<StructSchema> getter) {
-        return new StructParser<>() {
+    static <T> StructsParser<T> of(final Function<ParseNode, T> parseFunc, List<StructSchema> schemas) {
+        return of(parseFunc, () -> schemas);
+    }
+
+    static <T> StructsParser<T> of(final Function<ParseNode, T> parseFunc, Supplier<List<StructSchema>> getter) {
+        return new StructsParser<>() {
             @Override
             public T parse(ParseNode node) {
                 return parseFunc.apply(node);
             }
 
             @Override
-            public StructSchema schema() {
+            public List<StructSchema> schemas() {
                 return getter.get();
             }
         };

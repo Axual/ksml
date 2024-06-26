@@ -20,6 +20,7 @@ package io.axual.ksml.data.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
@@ -28,19 +29,32 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public interface ParserWithSchemas<T> extends ParserWithSchema<T> {
-    List<StructSchema> schemas();
+public interface ParserWithSchemas<T> extends Parser<T> {
+    List<? extends DataSchema> schemas();
 
-    default DataSchema schema() {
-        final var schemas = schemas();
-        return schemas.size() == 1 ? schemas.getFirst() : new UnionSchema(schemas.toArray(DataSchema[]::new));
+    //    static <T> ParserWithSchemas<T> of(final ParserWithSchema<T> parser) {
+//        return new ParserWithSchemas<T>() {
+//            @Override
+//            public List<? extends DataSchema> schemas() {
+//                return List.of(parser.schema());
+//            }
+//
+//            @Override
+//            public T parse(ParseNode node) {
+//                return parser.parse(node);
+//            }
+//        };
+//    }
+//
+    static <T> ParserWithSchemas<T> of(final Function<ParseNode, T> parseFunc, DataSchema schema) {
+        return of(parseFunc, List.of(schema));
     }
 
-    static <T> ParserWithSchemas<T> of(final Function<ParseNode, T> parseFunc, List<StructSchema> schemas) {
+    static <T> ParserWithSchemas<T> of(final Function<ParseNode, T> parseFunc, List<DataSchema> schemas) {
         return of(parseFunc, () -> schemas);
     }
 
-    static <T> ParserWithSchemas<T> of(final Function<ParseNode, T> parseFunc, Supplier<List<StructSchema>> getter) {
+    static <T> ParserWithSchemas<T> of(final Function<ParseNode, T> parseFunc, Supplier<List<DataSchema>> getter) {
         return new ParserWithSchemas<>() {
             @Override
             public T parse(ParseNode node) {
@@ -48,7 +62,7 @@ public interface ParserWithSchemas<T> extends ParserWithSchema<T> {
             }
 
             @Override
-            public List<StructSchema> schemas() {
+            public List<DataSchema> schemas() {
                 return getter.get();
             }
         };

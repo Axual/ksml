@@ -22,8 +22,10 @@ package io.axual.ksml.data.parser;
 
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.MapSchema;
+import io.axual.ksml.data.schema.UnionSchema;
 import lombok.Getter;
 
+import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -33,5 +35,12 @@ public class MapWithSchemaParser<T> extends MapParser<T> implements ParserWithSc
     public MapWithSchemaParser(String childTagKey, String childTagValuePrefix, ParserWithSchema<T> valueParser) {
         super(childTagKey, childTagValuePrefix, valueParser);
         schema = new MapSchema(valueParser.schema());
+    }
+
+    public MapWithSchemaParser(String childTagKey, String childTagValuePrefix, ParserWithSchemas<T> valueParser) {
+        super(childTagKey, childTagValuePrefix, valueParser);
+        schema = valueParser.schemas().size() == 1
+                ? new MapSchema(valueParser.schemas().getFirst())
+                : new MapSchema(new UnionSchema(valueParser.schemas().toArray(DataSchema[]::new)));
     }
 }

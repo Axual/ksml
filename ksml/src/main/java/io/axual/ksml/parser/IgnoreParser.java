@@ -24,9 +24,11 @@ import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
-public class IgnoreParser<T> implements StructParser<T> {
-    final StructSchema schema = new StructSchema();
+public class IgnoreParser<T> implements StructsParser<T> {
+    final List<StructSchema> schemas = List.of(new StructSchema());
 
     @Override
     public T parse(ParseNode node) {

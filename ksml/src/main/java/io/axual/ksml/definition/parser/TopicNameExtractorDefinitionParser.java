@@ -22,15 +22,17 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.TopicNameExtractorDefinition;
-import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 
 public class TopicNameExtractorDefinitionParser extends FunctionDefinitionParser<TopicNameExtractorDefinition> {
+    public TopicNameExtractorDefinitionParser(boolean requireType) {
+        super(requireType);
+    }
+
     @Override
-    public StructParser<TopicNameExtractorDefinition> parser() {
+    public StructsParser<TopicNameExtractorDefinition> parser() {
         return parserWithoutStores(
                 TopicNameExtractorDefinition.class,
-                KSMLDSL.Functions.TYPE_TOPICNAMEEXTRACTOR,
                 "topic name extractor",
                 (function, tags) -> new TopicNameExtractorDefinition(function));
     }

@@ -24,8 +24,7 @@ import io.axual.ksml.data.parser.NamedObjectParser;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.DefinitionParser;
-import io.axual.ksml.parser.StructParser;
-import io.axual.ksml.store.StoreType;
+import io.axual.ksml.parser.StructsParser;
 
 public class KeyValueStateStoreDefinitionParser extends DefinitionParser<KeyValueStateStoreDefinition> implements NamedObjectParser {
     private final boolean requireType;
@@ -36,13 +35,11 @@ public class KeyValueStateStoreDefinitionParser extends DefinitionParser<KeyValu
     }
 
     @Override
-    protected StructParser<KeyValueStateStoreDefinition> parser() {
-        final var typeField = fixedStringField(KSMLDSL.Stores.TYPE, StoreType.KEYVALUE_STORE.externalName(), "The type of the state store");
-        return structParser(
+    protected StructsParser<KeyValueStateStoreDefinition> parser() {
+        return structsParser(
                 KeyValueStateStoreDefinition.class,
-                requireType ? "" : "WithImplicitType",
+                requireType ? "" : KSMLDSL.Types.WITH_IMPLICIT_TYPE_POSTFIX,
                 "Definition of a keyValue state store",
-                requireType ? typeField : optional(typeField),
                 optional(stringField(KSMLDSL.Stores.NAME, false, null, "The name of the keyValue store. If this field is not defined, then the name is derived from the context.")),
                 optional(booleanField(KSMLDSL.Stores.PERSISTENT, "\"true\" if this keyValue store needs to be stored on disk, \"false\" otherwise")),
                 optional(booleanField(KSMLDSL.Stores.TIMESTAMPED, "\"true\" if elements in the store are timestamped, \"false\" otherwise")),
@@ -53,11 +50,7 @@ public class KeyValueStateStoreDefinitionParser extends DefinitionParser<KeyValu
                 optional(userTypeField(KSMLDSL.Stores.VALUE_TYPE, "The value type of the keyValue store")),
                 optional(booleanField(KSMLDSL.Stores.CACHING, "\"true\" if changed to the keyValue store need to be buffered and periodically released, \"false\" to emit all changes directly")),
                 optional(booleanField(KSMLDSL.Stores.LOGGING, "\"true\" if a changelog topic should be set up on Kafka for this keyValue store, \"false\" otherwise")),
-                (type, name, persistent, timestamped, versioned, history, segment, keyType, valueType, caching, logging, tags) -> {
-                    // Validate the type field if one was provided
-                    if (type != null && !StoreType.KEYVALUE_STORE.externalName().equals(type)) {
-                        return parseError("Expected store type \"" + StoreType.KEYVALUE_STORE.externalName() + "\"");
-                    }
+                (name, persistent, timestamped, versioned, history, segment, keyType, valueType, caching, logging, tags) -> {
                     name = validateName("KeyValue state store", name, defaultName);
                     return new KeyValueStateStoreDefinition(name, persistent, timestamped, versioned, history, segment, keyType, valueType, caching, logging);
                 });

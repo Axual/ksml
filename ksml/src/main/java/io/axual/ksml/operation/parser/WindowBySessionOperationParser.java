@@ -24,7 +24,7 @@ package io.axual.ksml.operation.parser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.WindowBySessionOperation;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 import org.apache.kafka.streams.kstream.SessionWindows;
 
 public class WindowBySessionOperationParser extends OperationParser<WindowBySessionOperation> {
@@ -33,16 +33,15 @@ public class WindowBySessionOperationParser extends OperationParser<WindowBySess
     }
 
     @Override
-    public StructParser<WindowBySessionOperation> parser() {
-        return structParser(
+    public StructsParser<WindowBySessionOperation> parser() {
+        return structsParser(
                 WindowBySessionOperation.class,
                 "",
                 "Operation to window messages by session, configured by an inactivity gap",
-                operationTypeField(),
                 operationNameField(),
                 durationField(KSMLDSL.SessionWindows.INACTIVITY_GAP, "The inactivity gap, below which two messages are considered to be of the same session"),
                 optional(durationField(KSMLDSL.SessionWindows.GRACE, "(Tumbling, Hopping) The grace period, during which out-of-order records can still be processed")),
-                (type, name, inactivityGap, grace, tags) -> {
+                (name, inactivityGap, grace, tags) -> {
                     final var sessionWindows = (grace != null && grace.toMillis() > 0)
                             ? SessionWindows.ofInactivityGapAndGrace(inactivityGap, grace)
                             : SessionWindows.ofInactivityGapWithNoGrace(inactivityGap);

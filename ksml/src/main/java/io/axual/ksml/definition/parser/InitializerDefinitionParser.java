@@ -23,14 +23,17 @@ package io.axual.ksml.definition.parser;
 
 import io.axual.ksml.definition.InitializerDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 
 public class InitializerDefinitionParser extends FunctionDefinitionParser<InitializerDefinition> {
+    public InitializerDefinitionParser(boolean requireType) {
+        super(requireType);
+    }
+
     @Override
-    public StructParser<InitializerDefinition> parser() {
+    public StructsParser<InitializerDefinition> parser() {
         return parserWithoutStores(
                 InitializerDefinition.class,
-                KSMLDSL.Functions.TYPE_INITIALIZER,
                 "initializer",
                 (function, tags) -> new InitializerDefinition(function));
     }

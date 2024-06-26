@@ -31,7 +31,7 @@ import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.StoreOperation;
 import io.axual.ksml.operation.StoreOperationConfig;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.store.StoreType;
 
@@ -50,11 +50,11 @@ public abstract class StoreOperationParser<T extends StoreOperation> extends Ope
         return new StoreOperationConfig(resources().getUniqueOperationName(name != null ? name : type), tags, store, storeNames);
     }
 
-    protected StructParser<StateStoreDefinition> storeField(boolean required, String doc, StoreType expectedStoreType) {
+    protected StructsParser<StateStoreDefinition> storeField(boolean required, String doc, StoreType expectedStoreType) {
         final var stateStoreParser = new StateStoreDefinitionParser(expectedStoreType);
         final var resourceParser = new TopologyResourceParser<>("state store", KSMLDSL.Operations.STORE_ATTRIBUTE, doc, (name, context) -> resources().stateStore(name), stateStoreParser);
-        final var schema = required ? resourceParser.schema() : optional(resourceParser).schema();
-        return new StructParser<>() {
+        final var schemas = required ? resourceParser.schemas() : optional(resourceParser).schemas();
+        return new StructsParser<>() {
             @Override
             public StateStoreDefinition parse(ParseNode node) {
                 if (stateStoreParser instanceof NamedObjectParser nop)
@@ -66,8 +66,8 @@ public abstract class StoreOperationParser<T extends StoreOperation> extends Ope
             }
 
             @Override
-            public StructSchema schema() {
-                return schema;
+            public List<StructSchema> schemas() {
+                return schemas;
             }
         };
     }

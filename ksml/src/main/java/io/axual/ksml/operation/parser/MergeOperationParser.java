@@ -27,7 +27,7 @@ import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.MergeOperation;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 
 public class MergeOperationParser extends OperationParser<MergeOperation> {
     public MergeOperationParser(TopologyResources resources) {
@@ -35,15 +35,14 @@ public class MergeOperationParser extends OperationParser<MergeOperation> {
     }
 
     @Override
-    protected StructParser<MergeOperation> parser() {
-        return structParser(
+    protected StructsParser<MergeOperation> parser() {
+        return structsParser(
                 MergeOperation.class,
                 "",
                 "A merge operation to join two Streams",
-                operationTypeField(),
                 operationNameField(),
                 topicField(KSMLDSL.Operations.Merge.STREAM, "The stream to merge with", new StreamDefinitionParser(resources(), true)),
-                (type, name, stream, tags) -> {
+                (name, stream, tags) -> {
                     if (stream instanceof StreamDefinition streamDef) {
                         return new MergeOperation(operationConfig(name, tags), streamDef);
                     }

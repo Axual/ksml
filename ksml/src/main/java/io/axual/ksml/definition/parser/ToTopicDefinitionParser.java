@@ -20,11 +20,22 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.notation.UserType;
+import io.axual.ksml.data.object.DataTuple;
+import io.axual.ksml.data.parser.ParseNode;
+import io.axual.ksml.data.parser.ParserWithSchemas;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.definition.ToTopicDefinition;
+import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyResourceAwareParser;
-import io.axual.ksml.parser.StructParser;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ToTopicDefinitionParser extends TopologyResourceAwareParser<ToTopicDefinition> {
     public ToTopicDefinitionParser(TopologyResources resources) {
@@ -32,13 +43,21 @@ public class ToTopicDefinitionParser extends TopologyResourceAwareParser<ToTopic
     }
 
     @Override
-    protected StructParser<ToTopicDefinition> parser() {
-        return structParser(
+    protected StructsParser<ToTopicDefinition> parser() {
+        return structsParser(
                 ToTopicDefinition.class,
                 "",
                 "Writes out pipeline messages to a topic",
-                optional(topicField(KSMLDSL.Operations.To.TOPIC, "A reference to a stream, table or globalTable, or an inline definition of the output topic", new TopicDefinitionParser(resources(), false))),
-                optional(functionField(KSMLDSL.Operations.To.PARTITIONER, "A function that partitions the records in the output topic", new StreamPartitionerDefinitionParser())),
+                optional(customField(KSMLDSL.Operations.To.TOPIC, "A reference to a stream, table or globalTable, or an inline definition of the output topic", topicParser())),
+                optional(functionField(KSMLDSL.Operations.To.PARTITIONER, "A function that partitions the records in the output topic", new StreamPartitionerDefinitionParser(false))),
                 (topic, partitioner, tags) -> topic != null ? new ToTopicDefinition(topic, partitioner) : null);
+    }
+
+    private ParserWithSchemas<TopicDefinition> topicParser() {
+        final var nestedParser = new TopicDefinitionParser(resources(), false);
+        final var schemas = new ArrayList<DataSchema>();
+        schemas.add(DataSchema.stringSchema());
+        schemas.addAll(nestedParser.schemas());
+        return ParserWithSchemas.of(node -> node.isString() ? new TopicDefinition(node.asString(), UserType.UNKNOWN, UserType.UNKNOWN, null, null) : nestedParser.parse(node), schemas);
     }
 }

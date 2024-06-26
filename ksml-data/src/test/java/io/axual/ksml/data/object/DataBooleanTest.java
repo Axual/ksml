@@ -23,13 +23,14 @@ package io.axual.ksml.data.object;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class DataBooleanTest {
 
     @Test
     public void testDefaultValueConstructor() {
         DataBoolean dataBoolean = new DataBoolean();
-        assertEquals(null, dataBoolean.value());
+        assertNull(dataBoolean.value());
     }
 
     @Test

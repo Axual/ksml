@@ -46,7 +46,7 @@ public abstract class TopologyResourceAwareParser<T> extends TopologyBaseResourc
         throw new TopologyException("Topology resources not properly initialized. This is a programming error.");
     }
 
-    public StructParser<TopicDefinition> topicField(String childName, String doc, DefinitionParser<? extends TopicDefinition> parser) {
+    public StructsParser<TopicDefinition> topicField(String childName, String doc, DefinitionParser<? extends TopicDefinition> parser) {
         return lookupField("topic", childName, doc, (name, context) -> resources.topic(name), parser);
     }
 }

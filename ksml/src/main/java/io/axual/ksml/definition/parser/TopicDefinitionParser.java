@@ -23,7 +23,7 @@ package io.axual.ksml.definition.parser;
 
 import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.generator.TopologyBaseResources;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyBaseResourceAwareParser;
 
 import static io.axual.ksml.dsl.KSMLDSL.Streams;
@@ -39,20 +39,20 @@ public class TopicDefinitionParser extends TopologyBaseResourceAwareParser<Topic
     }
 
     @Override
-    public StructParser<TopicDefinition> parser() {
+    public StructsParser<TopicDefinition> parser() {
         final var keyField = userTypeField(Streams.KEY_TYPE, "The key type of the topic");
         final var valueField = userTypeField(Streams.VALUE_TYPE, "The value type of the topic");
-        if (isSource) return structParser(
+        if (isSource) return structsParser(
                 TopicDefinition.class,
                 "Source",
                 DOC,
                 stringField(Streams.TOPIC, TOPIC_DOC),
                 keyField,
                 valueField,
-                optional(functionField(Streams.TIMESTAMP_EXTRACTOR, "A function extracts the event time from a consumed record", new TimestampExtractorDefinitionParser())),
+                optional(functionField(Streams.TIMESTAMP_EXTRACTOR, "A function extracts the event time from a consumed record", new TimestampExtractorDefinitionParser(false))),
                 optional(stringField(Streams.OFFSET_RESET_POLICY, "Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted)")),
                 (topic, keyType, valueType, tsExtractor, resetPolicy, tags) -> topic != null ? new TopicDefinition(topic, keyType, valueType, tsExtractor, OffsetResetPolicyParser.parseResetPolicy(resetPolicy)) : null);
-        return structParser(
+        return structsParser(
                 TopicDefinition.class,
                 "",
                 DOC,

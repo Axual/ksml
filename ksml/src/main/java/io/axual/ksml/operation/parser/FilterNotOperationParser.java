@@ -26,7 +26,7 @@ import io.axual.ksml.definition.parser.PredicateDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.FilterNotOperation;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.store.StoreType;
 
 public class FilterNotOperationParser extends StoreOperationParser<FilterNotOperation> {
@@ -34,17 +34,16 @@ public class FilterNotOperationParser extends StoreOperationParser<FilterNotOper
         super(KSMLDSL.Operations.FILTER_NOT, resources);
     }
 
-    public StructParser<FilterNotOperation> parser() {
-        return structParser(
+    public StructsParser<FilterNotOperation> parser() {
+        return structsParser(
                 FilterNotOperation.class,
                 "",
                 "Filter records based on the inverse result of a predicate function",
-                operationTypeField(),
                 operationNameField(),
-                functionField(KSMLDSL.Operations.Filter.PREDICATE, "A function that returns \"false\" when records are accepted, \"true\" otherwise", new PredicateDefinitionParser()),
+                functionField(KSMLDSL.Operations.Filter.PREDICATE, "A function that returns \"false\" when records are accepted, \"true\" otherwise", new PredicateDefinitionParser(false)),
                 storeField(false, "Materialized view of the filtered table (only applies to tables, ignored for streams)", StoreType.KEYVALUE_STORE),
                 storeNamesField(),
-                (type, name, pred, store, stores, tags) -> {
+                (name, pred, store, stores, tags) -> {
                     if (pred != null)
                         return new FilterNotOperation(storeOperationConfig(name, tags, store, stores), pred);
                     throw new ExecutionException("Predicate not defined for " + type + " operation");
