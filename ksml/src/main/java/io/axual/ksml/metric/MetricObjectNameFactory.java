@@ -53,16 +53,16 @@ class MetricObjectNameFactory implements ObjectNameFactory {
         final var metricName = MetricObjectNaming.metricNameFromString(name);
         final var metricTags = metricName.tags();
 
-        final var tagList = new ArrayList<ContextTag>(staticTags.size() + 1 + metricTags.size());
-        tagList.add(new ContextTag(TAG_KEY_NAME, metricName.name()));
+        final var tagList = new ArrayList<ContextTag>(staticTags.size() + metricTags.size());
         tagList.addAll(staticTags);
         tagList.addAll(metricTags);
 
         // Build the ObjectName string directly to guarantee order of tag keys
         StringBuilder mBeanName = new StringBuilder();
         mBeanName.append(jmxSanitize(domain));
+        // Ignore type, use the name instead
         mBeanName.append(":").append(TAG_KEY_TYPE).append("=");
-        mBeanName.append(jmxSanitize(type));
+        mBeanName.append(metricName.name());
         for (var tag : tagList) {
             mBeanName.append(",");
             mBeanName.append(jmxSanitize(tag.key()));

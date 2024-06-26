@@ -23,6 +23,7 @@ package io.axual.ksml.metric;
 import java.util.Collections;
 
 public class KSMLMetrics {
+    public static final String DOMAIN = "ksml";
     private KSMLMetrics() {
     }
 
@@ -33,6 +34,6 @@ public class KSMLMetrics {
     }
 
     public static synchronized void init() {
-        registry().enableJmx("ksml", Collections.emptyList());
+        registry().enableJmx(DOMAIN, Collections.emptyList());
     }
 }

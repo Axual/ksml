@@ -35,6 +35,7 @@ import io.axual.ksml.data.notation.binary.JsonNodeNativeMapper;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.runner.exception.ConfigException;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.extern.jackson.Jacksonized;
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,11 +56,14 @@ public class KSMLConfig {
     private ApplicationServerConfig applicationServer = DEFAULT_APPSERVER_CONFIG;
     @JsonProperty("prometheus")
     @Builder.Default
+    @Getter
     private PrometheusConfig prometheusConfig = DEFAULT_PROMETHEUS_CONFIG;
     private String configDirectory;
     private String schemaDirectory;
     private String storageDirectory;
+    @Getter
     private boolean enableProducers;
+    @Getter
     private boolean enablePipelines;
 
     @JsonProperty("errorHandling")
@@ -91,10 +95,6 @@ public class KSMLConfig {
 
     public ApplicationServerConfig getApplicationServerConfig() {
         return applicationServer;
-    }
-
-    public PrometheusConfig getPrometheusConfig(){
-        return prometheusConfig;
     }
 
     public KSMLErrorHandlingConfig getErrorHandlingConfig() {
