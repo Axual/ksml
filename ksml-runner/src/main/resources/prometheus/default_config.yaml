@@ -31,3 +31,4 @@ rules:
     name: os_$1
     type: GAUGE
     attrNameSnakeCase: true
+  - pattern: .*

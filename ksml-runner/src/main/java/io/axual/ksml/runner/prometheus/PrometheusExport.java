@@ -21,27 +21,17 @@ package io.axual.ksml.runner.prometheus;
  */
 
 import java.io.Closeable;
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.List;
+import java.net.InetAddress;
 import java.util.Optional;
 
 import io.axual.ksml.metric.KSMLMetrics;
 import io.axual.ksml.runner.config.PrometheusConfig;
-import io.prometheus.client.Collector;
-import io.prometheus.client.CollectorRegistry;
-import io.prometheus.client.exporter.HTTPServer;
-import io.prometheus.client.hotspot.BufferPoolsExports;
-import io.prometheus.client.hotspot.ClassLoadingExports;
-import io.prometheus.client.hotspot.GarbageCollectorExports;
-import io.prometheus.client.hotspot.MemoryAllocationExports;
-import io.prometheus.client.hotspot.MemoryPoolsExports;
-import io.prometheus.client.hotspot.StandardExports;
-import io.prometheus.client.hotspot.ThreadExports;
-import io.prometheus.client.hotspot.VersionInfoExports;
-import io.prometheus.jmx.BuildInfoCollector;
+import io.prometheus.jmx.BuildInfoMetrics;
 import io.prometheus.jmx.JmxCollector;
 import io.prometheus.jmx.common.http.HTTPServerFactory;
+import io.prometheus.metrics.exporter.httpserver.HTTPServer;
+import io.prometheus.metrics.instrumentation.jvm.JvmMetrics;
+import io.prometheus.metrics.model.registry.PrometheusRegistry;
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,8 +44,6 @@ public class PrometheusExport implements Closeable {
     private final PrometheusConfig config;
 
     private HTTPServer httpServer;
-    private CollectorRegistry registry;
-    private final List<Collector> collectorList = new ArrayList<>();
 
     public PrometheusExport(PrometheusConfig config) {
         // Use a copy of the provided config
@@ -76,37 +64,25 @@ public class PrometheusExport implements Closeable {
             return;
         }
         log.info("Loading Prometheus export config from {}", configFile);
-        registry = CollectorRegistry.defaultRegistry;
 
-        if (collectorList.isEmpty()) {
-            collectorList.add(new BuildInfoCollector());
-            collectorList.add(new JmxCollector(configFile));
-            collectorList.add(new StandardExports());
-            collectorList.add(new MemoryPoolsExports());
-            collectorList.add(new MemoryAllocationExports());
-            collectorList.add(new BufferPoolsExports());
-            collectorList.add(new GarbageCollectorExports());
-            collectorList.add(new ThreadExports());
-            collectorList.add(new ClassLoadingExports());
-            collectorList.add(new VersionInfoExports());
-        }
-        collectorList.forEach(registry::register);
+        new BuildInfoMetrics().register(PrometheusRegistry.defaultRegistry);
+        JvmMetrics.builder().register(PrometheusRegistry.defaultRegistry);
+        new JmxCollector(configFile, JmxCollector.Mode.AGENT)
+                .register(PrometheusRegistry.defaultRegistry);
+
 
 
         httpServer = new HTTPServerFactory()
                 .createHTTPServer(
-                        new InetSocketAddress(config.getHost(), config.getPort()),
-                        registry,
-                        true,
+                        InetAddress.getByName(config.getHost()),
+                        config.getPort(),
+                        PrometheusRegistry.defaultRegistry,
                         configFile);
     }
 
     public synchronized void stop() {
         Optional.ofNullable(httpServer).ifPresent(HTTPServer::close);
         httpServer = null;
-        Optional.ofNullable(registry).ifPresent(r -> collectorList.forEach(r::unregister));
-        registry = null;
-        collectorList.clear();
     }
 
     @Override
