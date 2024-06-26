@@ -20,12 +20,19 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.Serializer;
+
+import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+
 import io.axual.ksml.client.serde.ResolvingSerializer;
 import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.UserType;
-import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataTuple;
@@ -39,13 +46,6 @@ import io.axual.ksml.user.UserGenerator;
 import io.axual.ksml.user.UserPredicate;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.serialization.Serializer;
-
-import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 import static io.axual.ksml.data.notation.UserType.DEFAULT_NOTATION;
 
@@ -102,13 +102,13 @@ public class ExecutableProducer {
         final var gen = producerDefinition.generator();
         final var tags = new ContextTags().append("namespace", namespace);
         final var generator = gen.name() != null
-                ? PythonFunction.forGenerator(context, tags, namespace, gen.name(), gen)
-                : PythonFunction.forGenerator(context, tags, namespace, name, gen);
+                ? PythonFunction.forGenerator(context, namespace, gen.name(), gen)
+                : PythonFunction.forGenerator(context, namespace, name, gen);
         final var cond = producerDefinition.condition();
         final var condition = cond != null
                 ? cond.name() != null
-                ? PythonFunction.forPredicate(context, tags, namespace, cond.name(), cond)
-                : PythonFunction.forPredicate(context, tags, namespace, name, cond)
+                ? PythonFunction.forPredicate(context, namespace, cond.name(), cond)
+                : PythonFunction.forPredicate(context, namespace, name, cond)
                 : null;
         final var keySerde = NotationLibrary.get(target.keyType().notation()).serde(target.keyType().dataType(), true);
         final var keySerializer = new ResolvingSerializer<>(keySerde.serializer(), kafkaConfig);
@@ -208,10 +208,9 @@ public class ExecutableProducer {
 
         if (definition.until() != null) {
             FunctionDefinition untilDefinition = definition.until();
-            final var tags = new ContextTags().append("namespace", namespace);
             final var untilFunction = untilDefinition.name() != null
-                    ? PythonFunction.forPredicate(context, tags, namespace, untilDefinition.name(), untilDefinition)
-                    : PythonFunction.forPredicate(context, tags, namespace, name, untilDefinition);
+                    ? PythonFunction.forPredicate(context, namespace, untilDefinition.name(), untilDefinition)
+                    : PythonFunction.forPredicate(context, namespace, name, untilDefinition);
             strategy.combine(RescheduleStrategy.until(untilFunction));
         }
 

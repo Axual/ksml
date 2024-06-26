@@ -220,7 +220,7 @@ public class MetricsRegistry {
         }
         M newInstance = metricSupplier.get();
         registeredMetrics.put(metricName, newInstance);
-        log.warn("Created metric: {}", metricName);
+        log.debug("Created metric: {}", metricName);
         return newInstance;
     }
 

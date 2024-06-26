@@ -30,11 +30,9 @@ import org.apache.kafka.streams.state.HostInfo;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -108,6 +106,8 @@ public class KSMLRunner {
             if (definitions == null || definitions.isEmpty()) {
                 throw new ConfigException("definitions", definitions, "No KSML definitions found in configuration");
             }
+
+            KsmlInfo.registerKsmlAppInfo(config.getApplicationId());
 
             // Ensure that Kafka Streams specific types are correctly handled by the KSML data library
             DataTypeSchemaMapper.SUPPLIER(KafkaStreamsSchemaMapper::new);
@@ -239,31 +239,17 @@ public class KSMLRunner {
     }
 
     private static String determineTitle() {
-        var ksmlTitle = "KSML";
-
-        try {
-            ClassLoader cl = KSMLRunner.class.getClassLoader();
-
-            try (InputStream url = cl.getResourceAsStream("ksml/ksml-info.properties")) {
-                Properties ksmlInfo = new Properties();
-                ksmlInfo.load(url);
-                var titleBuilder = new StringBuilder()
-                        .append(ksmlInfo.getProperty("name", "KSML"));
-                if (ksmlInfo.containsKey("version")) {
-                    titleBuilder.append(" ").append(ksmlInfo.getProperty("version"));
+        var titleBuilder = new StringBuilder()
+                .append(KsmlInfo.APP_NAME);
+        if (!KsmlInfo.APP_VERSION.isBlank()) {
+            titleBuilder.append(" ").append(KsmlInfo.APP_VERSION);
                 }
-                if (ksmlInfo.containsKey("buildTime")) {
+        if (!KsmlInfo.BUILD_TIME.isBlank()) {
                     titleBuilder.append(" (")
-                            .append(ksmlInfo.getProperty("buildTime"))
+                            .append(KsmlInfo.BUILD_TIME)
                             .append(")");
                 }
-                ksmlTitle = titleBuilder.toString();
-            }
-
-        } catch (IOException e) {
-            log.info("Could not load manifest file, using default values");
-        }
-        return ksmlTitle;
+        return titleBuilder.toString();
     }
 
     private static void checkForSchemaOutput(String[] args) {

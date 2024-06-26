@@ -20,24 +20,16 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.UserType;
-import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.TupleType;
-import io.axual.ksml.data.type.WindowedType;
-import io.axual.ksml.definition.*;
-import io.axual.ksml.exception.TopologyException;
-import io.axual.ksml.generator.StreamDataType;
-import io.axual.ksml.generator.TopologyBuildContext;
-import io.axual.ksml.data.tag.ContextTags;
-import io.axual.ksml.user.UserFunction;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.utils.Bytes;
-import org.apache.kafka.streams.Topology;
-import org.apache.kafka.streams.kstream.*;
+import org.apache.kafka.streams.kstream.Grouped;
+import org.apache.kafka.streams.kstream.KeyValueMapper;
+import org.apache.kafka.streams.kstream.Materialized;
+import org.apache.kafka.streams.kstream.Named;
+import org.apache.kafka.streams.kstream.Printed;
+import org.apache.kafka.streams.kstream.Produced;
+import org.apache.kafka.streams.kstream.Repartitioned;
+import org.apache.kafka.streams.kstream.TableJoined;
 import org.apache.kafka.streams.processor.StreamPartitioner;
-import org.apache.kafka.streams.processor.TimestampExtractor;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.SessionStore;
 import org.apache.kafka.streams.state.WindowStore;
@@ -45,6 +37,23 @@ import org.apache.kafka.streams.state.WindowStore;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.TreeSet;
+
+import io.axual.ksml.data.notation.UserType;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.tag.ContextTags;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.TupleType;
+import io.axual.ksml.data.type.WindowedType;
+import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.definition.KeyValueStateStoreDefinition;
+import io.axual.ksml.definition.ParameterDefinition;
+import io.axual.ksml.definition.SessionStateStoreDefinition;
+import io.axual.ksml.definition.WindowStateStoreDefinition;
+import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.user.UserFunction;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class BaseOperation implements StreamOperation {
@@ -269,7 +278,7 @@ public class BaseOperation implements StreamOperation {
         // Copy the remainder of the parameters into the new array
         System.arraycopy(function.parameters(), parameters.length, newParams, parameters.length, function.parameters().length - parameters.length);
         // Update the function with its new parameter types
-        return context.createUserFunction(function.withParameters(newParams), tags);
+        return context.createUserFunction(function.withParameters(newParams));
     }
 
     protected void checkTuple(String faultDescription, UserType type, DataType... elements) {

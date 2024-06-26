@@ -1,4 +1,33 @@
 lowercaseOutputName: true
 lowercaseOutputLabelNames: true
 rules:
-  - pattern: ".*"
+  - pattern: 'ksml<type=app-info, app-id=(.+), app-name=(.+), app-version=(.+), build-time=(.+)>Value:'
+    name: ksml_app_info
+    labels:
+      app_id: "$1"
+      name: "$2"
+      version: "$3"
+      build-time: "$4"
+    type: GAUGE
+    value: 1
+    cached: true
+  - pattern: 'ksml<type=user_defined_counter, .*>'
+    type: COUNTER
+  - pattern: 'ksml<type=.+, .*>'
+    type: GAUGE
+  - pattern: 'kafka.streams<type=stream-(.+-)?metrics, .*>'
+    type: GAUGE
+  - pattern: 'kafka.producer<type=producer-(.+-)?metrics, .*>'
+    type: GAUGE
+  - pattern: 'kafka.consumer<type=consumer-(.+-)?metrics, .*>'
+    type: GAUGE
+  - pattern: 'kafka.admin.client<type=admin-client-(.+-)?metrics, .*>'
+    type: GAUGE
+  - pattern: 'java.lang<type=OperatingSystem><>(committed_virtual_memory|free_physical_memory|free_swap_space|total_physical_memory|total_swap_space)_size:'
+    name: os_$1_bytes
+    type: GAUGE
+    attrNameSnakeCase: true
+  - pattern: 'java.lang<type=OperatingSystem><>((?!process_cpu_time)\w+):'
+    name: os_$1
+    type: GAUGE
+    attrNameSnakeCase: true
