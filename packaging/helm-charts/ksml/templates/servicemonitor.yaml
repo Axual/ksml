@@ -14,7 +14,7 @@ spec:
         {{- include "ksml.selectorLabels" . | nindent 6 }}
   endpoints:
     - port: metrics
-      path: /
+      path: /metrics
       interval: {{ .Values.serviceMonitor.interval }}
       scrapeTimeout: {{ .Values.serviceMonitor.scrapeTimeout }}
 {{- end }}

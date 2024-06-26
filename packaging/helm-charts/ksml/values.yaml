@@ -72,12 +72,12 @@ ksmlRunnerConfig:
   #   application.id: my-streaming-app
   #   bootstrap.servers: "localhost:9092"
 
-# Kafka streams topology definitions. See https://axual.github.io/ksml/introduction.html
+# KSML Pipeline or Producer definition files. See https://axual.github.io/ksml/introduction.html
 ksmlDefinitions: {}
   # my-definition.yaml: |
   #   ...
 
-# Schema definitions. See https://github.com/Axual/ksml/tree/main/examples
+# Schema definitions files. See https://github.com/Axual/ksml/tree/main/examples
 schemaDefinitions: {}
   # my-schema.avsc: |
   #   ...
