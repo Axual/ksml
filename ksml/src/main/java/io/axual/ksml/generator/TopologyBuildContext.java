@@ -20,23 +20,12 @@ package io.axual.ksml.generator;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.DataObjectConverter;
-import io.axual.ksml.data.tag.ContextTags;
-import io.axual.ksml.definition.*;
-import io.axual.ksml.exception.TopologyException;
-import io.axual.ksml.python.PythonContext;
-import io.axual.ksml.python.PythonFunction;
-import io.axual.ksml.store.StoreUtil;
-import io.axual.ksml.stream.*;
-import io.axual.ksml.user.UserFunction;
-import io.axual.ksml.user.UserTimestampExtractor;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.Materialized;
-import org.apache.kafka.streams.processor.TimestampExtractor;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.SessionStore;
 import org.apache.kafka.streams.state.WindowStore;
@@ -44,6 +33,30 @@ import org.apache.kafka.streams.state.WindowStore;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+
+import io.axual.ksml.data.mapper.DataObjectConverter;
+import io.axual.ksml.data.tag.ContextTags;
+import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.definition.GlobalTableDefinition;
+import io.axual.ksml.definition.KeyValueStateStoreDefinition;
+import io.axual.ksml.definition.SessionStateStoreDefinition;
+import io.axual.ksml.definition.StateStoreDefinition;
+import io.axual.ksml.definition.StreamDefinition;
+import io.axual.ksml.definition.TableDefinition;
+import io.axual.ksml.definition.TopicDefinition;
+import io.axual.ksml.definition.TopologyResource;
+import io.axual.ksml.definition.WindowStateStoreDefinition;
+import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.python.PythonContext;
+import io.axual.ksml.python.PythonFunction;
+import io.axual.ksml.store.StoreUtil;
+import io.axual.ksml.stream.BaseStreamWrapper;
+import io.axual.ksml.stream.GlobalKTableWrapper;
+import io.axual.ksml.stream.KStreamWrapper;
+import io.axual.ksml.stream.KTableWrapper;
+import io.axual.ksml.stream.StreamWrapper;
+import io.axual.ksml.user.UserFunction;
+import io.axual.ksml.user.UserTimestampExtractor;
 
 // This is a supporting class during topology building/generation. It contains the main reference to Kafka Streams'
 // StreamsBuilder and serves as the lookup point for topology resources. It also contains the Python context in which
@@ -197,7 +210,7 @@ public class TopologyBuildContext {
         if (valueSerde != null) result = result.withValueSerde(valueSerde);
         if (tsExtractor != null) {
             final var tags = defaultContextTags();
-            result = result.withTimestampExtractor(new UserTimestampExtractor(createUserFunction(tsExtractor, tags), tags.append("topic", name)));
+            result = result.withTimestampExtractor(new UserTimestampExtractor(createUserFunction(tsExtractor), tags.append("topic", name)));
         }
         if (resetPolicy != null) result = result.withOffsetResetPolicy(resetPolicy);
         return result;
@@ -277,7 +290,7 @@ public class TopologyBuildContext {
     }
 
     // Create a new function in the Python context, using the definition in the parameter
-    public UserFunction createUserFunction(FunctionDefinition definition, ContextTags tags) {
-        return PythonFunction.forFunction(pythonContext, tags, resources.namespace(), definition.name(), definition);
+    public UserFunction createUserFunction(FunctionDefinition definition) {
+        return PythonFunction.forFunction(pythonContext, resources.namespace(), definition.name(), definition);
     }
 }

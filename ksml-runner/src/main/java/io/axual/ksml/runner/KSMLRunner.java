@@ -30,11 +30,9 @@ import org.apache.kafka.streams.state.HostInfo;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -109,6 +107,8 @@ public class KSMLRunner {
                 throw new ConfigException("definitions", definitions, "No KSML definitions found in configuration");
             }
 
+            KsmlInfo.registerKsmlAppInfo(config.getApplicationId());
+
             // Ensure that Kafka Streams specific types are correctly handled by the KSML data library
             DataTypeSchemaMapper.SUPPLIER(KafkaStreamsSchemaMapper::new);
             NativeDataObjectMapper.SUPPLIER(KafkaStreamsDataObjectMapper::new);
@@ -131,9 +131,9 @@ public class KSMLRunner {
 
             final var errorHandling = ksmlConfig.getErrorHandlingConfig();
             if (errorHandling != null) {
-                ExecutionContext.INSTANCE.setConsumeHandler(getErrorHandler(errorHandling.getConsume(), "ConsumeError"));
-                ExecutionContext.INSTANCE.setProduceHandler(getErrorHandler(errorHandling.getProduce(), "ProduceError"));
-                ExecutionContext.INSTANCE.setProcessHandler(getErrorHandler(errorHandling.getProcess(), "ProcessError"));
+                ExecutionContext.INSTANCE.setConsumeHandler(getErrorHandler(errorHandling.getConsumerErrorHandlingConfig()));
+                ExecutionContext.INSTANCE.setProduceHandler(getErrorHandler(errorHandling.getProducerErrorHandlingConfig()));
+                ExecutionContext.INSTANCE.setProcessHandler(getErrorHandler(errorHandling.getProcessErrorHandlingConfig()));
             }
             ExecutionContext.INSTANCE.setSerdeWrapper(
                     serde -> new Serdes.WrapperSerde<>(
@@ -148,6 +148,16 @@ public class KSMLRunner {
                 if (!specification.producers().isEmpty()) producerSpecs.put(name, specification);
                 if (!specification.pipelines().isEmpty()) pipelineSpecs.put(name, specification);
             });
+
+
+            if (!ksmlConfig.isEnableProducers() && !producerSpecs.isEmpty()) {
+                log.warn("Producers are disabled for this runner. The supplied producer specifications will be ignored.");
+                producerSpecs.clear();
+            }
+            if (!ksmlConfig.isEnablePipelines() && !pipelineSpecs.isEmpty()) {
+                log.warn("Pipelines are disabled for this runner. The supplied pipeline specifications will be ignored.");
+                pipelineSpecs.clear();
+            }
 
             final var producer = producerSpecs.isEmpty() ? null : new KafkaProducerRunner(KafkaProducerRunner.Config.builder()
                     .definitions(producerSpecs)
@@ -239,31 +249,17 @@ public class KSMLRunner {
     }
 
     private static String determineTitle() {
-        var ksmlTitle = "KSML";
-
-        try {
-            ClassLoader cl = KSMLRunner.class.getClassLoader();
-
-            try (InputStream url = cl.getResourceAsStream("ksml/ksml-info.properties")) {
-                Properties ksmlInfo = new Properties();
-                ksmlInfo.load(url);
-                var titleBuilder = new StringBuilder()
-                        .append(ksmlInfo.getProperty("name", "KSML"));
-                if (ksmlInfo.containsKey("version")) {
-                    titleBuilder.append(" ").append(ksmlInfo.getProperty("version"));
+        var titleBuilder = new StringBuilder()
+                .append(KsmlInfo.APP_NAME);
+        if (!KsmlInfo.APP_VERSION.isBlank()) {
+            titleBuilder.append(" ").append(KsmlInfo.APP_VERSION);
                 }
-                if (ksmlInfo.containsKey("buildTime")) {
+        if (!KsmlInfo.BUILD_TIME.isBlank()) {
                     titleBuilder.append(" (")
-                            .append(ksmlInfo.getProperty("buildTime"))
+                            .append(KsmlInfo.BUILD_TIME)
                             .append(")");
                 }
-                ksmlTitle = titleBuilder.toString();
-            }
-
-        } catch (IOException e) {
-            log.info("Could not load manifest file, using default values");
-        }
-        return ksmlTitle;
+        return titleBuilder.toString();
     }
 
     private static void checkForSchemaOutput(String[] args) {
@@ -317,9 +313,8 @@ public class KSMLRunner {
         throw new ConfigException("No configuration found");
     }
 
-    private static ErrorHandler getErrorHandler(KSMLErrorHandlingConfig.ErrorHandlingConfig config, String
-            loggerName) {
-        if (config == null) return new ErrorHandler(true, false, loggerName, ErrorHandler.HandlerType.STOP_ON_FAIL);
+
+    private static ErrorHandler getErrorHandler(KSMLErrorHandlingConfig.ErrorHandlingConfig config) {
         final var handlerType = switch (config.getHandler()) {
             case CONTINUE -> ErrorHandler.HandlerType.CONTINUE_ON_FAIL;
             case STOP -> ErrorHandler.HandlerType.STOP_ON_FAIL;
@@ -327,7 +322,7 @@ public class KSMLRunner {
         return new ErrorHandler(
                 config.isLog(),
                 config.isLogPayload(),
-                config.getLoggerName() != null ? config.getLoggerName() : loggerName,
+                config.getLoggerName(),
                 handlerType);
     }
 }

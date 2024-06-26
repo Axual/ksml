@@ -28,7 +28,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.jackson.Jacksonized;
 
-@Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Builder
 @Jacksonized

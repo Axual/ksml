@@ -32,7 +32,7 @@ package ksml <<Rectangle>> {
 		+getQuerier(): StreamsQuerier
 	}
 
-	enum Backend.State {
+	enum State {
 		+STARTING
 		+STARTED
 		+STOPPING
@@ -41,13 +41,12 @@ package ksml <<Rectangle>> {
 	}
 }
 
-Backend +- Backend.State
+Backend +- State
 
 Runnable <|-- Backend
 AutoCloseable <|-- Backend
 
 Backend <|-- KafkaBackend
 Backend <|-- AxualBackend
-
 
 @enduml
