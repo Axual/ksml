@@ -62,9 +62,11 @@ public class KSMLConfig {
     private String schemaDirectory;
     private String storageDirectory;
     @Getter
-    private boolean enableProducers;
+    @Builder.Default
+    private boolean enableProducers = true;
     @Getter
-    private boolean enablePipelines;
+    @Builder.Default
+    private boolean enablePipelines = true;
 
     @JsonProperty("errorHandling")
     private KSMLErrorHandlingConfig errorHandling;
