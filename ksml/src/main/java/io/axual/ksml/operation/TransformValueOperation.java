@@ -57,7 +57,7 @@ public class TransformValueOperation extends StoreOperation {
         final var vr = streamDataTypeOf(firstSpecificType(mapper, v.userType()), false);
         final var map = userFunctionOf(context, MAPPER_NAME, mapper, vr, superOf(k), superOf(v));
         final var userMap = new UserValueTransformer(map, tags);
-        final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames().toArray(TEMPLATE));
+        final var storeNames = mapper.storeNames().toArray(String[]::new);
         final var supplier = new FixedKeyOperationProcessorSupplier<>(
                 name,
                 TransformValueProcessor::new,
@@ -89,6 +89,7 @@ public class TransformValueOperation extends StoreOperation {
         final ValueTransformerWithKeySupplier<Object, Object, DataObject> supplier = () -> userMap;
         final var named = namedOf();
         final var mat = materializedOf(context, kvStore);
+        final var storeNames = mapper.storeNames().toArray(String[]::new);
         final KTable<Object, Object> output = named != null
                 ? mat != null
                 ? input.table.transformValues(supplier, mat, named, storeNames)

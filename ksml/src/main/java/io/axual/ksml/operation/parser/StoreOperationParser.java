@@ -44,12 +44,8 @@ public abstract class StoreOperationParser<T extends StoreOperation> extends Ope
     }
 
     protected StoreOperationConfig storeOperationConfig(String name, ContextTags tags, StateStoreDefinition store) {
-        return storeOperationConfig(name, tags, store, null);
-    }
-
-    protected StoreOperationConfig storeOperationConfig(String name, ContextTags tags, StateStoreDefinition store, List<String> storeNames) {
         name = validateName("Store", name, defaultShortName(), true);
-        return new StoreOperationConfig(name != null ? resources().getUniqueOperationName(name) : resources().getUniqueOperationName(tags), tags, store, storeNames);
+        return new StoreOperationConfig(name != null ? resources().getUniqueOperationName(name) : resources().getUniqueOperationName(tags), tags, store);
     }
 
     protected StructsParser<StateStoreDefinition> storeField(boolean required, String doc, StoreType expectedStoreType) {

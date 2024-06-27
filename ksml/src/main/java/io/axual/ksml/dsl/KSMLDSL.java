@@ -86,7 +86,6 @@ public class KSMLDSL {
         public static final String NAME_ATTRIBUTE = "name";
         public static final String TYPE_ATTRIBUTE = "type";
         public static final String STORE_ATTRIBUTE = "store";
-        public static final String STORE_NAMES_ATTRIBUTE = "stores";
 
         public static final String AGGREGATE = "aggregate";
         public static final String COGROUP = "cogroup";

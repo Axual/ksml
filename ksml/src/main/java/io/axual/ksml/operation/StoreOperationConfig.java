@@ -28,8 +28,8 @@ import java.util.List;
 public class StoreOperationConfig extends OperationConfig {
     public final StateStoreDefinition store;
 
-    public StoreOperationConfig(String name, ContextTags context, StateStoreDefinition store, List<String> storeNames) {
-        super(name, context, storeNames != null ? storeNames.toArray(new String[]{}) : null);
+    public StoreOperationConfig(String name, ContextTags context, StateStoreDefinition store) {
+        super(name, context);
         this.store = store;
     }
 }

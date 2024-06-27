@@ -54,7 +54,7 @@ public class FilterNotOperation extends StoreOperation {
         final var v = input.valueType();
         final var pred = userFunctionOf(context, PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k), superOf(v));
         final var userPred = new UserPredicate(pred, tags);
-        final var storeNames = combineStoreNames(this.storeNames, predicate.storeNames().toArray(TEMPLATE));
+        final var storeNames = predicate.storeNames().toArray(String[]::new);
         final var supplier = new FixedKeyOperationProcessorSupplier<>(
                 name,
                 FilterNotProcessor::new,

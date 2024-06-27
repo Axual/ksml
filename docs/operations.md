@@ -277,6 +277,7 @@ the predicate returns `true`, then the message will be sent to the output stream
 | Stream Type      | Returns          | Parameter | Value Type | Required            | Description                                                                                         |
 |:-----------------|:-----------------|:----------|:-----------|:--------------------|:----------------------------------------------------------------------------------------------------|
 | [KStream]`<K,V>` | [KStream]`<K,V>` | `if`      | Yes        | Inline or reference | A [Predicate] function, which returns `True` if the message can pass the filter, `False` otherwise. |
+|                  |                  |           |            |                     |                                                                                                     |
 | [KTable]`<K,V>`  | [KTable]`<K,V>`  | `if`      | Yes        | Inline or reference | A [Predicate] function, which returns `True` if the message can pass the filter, `False` otherwise. |
 
 Example:

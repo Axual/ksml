@@ -67,7 +67,6 @@ public class BaseOperation implements StreamOperation {
 
     protected final String name;
     protected final ContextTags tags;
-    protected final String[] storeNames;
 
     public BaseOperation(OperationConfig config) {
         var error = NameValidator.validateNameAndReturnError(config.name());
@@ -78,7 +77,6 @@ public class BaseOperation implements StreamOperation {
             name = config.name();
         }
         tags = config.tags().append("operation-name", name);
-        storeNames = config.storeNames() != null ? config.storeNames() : new String[0];
     }
 
     @Override
@@ -285,14 +283,6 @@ public class BaseOperation implements StreamOperation {
                 throw new TopologyException(ERROR_IN_TOPOLOGY + ": " + faultDescription + " tuple element " + index + " is expected to be (subclass) of type " + elements[index]);
             }
         }
-    }
-
-    protected String[] combineStoreNames(String[]... storeNameArrays) {
-        final var storeNames = new TreeSet<String>();
-        for (String[] storeNameArray : storeNameArrays) {
-            if (storeNameArray != null) Collections.addAll(storeNames, storeNameArray);
-        }
-        return storeNames.toArray(TEMPLATE);
     }
 
     protected StreamDataType streamDataTypeOf(DataType dataType, boolean isKey) {

@@ -132,8 +132,6 @@
       - : Refer to *[#/definitions/PredicateDefinitionWithImplicitType](#definitions/PredicateDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`print`**: *(optional)* The specification of where to print messages to. Refer to *[#/definitions/PrintOperation](#definitions/PrintOperation)*.
-  - **`stores`** *(array)*: *(optional)* The names of all state stores used by the function.
-    - **Items** *(string)*
   - **`to`**: *(optional)* Ends the pipeline by sending all messages to a stream, table or globalTable, or to an inline defined output topic and optional partitioner.
     - **Any of**
       - *string*
@@ -165,9 +163,11 @@
         - : Refer to *[#/definitions/OuterJoinOperationWithStream](#definitions/OuterJoinOperationWithStream)*.
         - : Refer to *[#/definitions/OuterJoinOperationWithTable](#definitions/OuterJoinOperationWithTable)*.
         - : Refer to *[#/definitions/PeekOperation](#definitions/PeekOperation)*.
-        - : Refer to *[#/definitions/ReduceOperation](#definitions/ReduceOperation)*.
+        - : Refer to *[#/definitions/ReduceOperationWithAdderAndSubtractor](#definitions/ReduceOperationWithAdderAndSubtractor)*.
+        - : Refer to *[#/definitions/ReduceOperationWithReducer](#definitions/ReduceOperationWithReducer)*.
         - : Refer to *[#/definitions/RepartitionOperation](#definitions/RepartitionOperation)*.
-        - : Refer to *[#/definitions/SuppressOperation](#definitions/SuppressOperation)*.
+        - : Refer to *[#/definitions/SuppressOperationUntilTimeLimit](#definitions/SuppressOperationUntilTimeLimit)*.
+        - : Refer to *[#/definitions/SuppressOperationUntilWindowCloses](#definitions/SuppressOperationUntilWindowCloses)*.
         - : Refer to *[#/definitions/ToStreamOperation](#definitions/ToStreamOperation)*.
         - : Refer to *[#/definitions/ToTableOperation](#definitions/ToTableOperation)*.
         - : Refer to *[#/definitions/TransformKeyOperation](#definitions/TransformKeyOperation)*.
@@ -177,7 +177,9 @@
         - : Refer to *[#/definitions/TransformMetadataOperation](#definitions/TransformMetadataOperation)*.
         - : Refer to *[#/definitions/TransformValueOperation](#definitions/TransformValueOperation)*.
         - : Refer to *[#/definitions/WindowBySessionOperation](#definitions/WindowBySessionOperation)*.
-        - : Refer to *[#/definitions/WindowByTimeOperation](#definitions/WindowByTimeOperation)*.
+        - : Refer to *[#/definitions/WindowByTimeOperationWithHoppingWindow](#definitions/WindowByTimeOperationWithHoppingWindow)*.
+        - : Refer to *[#/definitions/WindowByTimeOperationWithSlidingWindow](#definitions/WindowByTimeOperationWithSlidingWindow)*.
+        - : Refer to *[#/definitions/WindowByTimeOperationWithTumblingWindow](#definitions/WindowByTimeOperationWithTumblingWindow)*.
 - <a id="definitions/CogroupOperation"></a>**`CogroupOperation`** *(object)*: A cogroup operation. Cannot contain additional properties.
   - **`aggregator`**: (GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result.
     - **Any of**
@@ -220,8 +222,6 @@
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
-  - **`stores`** *(array)*: *(optional)* The names of all state stores used by the function.
-    - **Items** *(string)*
   - **`type`**: The type of the operation. Must be one of: `["filterNot"]`.
 - <a id="definitions/FilterOperation"></a>**`FilterOperation`** *(object)*: Filter records based on a predicate function. Cannot contain additional properties.
   - **`if`**: A function that returns "true" when records are accepted, "false" otherwise.
@@ -233,8 +233,6 @@
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
-  - **`stores`** *(array)*: *(optional)* The names of all state stores used by the function.
-    - **Items** *(string)*
   - **`type`**: The type of the operation. Must be one of: `["filter"]`.
 - <a id="definitions/ForEachActionDefinition"></a>**`ForEachActionDefinition`** *(object)*: Defines a foreach action function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the foreach action.
@@ -461,17 +459,11 @@
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/GlobalTableDefinition](#definitions/GlobalTableDefinition)*.
-  - **`mapper`**: A function that maps the key value from the stream with the primary key of the globalTable.
+  - **`mapper`**: A function that maps the key value from the stream to the primary key type of the globalTable.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitType](#definitions/ValueJoinerDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
-  - **`store`**: *(optional)* Materialized view of the joined streams.
-    - **Any of**
-      - *string*
-      - : Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
-      - : Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
-      - : Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
   - **`type`**: The type of the operation. Must be one of: `["join"]`.
   - **`valueJoiner`**: A function that joins two values.
     - **Any of**
@@ -851,12 +843,6 @@
       - *string*
       - : Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitType](#definitions/ValueJoinerDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
-  - **`store`**: *(optional)* Materialized view of the leftJoined streams.
-    - **Any of**
-      - *string*
-      - : Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
-      - : Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
-      - : Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
   - **`type`**: The type of the operation. Must be one of: `["leftJoin"]`.
   - **`valueJoiner`**: A function that joins two values.
     - **Any of**
@@ -1069,8 +1055,6 @@
       - *string*
       - : Refer to *[#/definitions/ForEachActionDefinitionWithImplicitType](#definitions/ForEachActionDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
-  - **`stores`** *(array)*: *(optional)* The names of all state stores used by the function.
-    - **Items** *(string)*
   - **`type`**: The type of the operation. Must be one of: `["peek"]`.
 - <a id="definitions/PipelineDefinition"></a>**`PipelineDefinition`** *(object)*: Defines a pipeline through a source, a series of operations to perform on it and a sink operation to close the stream with. Cannot contain additional properties.
   - **`as`** *(string)*: *(optional)* The name to register the pipeline result under, which can be used as source by follow-up pipelines.
@@ -1086,8 +1070,6 @@
       - : Refer to *[#/definitions/TopicDefinitionSource](#definitions/TopicDefinitionSource)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`print`**: *(optional)* The specification of where to print messages to. Refer to *[#/definitions/PrintOperation](#definitions/PrintOperation)*.
-  - **`stores`** *(array)*: *(optional)* The names of all state stores used by the function.
-    - **Items** *(string)*
   - **`to`**: *(optional)* Ends the pipeline by sending all messages to a stream, table or globalTable, or to an inline defined output topic and optional partitioner.
     - **Any of**
       - *string*
@@ -1119,9 +1101,11 @@
         - : Refer to *[#/definitions/OuterJoinOperationWithStream](#definitions/OuterJoinOperationWithStream)*.
         - : Refer to *[#/definitions/OuterJoinOperationWithTable](#definitions/OuterJoinOperationWithTable)*.
         - : Refer to *[#/definitions/PeekOperation](#definitions/PeekOperation)*.
-        - : Refer to *[#/definitions/ReduceOperation](#definitions/ReduceOperation)*.
+        - : Refer to *[#/definitions/ReduceOperationWithAdderAndSubtractor](#definitions/ReduceOperationWithAdderAndSubtractor)*.
+        - : Refer to *[#/definitions/ReduceOperationWithReducer](#definitions/ReduceOperationWithReducer)*.
         - : Refer to *[#/definitions/RepartitionOperation](#definitions/RepartitionOperation)*.
-        - : Refer to *[#/definitions/SuppressOperation](#definitions/SuppressOperation)*.
+        - : Refer to *[#/definitions/SuppressOperationUntilTimeLimit](#definitions/SuppressOperationUntilTimeLimit)*.
+        - : Refer to *[#/definitions/SuppressOperationUntilWindowCloses](#definitions/SuppressOperationUntilWindowCloses)*.
         - : Refer to *[#/definitions/ToStreamOperation](#definitions/ToStreamOperation)*.
         - : Refer to *[#/definitions/ToTableOperation](#definitions/ToTableOperation)*.
         - : Refer to *[#/definitions/TransformKeyOperation](#definitions/TransformKeyOperation)*.
@@ -1131,7 +1115,9 @@
         - : Refer to *[#/definitions/TransformMetadataOperation](#definitions/TransformMetadataOperation)*.
         - : Refer to *[#/definitions/TransformValueOperation](#definitions/TransformValueOperation)*.
         - : Refer to *[#/definitions/WindowBySessionOperation](#definitions/WindowBySessionOperation)*.
-        - : Refer to *[#/definitions/WindowByTimeOperation](#definitions/WindowByTimeOperation)*.
+        - : Refer to *[#/definitions/WindowByTimeOperationWithHoppingWindow](#definitions/WindowByTimeOperationWithHoppingWindow)*.
+        - : Refer to *[#/definitions/WindowByTimeOperationWithSlidingWindow](#definitions/WindowByTimeOperationWithSlidingWindow)*.
+        - : Refer to *[#/definitions/WindowByTimeOperationWithTumblingWindow](#definitions/WindowByTimeOperationWithTumblingWindow)*.
 - <a id="definitions/PredicateDefinition"></a>**`PredicateDefinition`** *(object)*: Defines a Function that returns true or false based on key/value input function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the Function that returns true or false based on key/value input.
     - **Any of**
@@ -1207,11 +1193,22 @@
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/PredicateDefinitionWithImplicitType](#definitions/PredicateDefinitionWithImplicitType)*.
-- <a id="definitions/ReduceOperation"></a>**`ReduceOperation`** *(object)*: Operation to reduce a series of records into a single aggregate result. Cannot contain additional properties.
+- <a id="definitions/ReduceOperationWithAdderAndSubtractor"></a>**`ReduceOperationWithAdderAndSubtractor`** *(object)*: Operation to reduce a series of records into a single aggregate result. Cannot contain additional properties.
   - **`adder`**: A function that adds a record to the aggregate result.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/ReducerDefinitionWithImplicitType](#definitions/ReducerDefinitionWithImplicitType)*.
+  - **`name`** *(string)*: *(optional)* The name of the operation processor.
+  - **`store`**: *(optional)* Materialized view of the aggregation.
+    - **Any of**
+      - *string*
+      - : Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitType](#definitions/WindowStateStoreDefinitionWithImplicitType)*.
+  - **`subtractor`**: A function that removes a record from the aggregate result.
+    - **Any of**
+      - *string*
+      - : Refer to *[#/definitions/ReducerDefinitionWithImplicitType](#definitions/ReducerDefinitionWithImplicitType)*.
+  - **`type`**: The type of the operation. Must be one of: `["reduce"]`.
+- <a id="definitions/ReduceOperationWithReducer"></a>**`ReduceOperationWithReducer`** *(object)*: Operation to reduce a series of records into a single aggregate result. Cannot contain additional properties.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`reducer`**: A function that computes a new aggregate result.
     - **Any of**
@@ -1221,10 +1218,6 @@
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitType](#definitions/WindowStateStoreDefinitionWithImplicitType)*.
-  - **`subtractor`**: A function that removes a record from the aggregate result.
-    - **Any of**
-      - *string*
-      - : Refer to *[#/definitions/ReducerDefinitionWithImplicitType](#definitions/ReducerDefinitionWithImplicitType)*.
   - **`type`**: The type of the operation. Must be one of: `["reduce"]`.
 - <a id="definitions/ReducerDefinition"></a>**`ReducerDefinition`** *(object)*: Defines a reducer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the reducer.
@@ -1273,7 +1266,8 @@
     - **Items** *(string)*
 - <a id="definitions/RepartitionOperation"></a>**`RepartitionOperation`** *(object)*: Operation to (re)partition a stream. Cannot contain additional properties.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
-  - **`partitioner`**: A function that partitions stream records.
+  - **`numberOfPartitions`**: *(optional)* The target number of partitions.
+  - **`partitioner`**: *(optional)* A function that partitions stream records.
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/StreamPartitionerDefinitionWithImplicitType](#definitions/StreamPartitionerDefinitionWithImplicitType)*.
@@ -1354,8 +1348,8 @@
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/PredicateDefinitionWithImplicitType](#definitions/PredicateDefinitionWithImplicitType)*.
-- <a id="definitions/SuppressOperation"></a>**`SuppressOperation`** *(object)*: Operation to suppress messages in the source stream until a certain limit is reached. Cannot contain additional properties.
-  - **`bufferFullStrategy`** *(string)*: *(optional)* What to do when the buffer is full, either "emitEarlyWhenFull", or "shutdownWhenFull".
+- <a id="definitions/SuppressOperationUntilTimeLimit"></a>**`SuppressOperationUntilTimeLimit`** *(object)*: Operation to suppress messages in the source stream until a time limit is reached. Cannot contain additional properties.
+  - **`bufferFullStrategy`**: *(optional)* What to do when the buffer is full. Must be one of: `["emitEarlyWhenFull", "shutdownWhenFull"]`.
   - **`duration`**: The duration for which messages are suppressed.
     - **Any of**
       - *number*
@@ -1364,7 +1358,14 @@
   - **`maxRecords`** *(string)*: *(optional)* The maximum number of records in the buffer.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`type`**: The type of the operation. Must be one of: `["suppress"]`.
-  - **`until`** *(string, required)*: The method by which messages are held, either "timeLimit", or "windowCloses".
+  - **`until`**: The until of the Operation to suppress messages in the source stream until a certain limit is reached. Must be one of: `["timeLimit"]`.
+- <a id="definitions/SuppressOperationUntilWindowCloses"></a>**`SuppressOperationUntilWindowCloses`** *(object)*: Operation to suppress messages in the source stream until a window limit is reached. Cannot contain additional properties.
+  - **`bufferFullStrategy`**: *(optional)* What to do when the buffer is full. Must be one of: `["emitEarlyWhenFull", "shutdownWhenFull"]`.
+  - **`maxBytes`** *(string)*: *(optional)* The maximum number of bytes in the buffer.
+  - **`maxRecords`** *(string)*: *(optional)* The maximum number of records in the buffer.
+  - **`name`** *(string)*: *(optional)* The name of the operation processor.
+  - **`type`**: The type of the operation. Must be one of: `["suppress"]`.
+  - **`until`**: The until of the Operation to suppress messages in the source stream until a certain limit is reached. Must be one of: `["windowCloses"]`.
 - <a id="definitions/TableDefinition"></a>**`TableDefinition`** *(object)*: Contains a definition of a Table, which can be referenced by producers and pipelines. Cannot contain additional properties.
   - **`keyType`** *(string)*: *(optional)* The key type of the table.
   - **`store`**: *(optional)* KeyValue state store definition.
@@ -1526,8 +1527,6 @@
       - *string*
       - : Refer to *[#/definitions/KeyTransformerDefinitionWithImplicitType](#definitions/KeyTransformerDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
-  - **`stores`** *(array)*: *(optional)* The names of all state stores used by the function.
-    - **Items** *(string)*
   - **`type`**: The type of the operation. Must be one of: `["transformKey", "mapKey", "selectKey"]`.
 - <a id="definitions/TransformKeyValueOperation"></a>**`TransformKeyValueOperation`** *(object)*: Convert the key/value of every record in the stream to another key/value. Cannot contain additional properties.
   - **`mapper`**: A function that computes a new key/value for each record.
@@ -1535,8 +1534,6 @@
       - *string*
       - : Refer to *[#/definitions/KeyValueTransformerDefinitionWithImplicitType](#definitions/KeyValueTransformerDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
-  - **`stores`** *(array)*: *(optional)* The names of all state stores used by the function.
-    - **Items** *(string)*
   - **`type`**: The type of the operation. Must be one of: `["mapKeyValue", "map", "transformKeyValue"]`.
 - <a id="definitions/TransformKeyValueToKeyValueListOperation"></a>**`TransformKeyValueToKeyValueListOperation`** *(object)*: Convert a stream by transforming every record into a list of derived records. Cannot contain additional properties.
   - **`mapper`**: A function that converts every record of a stream to a list of output records.
@@ -1544,8 +1541,6 @@
       - *string*
       - : Refer to *[#/definitions/KeyValueToKeyValueListTransformerDefinitionWithImplicitType](#definitions/KeyValueToKeyValueListTransformerDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
-  - **`stores`** *(array)*: *(optional)* The names of all state stores used by the function.
-    - **Items** *(string)*
   - **`type`**: The type of the operation. Must be one of: `["transformKeyValueToKeyValueList", "flatMap"]`.
 - <a id="definitions/TransformKeyValueToValueListOperation"></a>**`TransformKeyValueToValueListOperation`** *(object)*: Convert every record in the stream to a list of output records with the same key. Cannot contain additional properties.
   - **`mapper`**: A function that converts every key/value into a list of result values, each of which will be combined with the original key to form a new message in the output stream.
@@ -1553,8 +1548,6 @@
       - *string*
       - : Refer to *[#/definitions/KeyValueToValueListTransformerDefinitionWithImplicitType](#definitions/KeyValueToValueListTransformerDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
-  - **`stores`** *(array)*: *(optional)* The names of all state stores used by the function.
-    - **Items** *(string)*
   - **`type`**: The type of the operation. Must be one of: `["transformKeyValueToValueList", "flatMapValues"]`.
 - <a id="definitions/TransformMetadataOperation"></a>**`TransformMetadataOperation`** *(object)*: Convert the metadata of every record in the stream. Cannot contain additional properties.
   - **`mapper`**: A function that converts the metadata (Kafka headers, timestamp) of every record in the stream.
@@ -1562,8 +1555,6 @@
       - *string*
       - : Refer to *[#/definitions/MetadataTransformerDefinitionWithImplicitType](#definitions/MetadataTransformerDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
-  - **`stores`** *(array)*: *(optional)* The names of all state stores used by the function.
-    - **Items** *(string)*
   - **`type`**: The type of the operation. Must be one of: `["transformMetadata"]`.
 - <a id="definitions/TransformValueOperation"></a>**`TransformValueOperation`** *(object)*: Convert the value of every record in the stream to another value. Cannot contain additional properties.
   - **`mapper`**: A function that converts the value of every record into another value.
@@ -1575,8 +1566,6 @@
     - **Any of**
       - *string*
       - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
-  - **`stores`** *(array)*: *(optional)* The names of all state stores used by the function.
-    - **Items** *(string)*
   - **`type`**: The type of the operation. Must be one of: `["mapValue", "transformValue", "mapValues"]`.
 - <a id="definitions/ValueJoinerDefinition"></a>**`ValueJoinerDefinition`** *(object)*: Defines a value joiner function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the value joiner.
@@ -1679,26 +1668,46 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`type`**: The type of the operation. Must be one of: `["windowBySession"]`.
-- <a id="definitions/WindowByTimeOperation"></a>**`WindowByTimeOperation`** *(object)*: Operation to reduce a series of records into a single aggregate result. Cannot contain additional properties.
-  - **`advanceBy`**: *(optional)* (Hopping) The amount of time to increase time windows by.
+- <a id="definitions/WindowByTimeOperationWithHoppingWindow"></a>**`WindowByTimeOperationWithHoppingWindow`** *(object)*: Operation to window records based on time criteria. Cannot contain additional properties.
+  - **`advanceBy`**: The amount of time to increase time windows by.
     - **Any of**
       - *number*
       - *string*
-  - **`duration`**: *(optional)* (Tumbling) The duration of time windows.
+  - **`duration`**: The duration of time windows.
     - **Any of**
       - *number*
       - *string*
-  - **`grace`**: *(optional)* (Tumbling, Hopping, Sliding) The grace period, during which out-of-order records can still be processed.
+  - **`grace`**: *(optional)* The grace period, during which out-of-order records can still be processed.
     - **Any of**
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
-  - **`timeDifference`**: *(optional)* (Sliding) The maximum amount of time difference between two records.
+  - **`type`**: The type of the operation. Must be one of: `["windowByTime"]`.
+  - **`windowType`**: The windowType of the time window. Must be one of: `["hopping"]`.
+- <a id="definitions/WindowByTimeOperationWithSlidingWindow"></a>**`WindowByTimeOperationWithSlidingWindow`** *(object)*: Operation to window records based on time criteria. Cannot contain additional properties.
+  - **`grace`**: *(optional)* The grace period, during which out-of-order records can still be processed.
+    - **Any of**
+      - *number*
+      - *string*
+  - **`name`** *(string)*: *(optional)* The name of the operation processor.
+  - **`timeDifference`**: The maximum amount of time difference between two records.
     - **Any of**
       - *number*
       - *string*
   - **`type`**: The type of the operation. Must be one of: `["windowByTime"]`.
-  - **`windowType`** *(string, required)*: The type of the operation, either "tumbling", or "hopping", or "sliding".
+  - **`windowType`**: The windowType of the time window. Must be one of: `["sliding"]`.
+- <a id="definitions/WindowByTimeOperationWithTumblingWindow"></a>**`WindowByTimeOperationWithTumblingWindow`** *(object)*: Operation to window records based on time criteria. Cannot contain additional properties.
+  - **`duration`**: The duration of time windows.
+    - **Any of**
+      - *number*
+      - *string*
+  - **`grace`**: *(optional)* The grace period, during which out-of-order records can still be processed.
+    - **Any of**
+      - *number*
+      - *string*
+  - **`name`** *(string)*: *(optional)* The name of the operation processor.
+  - **`type`**: The type of the operation. Must be one of: `["windowByTime"]`.
+  - **`windowType`**: The windowType of the time window. Must be one of: `["tumbling"]`.
 - <a id="definitions/WindowStateStoreDefinition"></a>**`WindowStateStoreDefinition`** *(object)*: Definition of a window state store. Cannot contain additional properties.
   - **`caching`** *(boolean)*: *(optional)* "true" if changed to the window store need to be buffered and periodically released, "false" to emit all changes directly.
   - **`keyType`** *(string)*: *(optional)* The key type of the window store.
