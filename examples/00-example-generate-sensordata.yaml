@@ -5,7 +5,6 @@
 functions:
   generate_sensordata_message:
     type: generator
-    nix: hello
     globalCode: |
       import time
       import random
