@@ -1,3 +1,5 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/main/docs/ksml-language-spec.json
+
 # This example shows how to read from an AVRO stream, modify a specific field and output to a target
 # stream. For validation purposes a second pipeline outputs the modified results.
 
@@ -6,6 +8,7 @@ streams:
     topic: ksml_sensordata_avro
     keyType: string
     valueType: avro:SensorData
+    offsetResetPolicy: latest
   sensor_target:
     topic: ksml_sensordata_modified
     keyType: string

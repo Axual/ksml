@@ -2,6 +2,7 @@ ksml:
   # The examples directory is mounted to /ksml in the docker compose definition
   configDirectory: /ksml # When not set defaults to the working directory
   schemaDirectory: /ksml # When not set defaults to the config directory
+  enableProducers: true
   definitions:
     generate_alert_setting: 00-example-generate-alertsettings.yaml
     generate_sensor_data: 00-example-generate-sensordata.yaml

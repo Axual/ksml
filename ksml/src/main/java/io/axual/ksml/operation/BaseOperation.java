@@ -20,15 +20,20 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.notation.UserType;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.tag.ContextTags;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.TupleType;
+import io.axual.ksml.data.type.WindowedType;
+import io.axual.ksml.definition.*;
+import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.user.UserFunction;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.utils.Bytes;
-import org.apache.kafka.streams.kstream.Grouped;
-import org.apache.kafka.streams.kstream.KeyValueMapper;
-import org.apache.kafka.streams.kstream.Materialized;
-import org.apache.kafka.streams.kstream.Named;
-import org.apache.kafka.streams.kstream.Printed;
-import org.apache.kafka.streams.kstream.Produced;
-import org.apache.kafka.streams.kstream.Repartitioned;
-import org.apache.kafka.streams.kstream.TableJoined;
+import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.processor.StreamPartitioner;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.SessionStore;
@@ -37,23 +42,6 @@ import org.apache.kafka.streams.state.WindowStore;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.TreeSet;
-
-import io.axual.ksml.data.notation.UserType;
-import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.tag.ContextTags;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.TupleType;
-import io.axual.ksml.data.type.WindowedType;
-import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.definition.KeyValueStateStoreDefinition;
-import io.axual.ksml.definition.ParameterDefinition;
-import io.axual.ksml.definition.SessionStateStoreDefinition;
-import io.axual.ksml.definition.WindowStateStoreDefinition;
-import io.axual.ksml.exception.TopologyException;
-import io.axual.ksml.generator.StreamDataType;
-import io.axual.ksml.generator.TopologyBuildContext;
-import io.axual.ksml.user.UserFunction;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class BaseOperation implements StreamOperation {

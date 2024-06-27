@@ -20,10 +20,20 @@ package io.axual.ksml;
  * =========================LICENSE_END==================================
  */
 
-import com.google.common.collect.ImmutableMap;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
+import com.google.common.collect.ImmutableMap;
+import io.axual.ksml.data.notation.NotationLibrary;
+import io.axual.ksml.data.notation.avro.AvroSchemaLoader;
+import io.axual.ksml.data.notation.avro.MockAvroNotation;
+import io.axual.ksml.data.notation.binary.BinaryNotation;
+import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
+import io.axual.ksml.data.notation.json.JsonNotation;
+import io.axual.ksml.data.parser.ParseNode;
+import io.axual.ksml.data.schema.SchemaLibrary;
+import io.axual.ksml.definition.parser.TopologyDefinitionParser;
+import io.axual.ksml.generator.YAMLObjectMapper;
+import io.confluent.kafka.serializers.KafkaAvroDeserializer;
+import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -38,19 +48,6 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
-
-import io.axual.ksml.data.notation.NotationLibrary;
-import io.axual.ksml.data.notation.avro.AvroSchemaLoader;
-import io.axual.ksml.data.notation.avro.MockAvroNotation;
-import io.axual.ksml.data.notation.binary.BinaryNotation;
-import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
-import io.axual.ksml.data.notation.json.JsonNotation;
-import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.schema.SchemaLibrary;
-import io.axual.ksml.definition.parser.TopologyDefinitionParser;
-import io.axual.ksml.generator.YAMLObjectMapper;
-import io.confluent.kafka.serializers.KafkaAvroDeserializer;
-import io.confluent.kafka.serializers.KafkaAvroSerializer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

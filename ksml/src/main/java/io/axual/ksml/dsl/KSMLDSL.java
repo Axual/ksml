@@ -159,7 +159,7 @@ public class KSMLDSL {
             public static final String FOREIGN_KEY_EXTRACTOR = "foreignKeyExtractor";
             public static final String VALUE_JOINER = "valueJoiner";
             public static final String MAPPER = "mapper";
-            public static final String TIME_DIFFERENCE = "window";
+            public static final String TIME_DIFFERENCE = "timeDifference";
             public static final String GRACE = "grace";
             public static final String PARTITIONER = "partitioner";
             public static final String OTHER_PARTITIONER = "otherPartitioner";
@@ -223,11 +223,16 @@ public class KSMLDSL {
             public static final String BUFFER_FULL_STRATEGY_SHUTDOWN = "shutdownWhenFull";
         }
 
-        public static final String TO = "to";
+        public static final String TO_TOPIC = "to";
 
         @NoArgsConstructor(access = AccessLevel.PRIVATE)
         public static class To {
-            public static final String TOPIC = "topic";
+            public static final String PARTITIONER = "partitioner";
+        }
+
+        public static final String TO_TOPIC_NAME_EXTRACTOR = "toTopicNameExtractor";
+
+        public static class ToTopicNameExtractor {
             public static final String TOPIC_NAME_EXTRACTOR = "topicNameExtractor";
             public static final String PARTITIONER = "partitioner";
         }
@@ -332,5 +337,16 @@ public class KSMLDSL {
         public static final String DURATION = "duration";
         public static final String ADVANCE_BY = "advanceBy";
         public static final String GRACE = "grace";
+    }
+
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class Types {
+        // Type names used in the exported JSON Schema
+        public static final String FUNCTION_TYPE = "FunctionType";
+        public static final String WITH_PREFIX = "With";
+        public static final String WITH_IMPLICIT_TYPE_POSTFIX = WITH_PREFIX + "ImplicitType";
+        public static final String WITH_STREAM = WITH_PREFIX + "Stream";
+        public static final String WITH_TABLE = WITH_PREFIX + "Table";
+        public static final String WITH_GLOBAL_TABLE = WITH_PREFIX + "GlobalTable";
     }
 }

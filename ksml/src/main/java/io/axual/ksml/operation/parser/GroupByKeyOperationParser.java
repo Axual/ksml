@@ -24,7 +24,7 @@ package io.axual.ksml.operation.parser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.GroupByKeyOperation;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.store.StoreType;
 
 public class GroupByKeyOperationParser extends StoreOperationParser<GroupByKeyOperation> {
@@ -32,14 +32,13 @@ public class GroupByKeyOperationParser extends StoreOperationParser<GroupByKeyOp
         super(KSMLDSL.Operations.GROUP_BY_KEY, resources);
     }
 
-    public StructParser<GroupByKeyOperation> parser() {
-        return structParser(
+    public StructsParser<GroupByKeyOperation> parser() {
+        return structsParser(
                 GroupByKeyOperation.class,
                 "",
                 "Operation to group all messages with the same key together",
-                operationTypeField(),
                 operationNameField(),
                 storeField(false, "Materialized view of the grouped stream", StoreType.KEYVALUE_STORE),
-                (type, name, store, tags) -> new GroupByKeyOperation(storeOperationConfig(name, tags, store)));
+                (name, store, tags) -> new GroupByKeyOperation(storeOperationConfig(name, tags, store)));
     }
 }

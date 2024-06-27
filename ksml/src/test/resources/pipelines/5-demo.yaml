@@ -28,11 +28,12 @@ pipelines:
       - name: before-peek
         type: peek
         forEach: print_message
-    toExtractor:
-      code: |
-        if key == 'sensor1':
-          return 'ksml_sensordata_sensor1'
-        elif key == 'sensor2':
-          return 'ksml_sensordata_sensor2'
-        else:
-          return 'ksml_sensordata_sensor0'
+    toTopicNameExtractor:
+      topicNameExtractor:
+        code: |
+          if key == 'sensor1':
+            return 'ksml_sensordata_sensor1'
+          elif key == 'sensor2':
+            return 'ksml_sensordata_sensor2'
+          else:
+            return 'ksml_sensordata_sensor0'

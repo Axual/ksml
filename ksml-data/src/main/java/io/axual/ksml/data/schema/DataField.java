@@ -21,14 +21,16 @@ package io.axual.ksml.data.schema;
  */
 
 import io.axual.ksml.data.exception.ExecutionException;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
+@EqualsAndHashCode
 public class DataField {
     public static final int NO_INDEX = -1;
 
     public enum Order {
-        ASCENDING, DESCENDING, IGNORE;
+        ASCENDING, DESCENDING, IGNORE
     }
 
     private final String name;
@@ -72,5 +74,12 @@ public class DataField {
 
     public boolean isAssignableFrom(DataField field) {
         return field != null && schema.isAssignableFrom(field.schema);
+    }
+
+    public DataField withDefaultValue(DataValue possibleValues) {
+        return new DataField(name, schema, doc, index, required, constant, defaultValue, order);
+    }
+    public DataField withDoc(String doc) {
+        return new DataField(name, schema, doc, index, required, constant, defaultValue, order);
     }
 }

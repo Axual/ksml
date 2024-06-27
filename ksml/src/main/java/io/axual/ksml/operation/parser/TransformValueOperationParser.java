@@ -25,7 +25,7 @@ import io.axual.ksml.definition.parser.ValueTransformerDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.TransformValueOperation;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.store.StoreType;
 
 public class TransformValueOperationParser extends StoreOperationParser<TransformValueOperation> {
@@ -34,16 +34,15 @@ public class TransformValueOperationParser extends StoreOperationParser<Transfor
     }
 
     @Override
-    protected StructParser<TransformValueOperation> parser() {
-        return structParser(
+    protected StructsParser<TransformValueOperation> parser() {
+        return structsParser(
                 TransformValueOperation.class,
                 "",
                 "Convert the value of every record in the stream to another value",
-                operationTypeField(),
                 operationNameField(),
-                functionField(KSMLDSL.Operations.Transform.MAPPER, "A function that converts the value of every record into another value", new ValueTransformerDefinitionParser()),
+                functionField(KSMLDSL.Operations.Transform.MAPPER, "A function that converts the value of every record into another value", new ValueTransformerDefinitionParser(false)),
                 storeField(false, "Materialized view of the transformed table (only applies to tables, ignored for streams)", StoreType.KEYVALUE_STORE),
                 storeNamesField(),
-                (type, name, mapper, store, storeNames, tags) -> new TransformValueOperation(storeOperationConfig(name, tags, store, storeNames), mapper));
+                (name, mapper, store, storeNames, tags) -> new TransformValueOperation(storeOperationConfig(name, tags, store, storeNames), mapper));
     }
 }

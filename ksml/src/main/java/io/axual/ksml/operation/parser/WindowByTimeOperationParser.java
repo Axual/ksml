@@ -25,7 +25,7 @@ import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.WindowByTimeOperation;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 import org.apache.kafka.streams.kstream.SlidingWindows;
 import org.apache.kafka.streams.kstream.TimeWindows;
 
@@ -35,19 +35,18 @@ public class WindowByTimeOperationParser extends OperationParser<WindowByTimeOpe
     }
 
     @Override
-    public StructParser<WindowByTimeOperation> parser() {
-        return structParser(
+    public StructsParser<WindowByTimeOperation> parser() {
+        return structsParser(
                 WindowByTimeOperation.class,
                 "",
                 "Operation to reduce a series of records into a single aggregate result",
-                operationTypeField(),
                 operationNameField(),
                 stringField(KSMLDSL.TimeWindows.WINDOW_TYPE, "The type of the operation, either \"" + KSMLDSL.TimeWindows.TYPE_TUMBLING + "\", or \"" + KSMLDSL.TimeWindows.TYPE_HOPPING + "\", or \"" + KSMLDSL.TimeWindows.TYPE_SLIDING + "\""),
                 optional(durationField(KSMLDSL.TimeWindows.DURATION, "(Tumbling) The duration of time windows")),
                 optional(durationField(KSMLDSL.TimeWindows.ADVANCE_BY, "(Hopping) The amount of time to increase time windows by")),
                 optional(durationField(KSMLDSL.TimeWindows.GRACE, "(Tumbling, Hopping, Sliding) The grace period, during which out-of-order records can still be processed")),
                 optional(durationField(KSMLDSL.TimeWindows.TIME_DIFFERENCE, "(Sliding) The maximum amount of time difference between two records")),
-                (type, name, windowType, duration, advanceBy, grace, timeDifference, tags) -> {
+                (name, windowType, duration, advanceBy, grace, timeDifference, tags) -> {
                     switch (windowType) {
                         case KSMLDSL.TimeWindows.TYPE_TUMBLING -> {
                             final var timeWindows = (grace != null && grace.toMillis() > 0)

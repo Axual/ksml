@@ -22,15 +22,17 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.PredicateDefinition;
-import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 
 public class PredicateDefinitionParser extends FunctionDefinitionParser<PredicateDefinition> {
+    public PredicateDefinitionParser(boolean requireType) {
+        super(requireType);
+    }
+
     @Override
-    public StructParser<PredicateDefinition> parser() {
+    public StructsParser<PredicateDefinition> parser() {
         return parserWithStores(
                 PredicateDefinition.class,
-                KSMLDSL.Functions.TYPE_PREDICATE,
                 "Function that returns true or false based on key/value input",
                 (function, tags) -> new PredicateDefinition(function));
     }

@@ -25,7 +25,7 @@ import io.axual.ksml.definition.parser.ReducerDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ReduceOperation;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.store.StoreType;
 
 public class ReduceOperationParser extends StoreOperationParser<ReduceOperation> {
@@ -34,18 +34,17 @@ public class ReduceOperationParser extends StoreOperationParser<ReduceOperation>
     }
 
     @Override
-    public StructParser<ReduceOperation> parser() {
+    public StructsParser<ReduceOperation> parser() {
         final var storeField = storeField(false, "Materialized view of the aggregation", StoreType.WINDOW_STORE);
-        return structParser(
+        return structsParser(
                 ReduceOperation.class,
                 "",
                 "Operation to reduce a series of records into a single aggregate result",
-                operationTypeField(),
                 operationNameField(),
-                functionField(KSMLDSL.Operations.Reduce.REDUCER, "A function that computes a new aggregate result", new ReducerDefinitionParser()),
-                functionField(KSMLDSL.Operations.Reduce.ADDER, "A function that adds a record to the aggregate result", new ReducerDefinitionParser()),
-                functionField(KSMLDSL.Operations.Reduce.SUBTRACTOR, "A function that removes a record from the aggregate result", new ReducerDefinitionParser()),
+                functionField(KSMLDSL.Operations.Reduce.REDUCER, "A function that computes a new aggregate result", new ReducerDefinitionParser(false)),
+                functionField(KSMLDSL.Operations.Reduce.ADDER, "A function that adds a record to the aggregate result", new ReducerDefinitionParser(false)),
+                functionField(KSMLDSL.Operations.Reduce.SUBTRACTOR, "A function that removes a record from the aggregate result", new ReducerDefinitionParser(false)),
                 storeField,
-                (type, name, reducer, add, sub, store, tags) -> new ReduceOperation(storeOperationConfig(name, tags, store), reducer, add, sub));
+                (name, reducer, add, sub, store, tags) -> new ReduceOperation(storeOperationConfig(name, tags, store), reducer, add, sub));
     }
 }

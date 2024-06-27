@@ -21,12 +21,10 @@ package io.axual.ksml.data.mapper;
  */
 
 import io.axual.ksml.data.object.*;
-import org.apache.kafka.common.header.Headers;
-import org.apache.kafka.common.header.internals.RecordHeaders;
-
 import io.axual.ksml.data.serde.StringSerde;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.TupleType;
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 
 import static io.axual.ksml.dsl.HeaderSchema.*;
 

@@ -99,7 +99,7 @@ public class ResolvingClientConfig {
             // If expectedClass is (superclass of) configuredClass, then create an instance of the
             // configuredClass and return it casted as the expectedClass
             if (expectedClass.isAssignableFrom(valueClass)) {
-                T result = (T) Utils.newInstance((valueClass).asSubclass(expectedClass));
+                T result = Utils.newInstance((valueClass).asSubclass(expectedClass));
                 if (result instanceof Configurable configurableResult) {
                     configurableResult.configure(downstreamConfigs);
                 }

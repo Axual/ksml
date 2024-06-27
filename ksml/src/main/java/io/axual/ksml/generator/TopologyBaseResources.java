@@ -23,14 +23,11 @@ package io.axual.ksml.generator;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
-import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.exception.TopologyException;
 import lombok.Getter;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class TopologyBaseResources {
     @Getter

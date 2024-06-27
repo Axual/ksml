@@ -40,7 +40,7 @@ public class KSMLStateStoreTest {
     TopologyTestDriver topologyTestDriver;
 
     @KSMLTest(topology = "pipelines/test-state-store.yaml", schemapath = "pipelines",
-        inputTopics = {@KSMLTopic(topic = "ksml_sensordata_avro", variable = "sensorIn", valueSerde = KSMLTopic.SerdeType.AVRO)}
+            inputTopics = {@KSMLTopic(topic = "ksml_sensordata_avro", variable = "sensorIn", valueSerde = KSMLTopic.SerdeType.AVRO)}
             , outputTopics = {}, testDriverRef = "topologyTestDriver")
     void testJoin() throws Exception {
 

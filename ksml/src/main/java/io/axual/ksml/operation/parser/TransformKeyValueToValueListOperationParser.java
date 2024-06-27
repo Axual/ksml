@@ -25,7 +25,7 @@ import io.axual.ksml.definition.parser.KeyValueToValueListTransformerDefinitionP
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.TransformKeyValueToValueListOperation;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 
 public class TransformKeyValueToValueListOperationParser extends OperationParser<TransformKeyValueToValueListOperation> {
     public TransformKeyValueToValueListOperationParser(TopologyResources resources) {
@@ -33,15 +33,14 @@ public class TransformKeyValueToValueListOperationParser extends OperationParser
     }
 
     @Override
-    protected StructParser<TransformKeyValueToValueListOperation> parser() {
-        return structParser(
+    protected StructsParser<TransformKeyValueToValueListOperation> parser() {
+        return structsParser(
                 TransformKeyValueToValueListOperation.class,
                 "",
                 "Convert every record in the stream to a list of output records with the same key",
-                operationTypeField(),
                 operationNameField(),
-                functionField(KSMLDSL.Operations.Transform.MAPPER, "A function that converts every key/value into a list of result values, each of which will be combined with the original key to form a new message in the output stream", new KeyValueToValueListTransformerDefinitionParser()),
+                functionField(KSMLDSL.Operations.Transform.MAPPER, "A function that converts every key/value into a list of result values, each of which will be combined with the original key to form a new message in the output stream", new KeyValueToValueListTransformerDefinitionParser(false)),
                 storeNamesField(),
-                (type, name, mapper, storeNames, tags) -> new TransformKeyValueToValueListOperation(operationConfig(name, tags, storeNames), mapper));
+                (name, mapper, storeNames, tags) -> new TransformKeyValueToValueListOperation(operationConfig(name, tags, storeNames), mapper));
     }
 }

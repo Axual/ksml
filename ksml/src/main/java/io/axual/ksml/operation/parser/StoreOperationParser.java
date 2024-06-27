@@ -22,16 +22,17 @@ package io.axual.ksml.operation.parser;
 
 import io.axual.ksml.data.exception.ParseException;
 import io.axual.ksml.data.parser.NamedObjectParser;
-import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.data.parser.ParseNode;
+import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.parser.StateStoreDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.StoreOperation;
 import io.axual.ksml.operation.StoreOperationConfig;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.store.StoreType;
 
@@ -47,18 +48,21 @@ public abstract class StoreOperationParser<T extends StoreOperation> extends Ope
     }
 
     protected StoreOperationConfig storeOperationConfig(String name, ContextTags tags, StateStoreDefinition store, List<String> storeNames) {
-        return new StoreOperationConfig(resources().getUniqueOperationName(name != null ? name : type), tags, store, storeNames);
+        name = validateName("Store", name, defaultShortName(), true);
+        return new StoreOperationConfig(name != null ? resources().getUniqueOperationName(name) : resources().getUniqueOperationName(tags), tags, store, storeNames);
     }
 
-    protected StructParser<StateStoreDefinition> storeField(boolean required, String doc, StoreType expectedStoreType) {
+    protected StructsParser<StateStoreDefinition> storeField(boolean required, String doc, StoreType expectedStoreType) {
         final var stateStoreParser = new StateStoreDefinitionParser(expectedStoreType);
         final var resourceParser = new TopologyResourceParser<>("state store", KSMLDSL.Operations.STORE_ATTRIBUTE, doc, (name, context) -> resources().stateStore(name), stateStoreParser);
-        final var schema = required ? resourceParser.schema() : optional(resourceParser).schema();
-        return new StructParser<>() {
+        final var schemas = required ? resourceParser.schemas() : optional(resourceParser).schemas();
+        return new StructsParser<>() {
             @Override
             public StateStoreDefinition parse(ParseNode node) {
-                if (stateStoreParser instanceof NamedObjectParser nop)
-                    nop.defaultName(node.longName());
+                if (stateStoreParser instanceof NamedObjectParser nop) {
+                    nop.defaultShortName(node.name());
+                    nop.defaultLongName(node.longName());
+                }
                 final var resource = resourceParser.parse(node);
                 if (resource != null && resource.definition() instanceof StateStoreDefinition def) return def;
                 if (!required) return null;
@@ -66,9 +70,14 @@ public abstract class StoreOperationParser<T extends StoreOperation> extends Ope
             }
 
             @Override
-            public StructSchema schema() {
-                return schema;
+            public List<StructSchema> schemas() {
+                return schemas;
             }
         };
+    }
+
+    @Override
+    public DataSchema schema() {
+        return super.schema();
     }
 }

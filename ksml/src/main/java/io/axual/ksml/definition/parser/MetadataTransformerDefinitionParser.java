@@ -22,15 +22,17 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.MetadataTransformerDefinition;
-import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 
 public class MetadataTransformerDefinitionParser extends FunctionDefinitionParser<MetadataTransformerDefinition> {
+    public MetadataTransformerDefinitionParser(boolean requireType) {
+        super(requireType);
+    }
+
     @Override
-    public StructParser<MetadataTransformerDefinition> parser() {
+    public StructsParser<MetadataTransformerDefinition> parser() {
         return parserWithStores(
                 MetadataTransformerDefinition.class,
-                KSMLDSL.Functions.TYPE_METADATATRANSFORMER,
                 "metadata transformer",
                 (function, tags) -> new MetadataTransformerDefinition(function));
     }

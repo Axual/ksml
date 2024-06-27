@@ -28,15 +28,22 @@ import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.AsOperation;
 import io.axual.ksml.operation.OperationConfig;
 import io.axual.ksml.operation.parser.*;
-import io.axual.ksml.parser.TopologyResourceAwareParser;
 import io.axual.ksml.parser.IgnoreParser;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
+import io.axual.ksml.parser.TopologyResourceAwareParser;
 
 import java.util.ArrayList;
 
 public class PipelineDefinitionParser extends TopologyResourceAwareParser<PipelineDefinition> implements NamedObjectParser {
     private final boolean parseSource;
-    private String defaultName;
+    private final AsOperationParser asParser;
+    private final BranchOperationParser branchParser;
+    private final ForEachOperationParser forEachParser;
+    private final PrintOperationParser printParser;
+    private final ToOperationParser toTopic;
+    private final ToTopicNameExtractorOperationParser toTne;
+    private String defaultShortName;
+    private String defaultLongName;
 
     protected PipelineDefinitionParser(TopologyResources resources) {
         this(resources, true);
@@ -45,19 +52,19 @@ public class PipelineDefinitionParser extends TopologyResourceAwareParser<Pipeli
     protected PipelineDefinitionParser(TopologyResources resources, boolean parseSource) {
         super(resources);
         this.parseSource = parseSource;
+        asParser = new AsOperationParser(resources());
+        branchParser = new BranchOperationParser(resources(), parseSource);
+        forEachParser = new ForEachOperationParser(resources());
+        printParser = new PrintOperationParser(resources());
+        toTopic = new ToOperationParser(resources());
+        toTne = new ToTopicNameExtractorOperationParser(resources());
     }
 
     @Override
-    public StructParser<PipelineDefinition> parser() {
-        final var asParser = new AsOperationParser(resources());
-        final var branchParser = new BranchOperationParser(resources(), parseSource);
-        final var forEachParser = new ForEachOperationParser(resources());
-        final var printParser = new PrintOperationParser(resources());
-        final var toParser = new ToOperationParser(resources());
-
+    public StructsParser<PipelineDefinition> parser() {
         final var sourceField = topologyResourceField("source", KSMLDSL.Pipelines.FROM, "Pipeline source", (name, tags) -> resources().topic(name), new TopicDefinitionParser(resources(), true));
 
-        return structParser(
+        return structsParser(
                 PipelineDefinition.class,
                 parseSource ? "" : "WithoutSource",
                 "Defines a pipeline through a source, a series of operations to perform on it and a sink operation to close the stream with",
@@ -68,25 +75,45 @@ public class PipelineDefinitionParser extends TopologyResourceAwareParser<Pipeli
                 optional(branchParser),
                 optional(forEachParser),
                 optional(printParser),
-                optional(toParser),
-                (name, from, via, as, branch, forEach, print, to, tags) -> {
-                    name = validateName("Pipeline", name, defaultName, false);
+                optional(toTopic),
+                optional(toTne),
+                (name, from, via, as, branch, forEach, print, toTopic, toTne, tags) -> {
+                    final var shortName = validateName("Pipeline", name, defaultShortName, true);
+                    final var longName = validateName("Pipeline", name, defaultLongName, false);
                     via = via != null ? via : new ArrayList<>();
-                    if (as != null) return new PipelineDefinition(name, from, via, as);
-                    if (branch != null) return new PipelineDefinition(name, from, via, branch);
-                    if (forEach != null) return new PipelineDefinition(name, from, via, forEach);
-                    if (print != null) return new PipelineDefinition(name, from, via, print);
-                    if (to != null) return new PipelineDefinition(name, from, via, to);
+                    if (as != null) return new PipelineDefinition(longName, from, via, as);
+                    if (branch != null) return new PipelineDefinition(longName, from, via, branch);
+                    if (forEach != null) return new PipelineDefinition(longName, from, via, forEach);
+                    if (print != null) return new PipelineDefinition(longName, from, via, print);
+                    if (toTopic != null) return new PipelineDefinition(longName, from, via, toTopic);
+                    if (toTne != null) return new PipelineDefinition(longName, from, via, toTne);
                     // If no sink operation was specified, then we create an AS operation here with the name provided.
                     // This means that pipeline results can be referred to by other pipelines using the pipeline's name
                     // as identifier.
-                    var sinkOperation = name != null ? new AsOperation(new OperationConfig(resources().getUniqueOperationName(name), tags, null), name) : null;
+                    var sinkOperation = shortName != null ? new AsOperation(new OperationConfig(resources().getUniqueOperationName(longName), tags, null), shortName) : null;
                     return new PipelineDefinition(name, from, via, sinkOperation);
                 });
     }
 
     @Override
-    public void defaultName(String name) {
-        this.defaultName = name;
+    public void defaultShortName(String name) {
+        this.defaultShortName = name;
+        asParser.defaultShortName(name);
+        branchParser.defaultShortName(name);
+        forEachParser.defaultShortName(name);
+        printParser.defaultShortName(name);
+        toTopic.defaultShortName(name);
+        toTne.defaultShortName(name);
+    }
+
+    @Override
+    public void defaultLongName(String name) {
+        this.defaultLongName = name;
+        asParser.defaultLongName(name);
+        branchParser.defaultLongName(name);
+        forEachParser.defaultLongName(name);
+        printParser.defaultLongName(name);
+        toTopic.defaultLongName(name);
+        toTne.defaultLongName(name);
     }
 }

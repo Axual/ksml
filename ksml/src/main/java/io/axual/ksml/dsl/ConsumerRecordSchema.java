@@ -20,11 +20,12 @@ package io.axual.ksml.dsl;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.*;
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.DataSchemaConstants;
+import io.axual.ksml.data.schema.StructSchema;
 
 import java.util.ArrayList;
-
-import static io.axual.ksml.dsl.HeaderSchema.HEADER_SCHEMA;
 
 public class ConsumerRecordSchema {
     private ConsumerRecordSchema() {

@@ -1,3 +1,5 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/main/docs/ksml-language-spec.json
+
 # This example shows how to apply a timestamp extractor and offset reset policy to an input stream
 
 streams:
@@ -5,7 +7,7 @@ streams:
     topic: ksml_sensordata_avro
     keyType: string
     valueType: avro:SensorData
-    offsetResetPolicy: earliest
+    offsetResetPolicy: latest
     timestampExtractor:
       globalCode: |
         counter = 0

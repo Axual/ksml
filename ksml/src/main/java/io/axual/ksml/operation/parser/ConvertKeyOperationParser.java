@@ -23,21 +23,20 @@ package io.axual.ksml.operation.parser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ConvertKeyOperation;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 
 public class ConvertKeyOperationParser extends OperationParser<ConvertKeyOperation> {
     public ConvertKeyOperationParser(TopologyResources resources) {
         super(KSMLDSL.Operations.CONVERT_KEY, resources);
     }
 
-    public StructParser<ConvertKeyOperation> parser() {
-        return structParser(
+    public StructsParser<ConvertKeyOperation> parser() {
+        return structsParser(
                 ConvertKeyOperation.class,
                 "",
                 "An operation to convert the stream key type to another type. Conversion is only syntactic, eg. from Avro to XML.",
-                operationTypeField(),
                 operationNameField(),
                 userTypeField(KSMLDSL.Operations.Convert.INTO, "The type to convert the stream key into"),
-                (type, name, into, tags) -> new ConvertKeyOperation(operationConfig(name, tags), into));
+                (name, into, tags) -> new ConvertKeyOperation(operationConfig(name, tags), into));
     }
 }

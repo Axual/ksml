@@ -189,6 +189,11 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
                 target.put(TYPE_NAME, new DataString(STRING_TYPE));
             }
         }
+        if (schema instanceof EnumSchema enumSchema) {
+            DataList enumList = new DataList();
+            enumSchema.symbols().forEach(s -> enumList.add(new DataString(s)));
+            target.put(ENUM_NAME, enumList);
+        }
         if (schema instanceof ListSchema listSchema) {
             target.put(TYPE_NAME, new DataString(ARRAY_TYPE));
             final var subStruct = new DataStruct();
@@ -212,7 +217,6 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             }
             target.put(REF_NAME, new DataString("#/" + DEFINITIONS_NAME + "/" + name));
         }
-
         if (schema instanceof UnionSchema unionSchema) {
             // Convert to an array of possible types
             final var possibleTypes = new DataList();

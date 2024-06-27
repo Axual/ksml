@@ -20,19 +20,14 @@ package io.axual.ksml.runner;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.metric.KSMLMetrics;
+import lombok.extern.slf4j.Slf4j;
+
+import javax.management.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.util.Properties;
-
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.MBeanRegistrationException;
-import javax.management.MalformedObjectNameException;
-import javax.management.NotCompliantMBeanException;
-import javax.management.ObjectName;
-
-import io.axual.ksml.metric.KSMLMetrics;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class KsmlInfo {

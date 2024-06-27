@@ -51,7 +51,7 @@ public class JsonStringMapper implements StringMapper<Object> {
             mapper.writeTree(mapper.createGenerator(writer), NATIVE_MAPPER.fromNative(value));
             return writer.toString();
         } catch (IOException e) {
-            throw new DataException("Can not convert object to JSON string: " + value.toString(), e);
+            throw new DataException("Can not convert object to JSON string: " + value, e);
         }
     }
 }

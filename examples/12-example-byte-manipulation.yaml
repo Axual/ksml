@@ -1,3 +1,5 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/main/docs/ksml-language-spec.json
+
 # This example shows how to read from a binary stream, manipulate specific bytes and output
 # messages on a target stream. For validation purposes a second pipeline outputs the manipulated
 # results.
@@ -14,6 +16,7 @@ streams:
     topic: ksml_sensordata_avro
     keyType: string
     valueType: bytes
+    offsetResetPolicy: latest
   sensor_target:
     topic: ksml_sensordata_manipulated
     keyType: string

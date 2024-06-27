@@ -21,5 +21,7 @@ package io.axual.ksml.data.parser;
  */
 
 public interface NamedObjectParser {
-    void defaultName(String name);
+    void defaultShortName(String name);
+
+    void defaultLongName(String name);
 }

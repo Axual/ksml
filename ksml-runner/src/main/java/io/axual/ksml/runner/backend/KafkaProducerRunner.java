@@ -20,6 +20,11 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.client.producer.ResolvingProducer;
+import io.axual.ksml.generator.TopologyDefinition;
+import io.axual.ksml.python.PythonContext;
+import io.axual.ksml.python.PythonFunction;
+import lombok.Builder;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.slf4j.Logger;
@@ -29,16 +34,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import io.axual.ksml.client.producer.ResolvingProducer;
-import io.axual.ksml.generator.TopologyDefinition;
-import io.axual.ksml.python.PythonContext;
-import io.axual.ksml.python.PythonFunction;
-import lombok.Builder;
-
-import static org.apache.kafka.clients.producer.ProducerConfig.CLIENT_ID_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
-import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
 
 public class KafkaProducerRunner implements Runner {
     private static final Logger log = LoggerFactory.getLogger(KafkaProducerRunner.class);

@@ -20,10 +20,6 @@ package io.axual.ksml.data.serde;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.common.serialization.Serializer;
-
-import java.util.List;
-
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.object.DataNull;
@@ -33,6 +29,9 @@ import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
 import lombok.Getter;
+import org.apache.kafka.common.serialization.Serializer;
+
+import java.util.List;
 
 import static io.axual.ksml.data.parser.schema.DataSchemaDSL.DATA_OBJECT_TYPE_NAME;
 import static io.axual.ksml.data.parser.schema.DataSchemaDSL.DATA_SCHEMA_NAMESPACE;

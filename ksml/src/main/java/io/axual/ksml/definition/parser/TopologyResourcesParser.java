@@ -24,10 +24,11 @@ import io.axual.ksml.data.parser.MapParser;
 import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.generator.TopologyBaseResources;
-import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.parser.DefinitionParser;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
+
+import java.util.List;
 
 import static io.axual.ksml.dsl.KSMLDSL.*;
 
@@ -39,19 +40,19 @@ public class TopologyResourcesParser extends DefinitionParser<TopologyResources>
     }
 
     @Override
-    public StructParser<TopologyResources> parser() {
+    public StructsParser<TopologyResources> parser() {
         final var dummyResources = new TopologyBaseResources("dummy");
         final var streamsParser = optional(mapField(STREAMS, "stream", "stream definition", "Streams that can be referenced in producers and pipelines", new StreamDefinitionParser(dummyResources, true)));
         final var tablesParser = optional(mapField(TABLES, "table", "table definition", "Tables that can be referenced in producers and pipelines", new TableDefinitionParser(dummyResources, true)));
         final var globalTablesParser = optional(mapField(GLOBAL_TABLES, "globalTable", "globalTable definition", "GlobalTables that can be referenced in producers and pipelines", new GlobalTableDefinitionParser(dummyResources, true)));
 
-        final var fields = baseResourcesParser.fields();
-        fields.addAll(streamsParser.fields());
-        fields.addAll(tablesParser.fields());
-        fields.addAll(globalTablesParser.fields());
-        final var schema = structSchema(TopologyResources.class, "KSML definition resources", fields);
+        final var fields = baseResourcesParser.schemas().getFirst().fields();
+        fields.addAll(streamsParser.schemas().getFirst().fields());
+        fields.addAll(tablesParser.schemas().getFirst().fields());
+        fields.addAll(globalTablesParser.schemas().getFirst().fields());
+        final var schemas = List.of(structSchema(TopologyResources.class, "KSML definition resources", fields));
 
-        return new StructParser<>() {
+        return new StructsParser<>() {
             @Override
             public TopologyResources parse(ParseNode node) {
                 final var resources = baseResourcesParser.parse(node);
@@ -69,8 +70,8 @@ public class TopologyResourcesParser extends DefinitionParser<TopologyResources>
             }
 
             @Override
-            public StructSchema schema() {
-                return schema;
+            public List<StructSchema> schemas() {
+                return schemas;
             }
         };
     }

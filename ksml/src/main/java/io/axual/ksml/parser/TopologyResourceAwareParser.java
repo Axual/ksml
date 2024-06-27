@@ -21,16 +21,9 @@ package io.axual.ksml.parser;
  */
 
 
-import io.axual.ksml.data.tag.ContextTags;
-import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.TopicDefinition;
-import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
-
-import java.util.function.BiFunction;
 
 public abstract class TopologyResourceAwareParser<T> extends TopologyBaseResourceAwareParser<T> {
     // The set of streams, functions and stores that producers and pipelines can reference
@@ -46,7 +39,7 @@ public abstract class TopologyResourceAwareParser<T> extends TopologyBaseResourc
         throw new TopologyException("Topology resources not properly initialized. This is a programming error.");
     }
 
-    public StructParser<TopicDefinition> topicField(String childName, String doc, DefinitionParser<? extends TopicDefinition> parser) {
+    public StructsParser<TopicDefinition> topicField(String childName, String doc, DefinitionParser<? extends TopicDefinition> parser) {
         return lookupField("topic", childName, doc, (name, context) -> resources.topic(name), parser);
     }
 }

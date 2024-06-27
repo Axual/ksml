@@ -35,9 +35,7 @@ import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.python.Invoker;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.streams.processor.RecordContext;
 import org.apache.kafka.streams.processor.TimestampExtractor;
-import org.apache.kafka.streams.processor.TopicNameExtractor;
 
 @Slf4j
 public class UserTimestampExtractor extends Invoker implements TimestampExtractor {

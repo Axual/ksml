@@ -20,7 +20,14 @@ package io.axual.ksml.client.resolving;
  * =========================LICENSE_END==================================
  */
 
-public interface Resolver {    String resolve(String name);
+public interface Resolver {
+    /**
+     * Translates the internal representation of a name to the external one.
+     *
+     * @param name the internal name
+     * @return the corresponding external name
+     */
+    String resolve(String name);
 
     /**
      * Translates the external representation of a name to the internal one.

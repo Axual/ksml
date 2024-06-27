@@ -21,11 +21,11 @@ package io.axual.ksml.definition.parser;
  */
 
 import io.axual.ksml.generator.TopologyBaseResources;
-import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.parser.DefinitionParser;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 
-import static io.axual.ksml.dsl.KSMLDSL.*;
+import static io.axual.ksml.dsl.KSMLDSL.FUNCTIONS;
+import static io.axual.ksml.dsl.KSMLDSL.STORES;
 
 public class TopologyBaseResourcesParser extends DefinitionParser<TopologyBaseResources> {
     private final String namespace;
@@ -35,8 +35,8 @@ public class TopologyBaseResourcesParser extends DefinitionParser<TopologyBaseRe
     }
 
     @Override
-    public StructParser<TopologyBaseResources> parser() {
-        return structParser(
+    public StructsParser<TopologyBaseResources> parser() {
+        return structsParser(
                 TopologyBaseResources.class,
                 "",
                 "Contains a list of functions and state stores to be used in streams, producers and pipelines",

@@ -23,8 +23,8 @@ package io.axual.ksml.definition.parser;
 import io.axual.ksml.definition.ToTopicDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyResourceAwareParser;
-import io.axual.ksml.parser.StructParser;
 
 public class ToTopicDefinitionParser extends TopologyResourceAwareParser<ToTopicDefinition> {
     public ToTopicDefinitionParser(TopologyResources resources) {
@@ -32,13 +32,13 @@ public class ToTopicDefinitionParser extends TopologyResourceAwareParser<ToTopic
     }
 
     @Override
-    protected StructParser<ToTopicDefinition> parser() {
-        return structParser(
+    protected StructsParser<ToTopicDefinition> parser() {
+        return structsParser(
                 ToTopicDefinition.class,
                 "",
                 "Writes out pipeline messages to a topic",
-                optional(topicField(KSMLDSL.Operations.To.TOPIC, "A reference to a stream, table or globalTable, or an inline definition of the output topic", new TopicDefinitionParser(resources(), false))),
-                optional(functionField(KSMLDSL.Operations.To.PARTITIONER, "A function that partitions the records in the output topic", new StreamPartitionerDefinitionParser())),
+                new TopicDefinitionParser(resources(), false),
+                optional(functionField(KSMLDSL.Operations.To.PARTITIONER, "A function that partitions the records in the output topic", new StreamPartitionerDefinitionParser(false))),
                 (topic, partitioner, tags) -> topic != null ? new ToTopicDefinition(topic, partitioner) : null);
     }
 }

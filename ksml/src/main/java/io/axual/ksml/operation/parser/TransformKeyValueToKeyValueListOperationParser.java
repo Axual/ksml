@@ -25,7 +25,7 @@ import io.axual.ksml.definition.parser.KeyValueToKeyValueListTransformerDefiniti
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.TransformKeyValueToKeyValueListOperation;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 
 public class TransformKeyValueToKeyValueListOperationParser extends OperationParser<TransformKeyValueToKeyValueListOperation> {
     public TransformKeyValueToKeyValueListOperationParser(TopologyResources resources) {
@@ -33,15 +33,14 @@ public class TransformKeyValueToKeyValueListOperationParser extends OperationPar
     }
 
     @Override
-    protected StructParser<TransformKeyValueToKeyValueListOperation> parser() {
-        return structParser(
+    protected StructsParser<TransformKeyValueToKeyValueListOperation> parser() {
+        return structsParser(
                 TransformKeyValueToKeyValueListOperation.class,
                 "",
                 "Convert a stream by transforming every record into a list of derived records",
-                operationTypeField(),
                 operationNameField(),
-                functionField(KSMLDSL.Operations.Transform.MAPPER, "A function that converts every record of a stream to a list of output records.", new KeyValueToKeyValueListTransformerDefinitionParser()),
+                functionField(KSMLDSL.Operations.Transform.MAPPER, "A function that converts every record of a stream to a list of output records.", new KeyValueToKeyValueListTransformerDefinitionParser(false)),
                 storeNamesField(),
-                (type, name, mapper, storeNames, tags) -> new TransformKeyValueToKeyValueListOperation(operationConfig(name, tags, storeNames), mapper));
+                (name, mapper, storeNames, tags) -> new TransformKeyValueToKeyValueListOperation(operationConfig(name, tags, storeNames), mapper));
     }
 }

@@ -23,7 +23,7 @@ package io.axual.ksml.definition.parser;
 
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.parser.ChoiceParser;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.store.StoreType;
 
 import java.util.HashMap;
@@ -37,11 +37,11 @@ public class StateStoreDefinitionParser extends ChoiceParser<StateStoreDefinitio
     }
 
     public StateStoreDefinitionParser(StoreType expectedType) {
-        super(Stores.TYPE, "state store", null, types(expectedType));
+        super(Stores.TYPE, StoreType.class.getSimpleName(), "state store", null, types(expectedType));
     }
 
-    private static Map<String, StructParser<? extends StateStoreDefinition>> types(StoreType expectedType) {
-        final var result = new HashMap<String, StructParser<? extends StateStoreDefinition>>();
+    private static Map<String, StructsParser<? extends StateStoreDefinition>> types(StoreType expectedType) {
+        final var result = new HashMap<String, StructsParser<? extends StateStoreDefinition>>();
         if (expectedType == null || expectedType == StoreType.KEYVALUE_STORE) {
             result.put(StoreType.KEYVALUE_STORE.externalName(), new KeyValueStateStoreDefinitionParser(expectedType == null));
         }

@@ -23,10 +23,8 @@ package io.axual.ksml.definition;
 
 import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataLong;
-import io.axual.ksml.data.object.DataString;
 
 import static io.axual.ksml.definition.DefinitionConstants.TIMESTAMP_EXTRACTOR_PARAMETERS;
-import static io.axual.ksml.definition.DefinitionConstants.TOPIC_NAME_EXTRACTOR_PARAMETERS;
 
 public class TimestampExtractorDefinition extends FunctionDefinition {
     public TimestampExtractorDefinition(FunctionDefinition definition) {

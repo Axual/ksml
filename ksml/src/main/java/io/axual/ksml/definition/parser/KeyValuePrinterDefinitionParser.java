@@ -22,15 +22,17 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.KeyValuePrinterDefinition;
-import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 
 public class KeyValuePrinterDefinitionParser extends FunctionDefinitionParser<KeyValuePrinterDefinition> {
+    public KeyValuePrinterDefinitionParser(boolean requireType) {
+        super(requireType);
+    }
+
     @Override
-    public StructParser<KeyValuePrinterDefinition> parser() {
+    public StructsParser<KeyValuePrinterDefinition> parser() {
         return parserWithoutStores(
                 KeyValuePrinterDefinition.class,
-                KSMLDSL.Functions.TYPE_KEYVALUEPRINTER,
                 "keyvalue printer",
                 (function, tags) -> new KeyValuePrinterDefinition(function));
     }

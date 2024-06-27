@@ -25,18 +25,18 @@ import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.StreamOperation;
 import io.axual.ksml.parser.ChoiceParser;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class PipelineOperationParser extends ChoiceParser<StreamOperation> {
     public PipelineOperationParser(TopologyResources resources) {
-        super(KSMLDSL.Operations.TYPE_ATTRIBUTE, "operation", null, types(resources));
+        super(KSMLDSL.Operations.TYPE_ATTRIBUTE, "OperationType", "operation", null, types(resources));
     }
 
-    private static Map<String, StructParser<? extends StreamOperation>> types(TopologyResources resources) {
-        final var result = new HashMap<String, StructParser<? extends StreamOperation>>();
+    private static Map<String, StructsParser<? extends StreamOperation>> types(TopologyResources resources) {
+        final var result = new HashMap<String, StructsParser<? extends StreamOperation>>();
         result.put(KSMLDSL.Operations.AGGREGATE, new AggregateOperationParser(resources));
         result.put(KSMLDSL.Operations.COGROUP, new CogroupOperationParser(resources));
         result.put(KSMLDSL.Operations.CONVERT_KEY, new ConvertKeyOperationParser(resources));

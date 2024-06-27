@@ -25,7 +25,7 @@ import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.SuppressOperation;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 import org.apache.kafka.streams.kstream.Suppressed;
 
 import static io.axual.ksml.dsl.KSMLDSL.Operations;
@@ -35,19 +35,18 @@ public class SuppressOperationParser extends OperationParser<SuppressOperation> 
         super(KSMLDSL.Operations.SUPPRESS, resources);
     }
 
-    public StructParser<SuppressOperation> parser() {
-        return structParser(
+    public StructsParser<SuppressOperation> parser() {
+        return structsParser(
                 SuppressOperation.class,
                 "",
                 "Operation to suppress messages in the source stream until a certain limit is reached",
-                operationTypeField(),
                 operationNameField(),
                 stringField(Operations.Suppress.UNTIL, "The method by which messages are held, either \"" + Operations.Suppress.UNTIL_TIME_LIMIT + "\", or \"" + Operations.Suppress.UNTIL_WINDOW_CLOSES + "\""),
                 durationField(Operations.Suppress.DURATION, "The duration for which messages are suppressed"),
                 optional(stringField(Operations.Suppress.BUFFER_MAXBYTES, "The maximum number of bytes in the buffer")),
                 optional(stringField(Operations.Suppress.BUFFER_MAXRECORDS, "The maximum number of records in the buffer")),
                 optional(stringField(Operations.Suppress.BUFFER_FULL_STRATEGY, "What to do when the buffer is full, either \"" + Operations.Suppress.BUFFER_FULL_STRATEGY_EMIT + "\", or \"" + Operations.Suppress.BUFFER_FULL_STRATEGY_SHUTDOWN + "\"")),
-                (type, name, until, duration, maxBytes, maxRecords, strategy, tags) -> {
+                (name, until, duration, maxBytes, maxRecords, strategy, tags) -> {
                     switch (until) {
                         case Operations.Suppress.UNTIL_TIME_LIMIT -> {
                             final var bufferConfig = bufferConfig(maxBytes, maxRecords, strategy);

@@ -20,18 +20,13 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.HostAccess;
-import org.graalvm.polyglot.PolyglotAccess;
-import org.graalvm.polyglot.Source;
-import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.io.IOAccess;
-
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.metric.KSMLMetrics;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.graalvm.polyglot.*;
+import org.graalvm.polyglot.io.IOAccess;
 
 import java.util.List;
 

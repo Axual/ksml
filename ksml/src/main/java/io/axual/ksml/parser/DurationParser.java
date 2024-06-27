@@ -21,18 +21,19 @@ package io.axual.ksml.parser;
  */
 
 import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.parser.ParserWithSchema;
+import io.axual.ksml.data.parser.ParserWithSchemas;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.exception.TopologyException;
 import lombok.Getter;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.function.ToLongFunction;
 
 @Getter
-public class DurationParser implements ParserWithSchema<Duration> {
-    private final DataSchema schema = new UnionSchema(DataSchema.longSchema(), DataSchema.stringSchema());
+public class DurationParser implements ParserWithSchemas<Duration> {
+    private final List<DataSchema> schemas = List.of(new UnionSchema(DataSchema.longSchema(), DataSchema.stringSchema()));
 
     @Override
     public Duration parse(ParseNode node) {

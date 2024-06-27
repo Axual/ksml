@@ -24,7 +24,7 @@ import io.axual.ksml.definition.parser.BranchDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.BranchOperation;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 
 public class BranchOperationParser extends OperationParser<BranchOperation> {
     private final boolean includePipelineSchema;
@@ -35,8 +35,8 @@ public class BranchOperationParser extends OperationParser<BranchOperation> {
     }
 
     @Override
-    public StructParser<BranchOperation> parser() {
-        return structParser(
+    public StructsParser<BranchOperation> parser() {
+        return structsParser(
                 BranchOperation.class,
                 "",
                 "Splits the pipeline result into multiple substreams. Each message gets sent down one stream, based on the first matching branch condition",

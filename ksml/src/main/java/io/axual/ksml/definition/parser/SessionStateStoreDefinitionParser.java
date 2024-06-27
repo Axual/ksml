@@ -24,25 +24,23 @@ import io.axual.ksml.data.parser.NamedObjectParser;
 import io.axual.ksml.definition.SessionStateStoreDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.DefinitionParser;
-import io.axual.ksml.parser.StructParser;
-import io.axual.ksml.store.StoreType;
+import io.axual.ksml.parser.StructsParser;
 
 public class SessionStateStoreDefinitionParser extends DefinitionParser<SessionStateStoreDefinition> implements NamedObjectParser {
     private final boolean requireType;
-    private String defaultName;
+    private String defaultShortName;
+    private String defaultLongName;
 
     public SessionStateStoreDefinitionParser(boolean requireType) {
         this.requireType = requireType;
     }
 
     @Override
-    protected StructParser<SessionStateStoreDefinition> parser() {
-        final var typeField = fixedStringField(KSMLDSL.Stores.TYPE, StoreType.SESSION_STORE.externalName(), "The type of the state store");
-        return structParser(
+    protected StructsParser<SessionStateStoreDefinition> parser() {
+        return structsParser(
                 SessionStateStoreDefinition.class,
-                requireType ? "" : "WithImplicitType",
+                requireType ? "" : KSMLDSL.Types.WITH_IMPLICIT_TYPE_POSTFIX,
                 "Definition of a session state store",
-                requireType ? typeField : optional(typeField),
                 optional(stringField(KSMLDSL.Stores.NAME, false, null, "The name of the session store. If this field is not defined, then the name is derived from the context.")),
                 optional(booleanField(KSMLDSL.Stores.PERSISTENT, "\"true\" if this session store needs to be stored on disk, \"false\" otherwise")),
                 optional(booleanField(KSMLDSL.Stores.TIMESTAMPED, "\"true\" if elements in the store are timestamped, \"false\" otherwise")),
@@ -51,18 +49,19 @@ public class SessionStateStoreDefinitionParser extends DefinitionParser<SessionS
                 optional(userTypeField(KSMLDSL.Stores.VALUE_TYPE, "The value type of the session store")),
                 optional(booleanField(KSMLDSL.Stores.CACHING, "\"true\" if changed to the session store need to be buffered and periodically released, \"false\" to emit all changes directly")),
                 optional(booleanField(KSMLDSL.Stores.LOGGING, "\"true\" if a changelog topic should be set up on Kafka for this session store, \"false\" otherwise")),
-                (type, name, persistent, timestamped, retention, keyType, valueType, caching, logging, tags) -> {
-                    // Validate the type field if one was provided
-                    if (type != null && !StoreType.SESSION_STORE.externalName().equals(type)) {
-                        return parseError("Expected store type \"" + StoreType.SESSION_STORE.externalName() + "\"");
-                    }
-                    name = validateName("Session state store", name, defaultName);
+                (name, persistent, timestamped, retention, keyType, valueType, caching, logging, tags) -> {
+                    name = validateName("Session state store", name, defaultShortName);
                     return new SessionStateStoreDefinition(name, persistent, timestamped, retention, keyType, valueType, caching, logging);
                 });
     }
 
     @Override
-    public void defaultName(String name) {
-        defaultName = name;
+    public void defaultShortName(String name) {
+        defaultShortName = name;
+    }
+
+    @Override
+    public void defaultLongName(String name) {
+        defaultLongName = name;
     }
 }

@@ -1,3 +1,5 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/main/docs/ksml-language-spec.json
+
 # This example shows how to read from a simple AVRO stream, then perform a series of conversions:
 #
 # source topic --> AVRO --> JSON --> String --> JSON --> XML --> String --> XML --> target topic
@@ -11,6 +13,7 @@ streams:
     topic: ksml_sensordata_avro
     keyType: string
     valueType: avro:SensorData
+    offsetResetPolicy: latest
   sensor_target:
     topic: ksml_sensordata_xml
     keyType: string

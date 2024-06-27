@@ -128,7 +128,6 @@ public class DataSchema {
         if (type == otherSchema.type) return true;
         if (type == Type.STRING && otherSchema.type == Type.NULL) return true; // Allow assigning from NULL values
         if (type == Type.STRING && otherSchema.type == Type.ENUM) return true; // ENUMs are convertable to String
-        if (type == Type.ENUM && otherSchema.type == Type.STRING) return true; // Strings are convertable to ENUM
-        return false;
+        return type == Type.ENUM && otherSchema.type == Type.STRING; // Strings are convertable to ENUM
     }
 }

@@ -25,12 +25,11 @@ import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyBaseResources;
-import io.axual.ksml.generator.TopologyResources;
 
+import java.util.List;
 import java.util.function.BiFunction;
 
 public abstract class TopologyBaseResourceAwareParser<T> extends DefinitionParser<T> {
@@ -46,15 +45,15 @@ public abstract class TopologyBaseResourceAwareParser<T> extends DefinitionParse
         throw new TopologyException("Topology base resources not properly initialized. This is a programming error.");
     }
 
-    protected <F extends FunctionDefinition> StructParser<FunctionDefinition> functionField(String childName, String doc, DefinitionParser<F> parser) {
+    protected <F extends FunctionDefinition> StructsParser<FunctionDefinition> functionField(String childName, String doc, StructsParser<F> parser) {
         final var resourceParser = new TopologyResourceParser<>("function", childName, doc, (name, tags) -> resources.function(name), parser);
-        return StructParser.of(resourceParser::parseDefinition, resourceParser.schema());
+        return StructsParser.of(resourceParser::parseDefinition, resourceParser.schemas());
     }
 
-    protected <S> StructParser<S> lookupField(String resourceType, String childName, String doc, BiFunction<String, ContextTags, S> lookup, DefinitionParser<? extends S> parser) {
+    protected <S> StructsParser<S> lookupField(String resourceType, String childName, String doc, BiFunction<String, ContextTags, S> lookup, DefinitionParser<? extends S> parser) {
         final var resourceParser = new TopologyResourceParser<>(resourceType, childName, doc, lookup, parser);
-        final var schema = resourceParser.schema();
-        return new StructParser<>() {
+        final var schemas = resourceParser.schemas();
+        return new StructsParser<>() {
             @Override
             public S parse(ParseNode node) {
                 if (node == null) return null;
@@ -63,14 +62,13 @@ public abstract class TopologyBaseResourceAwareParser<T> extends DefinitionParse
             }
 
             @Override
-            public StructSchema schema() {
-                return schema;
+            public List<StructSchema> schemas() {
+                return schemas;
             }
         };
     }
 
-    protected <S> StructParser<TopologyResource<S>> topologyResourceField(String resourceType, String childName, String doc, BiFunction<String, ContextTags, S> lookup, DefinitionParser<S> parser) {
-        final var resourceParser = new TopologyResourceParser<>(resourceType, childName, doc, lookup, parser, true);
-        return StructParser.of(resourceParser::parse, resourceParser.schema());
+    protected <S> StructsParser<TopologyResource<S>> topologyResourceField(String resourceType, String childName, String doc, BiFunction<String, ContextTags, S> lookup, DefinitionParser<S> parser) {
+        return new TopologyResourceParser<>(resourceType, childName, doc, lookup, parser, true);
     }
 }

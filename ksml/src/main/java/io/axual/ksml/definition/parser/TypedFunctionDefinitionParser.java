@@ -23,7 +23,7 @@ package io.axual.ksml.definition.parser;
 
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.parser.ChoiceParser;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,32 +32,32 @@ import static io.axual.ksml.dsl.KSMLDSL.Functions;
 
 public class TypedFunctionDefinitionParser extends ChoiceParser<FunctionDefinition> {
     public TypedFunctionDefinitionParser() {
-        super(Functions.TYPE, "function", Functions.TYPE_GENERIC, parsers());
+        super(Functions.TYPE, "FunctionType", "function", Functions.TYPE_GENERIC, parsers());
     }
 
-    private static Map<String, StructParser<? extends FunctionDefinition>> parsers() {
-        final var result = new HashMap<String, StructParser<? extends FunctionDefinition>>();
-        result.put(Functions.TYPE_AGGREGATOR, new AggregatorDefinitionParser());
-        result.put(Functions.TYPE_FOREACHACTION, new ForEachActionDefinitionParser());
-        result.put(Functions.TYPE_FOREIGN_KEY_EXTRACTOR, new ForeignKeyExtractorDefinitionParser());
-        result.put(Functions.TYPE_GENERATOR, new GeneratorDefinitionParser());
-        result.put(Functions.TYPE_GENERIC, new GenericFunctionDefinitionParser());
-        result.put(Functions.TYPE_INITIALIZER, new InitializerDefinitionParser());
-        result.put(Functions.TYPE_KEYTRANSFORMER, new KeyTransformerDefinitionParser());
-        result.put(Functions.TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER, new KeyValueToKeyValueListTransformerDefinitionParser());
-        result.put(Functions.TYPE_KEYVALUETOVALUELISTTRANSFORMER, new KeyValueToValueListTransformerDefinitionParser());
-        result.put(Functions.TYPE_KEYVALUEMAPPER, new KeyValueMapperDefinitionParser());
-        result.put(Functions.TYPE_KEYVALUETRANSFORMER, new KeyValueTransformerDefinitionParser());
-        result.put(Functions.TYPE_KEYVALUEPRINTER, new KeyValuePrinterDefinitionParser());
-        result.put(Functions.TYPE_METADATATRANSFORMER, new MetadataTransformerDefinitionParser());
-        result.put(Functions.TYPE_MERGER, new MergerDefinitionParser());
-        result.put(Functions.TYPE_PREDICATE, new PredicateDefinitionParser());
-        result.put(Functions.TYPE_REDUCER, new ReducerDefinitionParser());
-        result.put(Functions.TYPE_STREAMPARTITIONER, new StreamPartitionerDefinitionParser());
-        result.put(Functions.TYPE_TIMESTAMPEXTRACTOR,new TimestampExtractorDefinitionParser());
-        result.put(Functions.TYPE_TOPICNAMEEXTRACTOR, new TopicNameExtractorDefinitionParser());
-        result.put(Functions.TYPE_VALUEJOINER, new ValueJoinerDefinitionParser());
-        result.put(Functions.TYPE_VALUETRANSFORMER, new ValueTransformerDefinitionParser());
+    private static Map<String, StructsParser<? extends FunctionDefinition>> parsers() {
+        final var result = new HashMap<String, StructsParser<? extends FunctionDefinition>>();
+        result.put(Functions.TYPE_AGGREGATOR, new AggregatorDefinitionParser(true));
+        result.put(Functions.TYPE_FOREACHACTION, new ForEachActionDefinitionParser(true));
+        result.put(Functions.TYPE_FOREIGN_KEY_EXTRACTOR, new ForeignKeyExtractorDefinitionParser(true));
+        result.put(Functions.TYPE_GENERATOR, new GeneratorDefinitionParser(true));
+        result.put(Functions.TYPE_GENERIC, new GenericFunctionDefinitionParser(false));
+        result.put(Functions.TYPE_INITIALIZER, new InitializerDefinitionParser(true));
+        result.put(Functions.TYPE_KEYTRANSFORMER, new KeyTransformerDefinitionParser(true));
+        result.put(Functions.TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER, new KeyValueToKeyValueListTransformerDefinitionParser(true));
+        result.put(Functions.TYPE_KEYVALUETOVALUELISTTRANSFORMER, new KeyValueToValueListTransformerDefinitionParser(true));
+        result.put(Functions.TYPE_KEYVALUEMAPPER, new KeyValueMapperDefinitionParser(true));
+        result.put(Functions.TYPE_KEYVALUETRANSFORMER, new KeyValueTransformerDefinitionParser(true));
+        result.put(Functions.TYPE_KEYVALUEPRINTER, new KeyValuePrinterDefinitionParser(true));
+        result.put(Functions.TYPE_METADATATRANSFORMER, new MetadataTransformerDefinitionParser(true));
+        result.put(Functions.TYPE_MERGER, new MergerDefinitionParser(true));
+        result.put(Functions.TYPE_PREDICATE, new PredicateDefinitionParser(true));
+        result.put(Functions.TYPE_REDUCER, new ReducerDefinitionParser(true));
+        result.put(Functions.TYPE_STREAMPARTITIONER, new StreamPartitionerDefinitionParser(true));
+        result.put(Functions.TYPE_TIMESTAMPEXTRACTOR, new TimestampExtractorDefinitionParser(true));
+        result.put(Functions.TYPE_TOPICNAMEEXTRACTOR, new TopicNameExtractorDefinitionParser(true));
+        result.put(Functions.TYPE_VALUEJOINER, new ValueJoinerDefinitionParser(true));
+        result.put(Functions.TYPE_VALUETRANSFORMER, new ValueTransformerDefinitionParser(true));
         return result;
     }
 }

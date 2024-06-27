@@ -22,17 +22,17 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.TimestampExtractorDefinition;
-import io.axual.ksml.definition.TopicNameExtractorDefinition;
-import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.parser.StructParser;
-import org.apache.kafka.streams.processor.TimestampExtractor;
+import io.axual.ksml.parser.StructsParser;
 
 public class TimestampExtractorDefinitionParser extends FunctionDefinitionParser<TimestampExtractorDefinition> {
+    public TimestampExtractorDefinitionParser(boolean requireType) {
+        super(requireType);
+    }
+
     @Override
-    public StructParser<TimestampExtractorDefinition> parser() {
+    public StructsParser<TimestampExtractorDefinition> parser() {
         return parserWithoutStores(
                 TimestampExtractorDefinition.class,
-                KSMLDSL.Functions.TYPE_TIMESTAMPEXTRACTOR,
                 "timestamp extractor",
                 (function, tags) -> new TimestampExtractorDefinition(function));
     }

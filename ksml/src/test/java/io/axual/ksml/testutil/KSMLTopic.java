@@ -40,5 +40,5 @@ public @interface KSMLTopic {
 
     SerdeType valueSerde() default SerdeType.STRING;
 
-    enum SerdeType { STRING, AVRO }
+    enum SerdeType {STRING, AVRO}
 }

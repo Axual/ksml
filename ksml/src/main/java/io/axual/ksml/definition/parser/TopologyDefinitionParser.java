@@ -26,7 +26,9 @@ import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.parser.DefinitionParser;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
+
+import java.util.List;
 
 import static io.axual.ksml.dsl.KSMLDSL.PIPELINES;
 import static io.axual.ksml.dsl.KSMLDSL.PRODUCERS;
@@ -39,17 +41,17 @@ public class TopologyDefinitionParser extends DefinitionParser<TopologyDefinitio
     }
 
     @Override
-    public StructParser<TopologyDefinition> parser() {
+    public StructsParser<TopologyDefinition> parser() {
         final var dummyResources = new TopologyResources("dummy");
         final var pipelinesParser = optional(mapField(PIPELINES, "pipeline", "pipeline", "Collection of named pipelines", new PipelineDefinitionParser(dummyResources)));
         final var producersParser = optional(mapField(PRODUCERS, "producer", "producer", "Collection of named producers", new ProducerDefinitionParser(dummyResources)));
 
-        final var fields = resourcesParser.fields();
-        fields.addAll(pipelinesParser.fields());
-        fields.addAll(producersParser.fields());
-        final var schema = structSchema(TopologyDefinition.class, "KSML definition", fields);
+        final var fields = resourcesParser.schemas().getFirst().fields();
+        fields.addAll(pipelinesParser.schemas().getFirst().fields());
+        fields.addAll(producersParser.schemas().getFirst().fields());
+        final var schemas = List.of(structSchema(TopologyDefinition.class, "KSML definition", fields));
 
-        return new StructParser<>() {
+        return new StructsParser<>() {
             @Override
             public TopologyDefinition parse(ParseNode node) {
                 final var resources = resourcesParser.parse(node);
@@ -66,8 +68,8 @@ public class TopologyDefinitionParser extends DefinitionParser<TopologyDefinitio
             }
 
             @Override
-            public StructSchema schema() {
-                return schema;
+            public List<StructSchema> schemas() {
+                return schemas;
             }
         };
     }

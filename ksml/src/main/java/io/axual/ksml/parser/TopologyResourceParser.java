@@ -22,15 +22,12 @@ package io.axual.ksml.parser;
 
 
 import io.axual.ksml.data.exception.ParseException;
-import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.parser.ParserWithSchema;
-import io.axual.ksml.data.schema.DataField;
-import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.schema.UnionSchema;
+import io.axual.ksml.data.schema.*;
+import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.definition.TopologyResource;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 
@@ -41,14 +38,14 @@ public class TopologyResourceParser<T, F extends T> extends DefinitionParser<Top
     private final String childName;
     private final String doc;
     private final BiFunction<String, ContextTags, T> lookup;
-    private final ParserWithSchema<F> inlineParser;
+    private final StructsParser<F> inlineParser;
     private final boolean allowLookupFail;
 
-    public TopologyResourceParser(String resourceType, String childName, String doc, BiFunction<String, ContextTags, T> lookup, ParserWithSchema<F> inlineParser) {
+    public TopologyResourceParser(String resourceType, String childName, String doc, BiFunction<String, ContextTags, T> lookup, StructsParser<F> inlineParser) {
         this(resourceType, childName, doc, lookup, inlineParser, false);
     }
 
-    public TopologyResourceParser(String resourceType, String childName, String doc, BiFunction<String, ContextTags, T> lookup, ParserWithSchema<F> inlineParser, boolean allowLookupFail) {
+    public TopologyResourceParser(String resourceType, String childName, String doc, BiFunction<String, ContextTags, T> lookup, StructsParser<F> inlineParser, boolean allowLookupFail) {
         this.resourceType = resourceType;
         this.childName = childName;
         this.doc = doc;
@@ -58,10 +55,15 @@ public class TopologyResourceParser<T, F extends T> extends DefinitionParser<Top
     }
 
     @Override
-    public StructParser<TopologyResource<T>> parser() {
-        final var schema = structSchema((String) null, null, List.of(new DataField(childName, new UnionSchema(DataSchema.stringSchema(), inlineParser.schema()), doc)));
+    public StructsParser<TopologyResource<T>> parser() {
+        final var schemas = new ArrayList<DataSchema>();
+        schemas.add(DataSchema.stringSchema());
+        schemas.addAll(inlineParser.schemas());
+        final var typeName = "StringOrInline" + String.join("OrInline", inlineParser.schemas().stream().map(NamedSchema::name).toArray(String[]::new));
+//        final var doc = "Reference to " + resourceType + ", or inline " + String.join(", or inline ", inlineParser.schemas().stream().map(NamedSchema::name).toArray(String[]::new));
+        final var schema = structSchema(typeName, doc, List.of(new DataField(childName, new UnionSchema(schemas.toArray(DataSchema[]::new)), doc)));
         final var stringParser = stringField(childName, false, null, doc);
-        return new StructParser<>() {
+        return new StructsParser<>() {
             @Override
             public TopologyResource<T> parse(ParseNode node) {
                 if (node == null) return null;
@@ -88,8 +90,8 @@ public class TopologyResourceParser<T, F extends T> extends DefinitionParser<Top
             }
 
             @Override
-            public StructSchema schema() {
-                return schema;
+            public List<StructSchema> schemas() {
+                return List.of(schema);
             }
         };
     }

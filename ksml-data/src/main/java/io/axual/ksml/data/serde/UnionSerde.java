@@ -20,6 +20,11 @@ package io.axual.ksml.data.serde;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.UnionType;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
@@ -27,12 +32,6 @@ import org.apache.kafka.common.serialization.Serializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import io.axual.ksml.data.exception.ExecutionException;
-import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.UnionType;
 
 public class UnionSerde implements Serde<Object> {
     private record PossibleType(DataType type, Serializer<Object> serializer,

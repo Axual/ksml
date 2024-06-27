@@ -21,11 +21,10 @@ package io.axual.ksml.generator;
  */
 
 import com.google.common.collect.ImmutableMap;
-import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.definition.StateStoreDefinition;
+import io.axual.ksml.data.tag.ContextTag;
+import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.exception.TopologyException;
-import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -57,10 +56,19 @@ public class TopologyResources extends TopologyBaseResources {
         return ImmutableMap.copyOf(topics);
     }
 
-    public String getUniqueOperationName(String basename) {
+    public String getUniqueOperationName(ContextTags tags) {
+        final var basename = String.join("_", tags.stream().map(ContextTag::value).toArray(String[]::new));
+        return getUniqueOperationNameInternal(basename);
+    }
+
+    public String getUniqueOperationName(String name) {
+        return getUniqueOperationNameInternal(namespace() + "_" + name);
+    }
+
+    private String getUniqueOperationNameInternal(final String basename) {
         if (!operationNames.contains(basename)) {
             operationNames.add(basename);
-            return namespace() + "_" + basename;
+            return basename;
         }
         int index = 1;
         while (true) {
@@ -70,7 +78,7 @@ public class TopologyResources extends TopologyBaseResources {
             final var name = basename + "_" + postfix;
             if (!operationNames.contains(name)) {
                 operationNames.add(name);
-                return namespace() + "_" + name;
+                return name;
             }
             index++;
         }

@@ -21,14 +21,13 @@ package io.axual.ksml.python;
  */
 
 import io.axual.ksml.metric.KSMLMetrics;
+import io.axual.ksml.metric.MetricsRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import io.axual.ksml.metric.MetricsRegistry;
 
 @ExtendWith(MockitoExtension.class)
 class MetricsBridgeTest {

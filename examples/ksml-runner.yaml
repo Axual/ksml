@@ -4,6 +4,7 @@ ksml:
 #  schemaDirectory: /ksml # When not set defaults to the config directory
 #  storageDirectory: /tmp # When not set defaults to the default JVM temp directory
   prometheus:
+  enablePipelines: true
   definitions:
     inspect: 01-example-inspect.yaml
 #    copy: 02-example-copy.yaml
@@ -22,6 +23,7 @@ ksml:
 #    pipeline_linking: 15-example-pipeline-linking.yaml
 #    transform_metadata: 16-example-transform-metadata.yaml
 #    inspect_with_metrics: 17-example-inspect-with-metrics.yaml
+#    timestamp_extractor: 18-example-timestamp-extractor.yaml
 
 # This setup connects to the Kafka broker and schema registry started with the example docker-compose file
 # These examples are intended to run from a inside a container on the same network
@@ -62,4 +64,3 @@ kafka:
 #  # Results in Kafka topic ksmldemo-dta-dev-<topic name from KSML definition YAML>
 #  group.id.pattern: "{tenant}-{instance}-{environment}-{group.id}"
 #  transactional.id.pattern: "{tenant}-{instance}-{environment}-{transactional.id}"
-

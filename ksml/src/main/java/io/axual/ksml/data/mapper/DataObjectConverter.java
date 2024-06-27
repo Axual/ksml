@@ -21,7 +21,6 @@ package io.axual.ksml.data.mapper;
  */
 
 import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.UserTupleType;
 import io.axual.ksml.data.notation.UserType;

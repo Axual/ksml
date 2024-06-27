@@ -1,3 +1,5 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/main/docs/ksml-language-spec.json
+
 # This example shows how to transform timestamp and header information of messages
 
 streams:
@@ -5,6 +7,7 @@ streams:
     topic: ksml_sensordata_avro
     keyType: string
     valueType: avro:SensorData
+    offsetResetPolicy: latest
   sensor_copy:
     topic: ksml_sensordata_copy
     keyType: string

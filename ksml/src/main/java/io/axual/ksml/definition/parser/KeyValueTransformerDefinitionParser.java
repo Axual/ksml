@@ -22,15 +22,17 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.KeyValueTransformerDefinition;
-import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.parser.StructParser;
+import io.axual.ksml.parser.StructsParser;
 
 public class KeyValueTransformerDefinitionParser extends FunctionDefinitionParser<KeyValueTransformerDefinition> {
+    public KeyValueTransformerDefinitionParser(boolean requireType) {
+        super(requireType);
+    }
+
     @Override
-    public StructParser<KeyValueTransformerDefinition> parser() {
+    public StructsParser<KeyValueTransformerDefinition> parser() {
         return parserWithStores(
                 KeyValueTransformerDefinition.class,
-                KSMLDSL.Functions.TYPE_KEYVALUETRANSFORMER,
                 "keyvalue transformer",
                 (function, tags) -> new KeyValueTransformerDefinition(function));
     }

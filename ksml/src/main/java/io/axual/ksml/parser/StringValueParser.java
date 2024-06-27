@@ -21,10 +21,12 @@ package io.axual.ksml.parser;
  */
 
 import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.parser.ParserWithSchema;
+import io.axual.ksml.data.parser.ParserWithSchemas;
 import io.axual.ksml.data.schema.DataSchema;
 
-public class StringValueParser implements ParserWithSchema<String> {
+import java.util.List;
+
+public class StringValueParser implements ParserWithSchemas<String> {
     public interface BooleanToStringConverter {
         String interpret(boolean value);
     }
@@ -58,7 +60,7 @@ public class StringValueParser implements ParserWithSchema<String> {
     }
 
     @Override
-    public DataSchema schema() {
-        return DataSchema.stringSchema();
+    public List<DataSchema> schemas() {
+        return List.of(DataSchema.stringSchema());
     }
 }

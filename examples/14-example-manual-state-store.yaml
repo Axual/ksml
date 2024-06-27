@@ -1,8 +1,11 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/main/docs/ksml-language-spec.json
+
 streams:
   sensor_source_avro:
     topic: ksml_sensordata_avro
     keyType: string
     valueType: avro:SensorData
+    offsetResetPolicy: latest
 
 stores:
   last_sensor_data_store:

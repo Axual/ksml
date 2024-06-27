@@ -23,7 +23,7 @@ KSML allows anyone to specify a powerful Kafka Streams application in just a few
 1. [Operations](operations.md)
 1. [Data Types](types.md)
 1. [Runners](runners.md)
-1. [Language specification](specification.md)
+1. [Language specification](ksml-language-spec)
 
 [Getting Started](getting-started.md)
 

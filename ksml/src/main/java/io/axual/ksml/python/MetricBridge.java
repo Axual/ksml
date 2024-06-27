@@ -25,7 +25,6 @@ import io.axual.ksml.metric.MetricName;
 import lombok.Getter;
 
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * Base class for the metric proxy

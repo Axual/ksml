@@ -44,10 +44,11 @@ public class MapParser<V> implements Parser<Map<String, V>> {
         if (node != null) {
             for (ParseNode child : node.children(childTagKey, "")) {
                 try {
-                    var name = child.name();
-                    if (valueParser instanceof NamedObjectParser nop)
-                        nop.defaultName(name);
-                    result.put(name, valueParser.parse(child));
+                    if (valueParser instanceof NamedObjectParser nop) {
+                        nop.defaultShortName(child.name());
+                        nop.defaultLongName(child.longName());
+                    }
+                    result.put(child.name(), valueParser.parse(child));
                 } catch (RuntimeException e) {
                     throw new ParseException(node, "Error in " + childTagValuePrefix + " \"" + child.name() + "\"", e);
                 }

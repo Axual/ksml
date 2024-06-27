@@ -20,12 +20,12 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
-import java.util.HashMap;
-import java.util.Map;
-
 import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.metric.MetricName;
 import io.axual.ksml.metric.MetricsRegistry;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Bridge class to create metrics from a supplied context.

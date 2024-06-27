@@ -1,3 +1,5 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/main/docs/ksml-language-spec.json
+
 # This example shows how to filter messages from a simple stream. Here we
 # only let "blue sensors" pass and discard other messages after logging.
 
@@ -6,6 +8,7 @@ streams:
     topic: ksml_sensordata_avro
     keyType: string
     valueType: avro:SensorData
+    offsetResetPolicy: latest
   sensor_filtered:
     topic: ksml_sensordata_filtered
     keyType: string
