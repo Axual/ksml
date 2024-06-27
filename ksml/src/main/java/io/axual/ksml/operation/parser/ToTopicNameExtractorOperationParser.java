@@ -59,7 +59,7 @@ public class ToTopicNameExtractorOperationParser extends OperationParser<ToTopic
                 (name, tags) -> {
                     // Try to find a corresponding topic definition
                     final var tne = resources().function(name);
-                    return tne != null ? new ToTopicNameExtractorOperation(operationConfig(defaultLongName(), tags), tne, null) : null;
+                    return tne != null ? new ToTopicNameExtractorOperation(operationConfig(null, tags), tne, null) : null;
                 },
                 new ToOperationDefinitionParser());
     }

@@ -59,7 +59,7 @@ public class ToOperationParser extends OperationParser<ToOperation> {
                 (name, tags) -> {
                     // Try to find a corresponding topic definition
                     final var topic = resources().topic(name);
-                    return topic != null ? new ToOperation(operationConfig(defaultLongName(), tags), topic, null) : null;
+                    return topic != null ? new ToOperation(operationConfig(null, tags), topic, null) : null;
                 },
                 new ToOperationDefinitionParser());
     }

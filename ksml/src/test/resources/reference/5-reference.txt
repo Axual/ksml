@@ -3,5 +3,7 @@ Topologies:
     Source: ksml_sensordata_avro (topics: [ksml_sensordata_avro])
       --> test_before-peek
     Processor: test_before-peek (stores: [])
-      --> none
+      --> test_pipelines_main_toTopicNameExtractor
       <-- ksml_sensordata_avro
+    Sink: test_pipelines_main_toTopicNameExtractor (extractor class: io.axual.ksml.user.UserTopicNameExtractor)
+      <-- test_before-peek

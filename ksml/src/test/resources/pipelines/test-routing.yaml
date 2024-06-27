@@ -28,7 +28,7 @@ pipelines:
       - name: before_peek
         type: peek
         forEach: print_message
-    to:
+    toTopicNameExtractor:
       topicNameExtractor:
         code: |
           if key == 'sensor1':
