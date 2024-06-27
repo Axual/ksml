@@ -33,7 +33,7 @@ public class PredicateDefinitionParser extends FunctionDefinitionParser<Predicat
     public StructsParser<PredicateDefinition> parser() {
         return parserWithStores(
                 PredicateDefinition.class,
-                "Function that returns true or false based on key/value input",
+                "predicate",
                 (function, tags) -> new PredicateDefinition(function));
     }
 }

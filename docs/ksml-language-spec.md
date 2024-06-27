@@ -93,8 +93,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the aggregator.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the aggregator. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the aggregator uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
   - **`type`**: The type of the function. Must be one of: `["aggregator"]`.
 - <a id="definitions/AggregatorDefinitionWithImplicitType"></a>**`AggregatorDefinitionWithImplicitType`** *(object)*: Defines a aggregator function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the aggregator.
@@ -116,8 +114,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the aggregator.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the aggregator. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the aggregator uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
 - <a id="definitions/BranchDefinitionWithPipeline"></a>**`BranchDefinitionWithPipeline`** *(object)*: Defines a branch with sub-pipeline in a BranchOperation. Cannot contain additional properties.
   - **`as`** *(string)*: *(optional)* The name to register the pipeline result under, which can be used as source by follow-up pipelines.
   - **`branch`** *(array)*: *(optional)* Defines a single branch, consisting of a condition and a pipeline to execute for messages that fulfil the predicate.
@@ -299,8 +295,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the foreign key extractor.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the foreign key extractor. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the foreign key extractor uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
   - **`type`**: The type of the function. Must be one of: `["foreignKeyExtractor"]`.
 - <a id="definitions/GeneratorDefinition"></a>**`GeneratorDefinition`** *(object)*: Defines a message generator function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the message generator.
@@ -322,8 +316,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the message generator.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the message generator. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the message generator uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
   - **`type`**: The type of the function. Must be one of: `["generator"]`.
 - <a id="definitions/GeneratorDefinitionWithImplicitType"></a>**`GeneratorDefinitionWithImplicitType`** *(object)*: Defines a message generator function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the message generator.
@@ -345,8 +337,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the message generator.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the message generator. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the message generator uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
 - <a id="definitions/GenericFunctionDefinitionWithImplicitType"></a>**`GenericFunctionDefinitionWithImplicitType`** *(object)*: Defines a generic function function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the generic function.
     - **Any of**
@@ -367,8 +357,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the generic function.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the generic function. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the generic function uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
   - **`type`**: The type of the function. Must be one of: `["generic"]`.
 - <a id="definitions/GlobalTableDefinition"></a>**`GlobalTableDefinition`** *(object)*: Contains a definition of a GlobalTable, which can be referenced by producers and pipelines. Cannot contain additional properties.
   - **`keyType`** *(string)*: *(optional)* The key type of the global table.
@@ -429,8 +417,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the initializer.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the initializer. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the initializer uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
   - **`type`**: The type of the function. Must be one of: `["initializer"]`.
 - <a id="definitions/InitializerDefinitionWithImplicitType"></a>**`InitializerDefinitionWithImplicitType`** *(object)*: Defines a initializer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the initializer.
@@ -452,8 +438,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the initializer.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the initializer. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the initializer uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
 - <a id="definitions/JoinOperationWithGlobalTable"></a>**`JoinOperationWithGlobalTable`** *(object)*: Operation to join with a table. Cannot contain additional properties.
   - **`globalTable`**: A reference to the globalTable, or an inline definition of the globalTable to join with.
     - **Any of**
@@ -592,8 +576,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the keyvalue mapper.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the keyvalue mapper. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the keyvalue mapper uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
   - **`type`**: The type of the function. Must be one of: `["keyValueMapper"]`.
 - <a id="definitions/KeyValueMapperDefinitionWithImplicitType"></a>**`KeyValueMapperDefinitionWithImplicitType`** *(object)*: Defines a keyvalue mapper function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the keyvalue mapper.
@@ -615,8 +597,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the keyvalue mapper.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the keyvalue mapper. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the keyvalue mapper uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
 - <a id="definitions/KeyValuePrinterDefinition"></a>**`KeyValuePrinterDefinition`** *(object)*: Defines a keyvalue printer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the keyvalue printer.
     - **Any of**
@@ -637,8 +617,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the keyvalue printer.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the keyvalue printer. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the keyvalue printer uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
   - **`type`**: The type of the function. Must be one of: `["keyValuePrinter"]`.
 - <a id="definitions/KeyValuePrinterDefinitionWithImplicitType"></a>**`KeyValuePrinterDefinitionWithImplicitType`** *(object)*: Defines a keyvalue printer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the keyvalue printer.
@@ -660,8 +638,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the keyvalue printer.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the keyvalue printer. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the keyvalue printer uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
 - <a id="definitions/KeyValueStateStoreDefinition"></a>**`KeyValueStateStoreDefinition`** *(object)*: Definition of a keyValue state store. Cannot contain additional properties.
   - **`caching`** *(boolean)*: *(optional)* "true" if changed to the keyValue store need to be buffered and periodically released, "false" to emit all changes directly.
   - **`historyRetention`**: *(optional)* (Versioned only) The duration for which old record versions are available for query (cannot be negative).
@@ -933,8 +909,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the merger.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the merger. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the merger uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
   - **`type`**: The type of the function. Must be one of: `["merger"]`.
 - <a id="definitions/MergerDefinitionWithImplicitType"></a>**`MergerDefinitionWithImplicitType`** *(object)*: Defines a merger function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the merger.
@@ -956,8 +930,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the merger.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the merger. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the merger uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
 - <a id="definitions/MetadataTransformerDefinition"></a>**`MetadataTransformerDefinition`** *(object)*: Defines a metadata transformer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the metadata transformer.
     - **Any of**
@@ -1118,50 +1090,50 @@
         - : Refer to *[#/definitions/WindowByTimeOperationWithHoppingWindow](#definitions/WindowByTimeOperationWithHoppingWindow)*.
         - : Refer to *[#/definitions/WindowByTimeOperationWithSlidingWindow](#definitions/WindowByTimeOperationWithSlidingWindow)*.
         - : Refer to *[#/definitions/WindowByTimeOperationWithTumblingWindow](#definitions/WindowByTimeOperationWithTumblingWindow)*.
-- <a id="definitions/PredicateDefinition"></a>**`PredicateDefinition`** *(object)*: Defines a Function that returns true or false based on key/value input function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
-  - **`code`**: *(optional)* The (multiline) code of the Function that returns true or false based on key/value input.
+- <a id="definitions/PredicateDefinition"></a>**`PredicateDefinition`** *(object)*: Defines a predicate function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
+  - **`code`**: *(optional)* The (multiline) code of the predicate.
     - **Any of**
       - *boolean*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the Function that returns true or false based on key/value input. Only required for functions that return values.
+  - **`expression`**: *(optional)* The expression returned by the predicate. Only required for functions that return values.
     - **Any of**
       - *boolean*
       - *number*
       - *string*
-  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the Function that returns true or false based on key/value input. Can be used for defining eg. global variables.
+  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the predicate. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
       - *number*
       - *string*
-  - **`name`** *(string)*: *(optional)* The name of the Function that returns true or false based on key/value input. If this field is not defined, then the name is derived from the context.
-  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the Function that returns true or false based on key/value input.
+  - **`name`** *(string)*: *(optional)* The name of the predicate. If this field is not defined, then the name is derived from the context.
+  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the predicate.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
-  - **`resultType`** *(string)*: *(optional)* The data type returned by the Function that returns true or false based on key/value input. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the Function that returns true or false based on key/value input uses. Only required if the function wants to use a state store.
+  - **`resultType`** *(string)*: *(optional)* The data type returned by the predicate. Only required for function types, which are not pre-defined.
+  - **`stores`** *(array)*: *(optional)* A list of store names that the predicate uses. Only required if the function wants to use a state store.
     - **Items** *(string)*
   - **`type`**: The type of the function. Must be one of: `["predicate"]`.
-- <a id="definitions/PredicateDefinitionWithImplicitType"></a>**`PredicateDefinitionWithImplicitType`** *(object)*: Defines a Function that returns true or false based on key/value input function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
-  - **`code`**: *(optional)* The (multiline) code of the Function that returns true or false based on key/value input.
+- <a id="definitions/PredicateDefinitionWithImplicitType"></a>**`PredicateDefinitionWithImplicitType`** *(object)*: Defines a predicate function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
+  - **`code`**: *(optional)* The (multiline) code of the predicate.
     - **Any of**
       - *boolean*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the Function that returns true or false based on key/value input. Only required for functions that return values.
+  - **`expression`**: *(optional)* The expression returned by the predicate. Only required for functions that return values.
     - **Any of**
       - *boolean*
       - *number*
       - *string*
-  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the Function that returns true or false based on key/value input. Can be used for defining eg. global variables.
+  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the predicate. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
       - *number*
       - *string*
-  - **`name`** *(string)*: *(optional)* The name of the Function that returns true or false based on key/value input. If this field is not defined, then the name is derived from the context.
-  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the Function that returns true or false based on key/value input.
+  - **`name`** *(string)*: *(optional)* The name of the predicate. If this field is not defined, then the name is derived from the context.
+  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the predicate.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
-  - **`resultType`** *(string)*: *(optional)* The data type returned by the Function that returns true or false based on key/value input. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the Function that returns true or false based on key/value input uses. Only required if the function wants to use a state store.
+  - **`resultType`** *(string)*: *(optional)* The data type returned by the predicate. Only required for function types, which are not pre-defined.
+  - **`stores`** *(array)*: *(optional)* A list of store names that the predicate uses. Only required if the function wants to use a state store.
     - **Items** *(string)*
 - <a id="definitions/PrintOperation"></a>**`PrintOperation`** *(object)*: Operation to print the contents of a pipeline on the screen or to write them to a file. Cannot contain additional properties.
   - **`filename`** *(string)*: *(optional)* The filename to output records to. If nothing is specified, then messages will be printed on stdout.
@@ -1239,8 +1211,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the reducer.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the reducer. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the reducer uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
   - **`type`**: The type of the function. Must be one of: `["reducer"]`.
 - <a id="definitions/ReducerDefinitionWithImplicitType"></a>**`ReducerDefinitionWithImplicitType`** *(object)*: Defines a reducer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the reducer.
@@ -1262,8 +1232,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the reducer.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the reducer. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the reducer uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
 - <a id="definitions/RepartitionOperation"></a>**`RepartitionOperation`** *(object)*: Operation to (re)partition a stream. Cannot contain additional properties.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`numberOfPartitions`**: *(optional)* The target number of partitions.
@@ -1318,8 +1286,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the stream partitioner.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the stream partitioner. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the stream partitioner uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
   - **`type`**: The type of the function. Must be one of: `["streamPartitioner"]`.
 - <a id="definitions/StreamPartitionerDefinitionWithImplicitType"></a>**`StreamPartitionerDefinitionWithImplicitType`** *(object)*: Defines a stream partitioner function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the stream partitioner.
@@ -1341,8 +1307,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the stream partitioner.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the stream partitioner. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the stream partitioner uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
 - <a id="definitions/StringOrInlinePredicateDefinitionWithImplicitType"></a>**`StringOrInlinePredicateDefinitionWithImplicitType`** *(object)*: Defines the condition under which messages get sent down this branch. Cannot contain additional properties.
   - **`if`**: *(optional)* Defines the condition under which messages get sent down this branch.
     - **Any of**
@@ -1407,8 +1371,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the timestamp extractor.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the timestamp extractor. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the timestamp extractor uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
   - **`type`**: The type of the function. Must be one of: `["timestampExtractor"]`.
 - <a id="definitions/TimestampExtractorDefinitionWithImplicitType"></a>**`TimestampExtractorDefinitionWithImplicitType`** *(object)*: Defines a timestamp extractor function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the timestamp extractor.
@@ -1430,8 +1392,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the timestamp extractor.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the timestamp extractor. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the timestamp extractor uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
 - <a id="definitions/ToStreamOperation"></a>**`ToStreamOperation`** *(object)*: Convert a Table into a Stream, optionally through a custom key transformer. Cannot contain additional properties.
   - **`mapper`**: *(optional)* A function that computes the output key for every record.
     - **Any of**
@@ -1496,8 +1456,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the topic name extractor.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the topic name extractor. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the topic name extractor uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
   - **`type`**: The type of the function. Must be one of: `["topicNameExtractor"]`.
 - <a id="definitions/TopicNameExtractorDefinitionWithImplicitType"></a>**`TopicNameExtractorDefinitionWithImplicitType`** *(object)*: Defines a topic name extractor function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the topic name extractor.
@@ -1519,8 +1477,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the topic name extractor.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the topic name extractor. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the topic name extractor uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
 - <a id="definitions/TransformKeyOperation"></a>**`TransformKeyOperation`** *(object)*: Convert the key of every record in the stream to another key. Cannot contain additional properties.
   - **`mapper`**: A function that computes a new key for each record.
     - **Any of**
@@ -1587,8 +1543,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the value joiner.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the value joiner. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the value joiner uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
   - **`type`**: The type of the function. Must be one of: `["valueJoiner"]`.
 - <a id="definitions/ValueJoinerDefinitionWithImplicitType"></a>**`ValueJoinerDefinitionWithImplicitType`** *(object)*: Defines a value joiner function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the value joiner.
@@ -1610,8 +1564,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the value joiner.
     - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the value joiner. Only required for function types, which are not pre-defined.
-  - **`stores`** *(array)*: *(optional)* A list of store names that the value joiner uses. Only required if the function wants to use a state store.
-    - **Items** *(string)*
 - <a id="definitions/ValueTransformerDefinition"></a>**`ValueTransformerDefinition`** *(object)*: Defines a value transformer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the value transformer.
     - **Any of**

@@ -26,7 +26,6 @@ import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.BaseOperation;
 import io.axual.ksml.operation.OperationConfig;
-import io.axual.ksml.parser.StringValueParser;
 import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyResourceAwareParser;
 import lombok.Getter;

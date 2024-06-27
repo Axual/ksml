@@ -40,8 +40,6 @@ import org.apache.kafka.streams.state.SessionStore;
 import org.apache.kafka.streams.state.WindowStore;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.TreeSet;
 
 @Slf4j
 public class BaseOperation implements StreamOperation {

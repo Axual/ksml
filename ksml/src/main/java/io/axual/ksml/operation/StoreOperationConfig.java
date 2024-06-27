@@ -23,8 +23,6 @@ package io.axual.ksml.operation;
 import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.definition.StateStoreDefinition;
 
-import java.util.List;
-
 public class StoreOperationConfig extends OperationConfig {
     public final StateStoreDefinition store;
 
