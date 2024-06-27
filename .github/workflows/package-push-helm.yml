@@ -1,0 +1,43 @@
+name: build and push Helm Charts
+on:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      tag-name:
+        required: true
+        type: string
+      target-version:
+        required: false
+        default: 0.0.0-snapshot
+        type: string
+
+jobs:
+  build-push-helm:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.merged }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Helm
+        shell: bash
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+
+      - name: Package Helm
+        shell: bash
+        run: |
+          helm package --version '${{ inputs.target-version }}' --app-version '${{ inputs.tag-name }}' packaging/helm-charts/ksml
+
+      - name: Login to registry
+        shell: bash
+        run: |
+          helm registry login '${{ env.AXUAL_REGISTRY }}' -u '${{ secrets.AXUAL_REGISTRY_USER }}' -p '${{ secrets.AXUAL_REGISTRY_TOKEN }}'
+
+      - name: Push to registry
+        shell: bash
+        run: |
+          helm push 'ksml-${{ inputs.target-version }}.tgz'
+
+      - name: Log out of registry
+        shell: bash
+        if: ${{ always() }}
+        run: |
+          helm registry logout '${{ env.AXUAL_REGISTRY }}' &
