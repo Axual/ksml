@@ -205,6 +205,7 @@ public class KSMLDSL {
 
         @NoArgsConstructor(access = AccessLevel.PRIVATE)
         public static class Repartition {
+            public static final String NUMBER_OF_PARTITIONS = "numberOfPartitions";
             public static final String PARTITIONER = "partitioner";
         }
 

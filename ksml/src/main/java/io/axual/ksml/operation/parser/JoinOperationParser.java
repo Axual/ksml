@@ -68,7 +68,6 @@ public class JoinOperationParser extends StoreOperationParser<JoinOperation> {
                 JoinOperation.class,
                 KSMLDSL.Types.WITH_TABLE,
                 "Operation to join with a table",
-                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, "The type of the operation, fixed value \"" + Operations.JOIN + "\""),
                 operationNameField(),
                 topicField(Operations.Join.WITH_TABLE, "A reference to the table, or an inline definition of the table to join with", new TableDefinitionParser(resources(), false)),
                 optional(functionField(Operations.Join.FOREIGN_KEY_EXTRACTOR, "A function that can translate the join table value to a primary key", new ValueJoinerDefinitionParser(false))),
@@ -77,7 +76,7 @@ public class JoinOperationParser extends StoreOperationParser<JoinOperation> {
                 optional(functionField(Operations.Join.PARTITIONER, "A function that partitions the records on the primary table", new StreamPartitionerDefinitionParser(false))),
                 optional(functionField(Operations.Join.OTHER_PARTITIONER, "A function that partitions the records on the join table", new StreamPartitionerDefinitionParser(false))),
                 storeField(false, "Materialized view of the joined streams", null),
-                (type, name, table, foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner, store, tags) -> {
+                (name, table, foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner, store, tags) -> {
                     if (table instanceof TableDefinition tableDef) {
                         return new JoinOperation(storeOperationConfig(name, tags, store), tableDef, foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner);
                     }
@@ -88,15 +87,14 @@ public class JoinOperationParser extends StoreOperationParser<JoinOperation> {
                 JoinOperation.class,
                 KSMLDSL.Types.WITH_GLOBAL_TABLE,
                 "Operation to join with a table",
-                stringField(KSMLDSL.Operations.TYPE_ATTRIBUTE, "The type of the operation, fixed value \"" + Operations.JOIN + "\""),
                 operationNameField(),
                 topicField(Operations.Join.WITH_GLOBAL_TABLE, "A reference to the globalTable, or an inline definition of the globalTable to join with", new GlobalTableDefinitionParser(resources(), false)),
-                functionField(Operations.Join.MAPPER, "A function that maps the key value from the stream with the primary key of the globalTable", new ValueJoinerDefinitionParser(false)),
+                functionField(Operations.Join.MAPPER, "A function that maps the key value from the stream to the primary key type of the globalTable", new ValueJoinerDefinitionParser(false)),
                 functionField(Operations.Join.VALUE_JOINER, "A function that joins two values", new ValueJoinerDefinitionParser(false)),
-                storeField(false, "Materialized view of the joined streams", null),
-                (type, name, globalTable, mapper, valueJoiner, store, tags) -> {
+                // GlobalTable joins do not use/require a state store
+                (name, globalTable, mapper, valueJoiner, tags) -> {
                     if (globalTable instanceof GlobalTableDefinition globalTableDef) {
-                        return new JoinOperation(storeOperationConfig(name, tags, store), globalTableDef, mapper, valueJoiner);
+                        return new JoinOperation(storeOperationConfig(name, tags, null), globalTableDef, mapper, valueJoiner);
                     }
                     throw new TopologyException("Join globalTable not correct, should be a defined globalTable");
                 });

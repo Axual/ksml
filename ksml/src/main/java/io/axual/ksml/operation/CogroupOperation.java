@@ -69,6 +69,6 @@ public class CogroupOperation extends StoreOperation {
         // of another pipeline, which then happens to be of Java-type KGroupedStream. It seems a little far-fetched
         // for KSML users to grasp the technicalities under the hood well enough to use this properly. Therefore, this
         // is unsupported for now and we throw an exception with this explicit message.
-        throw new TopologyException("Cogroup operations are not supported for CogroupStreams");
+        throw new TopologyException("Cogroup operations are not supported for CogroupedStreams");
     }
 }

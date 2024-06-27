@@ -2,17 +2,12 @@
 
 Welcome to the KSML documentation, Use the menu on the left to navigate through the various sections
 
+## Quick Start
+If you want to get going quickly, go to the KSML Quickstart.
+
 ## Introduction
 KSML allows anyone to specify a powerful Kafka Streams application in just a few lines of YAML and Python snippets.
 
-## Prerequisites to run KSML
-- Docker 19.03.0 or newer 
-- Kafka cluster 0.11 or newer
-- Access to Docker Hub to pull images (internet connectivity)
-
-## Prerequisites to build KSML
-- GraalVM JDK 21.0.2 with Java 21
-- Maven 3 - To build the project
 
 ## Contents
 
@@ -25,6 +20,6 @@ KSML allows anyone to specify a powerful Kafka Streams application in just a few
 1. [Runners](runners.md)
 1. [Language specification](ksml-language-spec)
 
-[Getting Started](getting-started.md)
+[Getting Started](quick-start)
 
 [Release Notes](release-notes.md)

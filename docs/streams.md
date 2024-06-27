@@ -1,6 +1,7 @@
 # Streams
 
 ### Table of Contents
+
 1. [Introduction](#introduction)
 2. [Stream](#stream)
 3. [Table](#table)
@@ -28,6 +29,8 @@ streams:
     topic: some_kafka_topic
     keyType: string
     valueType: string
+    offsetResetPolicy: earliest
+    timestampExtractor: my_timestamp_extractor
 ```
 
 ## Table

@@ -107,14 +107,13 @@ public class JoinOperation extends BaseJoinOperation {
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
             checkType("Join stream keyType", ko, equalTo(k));
             final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vo));
-            final var windowedK = windowedTypeOf(k);
             final var windowStore = validateWindowStore(store(), k, vr);
             final var streamJoined = streamJoinedOf(windowStore, k, v, vo);
             final var userJoiner = new UserValueJoinerWithKey(joiner, tags);
             final KStream<Object, Object> output = streamJoined != null
                     ? input.stream.join(otherStream.stream, userJoiner, joinWindows, streamJoined)
                     : input.stream.join(otherStream.stream, userJoiner, joinWindows);
-            return new KStreamWrapper(output, windowedK, vr);
+            return new KStreamWrapper(output, k, vr);
         }
 
         if (joinTopic instanceof TableDefinition joinTable) {

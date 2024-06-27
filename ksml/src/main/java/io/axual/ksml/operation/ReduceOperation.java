@@ -36,9 +36,16 @@ public class ReduceOperation extends StoreOperation {
     private final FunctionDefinition adder;
     private final FunctionDefinition subtractor;
 
-    public ReduceOperation(StoreOperationConfig config, FunctionDefinition reducer, FunctionDefinition adder, FunctionDefinition subtractor) {
+    public ReduceOperation(StoreOperationConfig config, FunctionDefinition reducer) {
         super(config);
         this.reducer = reducer;
+        this.adder = null;
+        this.subtractor = null;
+    }
+
+    public ReduceOperation(StoreOperationConfig config, FunctionDefinition adder, FunctionDefinition subtractor) {
+        super(config);
+        this.reducer = null;
         this.adder = adder;
         this.subtractor = subtractor;
     }

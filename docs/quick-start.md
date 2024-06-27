@@ -1,4 +1,4 @@
-# Getting started
+# Quick start
 
 ### Table of Contents
 1. [Introduction](#introduction)
@@ -7,7 +7,8 @@
 4. [Next steps](#next-steps)
 
 ## Introduction
-KSML comes with an example setup, where a producer outputs SensorData messages to Kafka, which are then processed by KSML pipelines.
+KSML comes with example definitions, which contain a producer that outputs SensorData messages to Kafka,
+and several pipelines, which each independently consume and process the produced messages.
 
 ## Starting a demo setup
 After checking out the repository, go to the KSML directory and execute the following:

@@ -89,7 +89,7 @@ To run the KSML demo, we provide a Docker compose file which will start Kafka, c
 container
 with a demo producer. You can then start the runner you generated in the previous step, passing in a KSML configuration
 of your choice.
-See [Getting started](docs/getting-started.md) or [Runners](docs/runners.md) for details.
+See [Getting started](docs/quick-start) or [Runners](docs/runners.md) for details.
 
 To run the demo, Docker 19.x is required.
 

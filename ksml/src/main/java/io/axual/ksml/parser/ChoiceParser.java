@@ -45,7 +45,6 @@ public class ChoiceParser<T> extends BaseParser<T> implements StructsParser<T>, 
         this.childName = childName;
         this.parsedType = description;
         this.defaultValue = defaultValue;
-
         this.parsers = new HashMap<>(parsers);
 
         // To generate proper JSON Schema, first map all parseable schema to fixed values associated with them

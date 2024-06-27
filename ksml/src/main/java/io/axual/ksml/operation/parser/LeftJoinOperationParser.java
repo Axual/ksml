@@ -91,10 +91,10 @@ public class LeftJoinOperationParser extends StoreOperationParser<LeftJoinOperat
                 topicField(Operations.Join.WITH_GLOBAL_TABLE, "A reference to the globalTable, or an inline definition of the globalTable to join with", new GlobalTableDefinitionParser(resources(), false)),
                 functionField(Operations.Join.MAPPER, "A function that maps the key value from the stream with the primary key of the globalTable", new ValueJoinerDefinitionParser(false)),
                 functionField(Operations.Join.VALUE_JOINER, "A function that joins two values", new ValueJoinerDefinitionParser(false)),
-                storeField(false, "Materialized view of the leftJoined streams", null),
-                (name, globalTable, mapper, valueJoiner, store, tags) -> {
+                // GlobalTable joins do not use/require a state store
+                (name, globalTable, mapper, valueJoiner, tags) -> {
                     if (globalTable instanceof GlobalTableDefinition globalTableDef) {
-                        return new LeftJoinOperation(storeOperationConfig(name, tags, store), globalTableDef, mapper, valueJoiner);
+                        return new LeftJoinOperation(storeOperationConfig(name, tags, null), globalTableDef, mapper, valueJoiner);
                     }
                     throw new TopologyException("LeftJoin globalTable not correct, should be a defined globalTable");
                 });
