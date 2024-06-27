@@ -27,7 +27,6 @@ The submodules are as follows:
 
 | Module                                                    | Description                                                                                                        |
 |-----------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
-| [`graalpy-module-collection`](graalpy-module-collection/) | contains dependencies to all GraalVM runtime modules for Python.                                                   |
 | [`ksml-data`](ksml-data/)                                 | contains core data type logic, including BINARY and JSON types, used in Kafka Streams topologies and by Producers. |
 | [`ksml-data-avro`](ksml-data-avro/)                       | extension to the data library for AVRO support.                                                                    |
 | [`ksml-data-csv`](ksml-data-csv/)                         | extension to the data library for CSV support.                                                                     |

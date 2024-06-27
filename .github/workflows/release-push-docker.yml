@@ -58,13 +58,13 @@ jobs:
             axual/ksml:latest
             ghcr.io/axual/ksml:${{ github.event.release.tag_name }}
             ghcr.io/axual/ksml:latest
-            registry.axual.io/opensource/axual/ksml:${{ github.event.release.tag_name }}
-            registry.axual.io/opensource/axual/ksml:latest
+            registry.axual.io/opensource/images/axual/ksml:${{ github.event.release.tag_name }}
+            registry.axual.io/opensource/images/axual/ksml:latest
 
   helm-chart-release:
     needs: release-push-docker
     uses: './.github/workflows/package-push-helm.yml'
     secrets: inherit
     with:
-      app-version: snapshot
-      version: 0.0.0-snapshot
+      app-version: ${{ inputs.tag || github.event.release.tag_name }}
+      version: ${{ inputs.tag || github.event.release.tag_name }}

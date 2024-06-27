@@ -42,16 +42,16 @@ jobs:
       - name: Login to registry
         shell: bash
         run: |
-          helm registry login registry.axual.io/opensource -u '${{ secrets.AXUAL_REGISTRY_USER }}' -p '${{ secrets.AXUAL_REGISTRY_TOKEN }}'
+          helm registry login registry.axual.io/opensource/charts -u '${{ secrets.AXUAL_REGISTRY_USER }}' -p '${{ secrets.AXUAL_REGISTRY_TOKEN }}'
 
       - name: Push to registry
         shell: bash
         run: |
-          helm push 'ksml-${{ inputs.version }}.tgz' oci://registry.axual.io/opensource
+          helm push 'ksml-${{ inputs.version }}.tgz' oci://registry.axual.io/opensource/charts
 
       - name: Log out of registry
         shell: bash
         if: ${{ always() }}
 
         run: |
-          helm registry logout registry.axual.io/opensource &
+          helm registry logout registry.axual.io/opensource/charts &

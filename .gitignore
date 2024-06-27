@@ -13,3 +13,4 @@ examples/io.axual*
 examples/io.ksml*
 
 workspace/*
+/packaging/helm-charts/**/*.tgz

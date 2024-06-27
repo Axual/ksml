@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   # -- Registry to pull the image from and the name of the image.
-  repository: registry.axual.io/opensource/axual/ksml
+  repository: registry.axual.io/opensource/images/axual/ksml
   # -- One of `Always`, `IfNotPresent`, or `Never`.
   pullPolicy: IfNotPresent
   # -- Override the image tag whose default is the chart `appVersion`.

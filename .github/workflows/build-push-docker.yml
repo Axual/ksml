@@ -48,7 +48,7 @@ jobs:
           tags: |
             ghcr.io/axual/ksml:snapshot
             axual/ksml:snapshot
-            registry.axual.io/opensource/axual/ksml:snapshot
+            registry.axual.io/opensource/images/axual/ksml:snapshot
 
   helm-chart-release:
     needs: build-push-docker
