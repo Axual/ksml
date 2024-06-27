@@ -25,7 +25,7 @@ a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) p
 To install/upgrade the chart with the release name `ksml`:
 
 ```bash
-$ helm upgrade -i ksml ksml/ksml -n streaming --create-namespace --version=1.0.0-SNAPSHOT
+$ helm upgrade -i ksml oci://registry.axual.io/opensource/charts/ksml -n streaming --create-namespace --version=| 0.0.0-snapshot
 ```
 
 The command deploys An easy way to define, run and deploy Kafka streaming applications on the
@@ -122,14 +122,14 @@ Specify each parameter using the `--set key=value[,key=value]` argument to `helm
 example:
 
 ```bash
-$ helm upgrade -i ksml ksml/ksml -n streaming --create-namespace --version=1.0.0-SNAPSHOT --set replicaCount=1
+$ helm upgrade -i ksml oci://registry.axual.io/opensource/charts/ksml -n streaming --create-namespace --version=| 0.0.0-snapshot --set replicaCount=1
 ```
 
 Alternatively, a YAML file that specifies the values for the parameters can be provided while
 installing the chart. For example:
 
 ```bash
-$ helm upgrade -i ksml ksml/ksml -n streaming --create-namespace --version=1.0.0-SNAPSHOT --values values.yaml
+$ helm upgrade -i ksml oci://registry.axual.io/opensource/charts/ksml -n streaming --create-namespace --version=| 0.0.0-snapshot --values values.yaml
 ```
 ## Examples
 
