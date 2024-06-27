@@ -29,20 +29,6 @@ import java.util.function.Supplier;
 public interface ParserWithSchemas<T> extends Parser<T> {
     List<? extends DataSchema> schemas();
 
-    //    static <T> ParserWithSchemas<T> of(final ParserWithSchema<T> parser) {
-//        return new ParserWithSchemas<T>() {
-//            @Override
-//            public List<? extends DataSchema> schemas() {
-//                return List.of(parser.schema());
-//            }
-//
-//            @Override
-//            public T parse(ParseNode node) {
-//                return parser.parse(node);
-//            }
-//        };
-//    }
-//
     static <T> ParserWithSchemas<T> of(final Function<ParseNode, T> parseFunc, DataSchema schema) {
         return of(parseFunc, List.of(schema));
     }
