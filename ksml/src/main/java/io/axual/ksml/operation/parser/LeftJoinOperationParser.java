@@ -33,7 +33,6 @@ import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.LeftJoinOperation;
 import io.axual.ksml.parser.StructsParser;
-import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;

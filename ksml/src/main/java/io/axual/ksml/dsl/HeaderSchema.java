@@ -20,11 +20,10 @@ package io.axual.ksml.dsl;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
-
 import io.axual.ksml.data.schema.*;
 import io.axual.ksml.data.type.DataType;
-import org.apache.avro.util.SchemaUtil;
+
+import java.util.ArrayList;
 
 public class HeaderSchema {
     private HeaderSchema() {

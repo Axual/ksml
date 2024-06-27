@@ -25,11 +25,12 @@ import io.axual.ksml.data.parser.NamedObjectParser;
 import io.axual.ksml.definition.PipelineDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
-import io.axual.ksml.operation.*;
+import io.axual.ksml.operation.AsOperation;
+import io.axual.ksml.operation.OperationConfig;
 import io.axual.ksml.operation.parser.*;
+import io.axual.ksml.parser.IgnoreParser;
 import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyResourceAwareParser;
-import io.axual.ksml.parser.IgnoreParser;
 
 import java.util.ArrayList;
 

@@ -21,7 +21,6 @@ package io.axual.ksml.definition;
  */
 
 
-
 import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_PARAMETERS;
 
 public class KeyValueMapperDefinition extends FunctionDefinition {

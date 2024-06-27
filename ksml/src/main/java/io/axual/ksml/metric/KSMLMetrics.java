@@ -24,6 +24,7 @@ import java.util.Collections;
 
 public class KSMLMetrics {
     public static final String DOMAIN = "ksml";
+
     private KSMLMetrics() {
     }
 

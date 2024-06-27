@@ -24,9 +24,6 @@ import io.axual.ksml.data.tag.ContextTag;
 import io.axual.ksml.data.tag.ContextTags;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collections;
-import java.util.List;
-
 /**
  * The MetricName identifies a single metric in the system. If a name is used multiple times,
  * one or more {@link ContextTag} can be added to identify the instance.

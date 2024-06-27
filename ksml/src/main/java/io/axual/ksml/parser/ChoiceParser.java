@@ -24,7 +24,10 @@ import io.axual.ksml.data.exception.ParseException;
 import io.axual.ksml.data.parser.BaseParser;
 import io.axual.ksml.data.parser.NamedObjectParser;
 import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.schema.*;
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataValue;
+import io.axual.ksml.data.schema.EnumSchema;
+import io.axual.ksml.data.schema.StructSchema;
 import lombok.Getter;
 
 import java.util.*;

@@ -20,16 +20,11 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.*;
+import io.axual.ksml.data.type.DataType;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.streams.processor.RecordContext;
 import org.apache.kafka.streams.processor.internals.ProcessorRecordContext;
-
-import io.axual.ksml.data.object.DataInteger;
-import io.axual.ksml.data.object.DataLong;
-import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.object.DataStruct;
-import io.axual.ksml.data.type.DataType;
 
 import static io.axual.ksml.dsl.RecordContextSchema.*;
 

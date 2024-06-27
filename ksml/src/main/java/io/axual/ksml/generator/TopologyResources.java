@@ -23,11 +23,8 @@ package io.axual.ksml.generator;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.data.tag.ContextTag;
 import io.axual.ksml.data.tag.ContextTags;
-import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.exception.TopologyException;
-import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.HashSet;

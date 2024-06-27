@@ -21,9 +21,7 @@ package io.axual.ksml.parser;
  */
 
 import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.parser.ParserWithSchema;
 import io.axual.ksml.data.parser.ParserWithSchemas;
-import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;

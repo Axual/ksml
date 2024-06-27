@@ -25,11 +25,9 @@ import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyBaseResources;
-import io.axual.ksml.generator.TopologyResources;
 
 import java.util.List;
 import java.util.function.BiFunction;

@@ -22,20 +22,14 @@ package io.axual.ksml.operation;
 
 
 import io.axual.ksml.data.exception.ExecutionException;
-import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.TopicDefinition;
-import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserStreamPartitioner;
-import io.axual.ksml.user.UserTopicNameExtractor;
-
-import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA;
 
 public class ToOperation extends BaseOperation {
     private static final String PARTITIONER_NAME = "Partitioner";

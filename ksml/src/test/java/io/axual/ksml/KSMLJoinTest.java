@@ -42,9 +42,9 @@ public class KSMLJoinTest {
     TestOutputTopic sensorAlerts;
 
     @KSMLTest(topology = "pipelines/test-joining.yaml", schemapath = "pipelines",
-        inputTopics = {@KSMLTopic(topic = "ksml_sensordata_avro", variable = "sensorIn", valueSerde = KSMLTopic.SerdeType.AVRO),
-                        @KSMLTopic(topic = "ksml_sensoralert_settings", variable = "alertSettings", valueSerde = KSMLTopic.SerdeType.AVRO)},
-        outputTopics = {@KSMLTopic(topic = "ksml_sensoralert", variable = "sensorAlerts")})
+            inputTopics = {@KSMLTopic(topic = "ksml_sensordata_avro", variable = "sensorIn", valueSerde = KSMLTopic.SerdeType.AVRO),
+                    @KSMLTopic(topic = "ksml_sensoralert_settings", variable = "alertSettings", valueSerde = KSMLTopic.SerdeType.AVRO)},
+            outputTopics = {@KSMLTopic(topic = "ksml_sensoralert", variable = "sensorAlerts")})
     void testJoin() throws Exception {
 
         // given that we trigger on humidity > 50 in Amsterdam and temp > 25 in Utrecht

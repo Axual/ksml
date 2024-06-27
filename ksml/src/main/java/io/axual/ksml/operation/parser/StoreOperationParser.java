@@ -22,10 +22,10 @@ package io.axual.ksml.operation.parser;
 
 import io.axual.ksml.data.exception.ParseException;
 import io.axual.ksml.data.parser.NamedObjectParser;
-import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.data.parser.ParseNode;
+import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.parser.StateStoreDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;

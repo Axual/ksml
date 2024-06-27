@@ -67,6 +67,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
 
     /**
      * Check if the test(s) are running on GraalVM.
+     *
      * @param extensionContext the extension context
      * @return enabled only if the test is running on GraalVM
      */
@@ -141,14 +142,14 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
         // create in- and output topics and assign them to variables in the test
         Class<?> testClass = extensionContext.getRequiredTestClass();
         Object testInstance = extensionContext.getRequiredTestInstance();
-        for (KSMLTopic ksmlTopic: ksmlTest.inputTopics()) {
+        for (KSMLTopic ksmlTopic : ksmlTest.inputTopics()) {
             log.debug("set variable {} to topic {}", ksmlTopic.variable(), ksmlTopic.topic());
             Field inputTopicField = testClass.getDeclaredField(ksmlTopic.variable());
             inputTopicField.setAccessible(true);
             inputTopicField.set(testInstance, topologyTestDriver.createInputTopic(ksmlTopic.topic(), getKeySerializer(ksmlTopic), getValueSerializer(ksmlTopic)));
             modifiedFields.add(inputTopicField);
         }
-        for (KSMLTopic ksmlTopic: ksmlTest.outputTopics()) {
+        for (KSMLTopic ksmlTopic : ksmlTest.outputTopics()) {
             log.debug("set variable {} to topic {}", ksmlTopic.variable(), ksmlTopic.topic());
             Field outputTopicField = testClass.getDeclaredField(ksmlTopic.variable());
             outputTopicField.setAccessible(true);
@@ -190,7 +191,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
 
         // clear any set fields
         var testInstance = context.getRequiredTestInstance();
-        for (Field field: modifiedFields) {
+        for (Field field : modifiedFields) {
             field.setAccessible(true);
             field.set(testInstance, null);
         }

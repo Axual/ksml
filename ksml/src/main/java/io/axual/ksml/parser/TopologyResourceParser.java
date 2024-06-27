@@ -22,13 +22,10 @@ package io.axual.ksml.parser;
 
 
 import io.axual.ksml.data.exception.ParseException;
-import io.axual.ksml.data.parser.ParserWithSchemas;
+import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.*;
 import io.axual.ksml.data.tag.ContextTags;
-import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.parser.ParserWithSchema;
 import io.axual.ksml.definition.TopologyResource;
-import io.axual.ksml.exception.TopologyException;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -44,15 +44,15 @@ public abstract class FunctionDefinitionParser<T extends FunctionDefinition> ext
         this.requireType = requireType;
     }
 
-    protected StructsParser<T> parserWithStores(Class<T> resultClass,  String description, Constructor1<T, FunctionDefinition> constructor) {
+    protected StructsParser<T> parserWithStores(Class<T> resultClass, String description, Constructor1<T, FunctionDefinition> constructor) {
         return parser(resultClass, description, (name, params, globalCode, code, expression, resultType, stores, tags) -> FunctionDefinition.as(name, params, globalCode, code, expression, resultType, stores), constructor);
     }
 
-    protected StructsParser<T> parserWithoutStores(Class<T> resultClass,  String description, Constructor1<T, FunctionDefinition> constructor) {
+    protected StructsParser<T> parserWithoutStores(Class<T> resultClass, String description, Constructor1<T, FunctionDefinition> constructor) {
         return parser(resultClass, description, (name, params, globalCode, code, expression, resultType, stores, tags) -> FunctionDefinition.as(name, params, globalCode, code, expression, resultType, null), constructor);
     }
 
-    private StructsParser<T> parser(Class<T> resultClass,String description, Constructor7<FunctionDefinition, String, List<ParameterDefinition>, String, String, String, UserType, List<String>> innerConstructor, Constructor1<T, FunctionDefinition> outerConstructor) {
+    private StructsParser<T> parser(Class<T> resultClass, String description, Constructor7<FunctionDefinition, String, List<ParameterDefinition>, String, String, String, UserType, List<String>> innerConstructor, Constructor1<T, FunctionDefinition> outerConstructor) {
         final var parseType = resultClass == FunctionDefinition.class;
         final var doc = "Defines a " + description + " function, that gets injected into the Kafka Streams topology";
         final var name = optional(stringField(Functions.NAME, "The name of the " + description + ". If this field is not defined, then the name is derived from the context."));

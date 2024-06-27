@@ -43,9 +43,9 @@ class KSMLCopyAndFilterTest {
 
     protected TestOutputTopic outputTopic;
 
-    @KSMLTest(topology= "pipelines/test-copying.yaml",
-            inputTopics = {@KSMLTopic(variable="inputTopic", topic="ksml_sensordata_avro")},
-            outputTopics = {@KSMLTopic(variable="outputTopic", topic="ksml_sensordata_copy")})
+    @KSMLTest(topology = "pipelines/test-copying.yaml",
+            inputTopics = {@KSMLTopic(variable = "inputTopic", topic = "ksml_sensordata_avro")},
+            outputTopics = {@KSMLTopic(variable = "outputTopic", topic = "ksml_sensordata_copy")})
     void testCopying() {
         log.debug("testCopying()");
 

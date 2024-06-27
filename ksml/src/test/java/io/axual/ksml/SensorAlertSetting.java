@@ -63,7 +63,7 @@ public class SensorAlertSetting {
         String unit;
         Type type;
 
-        enum Type { AREA, HUMIDITY, LENGTH, STATE, TEMPERATURE }
+        enum Type {AREA, HUMIDITY, LENGTH, STATE, TEMPERATURE}
 
         public GenericRecord toRecord() {
             GenericData.Record data = new GenericData.Record(ALERT_SETTING_SCHEMA.getElementType());
@@ -80,7 +80,7 @@ public class SensorAlertSetting {
         GenericRecord data = new GenericData.Record(ALERT_SETTINGS_SCHEMA);
         data.put("city", city == null ? "NOT SET" : city);
         GenericArray settings = new GenericData.Array(alertSettings.size(), ALERT_SETTING_SCHEMA);
-        for (AlertSetting setting: alertSettings) {
+        for (AlertSetting setting : alertSettings) {
             settings.add(setting.toRecord());
         }
         data.put("alertSettings", settings);

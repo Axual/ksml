@@ -22,7 +22,6 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.ValueJoinerDefinition;
-import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.StructsParser;
 
 public class ValueJoinerDefinitionParser extends FunctionDefinitionParser<ValueJoinerDefinition> {

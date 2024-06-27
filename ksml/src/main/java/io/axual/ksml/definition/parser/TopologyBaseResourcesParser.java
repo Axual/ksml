@@ -24,7 +24,8 @@ import io.axual.ksml.generator.TopologyBaseResources;
 import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.StructsParser;
 
-import static io.axual.ksml.dsl.KSMLDSL.*;
+import static io.axual.ksml.dsl.KSMLDSL.FUNCTIONS;
+import static io.axual.ksml.dsl.KSMLDSL.STORES;
 
 public class TopologyBaseResourcesParser extends DefinitionParser<TopologyBaseResources> {
     private final String namespace;

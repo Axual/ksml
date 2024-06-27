@@ -22,7 +22,6 @@ package io.axual.ksml.definition;
 
 
 import io.axual.ksml.data.notation.UserType;
-import io.axual.ksml.exception.TopologyException;
 
 import static io.axual.ksml.definition.DefinitionConstants.*;
 

@@ -21,15 +21,6 @@ package io.axual.ksml.python;
  */
 
 
-import org.apache.kafka.streams.processor.StateStore;
-import org.graalvm.polyglot.Value;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.data.object.DataNull;
@@ -42,6 +33,14 @@ import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.store.StateStores;
 import io.axual.ksml.user.UserFunction;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.streams.processor.StateStore;
+import org.graalvm.polyglot.Value;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static io.axual.ksml.data.notation.UserType.DEFAULT_NOTATION;
 
@@ -78,49 +77,49 @@ public class PythonFunction extends UserFunction {
 
     @Override
     public DataObject call(StateStores stores, DataObject... parameters) {
-            // Validate that the defined parameter list matches the amount of passed in parameters
-            if (this.fixedParameterCount > parameters.length) {
-                throw new TopologyException("Parameter list does not match function spec: minimally expected " + this.parameters.length + ", got " + parameters.length);
+        // Validate that the defined parameter list matches the amount of passed in parameters
+        if (this.fixedParameterCount > parameters.length) {
+            throw new TopologyException("Parameter list does not match function spec: minimally expected " + this.parameters.length + ", got " + parameters.length);
+        }
+        if (this.parameters.length < parameters.length) {
+            throw new TopologyException("Parameter list does not match function spec: maximally expected " + this.parameters.length + ", got " + parameters.length);
+        }
+        // Validate the parameter types
+        for (int index = 0; index < parameters.length; index++) {
+            if (!this.parameters[index].type().isAssignableFrom(parameters[index])) {
+                throw new TopologyException("User function \"" + name + "\" expects parameter " + (index + 1) + " (\"" + this.parameters[index].name() + "\") to be " + this.parameters[index].type() + ", but " + parameters[index].type() + " was passed in");
             }
-            if (this.parameters.length < parameters.length) {
-                throw new TopologyException("Parameter list does not match function spec: maximally expected " + this.parameters.length + ", got " + parameters.length);
+        }
+
+        // Check all parameters and copy them into the interpreter as prefixed globals
+        var globalVars = new HashMap<String, Object>();
+        globalVars.put("stores", stores != null ? stores : EMPTY_STORES);
+        var arguments = convertParameters(globalVars, parameters);
+
+        try {
+            // Call the prepared function
+            log.debug("Calling Python function \"{}\" with arguments {}", name, arguments);
+            Value pyResult = function.execute(arguments);
+
+            if (pyResult.canExecute()) {
+                throw new ExecutionException("Python code results in a function instead of a value");
             }
-            // Validate the parameter types
-            for (int index = 0; index < parameters.length; index++) {
-                if (!this.parameters[index].type().isAssignableFrom(parameters[index])) {
-                    throw new TopologyException("User function \"" + name + "\" expects parameter " + (index + 1) + " (\"" + this.parameters[index].name() + "\") to be " + this.parameters[index].type() + ", but " + parameters[index].type() + " was passed in");
-                }
-            }
 
-            // Check all parameters and copy them into the interpreter as prefixed globals
-            var globalVars = new HashMap<String, Object>();
-            globalVars.put("stores", stores != null ? stores : EMPTY_STORES);
-            var arguments = convertParameters(globalVars, parameters);
-
-            try {
-                // Call the prepared function
-                log.debug("Calling Python function \"{}\" with arguments {}", name, arguments);
-                Value pyResult = function.execute(arguments);
-
-                if (pyResult.canExecute()) {
-                    throw new ExecutionException("Python code results in a function instead of a value");
-                }
-
-                // Check if the function is supposed to return a result value
-                if (resultType != null) {
-                    DataObject result = MAPPER.toDataObject(resultType.dataType(), pyResult);
-                    logCall(parameters, result);
-                    result = converter != null ? converter.convert(DEFAULT_NOTATION, result, resultType) : result;
-                    checkType(resultType.dataType(), result);
-                    return result;
-                } else {
-                    logCall(parameters, null);
-                    return DataNull.INSTANCE;
-                }
-            } catch (Exception e) {
+            // Check if the function is supposed to return a result value
+            if (resultType != null) {
+                DataObject result = MAPPER.toDataObject(resultType.dataType(), pyResult);
+                logCall(parameters, result);
+                result = converter != null ? converter.convert(DEFAULT_NOTATION, result, resultType) : result;
+                checkType(resultType.dataType(), result);
+                return result;
+            } else {
                 logCall(parameters, null);
-                throw FatalError.reportAndExit(new TopologyException("Error while executing function " + name + ": " + e.getMessage(), e));
+                return DataNull.INSTANCE;
             }
+        } catch (Exception e) {
+            logCall(parameters, null);
+            throw FatalError.reportAndExit(new TopologyException("Error while executing function " + name + ": " + e.getMessage(), e));
+        }
     }
 
     private Object[] convertParameters(Map<String, Object> globalVariables, DataObject... parameters) {

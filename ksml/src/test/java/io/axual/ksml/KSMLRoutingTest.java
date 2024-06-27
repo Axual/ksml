@@ -48,22 +48,22 @@ public class KSMLRoutingTest {
     @KSMLTest(topology = "pipelines/test-routing.yaml",
             inputTopics = {@KSMLTopic(variable = "inputTopic", topic = "ksml_sensordata_avro")},
             outputTopics = {@KSMLTopic(variable = "outputSensor0", topic = "ksml_sensordata_sensor0"),
-                            @KSMLTopic(variable = "outputSensor1", topic = "ksml_sensordata_sensor1"),
-                            @KSMLTopic(variable = "outputSensor2", topic = "ksml_sensordata_sensor2")
+                    @KSMLTopic(variable = "outputSensor1", topic = "ksml_sensordata_sensor1"),
+                    @KSMLTopic(variable = "outputSensor2", topic = "ksml_sensordata_sensor2")
             }
     )
     void testRouting() {
         // the pipeline routes readings based on key: generate some records
-        inputTopic.pipeInput("sensor1","some_value");
-        inputTopic.pipeInput("sensor2","some_value");
-        inputTopic.pipeInput("sensor3","some_value");
-        inputTopic.pipeInput("sensor0","some_value");
-        inputTopic.pipeInput("sensor1","some_value");
-        inputTopic.pipeInput("sensor1","some_value");
-        inputTopic.pipeInput("sensor2","some_value");
-        inputTopic.pipeInput("sensor99","some_value");
-        inputTopic.pipeInput("random_key","some_value");
-        inputTopic.pipeInput("sensor1","some_value");
+        inputTopic.pipeInput("sensor1", "some_value");
+        inputTopic.pipeInput("sensor2", "some_value");
+        inputTopic.pipeInput("sensor3", "some_value");
+        inputTopic.pipeInput("sensor0", "some_value");
+        inputTopic.pipeInput("sensor1", "some_value");
+        inputTopic.pipeInput("sensor1", "some_value");
+        inputTopic.pipeInput("sensor2", "some_value");
+        inputTopic.pipeInput("sensor99", "some_value");
+        inputTopic.pipeInput("random_key", "some_value");
+        inputTopic.pipeInput("sensor1", "some_value");
 
         assertFalse(outputSensor0.isEmpty());
         assertFalse(outputSensor1.isEmpty());

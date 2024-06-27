@@ -22,7 +22,6 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.KeyValueTransformerDefinition;
-import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.StructsParser;
 
 public class KeyValueTransformerDefinitionParser extends FunctionDefinitionParser<KeyValueTransformerDefinition> {

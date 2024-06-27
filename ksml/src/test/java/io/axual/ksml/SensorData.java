@@ -61,12 +61,12 @@ class SensorData {
     String city;
 
     enum SensorType {
-        AREA, HUMIDITY,LENGTH,STATE,TEMPERATURE
+        AREA, HUMIDITY, LENGTH, STATE, TEMPERATURE
     }
 
     public GenericRecord toRecord() {
         GenericRecord data = new GenericData.Record(SENSOR_DATA_SCHEMA);
-        data.put("name", name == null ? "NOT SET": name);
+        data.put("name", name == null ? "NOT SET" : name);
         data.put("timestamp", timestamp);
         data.put("value", value == null ? "NOT SET" : value);
         data.put("type", new GenericData.EnumSymbol(SENSOR_TYPE_SCHEMA, type == null ? AREA : type));

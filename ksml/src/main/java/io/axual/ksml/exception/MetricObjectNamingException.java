@@ -22,8 +22,6 @@ package io.axual.ksml.exception;
 
 import io.axual.ksml.data.exception.BaseException;
 
-import javax.management.MalformedObjectNameException;
-
 public class MetricObjectNamingException extends BaseException {
     private static final String ACTIVITY = "Metric object naming";
 
