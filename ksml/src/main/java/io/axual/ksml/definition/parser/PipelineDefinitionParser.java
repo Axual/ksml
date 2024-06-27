@@ -39,7 +39,8 @@ public class PipelineDefinitionParser extends TopologyResourceAwareParser<Pipeli
     private final BranchOperationParser branchParser;
     private final ForEachOperationParser forEachParser;
     private final PrintOperationParser printParser;
-    private final ToOperationParser toParser;
+    private final ToOperationParser toTopic;
+    private final ToTopicNameExtractorOperationParser toTne;
     private String defaultShortName;
     private String defaultLongName;
 
@@ -54,7 +55,8 @@ public class PipelineDefinitionParser extends TopologyResourceAwareParser<Pipeli
         branchParser = new BranchOperationParser(resources(), parseSource);
         forEachParser = new ForEachOperationParser(resources());
         printParser = new PrintOperationParser(resources());
-        toParser = new ToOperationParser(resources());
+        toTopic = new ToOperationParser(resources());
+        toTne = new ToTopicNameExtractorOperationParser(resources());
     }
 
     @Override
@@ -72,8 +74,9 @@ public class PipelineDefinitionParser extends TopologyResourceAwareParser<Pipeli
                 optional(branchParser),
                 optional(forEachParser),
                 optional(printParser),
-                optional(toParser),
-                (name, from, via, as, branch, forEach, print, to, tags) -> {
+                optional(toTopic),
+                optional(toTne),
+                (name, from, via, as, branch, forEach, print, toTopic, toTne, tags) -> {
                     final var shortName = validateName("Pipeline", name, defaultShortName, true);
                     final var longName = validateName("Pipeline", name, defaultLongName, false);
                     via = via != null ? via : new ArrayList<>();
@@ -81,7 +84,8 @@ public class PipelineDefinitionParser extends TopologyResourceAwareParser<Pipeli
                     if (branch != null) return new PipelineDefinition(longName, from, via, branch);
                     if (forEach != null) return new PipelineDefinition(longName, from, via, forEach);
                     if (print != null) return new PipelineDefinition(longName, from, via, print);
-                    if (to != null) return new PipelineDefinition(longName, from, via, to);
+                    if (toTopic != null) return new PipelineDefinition(longName, from, via, toTopic);
+                    if (toTne != null) return new PipelineDefinition(longName, from, via, toTne);
                     // If no sink operation was specified, then we create an AS operation here with the name provided.
                     // This means that pipeline results can be referred to by other pipelines using the pipeline's name
                     // as identifier.
@@ -97,7 +101,8 @@ public class PipelineDefinitionParser extends TopologyResourceAwareParser<Pipeli
         branchParser.defaultShortName(name);
         forEachParser.defaultShortName(name);
         printParser.defaultShortName(name);
-        toParser.defaultShortName(name);
+        toTopic.defaultShortName(name);
+        toTne.defaultShortName(name);
     }
 
     @Override
@@ -107,6 +112,7 @@ public class PipelineDefinitionParser extends TopologyResourceAwareParser<Pipeli
         branchParser.defaultLongName(name);
         forEachParser.defaultLongName(name);
         printParser.defaultLongName(name);
-        toParser.defaultLongName(name);
+        toTopic.defaultLongName(name);
+        toTne.defaultLongName(name);
     }
 }

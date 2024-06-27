@@ -20,9 +20,7 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.parser.ToTopicDefinitionParser;
-import io.axual.ksml.definition.parser.ToTopicNameExtractorDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
@@ -30,20 +28,9 @@ import io.axual.ksml.operation.ToOperation;
 import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.StructsParser;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class ToOperationParser extends OperationParser<ToOperation> {
-    private final ToTopicDefinitionParser topicParser;
-    private final ToTopicNameExtractorDefinitionParser tneParser;
-    private final List<StructSchema> schemas = new ArrayList<>();
-
     public ToOperationParser(TopologyResources resources) {
-        super(KSMLDSL.Operations.TO, resources);
-        topicParser = new ToTopicDefinitionParser(resources());
-        tneParser = new ToTopicNameExtractorDefinitionParser(resources());
-        schemas.addAll(topicParser.schemas());
-        schemas.addAll(tneParser.schemas());
+        super(KSMLDSL.Operations.TO_TOPIC, resources);
     }
 
     private class ToOperationDefinitionParser extends DefinitionParser<ToOperation> {
@@ -52,15 +39,11 @@ public class ToOperationParser extends OperationParser<ToOperation> {
             return structsParser(
                     ToOperation.class,
                     "",
-                    "Either a topic or topic name extractor that defines where to write pipeline messages to",
-                    optional(topicParser),
-                    optional(tneParser),
-                    (toTopic, toTne, tags) -> {
-                        if (toTopic != null && toTopic.topic() != null) {
-                            return new ToOperation(operationConfig(null, tags), toTopic.topic(), toTopic.partitioner());
-                        }
-                        if (toTne != null && toTne.topicNameExtractor() != null) {
-                            return new ToOperation(operationConfig(null, tags), toTne.topicNameExtractor(), toTne.partitioner());
+                    "Inline defined topic to send output messages to",
+                    new ToTopicDefinitionParser(resources()),
+                    (inlineTopicAndPartitioner, tags) -> {
+                        if (inlineTopicAndPartitioner != null && inlineTopicAndPartitioner.topic() != null) {
+                            return new ToOperation(operationConfig(null, tags), inlineTopicAndPartitioner.topic(), inlineTopicAndPartitioner.partitioner());
                         }
                         throw new TopologyException("Unknown target for pipeline \"to\" operation");
                     });
@@ -70,21 +53,13 @@ public class ToOperationParser extends OperationParser<ToOperation> {
     @Override
     public StructsParser<ToOperation> parser() {
         return lookupField(
-                "topic",
-                KSMLDSL.Operations.TO,
-                "Ends the pipeline by sending all messages to a fixed topic, or to a topic returned by a topic name extractor function",
+                "target topic",
+                KSMLDSL.Operations.TO_TOPIC,
+                "Ends the pipeline by sending all messages to a stream, table or globalTable, or to an inline defined output topic and optional partitioner",
                 (name, tags) -> {
-                    // First try to find a corresponding topic definition
+                    // Try to find a corresponding topic definition
                     final var topic = resources().topic(name);
-                    if (topic != null) {
-                        return new ToOperation(operationConfig(null, tags), topic, null);
-                    }
-                    // Then try to find a corresponding topic name extractor function
-                    final var tne = resources().function(name);
-                    if (tne != null) {
-                        return new ToOperation(operationConfig(null, tags), tne, null);
-                    }
-                    return null;
+                    return topic != null ? new ToOperation(operationConfig(defaultLongName(), tags), topic, null) : null;
                 },
                 new ToOperationDefinitionParser());
     }

@@ -21,14 +21,11 @@ package io.axual.ksml.operation;
  */
 
 
-import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.definition.TopicDefinition;
-import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
@@ -37,42 +34,39 @@ import io.axual.ksml.user.UserTopicNameExtractor;
 
 import static io.axual.ksml.dsl.RecordContextSchema.RECORD_CONTEXT_SCHEMA;
 
-public class ToOperation extends BaseOperation {
+public class ToTopicNameExtractorOperation extends BaseOperation {
     private static final String PARTITIONER_NAME = "Partitioner";
-    public final TopicDefinition topic;
+    private static final String TOPICNAMEEXTRACTOR_NAME = "TopicNameExtractor";
+    private final FunctionDefinition topicNameExtractor;
     private final FunctionDefinition partitioner;
 
-    public ToOperation(OperationConfig config, TopicDefinition topic, FunctionDefinition partitioner) {
+    public ToTopicNameExtractorOperation(OperationConfig config, FunctionDefinition topicNameExtractor, FunctionDefinition partitioner) {
         super(config);
-        this.topic = topic;
+        this.topicNameExtractor = topicNameExtractor;
         this.partitioner = partitioner;
-        if (topic.topic() == null) {
-            throw new ExecutionException("Can not produce to NULL target");
-        }
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
         /*    Kafka Streams method signature:
          *    void to(
-         *          final String topic,
+         *          final TopicNameExtractor<K, V> topicExtractor,
          *          final Produced<K, V> produced)
          */
 
         final var k = input.keyType();
         final var v = input.valueType();
-        final var kt = streamDataTypeOf(firstSpecificType(topic.keyType(), k.userType()), true);
-        final var vt = streamDataTypeOf(firstSpecificType(topic.valueType(), v.userType()), false);
-        // Perform a dataType check to see if the key/value data types received matches the stream definition's types
-        checkType("Target topic keyType", kt, superOf(k));
-        checkType("Target topic valueType", vt, superOf(v));
+        final var topicNameType = new UserType(DataString.DATATYPE);
+        final var recordContextType = new UserType(new StructType(RECORD_CONTEXT_SCHEMA));
+        final var extract = userFunctionOf(context, TOPICNAMEEXTRACTOR_NAME, topicNameExtractor, topicNameType, superOf(k), superOf(v), superOf(recordContextType));
+        final var userExtract = new UserTopicNameExtractor(extract, tags);
         final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, equalTo(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
         final var userPart = part != null ? new UserStreamPartitioner(part, tags) : null;
-        final var produced = producedOf(kt, vt, userPart);
+        final var produced = producedOf(k, v, userPart);
         if (produced != null)
-            input.stream.to(topic.topic(), produced);
+            input.stream.to(userExtract, produced);
         else
-            input.stream.to(topic.topic());
+            input.stream.to(userExtract);
         return null;
     }
 }

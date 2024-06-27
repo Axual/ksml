@@ -25,7 +25,7 @@ pipelines:
       - type: peek
         forEach:
           code: log.info("SOURCE MESSAGE - key={}, value={}", key, value)
-    to:
+    toTopicNameExtractor:
       topicNameExtractor:
         code: |
           if key == 'sensor1':

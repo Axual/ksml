@@ -61,7 +61,12 @@ public class ChoiceParser<T> extends BaseParser<T> implements StructsParser<T>, 
             final var schema = entry.getKey();
             final var doc = "The " + childName + " of the " + description;
             final var newFields = new ArrayList<>(schema.fields());
-            newFields.add(new DataField(childName, new EnumSchema(schema.namespace(), enumType, doc, entry.getValue(), null), doc, -1, schemaToChildValues.size() > 1, defaultValue != null, defaultValue != null ? new DataValue(defaultValue) : null));
+            // The "type" field is required only if there are multiple options, and the one in this schema is not the default
+            final var isDefault = entry.getValue().size() == 1 && entry.getValue().getFirst().equals(defaultValue);
+            final var required = schemaToChildValues.size() > 1 && !isDefault;
+            // Add the "type" field to the list of fields for the converted schema
+            newFields.add(new DataField(childName, new EnumSchema(schema.namespace(), enumType, doc, entry.getValue(), null), doc, -1, required, defaultValue != null, defaultValue != null ? new DataValue(defaultValue) : null));
+            // Create a converted schema, which includes the "type" field
             final var newSchema = new StructSchema(schema.namespace(), schema.name(), schema.doc(), newFields);
             // Put in a map to deduplicate by name
             convertedSchema.put(schema.name(), newSchema);

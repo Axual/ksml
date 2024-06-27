@@ -38,13 +38,13 @@ public class ToTopicNameExtractorDefinitionParser extends TopologyResourceAwareP
                 ToTopicNameExtractorDefinition.class,
                 "",
                 "Writes out pipeline messages to a topic as given by a topic name extractor",
-                optional(lookupField(
+                lookupField(
                         "topic name extractor",
-                        KSMLDSL.Operations.To.TOPIC_NAME_EXTRACTOR,
+                        KSMLDSL.Operations.ToTopicNameExtractor.TOPIC_NAME_EXTRACTOR,
                         "Reference to a pre-defined topic name extractor, or an inline definition of a topic name extractor",
                         (name, tags) -> resources().function(name),
-                        new TopicNameExtractorDefinitionParser(false))),
-                optional(functionField(KSMLDSL.Operations.To.PARTITIONER, "A function that partitions the records in the output topic", new StreamPartitionerDefinitionParser(false))),
+                        new TopicNameExtractorDefinitionParser(false)),
+                optional(functionField(KSMLDSL.Operations.ToTopicNameExtractor.PARTITIONER, "A function that partitions the records in the output topic", new StreamPartitionerDefinitionParser(false))),
                 (tne, partitioner, tags) -> tne != null ? new ToTopicNameExtractorDefinition(new TopicNameExtractorDefinition(tne), partitioner) : null);
     }
 }

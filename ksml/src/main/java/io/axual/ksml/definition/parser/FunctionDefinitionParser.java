@@ -30,13 +30,15 @@ import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.StringValueParser;
 import io.axual.ksml.parser.StructsParser;
+import lombok.Getter;
 
 import java.util.List;
 
 import static io.axual.ksml.dsl.KSMLDSL.Functions;
 
+@Getter
 public abstract class FunctionDefinitionParser<T extends FunctionDefinition> extends DefinitionParser<T> {
-    private final boolean requireType;
+    public final boolean requireType;
 
     public FunctionDefinitionParser(boolean requireType) {
         this.requireType = requireType;

@@ -41,7 +41,7 @@ public class TypedFunctionDefinitionParser extends ChoiceParser<FunctionDefiniti
         result.put(Functions.TYPE_FOREACHACTION, new ForEachActionDefinitionParser(true));
         result.put(Functions.TYPE_FOREIGN_KEY_EXTRACTOR, new ForeignKeyExtractorDefinitionParser(true));
         result.put(Functions.TYPE_GENERATOR, new GeneratorDefinitionParser(true));
-        result.put(Functions.TYPE_GENERIC, new GenericFunctionDefinitionParser(true));
+        result.put(Functions.TYPE_GENERIC, new GenericFunctionDefinitionParser(false));
         result.put(Functions.TYPE_INITIALIZER, new InitializerDefinitionParser(true));
         result.put(Functions.TYPE_KEYTRANSFORMER, new KeyTransformerDefinitionParser(true));
         result.put(Functions.TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER, new KeyValueToKeyValueListTransformerDefinitionParser(true));
