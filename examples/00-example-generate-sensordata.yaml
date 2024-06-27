@@ -1,8 +1,11 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/main/docs/ksml-language-spec.json
+
 # This example shows how to generate data and have it sent to a target topic in a given format.
 
 functions:
   generate_sensordata_message:
     type: generator
+    nix: hello
     globalCode: |
       import time
       import random
