@@ -60,9 +60,9 @@ ksmlRunnerConfig:
       stopOnError: true
 
   # -- Data generation can be disabled for deployments to prevent accidental test data in non test environments
-  enableProducers: true
+  producersEnabled: true
   # -- Pipelines can be disabled allow for data generation only deployments.
-  enablePipelines: true
+  pipelinesEnabled: true
 
   # -- Map of the namespace and the KSML definition file executed in that namespace.
   definitions: {}
@@ -145,10 +145,10 @@ resources: {}
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   # limits:
-  #   cpu: "500m"
+  #   cpu: "1000m"
   #   memory: "768Mi"
   # requests:
-  #   cpu: "250m"
+  #   cpu: "500m"
   #   memory: "128Mi"
 
 # Additional volumes on the output Deployment definition.
@@ -226,7 +226,7 @@ prometheus:
     lowercaseOutputLabelNames: true
     rules:
       - pattern: 'ksml<type=app-info, app-id=(.+), app-name=(.+), app-version=(.+), build-time=(.+)>Value:'
-        name: ksml_app_info
+        name: ksml_app
         labels:
           app_id: "$1"
           name: "$2"
@@ -255,7 +255,6 @@ prometheus:
         name: os_$1
         type: GAUGE
         attrNameSnakeCase: true
-      - pattern: .*
 
     
 

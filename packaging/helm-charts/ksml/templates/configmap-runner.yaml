@@ -10,8 +10,8 @@ data:
       configDirectory: {{ .Values.ksmlRunnerConfig.definitionDirectory | quote }}
       schemaDirectory: {{ .Values.ksmlRunnerConfig.schemaDirectory | quote }}
       storageDirectory: "/ksml-store"
-      enableProducers: {{ .Values.ksmlRunnerConfig.enableProducers }}
-      enablePipelines: {{ .Values.ksmlRunnerConfig.enablePipelines }}
+      enableProducers: {{ .Values.ksmlRunnerConfig.producersEnabled }}
+      enablePipelines: {{ .Values.ksmlRunnerConfig.pipelinesEnabled }}
       errorHandling:
         consume:
           log: {{ .Values.ksmlRunnerConfig.errorHandling.consume.log }}

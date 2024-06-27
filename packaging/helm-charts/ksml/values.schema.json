@@ -93,10 +93,10 @@
                 "schemaDirectory": {
                     "type": "string"
                 },
-                "enableProducers": {
+                "producersEnabled": {
                     "type": "boolean"
                 },
-                "enablePipelines": {
+                "pipelinesEnabled": {
                     "type": "boolean"
                 },
                 "errorHandling": {

@@ -75,8 +75,8 @@ The following table lists the configurable parameters of the `ksml` chart and th
 | ksmlRunnerConfig.errorHandling.process.logPayload  | Add the record payload to the log message                                                                                                                                                                                           | <code>false</code>                                                                             |
 | ksmlRunnerConfig.errorHandling.process.loggerName  | Specify the name of the logger to use                                                                                                                                                                                               | <code>ProcessError</code>                                                                      |
 | ksmlRunnerConfig.errorHandling.process.stopOnError | Should the KSML application stop when a consume error occurs                                                                                                                                                                        | <code>true</code>                                                                              |
-| ksmlRunnerConfig.enableProducers                   | Data generation can be disabled for deployments to prevent accidental test data in non test environments                                                                                                                            | <code>true</code>                                                                              |
-| ksmlRunnerConfig.enablePipelines                   | Pipelines can be disabled allow for data generation only deployments.                                                                                                                                                               | <code>true</code>                                                                              |
+| ksmlRunnerConfig.producersEnabled                  | Data generation can be disabled for deployments to prevent accidental test data in non test environments                                                                                                                            | <code>true</code>                                                                              |
+| ksmlRunnerConfig.pipelinesEnabled                  | Pipelines can be disabled allow for data generation only deployments.                                                                                                                                                               | <code>true</code>                                                                              |
 | ksmlRunnerConfig.kafka                             | Dictionary of Kafka connection properties and application id                                                                                                                                                                        | <code></code>                                                                                  |
 | ksmlRunnerConfig.kafka.application.id              | The application id for the app. Also used in resources and metrics                                                                                                                                                                  | <code></code>                                                                                  |
 | ksmlRunnerConfig.kafka.bootstrap.servers           | The hostname and port number for connecting to the Kafka cluster                                                                                                                                                                    | <code></code>                                                                                  |
@@ -204,7 +204,7 @@ ksmlDefinitions:
         generator: generate_sensordata_message
         interval: 444
         to:
-          topic: ksml-issues-user-info-json
+          topic: ksml_sensordata_json
           keyType: string
           valueType: json
 
@@ -328,7 +328,7 @@ ksmlDefinitions:
         generator: generate_sensordata_message
         interval: 444
         to:
-          topic: ksml-issues-user-info-json
+          topic: ksml_sensordata_json
           keyType: string
           valueType: json
     
