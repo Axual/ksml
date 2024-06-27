@@ -3,7 +3,7 @@
 ### Table of Contents
 
 1. [Introduction](#introduction)
-1. [Operations](#transform-operations)
+2. [Operations](#transform-operations)
     * [aggregate](#aggregate)
     * [cogroup](#cogroup)
     * [convertKey](#convertkey)
@@ -34,7 +34,7 @@
     * [transformValue](#transformvalue)
     * [windowBySession](#windowbysession)
     * [windowByTime](#windowbytime)
-1. [Sink Operations](#sink-operations)
+3. [Sink Operations](#sink-operations)
     * [as](#as)
     * [branch](#branch)
     * [forEach](#foreach)
@@ -106,52 +106,38 @@ supported transformations. Each one states the type of stream it returns.
 | `name`    | string     | The name of the operation. |
 
 Note that not all combinations of output/input streams are supported by Kafka Streams. The user that writes the KSML
-definition needs to make sure that streams that result from one operations can actually serve as input to the next. KSML
+definition needs to make sure that streams that result from one operation can actually serve as input to the next. KSML
 does type checking and will exit with an error when operations that can not be chained together are listed after another
 in the KSML definition.
 
 ### aggregate
 
-[KGroupedStream::aggregate]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KGroupedStream.html
-
-[KGroupedTable::aggregate]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KGroupedTable.html
-
-[SessionWindowedKStream::aggregate]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/SessionWindowedKStream.html
-
-[TimeWindowedKStreamObject:aggregate]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/TimeWindowedKStream.html
-
-[CogroupedKStream:aggregate]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/CogroupedKStream.html
-
-[SessionWindowedCogroupedKStream::aggregate]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/SessionWindowedCogroupedKStream.html
-
-[TimeWindowedCogroupedKStream:aggregate]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/TimeWindowedCogroupedKStream.html
-
-This operations aggregates multiple values into a single one by repeatedly calling an aggregator function. It can
+This operation aggregates multiple values into a single one by repeatedly calling an aggregator function. It can
 operate on a range of stream types.
 
-| Stream Type                                                                          | Returns                    | Parameter     | Value Type          | Required | Description                                                                                                                                                                                                                                        |
-|:-------------------------------------------------------------------------------------|:---------------------------|:--------------|:--------------------|:---------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [KGroupedStream][KGroupedStream::aggregate]`<K,V>`                                   | [KTable]`<K,VR>`           | `store`       | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`.                                                                                                                                                                                   |
-|                                                                                      |                            | `initializer` | Inline or reference | Yes      | An [Initializer] function, which takes no arguments and returns a value of type `VR`.                                                                                                                                                              |
-|                                                                                      |                            | `aggregator`  | Inline or reference | Yes      | An [Aggregator] function, which takes a `key` of type `K`, a `value` of type `V` and `aggregatedValue` of type `VR`. It should add the key/value to the previously calculated `aggregateValue` and return a new aggregate value of type `VR`.      |
-| [KGroupedTable][KGroupedTable::aggregate]`<K,V>`                                     | [KTable]`<K,VR>`           | `store`       | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`.                                                                                                                                                                                   |
-|                                                                                      |                            | `initializer` | Inline or reference | Yes      | An [Initializer] function, which takes no arguments and returns a value of type `VR`.                                                                                                                                                              |
-|                                                                                      |                            | `adder`       | Inline or reference | Yes      | An [Aggregator] function, which takes a `key` of type `K`, a `value` of type `V` and `aggregatedValue` of type `VR`. It should add the key/value to the previously calculated `aggregateValue` and return a new aggregate value of type `VR`.      |
-|                                                                                      |                            | `subtractor`  | Inline or reference | Yes      | An [Aggregator] function, which takes a `key` of type `K`, a `value` of type `V` and `aggregatedValue` of type `VR`. It should remove the key/value from the previously calculated `aggregateValue` and return a new aggregate value of type `VR`. |
-| [SessionWindowedKStream][SessionWindowedKStream::aggregate]`<K,V>`                   | [KTable]`<Windowed<K>,VR>` | `store`       | Store configuration | No       | An optional [Store] configuration, should be of type `session`.                                                                                                                                                                                    |
-|                                                                                      |                            | `initializer` | Inline or reference | Yes      | An [Initializer] function, which takes no arguments and returns a value of type `VR`.                                                                                                                                                              |
-|                                                                                      |                            | `aggregator`  | Inline or reference | Yes      | An [Aggregator] function, which takes a `key` of type `K`, a `value` of type `V` and `aggregatedValue` of type `VR`. It should add the key/value to the previously calculated `aggregateValue` and return a new aggregate value of type `VR`.      |
-|                                                                                      |                            | `merger`      | Inline or reference | Yes      | A [Merger] function, which takes a `key` of type `K`, and two values `value1` and `value2` of type `V`. The return value is the merged result, also of type `V`.                                                                                   |
-| [TimeWindowedKStreamObject][TimeWindowedKStreamObject:aggregate]`<K,V>`              | [KTable]`<Windowed<K>,VR>` | `store`       | Store configuration | No       | An optional [Store] configuration, should be of type `window`.                                                                                                                                                                                     |
-|                                                                                      |                            | `initializer` | Inline or reference | Yes      | An [Initializer] function, which takes no arguments and returns a value of type `VR`.                                                                                                                                                              |
-|                                                                                      |                            | `aggregator`  | Inline or reference | Yes      | An [Aggregator] function, which takes a `key` of type `K`, a `value` of type `V` and `aggregatedValue` of type `VR`. It should add the key/value to the previously calculated `aggregateValue` and return a new aggregate value of type `VR`.      |
-| [CogroupedKStream][CogroupedKStream::aggregate]`<K,V>`                               | [KTable]`<K,VR>`           | `store`       | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`.                                                                                                                                                                                   |
-|                                                                                      |                            | `initializer` | Inline or reference | Yes      | An [Initializer] function, which takes no arguments and returns a value of type `VR`.                                                                                                                                                              |
-| [SessionWindowedCogroupedKStream][SessionWindowedCogroupedKStream::aggregate]`<K,V>` | [KTable]`<Windowed<K>,VR>` | `store`       | Store configuration | No       | An optional [Store] configuration, should be of type `session`.                                                                                                                                                                                    |
-|                                                                                      |                            | `initializer` | Inline or reference | Yes      | An [Initializer] function, which takes no arguments and returns a value of type `VR`.                                                                                                                                                              |
-|                                                                                      |                            | `merger`      | Inline or reference | Yes      | A [Merger] function, which takes a `key` of type `K`, and two values `value1` and `value2` of type `V`. The return value is the merged result, also of type `V`.                                                                                   |
-| [TimeWindowedCogroupedKStream][TimeWindowedCogroupedKStream::aggregate]`<K,V>`       | [KTable]`<Windowed<K>,VR>` | `store`       | Store configuration | No       | An optional [Store] configuration, should be of type `window`.                                                                                                                                                                                     |
-|                                                                                      |                            | `initializer` | Inline or reference | Yes      | An [Initializer] function, which takes no arguments and returns a value of type `VR`.                                                                                                                                                              |
+| Stream Type                              | Returns                    | Parameter     | Value Type          | Required | Description                                                                                                                                                                                                                                        |
+|:-----------------------------------------|:---------------------------|:--------------|:--------------------|:---------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KGroupedStream]`<K,V>`                  | [KTable]`<K,VR>`           | `store`       | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`.                                                                                                                                                                                   |
+|                                          |                            | `initializer` | Inline or reference | Yes      | An [Initializer] function, which takes no arguments and returns a value of type `VR`.                                                                                                                                                              |
+|                                          |                            | `aggregator`  | Inline or reference | Yes      | An [Aggregator] function, which takes a `key` of type `K`, a `value` of type `V` and `aggregatedValue` of type `VR`. It should add the key/value to the previously calculated `aggregateValue` and return a new aggregate value of type `VR`.      |
+| [KGroupedTable]`<K,V>`                   | [KTable]`<K,VR>`           | `store`       | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`.                                                                                                                                                                                   |
+|                                          |                            | `initializer` | Inline or reference | Yes      | An [Initializer] function, which takes no arguments and returns a value of type `VR`.                                                                                                                                                              |
+|                                          |                            | `adder`       | Inline or reference | Yes      | An [Aggregator] function, which takes a `key` of type `K`, a `value` of type `V` and `aggregatedValue` of type `VR`. It should add the key/value to the previously calculated `aggregateValue` and return a new aggregate value of type `VR`.      |
+|                                          |                            | `subtractor`  | Inline or reference | Yes      | An [Aggregator] function, which takes a `key` of type `K`, a `value` of type `V` and `aggregatedValue` of type `VR`. It should remove the key/value from the previously calculated `aggregateValue` and return a new aggregate value of type `VR`. |
+| [SessionWindowedKStream]`<K,V>`          | [KTable]`<Windowed<K>,VR>` | `store`       | Store configuration | No       | An optional [Store] configuration, should be of type `session`.                                                                                                                                                                                    |
+|                                          |                            | `initializer` | Inline or reference | Yes      | An [Initializer] function, which takes no arguments and returns a value of type `VR`.                                                                                                                                                              |
+|                                          |                            | `aggregator`  | Inline or reference | Yes      | An [Aggregator] function, which takes a `key` of type `K`, a `value` of type `V` and `aggregatedValue` of type `VR`. It should add the key/value to the previously calculated `aggregateValue` and return a new aggregate value of type `VR`.      |
+|                                          |                            | `merger`      | Inline or reference | Yes      | A [Merger] function, which takes a `key` of type `K`, and two values `value1` and `value2` of type `V`. The return value is the merged result, also of type `V`.                                                                                   |
+| [TimeWindowedKStreamObject]`<K,V>`       | [KTable]`<Windowed<K>,VR>` | `store`       | Store configuration | No       | An optional [Store] configuration, should be of type `window`.                                                                                                                                                                                     |
+|                                          |                            | `initializer` | Inline or reference | Yes      | An [Initializer] function, which takes no arguments and returns a value of type `VR`.                                                                                                                                                              |
+|                                          |                            | `aggregator`  | Inline or reference | Yes      | An [Aggregator] function, which takes a `key` of type `K`, a `value` of type `V` and `aggregatedValue` of type `VR`. It should add the key/value to the previously calculated `aggregateValue` and return a new aggregate value of type `VR`.      |
+| [CogroupedKStream]`<K,V>`                | [KTable]`<K,VR>`           | `store`       | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`.                                                                                                                                                                                   |
+|                                          |                            | `initializer` | Inline or reference | Yes      | An [Initializer] function, which takes no arguments and returns a value of type `VR`.                                                                                                                                                              |
+| [SessionWindowedCogroupedKStream]`<K,V>` | [KTable]`<Windowed<K>,VR>` | `store`       | Store configuration | No       | An optional [Store] configuration, should be of type `session`.                                                                                                                                                                                    |
+|                                          |                            | `initializer` | Inline or reference | Yes      | An [Initializer] function, which takes no arguments and returns a value of type `VR`.                                                                                                                                                              |
+|                                          |                            | `merger`      | Inline or reference | Yes      | A [Merger] function, which takes a `key` of type `K`, and two values `value1` and `value2` of type `V`. The return value is the merged result, also of type `V`.                                                                                   |
+| [TimeWindowedCogroupedKStream]`<K,V>`    | [KTable]`<Windowed<K>,VR>` | `store`       | Store configuration | No       | An optional [Store] configuration, should be of type `window`.                                                                                                                                                                                     |
+|                                          |                            | `initializer` | Inline or reference | Yes      | An [Initializer] function, which takes no arguments and returns a value of type `VR`.                                                                                                                                                              |
 
 Example:
 
@@ -171,17 +157,13 @@ to: output_stream
 
 ### cogroup
 
-[KGroupedStream::cogroup]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KGroupedStream.html
-
-[CogroupedKStream:cogroup]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/CogroupedKStream.html
-
-This operations cogroups multiple values into a single one by repeatedly calling an aggregator function. It can
+This operation cogroups multiple values into a single one by repeatedly calling an aggregator function. It can
 operate on a range of stream types.
 
-| Stream Type                                       | Returns                    | Parameter    | Value Type          | Required | Description                                                                                                                                                                                                                                   |
-|:--------------------------------------------------|:---------------------------|:-------------|:--------------------|:---------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [KGroupedStream][KGroupedStream::cogroup]`<K,V>`  | [CogroupedKStream]`<K,VR>` | `aggregator` | Inline or reference | Yes      | An [Aggregator] function, which takes a `key` of type `K`, a `value` of type `V` and `aggregatedValue` of type `VR`. It should add the key/value to the previously calculated `aggregateValue` and return a new aggregate value of type `VR`. |
-| [CogroupedKStream][KGroupedTable::cogroup]`<K,V>` | n/a                        | n/a          | n/a                 | n/a      | This method is currently not supported in KSML.                                                                                                                                                                                               |
+| Stream Type               | Returns                    | Parameter    | Value Type          | Required | Description                                                                                                                                                                                                                                   |
+|:--------------------------|:---------------------------|:-------------|:--------------------|:---------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KGroupedStream]`<K,V>`   | [CogroupedKStream]`<K,VR>` | `aggregator` | Inline or reference | Yes      | An [Aggregator] function, which takes a `key` of type `K`, a `value` of type `V` and `aggregatedValue` of type `VR`. It should add the key/value to the previously calculated `aggregateValue` and return a new aggregate value of type `VR`. |
+| [CogroupedKStream]`<K,V>` | n/a                        | n/a          | n/a                 | n/a      | This method is currently not supported in KSML.                                                                                                                                                                                               |
 
 Example:
 
@@ -204,9 +186,9 @@ free to experiment, but don't rely on this in production. Syntax changes may occ
 
 This built-in operation takes a message and converts the key into a given type.
 
-| Stream Type    | Returns         | Parameter | Value Type | Description                                                           |
-|:---------------|:----------------|:----------|:-----------|:----------------------------------------------------------------------|
-| KStream`<K,V>` | KStream`<KR,V>` | `into`    | string     | The type to convert the key into. Conversion to `KR` is done by KSML. |
+| Stream Type      | Returns           | Parameter | Value Type | Description                                                           |
+|:-----------------|:------------------|:----------|:-----------|:----------------------------------------------------------------------|
+| [KStream]`<K,V>` | [KStream]`<KR,V>` | `into`    | string     | The type to convert the key into. Conversion to `KR` is done by KSML. |
 
 Example:
 
@@ -225,9 +207,9 @@ to: output_stream
 
 This built-in operation takes a message and converts the key and value into a given type.
 
-| Stream Type    | Returns          | Parameter | Value Type | Description                                                                                                  |
-|:---------------|:-----------------|:----------|:-----------|:-------------------------------------------------------------------------------------------------------------|
-| KStream`<K,V>` | KStream`<KR,VR>` | `into`    | string     | The type to convert the key and value into. Conversion of key into `KR` and value into `VR` is done by KSML. |
+| Stream Type      | Returns            | Parameter | Value Type | Description                                                                                                  |
+|:-----------------|:-------------------|:----------|:-----------|:-------------------------------------------------------------------------------------------------------------|
+| [KStream]`<K,V>` | [KStream]`<KR,VR>` | `into`    | string     | The type to convert the key and value into. Conversion of key into `KR` and value into `VR` is done by KSML. |
 
 Example:
 
@@ -246,9 +228,9 @@ to: output_stream
 
 This built-in operation takes a message and converts the value into a given type.
 
-| Stream Type    | Returns         | Parameter | Value Type | Description                                                                        |
-|:---------------|:----------------|:----------|:-----------|:-----------------------------------------------------------------------------------|
-| KStream`<K,V>` | KStream`<K,VR>` | `into`    | string     | The type to convert the value into. Conversion of value into `VR` is done by KSML. |
+| Stream Type      | Returns           | Parameter | Value Type | Description                                                                        |
+|:-----------------|:------------------|:----------|:-----------|:-----------------------------------------------------------------------------------|
+| [KStream]`<K,V>` | [KStream]`<K,VR>` | `into`    | string     | The type to convert the value into. Conversion of value into `VR` is done by KSML. |
 
 Example:
 
@@ -265,23 +247,15 @@ to: output_stream
 
 ### count
 
-[KGroupedStream::count]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KGroupedStream.html
-
-[KGroupedTable::count]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KGroupedTable.html
-
-[SessionWindowedKStream::count]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/SessionWindowedKStream.html
-
-[TimeWindowedKStreamObject:count]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/TimeWindowedKStream.html
-
 This operation counts the number of messages and returns a table multiple values into a single one by repeatedly
 calling an aggregator function. It can operate on a range of stream types.
 
-| Stream Type                                              | Returns                      | Parameter | Value Type          | Required | Description                                                      |
-|:---------------------------------------------------------|:-----------------------------|:----------|:--------------------|:---------|:-----------------------------------------------------------------|
-| [KGroupedStream][KGroupedStream::count]`<K,V>`           | [KTable]`<K,Long>`           | `store`   | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`. |
-| [KGroupedTable][KGroupedTable::count]`<K,V>`             | [KTable]`<K,Long>`           | `store`   | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`. |
-| [SessionWindowedKStream][KGroupedTable::count]`<K,V>`    | [KTable]`<Windowed<K>,Long>` | `store`   | Store configuration | No       | An optional [Store] configuration, should be of type `session`.  |
-| [TimeWindowedKStreamObject][KGroupedTable::count]`<K,V>` | [KTable]`<Windowed<K>,Long>` | `store`   | Store configuration | No       | An optional [Store] configuration, should be of type `window`.   |
+| Stream Type                        | Returns                      | Parameter | Value Type          | Required | Description                                                      |
+|:-----------------------------------|:-----------------------------|:----------|:--------------------|:---------|:-----------------------------------------------------------------|
+| [KGroupedStream]`<K,V>`            | [KTable]`<K,Long>`           | `store`   | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`. |
+| [KGroupedTable]`<K,V>`             | [KTable]`<K,Long>`           | `store`   | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`. |
+| [SessionWindowedKStream]`<K,V>`    | [KTable]`<Windowed<K>,Long>` | `store`   | Store configuration | No       | An optional [Store] configuration, should be of type `session`.  |
+| [TimeWindowedKStreamObject]`<K,V>` | [KTable]`<Windowed<K>,Long>` | `store`   | Store configuration | No       | An optional [Store] configuration, should be of type `window`.   |
 
 Example:
 
@@ -297,17 +271,13 @@ to: output_stream
 
 ### filter
 
-[KStream::filter]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
-[KTable::filter]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KTable.html
-
 Filter all incoming messages according to some predicate. The predicate function is called for every message. Only when
 the predicate returns `true`, then the message will be sent to the output stream.
 
-| Stream Type                       | Returns          | Parameter | Value Type | Required            | Description                                                                                         |
-|:----------------------------------|:-----------------|:----------|:-----------|:--------------------|:----------------------------------------------------------------------------------------------------|
-| [KStream][KStream::filter]`<K,V>` | [KStream]`<K,V>` | `if`      | Yes        | Inline or reference | A [Predicate] function, which returns `True` if the message can pass the filter, `False` otherwise. |
-| [KTable][KTable::filter]`<K,V>`   | [KTable]`<K,V>`  | `if`      | Yes        | Inline or reference | A [Predicate] function, which returns `True` if the message can pass the filter, `False` otherwise. |
+| Stream Type      | Returns          | Parameter | Value Type | Required            | Description                                                                                         |
+|:-----------------|:-----------------|:----------|:-----------|:--------------------|:----------------------------------------------------------------------------------------------------|
+| [KStream]`<K,V>` | [KStream]`<K,V>` | `if`      | Yes        | Inline or reference | A [Predicate] function, which returns `True` if the message can pass the filter, `False` otherwise. |
+| [KTable]`<K,V>`  | [KTable]`<K,V>`  | `if`      | Yes        | Inline or reference | A [Predicate] function, which returns `True` if the message can pass the filter, `False` otherwise. |
 
 Example:
 
@@ -329,18 +299,14 @@ See [filter](#filter) for details on how to implement.
 
 ### groupBy
 
-[KStream::groupBy]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
-[KTable::groupBy]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KTable.html
-
 Group the records of a stream by value resulting from a KeyValueMapper.
 
-| Stream Type                        | Returns                  | Parameter | Value Type          | Required | Description                                                                                                                                     |
-|:-----------------------------------|:-------------------------|:----------|:--------------------|:---------|:------------------------------------------------------------------------------------------------------------------------------------------------|
-| [KStream][KStream::groupBy]`<K,V>` | [KGroupedStream]`<KR,V>` | `store`   | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`.                                                                                |
-|                                    |                          | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V` and returns a value of type `KR` to group the stream by. |
-| [KTable][KTable::groupBy]`<K,V>`   | [KGroupedTable]`<KR,V>`  | `store`   | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`.                                                                                |
-|                                    |                          | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V` and returns a value of type `KR` to group the stream by. |
+| Stream Type      | Returns                  | Parameter | Value Type          | Required | Description                                                                                                                                     |
+|:-----------------|:-------------------------|:----------|:--------------------|:---------|:------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream]`<K,V>` | [KGroupedStream]`<KR,V>` | `store`   | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`.                                                                                |
+|                  |                          | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V` and returns a value of type `KR` to group the stream by. |
+| [KTable]`<K,V>`  | [KGroupedTable]`<KR,V>`  | `store`   | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`.                                                                                |
+|                  |                          | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V` and returns a value of type `KR` to group the stream by. |
 
 Example:
 
@@ -360,13 +326,11 @@ to: output_stream
 
 ### groupByKey
 
-[KStream::groupByKey]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
 Group the records of a stream by the stream's key.
 
-| Stream Type                           | Returns                 | Parameter | Value Type          | Required | Description                                                      |
-|:--------------------------------------|:------------------------|:----------|:--------------------|:---------|:-----------------------------------------------------------------|
-| [KStream][KStream::groupByKey]`<K,V>` | [KGroupedStream]`<K,V>` | `store`   | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`. |
+| Stream Type      | Returns                 | Parameter | Value Type          | Required | Description                                                      |
+|:-----------------|:------------------------|:----------|:--------------------|:---------|:-----------------------------------------------------------------|
+| [KStream]`<K,V>` | [KGroupedStream]`<K,V>` | `store`   | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`. |
 
 Example:
 
@@ -385,38 +349,30 @@ to: output_stream
 
 ### join
 
-[KStream::joinStream]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
-[KStream::joinTable]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
-[KStream::joinGlobalTable]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
-[KTable::joinTable]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KTable.html
-
 Join records of this stream with another stream's records using inner join. The join is computed on the
 records' key with join predicate `thisStream.key == otherStream.key`. If both streams are not tables, then
 their timestamps need to be close enough as defined by timeDifference.
 
-| Stream Type                                    | Returns           | Parameter             | Value Type          | Required | Description                                                                                                                                                                            |
-|:-----------------------------------------------|:------------------|:----------------------|:--------------------|:---------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [KStream][KStream::joinWithStream]`<K,V>`      | [KStream]`<K,VR>` | `store`               | Store configuration | No       | An optional [Store] configuration, should be of type `window`.                                                                                                                         |
-|                                                |                   | `stream`              | `string`            | Yes      | The name of the stream to join with. The stream should be of key type `K` and value type `VR`.                                                                                         |
-|                                                |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `key` of type `K`, and two values `value1` and `value2` of type `V`. The return value is the joined value of type `VR`.                        |
-|                                                |                   | `timeDifference`      | `duration`          | Yes      | The maximum allowed between two joined records.                                                                                                                                        |
-|                                                |                   | `grace`               | `duration`          | No       | A grace period during with out-of-order to-be-joined records may still arrive.                                                                                                         |
-| [KStream][KStream::joinWithTable]`<K,V>`       | [KStream]`<K,VR>` | `store`               | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`.                                                                                                                       |
-|                                                |                   | `table`               | `string`            | Yes      | The name of the table to join with. The table should be of key type `K` and value type `VO`.                                                                                           |                                                                    |
-|                                                |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `value1` of type `V` from the source table and a `value2` of type `VO` from the join table. The return value is the joined value of type `VR`. |
-|                                                |                   | `grace`               | `duration`          | No       | A grace period during with out-of-order to-be-joined records may still arrive.                                                                                                         |
-| [KStream][KStream::joinWithGlobalTable]`<K,V>` | [KStream]`<K,VR>` | `globalTable`         | `string`            | Yes      | The name of the global table to join with. The global table should be of key type `GK` and value type `GV`.                                                                            |
-|                                                |                   | `mapper`              | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return value is the key of type `GK` of the records from the GlobalTable to join with.     |
-|                                                |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `key` of type `K`, and two values `value1` and `value2` of type `V`. The return value is the joined value of type `VR`.                        |
-| [KTable][KTable::joinWithTable]`<K,V>`         | [KTable]`<K,VR>`  | `store`               | Store configuration | No       | The [Store] configuration.                                                                                                                                                             |
-|                                                |                   | `table`               | `string`            | Yes      | The name of the table to join with. The table should be of key type `K` and value type `VO`.                                                                                           |                                                                    |
-|                                                |                   | `foreignKeyExtractor` | Inline or reference | No       | A [ForeignKeyExtractor] function, which takes a `value` of type `V`, which needs to be converted into the key type `KO` of the table to join with.                                     |                                                  
-|                                                |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `value1` of type `V` from the source table and a `value2` of type `VO` from the join table. The return value is the joined value of type `VR`. |
-|                                                |                   | `partitioner`         | Inline or reference | No       | A [Partitioner] function, which partitions the records on the primary stream.                                                                                                          |                                                                                                           |
-|                                                |                   | `otherPartitioner`    | Inline or reference | No       | A [Partitioner] function, which partitions the records on the join table.                                                                                                              |
+| Stream Type      | Returns           | Parameter             | Value Type          | Required | Description                                                                                                                                                                            |
+|:-----------------|:------------------|:----------------------|:--------------------|:---------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream]`<K,V>` | [KStream]`<K,VR>` | `store`               | Store configuration | No       | An optional [Store] configuration, should be of type `window`.                                                                                                                         |
+|                  |                   | `stream`              | `string`            | Yes      | The name of the stream to join with. The stream should be of key type `K` and value type `VR`.                                                                                         |
+|                  |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `key` of type `K`, and two values `value1` and `value2` of type `V`. The return value is the joined value of type `VR`.                        |
+|                  |                   | `timeDifference`      | `duration`          | Yes      | The maximum allowed between two joined records.                                                                                                                                        |
+|                  |                   | `grace`               | `duration`          | No       | A grace period during with out-of-order to-be-joined records may still arrive.                                                                                                         |
+| [KStream]`<K,V>` | [KStream]`<K,VR>` | `store`               | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`.                                                                                                                       |
+|                  |                   | `table`               | `string`            | Yes      | The name of the table to join with. The table should be of key type `K` and value type `VO`.                                                                                           |                                                                    |
+|                  |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `value1` of type `V` from the source table and a `value2` of type `VO` from the join table. The return value is the joined value of type `VR`. |
+|                  |                   | `grace`               | `duration`          | No       | A grace period during with out-of-order to-be-joined records may still arrive.                                                                                                         |
+| [KStream]`<K,V>` | [KStream]`<K,VR>` | `globalTable`         | `string`            | Yes      | The name of the global table to join with. The global table should be of key type `GK` and value type `GV`.                                                                            |
+|                  |                   | `mapper`              | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return value is the key of type `GK` of the records from the GlobalTable to join with.     |
+|                  |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `key` of type `K`, and two values `value1` and `value2` of type `V`. The return value is the joined value of type `VR`.                        |
+| [KTable]`<K,V>`  | [KTable]`<K,VR>`  | `store`               | Store configuration | No       | The [Store] configuration.                                                                                                                                                             |
+|                  |                   | `table`               | `string`            | Yes      | The name of the table to join with. The table should be of key type `K` and value type `VO`.                                                                                           |                                                                    |
+|                  |                   | `foreignKeyExtractor` | Inline or reference | No       | A [ForeignKeyExtractor] function, which takes a `value` of type `V`, which needs to be converted into the key type `KO` of the table to join with.                                     |                                                  
+|                  |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `value1` of type `V` from the source table and a `value2` of type `VO` from the join table. The return value is the joined value of type `VR`. |
+|                  |                   | `partitioner`         | Inline or reference | No       | A [Partitioner] function, which partitions the records on the primary stream.                                                                                                          |                                                                                                           |
+|                  |                   | `otherPartitioner`    | Inline or reference | No       | A [Partitioner] function, which partitions the records on the join table.                                                                                                              |
 
 Example:
 
@@ -432,38 +388,30 @@ to: output_stream
 
 ### leftJoin
 
-[KStream::joinStream]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
-[KStream::joinTable]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
-[KStream::joinGlobalTable]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
-[KTable::joinTable]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KTable.html
-
 Join records of this stream with another stream's records using left join. The join is computed on the
 records' key with join predicate `thisStream.key == otherStream.key`. If both streams are not tables, then
 their timestamps need to be close enough as defined by timeDifference.
 
-| Stream Type                                    | Returns           | Parameter             | Value Type          | Required | Description                                                                                                                                                                            |
-|:-----------------------------------------------|:------------------|:----------------------|:--------------------|:---------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [KStream][KStream::joinWithStream]`<K,V>`      | [KStream]`<K,VR>` | `store`               | Store configuration | No       | An optional [Store] configuration, should be of type `window`.                                                                                                                         |
-|                                                |                   | `stream`              | `string`            | Yes      | The name of the stream to join with. The stream should be of key type `K` and value type `VR`.                                                                                         |
-|                                                |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `key` of type `K`, and two values `value1` and `value2` of type `V`. The return value is the joined value of type `VR`.                        |
-|                                                |                   | `timeDifference`      | `duration`          | Yes      | The maximum allowed between two joined records.                                                                                                                                        |
-|                                                |                   | `grace`               | `duration`          | No       | A grace period during with out-of-order to-be-joined records may still arrive.                                                                                                         |
-| [KStream][KStream::joinWithTable]`<K,V>`       | [KStream]`<K,VR>` | `store`               | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`.                                                                                                                       |
-|                                                |                   | `table`               | `string`            | Yes      | The name of the table to join with. The table should be of key type `K` and value type `VO`.                                                                                           |                                                                    |
-|                                                |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `value1` of type `V` from the source table and a `value2` of type `VO` from the join table. The return value is the joined value of type `VR`. |
-|                                                |                   | `grace`               | `duration`          | No       | A grace period during with out-of-order to-be-joined records may still arrive.                                                                                                         |
-| [KStream][KStream::joinWithGlobalTable]`<K,V>` | [KStream]`<K,VR>` | `globalTable`         | `string`            | Yes      | The name of the global table to join with. The global table should be of key type `GK` and value type `GV`.                                                                            |
-|                                                |                   | `mapper`              | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return value is the key of type `GK` of the records from the GlobalTable to join with.     |
-|                                                |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `key` of type `K`, and two values `value1` and `value2` of type `V`. The return value is the joined value of type `VR`.                        |
-| [KTable][KTable::joinWithTable]`<K,V>`         | [KTable]`<K,VR>`  | `store`               | Store configuration | No       | The [Store] configuration.                                                                                                                                                             |
-|                                                |                   | `table`               | `string`            | Yes      | The name of the table to join with. The table should be of key type `K` and value type `VO`.                                                                                           |                                                                    |
-|                                                |                   | `foreignKeyExtractor` | Inline or reference | No       | A [ForeignKeyExtractor] function, which takes a `value` of type `V`, which needs to be converted into the key type `KO` of the table to join with.                                     |                                                  
-|                                                |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `value1` of type `V` from the source table and a `value2` of type `VO` from the join table. The return value is the joined value of type `VR`. |
-|                                                |                   | `partitioner`         | Inline or reference | No       | A [Partitioner] function, which partitions the records on the primary stream.                                                                                                          |                                                                                                           |
-|                                                |                   | `otherPartitioner`    | Inline or reference | No       | A [Partitioner] function, which partitions the records on the join table.                                                                                                              |
+| Stream Type      | Returns           | Parameter             | Value Type          | Required | Description                                                                                                                                                                            |
+|:-----------------|:------------------|:----------------------|:--------------------|:---------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream]`<K,V>` | [KStream]`<K,VR>` | `store`               | Store configuration | No       | An optional [Store] configuration, should be of type `window`.                                                                                                                         |
+|                  |                   | `stream`              | `string`            | Yes      | The name of the stream to join with. The stream should be of key type `K` and value type `VR`.                                                                                         |
+|                  |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `key` of type `K`, and two values `value1` and `value2` of type `V`. The return value is the joined value of type `VR`.                        |
+|                  |                   | `timeDifference`      | `duration`          | Yes      | The maximum allowed between two joined records.                                                                                                                                        |
+|                  |                   | `grace`               | `duration`          | No       | A grace period during with out-of-order to-be-joined records may still arrive.                                                                                                         |
+| [KStream]`<K,V>` | [KStream]`<K,VR>` | `store`               | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`.                                                                                                                       |
+|                  |                   | `table`               | `string`            | Yes      | The name of the table to join with. The table should be of key type `K` and value type `VO`.                                                                                           |                                                                    |
+|                  |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `value1` of type `V` from the source table and a `value2` of type `VO` from the join table. The return value is the joined value of type `VR`. |
+|                  |                   | `grace`               | `duration`          | No       | A grace period during with out-of-order to-be-joined records may still arrive.                                                                                                         |
+| [KStream]`<K,V>` | [KStream]`<K,VR>` | `globalTable`         | `string`            | Yes      | The name of the global table to join with. The global table should be of key type `GK` and value type `GV`.                                                                            |
+|                  |                   | `mapper`              | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return value is the key of type `GK` of the records from the GlobalTable to join with.     |
+|                  |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `key` of type `K`, and two values `value1` and `value2` of type `V`. The return value is the joined value of type `VR`.                        |
+| [KTable]`<K,V>`  | [KTable]`<K,VR>`  | `store`               | Store configuration | No       | The [Store] configuration.                                                                                                                                                             |
+|                  |                   | `table`               | `string`            | Yes      | The name of the table to join with. The table should be of key type `K` and value type `VO`.                                                                                           |                                                                    |
+|                  |                   | `foreignKeyExtractor` | Inline or reference | No       | A [ForeignKeyExtractor] function, which takes a `value` of type `V`, which needs to be converted into the key type `KO` of the table to join with.                                     |                                                  
+|                  |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `value1` of type `V` from the source table and a `value2` of type `VO` from the join table. The return value is the joined value of type `VR`. |
+|                  |                   | `partitioner`         | Inline or reference | No       | A [Partitioner] function, which partitions the records on the primary stream.                                                                                                          |                                                                                                           |
+|                  |                   | `otherPartitioner`    | Inline or reference | No       | A [Partitioner] function, which partitions the records on the join table.                                                                                                              |
 
 Example:
 
@@ -491,15 +439,13 @@ This is an alias for [transformValue](#transformvalue).
 
 ### merge
 
-[KStream::merge]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
 Merge this stream and the given stream into one larger stream. There is no ordering guarantee between records from this
 stream and records from the provided stream in the merged stream. Relative order is preserved within each input stream
 though (ie, records within one input stream are processed in order).
 
-| Stream Type                      | Returns          | Parameter | Value Type | Description                           |
-|:---------------------------------|:-----------------|:----------|:-----------|:--------------------------------------|
-| [KStream][KStream::merge]`<K,V>` | [KStream]`<K,V>` | `stream`  | `string`   | The name of the stream to merge with. |
+| Stream Type      | Returns          | Parameter | Value Type | Description                           |
+|:-----------------|:-----------------|:----------|:-----------|:--------------------------------------|
+| [KStream]`<K,V>` | [KStream]`<K,V>` | `stream`  | `string`   | The name of the stream to merge with. |
 
 Example:
 
@@ -513,28 +459,20 @@ to: output_stream
 
 ### outerJoin
 
-[KStream::joinStream]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
-[KStream::joinTable]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
-[KStream::joinGlobalTable]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
-[KTable::joinTable]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KTable.html
-
 Join records of this stream with another stream's records using outer join. The join is computed on the
 records' key with join predicate `thisStream.key == otherStream.key`. If both streams are not tables, then
 their timestamps need to be close enough as defined by timeDifference.
 
-| Stream Type                               | Returns           | Parameter        | Value Type          | Required | Description                                                                                                                                                                            |
-|:------------------------------------------|:------------------|:-----------------|:--------------------|:---------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [KStream][KStream::joinWithStream]`<K,V>` | [KStream]`<K,VR>` | `store`          | Store configuration | No       | An optional [Store] configuration, should be of type `window`.                                                                                                                         |
-|                                           |                   | `stream`         | `string`            | Yes      | The name of the stream to join with. The stream should be of key type `K` and value type `VR`.                                                                                         |
-|                                           |                   | `valueJoiner`    | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `key` of type `K`, and two values `value1` and `value2` of type `V`. The return value is the joined value of type `VR`.                        |
-|                                           |                   | `timeDifference` | `duration`          | Yes      | The maximum allowed between two joined records.                                                                                                                                        |
-|                                           |                   | `grace`          | `duration`          | No       | A grace period during with out-of-order to-be-joined records may still arrive.                                                                                                         |
-| [KTable][KTable::joinWithTable]`<K,V>`    | [KStream]`<K,VR>` | `store`          | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`.                                                                                                                       |
-|                                           |                   | `table`          | `string`            | Yes      | The name of the table to join with. The table should be of key type `K` and value type `VO`.                                                                                           |                                                                    |
-|                                           |                   | `valueJoiner`    | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `value1` of type `V` from the source table and a `value2` of type `VO` from the join table. The return value is the joined value of type `VR`. |
+| Stream Type      | Returns           | Parameter        | Value Type          | Required | Description                                                                                                                                                                            |
+|:-----------------|:------------------|:-----------------|:--------------------|:---------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream]`<K,V>` | [KStream]`<K,VR>` | `store`          | Store configuration | No       | An optional [Store] configuration, should be of type `window`.                                                                                                                         |
+|                  |                   | `stream`         | `string`            | Yes      | The name of the stream to join with. The stream should be of key type `K` and value type `VR`.                                                                                         |
+|                  |                   | `valueJoiner`    | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `key` of type `K`, and two values `value1` and `value2` of type `V`. The return value is the joined value of type `VR`.                        |
+|                  |                   | `timeDifference` | `duration`          | Yes      | The maximum allowed between two joined records.                                                                                                                                        |
+|                  |                   | `grace`          | `duration`          | No       | A grace period during with out-of-order to-be-joined records may still arrive.                                                                                                         |
+| [KTable]`<K,V>`  | [KStream]`<K,VR>` | `store`          | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`.                                                                                                                       |
+|                  |                   | `table`          | `string`            | Yes      | The name of the table to join with. The table should be of key type `K` and value type `VO`.                                                                                           |                                                                    |
+|                  |                   | `valueJoiner`    | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `value1` of type `V` from the source table and a `value2` of type `VO` from the join table. The return value is the joined value of type `VR`. |
 
 Example:
 
@@ -550,14 +488,12 @@ to: output_stream
 
 ### peek
 
-[KStream::peek]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
 Perform an action on each record of a stream. This is a stateless record-by-record operation. Peek is a non-terminal
 operation that triggers a side effect (such as logging or statistics collection) and returns an unchanged stream.
 
-| Stream Type                     | Returns          | Parameter | Value Type          | Description                                                                                                                  |
-|:--------------------------------|:-----------------|:----------|:--------------------|:-----------------------------------------------------------------------------------------------------------------------------|
-| [KStream][KStream::peek]`<K,V>` | [KStream]`<K,V>` | `forEach` | Inline or reference | The [ForEach] function that will be called for every message, receiving arguments `key` of type `K` and `value` of type `V`. |
+| Stream Type      | Returns          | Parameter | Value Type          | Description                                                                                                                  |
+|:-----------------|:-----------------|:----------|:--------------------|:-----------------------------------------------------------------------------------------------------------------------------|
+| [KStream]`<K,V>` | [KStream]`<K,V>` | `forEach` | Inline or reference | The [ForEach] function that will be called for every message, receiving arguments `key` of type `K` and `value` of type `V`. |
 
 Example:
 
@@ -571,29 +507,21 @@ to: output_stream
 
 ### reduce
 
-[KGroupedStream::reduce]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KGroupedStream.html
-
-[KGroupedTable::reduce]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KGroupedTable.html
-
-[SessionWindowedKStream::reduce]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/SessionWindowedKStream.html
-
-[TimeWindowedKStreamObject:reduce]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/TimeWindowedKStream.html
-
 Combine the values of records in this stream by the grouped key. Records with null key or value are ignored. Combining
 implies that the type of the aggregate result is the same as the type of the input value, similar
 to [aggregate(Initializer, Aggregator)](#aggregate).
 
-| Stream Type                                                          | Returns                   | Parameter    | Value Type          | Required | Description                                                                                                                                                                                                                                  |
-|:---------------------------------------------------------------------|:--------------------------|:-------------|:--------------------|:---------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [KGroupedStream][KGroupedStream::reduce]`<K,V>`                      | [KTable]`<K,V>`           | `store`      | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`.                                                                                                                                                                             |
-|                                                                      |                           | `reducer`    | Inline or reference | Yes      | A [Reducer] function, which takes a `key` of type `K`, a `value` of type `V` and `aggregatedValue` of type `V`. It should add the key/value to the previously calculated `aggregateValue` and return a new aggregate value of type `V`.      |
-| [KGroupedTable][KGroupedTable::reduce]`<K,V>`                        | [KTable]`<K,V>`           | `store`      | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`.                                                                                                                                                                             |
-|                                                                      |                           | `adder`      | Inline or reference | Yes      | A [Reducer] function, which takes a `key` of type `K`, a `value` of type `V` and `aggregatedValue` of type `V`. It should add the key/value to the previously calculated `aggregateValue` and return a new aggregate value of type `V`.      |
-|                                                                      |                           | `subtractor` | Inline or reference | Yes      | A [Reducer] function, which takes a `key` of type `K`, a `value` of type `V` and `aggregatedValue` of type `V`. It should remove the key/value from the previously calculated `aggregateValue` and return a new aggregate value of type `V`. |
-| [SessionWindowedKStream][SessionWindowedKStream::reduce]`<K,V>`      | [KTable]`<Windowed<K>,V>` | `store`      | Store configuration | No       | An optional [Store] configuration, should be of type `session`.                                                                                                                                                                              |
-|                                                                      |                           | `reducer`    | Inline or reference | Yes      | A [Reducer] function, which takes a `key` of type `K`, a `value` of type `V` and `aggregatedValue` of type `V`. It should add the key/value to the previously calculated `aggregateValue` and return a new aggregate value of type `V`.      |
-| [TimeWindowedKStreamObject][TimeWindowedKStreamObject:reduce]`<K,V>` | [KTable]`<Windowed<K>,V>` | `store`      | Store configuration | No       | An optional [Store] configuration, should be of type `window`.                                                                                                                                                                               |
-|                                                                      |                           | `reducer`    | Inline or reference | Yes      | A [Reducer] function, which takes a `key` of type `K`, a `value` of type `V` and `aggregatedValue` of type `V`. It should add the key/value to the previously calculated `aggregateValue` and return a new aggregate value of type `V`.      |
+| Stream Type                        | Returns                   | Parameter    | Value Type          | Required | Description                                                                                                                                                                                                                                  |
+|:-----------------------------------|:--------------------------|:-------------|:--------------------|:---------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KGroupedStream]`<K,V>`            | [KTable]`<K,V>`           | `store`      | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`.                                                                                                                                                                             |
+|                                    |                           | `reducer`    | Inline or reference | Yes      | A [Reducer] function, which takes a `key` of type `K`, a `value` of type `V` and `aggregatedValue` of type `V`. It should add the key/value to the previously calculated `aggregateValue` and return a new aggregate value of type `V`.      |
+| [KGroupedTable]`<K,V>`             | [KTable]`<K,V>`           | `store`      | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`.                                                                                                                                                                             |
+|                                    |                           | `adder`      | Inline or reference | Yes      | A [Reducer] function, which takes a `key` of type `K`, a `value` of type `V` and `aggregatedValue` of type `V`. It should add the key/value to the previously calculated `aggregateValue` and return a new aggregate value of type `V`.      |
+|                                    |                           | `subtractor` | Inline or reference | Yes      | A [Reducer] function, which takes a `key` of type `K`, a `value` of type `V` and `aggregatedValue` of type `V`. It should remove the key/value from the previously calculated `aggregateValue` and return a new aggregate value of type `V`. |
+| [SessionWindowedKStream]`<K,V>`    | [KTable]`<Windowed<K>,V>` | `store`      | Store configuration | No       | An optional [Store] configuration, should be of type `session`.                                                                                                                                                                              |
+|                                    |                           | `reducer`    | Inline or reference | Yes      | A [Reducer] function, which takes a `key` of type `K`, a `value` of type `V` and `aggregatedValue` of type `V`. It should add the key/value to the previously calculated `aggregateValue` and return a new aggregate value of type `V`.      |
+| [TimeWindowedKStreamObject]`<K,V>` | [KTable]`<Windowed<K>,V>` | `store`      | Store configuration | No       | An optional [Store] configuration, should be of type `window`.                                                                                                                                                                               |
+|                                    |                           | `reducer`    | Inline or reference | Yes      | A [Reducer] function, which takes a `key` of type `K`, a `value` of type `V` and `aggregatedValue` of type `V`. It should add the key/value to the previously calculated `aggregateValue` and return a new aggregate value of type `V`.      |
 
 Example:
 
@@ -629,16 +557,14 @@ to: output_stream
 
 ### repartition
 
-[KStream::repartition]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
 Materialize this stream to an auto-generated repartition topic with a given number of partitions, using a custom
 partitioner. Similar to auto-repartitioning, the topic will be created with infinite retention time and data will be
 automatically purged. The topic will be named as "${applicationId}-<name>-repartition".
 
-| Stream Type                            | Returns          | Parameter            | Value Type          | Required | Description                                           |
-|:---------------------------------------|:-----------------|:---------------------|:--------------------|:---------|:------------------------------------------------------|
-| [KStream][KStream::repartition]`<K,V>` | [KStream]`<K,V>` | `numberOfPartitions` | integer             | No       | The number of partitions of the repartitioned topic.  |
-|                                        |                  | `partitioner`        | Inline or reference | No       | A custom [Partitioner] function to partition records. |
+| Stream Type      | Returns          | Parameter            | Value Type          | Required | Description                                           |
+|:-----------------|:-----------------|:---------------------|:--------------------|:---------|:------------------------------------------------------|
+| [KStream]`<K,V>` | [KStream]`<K,V>` | `numberOfPartitions` | integer             | No       | The number of partitions of the repartitioned topic.  |
+|                  |                  | `partitioner`        | Inline or reference | No       | A custom [Partitioner] function to partition records. |
 
 Example:
 
@@ -646,7 +572,7 @@ Example:
 from: input_stream
 via:
   - type: repartition
-    name: my_repartitioner
+    name: my_partitioner
     numberOfPartitions: 3
     partitioner: my_own_partitioner
   - type: peek
@@ -661,19 +587,17 @@ This is an alias for [transformKey](#transformkey).
 
 ### suppress
 
-[KTable::suppress]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KTable.html
-
 Suppress some updates from this changelog stream, determined by the supplied Suppressed configuration. When
 _windowCloses_ is selected and no further restrictions are provided, then this is interpreted as
 _Suppressed.untilWindowCloses(unbounded())_.
 
-| Stream Type                       | Returns         | Parameter            | Value Type | Required | Description                                                                                                                                                                                                                      |
-|:----------------------------------|:----------------|:---------------------|:-----------|:---------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [KTable][KTable::suppress]`<K,V>` | [KTable]`<K,V>` | `until`              | `string`   | Yes      | This value can either be `timeLimit` or `windowCloses`. Note that _timeLimit_ suppression works on any stream, while _windowCloses_ suppression works only on _Windowed_ streams. For the latter, see [windowedBy](#windowedby). |
-|                                   |                 | `duration`           | `string`   | No       | The [Duration] to suppress updates (only when `until`==`timeLimit`)                                                                                                                                                              |
-|                                   |                 | `maxBytes`           | `int`      | No       | The maximum number of bytes to suppress updates                                                                                                                                                                                  |
-|                                   |                 | `maxRecords`         | `int`      | No       | The maximum number of records to suppress updates                                                                                                                                                                                |
-|                                   |                 | `bufferFullStrategy` | `string`   | No       | Can be one of `emitEarlyWhenFull`, `shutdownWhenFull`                                                                                                                                                                            |
+| Stream Type     | Returns         | Parameter            | Value Type | Required | Description                                                                                                                                                                                                                                |
+|:----------------|:----------------|:---------------------|:-----------|:---------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KTable]`<K,V>` | [KTable]`<K,V>` | `until`              | `string`   | Yes      | This value can either be `timeLimit` or `windowCloses`. Note that _timeLimit_ suppression works on any stream, while _windowCloses_ suppression works only on _Windowed_ streams. For the latter, see [windowByTime] or [windowBySession]. |
+|                 |                 | `duration`           | `string`   | No       | The [Duration] to suppress updates (only when `until`==`timeLimit`)                                                                                                                                                                        |
+|                 |                 | `maxBytes`           | `int`      | No       | The maximum number of bytes to suppress updates                                                                                                                                                                                            |
+|                 |                 | `maxRecords`         | `int`      | No       | The maximum number of records to suppress updates                                                                                                                                                                                          |
+|                 |                 | `bufferFullStrategy` | `string`   | No       | Can be one of `emitEarlyWhenFull`, `shutdownWhenFull`                                                                                                                                                                                      |
 
 Example:
 
@@ -694,13 +618,11 @@ to: output_stream
 
 ### toStream
 
-[KTable::toStream]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KTable.html
-
 Convert a KTable into a KStream object.
 
-| Stream Type                       | Returns           | Parameter | Value Type          | Required | Description                                                                                                                                                                                                           |
-|:----------------------------------|:------------------|:----------|:--------------------|:---------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [KTable][KTable::toStream]`<K,V>` | [KStream]`<KR,V>` | `mapper`  | Inline or reference | No       | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return value is the key of resulting stream, which is of type `KR`. If no mapper is provided, then keys remain unchanged. |
+| Stream Type     | Returns           | Parameter | Value Type          | Required | Description                                                                                                                                                                                                           |
+|:----------------|:------------------|:----------|:--------------------|:---------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KTable]`<K,V>` | [KStream]`<KR,V>` | `mapper`  | Inline or reference | No       | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return value is the key of resulting stream, which is of type `KR`. If no mapper is provided, then keys remain unchanged. |
 
 Example:
 
@@ -713,13 +635,11 @@ to: output_stream
 
 ### transformKey
 
-[KStream::transformKey]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
 This operation takes a message and transforms the key into a new key, which may have a different type.
 
-| Stream Type                             | Returns           | Parameter | Value Type          | Required | Description                                                                                                                                                     |
-|:----------------------------------------|:------------------|:----------|:--------------------|:---------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [KStream][KStream::transformKey]`<K,V>` | [KStream]`<KR,V>` | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return value is the key of resulting stream, which is of type `KR`. |
+| Stream Type      | Returns           | Parameter | Value Type          | Required | Description                                                                                                                                                     |
+|:-----------------|:------------------|:----------|:--------------------|:---------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream]`<K,V>` | [KStream]`<KR,V>` | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return value is the key of resulting stream, which is of type `KR`. |
 
 Example:
 
@@ -734,14 +654,12 @@ to: output_stream
 
 ### transformKeyValue
 
-[KStream::transformKeyValue]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
 This operation takes a message and transforms the key and value into a new key and value, which can each have a
 different type than the source message key and value.
 
-| Stream Type                                  | Returns            | Parameter | Value Type          | Required | Description                                                                                                                                                                               |
-|:---------------------------------------------|:-------------------|:----------|:--------------------|:---------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [KStream][KStream::transformKeyValue]`<K,V>` | [KStream]`<KR,VR>` | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return type should be a tuple of type `(KR,VR)` containing the transformed `key` and `value`. |
+| Stream Type      | Returns            | Parameter | Value Type          | Required | Description                                                                                                                                                                               |
+|:-----------------|:-------------------|:----------|:--------------------|:---------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream]`<K,V>` | [KStream]`<KR,VR>` | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return type should be a tuple of type `(KR,VR)` containing the transformed `key` and `value`. |
 
 Example:
 
@@ -756,14 +674,12 @@ to: output_stream
 
 ### transformKeyValueToKeyValueList
 
-[KStream::transformKeyValueToKeyValueList]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
 This operation takes a message and transforms it into zero, one or more new messages, which may have different key and
 value types than the source.
 
-| Stream Type                                                | Returns            | Parameter | Value Type          | Required | Description                                                                                                                                                                                            |
-|:-----------------------------------------------------------|:-------------------|:----------|:--------------------|:---------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [KStream][KStream::transformKeyValueToKeyValueList]`<K,V>` | [KStream]`<KR,VR>` | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return type should be a list of type `[(KR,VR)]` containing a list of transformed `key` and `value` pairs. |
+| Stream Type      | Returns            | Parameter | Value Type          | Required | Description                                                                                                                                                                                            |
+|:-----------------|:-------------------|:----------|:--------------------|:---------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream]`<K,V>` | [KStream]`<KR,VR>` | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return type should be a list of type `[(KR,VR)]` containing a list of transformed `key` and `value` pairs. |
 
 Example:
 
@@ -778,14 +694,12 @@ to: output_stream
 
 ### transformKeyValueToValueList
 
-[KStream::transformKeyValueToValueList]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
 This operation takes a message and transforms it into zero, one or more new values, which may have different value types
 than the source. Every entry in the result list is combined with the source key and produced on the output stream.
 
-| Stream Type                                             | Returns           | Parameter | Value Type          | Description                                                                                                                                                                        |
-|:--------------------------------------------------------|:------------------|:----------|:--------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [KStream][KStream::transformKeyValueToValueList]`<K,V>` | [KStream]`<K,VR>` | `mapper`  | Inline or reference | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return type should be a list of type `[VR]` containing a list of transformed `value`s. |
+| Stream Type      | Returns           | Parameter | Value Type          | Description                                                                                                                                                                        |
+|:-----------------|:------------------|:----------|:--------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream]`<K,V>` | [KStream]`<K,VR>` | `mapper`  | Inline or reference | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return type should be a list of type `[VR]` containing a list of transformed `value`s. |
 
 Example:
 
@@ -800,14 +714,12 @@ to: output_stream
 
 ### transformMetadata
 
-[KStream::transformValue]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
 This operation takes a message and transforms its value to a new value, which may have different value type
 than the source.
 
-| Stream Type                               | Returns           | Parameter | Value Type          | Required | Description                                                                                                                                                                                                                     |
-|:------------------------------------------|:------------------|:----------|:--------------------|:---------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [KStream][KStream::transformValue]`<K,V>` | [KStream]`<K,VR>` | `mapper`  | Inline or reference | Yes      | A [MetadataTransformer] function that converts the metadata (Kafka headers, timestamp) of every record in the stream. It gets a metadata object as input and should return the same type, but potentially with modified fields. |
+| Stream Type      | Returns           | Parameter | Value Type          | Required | Description                                                                                                                                                                                                                     |
+|:-----------------|:------------------|:----------|:--------------------|:---------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream]`<K,V>` | [KStream]`<K,VR>` | `mapper`  | Inline or reference | Yes      | A [MetadataTransformer] function that converts the metadata (Kafka headers, timestamp) of every record in the stream. It gets a metadata object as input and should return the same type, but potentially with modified fields. |
 
 Example:
 
@@ -822,14 +734,12 @@ to: output_stream
 
 ### transformValue
 
-[KStream::transformValue]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
 This operation takes a message and transforms its value to a new value, which may have different value type
 than the source.
 
-| Stream Type                               | Returns           | Parameter | Value Type          | Required | Description                                                                                                                             |
-|:------------------------------------------|:------------------|:----------|:--------------------|:---------|:----------------------------------------------------------------------------------------------------------------------------------------|
-| [KStream][KStream::transformValue]`<K,V>` | [KStream]`<K,VR>` | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return type should be a value of type `VR`. |
+| Stream Type      | Returns           | Parameter | Value Type          | Required | Description                                                                                                                             |
+|:-----------------|:------------------|:----------|:--------------------|:---------|:----------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream]`<K,V>` | [KStream]`<K,VR>` | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return type should be a value of type `VR`. |
 
 Example:
 
@@ -844,23 +754,15 @@ to: output_stream
 
 ### windowBySession
 
-[KGroupedStream::windowedBy]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KGroupedStream.html
-
-[CogroupedKStream::windowedBySession]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/CogroupedKStream.html
-
-[SessionWindows]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/SessionWindows.html
-
-[WindowTypes]: https://kafka.apache.org/37/documentation/streams/developer-guide/dsl-api.html
-
 Create a new windowed KStream instance that can be used to perform windowed aggregations. For more details on the
 different types of windows, please refer to [WindowTypes]|[this page].
 
-| Stream Type                                             | Returns                                  | Parameter     | Value Type | Required | Description                                                                                          |
-|:--------------------------------------------------------|:-----------------------------------------|:--------------|:-----------|:---------|:-----------------------------------------------------------------------------------------------------|
-| [KGroupedStream][KGroupedStream::windowedBySession]     | [SessionWindowedKStream]`<K,V>`          | inactivityGap | [Duration] | Yes      | The maximum inactivity gap with which keys are grouped.                                              |
-|                                                         |                                          | grace         | [Duration] | No       | The grace duration allowing for out-of-order messages to still be associated with the right session. |
-| [CogroupedKStream][CogroupedKStream::windowedBySession] | [SessionWindowedCogroupedKStream]`<K,V>` | inactivityGap | [Duration] | Yes      | The maximum inactivity gap with which keys are grouped.                                              |
-|                                                         |                                          | grace         | [Duration] | No       | The grace duration allowing for out-of-order messages to still be associated with the right session. |
+| Stream Type               | Returns                                  | Parameter     | Value Type | Required | Description                                                                                          |
+|:--------------------------|:-----------------------------------------|:--------------|:-----------|:---------|:-----------------------------------------------------------------------------------------------------|
+| [KGroupedStream]`<K,V>`   | [SessionWindowedKStream]`<K,V>`          | inactivityGap | [Duration] | Yes      | The maximum inactivity gap with which keys are grouped.                                              |
+|                           |                                          | grace         | [Duration] | No       | The grace duration allowing for out-of-order messages to still be associated with the right session. |
+| [CogroupedKStream]`<K,V>` | [SessionWindowedCogroupedKStream]`<K,V>` | inactivityGap | [Duration] | Yes      | The maximum inactivity gap with which keys are grouped.                                              |
+|                           |                                          | grace         | [Duration] | No       | The grace duration allowing for out-of-order messages to still be associated with the right session. |
 
 Example:
 
@@ -880,39 +782,29 @@ to: output_stream
 
 ### windowByTime
 
-[KGroupedStream::windowedBySliding]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KGroupedStream.html
-
-[KGroupedStream::windowedByDuration]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KGroupedStream.html
-
-[SlidingWindows]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/SlidingWindows.html
-
-[TimeWindows]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/TimeWindows.html
-
-[WindowTypes]: https://kafka.apache.org/37/documentation/streams/developer-guide/dsl-api.html
-
 Create a new windowed KStream instance that can be used to perform windowed aggregations. For more details on the
 different types of windows, please refer to [WindowTypes]|[this page].
 
-| Stream Type                                              | Returns                               | Parameter      | Value Type | Description                                                                                                                                                                                                                  |
-|:---------------------------------------------------------|:--------------------------------------|:---------------|:-----------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [KGroupedStream][KGroupedStream::windowedBySliding]      | [TimeWindowedKStream]`<K,V>`          | `windowType`   | `string`   | Fixed value `sliding`.                                                                                                                                                                                                       |
-|                                                          |                                       | timeDifference | [Duration] | The time difference parameter for the [SlidingWindows] object.                                                                                                                                                               |
-|                                                          |                                       | grace          | [Duration] | (Optional) The grace parameter for the [SlidingWindows] object.                                                                                                                                                              |
-| [KGroupedStream][KGroupedStream::windowedByDuration]     | [TimeWindowedKStream]`<K,V>`          | `windowType`   | `string`   | Fixed value `hopping`.                                                                                                                                                                                                       |
-|                                                          |                                       | advanceBy      | [Duration] | The amount by which each window is advanced. If this value is not specified, then it will be equal to _duration_, which gives tumbling windows. If you make this value smaller than _duration_ you will get hopping windows. |
-|                                                          |                                       | grace          | [Duration] | (Optional) The grace parameter for the [TimeWindows] object.                                                                                                                                                                 |
-| [KGroupedStream][KGroupedStream::windowedByDuration]     | [TimeWindowedKStream]`<K,V>`          | `windowType`   | `string`   | Fixed value `tumbling`.                                                                                                                                                                                                      |
-|                                                          |                                       | duration       | [Duration] | The duration parameter for the [TimeWindows] object.                                                                                                                                                                         |
-|                                                          |                                       | grace          | [Duration] | (Optional) The grace parameter for the [TimeWindows] object.                                                                                                                                                                 |
-| [CogroupedKStream][CogroupedKStream::windowedBySliding]  | [TimeWindowedCogroupedKStream]`<K,V>` | `windowType`   | `string`   | Fixed value `sliding`.                                                                                                                                                                                                       |
-|                                                          |                                       | timeDifference | [Duration] | The time difference parameter for the [SlidingWindows] object.                                                                                                                                                               |
-|                                                          |                                       | grace          | [Duration] | (Optional) The grace parameter for the [SlidingWindows] object.                                                                                                                                                              |
-| [CogroupedKStream][CogroupedKStream::windowedByDuration] | [TimeWindowedCogroupedKStream]`<K,V>` | `windowType`   | `string`   | Fixed value `hopping`.                                                                                                                                                                                                       |
-|                                                          |                                       | advanceBy      | [Duration] | The amount by which each window is advanced. If this value is not specified, then it will be equal to _duration_, which gives tumbling windows. If you make this value smaller than _duration_ you will get hopping windows. |
-|                                                          |                                       | grace          | [Duration] | (Optional) The grace parameter for the [TimeWindows] object.                                                                                                                                                                 |
-| [CogroupedKStream][CogroupedKStream::windowedByDuration] | [TimeWindowedCogroupedKStream]`<K,V>` | `windowType`   | `string`   | Fixed value `tumbling`.                                                                                                                                                                                                      |
-|                                                          |                                       | duration       | [Duration] | The duration parameter for the [TimeWindows] object.                                                                                                                                                                         |
-|                                                          |                                       | grace          | [Duration] | (Optional) The grace parameter for the [TimeWindows] object.                                                                                                                                                                 |
+| Stream Type               | Returns                               | Parameter      | Value Type | Description                                                                                                                                                                                                                  |
+|:--------------------------|:--------------------------------------|:---------------|:-----------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KGroupedStream]`<K,V>`   | [TimeWindowedKStream]`<K,V>`          | `windowType`   | `string`   | Fixed value `sliding`.                                                                                                                                                                                                       |
+|                           |                                       | timeDifference | [Duration] | The time difference parameter for the [SlidingWindows] object.                                                                                                                                                               |
+|                           |                                       | grace          | [Duration] | (Optional) The grace parameter for the [SlidingWindows] object.                                                                                                                                                              |
+| [KGroupedStream]`<K,V>`   | [TimeWindowedKStream]`<K,V>`          | `windowType`   | `string`   | Fixed value `hopping`.                                                                                                                                                                                                       |
+|                           |                                       | advanceBy      | [Duration] | The amount by which each window is advanced. If this value is not specified, then it will be equal to _duration_, which gives tumbling windows. If you make this value smaller than _duration_ you will get hopping windows. |
+|                           |                                       | grace          | [Duration] | (Optional) The grace parameter for the [TimeWindows] object.                                                                                                                                                                 |
+| [KGroupedStream]`<K,V>`   | [TimeWindowedKStream]`<K,V>`          | `windowType`   | `string`   | Fixed value `tumbling`.                                                                                                                                                                                                      |
+|                           |                                       | duration       | [Duration] | The duration parameter for the [TimeWindows] object.                                                                                                                                                                         |
+|                           |                                       | grace          | [Duration] | (Optional) The grace parameter for the [TimeWindows] object.                                                                                                                                                                 |
+| [CogroupedKStream]`<K,V>` | [TimeWindowedCogroupedKStream]`<K,V>` | `windowType`   | `string`   | Fixed value `sliding`.                                                                                                                                                                                                       |
+|                           |                                       | timeDifference | [Duration] | The time difference parameter for the [SlidingWindows] object.                                                                                                                                                               |
+|                           |                                       | grace          | [Duration] | (Optional) The grace parameter for the [SlidingWindows] object.                                                                                                                                                              |
+| [CogroupedKStream]`<K,V>` | [TimeWindowedCogroupedKStream]`<K,V>` | `windowType`   | `string`   | Fixed value `hopping`.                                                                                                                                                                                                       |
+|                           |                                       | advanceBy      | [Duration] | The amount by which each window is advanced. If this value is not specified, then it will be equal to _duration_, which gives tumbling windows. If you make this value smaller than _duration_ you will get hopping windows. |
+|                           |                                       | grace          | [Duration] | (Optional) The grace parameter for the [TimeWindows] object.                                                                                                                                                                 |
+| [CogroupedKStream]`<K,V>` | [TimeWindowedCogroupedKStream]`<K,V>` | `windowType`   | `string`   | Fixed value `tumbling`.                                                                                                                                                                                                      |
+|                           |                                       | duration       | [Duration] | The duration parameter for the [TimeWindows] object.                                                                                                                                                                         |
+|                           |                                       | grace          | [Duration] | (Optional) The grace parameter for the [TimeWindows] object.                                                                                                                                                                 |
 
 Example:
 
@@ -965,15 +857,13 @@ as input for the `second` pipeline.
 
 ### branch
 
-[KStream::branch]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
 Branches out messages from the input stream into several branches based on predicates. Each branch is defined as a list
 item below the branch operation. Branch predicates are defined using the `if` keyword. Messages are only processed by
 one of the branches, namely the first one for which the predicate returns `true`.
 
-| Applies to                        | Value Type                 | Required | Description                                      |
-|:----------------------------------|:---------------------------|:---------|:-------------------------------------------------|
-| [KStream][KStream::branch]`<K,V>` | List of branch definitions | Yes      | See for description of branch definitions below. |
+| Applies to       | Value Type                 | Required | Description                                      |
+|:-----------------|:---------------------------|:---------|:-------------------------------------------------|
+| [KStream]`<K,V>` | List of branch definitions | Yes      | See for description of branch definitions below. |
 
 Branches in KSML are nested pipelines, which are parsed without the requirement of a source attribute. Each branch
 accepts the following parameters:
@@ -1006,14 +896,12 @@ sink operation.
 
 ### forEach
 
-[KStream::forEach]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
 This sends each message to a custom defined function. This function is expected to handle each message as its final
 step. The function does not (need to) return anything.
 
-| Applies to                         | Value Type          | Description                                                                                                                               |
-|:-----------------------------------|:--------------------|:------------------------------------------------------------------------------------------------------------------------------------------|
-| [KStream][KStream::forEach]`<K,V>` | Inline or reference | The [ForEach] function that is called for every record on the source stream. Its arguments are `key` of type `K` and `value` of type `V`. |
+| Applies to       | Value Type          | Description                                                                                                                               |
+|:-----------------|:--------------------|:------------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream]`<K,V>` | Inline or reference | The [ForEach] function that is called for every record on the source stream. Its arguments are `key` of type `K` and `value` of type `V`. |
 
 Examples:
 
@@ -1028,19 +916,16 @@ forEach:
 
 ### print
 
-[KStream::print]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
 This sends each message to a custom defined print function. This function is expected to handle each message as the
-final
-in the pipeline. The function does not (need to) return anything.
+final in the pipeline. The function does not (need to) return anything.
 
 As target, you can specify a filename. If none is specified, then all messages are printed to stdout.
 
-| Applies to                       | Parameter | Value Type          | Required | Description                                                                                                                                                                      |
-|:---------------------------------|:----------|:--------------------|:---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [KStream][KStream::print]`<K,V>` | filename  | string              | No       | The filename to output records to. If nothing is specified, then messages will be printed on stdout.                                                                             |
-|                                  | label     | string              | No       | A label to attach to every output record.                                                                                                                                        |
-|                                  | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return value should be of type `string` and is sent to the specified file or stdout. |
+| Applies to       | Parameter | Value Type          | Required | Description                                                                                                                                                                      |
+|:-----------------|:----------|:--------------------|:---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream]`<K,V>` | filename  | string              | No       | The filename to output records to. If nothing is specified, then messages will be printed on stdout.                                                                             |
+|                  | label     | string              | No       | A label to attach to every output record.                                                                                                                                        |
+|                  | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return value should be of type `string` and is sent to the specified file or stdout. |
 
 Examples:
 
@@ -1056,13 +941,11 @@ print:
 
 ### to
 
-[KStream::to]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
 Messages are sent directly to a named `Stream`.
 
-| Applies to                    | Value Type                                                     | Required | Description                                 |
-|:------------------------------|:---------------------------------------------------------------|:---------|:--------------------------------------------|
-| [KStream][KStream::to]`<K,V>` | Inline [Topic] or reference to a stream, table or global table | Yes      | The name of a defined [Stream](streams.md). |
+| Applies to       | Value Type                                                     | Required | Description                                 |
+|:-----------------|:---------------------------------------------------------------|:---------|:--------------------------------------------|
+| [KStream]`<K,V>` | Inline [Topic] or reference to a stream, table or global table | Yes      | The name of a defined [stream](streams.md). |
 
 Examples:
 
@@ -1084,14 +967,12 @@ to:
 
 ### toTopicNameExtractor
 
-[KStream::toTopicNameExtractor]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
-
 Messages are passed onto a user function, which returns the name of the topic that message needs to be sent to. This
 operation acts as a Sink and is always the last operation in a [pipeline](pipelines.md).
 
-| Applies to                                      | Value Type          | Required | Description                                                                                                                          |
-|:------------------------------------------------|:--------------------|:---------|:-------------------------------------------------------------------------------------------------------------------------------------|
-| [KStream][KStream::toTopicNameExtractor]`<K,V>` | Inline or reference | Yes      | The [TopicNameExtractor] function that is called for every message and returns the topic name to which the message shall be written. |
+| Applies to       | Value Type          | Required | Description                                                                                                                          |
+|:-----------------|:--------------------|:---------|:-------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream]`<K,V>` | Inline or reference | Yes      | The [TopicNameExtractor] function that is called for every message and returns the topic name to which the message shall be written. |
 
 Examples:
 

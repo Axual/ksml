@@ -42,6 +42,17 @@ The special type `?` or `any` can be used in places where input is uncertain. Co
 with input of this type should always perform proper type checking before assuming
 any specific underlying type.
 
+## Duration
+
+Some fields in the KSML spec are of type `duration`. These fields have a fixed format `123x`, where `123` is an
+integer and `x` is any of the following:
+* _<none>_: milliseconds
+* `s`: seconds
+* `m`: minutes
+* `h`: hours
+* `d`: days
+* `w`: weeks
+
 ## Enum
 
 Enumerations can be defined as individual types, through:
