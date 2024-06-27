@@ -36,9 +36,8 @@ import java.util.List;
 
 import static io.axual.ksml.dsl.KSMLDSL.Functions;
 
-@Getter
 public abstract class FunctionDefinitionParser<T extends FunctionDefinition> extends DefinitionParser<T> {
-    public final boolean requireType;
+    private final boolean requireType;
 
     public FunctionDefinitionParser(boolean requireType) {
         this.requireType = requireType;

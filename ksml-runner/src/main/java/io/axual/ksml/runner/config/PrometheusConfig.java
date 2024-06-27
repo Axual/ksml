@@ -22,17 +22,15 @@ package io.axual.ksml.runner.config;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
+import lombok.Builder;
+import lombok.Data;
+import lombok.extern.jackson.Jacksonized;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-
-import lombok.Builder;
-import lombok.Data;
-import lombok.extern.jackson.Jacksonized;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @JsonIgnoreProperties(ignoreUnknown = true)

@@ -20,11 +20,10 @@ package io.axual.ksml.runner.logging;
  * =========================LICENSE_END==================================
  */
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.AppenderBase;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 
 public class MockAppender extends AppenderBase<ILoggingEvent> {
 

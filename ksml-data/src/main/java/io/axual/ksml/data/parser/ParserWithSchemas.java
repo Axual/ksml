@@ -20,10 +20,7 @@ package io.axual.ksml.data.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.schema.UnionSchema;
 
 import java.util.List;
 import java.util.function.Function;

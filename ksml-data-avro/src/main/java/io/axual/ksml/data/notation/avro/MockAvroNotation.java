@@ -20,17 +20,6 @@ package io.axual.ksml.data.notation.avro;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.avro.Schema;
-import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serializer;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
@@ -45,6 +34,16 @@ import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import lombok.Getter;
+import org.apache.avro.Schema;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serializer;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * An AVRO {@link Notation} which does not need a running schema registry.

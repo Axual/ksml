@@ -21,10 +21,8 @@ package io.axual.ksml.data.tag;
  */
 
 import lombok.EqualsAndHashCode;
-import org.apache.kafka.common.utils.Utils;
 
 import java.util.ArrayList;
-import java.util.List;
 
 @EqualsAndHashCode
 public class ContextTags extends ArrayList<ContextTag> {

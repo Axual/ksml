@@ -28,7 +28,6 @@ import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.util.SchemaUtil;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -36,7 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
 public abstract class DefinitionParser<T> extends BaseParser<T> implements StructsParser<T> {
     public static final String SCHEMA_NAMESPACE = "io.axual.ksml";
     private final DurationParser durationParser = new DurationParser();

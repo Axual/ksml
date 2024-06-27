@@ -25,7 +25,6 @@ import io.axual.ksml.data.schema.MapSchema;
 import io.axual.ksml.data.schema.UnionSchema;
 import lombok.Getter;
 
-import java.util.List;
 import java.util.Map;
 
 @Getter
