@@ -20,7 +20,7 @@ package io.axual.ksml.runner;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.metric.KSMLMetrics;
+import io.axual.ksml.metric.Metrics;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.management.*;
@@ -68,7 +68,7 @@ public class KsmlInfo {
     }
 
     public static void registerKsmlAppInfo(String appId) {
-        var beanName = "%s:type=app-info,app-id=%s,app-name=%s,app-version=%s,build-time=%s".formatted(KSMLMetrics.DOMAIN, appId, ObjectName.quote(APP_NAME), ObjectName.quote(APP_VERSION), ObjectName.quote(BUILD_TIME));
+        var beanName = "%s:type=app-info,app-id=%s,app-name=%s,app-version=%s,build-time=%s".formatted(Metrics.DOMAIN, appId, ObjectName.quote(APP_NAME), ObjectName.quote(APP_VERSION), ObjectName.quote(BUILD_TIME));
         try {
             var objectName = ObjectName.getInstance(beanName);
             var beanServer = ManagementFactory.getPlatformMBeanServer();

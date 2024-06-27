@@ -1,28 +1,34 @@
 # KSML: Kafka Streams for Low Code Environments
 
 ## Abstract
-Kafka Streams has captured the hearts and minds of many developers that want to develop streaming applications on top of Kafka. But as powerful as the framework is, Kafka 
-Streams has had a hard time getting around the requirement of writing Java code and setting up build pipelines. There were some attempts to rebuild Kafka Streams, but up 
-until now popular languages like Python did not receive equally powerful (and maintained) stream processing frameworks. In this article we will present a new declarative
-approach to unlock Kafka Streams, called KSML. By the time you finish reading this document, you will be able to write streaming applications yourself, using 
+
+Kafka Streams has captured the hearts and minds of many developers that want to develop streaming applications on top of
+Kafka. But as powerful as the framework is, Kafka
+Streams has had a hard time getting around the requirement of writing Java code and setting up build pipelines. There
+were some attempts to rebuild Kafka Streams, but up
+until now popular languages like Python did not receive equally powerful (and maintained) stream processing frameworks.
+In this article we will present a new declarative
+approach to unlock Kafka Streams, called KSML. By the time you finish reading this document, you will be able to write
+streaming applications yourself, using
 only a few simple basic rules and Python snippets.
 
 * [Setting up a test environment](#setting-up-a-test-environment)
 * [KSML in practice](#ksml-in-practice)
-  * [Example 1. Inspect data on a topic](#example-1-inspect-data-on-a-topic)
-  * [Example 2. Copying data to another topic](#example-2-copying-data-to-another-topic)
-  * [Example 3. Filtering data](#example-3-filtering-data)
-  * [Example 4. Branching messages](#example-4-branching-messages)
-  * [Example 5. Dynamic routing](#example-5-dynamic-routing)
-  * [Example 6. Multiple pipelines](#example-6-multiple-pipelines)
-
+    * [Example 1. Inspect data on a topic](#example-1-inspect-data-on-a-topic)
+    * [Example 2. Copying data to another topic](#example-2-copying-data-to-another-topic)
+    * [Example 3. Filtering data](#example-3-filtering-data)
+    * [Example 4. Branching messages](#example-4-branching-messages)
+    * [Example 5. Dynamic routing](#example-5-dynamic-routing)
+    * [Example 6. Multiple pipelines](#example-6-multiple-pipelines)
 
 ## Setting up a test environment
 
-To demonstrate KSML's capabilities, you will need a working Kafka cluster, or an Axual Platform/Cloud environment. Check out the [Runners](runners.md) page to configure KSML.
+To demonstrate KSML's capabilities, you will need a working Kafka cluster, or an Axual Platform/Cloud environment. Check
+out the [Runners](runners.md) page to configure KSML.
 <br>
-We set up a test topic, called `ksml_sensordata_avro` with key/value types of `String`/`SensorData`. The [SensorData]({{ site.github.repository_url }}/tree/main/examples/SensorData.avsc) schema 
-was created for demo purposes only and contains several fields to demonstratie KSML capabilities:
+We set up a test topic, called `ksml_sensordata_avro` with key/value types of `String`/`SensorData`. The [SensorData]
+schema
+was created for demo purposes only and contains several fields to demonstrate KSML capabilities:
 
 ```json
 {
@@ -98,7 +104,8 @@ was created for demo purposes only and contains several fields to demonstratie K
 }
 ```
 
-For the rest of this document, we assume you have set up the `ksml_sensordata_avro` topic and populated it with some random data.
+For the rest of this document, we assume you have set up the `ksml_sensordata_avro` topic and populated it with some
+random data.
 
 So without any further delays, let's see how KSML allows us to process this data.
 
@@ -133,13 +140,18 @@ pipelines:
 
 ```
 
-Let's disect this definition one element at a time. Before defining processing logic, we first define the streams used by the definition. In this case we define a stream named `sensor_source_avro` which reads from the topic `ksml_sensordata_avro`. The stream defines a `string` key and Avro `SensorData` values.
+Let's analyze this definition one element at a time. Before defining processing logic, we first define the streams used
+by the definition. In this case we define a stream named `sensor_source_avro` which reads from the
+topic `ksml_sensordata_avro`. The stream defines a `string` key and Avro `SensorData` values.
 
-Next is a list of functions that can be used by the processing logic. Here we define just one, `log_message`, which simply uses the provided logger to write the key, value and format of a message to the console.
+Next is a list of functions that can be used by the processing logic. Here we define just one, `log_message`, which
+simply uses the provided logger to write the key, value and format of a message to the console.
 
-The third element `pipelines` defines the real processing logic. We define a pipeline called `consume_avro`, which takes messages from `ksml_sensordata_avro` and passes them to `print_message`.
+The third element `pipelines` defines the real processing logic. We define a pipeline called `consume_avro`, which takes
+messages from `ksml_sensordata_avro` and passes them to `print_message`.
 
-The definition file is parsed by KSML and translated into a Kafka Streams topology, which is [described](https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/Topology.html#describe--) as follows:
+The definition file is parsed by KSML and translated into a Kafka Streams topology, which
+is [described](https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/Topology.html#describe--) as follows:
 
 ```
 Topologies:
@@ -162,11 +174,13 @@ And the output of the generated topology looks like this:
 2024-03-06T18:31:59,412Z INFO  ksml.functions.log_message  Consumed AVRO message - key=sensor5, value={'city': 'Amsterdam', 'color': 'blue', 'name': 'sensor5', 'owner': 'Bob', 'timestamp': 1709749919409, 'type': 'LENGTH', 'unit': 'm', 'value': '658', '@type': 'SensorData', '@schema': { <<Cleaned KSML Representation of Avro Schema>>}}
 ```
 
-As you can see, the output of the application is exactly that what we defined it to be in the `log_message` function, namely a dump of all data found on the topic.
+As you can see, the output of the application is exactly that what we defined it to be in the `log_message` function,
+namely a dump of all data found on the topic.
 
 ### Example 2. Copying data to another topic
 
-Now that we can see what data is on a topic, we will start to manipulate its routing. In this example we are copying unmodified data to a secondary topic:
+Now that we can see what data is on a topic, we will start to manipulate its routing. In this example we are copying
+unmodified data to a secondary topic:
 
 ```yaml
 streams:
@@ -197,11 +211,17 @@ pipelines:
     to: sensor_copy
 ```
 
-You can see that we specified a second stream named `sensor_copy`  in this example, which is backed by the topic `ksml_sensordata_copy` target topic. The `log_message` function is unchanged, but the pipeline did undergo some changes. Two new elements are introduced here, namely `via` and `to`.
+You can see that we specified a second stream named `sensor_copy`  in this example, which is backed by the
+topic `ksml_sensordata_copy` target topic. The `log_message` function is unchanged, but the pipeline did undergo some
+changes. Two new elements are introduced here, namely `via` and `to`.
 
-The `via` tag allows users to define a series of operations executed on the data. In this case there is only one, namely a `peek` operation which does not modify any data, but simply outputs the data on stdout as a side-effect.
+The `via` tag allows users to define a series of operations executed on the data. In this case there is only one, namely
+a `peek` operation which does not modify any data, but simply outputs the data on stdout as a side effect.
 
-The `to` operation is a so-called "sink operation". Sink operations are always last in a pipeline. Processing of the pipeline does not continue after it was delivered to a sink operation. Note that in the first example above `forEach` is also a sink operation, whereas in this example we achieve the same result by passing the `log_message` function as a parameter to the `peek` operation.
+The `to` operation is a so-called "sink operation". Sink operations are always last in a pipeline. Processing of the
+pipeline does not continue after it was delivered to a sink operation. Note that in the first example above `forEach` is
+also a sink operation, whereas in this example we achieve the same result by passing the `log_message` function as a
+parameter to the `peek` operation.
 
 When this definition is translated by KSML, the following Kafka Streams topology is created:
 
@@ -222,7 +242,8 @@ The output is similar to that of example 1, but the same data can also be found 
 
 ### Example 3. Filtering data
 
-Now that we can read and write data, let's see if we can apply some logic to the processing as well. In this example we will be filtering data based on the contents of the value:
+Now that we can read and write data, let's see if we can apply some logic to the processing as well. In this example we
+will be filtering data based on the contents of the value:
 
 ```yaml
 # This example shows how to read from four simple streams and log all messages
@@ -267,9 +288,13 @@ pipelines:
     to: sensor_filtered
 ```
 
-Again, first we define the streams and the functions involved in the processing. You can see we added a new function called `filter_message` which returns `true` or `false` based on the `color` field in the value of the message. This function is used below in the pipeline.
+Again, first we define the streams and the functions involved in the processing. You can see we added a new function
+called `filter_message` which returns `true` or `false` based on the `color` field in the value of the message. This
+function is used below in the pipeline.
 
-The pipeline is extended to include a `filter` operation, which takes a `predicate` function as parameter. That function is called for every input message. Only messages for which the function returns `true` are propagated. All other messages are discarded.
+The pipeline is extended to include a `filter` operation, which takes a `predicate` function as parameter. That function
+is called for every input message. Only messages for which the function returns `true` are propagated. All other
+messages are discarded.
 
 Using this definition, KSML generates the following Kafka Streams topology:
 
@@ -300,11 +325,14 @@ When it executes, we see the following output:
 2024-03-06T18:45:12,008Z INFO  ksml.functions.log_message  Consumed AVRO message - key=sensor5, value={'city': 'Amsterdam', 'color': 'blue', 'name': 'sensor5', 'owner': 'Bob', 'timestamp': 1709749919409, 'type': 'LENGTH', 'unit': 'm', 'value': '658', '@type': 'SensorData', '@schema': { <<Cleaned KSML Representation of Avro Schema>>}}
 ```
 
-As you can see, the filter operation did its work. Only messages with field `color` set to `blue` are passed on to the `peek` operation, while other messages are discarded.
+As you can see, the filter operation did its work. Only messages with field `color` set to `blue` are passed on to
+the `peek` operation, while other messages are discarded.
 
 ### Example 4. Branching messages
 
-Another way to filter messages is to use a `branch` operation. This is also a sink operation, which closes the processing of a pipeline. It is similar to `forEach` and `to` in that respect, but has a different definition and behaviour.
+Another way to filter messages is to use a `branch` operation. This is also a sink operation, which closes the
+processing of a pipeline. It is similar to `forEach` and `to` in that respect, but has a different definition and
+behaviour.
 
 ```yaml
 streams:
@@ -339,9 +367,15 @@ pipelines:
           code: log.warn("UNKNOWN COLOR - {}", value["color"])
 ```
 
-The `branch` operation takes a list of branches as its parameters, which each specifies a processing pipeline of its own. Branches contain the keyword `if`, which take a predicate function that determines if a message will flow into that particular branch, or if it will be passed to the next branch(es). Every message will only end up in one branch, namely the first one in order where the `if` predcate function returns `true`.
+The `branch` operation takes a list of branches as its parameters, which each specifies a processing pipeline of its
+own. Branches contain the keyword `if`, which take a predicate function that determines if a message will flow into that
+particular branch, or if it will be passed to the next branch(es). Every message will only end up in one branch, namely
+the first one in order where the `if` predicate function returns `true`.
 
-In the example we see that the first branch will be populated only with messages with `color` field set to `blue`. Once there, these messages will be written to `ksml_sensordata_blue`. The second branch will only contain messages with `color`=`red` and these messages will be written to `ksml_sensordata_red`. Finally, the last branch outputs a message that the color is unknown and ends any further processing.
+In the example we see that the first branch will be populated only with messages with `color` field set to `blue`. Once
+there, these messages will be written to `ksml_sensordata_blue`. The second branch will only contain messages
+with `color`=`red` and these messages will be written to `ksml_sensordata_red`. Finally, the last branch outputs a
+message that the color is unknown and ends any further processing.
 
 When translated by KSML the following Kafka Streams topology is set up:
 
@@ -388,11 +422,15 @@ It is clear that the branch operation is integrated in this topology. Its output
 2024-03-06T18:31:59,412Z INFO  k.f.branch_pipelines_main_via_1_forEach  SOURCE MESSAGE - key=sensor5, value={'city': 'Amsterdam', 'color': 'blue', 'name': 'sensor5', 'owner': 'Bob', 'timestamp': 1709749919409, 'type': 'LENGTH', 'unit': 'm', 'value': '658', '@type': 'SensorData', '@schema': { <<Cleaned KSML Representation of Avro Schema>>}}
 ```
 
-We see that every message processed by the pipeline is logged through the `k.f.branch_pipelines_main_via_1_forEach` logger. But the branch operation sorts the messages and sends messages with colors `blue` and `red` into their own branches. The only colors that show up as `UNKNOWN COLOR -` messages are non-blue and non-red and send through the `branch_pipelines_main_branch_3_forEach` logger.
+We see that every message processed by the pipeline is logged through the `k.f.branch_pipelines_main_via_1_forEach`
+logger. But the branch operation sorts the messages and sends messages with colors `blue` and `red` into their own
+branches. The only colors that show up as `UNKNOWN COLOR -` messages are non-blue and non-red and send through
+the `branch_pipelines_main_branch_3_forEach` logger.
 
 ### Example 5. Dynamic routing
 
-Sometimes it is necessary to route a message to one stream or another based on the content of a message. This example shows how to route messages dynamically using a TopicNameExtractor.
+Sometimes it is necessary to route a message to one stream or another based on the content of a message. This example
+shows how to route messages dynamically using a TopicNameExtractor.
 
 ```yaml
 streams:
@@ -419,7 +457,10 @@ pipelines:
           return 'ksml_sensordata_sensor0'
 ```
 
-The `topicNameExtractor` operation takes a function, which determines the routing of every message by returning a topic name string. In this case, when the key of a message is `sensor1` then the message will be sent to `ksml_sensordata_sensor1`. When it contains `sensor2` the message is sent to `ksml_sensordata_sensor2`. All other messages are sent to `ksml_sensordata_sensor0`.
+The `topicNameExtractor` operation takes a function, which determines the routing of every message by returning a topic
+name string. In this case, when the key of a message is `sensor1` then the message will be sent
+to `ksml_sensordata_sensor1`. When it contains `sensor2` the message is sent to `ksml_sensordata_sensor2`. All other
+messages are sent to `ksml_sensordata_sensor0`.
 
 The equivalent Kafka Streams topology looks like this:
 
@@ -435,13 +476,16 @@ Topologies:
       <-- route_route_pipelines_main_via_1
 ```
 
-The output does not show anything special compared to previous examples, since all messages are simply written by the logger.
+The output does not show anything special compared to previous examples, since all messages are simply written by the
+logger.
 
 ### Example 6. Multiple pipelines
 
-In the previous examples there was always a single pipeline definition for processing data. KSML allows us to define multiple pipelines in a single file.
+In the previous examples there was always a single pipeline definition for processing data. KSML allows us to define
+multiple pipelines in a single file.
 
-In this example we combine the filtering example with the routing example. We will also define new pipelines with the sole purpose of logging the routed messages.
+In this example we combine the filtering example with the routing example. We will also define new pipelines with the
+sole purpose of logging the routed messages.
 
 ```yaml
 # This example shows how to route messages to a dynamic topic. The target topic is the result of an executed function.
@@ -517,13 +561,16 @@ pipelines:
 ```
 
 In this definition we defined five pipelines:
-1. `filtering` which filters out all sensor messages that don't have the color blue and sends it to the `sensor_filtered` stream.
+
+1. `filtering` which filters out all sensor messages that don't have the color blue and sends it to
+   the `sensor_filtered` stream.
 2. `routing` which routes the data on the `sensor_filtered` stream to one of three target topics
 3. `sensor0_peek` which writes the content of the `sensor_0` stream to the console
 4. `sensor1_peek` which writes the content of the `sensor_1` stream to the console
 5. `sensor2_peek` which writes the content of the `sensor_2` stream to the console
 
 The equivalent Kafka Streams topology looks like this:
+
 ```
 Topologies:
    Sub-topology: 0
@@ -566,7 +613,9 @@ Topologies:
       <-- ksml_sensordata_sensor2
 ```
 
-And this is what the output would look something like this. The sensor peeks messages will not always be shown immediately after the Routing messages. This is because the pipelines are running in separate sub processes.
+And this is what the output would look something like this. The sensor peeks messages will not always be shown
+immediately after the Routing messages. This is because the pipelines are running in separate sub processes.
+
 ```
 2024-03-06T20:11:39,520Z INFO  k.f.route2_pipelines_routing_via_1_forEach Routing Blue sensor - key=sensor6, value={'city': 'Utrecht', 'color': 'blue', 'name': 'sensor6', 'owner': 'Charlie', 'timestamp': 1709755877401, 'type': 'LENGTH', 'unit': 'ft', 'value': '507', '@type': 'SensorData', '@schema': { <<Cleaned KSML Representation of Avro Schema>>}}
 2024-03-06T20:11:39,523Z INFO  k.f.route2_pipelines_sensor0_peek_forEach SENSOR0 - key=sensor6, value={'city': 'Utrecht', 'color': 'blue', 'name': 'sensor6', 'owner': 'Charlie', 'timestamp': 1709755877401, 'type': 'LENGTH', 'unit': 'ft', 'value': '507', '@type': 'SensorData', '@schema': { <<Cleaned KSML Representation of Avro Schema>>}}

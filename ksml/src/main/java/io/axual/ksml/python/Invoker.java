@@ -27,7 +27,7 @@ import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.exception.TopologyException;
-import io.axual.ksml.metric.KSMLMetrics;
+import io.axual.ksml.metric.Metrics;
 import io.axual.ksml.metric.MetricName;
 import io.axual.ksml.user.UserFunction;
 import org.slf4j.Logger;
@@ -46,10 +46,10 @@ public abstract class Invoker {
         }
         final var metricName = new MetricName("execution-time", metricTags.append("function-type", functionType).append("function-name", function.name));
 
-        if (KSMLMetrics.registry().getTimer(metricName) == null) {
-            timer = KSMLMetrics.registry().registerTimer(metricName);
+        if (Metrics.registry().getTimer(metricName) == null) {
+            timer = Metrics.registry().registerTimer(metricName);
         } else {
-            timer = KSMLMetrics.registry().getTimer(metricName);
+            timer = Metrics.registry().getTimer(metricName);
         }
         this.function = function;
     }

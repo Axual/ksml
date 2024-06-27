@@ -9,6 +9,7 @@
 * [Function Types](#function-types)
 * [Function parameters](#function-parameters)
     * [Logger](#logger)
+    * [Metrics](#metrics)
     * [State stores](#state-stores)
 
 ## Introduction
@@ -160,6 +161,47 @@ Output of the above statements looks like:
 [LOG TIMESTAMP] INFO  function.name   Received message from topic: key=123, value={"key":"value"}
 [LOG TIMESTAMP] DEBUG function.name   I'm printing five variables here: 1, 2, 3, text, {"json":"is cool"}. Lovely isn't it?
 ```
+
+### Metrics
+
+KSML supports metric collection and exposure through JMX and built-in Prometheus agent. Metrics for Python functions are
+automatically generated and collected, but users can also specify their own metrics. For an example,
+see `17-example-inspect-with-metrics.yaml` in the `examples` directory.
+
+KSML supports the following metric types:
+
+* Counter: an increasing integer, which counts for example the number of calls made to a Python function.
+* Meter: used for periodically updating a measurement value. Preferred over Counter when don't care too much about exact
+  averages, but want to monitor trends instead.
+* Timer: measures the time spent by processes or functions, that get called internally.
+
+Every Python function in KSML can use the `metrics` variable, which is made available by KSML. The object supports the
+following methods to create your own metrics:
+
+* counter(name: str, tags: dict) -> Counter
+* counter(name: str) -> Counter
+* meter(name: str, tags: dict) -> Meter
+* meter(name: str) -> Meter
+* timer(name: str, tags: dict) -> Timer
+* timer(name: str) -> Timer
+
+In turn these objects support the following:
+
+#### Counter
+
+* increment()
+* increment(delta: int)
+
+#### Meter
+
+* mark()
+* mark(nrOfEvents: int)
+
+#### Timer
+
+* updateSeconds(valueSeconds: int)
+* updateMillis(valueMillis: int)
+* updateNanos(valueNanos: int)
 
 ### State stores
 

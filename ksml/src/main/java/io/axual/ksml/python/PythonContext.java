@@ -22,7 +22,7 @@ package io.axual.ksml.python;
 
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataObjectConverter;
-import io.axual.ksml.metric.KSMLMetrics;
+import io.axual.ksml.metric.Metrics;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.graalvm.polyglot.*;
@@ -33,7 +33,7 @@ import java.util.List;
 @Slf4j
 public class PythonContext {
     private static final LoggerBridge LOGGER_BRIDGE = new LoggerBridge();
-    private static final MetricsBridge METRICS_BRIDGE = new MetricsBridge(KSMLMetrics.registry());
+    private static final MetricsBridge METRICS_BRIDGE = new MetricsBridge(Metrics.registry());
     private static final String PYTHON = "python";
     private static final List<String> ALLOWED_JAVA_CLASSES = List.of(
             "java.util.ArrayList",
@@ -114,7 +114,7 @@ public class PythonContext {
         if (register == null) {
             throw new ExecutionException("Could not register global code for loggerBridge:\n" + pyCode);
         }
-        // Load the global LOGGER_BRIDGE variable into the context
+        // Pass the global LOGGER_BRIDGE and METRICS_BRIDGE variables into global variables of the Python context
         register.execute(LOGGER_BRIDGE, METRICS_BRIDGE);
     }
 }

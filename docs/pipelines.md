@@ -67,14 +67,14 @@ four sink types in KSML:
 
 | Sink type | Description                                                                                                                                                                                                          |
 |-----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `as`      | Allows the pipeline result to be saved under an internal referenceable name. Pipelines defined after this point may refer to this name in their `from` statement.                                                    |
+| `as`      | Allows the pipeline result to be saved under an internal name, which can later be referenced. Pipelines defined after this point may refer to this name in their `from` statement.                                   |
 | `branch`  | This statement allows the pipeline to be split up in several branches. Each branch filters messages with an `if` statement. Messages will be processed only by the first branch of which the `if` statement is true. |
 | `forEach` | Sends every message to a function, without expecting any return type. Because there is no return type, the pipeline always stops after this statement.                                                               |
 | `print`   | Prints out every message according to a given output specification.                                                                                                                                                  |
 | `to`      | Sends all output messages to a specific target. This target can be a pre-defined `stream`, `table` or `globalTable`, an inline-defined topic, or a special function called a `topicNameExtractor`.                   |
 
-For more information, see the respective documentation
-on [pipeline definitions](specifications.md#definitions/PipelineDefinition).
+For more information, see the respective documentation on pipeline definitions in
+the [definitions section of the KSML language spec](ksml-language-spec.md#definitions).
 
 ## Duration
 

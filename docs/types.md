@@ -46,6 +46,7 @@ any specific underlying type.
 
 Some fields in the KSML spec are of type `duration`. These fields have a fixed format `123x`, where `123` is an
 integer and `x` is any of the following:
+
 * _<none>_: milliseconds
 * `s`: seconds
 * `m`: minutes

@@ -1,15 +1,19 @@
 # Runners
 
 ### Table of Contents
+
 1. [Introduction](#introduction)
 2. [Configuration](#configuration)
-   - [Namespace support](#using-with-axual-platform-or-other-namespaced-kafka-clusters)
+    - [Namespace support](#using-with-axual-platform-or-other-namespaced-kafka-clusters)
 3. [Starting a container](#starting-a-container)
 
 ## Introduction
 
-The core of KSML is a library that allows KSML definition files to be parsed and translated into Kafka Streams topologies. Because we wanted to keep KSML low-overhead, KSML does not run these topologies itself. A runner application is provided separately to execute the generated topologies.
-The runner supports plain Kafka connections, which can be configured using normal Kafka properties, and contains an advanced configurations that helps running against Kafka clusters using namespacing. 
+The core of KSML is a library that allows KSML definition files to be parsed and translated into Kafka Streams
+topologies. Because we wanted to keep KSML low-overhead, KSML does not run these topologies itself. A runner application
+is provided separately to execute the generated topologies.
+The runner supports plain Kafka connections, which can be configured using normal Kafka properties, and contains an
+advanced configurations that helps running against Kafka clusters using namespacing.
 
 Examples of runner configurations are shown below.
 
@@ -19,14 +23,14 @@ The configuration file passed to the KSML runner is in YAML format and should co
 
 ```yaml
 ksml:
-  applicationServer:                           # The application server is currently only offering REST querying of state stores
+  applicationServer: # The application server is currently only offering REST querying of state stores
     enabled: true                              # true if you want to enable REST querying of state stores
     host: 0.0.0.0                              # by default listen on all interfaces
     port: 8080                                 # port to listen on
   configDirectory: /ksml/config                # Location of the KSML definitions. Default is the current working directory
   schemaDirectory: /ksml/schemas               # Location of the schema definitions. Default is the config directory
   storageDirectory: /ksml/data                 # Where the stateful data is written. Defaults is the default JVM temp directory
-  errorHandling:                               # how to handle errors
+  errorHandling: # how to handle errors
     consume:
       log: true                                # log errors
       logPayload: true                         # log message payloads upon error
@@ -42,7 +46,9 @@ ksml:
       logPayload: true                         # log message payloads upon error
       loggerName: ProduceError                 # logger name
       handler: continueOnFail                  # continue or stop on error
-    definitions:                               # KSML definition files from the working directory
+    enableProducers: true                      # False to disable producers in the KSML definition
+    enablePipelines: true                      # False to disable pipelines in the KSML definition
+    definitions: # KSML definition files from the working directory
       namedDefinition1: definition1.yaml
       namedDefinition2: definition2.yaml
       namedDefinition3: <more here...>
@@ -56,7 +62,7 @@ kafka: # Kafka streams configuration options
   ssl.endpoint.identification.algorithm: ""
   ssl.truststore.location: /ksml/config/truststore.jks
   ssl.truststore.password: password-for-truststore
-  
+
   # Schema Registry client configuration, needed when schema registry is used
   schema.registry.url: http://schema-registry:8083
   schema.registry.ssl.truststore.location: /ksml/config/truststore.jks
@@ -73,22 +79,24 @@ The following config will resolve the backing topic of a stream or table
 
 ```yaml
 kafka:
-  # The patterns for topics, groups and transactional ids.
-  # Each field between the curly braces must be specified in the configuration, except the topic,
-  # group.id and transactional.id fields, which is used to identify the place where the resource name
-  # is used
-  topic.pattern: "{tenant}-{instance}-{environment}-{topic}"                       
-  group.id.pattern: "{tenant}-{instance}-{environment}-{group.id}"
-  transactional.id.pattern: "{tenant}-{instance}-{environment}-{transactional.id}"
+   # The patterns for topics, groups and transactional ids.
+   # Each field between the curly braces must be specified in the configuration, except the topic,
+   # group.id and transactional.id fields, which is used to identify the place where the resource name
+   # is used
+   topic.pattern: "{tenant}-{instance}-{environment}-{topic}"
+   group.id.pattern: "{tenant}-{instance}-{environment}-{group.id}"
+   transactional.id.pattern: "{tenant}-{instance}-{environment}-{transactional.id}"
 
-  # Additional configuration options used for resolving the pattern to values
-  tenant: "ksmldemo"
-  instance: "dta"
-  environment: "dev"
+   # Additional configuration options used for resolving the pattern to values
+   tenant: "ksmldemo"
+   instance: "dta"
+   environment: "dev"
 ```
 
 ## Starting a container
-To start a container the KSML definitions and Runner configuration files need to be available in a directory mounted inside the docker container.
+
+To start a container the KSML definitions and Runner configuration files need to be available in a directory mounted
+inside the docker container.
 
 The default Runner configuration filename is **_ksml-runner.yaml_**.
 If no arguments are given, the runner will look for this file in the home directory
