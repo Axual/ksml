@@ -38,7 +38,7 @@ public class PrintOperationParser extends OperationParser<PrintOperation> {
                 "",
                 "Operation to print the contents of a pipeline on the screen or to write them to a file",
                 operationNameField(),
-                optional(stringField(KSMLDSL.Operations.Print.FILENAME, "The filename to output records to. If nothing is specified, then messages will be printed on stdout")),
+                optional(stringField(KSMLDSL.Operations.Print.FILENAME, "The filename to output records to. If nothing is specified, then messages will be printed on stdout.")),
                 optional(stringField(KSMLDSL.Operations.Print.LABEL, "A label to attach to the output records")),
                 optional(functionField(KSMLDSL.Operations.Print.MAPPER, "A function to convert record into a string for output", new KeyValuePrinterDefinitionParser(false))),
                 (name, filename, label, mapper, tags) -> new PrintOperation(operationConfig(name, tags), filename, label, mapper));

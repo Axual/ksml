@@ -360,7 +360,7 @@ to: output_stream
 
 ### groupByKey
 
-[KStream::groupByKey]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html#groupByKey--
+[KStream::groupByKey]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
 
 Group the records of a stream by the stream's key.
 
@@ -571,13 +571,13 @@ to: output_stream
 
 ### reduce
 
-[KGroupedStream::reduce]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KGroupedStream.html#reduce-org.apache.kafka.streams.kstream.Reducer-org.apache.kafka.streams.kstream.Named-org.apache.kafka.streams.kstream.Materialized-
+[KGroupedStream::reduce]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KGroupedStream.html
 
-[KGroupedTable::reduce]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KGroupedTable.html#reduce-org.apache.kafka.streams.kstream.Reducer-org.apache.kafka.streams.kstream.Reducer-org.apache.kafka.streams.kstream.Named-org.apache.kafka.streams.kstream.Materialized-
+[KGroupedTable::reduce]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KGroupedTable.html
 
-[SessionWindowedKStream::reduce]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/SessionWindowedKStream.html#reduce-org.apache.kafka.streams.kstream.Reducer-org.apache.kafka.streams.kstream.Named-org.apache.kafka.streams.kstream.Materialized-
+[SessionWindowedKStream::reduce]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/SessionWindowedKStream.html
 
-[TimeWindowedKStreamObject:reduce]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/TimeWindowedKStream.html#reduce-org.apache.kafka.streams.kstream.Reducer-org.apache.kafka.streams.kstream.Named-org.apache.kafka.streams.kstream.Materialized-
+[TimeWindowedKStreamObject:reduce]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/TimeWindowedKStream.html
 
 Combine the values of records in this stream by the grouped key. Records with null key or value are ignored. Combining
 implies that the type of the aggregate result is the same as the type of the input value, similar
@@ -629,7 +629,7 @@ to: output_stream
 
 ### repartition
 
-[KStream::repartition]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html#repartition-org.apache.kafka.streams.kstream.Repartitioned-
+[KStream::repartition]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
 
 Materialize this stream to an auto-generated repartition topic with a given number of partitions, using a custom
 partitioner. Similar to auto-repartitioning, the topic will be created with infinite retention time and data will be
@@ -661,19 +661,19 @@ This is an alias for [transformKey](#transformkey).
 
 ### suppress
 
-[KTable::suppress]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KTable.html#suppress-org.apache.kafka.streams.kstream.Suppressed-
+[KTable::suppress]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KTable.html
 
 Suppress some updates from this changelog stream, determined by the supplied Suppressed configuration. When
 _windowCloses_ is selected and no further restrictions are provided, then this is interpreted as
 _Suppressed.untilWindowCloses(unbounded())_.
 
-| Stream Type                       | Returns         | Parameter            | Value Type | Description                                                                                                                                                                                                                      |
-|:----------------------------------|:----------------|:---------------------|:-----------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [KTable][KTable::suppress]`<K,V>` | [KTable]`<K,V>` | `until`              | `string`   | This value can either be `timeLimit` or `windowCloses`. Note that _timeLimit_ suppression works on any stream, while _windowCloses_ suppression works only on _Windowed_ streams. For the latter, see [windowedBy](#windowedby). |
-|                                   |                 | `duration`           | `string`   | The [Duration] to suppress updates (only when `until`==`timeLimit`)                                                                                                                                                              |
-|                                   |                 | `maxBytes`           | `int`      | (Optional) The maximum number of bytes to suppress updates                                                                                                                                                                       |
-|                                   |                 | `maxRecords`         | `int`      | (Optional) The maximum number of records to suppress updates                                                                                                                                                                     |
-|                                   |                 | `bufferFullStrategy` | `string`   | (Optional) Can be one of `emitEarlyWhenFull`, `shutdownWhenFull`                                                                                                                                                                 |
+| Stream Type                       | Returns         | Parameter            | Value Type | Required | Description                                                                                                                                                                                                                      |
+|:----------------------------------|:----------------|:---------------------|:-----------|:---------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KTable][KTable::suppress]`<K,V>` | [KTable]`<K,V>` | `until`              | `string`   | Yes      | This value can either be `timeLimit` or `windowCloses`. Note that _timeLimit_ suppression works on any stream, while _windowCloses_ suppression works only on _Windowed_ streams. For the latter, see [windowedBy](#windowedby). |
+|                                   |                 | `duration`           | `string`   | No       | The [Duration] to suppress updates (only when `until`==`timeLimit`)                                                                                                                                                              |
+|                                   |                 | `maxBytes`           | `int`      | No       | The maximum number of bytes to suppress updates                                                                                                                                                                                  |
+|                                   |                 | `maxRecords`         | `int`      | No       | The maximum number of records to suppress updates                                                                                                                                                                                |
+|                                   |                 | `bufferFullStrategy` | `string`   | No       | Can be one of `emitEarlyWhenFull`, `shutdownWhenFull`                                                                                                                                                                            |
 
 Example:
 
@@ -694,13 +694,13 @@ to: output_stream
 
 ### toStream
 
-[KTable::toStream]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KTable.html#toStream--
+[KTable::toStream]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KTable.html
 
 Convert a KTable into a KStream object.
 
-| Stream Type                       | Returns          | Parameter | Value Type          | Description                                                                           |
-|:----------------------------------|:-----------------|:----------|:--------------------|:--------------------------------------------------------------------------------------|
-| [KTable][KTable::toStream]`<K,V>` | [KStream]`<K,V>` | `mapper`  | Inline or reference | (Optional)The [KeyValueMapper] function. If no mapper is specified, `K` will be used. |
+| Stream Type                       | Returns           | Parameter | Value Type          | Required | Description                                                                                                                                                                                                           |
+|:----------------------------------|:------------------|:----------|:--------------------|:---------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KTable][KTable::toStream]`<K,V>` | [KStream]`<KR,V>` | `mapper`  | Inline or reference | No       | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return value is the key of resulting stream, which is of type `KR`. If no mapper is provided, then keys remain unchanged. |
 
 Example:
 
@@ -713,14 +713,13 @@ to: output_stream
 
 ### transformKey
 
-[KStream::transformKey]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html#selectKey-org.apache.kafka.streams.kstream.KeyValueMapper-org.apache.kafka.streams.kstream.Named-
+[KStream::transformKey]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
 
-This operation takes a message and transforms the key into a new key, which can be potentially of different type.
+This operation takes a message and transforms the key into a new key, which may have a different type.
 
-| Stream Type                             | Returns           | Parameter | Value Type          | Description                                |
-|:----------------------------------------|:------------------|:----------|:--------------------|:-------------------------------------------|
-| [KStream][KStream::transformKey]`<K,V>` | [KStream]`<KR,V>` | `mapper`  | Inline or reference | The [KeyValueMapper] function.             |
-|                                         |                   | `name`    | `string`            | (Optional) The name of the processor node. |
+| Stream Type                             | Returns           | Parameter | Value Type          | Required | Description                                                                                                                                                     |
+|:----------------------------------------|:------------------|:----------|:--------------------|:---------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream][KStream::transformKey]`<K,V>` | [KStream]`<KR,V>` | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return value is the key of resulting stream, which is of type `KR`. |
 
 Example:
 
@@ -729,21 +728,20 @@ from: input_stream
 via:
   - type: transformKey
     mapper:
-      expression: key=str(key)   # convert key from Integer to String
+      expression: str(key)   # convert key from source type to string
 to: output_stream
 ```
 
 ### transformKeyValue
 
-[KStream::transformKeyValue]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html#map-org.apache.kafka.streams.kstream.KeyValueMapper-org.apache.kafka.streams.kstream.Named-
+[KStream::transformKeyValue]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
 
-This operation takes a message and transforms the key and value into a new key and value, which can each be potentially
-of different type.
+This operation takes a message and transforms the key and value into a new key and value, which can each have a
+different type than the source message key and value.
 
-| Stream Type                                  | Returns            | Parameter | Value Type          | Description                                |
-|:---------------------------------------------|:-------------------|:----------|:--------------------|:-------------------------------------------|
-| [KStream][KStream::transformKeyValue]`<K,V>` | [KStream]`<KR,VR>` | `mapper`  | Inline or reference | The [KeyValueMapper] function.             |
-|                                              |                    | `name`    | `string`            | (Optional) The name of the processor node. |
+| Stream Type                                  | Returns            | Parameter | Value Type          | Required | Description                                                                                                                                                                               |
+|:---------------------------------------------|:-------------------|:----------|:--------------------|:---------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream][KStream::transformKeyValue]`<K,V>` | [KStream]`<KR,VR>` | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return type should be a tuple of type `(KR,VR)` containing the transformed `key` and `value`. |
 
 Example:
 
@@ -752,21 +750,20 @@ from: input_stream
 via:
   - type: transformKeyValue
     mapper:
-      expression: (str(key), str(value))   # convert key and value from Integer to String
+      expression: (str(key), str(value))   # convert key and value from source type to string
 to: output_stream
 ```
 
 ### transformKeyValueToKeyValueList
 
-[KStream::transformKeyValueToKeyValueList]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html#flatMap-org.apache.kafka.streams.kstream.KeyValueMapper-org.apache.kafka.streams.kstream.Named-
+[KStream::transformKeyValueToKeyValueList]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
 
-This operation takes a message and transforms it into zero, one or more new messages, which can be potentially of
-different type.
+This operation takes a message and transforms it into zero, one or more new messages, which may have different key and
+value types than the source.
 
-| Stream Type                                                | Returns            | Parameter | Value Type          | Description                                       |
-|:-----------------------------------------------------------|:-------------------|:----------|:--------------------|:--------------------------------------------------|
-| [KStream][KStream::transformKeyValueToKeyValueList]`<K,V>` | [KStream]`<KR,VR>` | `mapper`  | Inline or reference | The [KeyValueToKeyValueListTransformer] function. |
-|                                                            |                    | `name`    | `string`            | (Optional) The name of the processor node.        |
+| Stream Type                                                | Returns            | Parameter | Value Type          | Required | Description                                                                                                                                                                                            |
+|:-----------------------------------------------------------|:-------------------|:----------|:--------------------|:---------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream][KStream::transformKeyValueToKeyValueList]`<K,V>` | [KStream]`<KR,VR>` | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return type should be a list of type `[(KR,VR)]` containing a list of transformed `key` and `value` pairs. |
 
 Example:
 
@@ -775,21 +772,20 @@ from: input_stream
 via:
   - type: transformKeyValueToKeyValueList
     mapper:
-    expression: [ (key,value),(key,value) ]   # duplicate all incoming messages
+      expression: [ (key,value), (key,value) ]   # duplicate all incoming messages
 to: output_stream
 ```
 
 ### transformKeyValueToValueList
 
-[KStream::transformKeyValueToValueList]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html#flatMapValues-org.apache.kafka.streams.kstream.ValueMapperWithKey-org.apache.kafka.streams.kstream.Named-
+[KStream::transformKeyValueToValueList]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
 
-This operation takes a message and generates a new list of values for the key, which can be potentially of different
-type.
+This operation takes a message and transforms it into zero, one or more new values, which may have different value types
+than the source. Every entry in the result list is combined with the source key and produced on the output stream.
 
-| Stream Type                                             | Returns           | Parameter | Value Type          | Description                                    |
-|:--------------------------------------------------------|:------------------|:----------|:--------------------|:-----------------------------------------------|
-| [KStream][KStream::transformKeyValueToValueList]`<K,V>` | [KStream]`<K,VR>` | `mapper`  | Inline or reference | The [KeyValueToValueListTransformer] function. |
-|                                                         |                   | `name`    | `string`            | (Optional) The name of the processor node.     |
+| Stream Type                                             | Returns           | Parameter | Value Type          | Description                                                                                                                                                                        |
+|:--------------------------------------------------------|:------------------|:----------|:--------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream][KStream::transformKeyValueToValueList]`<K,V>` | [KStream]`<K,VR>` | `mapper`  | Inline or reference | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return type should be a list of type `[VR]` containing a list of transformed `value`s. |
 
 Example:
 
@@ -798,21 +794,20 @@ from: input_stream
 via:
   - type: transformKeyValueToValueList
     mapper:
-      expression: [ value+1,value+2,value+3 ]   # creates 3 new messages [key,VR] for every input message
+      expression: [ value+1, value+2, value+3 ]   # creates 3 new messages [key,VR] for every input message
 to: output_stream
 ```
 
-### transformValue
+### transformMetadata
 
-[KStream::transformValue]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html#flatMapValues-org.apache.kafka.streams.kstream.ValueMapperWithKey-org.apache.kafka.streams.kstream.Named-
+[KStream::transformValue]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
 
-This operation takes a message and transforms the value into a new value, which can be potentially of different type.
+This operation takes a message and transforms its value to a new value, which may have different value type
+than the source.
 
-| Stream Type                               | Returns           | Parameter | Value Type          | Required | Description                                       |
-|:------------------------------------------|:------------------|:----------|:--------------------|:---------|:--------------------------------------------------|
-| [KStream][KStream::transformValue]`<K,V>` | [KStream]`<K,VR>` | `store`   | Store configuration | No       | The [Store] configuration.                        |
-|                                           |                   | `mapper`  | Inline or reference | Yes      | The [KeyValueToKeyValueListTransformer] function. |
-|                                           |                   | `name`    | `string`            | No       | The name of the processor node.                   |
+| Stream Type                               | Returns           | Parameter | Value Type          | Required | Description                                                                                                                                                                                                                     |
+|:------------------------------------------|:------------------|:----------|:--------------------|:---------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream][KStream::transformValue]`<K,V>` | [KStream]`<K,VR>` | `mapper`  | Inline or reference | Yes      | A [MetadataTransformer] function that converts the metadata (Kafka headers, timestamp) of every record in the stream. It gets a metadata object as input and should return the same type, but potentially with modified fields. |
 
 Example:
 
@@ -821,29 +816,51 @@ from: input_stream
 via:
   - type: transformValue
     mapper:
-      expression: value=str(key)   # convert value from Integer to String
+      expression: str(value)   # convert value from source type to String
+to: output_stream
+```
+
+### transformValue
+
+[KStream::transformValue]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
+
+This operation takes a message and transforms its value to a new value, which may have different value type
+than the source.
+
+| Stream Type                               | Returns           | Parameter | Value Type          | Required | Description                                                                                                                             |
+|:------------------------------------------|:------------------|:----------|:--------------------|:---------|:----------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream][KStream::transformValue]`<K,V>` | [KStream]`<K,VR>` | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return type should be a value of type `VR`. |
+
+Example:
+
+```yaml
+from: input_stream
+via:
+  - type: transformValue
+    mapper:
+      expression: str(value)   # convert value from source type to String
 to: output_stream
 ```
 
 ### windowBySession
 
-[KGroupedStream::windowedBy]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KGroupedStream.html#windowedBy-org.apache.kafka.streams.kstream.SessionWindows-
+[KGroupedStream::windowedBy]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KGroupedStream.html
 
-[CogroupedKStream::windowedBySession]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/CogroupedKStream.html#windowedBy-org.apache.kafka.streams.kstream.SessionWindows-
+[CogroupedKStream::windowedBySession]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/CogroupedKStream.html
 
 [SessionWindows]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/SessionWindows.html
 
-[WindowTypes]: https://kafka.apache.org/37/documentation/streams/developer-guide/dsl-api.html#windowing
+[WindowTypes]: https://kafka.apache.org/37/documentation/streams/developer-guide/dsl-api.html
 
 Create a new windowed KStream instance that can be used to perform windowed aggregations. For more details on the
 different types of windows, please refer to [WindowTypes]|[this page].
 
-| Stream Type                                             | Returns                                  | Parameter     | Value Type | Description                                                     |
-|:--------------------------------------------------------|:-----------------------------------------|:--------------|:-----------|:----------------------------------------------------------------|
-| [KGroupedStream][KGroupedStream::windowedBySession]     | [SessionWindowedKStream]`<K,V>`          | inactivityGap | [Duration] | The inactivity gap parameter for the [SessionWindows] object.   |
-|                                                         |                                          | grace         | [Duration] | (Optional) The grace parameter for the [SessionWindows] object. |
-| [CogroupedKStream][CogroupedKStream::windowedBySession] | [SessionWindowedCogroupedKStream]`<K,V>` | inactivityGap | [Duration] | The inactivity gap parameter for the [SessionWindows] object.   |
-|                                                         |                                          | grace         | [Duration] | (Optional) The grace parameter for the [SessionWindows] object. |
+| Stream Type                                             | Returns                                  | Parameter     | Value Type | Required | Description                                                                                          |
+|:--------------------------------------------------------|:-----------------------------------------|:--------------|:-----------|:---------|:-----------------------------------------------------------------------------------------------------|
+| [KGroupedStream][KGroupedStream::windowedBySession]     | [SessionWindowedKStream]`<K,V>`          | inactivityGap | [Duration] | Yes      | The maximum inactivity gap with which keys are grouped.                                              |
+|                                                         |                                          | grace         | [Duration] | No       | The grace duration allowing for out-of-order messages to still be associated with the right session. |
+| [CogroupedKStream][CogroupedKStream::windowedBySession] | [SessionWindowedCogroupedKStream]`<K,V>` | inactivityGap | [Duration] | Yes      | The maximum inactivity gap with which keys are grouped.                                              |
+|                                                         |                                          | grace         | [Duration] | No       | The grace duration allowing for out-of-order messages to still be associated with the right session. |
 
 Example:
 
@@ -852,10 +869,8 @@ from: input_stream
 via:
   - type: groupBy
     mapper: my_mapper_function
-  - type: windowedBy
-    windowType: time
-    duration: 1h
-    advanceBy: 15m
+  - type: windowedBySession
+    inactivityGap: 1h
     grace: 5m
   - type: reduce
     reducer: my_reducer_function
@@ -865,15 +880,15 @@ to: output_stream
 
 ### windowByTime
 
-[KGroupedStream::windowedBySliding]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KGroupedStream.html#windowedBy-org.apache.kafka.streams.kstream.SlidingWindows-
+[KGroupedStream::windowedBySliding]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KGroupedStream.html
 
-[KGroupedStream::windowedByDuration]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KGroupedStream.html#windowedBy-org.apache.kafka.streams.kstream.Windows-
+[KGroupedStream::windowedByDuration]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KGroupedStream.html
 
 [SlidingWindows]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/SlidingWindows.html
 
 [TimeWindows]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/TimeWindows.html
 
-[WindowTypes]: https://kafka.apache.org/37/documentation/streams/developer-guide/dsl-api.html#windowing
+[WindowTypes]: https://kafka.apache.org/37/documentation/streams/developer-guide/dsl-api.html
 
 Create a new windowed KStream instance that can be used to perform windowed aggregations. For more details on the
 different types of windows, please refer to [WindowTypes]|[this page].
@@ -924,9 +939,9 @@ to: output_stream
 Pipelines closed of with `as` can be referred by other pipelines as their starting reference. This allows for a common
 part of processing logic to be placed in its own pipeline in KSML, serving as an intermediate result.
 
-| Applies to          | Value Type | Description                                                                    |
-|:--------------------|:-----------|:-------------------------------------------------------------------------------|
-| Any pipeline`<K,V>` | string     | The name under which the pipeline result can be referenced by other pipelines. |
+| Applies to          | Value Type | Required | Description                                                                    |
+|:--------------------|:-----------|:---------|:-------------------------------------------------------------------------------|
+| Any pipeline`<K,V>` | string     | Yes      | The name under which the pipeline result can be referenced by other pipelines. |
 
 Example:
 
@@ -950,23 +965,23 @@ as input for the `second` pipeline.
 
 ### branch
 
-[KStream::branch]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html#branch-org.apache.kafka.streams.kstream.Named-org.apache.kafka.streams.kstream.Predicate...-
+[KStream::branch]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
 
 Branches out messages from the input stream into several branches based on predicates. Each branch is defined as a list
 item below the branch operation. Branch predicates are defined using the `if` keyword. Messages are only processed by
 one of the branches, namely the first one for which the predicate returns `true`.
 
-| Applies to                        | Value Type                 | Description                                      |
-|:----------------------------------|:---------------------------|:-------------------------------------------------|
-| [KStream][KStream::branch]`<K,V>` | List of branch definitions | See for description of branch definitions below. |
+| Applies to                        | Value Type                 | Required | Description                                      |
+|:----------------------------------|:---------------------------|:---------|:-------------------------------------------------|
+| [KStream][KStream::branch]`<K,V>` | List of branch definitions | Yes      | See for description of branch definitions below. |
 
 Branches in KSML are nested pipelines, which are parsed without the requirement of a source attribute. Each branch
 accepts the following parameters:
 
-| Branch element | Value Type                              | Description                                                                                                                   |
-|:---------------|:----------------------------------------|:------------------------------------------------------------------------------------------------------------------------------|
-| `if`           | Inline [Predicate] or reference         | The [Predicate] function that determines if the message is sent down this branch, or is passed on to the next branch in line. |
-| _Inline_       | All pipeline parameters, see [Pipeline] | The inlined pipeline describes the topology of the specific branch.                                                           |
+| Branch element | Value Type                              | Required | Description                                                                                                                   |
+|:---------------|:----------------------------------------|:---------|:------------------------------------------------------------------------------------------------------------------------------|
+| `if`           | Inline [Predicate] or reference         | No       | The [Predicate] function that determines if the message is sent down this branch, or is passed on to the next branch in line. |
+| _Inline_       | All pipeline parameters, see [Pipeline] | Yes      | The inlined pipeline describes the topology of the specific branch.                                                           |
 
 Example:
 
@@ -981,7 +996,7 @@ branch:
     to: ksml_sensordata_red
   - forEach:
       code: |
-        print('Unknown color sensor: '+str(value))
+        print('Unknown color sensor: '+value["color"])
 ```
 
 In this example, the first two branches are entered if the respective predicate matches (the color attribute of value
@@ -991,19 +1006,19 @@ sink operation.
 
 ### forEach
 
-[KStream::forEach]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html#foreach-org.apache.kafka.streams.kstream.ForeachAction-org.apache.kafka.streams.kstream.Named-
+[KStream::forEach]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
 
 This sends each message to a custom defined function. This function is expected to handle each message as its final
 step. The function does not (need to) return anything.
 
-| Applies to                         | Value Type          | Description                                                                  |
-|:-----------------------------------|:--------------------|:-----------------------------------------------------------------------------|
-| [KStream][KStream::forEach]`<K,V>` | Inline or reference | The [ForEach] function that is called for every record on the source stream. |
+| Applies to                         | Value Type          | Description                                                                                                                               |
+|:-----------------------------------|:--------------------|:------------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream][KStream::forEach]`<K,V>` | Inline or reference | The [ForEach] function that is called for every record on the source stream. Its arguments are `key` of type `K` and `value` of type `V`. |
 
 Examples:
 
 ```yaml
-forEach: my_print_function
+forEach: my_foreach_function
 ```
 
 ```yaml
@@ -1011,32 +1026,72 @@ forEach:
   code: print(value)
 ```
 
+### print
+
+[KStream::print]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
+
+This sends each message to a custom defined print function. This function is expected to handle each message as the
+final
+in the pipeline. The function does not (need to) return anything.
+
+As target, you can specify a filename. If none is specified, then all messages are printed to stdout.
+
+| Applies to                       | Parameter | Value Type          | Required | Description                                                                                                                                                                      |
+|:---------------------------------|:----------|:--------------------|:---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream][KStream::print]`<K,V>` | filename  | string              | No       | The filename to output records to. If nothing is specified, then messages will be printed on stdout.                                                                             |
+|                                  | label     | string              | No       | A label to attach to every output record.                                                                                                                                        |
+|                                  | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return value should be of type `string` and is sent to the specified file or stdout. |
+
+Examples:
+
+```yaml
+from: source
+via:
+  - type: ...
+print:
+  filename: file.txt
+  mapper:
+    expression: "record value: " + str(value)
+```
+
 ### to
 
-[KStream::to]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html#to-java.lang.String-org.apache.kafka.streams.kstream.Produced-
+[KStream::to]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
 
 Messages are sent directly to a named `Stream`.
 
-| Applies to                    | Value Type | Description                                 |
-|:------------------------------|:-----------|:--------------------------------------------|
-| [KStream][KStream::to]`<K,V>` | `string`   | The name of a defined [Stream](streams.md). |
+| Applies to                    | Value Type                                                     | Required | Description                                 |
+|:------------------------------|:---------------------------------------------------------------|:---------|:--------------------------------------------|
+| [KStream][KStream::to]`<K,V>` | Inline [Topic] or reference to a stream, table or global table | Yes      | The name of a defined [Stream](streams.md). |
 
-Example:
+Examples:
 
 ```yaml
 to: my_target_topic
 ```
 
-### toExtractor
+```yaml
+from: source
+via:
+  - type: ...
+to:
+  topic: my_target_topic
+  keyType: someType
+  valueType: someOtherType
+  partitioner:
+    expression: hash_of(key)
+```
 
-[KStream::toExtractor]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html#to-org.apache.kafka.streams.processor.TopicNameExtractor-org.apache.kafka.streams.kstream.Produced-
+### toTopicNameExtractor
+
+[KStream::toTopicNameExtractor]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
 
 Messages are passed onto a user function, which returns the name of the topic that message needs to be sent to. This
 operation acts as a Sink and is always the last operation in a [pipeline](pipelines.md).
 
-| Applies to                             | Value Type          | Description                                                                                                                          |
-|:---------------------------------------|:--------------------|:-------------------------------------------------------------------------------------------------------------------------------------|
-| [KStream][KStream::toExtractor]`<K,V>` | Inline or reference | The [TopicNameExtractor] function that is called for every message and returns the topic name to which the message shall be written. |
+| Applies to                                      | Value Type          | Required | Description                                                                                                                          |
+|:------------------------------------------------|:--------------------|:---------|:-------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream][KStream::toTopicNameExtractor]`<K,V>` | Inline or reference | Yes      | The [TopicNameExtractor] function that is called for every message and returns the topic name to which the message shall be written. |
 
 Examples:
 
