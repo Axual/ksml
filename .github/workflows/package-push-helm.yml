@@ -1,4 +1,4 @@
-name: build and push Helm Charts
+name: Package and Push Helm Chart
 on:
   workflow_dispatch:
     inputs:
@@ -13,10 +13,10 @@ on:
         description: "The version of the chart to be released"
   workflow_call:
     inputs:
-      tag-name:
+      app-version:
         required: true
         type: string
-      target-version:
+      version:
         required: false
         default: 0.0.0-snapshot
         type: string

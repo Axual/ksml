@@ -1,10 +1,16 @@
 name: build and push release Docker images
 on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: true
+        type: string
+        description: "The image tag to create"
   release:
     types: [published]
 
 env:
-  RELEASE_TAG: ${{ github.event.release.tag_name }}
+  RELEASE_TAG: ${{ inputs.tag || github.event.release.tag_name }}
 
 jobs:
   release-push-docker:
@@ -55,8 +61,10 @@ jobs:
             registry.axual.io/opensource/axual/ksml:${{ github.event.release.tag_name }}
             registry.axual.io/opensource/axual/ksml:latest
 
-      - name: Trigger Helm Chart release workflow
-        uses: ./github/workflows/package-push-helm.yml
-        with:
-          app-version: ${{ github.event.release.tag_name }}
-          version: ${{ github.event.release.tag_name }}
+  helm-chart-release:
+    needs: release-push-docker
+    uses: './.github/workflows/package-push-helm.yml'
+    secrets: inherit
+    with:
+      app-version: snapshot
+      version: 0.0.0-snapshot
