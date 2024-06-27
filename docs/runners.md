@@ -23,14 +23,14 @@ The configuration file passed to the KSML runner is in YAML format and should co
 
 ```yaml
 ksml:
-  applicationServer: # The application server is currently only offering REST querying of state stores
+  applicationServer:                           # The application server is currently only offering REST querying of state stores
     enabled: true                              # true if you want to enable REST querying of state stores
     host: 0.0.0.0                              # by default listen on all interfaces
     port: 8080                                 # port to listen on
   configDirectory: /ksml/config                # Location of the KSML definitions. Default is the current working directory
   schemaDirectory: /ksml/schemas               # Location of the schema definitions. Default is the config directory
   storageDirectory: /ksml/data                 # Where the stateful data is written. Defaults is the default JVM temp directory
-  errorHandling: # how to handle errors
+  errorHandling:                               # how to handle errors
     consume:
       log: true                                # log errors
       logPayload: true                         # log message payloads upon error
@@ -48,12 +48,12 @@ ksml:
       handler: continueOnFail                  # continue or stop on error
     enableProducers: true                      # False to disable producers in the KSML definition
     enablePipelines: true                      # False to disable pipelines in the KSML definition
-    definitions: # KSML definition files from the working directory
+    definitions:                               # KSML definition files from the working directory
       namedDefinition1: definition1.yaml
       namedDefinition2: definition2.yaml
       namedDefinition3: <more here...>
 
-kafka: # Kafka streams configuration options 
+kafka:                                         # Kafka streams configuration options 
   application.id: io.ksml.example.processor
   bootstrap.servers: broker-1:9092,broker-2:9092
   security.protocol: SSL

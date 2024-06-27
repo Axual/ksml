@@ -3,14 +3,14 @@
 ### Table of Contents
 
 1. [Introduction](#introduction)
-1. [Primitives](#primitives)
-1. [Any](#any)
-1. [Duration](#duration)
-1. [Enum](#enum)
-1. [List](#list)
-1. [Struct](#struct)
-1. [Tuple](#tuple)
-1. [Windowed](#windowed)
+2. [Primitives](#primitives)
+3. [Any](#any)
+4. [Duration](#duration)
+5. [Enum](#enum)
+6. [List](#list)
+7. [Struct](#struct)
+8. [Tuple](#tuple)
+9. [Windowed](#windowed)
 
 ## Introduction
 

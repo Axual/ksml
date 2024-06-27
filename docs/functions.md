@@ -30,7 +30,7 @@ functions:
       - name: secondParam
         type: int
     globalCode: |
-      import something from somepackage
+      import something from package
       globalVar = 3
     code: |
       print('Hello there!')

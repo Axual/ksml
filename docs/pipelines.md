@@ -74,7 +74,7 @@ four sink types in KSML:
 | `to`      | Sends all output messages to a specific target. This target can be a pre-defined `stream`, `table` or `globalTable`, an inline-defined topic, or a special function called a `topicNameExtractor`.                   |
 
 For more information, see the respective documentation on pipeline definitions in
-the [definitions section of the KSML language spec](ksml-language-spec.md#definitions).
+the [definitions section of the KSML language spec](ksml-language-spec.html#definitions/PipelineDefinition).
 
 ## Duration
 
