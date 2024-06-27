@@ -1,6 +1,16 @@
 name: build and push Helm Charts
 on:
   workflow_dispatch:
+    inputs:
+      app-version:
+        required: true
+        type: string
+        description: "The app version that should be set in the chart"
+      version:
+        required: false
+        default: 0.0.0-snapshot
+        type: string
+        description: "The version of the chart to be released"
   workflow_call:
     inputs:
       tag-name:
@@ -21,23 +31,27 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
 
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Package Helm
         shell: bash
         run: |
-          helm package --version '${{ inputs.target-version }}' --app-version '${{ inputs.tag-name }}' packaging/helm-charts/ksml
+          helm package --version '${{ inputs.version }}' --app-version '${{ inputs.app-version }}' ./packaging/helm-charts/ksml && ls ksml*.tgz
 
       - name: Login to registry
         shell: bash
         run: |
-          helm registry login '${{ env.AXUAL_REGISTRY }}' -u '${{ secrets.AXUAL_REGISTRY_USER }}' -p '${{ secrets.AXUAL_REGISTRY_TOKEN }}'
+          helm registry login registry.axual.io/opensource -u '${{ secrets.AXUAL_REGISTRY_USER }}' -p '${{ secrets.AXUAL_REGISTRY_TOKEN }}'
 
       - name: Push to registry
         shell: bash
         run: |
-          helm push 'ksml-${{ inputs.target-version }}.tgz'
+          helm push 'ksml-${{ inputs.version }}.tgz' oci://registry.axual.io/opensource
 
       - name: Log out of registry
         shell: bash
         if: ${{ always() }}
+
         run: |
-          helm registry logout '${{ env.AXUAL_REGISTRY }}' &
+          helm registry logout registry.axual.io/opensource &

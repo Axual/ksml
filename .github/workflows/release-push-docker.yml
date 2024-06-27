@@ -33,6 +33,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: login to Axual Open Source Registry
+        uses: docker/login-action@v2
+        with:
+          registry: registry.axual.io
+          username: ${{ secrets.AXUAL_REGISTRY_USER }}
+          password: ${{ secrets.AXUAL_REGISTRY_TOKEN }}
+
       - name: build and push KSML Runner
         uses: docker/build-push-action@v4
         with:
@@ -42,5 +49,14 @@ jobs:
           push: true
           tags: |
             axual/ksml:${{ github.event.release.tag_name }}
+            axual/ksml:latest
             ghcr.io/axual/ksml:${{ github.event.release.tag_name }}
             ghcr.io/axual/ksml:latest
+            registry.axual.io/opensource/axual/ksml:${{ github.event.release.tag_name }}
+            registry.axual.io/opensource/axual/ksml:latest
+
+      - name: Trigger Helm Chart release workflow
+        uses: ./github/workflows/package-push-helm.yml
+        with:
+          app-version: ${{ github.event.release.tag_name }}
+          version: ${{ github.event.release.tag_name }}
