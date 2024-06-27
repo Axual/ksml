@@ -1096,11 +1096,11 @@ operation acts as a Sink and is always the last operation in a [pipeline](pipeli
 Examples:
 
 ```yaml
-toExtractor: my_extractor_function
+toTopicNameExtractor: my_extractor_function
 ```
 
 ```yaml
-toExtractor:
+toTopicNameExtractor:
   code: |
     if key == 'sensor1':
       return 'ksml_sensordata_sensor1'
