@@ -55,11 +55,11 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            axual/ksml:${{ env.RELEASE_TAG }}
+            axual/ksml:${{ inputs.tag || github.event.release.tag_name }}
             axual/ksml:latest
-            ghcr.io/axual/ksml:${{ env.RELEASE_TAG }}
+            ghcr.io/axual/ksml:${{ inputs.tag || github.event.release.tag_name }}
             ghcr.io/axual/ksml:latest
-            registry.axual.io/opensource/images/axual/ksml:${{ env.RELEASE_TAG }}
+            registry.axual.io/opensource/images/axual/ksml:${{ inputs.tag || github.event.release.tag_name }}
             registry.axual.io/opensource/images/axual/ksml:latest
 
   helm-chart-release:
@@ -67,5 +67,5 @@ jobs:
     uses: './.github/workflows/package-push-helm.yml'
     secrets: inherit
     with:
-      app-version: ${{ env.RELEASE_TAG }}
-      version: ${{ env.RELEASE_TAG }}
+      app-version: ${{ inputs.tag || github.event.release.tag_name }}
+      version: ${{ inputs.tag || github.event.release.tag_name }}
