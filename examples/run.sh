@@ -15,4 +15,4 @@ BASEDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 # Give kafka-setup some time to create all the topics
 echo "This script assumes the example docker-compose has started and the local KSML image was created"
 sleep 2
-docker run --name ksml-example --rm -ti -v "${BASEDIR}":/ksml -w /ksml --network ksml_example axual/ksml:0.9.1
+docker run --name ksml-example --rm -ti -v "${BASEDIR}":/ksml -w /ksml --network ksml_example axual/ksml:latest
