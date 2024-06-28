@@ -148,6 +148,29 @@ ForEach functions get the following fixed arguments:
 | `value`   | _any_      | The value of the message.                   |
 | returns   | _any_      | The key looked up in the table joined with. |
 
+### Generator
+
+A `generator` is a function that generates new messages out of thin air. It is most often used to generate mock data for
+testing purposes.
+
+Generators get no arguments, and return messages to be sent to the output stream.
+
+| Parameter | Value Type      | Description                                                   |
+|:----------|:----------------|:--------------------------------------------------------------|
+| returns   | `(_any_, _any`) | The key/value of the message to be sent to the output stream. |
+
+### Generic
+
+A `generic` function can be used for generic purposes. It can be used for any operation, as long as its parameters match
+the expected types of the operation's function.
+
+Generic functions get any arguments, and may return anything.
+
+| Parameter    | Value Type | Description                               |
+|:-------------|:-----------|:------------------------------------------|
+| self-defined | _any_      | Self-defined parameters can be passed in. |
+| returns      | _any_      | Can return any value.                     |
+
 ### Initializer
 
 An `initializer` is called upon the start of every (part of an) aggregation. It takes no arguments and should return an
@@ -240,6 +263,19 @@ Mergers get the following fixed arguments:
 | `value2`  | _any_      | The value of the second message.        |
 | returns   | _any_      | The merged value of the output message. |
 
+### MetadataTransformer
+
+A `metadataTransformer` can transform a message's metadata (headers and timestamp).
+
+MetadataTransformers get the following fixed arguments:
+
+| Parameter  | Value Type | Description                                                                                                                      |
+|:-----------|:-----------|:---------------------------------------------------------------------------------------------------------------------------------|
+| `key`      | _any_      | The key of the message.                                                                                                          |
+| `value`    | _any_      | The value of the message.                                                                                                        |
+| `metadata` | `dict`     | Contains the `headers` and `timestamp` of the message.                                                                           |
+| returns    | `dict`     | The (optionally) modified metadata for the output message. This structure should have the same type as the `metadata` passed in. |
+
 ### Predicate
 
 A `predicate` is a function that takes the key/value of a message and returns `True` or `False`. It is used for
@@ -279,6 +315,19 @@ StreamPartitioners get the following fixed arguments:
 | `value`         | _any_      | The value of the message.                               |
 | `numPartitions` | `integer`  | The number of partitions available on the output topic. |
 | returns         | `integer`  | The partition number to which this message gets sent.   |
+
+### TimestampExtractor
+
+A `timestampExtractor` is a function which can determine a timestamp from a given input message, which is used for all
+downstream processing.
+
+TimestampExtractors get the following fixed arguments:
+
+| Parameter           | Value Type | Description                                                                                                                       |
+|:--------------------|:-----------|:----------------------------------------------------------------------------------------------------------------------------------|
+| `record`            | `struct`   | A dictionary containing the `timestamp`, `timestampType`, `key`, `value`, `topic`, `partition` and `offset` of the input message. |
+| `previousTimestamp` | `long`     | The timestamp of the last message (before this one).                                                                              |
+| returns             | `long`     | The timestamp to apply to this message.                                                                                           |
 
 ### TopicNameExtractor
 
