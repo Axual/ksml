@@ -73,7 +73,7 @@ ENV JAVA_HOME=/opt/graalvm
 COPY --chown=ksml:0 --from=graal-builder /opt/graal/ /opt/graal/
 
 WORKDIR /home/ksml
-USER ksml
+USER 1024
 #There is no more GraalPy command here and no venv
 #RUN graalpy -m venv graalenv && \
 #    echo "source $HOME/graalenv/bin/activate" >> ~/.bashrc
@@ -81,8 +81,8 @@ USER ksml
 
 # Step 5: Create the KSML Runner image
 FROM ksml-graal AS ksml
-COPY --chown=ksml:0 --from=builder /project_dir/ksml-runner/NOTICE.txt /licences/THIRD-PARTY-LICENSES.txt
-COPY --chown=ksml:0 --from=builder /project_dir/LICENSE.txt /licences/LICENSE.txt
+COPY --chown=ksml:0 --from=builder /project_dir/ksml-runner/NOTICE.txt /licenses/THIRD-PARTY-LICENSES.txt
+COPY --chown=ksml:0 --from=builder /project_dir/LICENSE.txt /licenses/LICENSE.txt
 COPY --chown=ksml:0 --from=builder /project_dir/ksml-runner/target/libs/ /opt/ksml/libs/
 COPY --chown=ksml:0 --from=builder /project_dir/ksml-runner/target/ksml-runner*.jar /opt/ksml/ksml.jar
 
