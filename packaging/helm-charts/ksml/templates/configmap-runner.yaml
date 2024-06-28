@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ksml.fullname" . }}-runner
+  labels:
+    {{- include "ksml.labels" . | nindent 4 }}
+data:
+  ksml-runner.yaml: |
+    ksml:
+      configDirectory: {{ .Values.ksmlRunnerConfig.definitionDirectory | quote }}
+      schemaDirectory: {{ .Values.ksmlRunnerConfig.schemaDirectory | quote }}
+      storageDirectory: "/ksml-store"
+      enableProducers: {{ .Values.ksmlRunnerConfig.producersEnabled }}
+      enablePipelines: {{ .Values.ksmlRunnerConfig.pipelinesEnabled }}
+      errorHandling:
+        consume:
+          log: {{ .Values.ksmlRunnerConfig.errorHandling.consume.log }}
+          logPayload: {{ .Values.ksmlRunnerConfig.errorHandling.consume.logPayload }}
+          loggerName: {{ .Values.ksmlRunnerConfig.errorHandling.consume.loggerName }}
+          handler: {{ ternary "stopOnFail" "continueOnFail" .Values.ksmlRunnerConfig.errorHandling.consume.stopOnError }}
+        produce:
+          log: {{ .Values.ksmlRunnerConfig.errorHandling.produce.log }}
+          logPayload: {{ .Values.ksmlRunnerConfig.errorHandling.produce.logPayload }}
+          loggerName: {{ .Values.ksmlRunnerConfig.errorHandling.produce.loggerName }}
+          handler: {{ ternary "stopOnFail" "continueOnFail" .Values.ksmlRunnerConfig.errorHandling.produce.stopOnError }}
+        process:
+          log: {{ .Values.ksmlRunnerConfig.errorHandling.process.log }}
+          logPayload: {{ .Values.ksmlRunnerConfig.errorHandling.process.logPayload }}
+          loggerName: {{ .Values.ksmlRunnerConfig.errorHandling.process.loggerName }}
+          handler: {{ ternary "stopOnFail" "continueOnFail" .Values.ksmlRunnerConfig.errorHandling.process.stopOnError }}
+      applicationServer:
+        enabled: {{ .Values.applicationServer.enabled }}
+        port: {{ .Values.applicationServer.port }}
+      prometheus:
+        enabled: {{ .Values.prometheus.enabled }}
+        port: {{ .Values.prometheus.port  }}
+        configFile: "/ksml/ksml-metrics-config.yml"
+      definitions:
+{{- with .Values.ksmlRunnerConfig.definitions }}
+  {{- toYaml . | nindent 8 }}
+{{- end }}
+    kafka:
+      config.providers: env
+      config.providers.env.class: 'org.apache.kafka.common.config.provider.EnvVarConfigProvider'
+      group.instance.id: '${env:KSML_GROUP_INSTANCE_ID}'
+{{- with .Values.ksmlRunnerConfig.kafka }}
+  {{- toYaml . | nindent 6 }}
+{{- end }}
+
+{{- with .Values.ksmlDefinitions }}
+  {{- toYaml . | nindent 2 }}
+{{- end }}
+{{- with .Values.schemaDefinitions }}
+  {{- toYaml . | nindent 2 }}
+{{- end }}
+
+  ksml-metrics-config.yml: |
+  {{- with .Values.prometheus.config }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}

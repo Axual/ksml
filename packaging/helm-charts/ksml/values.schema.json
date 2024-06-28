@@ -1,0 +1,330 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "affinity": {
+            "type": "object"
+        },
+        "applicationServer": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "port": {
+                    "type": "string"
+                }
+            }
+        },
+        "fullnameOverride": {
+            "type": "string"
+        },
+        "image": {
+            "type": "object",
+            "properties": {
+                "pullPolicy": {
+                    "type": "string"
+                },
+                "repository": {
+                    "type": "string"
+                },
+                "tag": {
+                    "type": "string"
+                }
+            }
+        },
+        "imagePullSecrets": {
+            "type": "array"
+        },
+        "ingress": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "type": "object"
+                },
+                "className": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "hosts": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "host": {
+                                "type": "string"
+                            },
+                            "paths": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "path": {
+                                            "type": "string"
+                                        },
+                                        "pathType": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tls": {
+                    "type": "array"
+                }
+            }
+        },
+        "ksmlDefinitions": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "ksmlRunnerConfig": {
+            "type": "object",
+            "properties": {
+                "definitionDirectory": {
+                    "type": "string"
+                },
+                "schemaDirectory": {
+                    "type": "string"
+                },
+                "producersEnabled": {
+                    "type": "boolean"
+                },
+                "pipelinesEnabled": {
+                    "type": "boolean"
+                },
+                "errorHandling": {
+                    "type": "object",
+                    "properties": {
+                        "consume" : {"$ref": "#/definitions/ErrorHandling"},
+                        "produce" : {"$ref": "#/definitions/ErrorHandling"},
+                        "process" : {"$ref": "#/definitions/ErrorHandling"}
+                    }
+                },
+                "definitions": {
+                    "type": "object",
+                    "minProperties": 1,
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "kafka": {
+                    "type": "object",
+                    "properties": {
+                        "application.id": {
+                            "type": "string"
+                        },
+                        "bootstrap.servers": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "boolean"
+                            }
+                        ]
+                    },
+                    "required": [
+                        "application.id",
+                        "bootstrap.servers"
+                    ]
+                }
+            },
+            "required": [
+                "definitionDirectory",
+                "schemaDirectory",
+                "definitions",
+                "kafka"
+            ]
+        },
+        "logging": {
+            "type": "object",
+            "properties": {
+                "configFile": {
+                    "type": "string"
+                },
+                "jsonEnabled": {
+                    "type": "boolean"
+                },
+                "patters": {
+                    "type": "object",
+                    "properties": {
+                        "stdout": {
+                            "type": "string"
+                        },
+                        "stderr": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "rootLogLevel": {
+                    "$ref": "#/definitions/LogLevel"
+                },
+                "loggers": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/LogLevel"
+                    }
+                },
+                "defaultLoggers": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/LogLevel"
+                    }
+                }
+            }
+        },
+        "nameOverride": {
+            "type": "string"
+        },
+        "nodeSelector": {
+            "type": "object"
+        },
+        "podAnnotations": {
+            "type": "object"
+        },
+        "podLabels": {
+            "type": "object"
+        },
+        "podSecurityContext": {
+            "type": "object"
+        },
+        "prometheus": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "port": {
+                    "type": "string"
+                },
+                "config": {
+                    "type": "object"
+                }
+            }
+        },
+        "replicaCount": {
+            "type": "integer",
+            "minimum": 0
+        },
+        "resources": {
+            "type": "object"
+        },
+        "schemaDefinitions": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "securityContext": {
+            "type": "object"
+        },
+        "service": {
+            "type": "object",
+            "properties": {
+                "port": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "serviceAccount": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "type": "object"
+                },
+                "automount": {
+                    "type": "boolean"
+                },
+                "create": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "store": {
+            "type": "object"
+        },
+        "serviceMonitor": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "interval": {
+                    "type": "string"
+                },
+                "labels": {
+                    "type": "object"
+                },
+                "scrapeTimeout": {
+                    "type": "string"
+                }
+            }
+        },
+        "tolerations": {
+            "type": "array"
+        },
+        "topologySpreadConstraints": {
+            "type": "array"
+        },
+        "volumeMounts": {
+            "type": "array"
+        },
+        "volumes": {
+            "type": "array"
+        }
+    },
+    "definitions": {
+        "LogLevel": {
+            "enum": [
+                "TRACE",
+                "DEBUG",
+                "INFO",
+                "WARN",
+                "ERROR",
+                "trace",
+                "debug",
+                "info",
+                "warn",
+                "error"
+            ]
+        },
+        "ErrorHandling": {
+            "type": "object",
+            "properties": {
+                "log": {
+                    "type": "boolean"
+                },
+                "logPayload": {
+                    "type": "boolean"
+                },
+                "stopOnError": {
+                    "type": "boolean"
+                },
+                "logger": {
+                    "type": "string",
+                    "minLength": 1
+                }
+            }
+        }
+    }
+}

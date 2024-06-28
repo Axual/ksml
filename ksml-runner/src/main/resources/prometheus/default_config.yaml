@@ -2,7 +2,7 @@ lowercaseOutputName: true
 lowercaseOutputLabelNames: true
 rules:
   - pattern: 'ksml<type=app-info, app-id=(.+), app-name=(.+), app-version=(.+), build-time=(.+)>Value:'
-    name: ksml_app_info
+    name: ksml_app
     labels:
       app_id: "$1"
       name: "$2"
@@ -31,4 +31,3 @@ rules:
     name: os_$1
     type: GAUGE
     attrNameSnakeCase: true
-  - pattern: .*
