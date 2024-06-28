@@ -89,43 +89,237 @@ KSML is able to automatically convert between types. Examples are:
 
 ## Function Types
 
-| Type                                | Returns            | Parameter         | Value Type | Description                               |
-|:------------------------------------|:-------------------|:------------------|:-----------|:------------------------------------------|
-| `aggregator`                        | _any_              | `key`             | _any_      | The key of the message                    |
-|                                     |                    | `value`           | _any_      | The value of the message                  |
-|                                     |                    | `aggregatedValue` | _any_      | The aggregated value thus far.            |
-| `forEach`                           | _none_             | `key`             | _any_      | The key of the message                    |
-|                                     |                    | `value`           | _any_      | The value of the message                  |
-| `foreignKeyExtractor`               | _any_              | `value`           | _any_      | The value to extract the foreign key from |
-| `initializer`                       | _any_              | _none_            |            |                                           |
-| `keyTransformer`                    | _any_              | `key`             | _any_      | The key of the message                    |
-|                                     |                    | `value`           | _any_      | The value of the message                  |
-| `keyValuePrinter`                   | `string`           | `key`             | _any_      | The key of the message                    |
-|                                     |                    | `value`           | _any_      | The value of the message                  |
-| `keyValueToKeyValueListTransformer` | [ (_any_, _any_) ] | `key`             | _any_      | The key of the message                    |
-|                                     |                    | `value`           | _any_      | The value of the message                  |
-| `keyValueToValueListTransformer`    | [ _any_ ]          | `key`             | _any_      | The key of the message                    |
-|                                     |                    | `value`           | _any_      | The value of the message                  |
-| `keyValueTransformer`               | (_any_, _any_)     | `key`             | _any_      | The key of the message                    |
-|                                     |                    | `value`           | _any_      | The value of the message                  |
-| `merger`                            | _any_              | `key`             | _any_      | The key of the message                    |
-|                                     |                    | `value1`          | _any_      | The first value to be merged              |
-|                                     |                    | `value2`          | _any_      | The second value to be merged             |
-| `predicate`                         | `boolean`          | `key`             | _any_      | The key of the message                    |
-|                                     |                    | `value`           | _any_      | The value of the message                  |
-| `reducer`                           | _any_              | `value1`          | _any_      | The first value to be reduced             |
-|                                     |                    | `value2`          | _any_      | The second value to be reduced            |
-| `streamPartitioner`                 | `int`              | `topic`           | `String`   | The topic of the message                  |
-|                                     |                    | `key`             | _any_      | The key of the message                    |
-|                                     |                    | `value`           | _any_      | The value of the message                  |
-|                                     |                    | `numPartitions`   | `int`      | The number of partitions on the topic     |
-| `topicNameExtractor`                | `string`           | `key`             | _any_      | The key of the message                    |
-|                                     |                    | `value`           | _any_      | The value of the message                  |
-| `valueJoiner`                       | _any_              | `key`             | _any_      | The key of both messages                  |
-|                                     |                    | `value1`          | _any_      | The first value to join                   |
-|                                     |                    | `value2`          | _any_      | The second value to join                  |
-| `valueTransformer`                  | _any_              | `key`             | _any_      | The key of the message                    |
-|                                     |                    | `value`           | _any_      | The value of the message                  |
+Functions in KSML always have a `type`. When no type is specified, the function type is inferred from the context, or it
+defaults back to `generic`. This section discusses the purpose of every function type, and what fixed arguments every
+call gets passed in.
+
+### Aggregator
+
+An `aggregator` incrementally integrates a new keu/value into an aggregatedValue. It is called for every new message
+that
+becomes part of the aggregated result.
+
+The following highlights which calls are made to which function type during a regular aggregation, in this case for
+counting the number of messages:
+
+```
+# Aggregation starts
+initializer() -> 0
+msg1: aggregator(msg1.key, msg1.value, 0) -> 1
+msg2: aggregator(msg2.key, msg2.value, 1) -> 1
+msg3: aggregator(msg3.key, msg3.value, 2) -> 3
+```
+
+The result in this example is 3.
+
+Aggregators get the following fixed arguments:
+
+| Parameter         | Value Type | Description                                                                |
+|:------------------|:-----------|:---------------------------------------------------------------------------|
+| `key`             | _any_      | The key of the message to be included in the aggregated result thus far.   |
+| `value`           | _any_      | The value of the message to be included in the aggregated result thus far. |
+| `aggregatedValue` | _any_      | The aggregated value thus far.                                             |
+| returns           | _any_      | The new aggregated result, which includes the latest message.              |
+
+### ForEach
+
+A `forEach` function is called for every message in a stream. When part of a `forEach` operation at the end of a
+pipeline, the function is the last one called for every message. When this function is called during `peek` operations,
+it may look at the messages and cause side effects (e.g. printing the message to stdout), and the pipeline will continue
+with the unmodified message after doing so.
+
+ForEach functions get the following fixed arguments:
+
+| Parameter | Value Type | Description               |
+|:----------|:-----------|:--------------------------|
+| `key`     | _any_      | The key of the message.   |
+| `value`   | _any_      | The value of the message. |
+| returns   | _none_     | Nothing is returned.      |
+
+### ForeignKeyExtractor
+
+A `foreignKeyExtractor` is a function used during (left) joins of two tables. The function translates a value from "this
+table" and translates it into a key of the "other table" that is joined with.
+
+ForEach functions get the following fixed arguments:
+
+| Parameter | Value Type | Description                                 |
+|:----------|:-----------|:--------------------------------------------|
+| `value`   | _any_      | The value of the message.                   |
+| returns   | _any_      | The key looked up in the table joined with. |
+
+### Initializer
+
+An `initializer` is called upon the start of every (part of an) aggregation. It takes no arguments and should return an
+initial value for the aggregation.
+
+| Parameter | Value Type | Description                                                                         |
+|:----------|:-----------|:------------------------------------------------------------------------------------|
+| returns   | _any_      | An initial value for the aggregation. In a counting aggregation, this would be `0`. |
+
+### KeyTransformer
+
+A `keyTransformer` is able to transform a key/value into a new key, which then gets combined with the original value as
+a new message on the output stream.
+
+KeyTransformers get the following fixed arguments:
+
+| Parameter | Value Type | Description                    |
+|:----------|:-----------|:-------------------------------|
+| `key`     | _any_      | The key of the message.        |
+| `value`   | _any_      | The value of the message.      |
+| returns   | _any_      | The key of the output message. |
+
+### KeyValuePrinter
+
+A `keyValuePrinter` takes a message and converts it to `string` before outputting it to a file or printing it to stdout.
+
+KeyValuePrinters get the following fixed arguments:
+
+| Parameter | Value Type | Description                                 |
+|:----------|:-----------|:--------------------------------------------|
+| `key`     | _any_      | The key of the message.                     |
+| `value`   | _any_      | The value of the message.                   |
+| returns   | `string`   | The string to be written to file or stdout. |
+
+### KeyValueToKeyValueListTransformer
+
+A `keyValueToKeyValueListTransformer` takes one message and converts it into a list of output messages, which then get
+sent to the output stream. An example for this type of function would be a message, which contains a list of items in
+its `value` (e.g. `(k, [item])`. Using a `transformKeyValueToKeyValueList` operation, this message can be converted into
+individual messages `(k,item1), (k,item2), ...` on the output stream.
+
+KeyValueToKeyValueListTransformers get the following fixed arguments:
+
+| Parameter | Value Type         | Description                               |
+|:----------|:-------------------|:------------------------------------------|
+| `key`     | _any_              | The key of the message.                   |
+| `value`   | _any_              | The value of the message.                 |
+| returns   | `[(_any_, _any_)]` | A list of messages for the output stream. |
+
+### KeyValueToValueListTransformer
+
+A `keyValueToValueListTransformer` takes one message and converts it into a list of output values, which then get
+combined with the original key and sent to the output stream. An example for this type of function would be a message,
+which contains a list of items in its `value` (e.g. `(k, [item])`. Using a `transformKeyValueToValueList` operation,
+this message can be converted into a list of values `[item1, item2, ...]` which get combined with the key of the message
+into `(k,item1), (k,item2), ...`on the output stream.
+
+KeyValueToValueListTransformers get the following fixed arguments:
+
+| Parameter | Value Type | Description                                                        |
+|:----------|:-----------|:-------------------------------------------------------------------|
+| `key`     | _any_      | The key of the message.                                            |
+| `value`   | _any_      | The value of the message.                                          |
+| returns   | `[_any_]`  | A list of values to be combined with the key on the output stream. |
+
+### KeyValueTransformer
+
+A `keyValueTransformer` takes one message and converts it into another message, which may have different key/value
+types.
+
+KeyValueTransformers get the following fixed arguments:
+
+| Parameter | Value Type       | Description               |
+|:----------|:-----------------|:--------------------------|
+| `key`     | _any_            | The key of the message.   |
+| `value`   | _any_            | The value of the message. |
+| returns   | `(_any_, _any_)` | The transformed message.  |
+
+### Merger
+
+A `merger` takes a key and two values, and merges those values together into a new value. That value is combined with
+the original key and sent to the output stream.
+
+Mergers get the following fixed arguments:
+
+| Parameter | Value Type | Description                             |
+|:----------|:-----------|:----------------------------------------|
+| `key`     | _any_      | The key of the message.                 |
+| `value1`  | _any_      | The value of the first message.         |
+| `value2`  | _any_      | The value of the second message.        |
+| returns   | _any_      | The merged value of the output message. |
+
+### Predicate
+
+A `predicate` is a function that takes the key/value of a message and returns `True` or `False`. It is used for
+filtering and branching purposes (e.g. routing messages based on content).
+
+Predicates get the following fixed arguments:
+
+| Parameter | Value Type | Description               |
+|:----------|:-----------|:--------------------------|
+| `key`     | _any_      | The key of the message.   |
+| `value`   | _any_      | The value of the message. |
+| returns   | `boolean`  | `True` or `False`.        |
+
+### Reducer
+
+A `reducer` is a function that combines two aggregated results into one.
+
+Reducers get the following fixed arguments:
+
+| Parameter | Value Type | Description                                   |
+|:----------|:-----------|:----------------------------------------------|
+| `value1`  | _any_      | The value of the first aggregation result.    |
+| `value2`  | _any_      | The value of the second aggregation result.   |
+| returns   | _any_      | The value of the combined aggregation result. |
+
+### StreamPartitioner
+
+A `streamPartitioner` is a function that can assign a partition number to every message. It is used to repartition Kafka
+topics, based on message contents.
+
+StreamPartitioners get the following fixed arguments:
+
+| Parameter       | Value Type | Description                                             |
+|:----------------|:-----------|:--------------------------------------------------------|
+| `topic`         | `string`   | The topic of the message.                               |
+| `key`           | _any_      | The key of the message.                                 |
+| `value`         | _any_      | The value of the message.                               |
+| `numPartitions` | `integer`  | The number of partitions available on the output topic. |
+| returns         | `integer`  | The partition number to which this message gets sent.   |
+
+### TopicNameExtractor
+
+A `topicNameExtractor` is a function which can derive a topic name from a message, for example by getting the customer
+name from a message and deriving the topic name from that. It is used by `toTopicNameExtractor` operations to send
+messages to individually determined topics.
+
+TopicNameExtractors get the following fixed arguments:
+
+| Parameter | Value Type | Description                                    |
+|:----------|:-----------|:-----------------------------------------------|
+| `key`     | _any_      | The key of the message.                        |
+| `value`   | _any_      | The value of the message.                      |
+| returns   | `string`   | The name of the topic to send this message to. |
+
+### ValueJoiner
+
+A `valueJoiner` takes a key and two values, and combines the two values into one. That value is then combined with the
+original key and sent to the output stream.
+
+ValueJoiners get the following fixed arguments:
+
+| Parameter | Value Type | Description                             |
+|:----------|:-----------|:----------------------------------------|
+| `key`     | _any_      | The key of the message.                 |
+| `value1`  | _any_      | The value of the first message.         |
+| `value2`  | _any_      | The value of the second message.        |
+| returns   | _any_      | The joined value of the output message. |
+
+### ValueTransformer
+
+A `valueTransformer` takes a key/value and transforms it into a new value, which is combined with the original key and
+sent to the output stream.
+
+ValueTransformers get the following fixed arguments:
+
+| Parameter | Value Type | Description                      |
+|:----------|:-----------|:---------------------------------|
+| `key`     | _any_      | The key of the message.          |
+| `value`   | _any_      | The value of the message.        |
+| returns   | _any_      | The value of the output message. |
 
 ## Function parameters
 
