@@ -26,7 +26,6 @@ import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.BaseOperation;
 import io.axual.ksml.operation.OperationConfig;
-import io.axual.ksml.parser.StringValueParser;
 import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyResourceAwareParser;
 import lombok.Getter;
@@ -48,10 +47,6 @@ public abstract class OperationParser<T extends BaseOperation> extends TopologyR
         return optional(stringField(KSMLDSL.Operations.NAME_ATTRIBUTE, false, type, "The name of the operation processor"));
     }
 
-    protected StructsParser<List<String>> storeNamesField() {
-        return optional(listField(KSMLDSL.Operations.STORE_NAMES_ATTRIBUTE, "store", "state store name", "The names of all state stores used by the function", new StringValueParser()));
-    }
-
     protected OperationConfig operationConfig(String name, ContextTags tags) {
         return operationConfig(name, tags, null);
     }
@@ -60,8 +55,7 @@ public abstract class OperationParser<T extends BaseOperation> extends TopologyR
         name = validateName("Operation", name, defaultLongName != null ? defaultLongName + "_" + type : type);
         return new OperationConfig(
                 name != null ? resources().getUniqueOperationName(name) : resources().getUniqueOperationName(tags),
-                tags,
-                storeNames != null ? storeNames.toArray(new String[]{}) : null);
+                tags);
     }
 
     @Override

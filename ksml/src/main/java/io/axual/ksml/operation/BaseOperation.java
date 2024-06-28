@@ -40,8 +40,6 @@ import org.apache.kafka.streams.state.SessionStore;
 import org.apache.kafka.streams.state.WindowStore;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.TreeSet;
 
 @Slf4j
 public class BaseOperation implements StreamOperation {
@@ -67,7 +65,6 @@ public class BaseOperation implements StreamOperation {
 
     protected final String name;
     protected final ContextTags tags;
-    protected final String[] storeNames;
 
     public BaseOperation(OperationConfig config) {
         var error = NameValidator.validateNameAndReturnError(config.name());
@@ -78,7 +75,6 @@ public class BaseOperation implements StreamOperation {
             name = config.name();
         }
         tags = config.tags().append("operation-name", name);
-        storeNames = config.storeNames() != null ? config.storeNames() : new String[0];
     }
 
     @Override
@@ -287,14 +283,6 @@ public class BaseOperation implements StreamOperation {
         }
     }
 
-    protected String[] combineStoreNames(String[]... storeNameArrays) {
-        final var storeNames = new TreeSet<String>();
-        for (String[] storeNameArray : storeNameArrays) {
-            if (storeNameArray != null) Collections.addAll(storeNames, storeNameArray);
-        }
-        return storeNames.toArray(TEMPLATE);
-    }
-
     protected StreamDataType streamDataTypeOf(DataType dataType, boolean isKey) {
         return streamDataTypeOf(new UserType(dataType), isKey);
     }
@@ -355,9 +343,10 @@ public class BaseOperation implements StreamOperation {
         return null;
     }
 
-    protected Repartitioned<Object, Object> repartitionedOf(StreamDataType k, StreamDataType v, StreamPartitioner<Object, Object> partitioner) {
+    protected Repartitioned<Object, Object> repartitionedOf(StreamDataType k, StreamDataType v, Integer numberOfPartitions, StreamPartitioner<Object, Object> partitioner) {
         if (partitioner == null) return null;
         var repartitioned = Repartitioned.with(k.serde(), v.serde()).withStreamPartitioner(partitioner);
+        if (numberOfPartitions != null) repartitioned = repartitioned.withNumberOfPartitions(numberOfPartitions);
         if (name != null) repartitioned = repartitioned.withName(name);
         return repartitioned;
     }

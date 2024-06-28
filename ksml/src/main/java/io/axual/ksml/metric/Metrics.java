@@ -22,10 +22,10 @@ package io.axual.ksml.metric;
 
 import java.util.Collections;
 
-public class KSMLMetrics {
+public class Metrics {
     public static final String DOMAIN = "ksml";
 
-    private KSMLMetrics() {
+    private Metrics() {
     }
 
     private static final MetricsRegistry REGISTRY = new MetricsRegistry();

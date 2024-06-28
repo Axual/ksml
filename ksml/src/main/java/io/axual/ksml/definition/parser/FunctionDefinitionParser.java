@@ -28,9 +28,9 @@ import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.DefinitionParser;
+import io.axual.ksml.parser.IgnoreParser;
 import io.axual.ksml.parser.StringValueParser;
 import io.axual.ksml.parser.StructsParser;
-import lombok.Getter;
 
 import java.util.List;
 
@@ -44,14 +44,14 @@ public abstract class FunctionDefinitionParser<T extends FunctionDefinition> ext
     }
 
     protected StructsParser<T> parserWithStores(Class<T> resultClass, String description, Constructor1<T, FunctionDefinition> constructor) {
-        return parser(resultClass, description, (name, params, globalCode, code, expression, resultType, stores, tags) -> FunctionDefinition.as(name, params, globalCode, code, expression, resultType, stores), constructor);
+        return parser(resultClass, description, true, (name, params, globalCode, code, expression, resultType, stores, tags) -> FunctionDefinition.as(name, params, globalCode, code, expression, resultType, stores), constructor);
     }
 
     protected StructsParser<T> parserWithoutStores(Class<T> resultClass, String description, Constructor1<T, FunctionDefinition> constructor) {
-        return parser(resultClass, description, (name, params, globalCode, code, expression, resultType, stores, tags) -> FunctionDefinition.as(name, params, globalCode, code, expression, resultType, null), constructor);
+        return parser(resultClass, description, false, (name, params, globalCode, code, expression, resultType, stores, tags) -> FunctionDefinition.as(name, params, globalCode, code, expression, resultType, null), constructor);
     }
 
-    private StructsParser<T> parser(Class<T> resultClass, String description, Constructor7<FunctionDefinition, String, List<ParameterDefinition>, String, String, String, UserType, List<String>> innerConstructor, Constructor1<T, FunctionDefinition> outerConstructor) {
+    private StructsParser<T> parser(Class<T> resultClass, String description, boolean includeStores, Constructor7<FunctionDefinition, String, List<ParameterDefinition>, String, String, String, UserType, List<String>> innerConstructor, Constructor1<T, FunctionDefinition> outerConstructor) {
         final var parseType = resultClass == FunctionDefinition.class;
         final var doc = "Defines a " + description + " function, that gets injected into the Kafka Streams topology";
         final var name = optional(stringField(Functions.NAME, "The name of the " + description + ". If this field is not defined, then the name is derived from the context."));
@@ -60,8 +60,10 @@ public abstract class FunctionDefinitionParser<T extends FunctionDefinition> ext
         final var code = optional(codeField(Functions.CODE, "The (multiline) code of the " + description));
         final var expression = optional(codeField(Functions.EXPRESSION, "The expression returned by the " + description + ". Only required for functions that return values."));
         final var resultType = optional(userTypeField(Functions.RESULT_TYPE, "The data type returned by the " + description + ". Only required for function types, which are not pre-defined."));
-        final var stores = optional(listField(Functions.STORES, "store-name", "store", "A list of store names that the " + description + " uses. Only required if the function wants to use a state store.", new StringValueParser()));
-        // We assume that the resultClass is always either using stores, or not using stores, but not a combination of both. Hence we do not provide a definitionVariant extension to distinguish between the two.
+        final var stores = includeStores
+                ? optional(listField(Functions.STORES, "store-name", "store", "A list of store names that the " + description + " uses. Only required if the function wants to use a state store.", new StringValueParser()))
+                : new IgnoreParser<List<String>>();
+        // We assume that the resultClass is always either using stores, or not using stores, but not a combination of both. Hence, we do not provide a definitionVariant extension to distinguish between the two.
         final var parser = structsParser(resultClass, parseType || requireType ? "" : KSMLDSL.Types.WITH_IMPLICIT_TYPE_POSTFIX, doc, name, params, globalCode, code, expression, resultType, stores, innerConstructor);
         return new StructsParser<>() {
             @Override

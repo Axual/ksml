@@ -30,10 +30,7 @@ import io.axual.ksml.util.SchemaUtil;
 import lombok.Getter;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class DefinitionParser<T> extends BaseParser<T> implements StructsParser<T> {
     public static final String SCHEMA_NAMESPACE = "io.axual.ksml";
@@ -150,6 +147,21 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
 
     protected StructsParser<Duration> durationField(String childName, String doc) {
         return freeField(childName, null, doc, durationParser);
+    }
+
+    protected StructsParser<String> enumField(String childName, EnumSchema schema) {
+        final var stringParser = new StringValueParser();
+        final ParserWithSchema<String> parser = ParserWithSchema.of(
+                node -> {
+                    final var value = stringParser.parse(node);
+                    if (value == null)
+                        throw new ParseException(node, "Empty value not allowed for enum " + schema.name());
+                    if (!Set.copyOf(schema.symbols()).contains(value))
+                        throw new ParseException(node, "Illegal value for enum " + schema.name() + ": " + value);
+                    return value;
+                },
+                schema);
+        return new FieldParser<>(childName, false, null, schema.doc(), parser);
     }
 
     protected StructsParser<Integer> integerField(String childName, String doc) {

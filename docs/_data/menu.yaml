@@ -24,4 +24,4 @@ items:
     url: runners.html
 
   - title: Language Specification
-    url: specification.html
+    url: ksml-language-spec.html

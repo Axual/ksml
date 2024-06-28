@@ -90,7 +90,7 @@ public class PipelineDefinitionParser extends TopologyResourceAwareParser<Pipeli
                     // If no sink operation was specified, then we create an AS operation here with the name provided.
                     // This means that pipeline results can be referred to by other pipelines using the pipeline's name
                     // as identifier.
-                    var sinkOperation = shortName != null ? new AsOperation(new OperationConfig(resources().getUniqueOperationName(longName), tags, null), shortName) : null;
+                    var sinkOperation = shortName != null ? new AsOperation(new OperationConfig(resources().getUniqueOperationName(longName), tags), shortName) : null;
                     return new PipelineDefinition(name, from, via, sinkOperation);
                 });
     }

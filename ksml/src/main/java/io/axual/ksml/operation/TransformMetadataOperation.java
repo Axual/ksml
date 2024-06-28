@@ -54,7 +54,7 @@ public class TransformMetadataOperation extends BaseOperation {
         final var meta = new UserType(RecordMetadata.DATATYPE);
         final var map = userFunctionOf(context, MAPPER_NAME, mapper, subOf(meta), superOf(k), superOf(v), superOf(meta));
         final var userMap = new UserMetadataTransformer(map, tags);
-        final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames().toArray(TEMPLATE));
+        final var storeNames = mapper.storeNames().toArray(String[]::new);
         final var supplier = new FixedKeyOperationProcessorSupplier<>(
                 name,
                 TransformMetadataProcessor::new,

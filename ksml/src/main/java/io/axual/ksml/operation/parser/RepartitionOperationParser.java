@@ -39,7 +39,8 @@ public class RepartitionOperationParser extends OperationParser<RepartitionOpera
                 "",
                 "Operation to (re)partition a stream",
                 operationNameField(),
-                functionField(KSMLDSL.Operations.Repartition.PARTITIONER, "A function that partitions stream records", new StreamPartitionerDefinitionParser(false)),
-                (name, partitioner, tags) -> new RepartitionOperation(operationConfig(name, tags), partitioner));
+                optional(integerField(KSMLDSL.Operations.Repartition.NUMBER_OF_PARTITIONS, "The target number of partitions")),
+                optional(functionField(KSMLDSL.Operations.Repartition.PARTITIONER, "A function that partitions stream records", new StreamPartitionerDefinitionParser(false))),
+                (name, numberOfPartitions, partitioner, tags) -> new RepartitionOperation(operationConfig(name, tags), numberOfPartitions, partitioner));
     }
 }

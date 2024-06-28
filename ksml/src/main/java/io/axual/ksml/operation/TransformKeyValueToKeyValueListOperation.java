@@ -64,7 +64,7 @@ public class TransformKeyValueToKeyValueListOperation extends BaseOperation {
             final var kr = streamDataTypeOf(mapperResultListTupleValueType.getUserType(0), true);
             final var vr = streamDataTypeOf(mapperResultListTupleValueType.getUserType(1), false);
             final var userMap = new UserKeyValueToKeyValueListTransformer(map, tags);
-            final var storeNames = combineStoreNames(this.storeNames, mapper.storeNames().toArray(TEMPLATE));
+            final var storeNames = mapper.storeNames().toArray(String[]::new);
             final var supplier = new OperationProcessorSupplier<>(
                     name,
                     TransformKeyValueToKeyValueListProcessor::new,

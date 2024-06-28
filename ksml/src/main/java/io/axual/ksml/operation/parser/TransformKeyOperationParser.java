@@ -40,7 +40,6 @@ public class TransformKeyOperationParser extends OperationParser<TransformKeyOpe
                 "Convert the key of every record in the stream to another key",
                 operationNameField(),
                 functionField(KSMLDSL.Operations.Transform.MAPPER, "A function that computes a new key for each record", new KeyTransformerDefinitionParser(false)),
-                storeNamesField(),
-                (name, mapper, storeNames, tags) -> new TransformKeyOperation(operationConfig(name, tags, storeNames), mapper));
+                (name, mapper, tags) -> new TransformKeyOperation(operationConfig(name, tags), mapper));
     }
 }

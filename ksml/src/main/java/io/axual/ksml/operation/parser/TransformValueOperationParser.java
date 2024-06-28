@@ -42,7 +42,6 @@ public class TransformValueOperationParser extends StoreOperationParser<Transfor
                 operationNameField(),
                 functionField(KSMLDSL.Operations.Transform.MAPPER, "A function that converts the value of every record into another value", new ValueTransformerDefinitionParser(false)),
                 storeField(false, "Materialized view of the transformed table (only applies to tables, ignored for streams)", StoreType.KEYVALUE_STORE),
-                storeNamesField(),
-                (name, mapper, store, storeNames, tags) -> new TransformValueOperation(storeOperationConfig(name, tags, store, storeNames), mapper));
+                (name, mapper, store, tags) -> new TransformValueOperation(storeOperationConfig(name, tags, store), mapper));
     }
 }

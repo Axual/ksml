@@ -86,7 +86,6 @@ public class KSMLDSL {
         public static final String NAME_ATTRIBUTE = "name";
         public static final String TYPE_ATTRIBUTE = "type";
         public static final String STORE_ATTRIBUTE = "store";
-        public static final String STORE_NAMES_ATTRIBUTE = "stores";
 
         public static final String AGGREGATE = "aggregate";
         public static final String COGROUP = "cogroup";
@@ -205,6 +204,7 @@ public class KSMLDSL {
 
         @NoArgsConstructor(access = AccessLevel.PRIVATE)
         public static class Repartition {
+            public static final String NUMBER_OF_PARTITIONS = "numberOfPartitions";
             public static final String PARTITIONER = "partitioner";
         }
 

@@ -20,7 +20,7 @@ package io.axual.ksml.runner.prometheus;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.metric.KSMLMetrics;
+import io.axual.ksml.metric.Metrics;
 import io.axual.ksml.runner.config.PrometheusConfig;
 import io.prometheus.jmx.BuildInfoMetrics;
 import io.prometheus.jmx.JmxCollector;
@@ -53,7 +53,7 @@ public class PrometheusExport implements Closeable {
 
     @Synchronized
     public void start() throws Exception {
-        KSMLMetrics.init();
+        Metrics.init();
         if (!config.isEnabled()) {
             log.info("Prometheus export is disabled");
             return;

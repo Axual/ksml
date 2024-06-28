@@ -1,22 +1,27 @@
-# Getting started
+# Quick start
 
 ### Table of Contents
+
 1. [Introduction](#introduction)
 2. [Starting a demo setup](#starting-a-demo-setup)
 3. [Starting a KSML runner](#starting-a-ksml-runner)
 4. [Next steps](#next-steps)
 
 ## Introduction
-KSML comes with an example setup, where a producer outputs SensorData messages to Kafka, which are then processed by KSML pipelines.
+
+KSML comes with example definitions, which contain a producer that outputs SensorData messages to Kafka,
+and several pipelines, which each independently consume and process the produced messages.
 
 ## Starting a demo setup
+
 After checking out the repository, go to the KSML directory and execute the following:
 
 ```
 docker compose up -d
 ```
 
-This will start Zookeeper, Kafka and a Schema Registry in the background. It will also start the demo producer, which outputs two random messages per second on a `ksml_sensordata_avro` topic.
+This will start Zookeeper, Kafka and a Schema Registry in the background. It will also start the demo producer, which
+outputs two random messages per second on a `ksml_sensordata_avro` topic.
 
 You can check the valid starting of these containers using the following command:
 
@@ -25,6 +30,7 @@ docker compose logs -f
 ```
 
 Press CTRL-C when you verified data is produced. This typically looks like this:
+
 ```
 example-producer-1  | 2024-03-06T20:24:49,480Z INFO  i.a.k.r.backend.KafkaProducerRunner  Calling generate_sensordata_message
 example-producer-1  | 2024-03-06T20:24:49,480Z INFO  i.a.k.r.backend.ExecutableProducer   Message: key=sensor2, value=SensorData: {"city":"Utrecht", "color":"white", "name":"sensor2", "owner":"Alice", "timestamp":1709756689480, "type":"HUMIDITY", "unit":"%", "value":"66"}
@@ -40,7 +46,6 @@ example-producer-1  | 2024-03-06T20:24:50,035Z INFO  i.a.k.r.backend.KafkaProduc
 example-producer-1  | 2024-03-06T20:24:50,035Z INFO  i.a.k.r.backend.ExecutableProducer   Message: key=sensor7, value=SensorData: {"city":"Alkmaar", "color":"black", "name":"sensor7", "owner":"Dave", "timestamp":"1709756690035", "type":"TEMPERATURE", "unit":"C", "value":"0"}
 
 ```
-
 
 ## Starting a KSML runner
 
@@ -69,6 +74,7 @@ This will start the KSML docker container. You should see the following typical 
 
 ## Next steps
 
-Check out the examples in the [Examples]({{ site.github.repository_url }}/tree/main/examples/) directory. By modifying the file `examples/ksml-runner.yaml` you can select the example(s) to run.
+Check out the examples in the `examples` directory of the project. By modifying the file `examples/ksml-runner.yaml` you
+can select the example(s) to run.
 
 For a more elaborate introduction, you can start [here](introduction.md) or refer to the [documentation](index.md).

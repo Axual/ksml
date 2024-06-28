@@ -21,48 +21,71 @@ package io.axual.ksml.operation.parser;
  */
 
 
+import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.SuppressOperation;
+import io.axual.ksml.parser.ChoiceParser;
 import io.axual.ksml.parser.StructsParser;
 import org.apache.kafka.streams.kstream.Suppressed;
+
+import java.util.List;
+import java.util.Map;
 
 import static io.axual.ksml.dsl.KSMLDSL.Operations;
 
 public class SuppressOperationParser extends OperationParser<SuppressOperation> {
+    private final StructsParser<SuppressOperation> untilTimeLimitParser;
+    private final StructsParser<SuppressOperation> untilWindowClosesParser;
+
     public SuppressOperationParser(TopologyResources resources) {
         super(KSMLDSL.Operations.SUPPRESS, resources);
-    }
+        final var bufferFullSchema = new EnumSchema(
+                SCHEMA_NAMESPACE,
+                "BufferFullStrategy",
+                "What to do when the buffer is full",
+                List.of(Operations.Suppress.BUFFER_FULL_STRATEGY_EMIT, Operations.Suppress.BUFFER_FULL_STRATEGY_SHUTDOWN));
 
-    public StructsParser<SuppressOperation> parser() {
-        return structsParser(
+        untilTimeLimitParser = structsParser(
                 SuppressOperation.class,
-                "",
-                "Operation to suppress messages in the source stream until a certain limit is reached",
+                "UntilTimeLimit",
+                "Operation to suppress messages in the source stream until a time limit is reached",
                 operationNameField(),
-                stringField(Operations.Suppress.UNTIL, "The method by which messages are held, either \"" + Operations.Suppress.UNTIL_TIME_LIMIT + "\", or \"" + Operations.Suppress.UNTIL_WINDOW_CLOSES + "\""),
                 durationField(Operations.Suppress.DURATION, "The duration for which messages are suppressed"),
                 optional(stringField(Operations.Suppress.BUFFER_MAXBYTES, "The maximum number of bytes in the buffer")),
                 optional(stringField(Operations.Suppress.BUFFER_MAXRECORDS, "The maximum number of records in the buffer")),
-                optional(stringField(Operations.Suppress.BUFFER_FULL_STRATEGY, "What to do when the buffer is full, either \"" + Operations.Suppress.BUFFER_FULL_STRATEGY_EMIT + "\", or \"" + Operations.Suppress.BUFFER_FULL_STRATEGY_SHUTDOWN + "\"")),
-                (name, until, duration, maxBytes, maxRecords, strategy, tags) -> {
-                    switch (until) {
-                        case Operations.Suppress.UNTIL_TIME_LIMIT -> {
-                            final var bufferConfig = bufferConfig(maxBytes, maxRecords, strategy);
-                            return SuppressOperation.create(
-                                    operationConfig(name, tags),
-                                    Suppressed.untilTimeLimit(duration, bufferConfig));
-                        }
-                        case Operations.Suppress.UNTIL_WINDOW_CLOSES -> {
-                            final var bufferConfig = strictBufferConfig(bufferConfig(maxBytes, maxRecords, strategy));
-                            return SuppressOperation.createWindowed(
-                                    operationConfig(name, tags),
-                                    Suppressed.untilWindowCloses(bufferConfig));
-                        }
-                    }
-                    throw new TopologyException("Unknown Until type for suppress operation: " + until);
+                optional(enumField(Operations.Suppress.BUFFER_FULL_STRATEGY, bufferFullSchema)),
+                (name, duration, maxBytes, maxRecords, strategy, tags) -> {
+                    final var bufferConfig = bufferConfig(maxBytes, maxRecords, strategy);
+                    return SuppressOperation.create(
+                            operationConfig(name, tags),
+                            Suppressed.untilTimeLimit(duration, bufferConfig));
                 });
+        untilWindowClosesParser = structsParser(
+                SuppressOperation.class,
+                "UntilWindowCloses",
+                "Operation to suppress messages in the source stream until a window limit is reached",
+                operationNameField(),
+                optional(stringField(Operations.Suppress.BUFFER_MAXBYTES, "The maximum number of bytes in the buffer")),
+                optional(stringField(Operations.Suppress.BUFFER_MAXRECORDS, "The maximum number of records in the buffer")),
+                optional(enumField(Operations.Suppress.BUFFER_FULL_STRATEGY, bufferFullSchema)),
+                (name, maxBytes, maxRecords, strategy, tags) -> {
+                    final var bufferConfig = strictBufferConfig(bufferConfig(maxBytes, maxRecords, strategy));
+                    return SuppressOperation.createWindowed(
+                            operationConfig(name, tags),
+                            Suppressed.untilWindowCloses(bufferConfig));
+                });
+    }
+
+    public StructsParser<SuppressOperation> parser() {
+        return new ChoiceParser<>(
+                Operations.Suppress.UNTIL,
+                "SuppressType",
+                "Operation to suppress messages in the source stream until a certain limit is reached",
+                null,
+                Map.of(Operations.Suppress.UNTIL_TIME_LIMIT, untilTimeLimitParser,
+                        Operations.Suppress.UNTIL_WINDOW_CLOSES, untilWindowClosesParser));
     }
 
     private Suppressed.EagerBufferConfig bufferConfig(String maxBytes, String maxRecords, String bufferFullStrategy) {
