@@ -21,6 +21,22 @@ package io.axual.ksml.runner.backend;
  */
 
 
+import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.utils.Utils;
+import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.KeyQueryMetadata;
+import org.apache.kafka.streams.StoreQueryParameters;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.StreamsMetadata;
+import org.apache.kafka.streams.TopologyConfig;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import io.axual.ksml.TopologyGenerator;
 import io.axual.ksml.client.generic.ResolvingClientConfig;
 import io.axual.ksml.client.producer.ResolvingProducerConfig;
@@ -32,15 +48,6 @@ import io.axual.ksml.runner.config.ApplicationServerConfig;
 import io.axual.ksml.runner.streams.KSMLClientSupplier;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.serialization.Serializer;
-import org.apache.kafka.common.utils.Utils;
-import org.apache.kafka.streams.*;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 public class KafkaStreamsRunner implements Runner {
@@ -67,7 +74,8 @@ public class KafkaStreamsRunner implements Runner {
         final var streamsConfig = new StreamsConfig(streamsProps);
         final var topologyConfig = new TopologyConfig(streamsConfig);
         final var streamsBuilder = new StreamsBuilder(topologyConfig);
-        final var topologyGenerator = new TopologyGenerator(applicationId);
+        var optimize = streamsProps.getOrDefault(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE);
+        final var topologyGenerator = new TopologyGenerator(applicationId, (String) optimize);
         final var topology = topologyGenerator.create(streamsBuilder, config.definitions);
         kafkaStreams = new KafkaStreams(topology, mapToProperties(streamsProps));
         kafkaStreams.setUncaughtExceptionHandler(ExecutionContext.INSTANCE::uncaughtException);
@@ -75,8 +83,10 @@ public class KafkaStreamsRunner implements Runner {
 
     private Map<String, Object> getStreamsConfig(Map<String, String> initialConfigs, String storageDirectory, ApplicationServerConfig appServer) {
         final Map<String, Object> result = initialConfigs != null ? new HashMap<>(initialConfigs) : new HashMap<>();
+        // Set default value if not explicitly configured
+        result.putIfAbsent(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE);
+
         // Explicit configs can overwrite those from the map
-        result.put(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE);
         result.put(StreamsConfig.DEFAULT_PRODUCTION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class);
         result.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class);
         if (result.containsKey(ResolvingClientConfig.GROUP_ID_PATTERN_CONFIG)
