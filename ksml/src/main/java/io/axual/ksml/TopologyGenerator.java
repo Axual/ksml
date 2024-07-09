@@ -21,6 +21,17 @@ package io.axual.ksml;
  */
 
 
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.Topology;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
 import io.axual.ksml.definition.GlobalTableDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.TableDefinition;
@@ -31,22 +42,23 @@ import io.axual.ksml.operation.StoreOperation;
 import io.axual.ksml.operation.StreamOperation;
 import io.axual.ksml.operation.ToOperation;
 import io.axual.ksml.stream.StreamWrapper;
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.Topology;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 public class TopologyGenerator {
     private static final Logger LOG = LoggerFactory.getLogger(TopologyGenerator.class);
     private final String applicationId;
+    private final Properties optimization;
 
     public TopologyGenerator(String applicationId) {
+        this(applicationId, null);
+    }
+
+    public TopologyGenerator(String applicationId, String optimization) {
         // Parse configuration
         this.applicationId = applicationId;
+        this.optimization = new Properties();
+        if(optimization != null) {
+            this.optimization.put(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, optimization);
+        }
     }
 
     public Topology create(StreamsBuilder streamsBuilder, Map<String, TopologyDefinition> definitions) {
@@ -59,7 +71,8 @@ public class TopologyGenerator {
             generate(definition, context);
         });
 
-        var topology = streamsBuilder.build();
+
+        var topology = streamsBuilder.build(optimization);
         var analysis = TopologyAnalyzer.analyze(topology, applicationId, knownTopics);
 
         StringBuilder summary = new StringBuilder("\n\n");
