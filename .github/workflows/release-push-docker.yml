@@ -43,4 +43,4 @@ jobs:
           tags: |
             axual/ksml:${{ github.event.release.tag_name }}
             ghcr.io/axual/ksml:${{ github.event.release.tag_name }}
-            ghcr.io/axual/ksml:latest
+            ghcr.io/axual/ksml:0.9
