@@ -20,10 +20,11 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.parser.schema.DataSchemaDSL;
 import io.axual.ksml.data.type.SimpleType;
 
 public class DataFloat extends DataPrimitive<Float> {
-    public static final SimpleType DATATYPE = new SimpleType(Float.class);
+    public static final SimpleType DATATYPE = new SimpleType(Float.class, DataSchemaDSL.FLOAT_TYPE);
 
     public DataFloat() {
         this(null);

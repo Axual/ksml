@@ -20,16 +20,19 @@ package io.axual.ksml.rest.data;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataObject;
+import lombok.Getter;
 import org.apache.kafka.streams.kstream.Window;
 
+@Getter
 public class WindowedKeyValueBean extends KeyValueBean {
-    public final WindowDataBean window;
+    private final WindowDataBean window;
 
-    public WindowedKeyValueBean(Window window, Object key, Object value) {
+    public WindowedKeyValueBean(Window window, DataObject key, DataObject value) {
         this(new WindowDataBean(window), key, value);
     }
 
-    public WindowedKeyValueBean(WindowDataBean window, Object key, Object value) {
+    public WindowedKeyValueBean(WindowDataBean window, DataObject key, DataObject value) {
         super(key, value);
         this.window = window;
     }

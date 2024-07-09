@@ -21,6 +21,7 @@ package io.axual.ksml.user;
  */
 
 
+import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.mapper.RecordMetadataDataObjectMapper;
 import io.axual.ksml.data.tag.ContextTags;
@@ -30,8 +31,8 @@ import io.axual.ksml.python.Invoker;
 import io.axual.ksml.store.StateStores;
 
 public class UserMetadataTransformer extends Invoker {
-    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
-    private final RecordMetadataDataObjectMapper metaMapper = new RecordMetadataDataObjectMapper();
+    private static final RecordMetadataDataObjectMapper META_MAPPER = new RecordMetadataDataObjectMapper();
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
     public UserMetadataTransformer(UserFunction function, ContextTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_METADATATRANSFORMER);
@@ -39,7 +40,7 @@ public class UserMetadataTransformer extends Invoker {
     }
 
     public RecordMetadata apply(StateStores stores, Object key, Object value, RecordMetadata metadata) {
-        final var resultMeta = function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value), metaMapper.toDataObject(metadata));
-        return timeExecutionOf(() -> metaMapper.fromDataObject(resultMeta));
+        final var resultMeta = function.call(stores, NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value), META_MAPPER.toDataObject(metadata));
+        return timeExecutionOf(() -> META_MAPPER.fromDataObject(resultMeta));
     }
 }

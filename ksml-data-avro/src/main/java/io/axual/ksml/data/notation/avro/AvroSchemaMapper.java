@@ -36,7 +36,7 @@ import static io.axual.ksml.data.schema.DataField.NO_INDEX;
 public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     private static final AvroDataObjectMapper avroMapper = new AvroDataObjectMapper();
     private static final Schema AVRO_NULL_TYPE = Schema.create(Schema.Type.NULL);
-    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
 
     @Override
     public StructSchema toDataSchema(String namespace, String name, Schema schema) {
@@ -80,7 +80,8 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
 
             case STRING -> new SchemaAndRequired(DataSchema.create(DataSchema.Type.STRING), true);
 
-            case ARRAY -> new SchemaAndRequired(new ListSchema(convertToDataSchema(schema.getElementType()).schema()), true);
+            case ARRAY ->
+                    new SchemaAndRequired(new ListSchema(convertToDataSchema(schema.getElementType()).schema()), true);
             case ENUM -> new SchemaAndRequired(
                     new EnumSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getEnumSymbols(), schema.getEnumDefault()),
                     true);
@@ -204,7 +205,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
 
     private DataValue convertFromAvroDefault(Schema.Field field) {
         if (!field.hasDefaultValue()) return null;
-        var value = nativeMapper.fromDataObject(avroMapper.toDataObject(field.defaultVal()));
+        var value = NATIVE_MAPPER.fromDataObject(avroMapper.toDataObject(field.defaultVal()));
         return new DataValue(value);
     }
 

@@ -43,8 +43,10 @@ public class DataSchemaDSL {
     public static final String DATA_FIELD_CONSTANT_FIELD = "constant";
     public static final String DATA_FIELD_DEFAULT_VALUE_FIELD = "defaultValue";
     public static final String DATA_FIELD_ORDER_FIELD = "order";
+    public static final String UNKNOWN_TYPE = "?";
     public static final String ANY_TYPE = "any";
     public static final String NULL_TYPE = "null";
+    public static final String NONE_TYPE = "none";
     public static final String BOOLEAN_TYPE = "boolean";
     public static final String BYTE_TYPE = "byte";
     public static final String SHORT_TYPE = "short";
@@ -56,10 +58,13 @@ public class DataSchemaDSL {
     public static final String BYTES_TYPE = "bytes";
     public static final String FIXED_TYPE = "fixed";
     public static final String STRING_TYPE = "string";
+    public static final String STRING_TYPE_ALTERNATIVE = "str";
     public static final String ENUM_TYPE = "enum";
     public static final String LIST_TYPE = "list";
     public static final String LIST_TYPE_ALTERNATIVE = "array";
     public static final String MAP_TYPE = "map";
     public static final String STRUCT_TYPE = "struct";
     public static final String STRUCT_TYPE_ALTERNATIVE = "record";
+    public static final String UNION_TYPE = "union";
+    public static final String WINDOWED_TYPE = "windowed";
 }

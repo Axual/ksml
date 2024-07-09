@@ -21,24 +21,14 @@ package io.axual.ksml.data.serde;
  */
 
 import io.axual.ksml.data.mapper.DataObjectMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.json.JsonDataObjectMapper;
-import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 
 public class JsonSerde extends StringSerde {
-    private static final JsonDataObjectMapper MAPPER = new JsonDataObjectMapper();
+    private static final DataObjectMapper<String> STRING_MAPPER = new JsonDataObjectMapper();
 
-    public JsonSerde(DataType expectedType) {
-        super(new DataObjectMapper<>() {
-            @Override
-            public DataObject toDataObject(DataType expected, String value) {
-                return MAPPER.toDataObject(expected, value);
-            }
-
-            @Override
-            public String fromDataObject(DataObject value) {
-                return MAPPER.fromDataObject(value);
-            }
-        }, expectedType);
+    public JsonSerde(NativeDataObjectMapper nativeMapper, DataType expectedType) {
+        super(nativeMapper, STRING_MAPPER, expectedType);
     }
 }

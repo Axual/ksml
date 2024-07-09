@@ -29,7 +29,7 @@ import org.apache.kafka.common.header.internals.RecordHeaders;
 import static io.axual.ksml.dsl.HeaderSchema.*;
 
 public class HeaderDataObjectMapper implements DataObjectMapper<Headers> {
-    private static final StringSerde STRING_SERDE = new StringSerde();
+    private static final StringSerde STRING_SERDE = new StringSerde(new NativeDataObjectMapper());
 
     @Override
     public DataObject toDataObject(DataType expected, Headers value) {

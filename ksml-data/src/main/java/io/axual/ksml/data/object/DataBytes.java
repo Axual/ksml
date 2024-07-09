@@ -20,17 +20,13 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.parser.schema.DataSchemaDSL;
 import io.axual.ksml.data.type.SimpleType;
 
 import java.util.Arrays;
 
 public class DataBytes extends DataPrimitive<byte[]> {
-    public static final SimpleType DATATYPE = new SimpleType(byte[].class) {
-        @Override
-        public String containerName() {
-            return "Bytes";
-        }
-    };
+    public static final SimpleType DATATYPE = new SimpleType(byte[].class, DataSchemaDSL.BYTES_TYPE);
 
     public DataBytes() {
         this(null);

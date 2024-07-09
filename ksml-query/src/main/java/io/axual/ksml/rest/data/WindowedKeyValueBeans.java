@@ -20,10 +20,12 @@ package io.axual.ksml.rest.data;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataObject;
 import org.apache.kafka.streams.kstream.Window;
 
 import java.util.ArrayList;
 import java.util.List;
+
 public class WindowedKeyValueBeans {
     private final List<WindowedKeyValueBean> elements = new ArrayList<>();
 
@@ -31,13 +33,13 @@ public class WindowedKeyValueBeans {
         return elements;
     }
 
-    public WindowedKeyValueBeans add(Window window, Object key, Object value) {
+    public WindowedKeyValueBeans add(Window window, DataObject key, DataObject value) {
         elements.add(new WindowedKeyValueBean(window, key, value));
         return this;
     }
 
     public WindowedKeyValueBeans add(WindowedKeyValueBean element) {
-        elements.add(new WindowedKeyValueBean(element.window, element.key, element.value));
+        elements.add(element);
         return this;
     }
 

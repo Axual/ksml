@@ -27,7 +27,6 @@ import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.python.Invoker;
 
 public class UserGenerator extends Invoker {
-
     public UserGenerator(UserFunction function, ContextTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_GENERATOR);
         verifyParameterCount(0);

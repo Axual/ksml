@@ -21,6 +21,7 @@ package io.axual.ksml.user;
  */
 
 
+import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.tag.ContextTags;
@@ -30,8 +31,8 @@ import io.axual.ksml.python.Invoker;
 import org.apache.kafka.streams.kstream.ValueJoinerWithKey;
 
 public class UserValueJoinerWithKey extends Invoker implements ValueJoinerWithKey<Object, Object, Object, DataObject> {
-    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
-    private final static DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
+    private static final DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
     public UserValueJoinerWithKey(UserFunction function, ContextTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_VALUEJOINER);
@@ -41,6 +42,6 @@ public class UserValueJoinerWithKey extends Invoker implements ValueJoinerWithKe
 
     @Override
     public DataObject apply(Object key, Object value1, Object value2) {
-        return timeExecutionOf(() -> function.call(nativeMapper.toDataObject(key), nativeMapper.toDataObject(value1), nativeMapper.toDataObject(value2)));
+        return timeExecutionOf(() -> function.call(NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value1), NATIVE_MAPPER.toDataObject(value2)));
     }
 }

@@ -128,7 +128,6 @@ public class AggregateOperation extends StoreOperation {
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var windowedK = windowedTypeOf(k);
         final var vr = streamDataTypeOf(firstSpecificType(initializer, aggregator, merger), false);
         final var init = userFunctionOf(context, INITIALIZER_NAME, initializer, vr);
         final var userInit = new UserInitializer(init, tags);
@@ -146,7 +145,7 @@ public class AggregateOperation extends StoreOperation {
                 : mat != null
                 ? input.sessionWindowedKStream.aggregate(userInit, userAggr, userMerg, mat)
                 : input.sessionWindowedKStream.aggregate(userInit, userAggr, userMerg);
-        return new KTableWrapper((KTable) output, windowedK, vr);
+        return new KTableWrapper((KTable) output, windowed(k), vr);
     }
 
     @Override
@@ -163,7 +162,6 @@ public class AggregateOperation extends StoreOperation {
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var windowedK = windowedTypeOf(k);
         final var vr = streamDataTypeOf(firstSpecificType(initializer, aggregator), false);
         final var init = userFunctionOf(context, INITIALIZER_NAME, initializer, vr);
         final var userInit = new UserInitializer(init, tags);
@@ -179,7 +177,7 @@ public class AggregateOperation extends StoreOperation {
                 : mat != null
                 ? input.timeWindowedKStream.aggregate(userInit, userAggr, mat)
                 : input.timeWindowedKStream.aggregate(userInit, userAggr);
-        return new KTableWrapper((KTable) output, windowedK, vr);
+        return new KTableWrapper((KTable) output, windowed(k), vr);
     }
 
     @Override
@@ -224,7 +222,6 @@ public class AggregateOperation extends StoreOperation {
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var windowedK = windowedTypeOf(k);
         final var init = userFunctionOf(context, INITIALIZER_NAME, initializer, v);
         final var userInit = new UserInitializer(init, tags);
         final var merg = userFunctionOf(context, MERGER_NAME, merger, v);
@@ -239,7 +236,7 @@ public class AggregateOperation extends StoreOperation {
                 : mat != null
                 ? input.sessionWindowedCogroupedKStream.aggregate(userInit, userMerg, mat)
                 : input.sessionWindowedCogroupedKStream.aggregate(userInit, userMerg);
-        return new KTableWrapper((KTable) output, windowedK, v);
+        return new KTableWrapper((KTable) output, windowed(k), v);
     }
 
     @Override
@@ -255,7 +252,6 @@ public class AggregateOperation extends StoreOperation {
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var windowedK = windowedTypeOf(k);
         final var init = userFunctionOf(context, INITIALIZER_NAME, initializer, v);
         final var userInit = new UserInitializer(init, tags);
         final var kvStore = validateWindowStore(store(), k, v);
@@ -268,6 +264,6 @@ public class AggregateOperation extends StoreOperation {
                 : mat != null
                 ? input.timeWindowedCogroupedKStream.aggregate(userInit, mat)
                 : input.timeWindowedCogroupedKStream.aggregate(userInit);
-        return new KTableWrapper((KTable) output, windowedK, v);
+        return new KTableWrapper((KTable) output, windowed(k), v);
     }
 }

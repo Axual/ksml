@@ -124,7 +124,7 @@ public class WindowedKeyValueStoreResource extends StoreResource {
             latest = iterator.next();
         }
         var result = latest != null
-                ? new WindowedKeyValueBean(latest.key.window(), latest.key.key(), latest.value)
+                ? new WindowedKeyValueBean(latest.key.window(), NATIVE_MAPPER.toDataObject(latest.key.key()), NATIVE_MAPPER.toDataObject(latest.value))
                 : null;
         log.info("Found value {}", result);
         return result;

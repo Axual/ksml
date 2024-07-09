@@ -22,6 +22,7 @@ package io.axual.ksml.data.serde;
 
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataTypeSchemaMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataStruct;
@@ -49,7 +50,7 @@ public class DataObjectDeserializer implements Deserializer<DataObject> {
         final var wrapperField = new DataField(FIELD_NAME, dataObjectSchema, "");
         final var wrapperSchema = new StructSchema(DATA_SCHEMA_NAMESPACE, DATA_OBJECT_TYPE_NAME, DATA_OBJECT_TYPE_NAME, List.of(wrapperField));
         wrapperType = dataTypeDataSchemaMapper.fromDataSchema(wrapperSchema);
-        try (final var serde = new JsonSerde(wrapperType)) {
+        try (final var serde = new JsonSerde(new NativeDataObjectMapper(), wrapperType)) {
             jsonDeserializer = serde.deserializer();
         }
     }

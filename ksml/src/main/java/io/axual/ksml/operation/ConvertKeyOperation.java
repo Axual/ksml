@@ -25,11 +25,15 @@ import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
+import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Named;
+import org.apache.kafka.streams.kstream.Suppressed;
+import org.apache.kafka.streams.kstream.TimeWindows;
+
+import java.time.Duration;
 
 public class ConvertKeyOperation extends BaseOperation {
-    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
     private final UserType targetKeyType;
 
     public ConvertKeyOperation(OperationConfig config, UserType targetKeyType) {
@@ -41,12 +45,12 @@ public class ConvertKeyOperation extends BaseOperation {
     public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
         final var k = input.keyType();
         final var v = input.valueType();
-        final var kr = streamDataTypeOf(targetKeyType, true);
+        final var kr = streamDataTypeOf(targetKeyType, true).flatten();
         final var mapper = context.getDataObjectConverter();
 
         // Set up the mapping function to convert the value
         final KeyValueMapper<Object, Object, Object> converter = (key, value) -> {
-            final var keyAsData = nativeMapper.toDataObject(key);
+            final var keyAsData = flattenValue(key);
             return mapper.convert(k.userType().notation(), keyAsData, kr.userType());
         };
 

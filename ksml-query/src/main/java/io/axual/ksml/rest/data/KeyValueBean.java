@@ -20,16 +20,16 @@ package io.axual.ksml.rest.data;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.object.DataObject;
+import lombok.Getter;
 
+@Getter
 public class KeyValueBean {
-    private static final NativeDataObjectMapper MAPPER = NativeDataObjectMapper.SUPPLIER().create(false);
+    private final DataObject key;
+    private final DataObject value;
 
-    public final Object key;
-    public final Object value;
-
-    public KeyValueBean(Object key, Object value) {
-        this.key = MAPPER.fromDataObject(MAPPER.toDataObject(key));
-        this.value = MAPPER.fromDataObject(MAPPER.toDataObject(value));
+    public KeyValueBean(DataObject key, DataObject value) {
+        this.key = key;
+        this.value = value;
     }
 }

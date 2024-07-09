@@ -34,6 +34,6 @@ public class WindowedType extends ComplexType {
 
     @Override
     public String schemaName() {
-        return schemaName("Windowed", "");
+        return "windowed(" + schemaName("", "") + ")";
     }
 }

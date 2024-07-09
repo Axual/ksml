@@ -37,7 +37,8 @@ import java.util.List;
 
 @Slf4j
 @Path("state/keyValue")
-public class KeyValueStoreResource extends StoreResource {    @GET()
+public class KeyValueStoreResource extends StoreResource {
+    @GET()
     @Path("/{storeName}/all")
     @Produces(MediaType.APPLICATION_JSON)
     public List<KeyValueBean> getAll(@PathParam("storeName") final String storeName) {
@@ -101,6 +102,6 @@ public class KeyValueStoreResource extends StoreResource {    @GET()
                 StoreQueryParameters.fromNameAndType(storeName, QueryableStoreTypes.keyValueStore()));
         Object value = stateStore.get(key);
         log.info("Found value {}", value);
-        return new KeyValueBean(key, value);
+        return new KeyValueBean(NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value));
     }
 }

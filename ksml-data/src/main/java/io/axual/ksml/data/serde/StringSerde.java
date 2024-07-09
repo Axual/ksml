@@ -33,14 +33,14 @@ public class StringSerde implements Serde<Object> {
     private final DataObjectMapper<String> stringMapper;
     private final NativeDataObjectMapper nativeMapper;
 
-    public StringSerde() {
-        this(new StringDataObjectMapper(), DataString.DATATYPE);
+    public StringSerde(NativeDataObjectMapper nativeMapper) {
+        this(nativeMapper, new StringDataObjectMapper(), DataString.DATATYPE);
     }
 
-    public StringSerde(DataObjectMapper<String> stringMapper, DataType expectedType) {
+    public StringSerde(NativeDataObjectMapper nativeMapper, DataObjectMapper<String> stringMapper, DataType expectedType) {
+        this.nativeMapper = nativeMapper;
         this.stringMapper = stringMapper;
         this.expectedType = expectedType;
-        this.nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
     }
 
     private final StringSerializer serializer = new StringSerializer();

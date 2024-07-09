@@ -20,7 +20,6 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
@@ -30,7 +29,6 @@ import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Named;
 
 public class ConvertKeyValueOperation extends BaseOperation {
-    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
     private final UserType targetKeyType;
     private final UserType targetValueType;
 
@@ -44,16 +42,16 @@ public class ConvertKeyValueOperation extends BaseOperation {
     public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
         final var k = input.keyType();
         final var v = input.valueType();
-        final var kr = streamDataTypeOf(targetKeyType, true);
-        final var vr = streamDataTypeOf(targetValueType, false);
+        final var kr = streamDataTypeOf(targetKeyType, true).flatten();
+        final var vr = streamDataTypeOf(targetValueType, false).flatten();
         final var mapper = context.getDataObjectConverter();
 
         // Set up the mapping function to convert the key and value
         KeyValueMapper<Object, Object, KeyValue<Object, Object>> converter = (key, value) -> {
-            var keyAsData = nativeMapper.toDataObject(key);
+            var keyAsData = flattenValue(key);
             var convertedKey = mapper.convert(k.userType().notation(), keyAsData, kr.userType());
 
-            var valueAsData = nativeMapper.toDataObject(value);
+            var valueAsData = flattenValue(value);
             var convertedValue = mapper.convert(v.userType().notation(), valueAsData, vr.userType());
 
             return new KeyValue<>(convertedKey, convertedValue);

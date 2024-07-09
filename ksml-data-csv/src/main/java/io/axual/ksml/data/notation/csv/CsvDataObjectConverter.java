@@ -20,6 +20,7 @@ package io.axual.ksml.data.notation.csv;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.NotationConverter;
 import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataList;
@@ -32,7 +33,7 @@ import io.axual.ksml.data.type.UnionType;
 import static io.axual.ksml.data.notation.csv.CsvNotation.DEFAULT_TYPE;
 
 public class CsvDataObjectConverter implements NotationConverter {
-    private static final CsvDataObjectMapper DATA_OBJECT_MAPPER = new CsvDataObjectMapper();
+    private static final CsvDataObjectMapper MAPPER = new CsvDataObjectMapper();
 
     @Override
     public DataObject convert(DataObject value, UserType targetType) {
@@ -40,7 +41,7 @@ public class CsvDataObjectConverter implements NotationConverter {
         if (value instanceof DataList valueList && DEFAULT_TYPE.equals(valueList.type())) {
             // Convert to String
             if (targetType.dataType() == DataString.DATATYPE) {
-                return new DataString(DATA_OBJECT_MAPPER.fromDataObject(value));
+                return new DataString(MAPPER.fromDataObject(value));
             }
         }
 
@@ -50,7 +51,7 @@ public class CsvDataObjectConverter implements NotationConverter {
             if (targetType.dataType() instanceof ListType
                     || targetType.dataType() instanceof StructType
                     || targetType.dataType() instanceof UnionType) {
-                return DATA_OBJECT_MAPPER.toDataObject(targetType.dataType(), csvString.value());
+                return MAPPER.toDataObject(targetType.dataType(), csvString.value());
             }
         }
 

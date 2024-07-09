@@ -25,8 +25,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.axual.ksml.client.serde.ResolvingDeserializer;
 import io.axual.ksml.client.serde.ResolvingSerializer;
+import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.DataTypeSchemaMapper;
-import io.axual.ksml.data.mapper.KafkaStreamsDataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.avro.AvroNotation;
@@ -45,7 +45,7 @@ import io.axual.ksml.data.notation.xml.XmlDataObjectConverter;
 import io.axual.ksml.data.notation.xml.XmlNotation;
 import io.axual.ksml.data.notation.xml.XmlSchemaLoader;
 import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.schema.KafkaStreamsSchemaMapper;
+import io.axual.ksml.data.mapper.DataTypeFlattener;
 import io.axual.ksml.data.schema.SchemaLibrary;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.execution.ErrorHandler;
@@ -107,18 +107,15 @@ public class KSMLRunner {
 
             KsmlInfo.registerKsmlAppInfo(config.getApplicationId());
 
-            // Ensure that Kafka Streams specific types are correctly handled by the KSML data library
-            DataTypeSchemaMapper.SUPPLIER(KafkaStreamsSchemaMapper::new);
-            NativeDataObjectMapper.SUPPLIER(KafkaStreamsDataObjectMapper::new);
-
             // Set up the notation library with all known notations and type override classes
-            final var jsonNotation = new JsonNotation();
-            NotationLibrary.register(AvroNotation.NOTATION_NAME, new AvroNotation(config.getKafkaConfig()), null);
-            NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(jsonNotation::serde), null);
-            NotationLibrary.register(CsvNotation.NOTATION_NAME, new CsvNotation(), new CsvDataObjectConverter());
+            final var nativeMapper = new DataObjectFlattener(true);
+            final var jsonNotation = new JsonNotation(nativeMapper);
+            NotationLibrary.register(AvroNotation.NOTATION_NAME, new AvroNotation(nativeMapper, config.getKafkaConfig()), null);
+            NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(nativeMapper, jsonNotation::serde), null);
+            NotationLibrary.register(CsvNotation.NOTATION_NAME, new CsvNotation(nativeMapper), new CsvDataObjectConverter());
             NotationLibrary.register(JsonNotation.NOTATION_NAME, jsonNotation, new JsonDataObjectConverter());
-            NotationLibrary.register(SOAPNotation.NOTATION_NAME, new SOAPNotation(), new SOAPDataObjectConverter());
-            NotationLibrary.register(XmlNotation.NOTATION_NAME, new XmlNotation(), new XmlDataObjectConverter());
+            NotationLibrary.register(SOAPNotation.NOTATION_NAME, new SOAPNotation(nativeMapper), new SOAPDataObjectConverter());
+            NotationLibrary.register(XmlNotation.NOTATION_NAME, new XmlNotation(nativeMapper), new XmlDataObjectConverter());
 
             // Register schema loaders
             final var schemaDirectory = ksmlConfig.getSchemaDirectory();
@@ -251,12 +248,12 @@ public class KSMLRunner {
                 .append(KsmlInfo.APP_NAME);
         if (!KsmlInfo.APP_VERSION.isBlank()) {
             titleBuilder.append(" ").append(KsmlInfo.APP_VERSION);
-                }
+        }
         if (!KsmlInfo.BUILD_TIME.isBlank()) {
-                    titleBuilder.append(" (")
-                            .append(KsmlInfo.BUILD_TIME)
-                            .append(")");
-                }
+            titleBuilder.append(" (")
+                    .append(KsmlInfo.BUILD_TIME)
+                    .append(")");
+        }
         return titleBuilder.toString();
     }
 

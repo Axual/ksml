@@ -21,6 +21,7 @@ package io.axual.ksml.user;
  */
 
 
+import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
@@ -31,8 +32,8 @@ import io.axual.ksml.python.Invoker;
 import org.apache.kafka.streams.kstream.ValueJoiner;
 
 public class UserValueJoiner extends Invoker implements ValueJoiner<Object, Object, Object> {
-    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
-    private final static DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
+    private static final DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
     public UserValueJoiner(UserFunction function, ContextTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_VALUEJOINER);
@@ -44,6 +45,6 @@ public class UserValueJoiner extends Invoker implements ValueJoiner<Object, Obje
     public DataObject apply(Object value1, Object value2) {
         // ValueJoiners in KSML are always defined as ValueJoinerWithKey, meaning they take a key and two value
         // parameters. Since we are calling from a traditional ValueJoiner, we pass in a NULL key to the function.
-        return timeExecutionOf(() -> function.call(DataNull.INSTANCE, nativeMapper.toDataObject(value1), nativeMapper.toDataObject(value2)));
+        return timeExecutionOf(() -> function.call(DataNull.INSTANCE, NATIVE_MAPPER.toDataObject(value1), NATIVE_MAPPER.toDataObject(value2)));
     }
 }

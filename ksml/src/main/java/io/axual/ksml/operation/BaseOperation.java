@@ -20,8 +20,11 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.DataObjectFlattener;
+import io.axual.ksml.data.mapper.DataTypeFlattener;
 import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
@@ -42,9 +45,8 @@ import org.apache.kafka.streams.state.WindowStore;
 import java.util.Arrays;
 
 @Slf4j
-public class BaseOperation implements StreamOperation {
+public abstract class BaseOperation implements StreamOperation {
     private static final String ERROR_IN_TOPOLOGY = "Error in topology";
-    protected static final String[] TEMPLATE = new String[0];
 
     private static class NameValidator extends Named {
         // Satisfy compiler with dummy constructor
@@ -63,6 +65,8 @@ public class BaseOperation implements StreamOperation {
         }
     }
 
+    private static final DataObjectFlattener dataObjectFlattener = new DataObjectFlattener(true);
+    private static final DataTypeFlattener dataTypeFlattener = new DataTypeFlattener();
     protected final String name;
     protected final ContextTags tags;
 
@@ -84,6 +88,10 @@ public class BaseOperation implements StreamOperation {
             operation = operation.substring(0, operation.length() - 9);
         }
         return (name == null ? "Unnamed" : name) + " operation " + operation;
+    }
+
+    protected DataObject flattenValue(Object value) {
+        return dataObjectFlattener.toDataObject(value);
     }
 
     protected void checkNotNull(Object object, String description) {
@@ -295,11 +303,11 @@ public class BaseOperation implements StreamOperation {
         return new StreamDataType(userType, isKey);
     }
 
-    protected StreamDataType windowedTypeOf(StreamDataType keyType) {
-        return streamDataTypeOf(windowedTypeOf(keyType.userType()), true);
+    protected StreamDataType windowed(StreamDataType keyType) {
+        return streamDataTypeOf(windowed(keyType.userType()), true);
     }
 
-    protected UserType windowedTypeOf(UserType keyType) {
+    protected UserType windowed(UserType keyType) {
         var windowedType = new WindowedType(keyType.dataType());
         return new UserType(keyType.notation(), windowedType);
     }

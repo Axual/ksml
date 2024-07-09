@@ -22,6 +22,7 @@ package io.axual.ksml.user;
 
 
 import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.mapper.RecordContextDataObjectMapper;
 import io.axual.ksml.data.object.DataString;
@@ -35,9 +36,9 @@ import org.apache.kafka.streams.processor.TopicNameExtractor;
 
 @Slf4j
 public class UserTopicNameExtractor extends Invoker implements TopicNameExtractor<Object, Object> {
-    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
-    private final RecordContextDataObjectMapper recordContextMapper = new RecordContextDataObjectMapper();
-    private final static DataType EXPECTED_RESULT_TYPE = DataString.DATATYPE;
+    private static final DataType EXPECTED_RESULT_TYPE = DataString.DATATYPE;
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
+    private static final RecordContextDataObjectMapper RECORD_CONTEXT_MAPPER = new RecordContextDataObjectMapper();
 
     public UserTopicNameExtractor(UserFunction function, ContextTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_TOPICNAMEEXTRACTOR);
@@ -47,7 +48,7 @@ public class UserTopicNameExtractor extends Invoker implements TopicNameExtracto
 
     @Override
     public String extract(Object key, Object value, RecordContext recordContext) {
-        final var result = timeExecutionOf(() -> function.call(nativeMapper.toDataObject(key), nativeMapper.toDataObject(value), recordContextMapper.toDataObject(recordContext)));
+        final var result = timeExecutionOf(() -> function.call(NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value), RECORD_CONTEXT_MAPPER.toDataObject(recordContext)));
         if (result instanceof DataString dataString) {
             return dataString.value();
         }

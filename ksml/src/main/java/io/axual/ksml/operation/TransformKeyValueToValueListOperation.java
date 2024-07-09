@@ -53,13 +53,13 @@ public class TransformKeyValueToValueListOperation extends BaseOperation {
         final var k = input.keyType();
         final var v = input.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(mapper, new UserType(new ListType(DataType.UNKNOWN))), false);
-        final var map = userFunctionOf(context, MAPPER_NAME, mapper, subOf(vr), superOf(k), superOf(v));
+        final var map = userFunctionOf(context, MAPPER_NAME, mapper, subOf(vr), superOf(k.flatten()), superOf(v.flatten()));
         final var userMap = new UserKeyValueToValueListTransformer(map, tags);
         final var storeNames = mapper.storeNames().toArray(String[]::new);
         final var supplier = new FixedKeyOperationProcessorSupplier<>(
                 name,
                 TransformKeyValueToValueListProcessor::new,
-                (stores, record) -> userMap.apply(stores, record.key(), record.value()),
+                (stores, record) -> userMap.apply(stores, flattenValue(record.key()), flattenValue(record.value())),
                 storeNames);
         final var named = namedOf();
         final var output = named != null

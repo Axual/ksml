@@ -50,6 +50,9 @@ import static io.axual.ksml.data.notation.UserType.DEFAULT_NOTATION;
 
 @Slf4j
 public class ExecutableProducer {
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
+    private static final DataObjectConverter DATA_OBJECT_CONVERTER = new DataObjectConverter();
+
     @Getter
     private final String name;
     private final UserGenerator generator;
@@ -59,8 +62,6 @@ public class ExecutableProducer {
     private final UserType valueType;
     private final Serializer<Object> keySerializer;
     private final Serializer<Object> valueSerializer;
-    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
-    private final DataObjectConverter dataObjectConverter = new DataObjectConverter();
     private final RescheduleStrategy rescheduleStrategy;
 
     private DataObject lastKey = DataNull.INSTANCE;
@@ -129,8 +130,8 @@ public class ExecutableProducer {
                 lastKey = key;
                 lastValue = value;
 
-                key = dataObjectConverter.convert(DEFAULT_NOTATION, key, keyType);
-                value = dataObjectConverter.convert(DEFAULT_NOTATION, value, valueType);
+                key = DATA_OBJECT_CONVERTER.convert(DEFAULT_NOTATION, key, keyType);
+                value = DATA_OBJECT_CONVERTER.convert(DEFAULT_NOTATION, value, valueType);
                 var okay = true;
 
                 if (key != null && !keyType.dataType().isAssignableFrom(key.type())) {
@@ -150,8 +151,8 @@ public class ExecutableProducer {
                     valueStr = valueStr.replace("\n", "\\\\n");
                     log.info("Message: key={}, value={}", keyStr, valueStr);
 
-                    var serializedKey = keySerializer.serialize(topic, nativeMapper.fromDataObject(key));
-                    var serializedValue = valueSerializer.serialize(topic, nativeMapper.fromDataObject(value));
+                    var serializedKey = keySerializer.serialize(topic, NATIVE_MAPPER.fromDataObject(key));
+                    var serializedValue = valueSerializer.serialize(topic, NATIVE_MAPPER.fromDataObject(value));
                     ProducerRecord<byte[], byte[]> message = new ProducerRecord<>(
                             topic,
                             serializedKey,

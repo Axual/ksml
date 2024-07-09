@@ -25,7 +25,6 @@ import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.UserTupleType;
 import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.*;
-import io.axual.ksml.data.schema.KafkaStreamsSchemaMapper;
 import io.axual.ksml.data.type.*;
 import io.axual.ksml.execution.ExecutionContext;
 
@@ -36,7 +35,7 @@ import static io.axual.ksml.data.notation.UserType.DEFAULT_NOTATION;
 // data objects like Enums, Lists and Structs too, recursively going through sub-elements if
 // necessary.
 public class DataObjectConverter {
-    private static final DataTypeSchemaMapper SCHEMA_MAPPER = new KafkaStreamsSchemaMapper();
+    private static final DataTypeSchemaMapper SCHEMA_MAPPER = new DataTypeFlattener();
 
     public DataObject convert(String sourceNotation, DataObject value, UserType targetType) {
         return convert(sourceNotation, value, targetType, false);

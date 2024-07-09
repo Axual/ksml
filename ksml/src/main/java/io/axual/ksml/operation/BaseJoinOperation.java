@@ -29,7 +29,7 @@ import org.apache.kafka.streams.kstream.StreamJoined;
 import java.time.Duration;
 import java.util.HashMap;
 
-public class BaseJoinOperation extends StoreOperation {
+public abstract class BaseJoinOperation extends StoreOperation {
     protected BaseJoinOperation(StoreOperationConfig config) {
         super(config);
     }

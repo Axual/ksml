@@ -22,6 +22,7 @@ package io.axual.ksml;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.avro.AvroSchemaLoader;
 import io.axual.ksml.data.notation.avro.MockAvroNotation;
@@ -62,8 +63,9 @@ public class BasicStreamRunTest {
 
     @Test
     void parseAndCheckOuput() throws Exception {
-        final var jsonNotation = new JsonNotation();
-        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(jsonNotation::serde), null);
+        final var mapper = new NativeDataObjectMapper();
+        final var jsonNotation = new JsonNotation(mapper);
+        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(mapper, jsonNotation::serde), null);
         NotationLibrary.register(JsonNotation.NOTATION_NAME, jsonNotation, new JsonDataObjectConverter());
 
         final var uri = ClassLoader.getSystemResource("pipelines/test-copying.yaml").toURI();
@@ -88,8 +90,9 @@ public class BasicStreamRunTest {
 
     @Test
     void testFilterAvroRecords() throws Exception {
-        final var jsonNotation = new JsonNotation();
-        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(jsonNotation::serde), null);
+        final var mapper = new NativeDataObjectMapper();
+        final var jsonNotation = new JsonNotation(mapper);
+        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(mapper, jsonNotation::serde), null);
         NotationLibrary.register(JsonNotation.NOTATION_NAME, jsonNotation, new JsonDataObjectConverter());
 
         final var avroNotation = new MockAvroNotation(new HashMap<>());

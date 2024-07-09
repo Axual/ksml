@@ -21,6 +21,7 @@ package io.axual.ksml.user;
  */
 
 import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataObject;
@@ -38,8 +39,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class UserKeyValueToKeyValueListTransformer extends Invoker implements KeyValueMapper<Object, Object, Iterable<KeyValue<Object, Object>>> {
-    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
-    private final static DataType EXPECTED_RESULT_TYPE = new ListType(new TupleType(DataType.UNKNOWN, DataType.UNKNOWN));
+    private static final DataType EXPECTED_RESULT_TYPE = new ListType(new TupleType(DataType.UNKNOWN, DataType.UNKNOWN));
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
     public UserKeyValueToKeyValueListTransformer(UserFunction function, ContextTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_KEYVALUETOKEYVALUELISTTRANSFORMER);
@@ -59,7 +60,7 @@ public class UserKeyValueToKeyValueListTransformer extends Invoker implements Ke
         final var kr = tupleType.subType(0);
         final var vr = tupleType.subType(1);
 
-        final var result = timeExecutionOf(() -> function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value)));
+        final var result = timeExecutionOf(() -> function.call(stores, NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value)));
         if (result == null) return Collections.emptyList();
 
         // We need to convert the resulting messages to KeyValue tuples as per the method signature

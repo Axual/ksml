@@ -22,6 +22,7 @@ package io.axual.ksml.runner.backend;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
@@ -119,14 +120,16 @@ class KafkaProducerRunnerTest {
 
     /**
      * Load a topology definition from the given file in test/resources
+     *
      * @param filename ksml definition file
      * @return a Map containing the parsed definition
-     * @throws IOException if loading fails
+     * @throws IOException        if loading fails
      * @throws URISyntaxException for invalid file name
      */
     private Map<String, TopologyDefinition> loadDefinitions(String filename) throws IOException, URISyntaxException {
-        final var jsonNotation = new JsonNotation();
-        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(jsonNotation::serde), null);
+        final var mapper = new NativeDataObjectMapper();
+        final var jsonNotation = new JsonNotation(mapper);
+        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(mapper, jsonNotation::serde), null);
         NotationLibrary.register(JsonNotation.NOTATION_NAME, jsonNotation, new JsonDataObjectConverter());
 
         final var uri = ClassLoader.getSystemResource(filename).toURI();
@@ -138,6 +141,7 @@ class KafkaProducerRunnerTest {
 
     /**
      * Create a KafkaProducerRunner from the given config, but with a mock Kafka producer.
+     *
      * @param config a {@link io.axual.ksml.runner.backend.KafkaProducerRunner.Config}.
      * @return a {@link KafkaProducerRunner} with a mocked producer.
      */

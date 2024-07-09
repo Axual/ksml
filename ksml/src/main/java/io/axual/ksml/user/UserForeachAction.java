@@ -20,6 +20,7 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.dsl.KSMLDSL;
@@ -27,7 +28,7 @@ import io.axual.ksml.python.Invoker;
 import io.axual.ksml.store.StateStores;
 
 public class UserForeachAction extends Invoker {
-    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
     public UserForeachAction(UserFunction function, ContextTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_FOREACHACTION);
@@ -36,6 +37,6 @@ public class UserForeachAction extends Invoker {
     }
 
     public void apply(StateStores stores, Object key, Object value) {
-        timeExecutionOf(() -> function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value)));
+        timeExecutionOf(() -> function.call(stores, NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value)));
     }
 }

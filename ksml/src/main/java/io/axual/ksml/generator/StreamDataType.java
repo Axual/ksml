@@ -21,44 +21,23 @@ package io.axual.ksml.generator;
  */
 
 
+import io.axual.ksml.data.mapper.DataTypeFlattener;
 import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.serde.UnionSerde;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.UnionType;
-import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.execution.ExecutionContext;
 import org.apache.kafka.common.serialization.Serde;
 
-import static io.axual.ksml.dsl.WindowedSchema.generateWindowedSchema;
-
 public record StreamDataType(UserType userType, boolean isKey) {
-    public StreamDataType(UserType userType, boolean isKey) {
-        this.userType = new UserType(userType.notation(), cookType(userType.dataType()));
-        this.isKey = isKey;
-    }
-
-    private static DataType cookType(DataType type) {
-        // When we get a WindowedType, we automatically convert it into a Struct dataType using
-        // fixed fields. This allows for processing downstream, since the WindowType itself
-        // is KafkaStreams internal and thus not usable in user functions.
-        return type instanceof WindowedType windowedType
-                ? new StructType(generateWindowedSchema(windowedType))
-                : type;
-    }
-
-    private static UnionType cookUnion(UnionType type) {
-        var cookedUnionTypes = new DataType[type.possibleTypes().length];
-        for (int index = 0; index < type.possibleTypes().length; index++) {
-            var userType = type.possibleTypes()[index];
-            cookedUnionTypes[index] = cookType(userType);
-        }
-        return new UnionType(cookedUnionTypes);
-    }
+    private static final DataTypeFlattener FLATTENER = new DataTypeFlattener();
 
     public boolean isAssignableFrom(StreamDataType other) {
         return userType.dataType().isAssignableFrom(other.userType.dataType());
+    }
+
+    public StreamDataType flatten() {
+        return isKey ? FLATTENER.flatten(this) : this;
     }
 
     @Override
@@ -68,9 +47,10 @@ public record StreamDataType(UserType userType, boolean isKey) {
     }
 
     public Serde<Object> serde() {
+        final var notation = NotationLibrary.get(userType.notation());
         if (userType.dataType() instanceof UnionType unionType)
-            return new UnionSerde(cookUnion(unionType), isKey, NotationLibrary.get(userType.notation())::serde);
-        var serde = NotationLibrary.get(userType.notation()).serde(userType.dataType(), isKey);
+            return new UnionSerde(FLATTENER.flatten(unionType), isKey, notation::serde);
+        var serde = notation.serde(FLATTENER.flatten(userType.dataType()), isKey);
         return ExecutionContext.INSTANCE.wrapSerde(serde);
     }
 }

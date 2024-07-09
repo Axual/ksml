@@ -20,6 +20,8 @@ package io.axual.ksml.rest.server;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.DataObjectFlattener;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.rest.data.KeyValueBean;
 import io.axual.ksml.rest.data.KeyValueBeans;
 import io.axual.ksml.rest.data.WindowedKeyValueBean;
@@ -39,6 +41,7 @@ import java.util.function.Function;
 public class StoreResource implements AutoCloseable {
     private static final String QUERYING_MESSAGE = "Querying remote stores....";
     private static final String COMPLETE_STORE_STATE_MESSAGE = "Complete store state {}";
+    protected static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
     protected final StreamsQuerier querier = GlobalState.INSTANCE.querier();
     protected final HostInfo thisInstance = GlobalState.INSTANCE.hostInfo();
     protected final RestClient restClient = new RestClient();
@@ -57,7 +60,7 @@ public class StoreResource implements AutoCloseable {
         // Convert the results
         while (range.hasNext()) {
             final KeyValue<K, V> element = range.next();
-            result.add(element.key, element.value);
+            result.add(NATIVE_MAPPER.toDataObject(element.key), NATIVE_MAPPER.toDataObject(element.value));
         }
 
         log.info(COMPLETE_STORE_STATE_MESSAGE, result);
@@ -79,7 +82,7 @@ public class StoreResource implements AutoCloseable {
         while (range.hasNext()) {
             final KeyValue<K, V> element = range.next();
             Windowed<Object> window = (Windowed<Object>) element.key;
-            result.add(new WindowedKeyValueBean(window.window(), window.key(), element.value));
+            result.add(new WindowedKeyValueBean(window.window(), NATIVE_MAPPER.toDataObject(window.key()), NATIVE_MAPPER.toDataObject(element.value)));
         }
 
         log.info(COMPLETE_STORE_STATE_MESSAGE, result);

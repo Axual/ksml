@@ -20,12 +20,13 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.parser.schema.DataSchemaDSL;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.SimpleType;
 import io.axual.ksml.data.value.Null;
 
 public class DataNull extends DataPrimitive<Object> {
-    public static final SimpleType DATATYPE = new SimpleType(Null.class) {
+    public static final SimpleType DATATYPE = new SimpleType(Null.class, DataSchemaDSL.NULL_TYPE) {
         @Override
         public boolean isAssignableFrom(DataType type) {
             return this == type;

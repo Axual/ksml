@@ -10,7 +10,7 @@ streams:
     offsetResetPolicy: latest
   sensor_count:
     topic: ksml_sensordata_count
-    keyType: avro:WindowedString
+    keyType: avro:windowed(string)
     valueType: long
 
 pipelines:

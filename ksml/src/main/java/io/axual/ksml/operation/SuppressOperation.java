@@ -49,9 +49,15 @@ public class SuppressOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KTableWrapper input, TopologyBuildContext context) {
+        /*    Kafka Streams method signature:
+         *    KTable<K, V> suppress(
+         *          final Suppressed<? super K> suppressed)
+         */
+
         final var k = input.keyType();
         final var v = input.valueType();
 
+        // Handle "untilTimeLimit" case
         if (suppressed != null) {
             return new KTableWrapper(input.table.suppress(suppressed), k, v);
         }
@@ -60,7 +66,7 @@ public class SuppressOperation extends BaseOperation {
         // for us. Therefore, we check the dataType manually to ensure the user is applying the
         // "untilWindowCloses" suppression on the right KTable key dataType.
 
-        // Validate that the key dataType is windowed
+        // Validate that the key dataType is windowed, or can be converted to windowed
         if (k.userType().dataType() instanceof WindowedType) {
             return new KTableWrapper(input.table.suppress((Suppressed) suppressedWindowed), k, v);
         }

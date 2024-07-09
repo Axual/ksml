@@ -20,9 +20,8 @@ package io.axual.ksml.data.notation.csv;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.DataObjectMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.string.StringNotation;
-import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.StructType;
@@ -32,20 +31,9 @@ import org.apache.kafka.common.serialization.Serde;
 public class CsvNotation extends StringNotation {
     public static final String NOTATION_NAME = "CSV";
     public static final DataType DEFAULT_TYPE = new UnionType(new StructType(), new ListType());
-    private static final CsvDataObjectMapper MAPPER = new CsvDataObjectMapper();
 
-    public CsvNotation() {
-        super(new DataObjectMapper<>() {
-            @Override
-            public DataObject toDataObject(DataType expected, String value) {
-                return MAPPER.toDataObject(expected, value);
-            }
-
-            @Override
-            public String fromDataObject(DataObject value) {
-                return MAPPER.fromDataObject(value);
-            }
-        });
+    public CsvNotation(NativeDataObjectMapper nativeMapper) {
+        super(nativeMapper, new CsvDataObjectMapper());
     }
 
     @Override
