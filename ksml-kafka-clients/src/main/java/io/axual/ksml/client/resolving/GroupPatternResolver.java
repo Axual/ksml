@@ -20,11 +20,21 @@ package io.axual.ksml.client.resolving;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Map;
+
 public class GroupPatternResolver extends PatternResolver implements GroupResolver {
     public static final String DEFAULT_PLACEHOLDER_VALUE = "group.id";
+    public static final String PLACEHOLDER_ALIAS = "group";
 
     public GroupPatternResolver(String groupPattern, Map<String, String> defaultValues) {
-        super(groupPattern, DEFAULT_PLACEHOLDER_VALUE, defaultValues);
+        super(replaceAliases(groupPattern), DEFAULT_PLACEHOLDER_VALUE, defaultValues);
+    }
+
+    private static String replaceAliases(String pattern) {
+        var defaultPlaceholderPattern = "{" + DEFAULT_PLACEHOLDER_VALUE + "}";
+        var aliasPlaceholderPattern = "{" + PLACEHOLDER_ALIAS + "}";
+        return StringUtils.replace(pattern, aliasPlaceholderPattern, defaultPlaceholderPattern);
     }
 }
