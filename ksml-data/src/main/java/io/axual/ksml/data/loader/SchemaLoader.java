@@ -25,6 +25,7 @@ import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.SchemaLibrary;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -32,14 +33,13 @@ import java.nio.file.Path;
 
 @Slf4j
 public abstract class SchemaLoader implements SchemaLibrary.Loader {
-    private static final String DIRECTORY_SEPARATOR = "/";
     private final String schemaType;
     private final String schemaDirectory;
     private final String schemaFileExtension;
 
     public SchemaLoader(String schemaType, String schemaDirectory, String fileExtension) {
         this.schemaType = schemaType;
-        this.schemaDirectory = schemaDirectory + (schemaDirectory.endsWith(DIRECTORY_SEPARATOR) ? "" : DIRECTORY_SEPARATOR);
+        this.schemaDirectory = schemaDirectory + (schemaDirectory.endsWith(File.separator) ? "" : File.separator);
         this.schemaFileExtension = fileExtension;
     }
 

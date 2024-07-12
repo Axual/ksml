@@ -195,21 +195,26 @@ public class TopologyGenerator {
 
         // For each pipeline, generate the topology
         specification.pipelines().forEach((name, pipeline) -> {
-            LOG.info("Generating Kafka Streams topology:");
+            StringBuilder tsBuilder = new StringBuilder();
             // Use a cursor to keep track of where we are in the topology
             StreamWrapper cursor = context.getStreamWrapper(pipeline.source());
-            LOG.info("  {}", cursor);
+            tsBuilder.append("%n  %s".formatted(cursor));
             // For each operation, advance the cursor by applying the operation
             for (StreamOperation operation : pipeline.chain()) {
-                LOG.info("    ==> {}", operation);
+                tsBuilder.append("%n    ==> %s".formatted(operation));
                 cursor = cursor.apply(operation, context);
-                LOG.info("  {}", cursor);
+                tsBuilder.append("%n  %s".formatted(cursor));
             }
             // Finally, at the end, apply the sink operation
             if (pipeline.sink() != null) {
-                LOG.info("    ==> {}", pipeline.sink());
+                tsBuilder.append("%n    ==> %s".formatted(pipeline.sink()));
                 cursor.apply(pipeline.sink(), context);
             }
+            LOG.info("""
+                    Generating Kafka Streams topology for pipeline {}:
+                    {}
+                    """,name,tsBuilder);
+
         });
     }
 }
