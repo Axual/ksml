@@ -29,6 +29,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 @Slf4j
 public class PatternResolver implements Resolver {
+    protected static final String FIELD_NAME_PREFIX = "{";
+    protected static final String FIELD_NAME_SUFFIX = "}";
     private static final String ALPHANUM_CHARACTERS = "a-zA-Z0-9_";
     private static final String DASH_CHARACTER = "-";
     private static final String DOT_CHARACTER = ".";
@@ -39,10 +41,8 @@ public class PatternResolver implements Resolver {
     private static final String FIELD_VALUE_REGEX = characterRegex(FIELD_VALUE_CHARACTERS, true);
     private static final String DEFAULT_FIELD_VALUE_CHARACTERS = FIELD_VALUE_CHARACTERS + DASH_CHARACTER;
     private static final String DEFAULT_FIELD_VALUE_REGEX = characterRegex(DEFAULT_FIELD_VALUE_CHARACTERS, true);
-    private static final String FIELD_NAME_PREFIX = "{";
-    private static final String FIELD_NAME_SUFFIX = "}";
     private static final String FIELD_NAME_REGEX = escape(FIELD_NAME_PREFIX) + characterRegex(FIELD_NAME_CHARACTERS, true) + escape(FIELD_NAME_SUFFIX);
-    public static final String FIELD_NAME_OR_LITERAL_MATCH_REGEX = "(" + FIELD_NAME_REGEX + "|" + LITERAL_REGEX + ")";
+    private static final String FIELD_NAME_OR_LITERAL_MATCH_REGEX = "(" + FIELD_NAME_REGEX + "|" + LITERAL_REGEX + ")";
     private static final Pattern FIELD_NAME_OR_LITERAL_PATTERN = Pattern.compile(FIELD_NAME_OR_LITERAL_MATCH_REGEX);
     private final Map<String, String> defaultFieldValues;
     protected final String defaultFieldName;

@@ -22,8 +22,10 @@ package io.axual.ksml.client.resolving;
 
 import java.util.HashMap;
 import java.util.Map;
+
 public class TopicPatternResolver extends CachedPatternResolver implements TopicResolver {
-    private static final String DEFAULT_PLACEHOLDER_VALUE = "topic";
+    public static final String DEFAULT_PLACEHOLDER_VALUE = "topic";
+    public static final String DEFAULT_PLACEHOLDER_PATTERN = FIELD_NAME_PREFIX + DEFAULT_PLACEHOLDER_VALUE + FIELD_NAME_SUFFIX;
     private static final String INTERNAL_TOPIC_PREFIX = "_";
 
     public TopicPatternResolver(String topicPattern, Map<String, String> defaultValues) {

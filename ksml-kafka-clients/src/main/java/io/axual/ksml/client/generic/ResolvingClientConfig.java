@@ -56,12 +56,12 @@ public class ResolvingClientConfig {
         var groupPattern = configs.get(GROUP_ID_PATTERN_CONFIG);
         groupResolver = groupPattern != null
                 ? new GroupPatternResolver(groupPattern.toString(), defaultContext)
-                : new GroupPatternResolver("{group.id}", defaultContext);
+                : new GroupPatternResolver(GroupPatternResolver.DEFAULT_PLACEHOLDER_PATTERN, defaultContext);
 
         var topicPattern = configs.get(TOPIC_PATTERN_CONFIG);
         topicResolver = topicPattern != null
                 ? new TopicPatternResolver(topicPattern.toString(), defaultContext)
-                : new TopicPatternResolver("{topic}", defaultContext);
+                : new TopicPatternResolver(TopicPatternResolver.DEFAULT_PLACEHOLDER_PATTERN, defaultContext);
     }
 
     public <T> T getConfiguredInstance(String key, Class<T> expectedClass) {

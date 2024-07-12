@@ -26,15 +26,17 @@ import java.util.Map;
 
 public class GroupPatternResolver extends PatternResolver implements GroupResolver {
     public static final String DEFAULT_PLACEHOLDER_VALUE = "group.id";
-    public static final String PLACEHOLDER_ALIAS = "group";
+    public static final String DEFAULT_PLACEHOLDER_PATTERN = FIELD_NAME_PREFIX + DEFAULT_PLACEHOLDER_VALUE + FIELD_NAME_SUFFIX;
+    private static final String PLACEHOLDER_ALIAS = "group";
+    private static final String PLACEHOLDER_ALIAS_PATTERN = FIELD_NAME_PREFIX + PLACEHOLDER_ALIAS + FIELD_NAME_SUFFIX;
 
     public GroupPatternResolver(String groupPattern, Map<String, String> defaultValues) {
         super(replaceAliases(groupPattern), DEFAULT_PLACEHOLDER_VALUE, defaultValues);
     }
 
     private static String replaceAliases(String pattern) {
-        var defaultPlaceholderPattern = "{" + DEFAULT_PLACEHOLDER_VALUE + "}";
-        var aliasPlaceholderPattern = "{" + PLACEHOLDER_ALIAS + "}";
-        return StringUtils.replace(pattern, aliasPlaceholderPattern, defaultPlaceholderPattern);
+        // Some systems use "group" instead of "group.id" in their consumer group pattern. This method allows
+        // for both, replacing "{group}" with "{group.id}"
+        return StringUtils.replace(pattern, PLACEHOLDER_ALIAS_PATTERN, DEFAULT_PLACEHOLDER_PATTERN);
     }
 }
