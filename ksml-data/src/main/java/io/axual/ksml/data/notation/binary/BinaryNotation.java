@@ -20,7 +20,6 @@ package io.axual.ksml.data.notation.binary;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.serde.ByteSerde;
@@ -37,15 +36,11 @@ import org.apache.kafka.common.serialization.Serializer;
 
 public class BinaryNotation implements Notation {
     public static final String NOTATION_NAME = "BINARY";
-    private final DataObjectMapper<Object> simpleTypeMapper;
+    private final NativeDataObjectMapper nativeMapper;
     private final SerdeSupplier complexTypeSerdeSupplier;
 
-    public BinaryNotation(SerdeSupplier complexTypeSerdeSupplier) {
-        this(NativeDataObjectMapper.create(), complexTypeSerdeSupplier);
-    }
-
-    public BinaryNotation(DataObjectMapper<Object> simpleTypeMapper, SerdeSupplier complexTypeSerdeSupplier) {
-        this.simpleTypeMapper = simpleTypeMapper;
+    public BinaryNotation(NativeDataObjectMapper nativeMapper, SerdeSupplier complexTypeSerdeSupplier) {
+        this.nativeMapper = nativeMapper;
         this.complexTypeSerdeSupplier = complexTypeSerdeSupplier;
     }
 
@@ -73,7 +68,7 @@ public class BinaryNotation implements Notation {
         public BinarySerde(final Serde<Object> serde) {
             this.serializer = (topic, data) -> {
                 // Serialize the raw object by converting from user object if necessary
-                return serde.serializer().serialize(topic, simpleTypeMapper.fromDataObject(simpleTypeMapper.toDataObject(data)));
+                return serde.serializer().serialize(topic, nativeMapper.fromDataObject(nativeMapper.toDataObject(data)));
             };
             this.deserializer = (topic, data) -> {
                 // Deserialize the raw object and return as such. If any conversion to a user

@@ -28,7 +28,6 @@ import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserKeyTransformer;
 import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.KeyValueMapper;
 
 public class ToStreamOperation extends BaseOperation {
     private static final String MAPPER_NAME = "Mapper";
@@ -45,9 +44,7 @@ public class ToStreamOperation extends BaseOperation {
         final var v = input.valueType();
         final var kr = mapper != null ? streamDataTypeOf(firstSpecificType(mapper, k), true) : k;
         final var map = mapper != null ? userFunctionOf(context, MAPPER_NAME, mapper, kr, superOf(k), superOf(v)) : null;
-        final KeyValueMapper<Object, Object, Object> userMap = map != null
-                ? new UserKeyTransformer(map, tags)
-                : null;
+        final var userMap = map != null ? new UserKeyTransformer(map, tags) : null;
         final var named = namedOf();
         final KStream<Object, Object> output = userMap != null
                 ? named != null

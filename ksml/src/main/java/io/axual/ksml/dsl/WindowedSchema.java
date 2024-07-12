@@ -20,12 +20,15 @@ package io.axual.ksml.dsl;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.DataTypeSchemaMapper;
-import io.axual.ksml.data.schema.*;
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.DataSchemaConstants;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.WindowedType;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.function.Function;
 
 public class WindowedSchema {
     private WindowedSchema() {
@@ -45,24 +48,27 @@ public class WindowedSchema {
     private static final String WINDOWED_SCHEMA_START_TIME_FIELD_DOC = "Start time";
     private static final String WINDOWED_SCHEMA_END_TIME_FIELD_DOC = "End time";
     private static final String WINDOWED_SCHEMA_KEY_FIELD_DOC = "Window key";
-    private static final DataTypeSchemaMapper dataTypeSchemaMapper = KafkaStreamsSchemaMapper.SUPPLIER().create();
 
-    public static StructSchema generateWindowedSchema(WindowedType windowedType) {
+    public static StructSchema generateWindowedSchema(WindowedType windowedType, Function<DataType, DataSchema> dataTypeToSchema) {
+        var fields = new ArrayList<DataField>();
+        fields.add(new DataField(WINDOWED_SCHEMA_START_FIELD, DataSchema.create(DataSchema.Type.LONG), WINDOWED_SCHEMA_START_FIELD_DOC));
+        fields.add(new DataField(WINDOWED_SCHEMA_END_FIELD, DataSchema.create(DataSchema.Type.LONG), WINDOWED_SCHEMA_END_FIELD_DOC));
+        fields.add(new DataField(WINDOWED_SCHEMA_START_TIME_FIELD, DataSchema.create(DataSchema.Type.STRING), WINDOWED_SCHEMA_START_TIME_FIELD_DOC));
+        fields.add(new DataField(WINDOWED_SCHEMA_END_TIME_FIELD, DataSchema.create(DataSchema.Type.STRING), WINDOWED_SCHEMA_END_TIME_FIELD_DOC));
+
+        var keySchema = dataTypeToSchema.apply(windowedType.keyType());
+        fields.add(new DataField(WINDOWED_SCHEMA_KEY_FIELD, keySchema, WINDOWED_SCHEMA_KEY_FIELD_DOC));
+
         return new StructSchema(
                 DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE,
-                windowedType.schemaName(),
+                schemaName(windowedType),
                 WINDOWED_SCHEMA_DOC_PREFIX + windowedType.keyType().schemaName(),
-                generateWindowKeySchemaFields(windowedType));
+                fields);
     }
 
-    private static List<DataField> generateWindowKeySchemaFields(WindowedType windowedType) {
-        var result = new ArrayList<DataField>();
-        result.add(new DataField(WINDOWED_SCHEMA_START_FIELD, DataSchema.create(DataSchema.Type.LONG), WINDOWED_SCHEMA_START_FIELD_DOC));
-        result.add(new DataField(WINDOWED_SCHEMA_END_FIELD, DataSchema.create(DataSchema.Type.LONG), WINDOWED_SCHEMA_END_FIELD_DOC));
-        result.add(new DataField(WINDOWED_SCHEMA_START_TIME_FIELD, DataSchema.create(DataSchema.Type.STRING), WINDOWED_SCHEMA_START_TIME_FIELD_DOC));
-        result.add(new DataField(WINDOWED_SCHEMA_END_TIME_FIELD, DataSchema.create(DataSchema.Type.STRING), WINDOWED_SCHEMA_END_TIME_FIELD_DOC));
-        var keySchema = dataTypeSchemaMapper.toDataSchema(windowedType.keyType());
-        result.add(new DataField(WINDOWED_SCHEMA_KEY_FIELD, keySchema, WINDOWED_SCHEMA_KEY_FIELD_DOC));
-        return result;
+    private static String schemaName(WindowedType windowedType) {
+        final var keyType = windowedType.keyType().schemaName();
+        final var type = keyType != null && !keyType.isEmpty() ? keyType : "type";
+        return "Windowed" + type.substring(0, 1).toUpperCase() + type.substring(1);
     }
 }

@@ -21,6 +21,7 @@ package io.axual.ksml.user;
  */
 
 import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.tag.ContextTags;
@@ -31,8 +32,8 @@ import io.axual.ksml.store.StateStores;
 import org.apache.kafka.streams.kstream.Predicate;
 
 public class UserPredicate extends Invoker implements Predicate<Object, Object> {
-    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
-    private final static DataType EXPECTED_RESULT_TYPE = DataBoolean.DATATYPE;
+    private static final DataType EXPECTED_RESULT_TYPE = DataBoolean.DATATYPE;
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
     public UserPredicate(UserFunction function, ContextTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_PREDICATE);
@@ -47,7 +48,7 @@ public class UserPredicate extends Invoker implements Predicate<Object, Object> 
     }
 
     public boolean test(StateStores stores, Object key, Object value) {
-        final var result = timeExecutionOf(() -> function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value)));
+        final var result = timeExecutionOf(() -> function.call(stores, NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value)));
         if (result instanceof DataBoolean dataBoolean) {
             return dataBoolean.value();
         }

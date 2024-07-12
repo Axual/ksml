@@ -36,7 +36,7 @@ import static io.axual.ksml.data.schema.DataField.NO_INDEX;
 public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     private static final AvroDataObjectMapper avroMapper = new AvroDataObjectMapper();
     private static final Schema AVRO_NULL_TYPE = Schema.create(Schema.Type.NULL);
-    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
 
     @Override
     public StructSchema toDataSchema(String namespace, String name, Schema schema) {
@@ -80,7 +80,8 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
 
             case STRING -> new SchemaAndRequired(DataSchema.create(DataSchema.Type.STRING), true);
 
-            case ARRAY -> new SchemaAndRequired(new ListSchema(convertToDataSchema(schema.getElementType()).schema()), true);
+            case ARRAY ->
+                    new SchemaAndRequired(new ListSchema(convertToDataSchema(schema.getElementType()).schema()), true);
             case ENUM -> new SchemaAndRequired(
                     new EnumSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getEnumSymbols(), schema.getEnumDefault()),
                     true);
@@ -93,19 +94,18 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     private SchemaAndRequired convertUnionToDataSchema(List<Schema> unionTypes) {
         // If a type "null" is found in AVRO schema, the respective property is considered optional, so here we detect
         // this fact and return the result Boolean as "false" indicating a required property.
-        var required = true;
         if (unionTypes.size() > 1 && unionTypes.contains(AVRO_NULL_TYPE)) {
             // Create a copy of the list to prevent modifying immutable lists, then remove the NULL type
             unionTypes = new ArrayList<>(unionTypes);
             unionTypes.remove(AVRO_NULL_TYPE);
-            required = false;
+
+            // If the union now contains only a single schema, then unwrap it from the union and return as simple type
+            if (unionTypes.size() == 1) {
+                return new SchemaAndRequired(convertToDataSchema(unionTypes.getFirst()).schema(), false);
+            }
         }
 
-        // If the union now contains only a single schema, then unwrap it from the union and return as simple type
-        if (unionTypes.size() == 1) {
-            return new SchemaAndRequired(convertToDataSchema(unionTypes.getFirst()).schema(), required);
-        }
-        return new SchemaAndRequired(new UnionSchema(convertToDataSchema(unionTypes).toArray(DataSchema[]::new)), required);
+        return new SchemaAndRequired(new UnionSchema(convertToDataSchema(unionTypes).toArray(DataSchema[]::new)), true);
     }
 
     private List<DataSchema> convertToDataSchema(List<Schema> schemas) {
@@ -204,7 +204,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
 
     private DataValue convertFromAvroDefault(Schema.Field field) {
         if (!field.hasDefaultValue()) return null;
-        var value = nativeMapper.fromDataObject(avroMapper.toDataObject(field.defaultVal()));
+        var value = NATIVE_MAPPER.fromDataObject(avroMapper.toDataObject(field.defaultVal()));
         return new DataValue(value);
     }
 

@@ -28,9 +28,11 @@ import java.util.Objects;
 @Getter
 public class SimpleType implements DataType {
     private final Class<?> containerClass;
+    private final String containerName;
 
-    public SimpleType(Class<?> containerClass) {
+    public SimpleType(Class<?> containerClass, String containerName) {
         this.containerClass = containerClass;
+        this.containerName = containerName;
     }
 
     @Override
@@ -38,12 +40,12 @@ public class SimpleType implements DataType {
         return containerName();
     }
 
-    public String containerName() {
-        return containerClass.getSimpleName();
-    }
-
     public Class<?> containerClass() {
         return containerClass;
+    }
+
+    public String containerName() {
+        return containerName;
     }
 
     public String schemaName() {

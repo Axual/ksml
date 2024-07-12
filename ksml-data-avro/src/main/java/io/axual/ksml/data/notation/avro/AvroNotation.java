@@ -33,17 +33,22 @@ import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class AvroNotation implements Notation {
     public static final String NOTATION_NAME = "AVRO";
     public static final DataType DEFAULT_TYPE = new StructType();
     private static final AvroDataObjectMapper mapper = new AvroDataObjectMapper();
-    private final Map<String, Object> configs = new HashMap<>();
+    private final NativeDataObjectMapper nativeMapper;
+    private final Serde<Object> keySerde;
+    private final Serde<Object> valueSerde;
 
-    public AvroNotation(Map<String, ?> configs) {
-        this.configs.putAll(configs);
+    public AvroNotation(NativeDataObjectMapper nativeMapper, Map<String, ?> configs) {
+        this.nativeMapper = nativeMapper;
+        keySerde = new AvroSerde();
+        keySerde.configure(configs, true);
+        valueSerde = new AvroSerde();
+        valueSerde.configure(configs, false);
     }
 
     @Override
@@ -53,18 +58,13 @@ public class AvroNotation implements Notation {
 
     @Override
     public Serde<Object> serde(DataType type, boolean isKey) {
-        if (type instanceof MapType) {
-            var result = new AvroSerde();
-            result.configure(configs, isKey);
-            return result;
-        }
+        if (type instanceof MapType) return isKey ? keySerde : valueSerde;
         throw new DataException("Avro serde not found for data type " + type);
     }
 
-    private static class AvroSerde implements Serde<Object> {
+    private class AvroSerde implements Serde<Object> {
         private final Serializer<Object> serializer = new KafkaAvroSerializer();
         private final Deserializer<Object> deserializer = new KafkaAvroDeserializer();
-        private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
 
         private final Serializer<Object> wrapSerializer =
                 (topic, data) -> {

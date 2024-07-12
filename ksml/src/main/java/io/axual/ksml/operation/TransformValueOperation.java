@@ -46,22 +46,23 @@ public class TransformValueOperation extends StoreOperation {
     @Override
     public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
         /*    Kafka Streams method signature:
-         *    <KR, VR> KStream<KR, VR> map(
-         *          final KeyValueMapper<? super K, ? super V, ? extends KeyValue<? extends KR, ? extends VR>> mapper,
-         *          final Named named)
+         *     <VOut> KStream<K, VOut> processValues(
+         *          final FixedKeyProcessorSupplier<? super K, ? super V, VOut> processorSupplier,
+         *          final Named named,
+         *          final String... stateStoreNames
          */
 
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(mapper, v.userType()), false);
-        final var map = userFunctionOf(context, MAPPER_NAME, mapper, vr, superOf(k), superOf(v));
+        final var map = userFunctionOf(context, MAPPER_NAME, mapper, vr, superOf(k.flatten()), superOf(v.flatten()));
         final var userMap = new UserValueTransformer(map, tags);
         final var storeNames = mapper.storeNames().toArray(String[]::new);
         final var supplier = new FixedKeyOperationProcessorSupplier<>(
                 name,
                 TransformValueProcessor::new,
-                (stores, record) -> userMap.apply(stores, record.key(), record.value()),
+                (stores, record) -> userMap.apply(stores, flattenValue(record.key()), flattenValue(record.value())),
                 storeNames);
         final var named = namedOf();
         final KStream<Object, Object> output = named != null
@@ -73,10 +74,10 @@ public class TransformValueOperation extends StoreOperation {
     @Override
     public StreamWrapper apply(KTableWrapper input, TopologyBuildContext context) {
         /*    Kafka Streams method signature:
-         *    <VR> KTable<K, VR> mapValues(
-         *          final ValueMapperWithKey<? super K, ? super V, ? extends VR> mapper,
+         *    <VR> KTable<K, VR> transformValues(final ValueTransformerWithKeySupplier<? super K, ? super V, ? extends VR> transformerSupplier,
+         *          final Materialized<K, VR, KeyValueStore<Bytes, byte[]>> materialized,
          *          final Named named,
-         *          final Materialized<K, VR, KeyValueStore<Bytes, byte[]>> materialized)
+         *          final String... stateStoreNames);
          */
 
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());

@@ -20,6 +20,8 @@ package io.axual.ksml.execution;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -47,6 +49,8 @@ public class ExecutionContext {
     private Logger produceExceptionLogger;
     private Logger processExceptionLogger;
 
+    @Getter
+    @Setter
     private SerdeWrapper<Object> serdeWrapper = null;
 
     private ExecutionContext() {
@@ -66,10 +70,6 @@ public class ExecutionContext {
     public void setProduceHandler(ErrorHandler produceHandler) {
         this.produceHandler = produceHandler;
         this.produceExceptionLogger = LoggerFactory.getLogger(produceHandler.loggerName());
-    }
-
-    public void setSerdeWrapper(SerdeWrapper<Object> serdeWrapper) {
-        this.serdeWrapper = serdeWrapper;
     }
 
     public Serde<Object> wrapSerde(Serde<Object> serde) {

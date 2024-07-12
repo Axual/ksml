@@ -20,8 +20,8 @@ package io.axual.ksml.serde;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.KafkaStreamsDataObjectMapper;
-import io.axual.ksml.data.schema.KafkaStreamsSchemaMapper;
+import io.axual.ksml.data.mapper.DataObjectFlattener;
+import io.axual.ksml.data.mapper.DataTypeFlattener;
 import io.axual.ksml.data.serde.DataObjectDeserializer;
 import io.axual.ksml.data.serde.DataObjectSerializer;
 import io.axual.ksml.data.type.DataType;
@@ -32,8 +32,8 @@ import org.apache.kafka.common.serialization.Serializer;
 
 @Getter
 public class StoreSerde implements Serde<Object> {
-    private static final KafkaStreamsSchemaMapper SCHEMA_MAPPER = new KafkaStreamsSchemaMapper();
-    private static final KafkaStreamsDataObjectMapper DO_MAPPER = new KafkaStreamsDataObjectMapper(true);
+    private static final DataTypeFlattener SCHEMA_MAPPER = new DataTypeFlattener();
+    private static final DataObjectFlattener FLATTENER = new DataObjectFlattener(true);
     private final Serializer<Object> serializer;
     private final Deserializer<Object> deserializer;
 
@@ -54,7 +54,7 @@ public class StoreSerde implements Serde<Object> {
                     return defaultSerde.serializer().serialize(topic, data);
                 }
                 // Else use the internal DataObject serializer
-                return internalSerializer.serialize(topic, DO_MAPPER.toDataObject(data));
+                return internalSerializer.serialize(topic, FLATTENER.toDataObject(data));
             };
 
             deserializer = (topic, data) -> {
@@ -66,7 +66,7 @@ public class StoreSerde implements Serde<Object> {
                 final var dataObject = internalDeserializer.deserialize(topic, data);
                 // For compatibility reasons, we have to return native object format here. Otherwise, state stores assisting in
                 // count() operations do not get back expected Long types, for example.
-                return DO_MAPPER.fromDataObject(dataObject);
+                return FLATTENER.fromDataObject(dataObject);
             };
         }
     }

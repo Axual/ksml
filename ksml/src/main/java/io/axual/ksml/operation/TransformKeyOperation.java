@@ -50,14 +50,14 @@ public class TransformKeyOperation extends BaseOperation {
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var kr = streamDataTypeOf(firstSpecificType(mapper, k), true);
-        final var map = userFunctionOf(context, MAPPER_NAME, mapper, kr, superOf(k), superOf(v));
+        final var kr = streamDataTypeOf(firstSpecificType(mapper, k), true).flatten();
+        final var map = userFunctionOf(context, MAPPER_NAME, mapper, kr, superOf(k.flatten()), superOf(v.flatten()));
         final var userMap = new UserKeyTransformer(map, tags);
         final var storeNames = mapper.storeNames().toArray(String[]::new);
         final var supplier = new OperationProcessorSupplier<>(
                 name,
                 TransformKeyProcessor::new,
-                (stores, record) -> userMap.apply(stores, record.key(), record.value()),
+                (stores, record) -> userMap.apply(stores, flattenValue(record.key()), flattenValue(record.value())),
                 storeNames);
         final var named = namedOf();
         final KStream<Object, Object> output = named != null

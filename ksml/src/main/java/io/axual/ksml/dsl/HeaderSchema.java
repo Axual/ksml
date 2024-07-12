@@ -20,6 +20,7 @@ package io.axual.ksml.dsl;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.DataTypeSchemaMapper;
 import io.axual.ksml.data.schema.*;
 import io.axual.ksml.data.type.DataType;
 
@@ -31,7 +32,7 @@ public class HeaderSchema {
 
     // Public constants are the fixed schemas and the field names
     public static final StructSchema HEADER_SCHEMA = generateHeaderSchema();
-    public static final DataType HEADER_TYPE = KafkaStreamsSchemaMapper.SUPPLIER().create().fromDataSchema(HEADER_SCHEMA);
+    public static final DataType HEADER_TYPE = new DataTypeSchemaMapper().fromDataSchema(HEADER_SCHEMA);
     public static final String HEADER_SCHEMA_NAME = "Header";
     public static final String HEADER_SCHEMA_KEY_FIELD = "key";
     public static final String HEADER_SCHEMA_VALUE_FIELD = "value";

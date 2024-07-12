@@ -37,21 +37,22 @@ import java.util.function.Supplier;
 
 public abstract class Invoker {
     private static final Logger LOG = LoggerFactory.getLogger(Invoker.class);
-    private final Timer timer;
     protected final UserFunction function;
+    private final Timer timer;
 
-    protected Invoker(UserFunction function, ContextTags metricTags, String functionType) {
+    protected Invoker(UserFunction function, ContextTags tags, String functionType) {
         if (function == null) {
             throw new TopologyException("Invoker: function can not be null");
         }
-        final var metricName = new MetricName("execution-time", metricTags.append("function-type", functionType).append("function-name", function.name));
+        this.function = function;
 
+        final var metricTags = tags.append("function-type", functionType).append("function-name", this.function.name);
+        final var metricName = new MetricName("execution-time", metricTags);
         if (Metrics.registry().getTimer(metricName) == null) {
             timer = Metrics.registry().registerTimer(metricName);
         } else {
             timer = Metrics.registry().getTimer(metricName);
         }
-        this.function = function;
     }
 
     protected <V> V timeExecutionOf(Supplier<V> callback) {

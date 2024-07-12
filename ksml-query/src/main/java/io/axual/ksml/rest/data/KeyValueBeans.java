@@ -20,8 +20,11 @@ package io.axual.ksml.rest.data;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataObject;
+
 import java.util.ArrayList;
 import java.util.List;
+
 public class KeyValueBeans {
     private final List<KeyValueBean> elements = new ArrayList<>();
 
@@ -29,7 +32,7 @@ public class KeyValueBeans {
         return elements;
     }
 
-    public KeyValueBeans add(Object key, Object value) {
+    public KeyValueBeans add(DataObject key, DataObject value) {
         return add(new KeyValueBean(key, value));
     }
 

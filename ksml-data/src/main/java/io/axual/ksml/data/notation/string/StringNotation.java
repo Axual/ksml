@@ -22,21 +22,24 @@ package io.axual.ksml.data.notation.string;
 
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataObjectMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.serde.StringSerde;
 import io.axual.ksml.data.type.DataType;
 import org.apache.kafka.common.serialization.Serde;
 
 public abstract class StringNotation implements Notation {
-    private final DataObjectMapper<String> mapper;
+    private final NativeDataObjectMapper nativeMapper;
+    private final DataObjectMapper<String> stringMapper;
 
-    public StringNotation(DataObjectMapper<String> mapper) {
-        this.mapper = mapper;
+    public StringNotation(NativeDataObjectMapper nativeMapper, DataObjectMapper<String> stringMapper) {
+        this.nativeMapper = nativeMapper;
+        this.stringMapper = stringMapper;
     }
 
     @Override
     public Serde<Object> serde(DataType type, boolean isKey) {
-        return new StringSerde(mapper, type);
+        return new StringSerde(nativeMapper, stringMapper, type);
     }
 
     protected RuntimeException noSerdeFor(DataType type) {

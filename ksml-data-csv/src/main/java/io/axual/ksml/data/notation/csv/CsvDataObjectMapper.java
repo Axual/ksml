@@ -51,8 +51,8 @@ public class CsvDataObjectMapper implements DataObjectMapper<String> {
             .with(CsvGenerator.Feature.ESCAPE_CONTROL_CHARS_WITH_ESCAPE_CHAR)
             .with(CsvGenerator.Feature.ESCAPE_QUOTE_CHAR_WITH_ESCAPE_CHAR)
             .with(CsvGenerator.Feature.ALWAYS_QUOTE_STRINGS);
-    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
-    private final DataTypeSchemaMapper schemaMapper = DataTypeSchemaMapper.SUPPLIER().create();
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
+    private static final DataTypeSchemaMapper SCHEMA_MAPPER = new DataTypeSchemaMapper();
 
     @Override
     public DataObject toDataObject(DataType expected, String value) {
@@ -77,7 +77,7 @@ public class CsvDataObjectMapper implements DataObjectMapper<String> {
         for (int index = 0; index < schema.fields().size(); index++) {
             var field = schema.field(index);
             var value = index < line.length ? line[index] : (field.defaultValue() != null ? field.defaultValue().value() : null);
-            result.put(field.name(), nativeMapper.toDataObject(schemaMapper.fromDataSchema(field.schema()), value));
+            result.put(field.name(), NATIVE_MAPPER.toDataObject(SCHEMA_MAPPER.fromDataSchema(field.schema()), value));
         }
         return result;
     }

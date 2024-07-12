@@ -21,8 +21,8 @@ package io.axual.ksml.data.notation.xml;
  */
 
 import io.axual.ksml.data.mapper.DataObjectMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.string.StringNotation;
-import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
@@ -31,20 +31,10 @@ import org.apache.kafka.common.serialization.Serde;
 public class XmlNotation extends StringNotation {
     public static final String NOTATION_NAME = "XML";
     public static final DataType DEFAULT_TYPE = new StructType();
-    private static final XmlDataObjectMapper MAPPER = new XmlDataObjectMapper();
+    private static final DataObjectMapper<String> MAPPER = new XmlDataObjectMapper();
 
-    public XmlNotation() {
-        super(new DataObjectMapper<>() {
-            @Override
-            public DataObject toDataObject(DataType expected, String value) {
-                return MAPPER.toDataObject(expected, value);
-            }
-
-            @Override
-            public String fromDataObject(DataObject value) {
-                return MAPPER.fromDataObject(value);
-            }
-        });
+    public XmlNotation(NativeDataObjectMapper nativeMapper) {
+        super(nativeMapper, MAPPER);
     }
 
     @Override

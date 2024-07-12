@@ -22,6 +22,7 @@ package io.axual.ksml;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
@@ -54,8 +55,9 @@ public class TopologyGeneratorBasicTest {
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
     @ValueSource(ints = {1, 2, 3, 4, 5})
     void parseAndCheckOuput(int nr) throws Exception {
-        final var jsonNotation = new JsonNotation();
-        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(jsonNotation::serde), null);
+        final var mapper = new NativeDataObjectMapper();
+        final var jsonNotation = new JsonNotation(mapper);
+        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(mapper, jsonNotation::serde), null);
         NotationLibrary.register(JsonNotation.NOTATION_NAME, jsonNotation, new JsonDataObjectConverter());
 
         final var uri = ClassLoader.getSystemResource("pipelines/" + nr + "-demo.yaml").toURI();

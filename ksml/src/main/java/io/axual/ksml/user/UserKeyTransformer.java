@@ -20,6 +20,7 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.tag.ContextTags;
@@ -30,8 +31,8 @@ import io.axual.ksml.store.StateStores;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 
 public class UserKeyTransformer extends Invoker implements KeyValueMapper<Object, Object, Object> {
-    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
-    private final static DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
+    private static final DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
     public UserKeyTransformer(UserFunction function, ContextTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_KEYTRANSFORMER);
@@ -46,6 +47,6 @@ public class UserKeyTransformer extends Invoker implements KeyValueMapper<Object
     }
 
     public DataObject apply(StateStores stores, Object key, Object value) {
-        return timeExecutionOf(() -> function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value)));
+        return timeExecutionOf(() -> function.call(stores, NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value)));
     }
 }

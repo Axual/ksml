@@ -21,6 +21,7 @@ package io.axual.ksml.user;
  */
 
 import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.tag.ContextTags;
@@ -34,8 +35,8 @@ import org.apache.kafka.streams.kstream.ValueMapperWithKey;
 import java.util.ArrayList;
 
 public class UserKeyValueToValueListTransformer extends Invoker implements ValueMapperWithKey<Object, Object, Iterable<Object>> {
-    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
-    private final static DataType EXPECTED_RESULT_TYPE = new ListType(DataType.UNKNOWN);
+    private static final DataType EXPECTED_RESULT_TYPE = new ListType(DataType.UNKNOWN);
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
     public UserKeyValueToValueListTransformer(UserFunction function, ContextTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_KEYVALUETOVALUELISTTRANSFORMER);
@@ -50,7 +51,7 @@ public class UserKeyValueToValueListTransformer extends Invoker implements Value
     }
 
     public Iterable<Object> apply(StateStores stores, Object key, Object value) {
-        final var result = timeExecutionOf(() -> function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value)));
+        final var result = timeExecutionOf(() -> function.call(stores, NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value)));
         if (result instanceof DataList list) {
             final var newList = new ArrayList<>();
             list.forEach(newList::add);

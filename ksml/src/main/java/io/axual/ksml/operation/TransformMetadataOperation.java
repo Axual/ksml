@@ -52,13 +52,13 @@ public class TransformMetadataOperation extends BaseOperation {
         final var k = input.keyType();
         final var v = input.valueType();
         final var meta = new UserType(RecordMetadata.DATATYPE);
-        final var map = userFunctionOf(context, MAPPER_NAME, mapper, subOf(meta), superOf(k), superOf(v), superOf(meta));
+        final var map = userFunctionOf(context, MAPPER_NAME, mapper, subOf(meta), superOf(k.flatten()), superOf(v.flatten()), superOf(meta));
         final var userMap = new UserMetadataTransformer(map, tags);
         final var storeNames = mapper.storeNames().toArray(String[]::new);
         final var supplier = new FixedKeyOperationProcessorSupplier<>(
                 name,
                 TransformMetadataProcessor::new,
-                (stores, record) -> userMap.apply(stores, record.key(), record.value(), new RecordMetadata(record.timestamp(), record.headers())),
+                (stores, record) -> userMap.apply(stores, flattenValue(record.key()), flattenValue(record.value()), new RecordMetadata(record.timestamp(), record.headers())),
                 storeNames);
         final var named = namedOf();
         final KStream<Object, Object> output = named != null

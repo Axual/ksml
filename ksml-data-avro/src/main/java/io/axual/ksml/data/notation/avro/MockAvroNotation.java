@@ -93,7 +93,7 @@ public class MockAvroNotation implements Notation {
     private class AvroSerde implements Serde<Object> {
         private final Serializer<Object> serializer = new KafkaAvroSerializer(mockSchemaRegistryClient);
         private final Deserializer<Object> deserializer = new KafkaAvroDeserializer(mockSchemaRegistryClient);
-        private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
+        private final NativeDataObjectMapper nativeMapper = new NativeDataObjectMapper();
 
         private final Serializer<Object> wrapSerializer =
                 (topic, data) -> {

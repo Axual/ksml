@@ -28,8 +28,6 @@ import io.axual.ksml.data.schema.SchemaLibrary;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.*;
 import io.axual.ksml.data.value.Tuple;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,33 +39,16 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     public static final String STRUCT_SCHEMA_FIELD = DataStruct.META_ATTRIBUTE_CHAR + "schema";
     public static final String STRUCT_TYPE_FIELD = DataStruct.META_ATTRIBUTE_CHAR + "type";
 
-    public interface NativeDataObjectMapperSupplier {
-        default NativeDataObjectMapper create() {
-            return create(true);
-        }
-
-        NativeDataObjectMapper create(boolean includeTypeInfo);
-    }
-
-    @Getter
-    @Setter
-    private static NativeDataObjectMapperSupplier SUPPLIER = (NativeDataObjectMapper::new);
+    private static final DataSchemaMapper<DataType> SCHEMA_MAPPER = new DataTypeSchemaMapper();
+    private static final DataSchemaMapper<Object> SCHEMA_SERDE = new NativeDataSchemaMapper();
     private final boolean includeTypeInfo;
-    private final DataSchemaMapper<DataType> schemaMapper;
-    private final DataSchemaMapper<Object> schemaSerde;
 
-    public static NativeDataObjectMapper create() {
-        return create(true);
+    public NativeDataObjectMapper() {
+        this(true);
     }
 
-    public static NativeDataObjectMapper create(boolean includeTypeInfo) {
-        return SUPPLIER().create(includeTypeInfo);
-    }
-
-    protected NativeDataObjectMapper(boolean includeTypeInfo) {
+    public NativeDataObjectMapper(boolean includeTypeInfo) {
         this.includeTypeInfo = includeTypeInfo;
-        schemaMapper = DataTypeSchemaMapper.SUPPLIER().create();
-        schemaSerde = new NativeDataSchemaMapper();
     }
 
     public DataObject toDataObject(DataType expected, Object value) {
@@ -202,7 +183,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         // consult the schema library, but instead directly decode the schema from the field.
         if (map.containsKey(STRUCT_SCHEMA_FIELD)) {
             final var nativeSchema = map.get(STRUCT_SCHEMA_FIELD);
-            return schemaSerde.toDataSchema("dummy", nativeSchema);
+            return SCHEMA_SERDE.toDataSchema("dummy", nativeSchema);
         }
 
         // The "@type" field indicates a type that is assumed to be contained in the schema
@@ -243,7 +224,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         map.forEach((key, value) -> {
             var field = type.schema() != null ? type.schema().field(key) : null;
             var fieldSchema = field != null ? field.schema() : null;
-            var fieldType = schemaMapper.fromDataSchema(fieldSchema);
+            var fieldType = SCHEMA_MAPPER.fromDataSchema(fieldSchema);
             result.put(key, toDataObject(fieldType, value));
         });
         return result;
@@ -301,7 +282,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         var schema = struct.type().schema();
         if (schema != null && includeTypeInfo) {
             result.put(STRUCT_TYPE_FIELD, schema.name());
-            result.put(STRUCT_SCHEMA_FIELD, schemaSerde.fromDataSchema(schema));
+            result.put(STRUCT_SCHEMA_FIELD, SCHEMA_SERDE.fromDataSchema(schema));
         }
 
         // Return the native representation as Map

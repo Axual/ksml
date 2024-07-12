@@ -28,7 +28,6 @@ import io.axual.ksml.python.Invoker;
 import org.apache.kafka.streams.kstream.Initializer;
 
 public class UserInitializer extends Invoker implements Initializer<Object> {
-
     public UserInitializer(UserFunction function, ContextTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_INITIALIZER);
         verifyParameterCount(0);

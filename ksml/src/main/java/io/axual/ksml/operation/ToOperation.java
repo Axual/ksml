@@ -53,10 +53,10 @@ public class ToOperation extends BaseOperation {
          *          final Produced<K, V> produced)
          */
 
-        final var k = input.keyType();
-        final var v = input.valueType();
-        final var kt = streamDataTypeOf(firstSpecificType(topic.keyType(), k.userType()), true);
-        final var vt = streamDataTypeOf(firstSpecificType(topic.valueType(), v.userType()), false);
+        final var k = input.keyType().flatten();
+        final var v = input.valueType().flatten();
+        final var kt = streamDataTypeOf(firstSpecificType(topic.keyType(), k.userType()), true).flatten();
+        final var vt = streamDataTypeOf(firstSpecificType(topic.valueType(), v.userType()), false).flatten();
         // Perform a dataType check to see if the key/value data types received matches the stream definition's types
         checkType("Target topic keyType", kt, superOf(k));
         checkType("Target topic valueType", vt, superOf(v));

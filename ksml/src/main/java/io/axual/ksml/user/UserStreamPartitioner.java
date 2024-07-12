@@ -21,6 +21,7 @@ package io.axual.ksml.user;
  */
 
 import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataString;
@@ -31,8 +32,8 @@ import io.axual.ksml.python.Invoker;
 import org.apache.kafka.streams.processor.StreamPartitioner;
 
 public class UserStreamPartitioner extends Invoker implements StreamPartitioner<Object, Object> {
-    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
-    private final static DataType EXPECTED_RESULT_TYPE = DataInteger.DATATYPE;
+    private static final DataType EXPECTED_RESULT_TYPE = DataInteger.DATATYPE;
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
     public UserStreamPartitioner(UserFunction function, ContextTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_STREAMPARTITIONER);
@@ -42,7 +43,7 @@ public class UserStreamPartitioner extends Invoker implements StreamPartitioner<
 
     @Override
     public Integer partition(String topic, Object key, Object value, int numPartitions) {
-        final var result = timeExecutionOf(() -> function.call(new DataString(topic), nativeMapper.toDataObject(key), nativeMapper.toDataObject(value), new DataInteger(numPartitions)));
+        final var result = timeExecutionOf(() -> function.call(new DataString(topic), NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value), new DataInteger(numPartitions)));
         if (result instanceof DataInteger dataInteger) {
             return dataInteger.value();
         }

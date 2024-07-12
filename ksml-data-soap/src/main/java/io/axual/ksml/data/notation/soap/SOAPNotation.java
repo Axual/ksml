@@ -21,6 +21,7 @@ package io.axual.ksml.data.notation.soap;
  */
 
 import io.axual.ksml.data.mapper.DataObjectMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.string.StringNotation;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.schema.AnySchema;
@@ -37,8 +38,8 @@ public class SOAPNotation extends StringNotation {
     private static final SOAPDataObjectMapper DATA_OBJECT_MAPPER = new SOAPDataObjectMapper();
     private static final SOAPStringMapper STRING_MAPPER = new SOAPStringMapper();
 
-    public SOAPNotation() {
-        super(new DataObjectMapper<>() {
+    public SOAPNotation(NativeDataObjectMapper nativeMapper) {
+        super(nativeMapper, new DataObjectMapper<>() {
             @Override
             public DataObject toDataObject(DataType expected, String value) {
                 return DATA_OBJECT_MAPPER.toDataObject(expected, STRING_MAPPER.fromString(value));

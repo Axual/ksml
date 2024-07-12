@@ -22,6 +22,7 @@ package io.axual.ksml.operation;
 
 
 import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.*;
 import io.axual.ksml.user.UserReducer;
@@ -105,7 +106,6 @@ public class ReduceOperation extends StoreOperation {
 
         final var k = input.keyType();
         final var v = input.valueType();
-        final var windowedK = windowedTypeOf(k);
         final var red = userFunctionOf(context, REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
         final var userRed = new UserReducer(red, tags);
         final var sessionStore = validateSessionStore(store(), k, v);
@@ -116,7 +116,7 @@ public class ReduceOperation extends StoreOperation {
                 ? input.sessionWindowedKStream.reduce(userRed, named, mat)
                 : input.sessionWindowedKStream.reduce(userRed, mat)
                 : input.sessionWindowedKStream.reduce(userRed);
-        return new KTableWrapper((KTable) output, windowedK, v);
+        return new KTableWrapper((KTable) output, windowed(k), v);
     }
 
     @Override
@@ -130,7 +130,6 @@ public class ReduceOperation extends StoreOperation {
 
         final var k = input.keyType();
         final var v = input.valueType();
-        final var windowedK = windowedTypeOf(k);
         final var red = userFunctionOf(context, REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
         final var userRed = new UserReducer(red, tags);
         final var windowStore = validateWindowStore(store(), k, v);
@@ -141,6 +140,6 @@ public class ReduceOperation extends StoreOperation {
                 ? input.timeWindowedKStream.reduce(userRed, named, mat)
                 : input.timeWindowedKStream.reduce(userRed, mat)
                 : input.timeWindowedKStream.reduce(userRed);
-        return new KTableWrapper((KTable) output, windowedK, v);
+        return new KTableWrapper((KTable) output, windowed(k), v);
     }
 }

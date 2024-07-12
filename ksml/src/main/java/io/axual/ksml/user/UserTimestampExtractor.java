@@ -22,8 +22,8 @@ package io.axual.ksml.user;
 
 
 import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.mapper.RecordContextDataObjectMapper;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataString;
@@ -39,9 +39,8 @@ import org.apache.kafka.streams.processor.TimestampExtractor;
 
 @Slf4j
 public class UserTimestampExtractor extends Invoker implements TimestampExtractor {
-    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
-    private final RecordContextDataObjectMapper recordContextMapper = new RecordContextDataObjectMapper();
-    private final static DataType EXPECTED_RESULT_TYPE = DataLong.DATATYPE;
+    private static final DataType EXPECTED_RESULT_TYPE = DataLong.DATATYPE;
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
     public UserTimestampExtractor(UserFunction function, ContextTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_TIMESTAMPEXTRACTOR);
@@ -54,8 +53,8 @@ public class UserTimestampExtractor extends Invoker implements TimestampExtracto
         final var dataRecord = new DataStruct(ConsumerRecordSchema.CONSUMER_RECORD_SCHEMA);
         dataRecord.put(ConsumerRecordSchema.CONSUMER_RECORD_SCHEMA_TIMESTAMP_FIELD, new DataLong(record.timestamp()));
         dataRecord.put(ConsumerRecordSchema.CONSUMER_RECORD_SCHEMA_TIMESTAMP_TYPE_FIELD, new DataString(record.timestampType().name));
-        dataRecord.put(ConsumerRecordSchema.CONSUMER_RECORD_SCHEMA_KEY_FIELD, nativeMapper.toDataObject(record.key()));
-        dataRecord.put(ConsumerRecordSchema.CONSUMER_RECORD_SCHEMA_VALUE_FIELD, nativeMapper.toDataObject(record.value()));
+        dataRecord.put(ConsumerRecordSchema.CONSUMER_RECORD_SCHEMA_KEY_FIELD, NATIVE_MAPPER.toDataObject(record.key()));
+        dataRecord.put(ConsumerRecordSchema.CONSUMER_RECORD_SCHEMA_VALUE_FIELD, NATIVE_MAPPER.toDataObject(record.value()));
         dataRecord.put(ConsumerRecordSchema.CONSUMER_RECORD_SCHEMA_TOPIC_FIELD, new DataString(record.topic()));
         dataRecord.put(ConsumerRecordSchema.CONSUMER_RECORD_SCHEMA_PARTITION_FIELD, new DataInteger(record.partition()));
         dataRecord.put(ConsumerRecordSchema.CONSUMER_RECORD_SCHEMA_OFFSET_FIELD, new DataLong(record.offset()));

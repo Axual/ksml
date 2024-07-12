@@ -29,6 +29,7 @@ import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.data.notation.soap.SOAPNotation;
 import io.axual.ksml.data.notation.xml.XmlNotation;
 import io.axual.ksml.data.object.*;
+import io.axual.ksml.data.parser.schema.DataSchemaDSL;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.SchemaLibrary;
@@ -48,12 +49,11 @@ public class UserTypeParser {
     private static final String ROUND_BRACKET_CLOSE = ")";
     private static final String SQUARE_BRACKET_OPEN = "[";
     private static final String SQUARE_BRACKET_CLOSE = "]";
-    private static final String ENUM_TYPE = "enum";
-    private static final String UNION_TYPE = "union";
-    private static final String WINDOWED_TYPE = "windowed";
-    private static final String UNKNOWN_TYPE = "?";
+    private static final String ENUM_TYPE = DataSchemaDSL.ENUM_TYPE;
+    private static final String UNION_TYPE = DataSchemaDSL.UNION_TYPE;
+    private static final String WINDOWED_TYPE = DataSchemaDSL.WINDOWED_TYPE;
     private static final String ALLOWED_LITERAL_CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
-    private static final String ALLOWED_TYPE_CHARACTERS = ALLOWED_LITERAL_CHARACTERS + NOTATION_SEPARATOR + UNKNOWN_TYPE;
+    private static final String ALLOWED_TYPE_CHARACTERS = ALLOWED_LITERAL_CHARACTERS + NOTATION_SEPARATOR + DataSchemaDSL.UNKNOWN_TYPE;
 
     private UserTypeParser() {
     }
@@ -240,18 +240,18 @@ public class UserTypeParser {
 
     private static DataType parseType(String type) {
         return switch (type) {
-            case "null", "none" -> DataNull.DATATYPE;
-            case "boolean" -> DataBoolean.DATATYPE;
-            case "byte" -> DataByte.DATATYPE;
-            case "short" -> DataShort.DATATYPE;
-            case "double" -> DataDouble.DATATYPE;
-            case "float" -> DataFloat.DATATYPE;
-            case "int", "integer" -> DataInteger.DATATYPE;
-            case "long" -> DataLong.DATATYPE;
-            case "bytes" -> DataBytes.DATATYPE;
-            case "string", "str" -> DataString.DATATYPE;
-            case "struct" -> new StructType();
-            case "any", UNKNOWN_TYPE -> DataType.UNKNOWN;
+            case DataSchemaDSL.NULL_TYPE, DataSchemaDSL.NONE_TYPE -> DataNull.DATATYPE;
+            case DataSchemaDSL.BOOLEAN_TYPE -> DataBoolean.DATATYPE;
+            case DataSchemaDSL.BYTE_TYPE -> DataByte.DATATYPE;
+            case DataSchemaDSL.SHORT_TYPE -> DataShort.DATATYPE;
+            case DataSchemaDSL.DOUBLE_TYPE -> DataDouble.DATATYPE;
+            case DataSchemaDSL.FLOAT_TYPE -> DataFloat.DATATYPE;
+            case DataSchemaDSL.INTEGER_TYPE, DataSchemaDSL.INTEGER_TYPE_ALTERNATIVE -> DataInteger.DATATYPE;
+            case DataSchemaDSL.LONG_TYPE -> DataLong.DATATYPE;
+            case DataSchemaDSL.BYTES_TYPE -> DataBytes.DATATYPE;
+            case DataSchemaDSL.STRING_TYPE, DataSchemaDSL.STRING_TYPE_ALTERNATIVE -> DataString.DATATYPE;
+            case DataSchemaDSL.STRUCT_TYPE -> new StructType();
+            case DataSchemaDSL.ANY_TYPE, DataSchemaDSL.UNKNOWN_TYPE -> DataType.UNKNOWN;
             default -> throw new TopologyException("Can not derive dataType: " + type);
         };
     }

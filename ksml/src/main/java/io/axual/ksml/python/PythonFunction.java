@@ -196,7 +196,7 @@ public class PythonFunction extends UserFunction {
                         %2$s
 
                         def convert_to_python(value):
-                          if value == None: # don't modify to "is" operator, since that Java's null is not exactly the same as None
+                          if value == None: # don't modify to "is" operator, since Java's null is not exactly the same as None
                             return None
                           if isinstance(value, (HashMap, TreeMap)):
                             result = dict()
@@ -211,7 +211,7 @@ public class PythonFunction extends UserFunction {
                           return value
 
                         def convert_from_python(value):
-                          if value == None: # don't modify to "is" operator, since that Java's null is not exactly the same as None
+                          if value == None: # don't modify to "is" operator, since Java's null is not exactly the same as None
                             return None
                           if isinstance(value, (list, tuple)):
                             result = ArrayList()

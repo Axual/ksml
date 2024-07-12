@@ -94,7 +94,6 @@ public class CountOperation extends StoreOperation {
 
         final var k = input.keyType();
         final var vr = streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
-        final var windowedK = windowedTypeOf(k);
         final var sessionStore = validateSessionStore(store(), k, vr);
         final Materialized<Object, Long, SessionStore<Bytes, byte[]>> mat = materializedOf(context, sessionStore);
         final var named = namedOf();
@@ -105,7 +104,7 @@ public class CountOperation extends StoreOperation {
                 : mat != null
                 ? input.sessionWindowedKStream.count(mat)
                 : input.sessionWindowedKStream.count();
-        return new KTableWrapper((KTable) output, windowedK, vr);
+        return new KTableWrapper((KTable) output, windowed(k), vr);
     }
 
     @Override
@@ -118,7 +117,6 @@ public class CountOperation extends StoreOperation {
 
         final var k = input.keyType();
         final var vr = streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
-        final var windowedK = windowedTypeOf(k);
         final var windowStore = validateWindowStore(store(), k, vr);
         final Materialized<Object, Long, WindowStore<Bytes, byte[]>> mat = materializedOf(context, windowStore);
         final var named = namedOf();
@@ -129,6 +127,6 @@ public class CountOperation extends StoreOperation {
                 : mat != null
                 ? input.timeWindowedKStream.count(mat)
                 : input.timeWindowedKStream.count();
-        return new KTableWrapper((KTable) output, windowedK, vr);
+        return new KTableWrapper((KTable) output, windowed(k), vr);
     }
 }

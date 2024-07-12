@@ -66,10 +66,10 @@ public class GlobalTableDefinitionParser extends TopologyBaseResourceAwareParser
                     valueType = valueType != null ? valueType : UserType.UNKNOWN;
                     final var policy = OffsetResetPolicyParser.parseResetPolicy(resetPolicy);
                     if (store != null) {
-                        if (!keyType.dataType().isAssignableFrom(store.keyType().dataType())) {
+                        if (!store.keyType().dataType().isAssignableFrom(keyType.dataType())) {
                             throw new TopologyException("Incompatible key types between globalTable '" + topic + "' and its corresponding state store: " + keyType.dataType() + " and " + store.keyType().dataType());
                         }
-                        if (!valueType.dataType().isAssignableFrom(store.valueType().dataType())) {
+                        if (!store.valueType().dataType().isAssignableFrom(valueType.dataType())) {
                             throw new TopologyException("Incompatible value types between globalTable '" + topic + "' and its corresponding state store: " + valueType.dataType() + " and " + store.valueType().dataType());
                         }
                     }
@@ -87,10 +87,10 @@ public class GlobalTableDefinitionParser extends TopologyBaseResourceAwareParser
                     keyType = keyType != null ? keyType : UserType.UNKNOWN;
                     valueType = valueType != null ? valueType : UserType.UNKNOWN;
                     if (store != null) {
-                        if (!keyType.dataType().isAssignableFrom(store.keyType().dataType())) {
+                        if (!store.keyType().dataType().isAssignableFrom(keyType.dataType())) {
                             throw new TopologyException("Incompatible key types between globalTable '" + topic + "' and its corresponding state store: " + keyType.dataType() + " and " + store.keyType().dataType());
                         }
-                        if (!valueType.dataType().isAssignableFrom(store.valueType().dataType())) {
+                        if (!store.valueType().dataType().isAssignableFrom(valueType.dataType())) {
                             throw new TopologyException("Incompatible value types between globalTable '" + topic + "' and its corresponding state store: " + valueType.dataType() + " and " + store.valueType().dataType());
                         }
                     }

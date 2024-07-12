@@ -30,17 +30,6 @@ import lombok.Setter;
 import java.util.Arrays;
 
 public class DataTypeSchemaMapper implements DataSchemaMapper<DataType> {
-    public interface DataTypeSchemaMapperSupplier {
-        DataTypeSchemaMapper create();
-    }
-
-    @Getter
-    @Setter
-    private static DataTypeSchemaMapperSupplier SUPPLIER = DataTypeSchemaMapper::new;
-
-    protected DataTypeSchemaMapper() {
-    }
-
     public DataSchema toDataSchema(String namespace, String name, DataType type) {
         if (type == DataType.UNKNOWN) return AnySchema.INSTANCE;
         if (type == DataNull.DATATYPE) return DataSchema.create(DataSchema.Type.NULL);

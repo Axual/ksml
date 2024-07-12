@@ -20,6 +20,7 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.tag.ContextTags;
@@ -29,8 +30,8 @@ import io.axual.ksml.python.Invoker;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 
 public class UserKeyValuePrinter extends Invoker implements KeyValueMapper<Object, Object, String> {
-    private final NativeDataObjectMapper nativeMapper = NativeDataObjectMapper.SUPPLIER().create();
-    private final static DataType EXPECTED_RESULT_TYPE = DataString.DATATYPE;
+    private static final DataType EXPECTED_RESULT_TYPE = DataString.DATATYPE;
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
     public UserKeyValuePrinter(UserFunction function, ContextTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_KEYVALUEPRINTER);
@@ -40,7 +41,7 @@ public class UserKeyValuePrinter extends Invoker implements KeyValueMapper<Objec
 
     @Override
     public String apply(Object key, Object value) {
-        final var result = timeExecutionOf(() -> function.call(nativeMapper.toDataObject(key), nativeMapper.toDataObject(value)));
+        final var result = timeExecutionOf(() -> function.call(NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value)));
         if (result instanceof DataString str) return str.value();
         return result.toString();
     }

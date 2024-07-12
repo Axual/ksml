@@ -23,6 +23,7 @@ package io.axual.ksml.testutil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.TopologyGenerator;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.avro.AvroSchemaLoader;
 import io.axual.ksml.data.notation.avro.MockAvroNotation;
@@ -92,8 +93,9 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
     @Override
     public void beforeAll(ExtensionContext extensionContext) {
         log.debug("registering notations");
-        final var jsonNotation = new JsonNotation();
-        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(jsonNotation::serde), null);
+        final var mapper = new NativeDataObjectMapper();
+        final var jsonNotation = new JsonNotation(mapper);
+        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(mapper, jsonNotation::serde), null);
         NotationLibrary.register(JsonNotation.NOTATION_NAME, jsonNotation, new JsonDataObjectConverter());
         NotationLibrary.register(MockAvroNotation.NOTATION_NAME, avroNotation, null);
     }

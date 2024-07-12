@@ -78,14 +78,13 @@ public class OuterJoinOperation extends BaseJoinOperation {
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
             checkType("Join stream keyType", ko, equalTo(k));
             final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vo));
-            final var windowedK = windowedTypeOf(k);
             final var windowStore = validateWindowStore(store(), k, vr);
             final var streamJoined = streamJoinedOf(windowStore, k, v, vo);
             final var userJoiner = new UserValueJoiner(joiner, tags);
             final KStream<Object, Object> output = streamJoined != null
                     ? input.stream.outerJoin(otherStream.stream, userJoiner, joinWindows, streamJoined)
                     : input.stream.outerJoin(otherStream.stream, userJoiner, joinWindows);
-            return new KStreamWrapper(output, windowedK, vr);
+            return new KStreamWrapper(output, k, vr);
         }
 
         throw new TopologyException("Can not OUTER_JOIN stream with " + joinTopic.getClass().getSimpleName());

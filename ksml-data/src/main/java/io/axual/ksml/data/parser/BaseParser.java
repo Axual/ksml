@@ -28,14 +28,14 @@ public abstract class BaseParser<T> implements Parser<T> {
     }
 
     protected Integer parseInteger(ParseNode node, String childName) {
-        return node != null && node.get(childName) != null ? node.get(childName).asInt() : null;
+        if (node == null) return null;
+        final var child = node.get(childName);
+        return child != null && child.isInt() ? child.asInt() : null;
     }
 
     protected String parseString(ParseNode node, String childName) {
-        if (node != null) {
-            ParseNode value = node.get(childName);
-            return value != null ? value.asString() : null;
-        }
-        return null;
+        if (node == null) return null;
+        final var child = node.get(childName);
+        return child != null && !child.isNull() ? child.asString() : null;
     }
 }

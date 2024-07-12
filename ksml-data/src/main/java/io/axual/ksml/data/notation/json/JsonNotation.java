@@ -21,6 +21,7 @@ package io.axual.ksml.data.notation.json;
  */
 
 import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.serde.JsonSerde;
 import io.axual.ksml.data.type.*;
@@ -29,6 +30,11 @@ import org.apache.kafka.common.serialization.Serde;
 public class JsonNotation implements Notation {
     public static final String NOTATION_NAME = "JSON";
     public static final DataType DEFAULT_TYPE = new UnionType(new StructType(), new ListType());
+    private final NativeDataObjectMapper nativeMapper;
+
+    public JsonNotation(NativeDataObjectMapper nativeMapper) {
+        this.nativeMapper = nativeMapper;
+    }
 
     @Override
     public String name() {
@@ -39,7 +45,7 @@ public class JsonNotation implements Notation {
     public Serde<Object> serde(DataType type, boolean isKey) {
         // JSON types can either be Map (or Struct), or List, or the union type of both Struct and List
         if (type instanceof MapType || type instanceof ListType || JsonNotation.DEFAULT_TYPE.isAssignableFrom(type))
-            return new JsonSerde(type);
+            return new JsonSerde(nativeMapper, type);
         // Other types can not be serialized as JSON
         throw new ExecutionException(name() + " serde not found for data type: " + type);
     }
