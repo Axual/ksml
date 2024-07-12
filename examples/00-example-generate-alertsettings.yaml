@@ -75,5 +75,5 @@ functions:
 producers:
   sensordata_alertsetting_producer:
     generator: generate_sensor_alertsetting_message
-    interval: 4444
+    interval: 5s
     to: sensor_sensoralert_settings

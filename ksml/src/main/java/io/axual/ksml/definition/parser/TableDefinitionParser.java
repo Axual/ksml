@@ -66,10 +66,12 @@ public class TableDefinitionParser extends TopologyBaseResourceAwareParser<Table
                     valueType = valueType != null ? valueType : UserType.UNKNOWN;
                     final var policy = OffsetResetPolicyParser.parseResetPolicy(resetPolicy);
                     if (store != null) {
-                        if (!keyType.dataType().isAssignableFrom(store.keyType().dataType())) {
+                        if (store.keyType().equals(UserType.UNKNOWN)) store = store.withKeyType(keyType);
+                        if (store.valueType().equals(UserType.UNKNOWN)) store = store.withValueType(valueType);
+                        if (!store.keyType().dataType().isAssignableFrom(keyType.dataType())) {
                             throw new TopologyException("Incompatible key types between table '" + topic + "' and its corresponding state store: " + keyType.dataType() + " and " + store.keyType().dataType());
                         }
-                        if (!valueType.dataType().isAssignableFrom(store.valueType().dataType())) {
+                        if (!store.valueType().dataType().isAssignableFrom(valueType.dataType())) {
                             throw new TopologyException("Incompatible value types between table '" + topic + "' and its corresponding state store: " + valueType.dataType() + " and " + store.valueType().dataType());
                         }
                     }
@@ -87,10 +89,12 @@ public class TableDefinitionParser extends TopologyBaseResourceAwareParser<Table
                     keyType = keyType != null ? keyType : UserType.UNKNOWN;
                     valueType = valueType != null ? valueType : UserType.UNKNOWN;
                     if (store != null) {
-                        if (!keyType.dataType().isAssignableFrom(store.keyType().dataType())) {
+                        if (store.keyType().equals(UserType.UNKNOWN)) store = store.withKeyType(keyType);
+                        if (store.valueType().equals(UserType.UNKNOWN)) store = store.withValueType(valueType);
+                        if (!store.keyType().dataType().isAssignableFrom(keyType.dataType())) {
                             throw new TopologyException("Incompatible key types between table '" + topic + "' and its corresponding state store: " + keyType.dataType() + " and " + store.keyType().dataType());
                         }
-                        if (!valueType.dataType().isAssignableFrom(store.valueType().dataType())) {
+                        if (!store.valueType().dataType().isAssignableFrom(valueType.dataType())) {
                             throw new TopologyException("Incompatible value types between table '" + topic + "' and its corresponding state store: " + valueType.dataType() + " and " + store.valueType().dataType());
                         }
                     }

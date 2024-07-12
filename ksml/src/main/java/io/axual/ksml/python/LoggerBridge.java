@@ -124,8 +124,8 @@ public class LoggerBridge {
             logger.warn(s, o);
         }
 
-        public void warn(String s, Object o, Object o1) {
-            logger.warn(s, o, o1);
+        public void warn(String s, Object... objects) {
+            logger.warn(s, objects);
         }
 
         @CheckReturnValue
@@ -148,7 +148,6 @@ public class LoggerBridge {
         public void error(String s, Object... objects) {
             logger.error(s, objects);
         }
-
 
         @CheckReturnValue
         public LoggingEventBuilder atError() {

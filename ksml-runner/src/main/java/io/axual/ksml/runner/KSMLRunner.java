@@ -130,7 +130,7 @@ public class KSMLRunner {
                 ExecutionContext.INSTANCE.setProduceHandler(getErrorHandler(errorHandling.getProducerErrorHandlingConfig()));
                 ExecutionContext.INSTANCE.setProcessHandler(getErrorHandler(errorHandling.getProcessErrorHandlingConfig()));
             }
-            ExecutionContext.INSTANCE.setSerdeWrapper(
+            ExecutionContext.INSTANCE.serdeWrapper(
                     serde -> new Serdes.WrapperSerde<>(
                             new ResolvingSerializer<>(serde.serializer(), config.getKafkaConfig()),
                             new ResolvingDeserializer<>(serde.deserializer(), config.getKafkaConfig())));

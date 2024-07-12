@@ -94,19 +94,18 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     private SchemaAndRequired convertUnionToDataSchema(List<Schema> unionTypes) {
         // If a type "null" is found in AVRO schema, the respective property is considered optional, so here we detect
         // this fact and return the result Boolean as "false" indicating a required property.
-        var required = true;
         if (unionTypes.size() > 1 && unionTypes.contains(AVRO_NULL_TYPE)) {
             // Create a copy of the list to prevent modifying immutable lists, then remove the NULL type
             unionTypes = new ArrayList<>(unionTypes);
             unionTypes.remove(AVRO_NULL_TYPE);
-            required = false;
+
+            // If the union now contains only a single schema, then unwrap it from the union and return as simple type
+            if (unionTypes.size() == 1) {
+                return new SchemaAndRequired(convertToDataSchema(unionTypes.getFirst()).schema(), false);
+            }
         }
 
-        // If the union now contains only a single schema, then unwrap it from the union and return as simple type
-        if (unionTypes.size() == 1) {
-            return new SchemaAndRequired(convertToDataSchema(unionTypes.getFirst()).schema(), required);
-        }
-        return new SchemaAndRequired(new UnionSchema(convertToDataSchema(unionTypes).toArray(DataSchema[]::new)), required);
+        return new SchemaAndRequired(new UnionSchema(convertToDataSchema(unionTypes).toArray(DataSchema[]::new)), true);
     }
 
     private List<DataSchema> convertToDataSchema(List<Schema> schemas) {
