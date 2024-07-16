@@ -30,7 +30,6 @@ import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.UserValueJoiner;
 import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
@@ -77,10 +76,10 @@ public class OuterJoinOperation extends BaseJoinOperation {
             final var vo = otherStream.valueType();
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
             checkType("Join stream keyType", ko, equalTo(k));
-            final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(v), superOf(vo));
+            final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(k), superOf(v), superOf(vo));
             final var windowStore = validateWindowStore(store(), k, vr);
             final var streamJoined = streamJoinedOf(windowStore, k, v, vo);
-            final var userJoiner = new UserValueJoiner(joiner, tags);
+            final var userJoiner = valueJoiner(joiner, tags);
             final KStream<Object, Object> output = streamJoined != null
                     ? input.stream.outerJoin(otherStream.stream, userJoiner, joinWindows, streamJoined)
                     : input.stream.outerJoin(otherStream.stream, userJoiner, joinWindows);
@@ -111,8 +110,8 @@ public class OuterJoinOperation extends BaseJoinOperation {
             final var vo = otherTable.valueType();
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
             checkType("Join table keyType", ko, equalTo(k));
-            final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(v), superOf(vo));
-            final var userJoiner = new UserValueJoiner(joiner, tags);
+            final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(k), superOf(v), superOf(vo));
+            final var userJoiner = valueJoiner(joiner, tags);
             final var kvStore = validateKeyValueStore(store(), k, vr);
             final var mat = materializedOf(context, kvStore);
             final var named = namedOf();

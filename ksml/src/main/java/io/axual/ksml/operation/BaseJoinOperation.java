@@ -20,11 +20,12 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.definition.WindowStateStoreDefinition;
 import io.axual.ksml.generator.StreamDataType;
-import org.apache.kafka.streams.kstream.JoinWindows;
-import org.apache.kafka.streams.kstream.Joined;
-import org.apache.kafka.streams.kstream.StreamJoined;
+import io.axual.ksml.user.UserFunction;
+import io.axual.ksml.user.UserValueJoiner;
+import org.apache.kafka.streams.kstream.*;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -60,5 +61,13 @@ public abstract class BaseJoinOperation extends StoreOperation {
         } else {
             return JoinWindows.ofTimeDifferenceWithNoGrace(timeDifference);
         }
+    }
+
+    protected ValueJoiner<Object, Object, Object> valueJoiner(UserFunction function, ContextTags tags) {
+        return new UserValueJoiner(function, tags);
+    }
+
+    protected ValueJoinerWithKey<Object, Object, Object, Object> valueJoinerWithKey(UserFunction function, ContextTags tags) {
+        return new UserValueJoiner(function, tags);
     }
 }

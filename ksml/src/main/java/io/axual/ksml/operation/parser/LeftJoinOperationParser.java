@@ -70,7 +70,7 @@ public class LeftJoinOperationParser extends StoreOperationParser<LeftJoinOperat
                 "Operation to leftJoin with a table",
                 operationNameField(),
                 topicField(Operations.Join.WITH_TABLE, "A reference to the Table, or an inline definition of the Table to join with", new TableDefinitionParser(resources(), false)),
-                optional(functionField(Operations.Join.FOREIGN_KEY_EXTRACTOR, "A function that can translate the join table value to a primary key", new ValueJoinerDefinitionParser(false))),
+                optional(functionField(Operations.Join.FOREIGN_KEY_EXTRACTOR, "A function that can translate the join table value to a primary key", new ForeignKeyExtractorDefinitionParser(false))),
                 functionField(Operations.Join.VALUE_JOINER, "A function that joins two values", new ValueJoinerDefinitionParser(false)),
                 optional(durationField(Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
                 optional(functionField(Operations.Join.PARTITIONER, "A function that partitions the records on the primary table", new StreamPartitionerDefinitionParser(false))),
@@ -89,7 +89,7 @@ public class LeftJoinOperationParser extends StoreOperationParser<LeftJoinOperat
                 "Operation to leftJoin with a globalTable",
                 operationNameField(),
                 topicField(Operations.Join.WITH_GLOBAL_TABLE, "A reference to the globalTable, or an inline definition of the globalTable to join with", new GlobalTableDefinitionParser(resources(), false)),
-                functionField(Operations.Join.MAPPER, "A function that maps the key value from the stream with the primary key of the globalTable", new ValueJoinerDefinitionParser(false)),
+                functionField(Operations.Join.MAPPER, "A function that maps the key value from the stream with the primary key of the globalTable", new KeyValueMapperDefinitionParser(false)),
                 functionField(Operations.Join.VALUE_JOINER, "A function that joins two values", new ValueJoinerDefinitionParser(false)),
                 // GlobalTable joins do not use/require a state store
                 (name, globalTable, mapper, valueJoiner, tags) -> {

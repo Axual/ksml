@@ -29,7 +29,9 @@ import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.*;
+import io.axual.ksml.user.UserForeignKeyExtractor;
+import io.axual.ksml.user.UserKeyTransformer;
+import io.axual.ksml.user.UserStreamPartitioner;
 import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
@@ -106,10 +108,10 @@ public class JoinOperation extends BaseJoinOperation {
             final var vo = otherStream.valueType();
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
             checkType("Join stream keyType", ko, equalTo(k));
-            final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vo));
+            final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(k), superOf(v), superOf(vo));
             final var windowStore = validateWindowStore(store(), k, vr);
             final var streamJoined = streamJoinedOf(windowStore, k, v, vo);
-            final var userJoiner = new UserValueJoinerWithKey(joiner, tags);
+            final var userJoiner = valueJoinerWithKey(joiner, tags);
             final KStream<Object, Object> output = streamJoined != null
                     ? input.stream.join(otherStream.stream, userJoiner, joinWindows, streamJoined)
                     : input.stream.join(otherStream.stream, userJoiner, joinWindows);
@@ -129,9 +131,9 @@ public class JoinOperation extends BaseJoinOperation {
             final var vt = otherTable.valueType();
             final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vt, v), false);
             checkType("Join table keyType", kt, equalTo(k));
-            final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vt));
+            final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(k), superOf(v), superOf(vt));
             final var joined = joinedOf(name, k, v, vt, gracePeriod);
-            final var userJoiner = new UserValueJoinerWithKey(joiner, tags);
+            final var userJoiner = valueJoinerWithKey(joiner, tags);
             final KStream<Object, Object> output = joined != null
                     ? input.stream.join(otherTable.table, userJoiner, joined)
                     : input.stream.join(otherTable.table, userJoiner);
@@ -156,7 +158,7 @@ public class JoinOperation extends BaseJoinOperation {
             final var sel = userFunctionOf(context, KEYSELECTOR_NAME, keySelector, subOf(gk), superOf(k), superOf(v));
             final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(rv), superOf(k), superOf(v), superOf(gv));
             final var userSel = new UserKeyTransformer(sel, tags);
-            final var userJoiner = new UserValueJoinerWithKey(joiner, tags);
+            final var userJoiner = valueJoinerWithKey(joiner, tags);
             final var named = namedOf();
             final KStream<Object, Object> output = named != null
                     ? input.stream.join(otherGlobalKTable.globalTable, userSel, userJoiner, named)
@@ -191,8 +193,8 @@ public class JoinOperation extends BaseJoinOperation {
                  */
 
                 final var userFkExtract = new UserForeignKeyExtractor(fkExtract, tags);
-                final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, equalTo(vr), equalTo(v), equalTo(vo));
-                final var userJoiner = new UserValueJoiner(joiner, tags);
+                final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(k), superOf(v), superOf(vo));
+                final var userJoiner = valueJoiner(joiner, tags);
                 final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, equalTo(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
                 final var userPart = part != null ? new UserStreamPartitioner(part, tags) : null;
                 final var otherPart = userFunctionOf(context, PARTITIONER_NAME, otherPartitioner, equalTo(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
@@ -217,8 +219,8 @@ public class JoinOperation extends BaseJoinOperation {
                  *          final Materialized<K, VR, KeyValueStore<Bytes, byte[]>> materialized)
                  */
 
-                final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(v), superOf(vo));
-                final var userJoiner = new UserValueJoiner(joiner, tags);
+                final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(k), superOf(v), superOf(vo));
+                final var userJoiner = valueJoiner(joiner, tags);
                 final var kvStore = validateKeyValueStore(store(), k, vr);
                 final var mat = materializedOf(context, kvStore);
                 final var named = namedOf();
