@@ -191,7 +191,7 @@ public class LeftJoinOperation extends BaseJoinOperation {
                  */
 
                 final var userFkExtract = new UserForeignKeyExtractor(fkExtract, tags);
-                final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, equalTo(vr), equalTo(v), equalTo(vo));
+                final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, equalTo(vr), superOf(k), equalTo(v), equalTo(vo));
                 final var userJoiner = new UserValueJoiner(joiner, tags);
                 final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, equalTo(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
                 final var userPart = part != null ? new UserStreamPartitioner(part, tags) : null;
@@ -217,7 +217,7 @@ public class LeftJoinOperation extends BaseJoinOperation {
                  *          final Materialized<K, VR, KeyValueStore<Bytes, byte[]>> materialized)
                  */
 
-                final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(v), superOf(vo));
+                final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(k), superOf(v), superOf(vo));
                 final var userJoiner = new UserValueJoiner(joiner, tags);
                 final var kvStore = validateKeyValueStore(store(), k, vr);
                 final var mat = materializedOf(context, kvStore);
