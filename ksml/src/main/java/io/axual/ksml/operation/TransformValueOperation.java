@@ -54,9 +54,9 @@ public class TransformValueOperation extends StoreOperation {
 
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
         final var k = input.keyType();
-        final var v = input.valueType();
+        final var v = input.valueType().flatten();
         final var vr = streamDataTypeOf(firstSpecificType(mapper, v.userType()), false);
-        final var map = userFunctionOf(context, MAPPER_NAME, mapper, vr, superOf(k.flatten()), superOf(v.flatten()));
+        final var map = userFunctionOf(context, MAPPER_NAME, mapper, vr, superOf(k.flatten()), superOf(v));
         final var userMap = new UserValueTransformer(map, tags);
         final var storeNames = mapper.storeNames().toArray(String[]::new);
         final var supplier = new FixedKeyOperationProcessorSupplier<>(
