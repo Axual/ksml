@@ -52,8 +52,8 @@ public class TransformKeyValueOperation extends BaseOperation {
          */
 
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
-        final var k = input.keyType();
-        final var v = input.valueType();
+        final var k = input.keyType().flatten();
+        final var v = input.valueType().flatten();
         final var kvTuple = firstSpecificType(mapper, new UserType(new UserTupleType(k.userType(), v.userType())));
         checkTuple(MAPPER_NAME + " resultType", kvTuple, DataType.UNKNOWN, DataType.UNKNOWN);
         final var map = userFunctionOf(context, MAPPER_NAME, mapper, kvTuple, superOf(k), superOf(v));
