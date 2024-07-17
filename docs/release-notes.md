@@ -4,6 +4,7 @@
 
 * [Release Notes](#release-notes)
     * [Releases](#releases)
+        * [1.0.1 (2024-07-17)](#101-2024-07-17)
         * [1.0.0 (2024-06-28)](#100-2024-06-28)
         * [0.8.0 (2024-03-08)](#080-2024-03-08)
         * [0.9.1 (2024-06-21)](#091-2024-06-21)
@@ -16,6 +17,13 @@
         * [0.0.3 (2021-07-30)](#003-2021-07-30)
         * [0.0.2 (2021-06-28)](#002-2021-06-28)
         * [0.0.1 (2021-04-30)](#001-2021-04-30)
+
+### 1.0.1 (2024-07-17)
+* Topology Optimization can be applied
+* Runtime dependencies, like LZ4 compression support, are back in the KSML image
+* Fix parse error messages during join
+* Fix windowed aggregation flow errors
+* Update windowed object support in multiple operations and functions
 
 ### 1.0.0 (2024-06-28)
 
