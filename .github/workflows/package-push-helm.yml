@@ -23,7 +23,7 @@ on:
 
 jobs:
   build-push-helm:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.merged }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.merged }}
     runs-on: ubuntu-latest
     steps:
       - name: Install Helm

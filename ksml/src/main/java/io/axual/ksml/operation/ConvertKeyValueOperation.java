@@ -40,8 +40,8 @@ public class ConvertKeyValueOperation extends BaseOperation {
 
     @Override
     public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
-        final var k = input.keyType();
-        final var v = input.valueType();
+        final var k = input.keyType().flatten();
+        final var v = input.valueType().flatten();
         final var kr = streamDataTypeOf(targetKeyType, true).flatten();
         final var vr = streamDataTypeOf(targetValueType, false).flatten();
         final var mapper = context.getDataObjectConverter();
