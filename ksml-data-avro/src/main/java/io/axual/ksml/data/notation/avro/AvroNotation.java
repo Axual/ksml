@@ -20,6 +20,7 @@ package io.axual.ksml.data.notation.avro;
  * =========================LICENSE_END==================================
  */
 
+import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
@@ -40,15 +41,13 @@ public class AvroNotation implements Notation {
     public static final DataType DEFAULT_TYPE = new StructType();
     private static final AvroDataObjectMapper mapper = new AvroDataObjectMapper();
     private final NativeDataObjectMapper nativeMapper;
-    private final Serde<Object> keySerde;
-    private final Serde<Object> valueSerde;
+    private final Map<String, ?> serdeConfigs;
+    private Serde<Object> keySerde;
+    private Serde<Object> valueSerde;
 
     public AvroNotation(NativeDataObjectMapper nativeMapper, Map<String, ?> configs) {
         this.nativeMapper = nativeMapper;
-        keySerde = new AvroSerde();
-        keySerde.configure(configs, true);
-        valueSerde = new AvroSerde();
-        valueSerde.configure(configs, false);
+        this.serdeConfigs = ImmutableMap.copyOf(configs);
     }
 
     @Override
@@ -58,8 +57,18 @@ public class AvroNotation implements Notation {
 
     @Override
     public Serde<Object> serde(DataType type, boolean isKey) {
-        if (type instanceof MapType) return isKey ? keySerde : valueSerde;
-        throw new DataException("Avro serde not found for data type " + type);
+        if (!(type instanceof MapType)) throw new DataException("AVRO serde can not be applied to type " + type);
+
+        // Create the serdes only upon request to prevent error messages on missing SR url configs if AVRO is not used
+        if (keySerde == null) {
+            keySerde = new AvroSerde();
+            keySerde.configure(serdeConfigs, true);
+        }
+        if (valueSerde == null) {
+            valueSerde = new AvroSerde();
+            valueSerde.configure(serdeConfigs, false);
+        }
+        return isKey ? keySerde : valueSerde;
     }
 
     private class AvroSerde implements Serde<Object> {
