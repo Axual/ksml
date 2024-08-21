@@ -1,0 +1,24 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/1.0.1/docs/ksml-language-spec.json
+# Stream with no name will use topic as name
+streams:
+  sensor_source:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: string
+  sensor_copy:
+    topic: ksml_sensordata_copy
+    keyType: string
+    valueType: json
+
+pipelines:
+  main:
+    from: sensor_source
+    via:
+      - type: transformValue
+        mapper:
+          resultType: json
+          code: |
+            value = None
+            key = "Transformed "
+          expression: value
+    to: sensor_copy
