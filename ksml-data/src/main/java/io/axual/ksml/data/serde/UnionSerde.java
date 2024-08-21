@@ -23,6 +23,7 @@ package io.axual.ksml.data.serde;
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataUnion;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.UnionType;
 import org.apache.kafka.common.serialization.Deserializer;
@@ -80,6 +81,11 @@ public class UnionSerde implements Serde<Object> {
 
         @Override
         public byte[] serialize(String topic, Object data) {
+            // Always allow null values for unions, so check these first outside of the union's possibleTypes
+            final var value = data instanceof DataUnion dataUnion ? dataUnion.value() : data;
+            if (value == null || value == DataNull.INSTANCE) return null;
+
+            // Iterate over all possible types and call a type-compatible serializer
             for (PossibleType possibleType : possibleTypes) {
                 // Check if we are serializing a DataObject. If so, then check compatibility
                 // using its own data dataType, else check compatibility with Java native dataType.
@@ -93,7 +99,9 @@ public class UnionSerde implements Serde<Object> {
                     }
                 }
             }
-            throw new ExecutionException("Can not serialize object as union alternative: " + data.getClass().getSimpleName());
+
+            // No type compatibility found, so raise an exception
+            throw new ExecutionException("Can not serialize value as union alternative: value=" + value + ", possibleTypes=" + possibleTypesToString());
         }
     }
 
@@ -121,7 +129,11 @@ public class UnionSerde implements Serde<Object> {
                     // Not properly deserialized, so ignore and try next alternative
                 }
             }
-            throw new ExecutionException("Can not deserialize data as union possible dataType" + possibleTypes);
+            throw new ExecutionException("Can not deserialize data as union: possibleTypes=" + possibleTypesToString());
         }
+    }
+
+    private List<DataType> possibleTypesToString() {
+        return possibleTypes.stream().map(t -> t.type).toList();
     }
 }
