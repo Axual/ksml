@@ -25,6 +25,7 @@ import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.processor.FixedKeyOperationProcessorSupplier;
 import io.axual.ksml.operation.processor.TransformKeyValueToValueListProcessor;
@@ -52,8 +53,12 @@ public class TransformKeyValueToValueListOperation extends BaseOperation {
         checkNotNull(mapper, MAPPER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var vr = streamDataTypeOf(firstSpecificType(mapper, new UserType(new ListType(DataType.UNKNOWN))), false);
-        final var map = userFunctionOf(context, MAPPER_NAME, mapper, subOf(vr), superOf(k.flatten()), superOf(v.flatten()));
+        final var vrs = streamDataTypeOf(firstSpecificType(mapper, new UserType(new ListType(DataType.UNKNOWN))), false);
+        if (!(vrs.userType().dataType() instanceof ListType vrList)) {
+            throw new TopologyException("Function should return a list of values, but currently returns " + vrs);
+        }
+        final var vr = streamDataTypeOf(vrList.valueType(), false);
+        final var map = userFunctionOf(context, MAPPER_NAME, mapper, subOf(vrs), superOf(k.flatten()), superOf(v.flatten()));
         final var userMap = new UserKeyValueToValueListTransformer(map, tags);
         final var storeNames = mapper.storeNames().toArray(String[]::new);
         final var supplier = new FixedKeyOperationProcessorSupplier<>(

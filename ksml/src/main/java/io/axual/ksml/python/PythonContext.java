@@ -54,8 +54,8 @@ public class PythonContext {
                             .allowHostSocketAccess(false)
                             .build())
 //                    .allowIO(IOAccess.ALL)
-                    .allowNativeAccess(false)
-//                    .allowNativeAccess(true)
+//                    .allowNativeAccess(false)
+                    .allowNativeAccess(true)
                     .allowPolyglotAccess(
                             PolyglotAccess.newBuilder()
                                     .allowBindingsAccess(PYTHON)
