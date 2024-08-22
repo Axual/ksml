@@ -7,71 +7,71 @@
 - **`functions`** *(object)*: *(optional)* Functions that can be referenced in producers and pipelines.
   - **`^[a-zA-Z0-9_]+$`**
     - **Any of**
-      - : Refer to *[#/definitions/AggregatorDefinition](#definitions/AggregatorDefinition)*.
-      - : Refer to *[#/definitions/ForEachActionDefinition](#definitions/ForEachActionDefinition)*.
-      - : Refer to *[#/definitions/ForeignKeyExtractorDefinition](#definitions/ForeignKeyExtractorDefinition)*.
-      - : Refer to *[#/definitions/GeneratorDefinition](#definitions/GeneratorDefinition)*.
-      - : Refer to *[#/definitions/GenericFunctionDefinitionWithImplicitType](#definitions/GenericFunctionDefinitionWithImplicitType)*.
-      - : Refer to *[#/definitions/InitializerDefinition](#definitions/InitializerDefinition)*.
-      - : Refer to *[#/definitions/KeyTransformerDefinition](#definitions/KeyTransformerDefinition)*.
-      - : Refer to *[#/definitions/KeyValueMapperDefinition](#definitions/KeyValueMapperDefinition)*.
-      - : Refer to *[#/definitions/KeyValuePrinterDefinition](#definitions/KeyValuePrinterDefinition)*.
-      - : Refer to *[#/definitions/KeyValueToKeyValueListTransformerDefinition](#definitions/KeyValueToKeyValueListTransformerDefinition)*.
-      - : Refer to *[#/definitions/KeyValueToValueListTransformerDefinition](#definitions/KeyValueToValueListTransformerDefinition)*.
-      - : Refer to *[#/definitions/KeyValueTransformerDefinition](#definitions/KeyValueTransformerDefinition)*.
-      - : Refer to *[#/definitions/MergerDefinition](#definitions/MergerDefinition)*.
-      - : Refer to *[#/definitions/MetadataTransformerDefinition](#definitions/MetadataTransformerDefinition)*.
-      - : Refer to *[#/definitions/PredicateDefinition](#definitions/PredicateDefinition)*.
-      - : Refer to *[#/definitions/ReducerDefinition](#definitions/ReducerDefinition)*.
-      - : Refer to *[#/definitions/StreamPartitionerDefinition](#definitions/StreamPartitionerDefinition)*.
-      - : Refer to *[#/definitions/TimestampExtractorDefinition](#definitions/TimestampExtractorDefinition)*.
-      - : Refer to *[#/definitions/TopicNameExtractorDefinition](#definitions/TopicNameExtractorDefinition)*.
-      - : Refer to *[#/definitions/ValueJoinerDefinition](#definitions/ValueJoinerDefinition)*.
-      - : Refer to *[#/definitions/ValueTransformerDefinition](#definitions/ValueTransformerDefinition)*.
+      - *object*: Refer to *[#/definitions/AggregatorDefinition](#definitions/AggregatorDefinition)*.
+      - *object*: Refer to *[#/definitions/ForEachActionDefinition](#definitions/ForEachActionDefinition)*.
+      - *object*: Refer to *[#/definitions/ForeignKeyExtractorDefinition](#definitions/ForeignKeyExtractorDefinition)*.
+      - *object*: Refer to *[#/definitions/GeneratorDefinition](#definitions/GeneratorDefinition)*.
+      - *object*: Refer to *[#/definitions/GenericFunctionDefinitionWithImplicitType](#definitions/GenericFunctionDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/InitializerDefinition](#definitions/InitializerDefinition)*.
+      - *object*: Refer to *[#/definitions/KeyTransformerDefinition](#definitions/KeyTransformerDefinition)*.
+      - *object*: Refer to *[#/definitions/KeyValueMapperDefinition](#definitions/KeyValueMapperDefinition)*.
+      - *object*: Refer to *[#/definitions/KeyValuePrinterDefinition](#definitions/KeyValuePrinterDefinition)*.
+      - *object*: Refer to *[#/definitions/KeyValueToKeyValueListTransformerDefinition](#definitions/KeyValueToKeyValueListTransformerDefinition)*.
+      - *object*: Refer to *[#/definitions/KeyValueToValueListTransformerDefinition](#definitions/KeyValueToValueListTransformerDefinition)*.
+      - *object*: Refer to *[#/definitions/KeyValueTransformerDefinition](#definitions/KeyValueTransformerDefinition)*.
+      - *object*: Refer to *[#/definitions/MergerDefinition](#definitions/MergerDefinition)*.
+      - *object*: Refer to *[#/definitions/MetadataTransformerDefinition](#definitions/MetadataTransformerDefinition)*.
+      - *object*: Refer to *[#/definitions/PredicateDefinition](#definitions/PredicateDefinition)*.
+      - *object*: Refer to *[#/definitions/ReducerDefinition](#definitions/ReducerDefinition)*.
+      - *object*: Refer to *[#/definitions/StreamPartitionerDefinition](#definitions/StreamPartitionerDefinition)*.
+      - *object*: Refer to *[#/definitions/TimestampExtractorDefinition](#definitions/TimestampExtractorDefinition)*.
+      - *object*: Refer to *[#/definitions/TopicNameExtractorDefinition](#definitions/TopicNameExtractorDefinition)*.
+      - *object*: Refer to *[#/definitions/ValueJoinerDefinition](#definitions/ValueJoinerDefinition)*.
+      - *object*: Refer to *[#/definitions/ValueTransformerDefinition](#definitions/ValueTransformerDefinition)*.
 - **`globalTables`** *(object)*: *(optional)* GlobalTables that can be referenced in producers and pipelines.
-  - **`^[a-zA-Z0-9_]+$`**: Refer to *[#/definitions/GlobalTableDefinitionSource](#definitions/GlobalTableDefinitionSource)*.
+  - **`^[a-zA-Z0-9_]+$`** *(object)*: Refer to *[#/definitions/GlobalTableDefinitionSource](#definitions/GlobalTableDefinitionSource)*.
 - **`pipelines`** *(object)*: *(optional)* Collection of named pipelines.
-  - **`^[a-zA-Z0-9_]+$`**: Refer to *[#/definitions/PipelineDefinition](#definitions/PipelineDefinition)*.
+  - **`^[a-zA-Z0-9_]+$`** *(object)*: Refer to *[#/definitions/PipelineDefinition](#definitions/PipelineDefinition)*.
 - **`producers`** *(object)*: *(optional)* Collection of named producers.
-  - **`^[a-zA-Z0-9_]+$`**: Refer to *[#/definitions/ProducerDefinition](#definitions/ProducerDefinition)*.
+  - **`^[a-zA-Z0-9_]+$`** *(object)*: Refer to *[#/definitions/ProducerDefinition](#definitions/ProducerDefinition)*.
 - **`stores`** *(object)*: *(optional)* State stores that can be referenced in producers and pipelines.
   - **`^[a-zA-Z0-9_]+$`**
     - **Any of**
-      - : Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
-      - : Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
-      - : Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
 - **`streams`** *(object)*: *(optional)* Streams that can be referenced in producers and pipelines.
-  - **`^[a-zA-Z0-9_]+$`**: Refer to *[#/definitions/StreamDefinitionSource](#definitions/StreamDefinitionSource)*.
+  - **`^[a-zA-Z0-9_]+$`** *(object)*: Refer to *[#/definitions/StreamDefinitionSource](#definitions/StreamDefinitionSource)*.
 - **`tables`** *(object)*: *(optional)* Tables that can be referenced in producers and pipelines.
-  - **`^[a-zA-Z0-9_]+$`**: Refer to *[#/definitions/TableDefinitionSource](#definitions/TableDefinitionSource)*.
+  - **`^[a-zA-Z0-9_]+$`** *(object)*: Refer to *[#/definitions/TableDefinitionSource](#definitions/TableDefinitionSource)*.
 ## Definitions
 
 - <a id="definitions/AggregateOperation"></a>**`AggregateOperation`** *(object)*: An aggregate operation. Cannot contain additional properties.
   - **`adder`**: *(optional)* (GroupedTable) A function that adds a record to the aggregation result.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/AggregatorDefinitionWithImplicitType](#definitions/AggregatorDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/AggregatorDefinitionWithImplicitType](#definitions/AggregatorDefinitionWithImplicitType)*.
   - **`aggregator`**: *(optional)* (GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/AggregatorDefinitionWithImplicitType](#definitions/AggregatorDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/AggregatorDefinitionWithImplicitType](#definitions/AggregatorDefinitionWithImplicitType)*.
   - **`initializer`**: The initializer function, which generates an initial value for every set of aggregated records.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/InitializerDefinitionWithImplicitType](#definitions/InitializerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/InitializerDefinitionWithImplicitType](#definitions/InitializerDefinitionWithImplicitType)*.
   - **`merger`**: *(optional)* (SessionWindowedStream, SessionWindowedCogroupedStream) A function that combines two aggregation results.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/MergerDefinitionWithImplicitType](#definitions/MergerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/MergerDefinitionWithImplicitType](#definitions/MergerDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`store`**: *(optional)* Materialized view of the result aggregation.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitType](#definitions/WindowStateStoreDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitType](#definitions/WindowStateStoreDefinitionWithImplicitType)*.
   - **`subtractor`**: *(optional)* (GroupedTable) A function that removes a record from the aggregation result.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/AggregatorDefinitionWithImplicitType](#definitions/AggregatorDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/AggregatorDefinitionWithImplicitType](#definitions/AggregatorDefinitionWithImplicitType)*.
   - **`type`**: The type of the operation. Must be one of: `["aggregate"]`.
 - <a id="definitions/AggregatorDefinition"></a>**`AggregatorDefinition`** *(object)*: Defines a aggregator function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the aggregator.
@@ -91,7 +91,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the aggregator. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the aggregator.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the aggregator. Only required for function types, which are not pre-defined.
   - **`type`**: The type of the function. Must be one of: `["aggregator"]`.
 - <a id="definitions/AggregatorDefinitionWithImplicitType"></a>**`AggregatorDefinitionWithImplicitType`** *(object)*: Defines a aggregator function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
@@ -112,80 +112,80 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the aggregator. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the aggregator.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the aggregator. Only required for function types, which are not pre-defined.
 - <a id="definitions/BranchDefinitionWithPipeline"></a>**`BranchDefinitionWithPipeline`** *(object)*: Defines a branch with sub-pipeline in a BranchOperation. Cannot contain additional properties.
   - **`as`** *(string)*: *(optional)* The name to register the pipeline result under, which can be used as source by follow-up pipelines.
   - **`branch`** *(array)*: *(optional)* Defines a single branch, consisting of a condition and a pipeline to execute for messages that fulfil the predicate.
-    - **Items**: Refer to *[#/definitions/StringOrInlinePredicateDefinitionWithImplicitType](#definitions/StringOrInlinePredicateDefinitionWithImplicitType)*.
+    - **Items** *(object)*: Refer to *[#/definitions/StringOrInlinePredicateDefinitionWithImplicitType](#definitions/StringOrInlinePredicateDefinitionWithImplicitType)*.
   - **`forEach`**: *(optional)* A function that gets called for every message in the stream.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/ForEachActionDefinitionWithImplicitType](#definitions/ForEachActionDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/ForEachActionDefinitionWithImplicitType](#definitions/ForEachActionDefinitionWithImplicitType)*.
   - **`if`**: *(optional)* Defines the condition under which messages get sent down this branch.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/PredicateDefinitionWithImplicitType](#definitions/PredicateDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/PredicateDefinitionWithImplicitType](#definitions/PredicateDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
-  - **`print`**: *(optional)* The specification of where to print messages to. Refer to *[#/definitions/PrintOperation](#definitions/PrintOperation)*.
+  - **`print`** *(object)*: *(optional)* The specification of where to print messages to. Refer to *[#/definitions/PrintOperation](#definitions/PrintOperation)*.
   - **`to`**: *(optional)* Ends the pipeline by sending all messages to a stream, table or globalTable, or to an inline defined output topic and optional partitioner.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/ToTopicDefinition](#definitions/ToTopicDefinition)*.
+      - *object*: Refer to *[#/definitions/ToTopicDefinition](#definitions/ToTopicDefinition)*.
   - **`toTopicNameExtractor`**: *(optional)* Ends the pipeline by sending all messages to a topic provided by a pre-defined topic name extractor function, or to a topic provided by an inline defined topic name extractor and optional partitioner.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/ToTopicNameExtractorDefinition](#definitions/ToTopicNameExtractorDefinition)*.
+      - *object*: Refer to *[#/definitions/ToTopicNameExtractorDefinition](#definitions/ToTopicNameExtractorDefinition)*.
   - **`via`** *(array)*: *(optional)* A series of operations performed on the input stream.
     - **Items**
       - **Any of**
-        - : Refer to *[#/definitions/AggregateOperation](#definitions/AggregateOperation)*.
-        - : Refer to *[#/definitions/CogroupOperation](#definitions/CogroupOperation)*.
-        - : Refer to *[#/definitions/ConvertKeyOperation](#definitions/ConvertKeyOperation)*.
-        - : Refer to *[#/definitions/ConvertKeyValueOperation](#definitions/ConvertKeyValueOperation)*.
-        - : Refer to *[#/definitions/ConvertValueOperation](#definitions/ConvertValueOperation)*.
-        - : Refer to *[#/definitions/CountOperation](#definitions/CountOperation)*.
-        - : Refer to *[#/definitions/FilterNotOperation](#definitions/FilterNotOperation)*.
-        - : Refer to *[#/definitions/FilterOperation](#definitions/FilterOperation)*.
-        - : Refer to *[#/definitions/GroupByKeyOperation](#definitions/GroupByKeyOperation)*.
-        - : Refer to *[#/definitions/GroupByOperation](#definitions/GroupByOperation)*.
-        - : Refer to *[#/definitions/JoinOperationWithGlobalTable](#definitions/JoinOperationWithGlobalTable)*.
-        - : Refer to *[#/definitions/JoinOperationWithStream](#definitions/JoinOperationWithStream)*.
-        - : Refer to *[#/definitions/JoinOperationWithTable](#definitions/JoinOperationWithTable)*.
-        - : Refer to *[#/definitions/LeftJoinOperationWithGlobalTable](#definitions/LeftJoinOperationWithGlobalTable)*.
-        - : Refer to *[#/definitions/LeftJoinOperationWithStream](#definitions/LeftJoinOperationWithStream)*.
-        - : Refer to *[#/definitions/LeftJoinOperationWithTable](#definitions/LeftJoinOperationWithTable)*.
-        - : Refer to *[#/definitions/MergeOperation](#definitions/MergeOperation)*.
-        - : Refer to *[#/definitions/OuterJoinOperationWithStream](#definitions/OuterJoinOperationWithStream)*.
-        - : Refer to *[#/definitions/OuterJoinOperationWithTable](#definitions/OuterJoinOperationWithTable)*.
-        - : Refer to *[#/definitions/PeekOperation](#definitions/PeekOperation)*.
-        - : Refer to *[#/definitions/ReduceOperationWithAdderAndSubtractor](#definitions/ReduceOperationWithAdderAndSubtractor)*.
-        - : Refer to *[#/definitions/ReduceOperationWithReducer](#definitions/ReduceOperationWithReducer)*.
-        - : Refer to *[#/definitions/RepartitionOperation](#definitions/RepartitionOperation)*.
-        - : Refer to *[#/definitions/SuppressOperationUntilTimeLimit](#definitions/SuppressOperationUntilTimeLimit)*.
-        - : Refer to *[#/definitions/SuppressOperationUntilWindowCloses](#definitions/SuppressOperationUntilWindowCloses)*.
-        - : Refer to *[#/definitions/ToStreamOperation](#definitions/ToStreamOperation)*.
-        - : Refer to *[#/definitions/ToTableOperation](#definitions/ToTableOperation)*.
-        - : Refer to *[#/definitions/TransformKeyOperation](#definitions/TransformKeyOperation)*.
-        - : Refer to *[#/definitions/TransformKeyValueOperation](#definitions/TransformKeyValueOperation)*.
-        - : Refer to *[#/definitions/TransformKeyValueToKeyValueListOperation](#definitions/TransformKeyValueToKeyValueListOperation)*.
-        - : Refer to *[#/definitions/TransformKeyValueToValueListOperation](#definitions/TransformKeyValueToValueListOperation)*.
-        - : Refer to *[#/definitions/TransformMetadataOperation](#definitions/TransformMetadataOperation)*.
-        - : Refer to *[#/definitions/TransformValueOperation](#definitions/TransformValueOperation)*.
-        - : Refer to *[#/definitions/WindowBySessionOperation](#definitions/WindowBySessionOperation)*.
-        - : Refer to *[#/definitions/WindowByTimeOperationWithHoppingWindow](#definitions/WindowByTimeOperationWithHoppingWindow)*.
-        - : Refer to *[#/definitions/WindowByTimeOperationWithSlidingWindow](#definitions/WindowByTimeOperationWithSlidingWindow)*.
-        - : Refer to *[#/definitions/WindowByTimeOperationWithTumblingWindow](#definitions/WindowByTimeOperationWithTumblingWindow)*.
+        - *object*: Refer to *[#/definitions/AggregateOperation](#definitions/AggregateOperation)*.
+        - *object*: Refer to *[#/definitions/CogroupOperation](#definitions/CogroupOperation)*.
+        - *object*: Refer to *[#/definitions/ConvertKeyOperation](#definitions/ConvertKeyOperation)*.
+        - *object*: Refer to *[#/definitions/ConvertKeyValueOperation](#definitions/ConvertKeyValueOperation)*.
+        - *object*: Refer to *[#/definitions/ConvertValueOperation](#definitions/ConvertValueOperation)*.
+        - *object*: Refer to *[#/definitions/CountOperation](#definitions/CountOperation)*.
+        - *object*: Refer to *[#/definitions/FilterNotOperation](#definitions/FilterNotOperation)*.
+        - *object*: Refer to *[#/definitions/FilterOperation](#definitions/FilterOperation)*.
+        - *object*: Refer to *[#/definitions/GroupByKeyOperation](#definitions/GroupByKeyOperation)*.
+        - *object*: Refer to *[#/definitions/GroupByOperation](#definitions/GroupByOperation)*.
+        - *object*: Refer to *[#/definitions/JoinOperationWithGlobalTable](#definitions/JoinOperationWithGlobalTable)*.
+        - *object*: Refer to *[#/definitions/JoinOperationWithStream](#definitions/JoinOperationWithStream)*.
+        - *object*: Refer to *[#/definitions/JoinOperationWithTable](#definitions/JoinOperationWithTable)*.
+        - *object*: Refer to *[#/definitions/LeftJoinOperationWithGlobalTable](#definitions/LeftJoinOperationWithGlobalTable)*.
+        - *object*: Refer to *[#/definitions/LeftJoinOperationWithStream](#definitions/LeftJoinOperationWithStream)*.
+        - *object*: Refer to *[#/definitions/LeftJoinOperationWithTable](#definitions/LeftJoinOperationWithTable)*.
+        - *object*: Refer to *[#/definitions/MergeOperation](#definitions/MergeOperation)*.
+        - *object*: Refer to *[#/definitions/OuterJoinOperationWithStream](#definitions/OuterJoinOperationWithStream)*.
+        - *object*: Refer to *[#/definitions/OuterJoinOperationWithTable](#definitions/OuterJoinOperationWithTable)*.
+        - *object*: Refer to *[#/definitions/PeekOperation](#definitions/PeekOperation)*.
+        - *object*: Refer to *[#/definitions/ReduceOperationWithAdderAndSubtractor](#definitions/ReduceOperationWithAdderAndSubtractor)*.
+        - *object*: Refer to *[#/definitions/ReduceOperationWithReducer](#definitions/ReduceOperationWithReducer)*.
+        - *object*: Refer to *[#/definitions/RepartitionOperation](#definitions/RepartitionOperation)*.
+        - *object*: Refer to *[#/definitions/SuppressOperationUntilTimeLimit](#definitions/SuppressOperationUntilTimeLimit)*.
+        - *object*: Refer to *[#/definitions/SuppressOperationUntilWindowCloses](#definitions/SuppressOperationUntilWindowCloses)*.
+        - *object*: Refer to *[#/definitions/ToStreamOperation](#definitions/ToStreamOperation)*.
+        - *object*: Refer to *[#/definitions/ToTableOperation](#definitions/ToTableOperation)*.
+        - *object*: Refer to *[#/definitions/TransformKeyOperation](#definitions/TransformKeyOperation)*.
+        - *object*: Refer to *[#/definitions/TransformKeyValueOperation](#definitions/TransformKeyValueOperation)*.
+        - *object*: Refer to *[#/definitions/TransformKeyValueToKeyValueListOperation](#definitions/TransformKeyValueToKeyValueListOperation)*.
+        - *object*: Refer to *[#/definitions/TransformKeyValueToValueListOperation](#definitions/TransformKeyValueToValueListOperation)*.
+        - *object*: Refer to *[#/definitions/TransformMetadataOperation](#definitions/TransformMetadataOperation)*.
+        - *object*: Refer to *[#/definitions/TransformValueOperation](#definitions/TransformValueOperation)*.
+        - *object*: Refer to *[#/definitions/WindowBySessionOperation](#definitions/WindowBySessionOperation)*.
+        - *object*: Refer to *[#/definitions/WindowByTimeOperationWithHoppingWindow](#definitions/WindowByTimeOperationWithHoppingWindow)*.
+        - *object*: Refer to *[#/definitions/WindowByTimeOperationWithSlidingWindow](#definitions/WindowByTimeOperationWithSlidingWindow)*.
+        - *object*: Refer to *[#/definitions/WindowByTimeOperationWithTumblingWindow](#definitions/WindowByTimeOperationWithTumblingWindow)*.
 - <a id="definitions/CogroupOperation"></a>**`CogroupOperation`** *(object)*: A cogroup operation. Cannot contain additional properties.
   - **`aggregator`**: (GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/AggregatorDefinitionWithImplicitType](#definitions/AggregatorDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/AggregatorDefinitionWithImplicitType](#definitions/AggregatorDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`store`**: *(optional)* Materialized view of the co-grouped stream.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitType](#definitions/WindowStateStoreDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitType](#definitions/WindowStateStoreDefinitionWithImplicitType)*.
   - **`type`**: The type of the operation. Must be one of: `["cogroup"]`.
 - <a id="definitions/ConvertKeyOperation"></a>**`ConvertKeyOperation`** *(object)*: An operation to convert the stream key type to another type. Conversion is only syntactic, eg. from Avro to XML. Cannot contain additional properties.
   - **`into`** *(string, required)*: The type to convert the stream key into.
@@ -204,31 +204,31 @@
   - **`store`**: *(optional)* Materialized view of the count operation's result.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
-      - : Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
-      - : Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
   - **`type`**: The type of the operation. Must be one of: `["count"]`.
 - <a id="definitions/FilterNotOperation"></a>**`FilterNotOperation`** *(object)*: Filter records based on the inverse result of a predicate function. Cannot contain additional properties.
   - **`if`**: A function that returns "false" when records are accepted, "true" otherwise.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/PredicateDefinitionWithImplicitType](#definitions/PredicateDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/PredicateDefinitionWithImplicitType](#definitions/PredicateDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`store`**: *(optional)* Materialized view of the filtered table (only applies to tables, ignored for streams).
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
   - **`type`**: The type of the operation. Must be one of: `["filterNot"]`.
 - <a id="definitions/FilterOperation"></a>**`FilterOperation`** *(object)*: Filter records based on a predicate function. Cannot contain additional properties.
   - **`if`**: A function that returns "true" when records are accepted, "false" otherwise.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/PredicateDefinitionWithImplicitType](#definitions/PredicateDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/PredicateDefinitionWithImplicitType](#definitions/PredicateDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`store`**: *(optional)* Materialized view of the filtered table (only applies to tables, ignored for streams).
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
   - **`type`**: The type of the operation. Must be one of: `["filter"]`.
 - <a id="definitions/ForEachActionDefinition"></a>**`ForEachActionDefinition`** *(object)*: Defines a foreach action function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the foreach action.
@@ -248,7 +248,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the foreach action. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the foreach action.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the foreach action. Only required for function types, which are not pre-defined.
   - **`stores`** *(array)*: *(optional)* A list of store names that the foreach action uses. Only required if the function wants to use a state store.
     - **Items** *(string)*
@@ -271,7 +271,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the foreach action. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the foreach action.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the foreach action. Only required for function types, which are not pre-defined.
   - **`stores`** *(array)*: *(optional)* A list of store names that the foreach action uses. Only required if the function wants to use a state store.
     - **Items** *(string)*
@@ -293,9 +293,29 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the foreign key extractor. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the foreign key extractor.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the foreign key extractor. Only required for function types, which are not pre-defined.
   - **`type`**: The type of the function. Must be one of: `["foreignKeyExtractor"]`.
+- <a id="definitions/ForeignKeyExtractorDefinitionWithImplicitType"></a>**`ForeignKeyExtractorDefinitionWithImplicitType`** *(object)*: Defines a foreign key extractor function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
+  - **`code`**: *(optional)* The (multiline) code of the foreign key extractor.
+    - **Any of**
+      - *boolean*
+      - *number*
+      - *string*
+  - **`expression`**: *(optional)* The expression returned by the foreign key extractor. Only required for functions that return values.
+    - **Any of**
+      - *boolean*
+      - *number*
+      - *string*
+  - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the foreign key extractor. Can be used for defining eg. global variables.
+    - **Any of**
+      - *boolean*
+      - *number*
+      - *string*
+  - **`name`** *(string)*: *(optional)* The name of the foreign key extractor. If this field is not defined, then the name is derived from the context.
+  - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the foreign key extractor.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+  - **`resultType`** *(string)*: *(optional)* The data type returned by the foreign key extractor. Only required for function types, which are not pre-defined.
 - <a id="definitions/GeneratorDefinition"></a>**`GeneratorDefinition`** *(object)*: Defines a message generator function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the message generator.
     - **Any of**
@@ -314,7 +334,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the message generator. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the message generator.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the message generator. Only required for function types, which are not pre-defined.
   - **`type`**: The type of the function. Must be one of: `["generator"]`.
 - <a id="definitions/GeneratorDefinitionWithImplicitType"></a>**`GeneratorDefinitionWithImplicitType`** *(object)*: Defines a message generator function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
@@ -335,7 +355,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the message generator. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the message generator.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the message generator. Only required for function types, which are not pre-defined.
 - <a id="definitions/GenericFunctionDefinitionWithImplicitType"></a>**`GenericFunctionDefinitionWithImplicitType`** *(object)*: Defines a generic function function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the generic function.
@@ -355,7 +375,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the generic function. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the generic function.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the generic function. Only required for function types, which are not pre-defined.
   - **`type`**: The type of the function. Must be one of: `["generic"]`.
 - <a id="definitions/GlobalTableDefinition"></a>**`GlobalTableDefinition`** *(object)*: Contains a definition of a GlobalTable, which can be referenced by producers and pipelines. Cannot contain additional properties.
@@ -363,7 +383,7 @@
   - **`store`**: *(optional)* KeyValue state store definition.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
   - **`topic`** *(string, required)*: The name of the Kafka topic for this global table.
   - **`valueType`** *(string)*: *(optional)* The value type of the global table.
 - <a id="definitions/GlobalTableDefinitionSource"></a>**`GlobalTableDefinitionSource`** *(object)*: Contains a definition of a GlobalTable, which can be referenced by producers and pipelines. Cannot contain additional properties.
@@ -372,11 +392,11 @@
   - **`store`**: *(optional)* KeyValue state store definition.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
   - **`timestampExtractor`**: *(optional)* A function extracts the event time from a consumed record.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/TimestampExtractorDefinitionWithImplicitType](#definitions/TimestampExtractorDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/TimestampExtractorDefinitionWithImplicitType](#definitions/TimestampExtractorDefinitionWithImplicitType)*.
   - **`topic`** *(string, required)*: The name of the Kafka topic for this global table.
   - **`valueType`** *(string, required)*: The value type of the global table.
 - <a id="definitions/GroupByKeyOperation"></a>**`GroupByKeyOperation`** *(object)*: Operation to group all messages with the same key together. Cannot contain additional properties.
@@ -384,18 +404,18 @@
   - **`store`**: *(optional)* Materialized view of the grouped stream.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
   - **`type`**: The type of the operation. Must be one of: `["groupByKey"]`.
 - <a id="definitions/GroupByOperation"></a>**`GroupByOperation`** *(object)*: Operation to group all messages with together based on a keying function. Cannot contain additional properties.
   - **`mapper`**: Function to map records to a key they can be grouped on.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyValueMapperDefinitionWithImplicitType](#definitions/KeyValueMapperDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/KeyValueMapperDefinitionWithImplicitType](#definitions/KeyValueMapperDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`store`**: *(optional)* Materialized view of the grouped stream or table.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
   - **`type`**: The type of the operation. Must be one of: `["groupBy"]`.
 - <a id="definitions/InitializerDefinition"></a>**`InitializerDefinition`** *(object)*: Defines a initializer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the initializer.
@@ -415,7 +435,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the initializer. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the initializer.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the initializer. Only required for function types, which are not pre-defined.
   - **`type`**: The type of the function. Must be one of: `["initializer"]`.
 - <a id="definitions/InitializerDefinitionWithImplicitType"></a>**`InitializerDefinitionWithImplicitType`** *(object)*: Defines a initializer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
@@ -436,23 +456,23 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the initializer. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the initializer.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the initializer. Only required for function types, which are not pre-defined.
 - <a id="definitions/JoinOperationWithGlobalTable"></a>**`JoinOperationWithGlobalTable`** *(object)*: Operation to join with a table. Cannot contain additional properties.
   - **`globalTable`**: A reference to the globalTable, or an inline definition of the globalTable to join with.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/GlobalTableDefinition](#definitions/GlobalTableDefinition)*.
+      - *object*: Refer to *[#/definitions/GlobalTableDefinition](#definitions/GlobalTableDefinition)*.
   - **`mapper`**: A function that maps the key value from the stream to the primary key type of the globalTable.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitType](#definitions/ValueJoinerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/KeyValueMapperDefinitionWithImplicitType](#definitions/KeyValueMapperDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`type`**: The type of the operation. Must be one of: `["join"]`.
   - **`valueJoiner`**: A function that joins two values.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitType](#definitions/ValueJoinerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitType](#definitions/ValueJoinerDefinitionWithImplicitType)*.
 - <a id="definitions/JoinOperationWithStream"></a>**`JoinOperationWithStream`** *(object)*: Operation to join with a stream. Cannot contain additional properties.
   - **`grace`**: *(optional)* The window grace period (the time to admit out-of-order events after the end of the window).
     - **Any of**
@@ -462,13 +482,13 @@
   - **`store`**: *(optional)* Materialized view of the joined streams.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
-      - : Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
-      - : Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
   - **`stream`**: A reference to the Stream, or an inline definition of the stream to join with.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/StreamDefinition](#definitions/StreamDefinition)*.
+      - *object*: Refer to *[#/definitions/StreamDefinition](#definitions/StreamDefinition)*.
   - **`timeDifference`**: The maximum time difference for a join over two streams on the same key.
     - **Any of**
       - *number*
@@ -477,12 +497,12 @@
   - **`valueJoiner`**: A function that joins two values.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitType](#definitions/ValueJoinerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitType](#definitions/ValueJoinerDefinitionWithImplicitType)*.
 - <a id="definitions/JoinOperationWithTable"></a>**`JoinOperationWithTable`** *(object)*: Operation to join with a table. Cannot contain additional properties.
   - **`foreignKeyExtractor`**: *(optional)* A function that can translate the join table value to a primary key.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitType](#definitions/ValueJoinerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/ForeignKeyExtractorDefinitionWithImplicitType](#definitions/ForeignKeyExtractorDefinitionWithImplicitType)*.
   - **`grace`**: *(optional)* The window grace period (the time to admit out-of-order events after the end of the window).
     - **Any of**
       - *number*
@@ -491,26 +511,26 @@
   - **`otherPartitioner`**: *(optional)* A function that partitions the records on the join table.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/StreamPartitionerDefinitionWithImplicitType](#definitions/StreamPartitionerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/StreamPartitionerDefinitionWithImplicitType](#definitions/StreamPartitionerDefinitionWithImplicitType)*.
   - **`partitioner`**: *(optional)* A function that partitions the records on the primary table.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/StreamPartitionerDefinitionWithImplicitType](#definitions/StreamPartitionerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/StreamPartitionerDefinitionWithImplicitType](#definitions/StreamPartitionerDefinitionWithImplicitType)*.
   - **`store`**: *(optional)* Materialized view of the joined streams.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
-      - : Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
-      - : Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
   - **`table`**: A reference to the table, or an inline definition of the table to join with.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/TableDefinition](#definitions/TableDefinition)*.
+      - *object*: Refer to *[#/definitions/TableDefinition](#definitions/TableDefinition)*.
   - **`type`**: The type of the operation. Must be one of: `["join"]`.
   - **`valueJoiner`**: A function that joins two values.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitType](#definitions/ValueJoinerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitType](#definitions/ValueJoinerDefinitionWithImplicitType)*.
 - <a id="definitions/KeyTransformerDefinition"></a>**`KeyTransformerDefinition`** *(object)*: Defines a key transformer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the key transformer.
     - **Any of**
@@ -529,7 +549,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the key transformer. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the key transformer.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the key transformer. Only required for function types, which are not pre-defined.
   - **`stores`** *(array)*: *(optional)* A list of store names that the key transformer uses. Only required if the function wants to use a state store.
     - **Items** *(string)*
@@ -552,7 +572,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the key transformer. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the key transformer.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the key transformer. Only required for function types, which are not pre-defined.
   - **`stores`** *(array)*: *(optional)* A list of store names that the key transformer uses. Only required if the function wants to use a state store.
     - **Items** *(string)*
@@ -574,7 +594,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the keyvalue mapper. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the keyvalue mapper.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the keyvalue mapper. Only required for function types, which are not pre-defined.
   - **`type`**: The type of the function. Must be one of: `["keyValueMapper"]`.
 - <a id="definitions/KeyValueMapperDefinitionWithImplicitType"></a>**`KeyValueMapperDefinitionWithImplicitType`** *(object)*: Defines a keyvalue mapper function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
@@ -595,7 +615,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the keyvalue mapper. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the keyvalue mapper.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the keyvalue mapper. Only required for function types, which are not pre-defined.
 - <a id="definitions/KeyValuePrinterDefinition"></a>**`KeyValuePrinterDefinition`** *(object)*: Defines a keyvalue printer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the keyvalue printer.
@@ -615,7 +635,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the keyvalue printer. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the keyvalue printer.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the keyvalue printer. Only required for function types, which are not pre-defined.
   - **`type`**: The type of the function. Must be one of: `["keyValuePrinter"]`.
 - <a id="definitions/KeyValuePrinterDefinitionWithImplicitType"></a>**`KeyValuePrinterDefinitionWithImplicitType`** *(object)*: Defines a keyvalue printer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
@@ -636,7 +656,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the keyvalue printer. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the keyvalue printer.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the keyvalue printer. Only required for function types, which are not pre-defined.
 - <a id="definitions/KeyValueStateStoreDefinition"></a>**`KeyValueStateStoreDefinition`** *(object)*: Definition of a keyValue state store. Cannot contain additional properties.
   - **`caching`** *(boolean)*: *(optional)* "true" if changed to the keyValue store need to be buffered and periodically released, "false" to emit all changes directly.
@@ -692,7 +712,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the keyvalue-to-keyvaluelist transformer. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the keyvalue-to-keyvaluelist transformer.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the keyvalue-to-keyvaluelist transformer. Only required for function types, which are not pre-defined.
   - **`stores`** *(array)*: *(optional)* A list of store names that the keyvalue-to-keyvaluelist transformer uses. Only required if the function wants to use a state store.
     - **Items** *(string)*
@@ -715,7 +735,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the keyvalue-to-keyvaluelist transformer. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the keyvalue-to-keyvaluelist transformer.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the keyvalue-to-keyvaluelist transformer. Only required for function types, which are not pre-defined.
   - **`stores`** *(array)*: *(optional)* A list of store names that the keyvalue-to-keyvaluelist transformer uses. Only required if the function wants to use a state store.
     - **Items** *(string)*
@@ -737,7 +757,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the keyvalue-to-valuelist transformer. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the keyvalue-to-valuelist transformer.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the keyvalue-to-valuelist transformer. Only required for function types, which are not pre-defined.
   - **`stores`** *(array)*: *(optional)* A list of store names that the keyvalue-to-valuelist transformer uses. Only required if the function wants to use a state store.
     - **Items** *(string)*
@@ -760,7 +780,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the keyvalue-to-valuelist transformer. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the keyvalue-to-valuelist transformer.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the keyvalue-to-valuelist transformer. Only required for function types, which are not pre-defined.
   - **`stores`** *(array)*: *(optional)* A list of store names that the keyvalue-to-valuelist transformer uses. Only required if the function wants to use a state store.
     - **Items** *(string)*
@@ -782,7 +802,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the keyvalue transformer. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the keyvalue transformer.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the keyvalue transformer. Only required for function types, which are not pre-defined.
   - **`stores`** *(array)*: *(optional)* A list of store names that the keyvalue transformer uses. Only required if the function wants to use a state store.
     - **Items** *(string)*
@@ -805,7 +825,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the keyvalue transformer. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the keyvalue transformer.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the keyvalue transformer. Only required for function types, which are not pre-defined.
   - **`stores`** *(array)*: *(optional)* A list of store names that the keyvalue transformer uses. Only required if the function wants to use a state store.
     - **Items** *(string)*
@@ -813,17 +833,17 @@
   - **`globalTable`**: A reference to the globalTable, or an inline definition of the globalTable to join with.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/GlobalTableDefinition](#definitions/GlobalTableDefinition)*.
+      - *object*: Refer to *[#/definitions/GlobalTableDefinition](#definitions/GlobalTableDefinition)*.
   - **`mapper`**: A function that maps the key value from the stream with the primary key of the globalTable.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitType](#definitions/ValueJoinerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/KeyValueMapperDefinitionWithImplicitType](#definitions/KeyValueMapperDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`type`**: The type of the operation. Must be one of: `["leftJoin"]`.
   - **`valueJoiner`**: A function that joins two values.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitType](#definitions/ValueJoinerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitType](#definitions/ValueJoinerDefinitionWithImplicitType)*.
 - <a id="definitions/LeftJoinOperationWithStream"></a>**`LeftJoinOperationWithStream`** *(object)*: Operation to leftJoin with a stream. Cannot contain additional properties.
   - **`grace`**: *(optional)* The window grace period (the time to admit out-of-order events after the end of the window).
     - **Any of**
@@ -833,13 +853,13 @@
   - **`store`**: *(optional)* Materialized view of the joined streams.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
-      - : Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
-      - : Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
   - **`stream`**: A reference to the stream, or an inline definition of the stream to leftJoin with.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/StreamDefinition](#definitions/StreamDefinition)*.
+      - *object*: Refer to *[#/definitions/StreamDefinition](#definitions/StreamDefinition)*.
   - **`timeDifference`**: The maximum time difference for a leftJoin over two streams on the same key.
     - **Any of**
       - *number*
@@ -848,12 +868,12 @@
   - **`valueJoiner`**: A function that joins two values.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitType](#definitions/ValueJoinerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitType](#definitions/ValueJoinerDefinitionWithImplicitType)*.
 - <a id="definitions/LeftJoinOperationWithTable"></a>**`LeftJoinOperationWithTable`** *(object)*: Operation to leftJoin with a table. Cannot contain additional properties.
   - **`foreignKeyExtractor`**: *(optional)* A function that can translate the join table value to a primary key.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitType](#definitions/ValueJoinerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/ForeignKeyExtractorDefinitionWithImplicitType](#definitions/ForeignKeyExtractorDefinitionWithImplicitType)*.
   - **`grace`**: *(optional)* The window grace period (the time to admit out-of-order events after the end of the window).
     - **Any of**
       - *number*
@@ -862,32 +882,32 @@
   - **`otherPartitioner`**: *(optional)* A function that partitions the records on the join table.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/StreamPartitionerDefinitionWithImplicitType](#definitions/StreamPartitionerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/StreamPartitionerDefinitionWithImplicitType](#definitions/StreamPartitionerDefinitionWithImplicitType)*.
   - **`partitioner`**: *(optional)* A function that partitions the records on the primary table.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/StreamPartitionerDefinitionWithImplicitType](#definitions/StreamPartitionerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/StreamPartitionerDefinitionWithImplicitType](#definitions/StreamPartitionerDefinitionWithImplicitType)*.
   - **`store`**: *(optional)* Materialized view of the joined streams.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
-      - : Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
-      - : Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
   - **`table`**: A reference to the Table, or an inline definition of the Table to join with.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/TableDefinition](#definitions/TableDefinition)*.
+      - *object*: Refer to *[#/definitions/TableDefinition](#definitions/TableDefinition)*.
   - **`type`**: The type of the operation. Must be one of: `["leftJoin"]`.
   - **`valueJoiner`**: A function that joins two values.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitType](#definitions/ValueJoinerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitType](#definitions/ValueJoinerDefinitionWithImplicitType)*.
 - <a id="definitions/MergeOperation"></a>**`MergeOperation`** *(object)*: A merge operation to join two Streams. Cannot contain additional properties.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`stream`**: The stream to merge with.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/StreamDefinitionSource](#definitions/StreamDefinitionSource)*.
+      - *object*: Refer to *[#/definitions/StreamDefinitionSource](#definitions/StreamDefinitionSource)*.
   - **`type`**: The type of the operation. Must be one of: `["merge"]`.
 - <a id="definitions/MergerDefinition"></a>**`MergerDefinition`** *(object)*: Defines a merger function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the merger.
@@ -907,7 +927,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the merger. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the merger.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the merger. Only required for function types, which are not pre-defined.
   - **`type`**: The type of the function. Must be one of: `["merger"]`.
 - <a id="definitions/MergerDefinitionWithImplicitType"></a>**`MergerDefinitionWithImplicitType`** *(object)*: Defines a merger function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
@@ -928,7 +948,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the merger. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the merger.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the merger. Only required for function types, which are not pre-defined.
 - <a id="definitions/MetadataTransformerDefinition"></a>**`MetadataTransformerDefinition`** *(object)*: Defines a metadata transformer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the metadata transformer.
@@ -948,7 +968,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the metadata transformer. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the metadata transformer.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the metadata transformer. Only required for function types, which are not pre-defined.
   - **`stores`** *(array)*: *(optional)* A list of store names that the metadata transformer uses. Only required if the function wants to use a state store.
     - **Items** *(string)*
@@ -971,7 +991,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the metadata transformer. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the metadata transformer.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the metadata transformer. Only required for function types, which are not pre-defined.
   - **`stores`** *(array)*: *(optional)* A list of store names that the metadata transformer uses. Only required if the function wants to use a state store.
     - **Items** *(string)*
@@ -984,13 +1004,13 @@
   - **`store`**: *(optional)* Materialized view of the outerJoined streams.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
-      - : Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
-      - : Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
   - **`stream`**: A reference to the stream, or an inline definition of the stream to outerJoin with.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/StreamDefinition](#definitions/StreamDefinition)*.
+      - *object*: Refer to *[#/definitions/StreamDefinition](#definitions/StreamDefinition)*.
   - **`timeDifference`**: The maximum time difference for an outerJoin over two streams on the same key.
     - **Any of**
       - *number*
@@ -999,24 +1019,24 @@
   - **`valueJoiner`**: A function that joins two values.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitType](#definitions/ValueJoinerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitType](#definitions/ValueJoinerDefinitionWithImplicitType)*.
 - <a id="definitions/OuterJoinOperationWithTable"></a>**`OuterJoinOperationWithTable`** *(object)*: Operation to outerJoin with a table. Cannot contain additional properties.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`store`**: *(optional)* Materialized view of the outerJoined streams.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
-      - : Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
-      - : Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
   - **`table`**: A reference to the table, or an inline definition of the table to outerJoin with.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/TableDefinition](#definitions/TableDefinition)*.
+      - *object*: Refer to *[#/definitions/TableDefinition](#definitions/TableDefinition)*.
   - **`type`**: The type of the operation. Must be one of: `["outerJoin"]`.
   - **`valueJoiner`**: A function that joins two values.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitType](#definitions/ValueJoinerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitType](#definitions/ValueJoinerDefinitionWithImplicitType)*.
 - <a id="definitions/ParameterDefinition"></a>**`ParameterDefinition`** *(object)*: Defines a parameter for a user function. Cannot contain additional properties.
   - **`defaultValue`** *(string)*: *(optional)* The default value for the parameter.
   - **`name`** *(string, required)*: The name of the parameter.
@@ -1025,71 +1045,71 @@
   - **`forEach`**: A function that gets called for every message in the stream.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/ForEachActionDefinitionWithImplicitType](#definitions/ForEachActionDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/ForEachActionDefinitionWithImplicitType](#definitions/ForEachActionDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`type`**: The type of the operation. Must be one of: `["peek"]`.
 - <a id="definitions/PipelineDefinition"></a>**`PipelineDefinition`** *(object)*: Defines a pipeline through a source, a series of operations to perform on it and a sink operation to close the stream with. Cannot contain additional properties.
   - **`as`** *(string)*: *(optional)* The name to register the pipeline result under, which can be used as source by follow-up pipelines.
   - **`branch`** *(array)*: *(optional)* Defines a single branch, consisting of a condition and a pipeline to execute for messages that fulfil the predicate.
-    - **Items**: Refer to *[#/definitions/BranchDefinitionWithPipeline](#definitions/BranchDefinitionWithPipeline)*.
+    - **Items** *(object)*: Refer to *[#/definitions/BranchDefinitionWithPipeline](#definitions/BranchDefinitionWithPipeline)*.
   - **`forEach`**: *(optional)* A function that gets called for every message in the stream.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/ForEachActionDefinitionWithImplicitType](#definitions/ForEachActionDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/ForEachActionDefinitionWithImplicitType](#definitions/ForEachActionDefinitionWithImplicitType)*.
   - **`from`**: Pipeline source.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/TopicDefinitionSource](#definitions/TopicDefinitionSource)*.
+      - *object*: Refer to *[#/definitions/TopicDefinitionSource](#definitions/TopicDefinitionSource)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
-  - **`print`**: *(optional)* The specification of where to print messages to. Refer to *[#/definitions/PrintOperation](#definitions/PrintOperation)*.
+  - **`print`** *(object)*: *(optional)* The specification of where to print messages to. Refer to *[#/definitions/PrintOperation](#definitions/PrintOperation)*.
   - **`to`**: *(optional)* Ends the pipeline by sending all messages to a stream, table or globalTable, or to an inline defined output topic and optional partitioner.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/ToTopicDefinition](#definitions/ToTopicDefinition)*.
+      - *object*: Refer to *[#/definitions/ToTopicDefinition](#definitions/ToTopicDefinition)*.
   - **`toTopicNameExtractor`**: *(optional)* Ends the pipeline by sending all messages to a topic provided by a pre-defined topic name extractor function, or to a topic provided by an inline defined topic name extractor and optional partitioner.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/ToTopicNameExtractorDefinition](#definitions/ToTopicNameExtractorDefinition)*.
+      - *object*: Refer to *[#/definitions/ToTopicNameExtractorDefinition](#definitions/ToTopicNameExtractorDefinition)*.
   - **`via`** *(array)*: *(optional)* A series of operations performed on the input stream.
     - **Items**
       - **Any of**
-        - : Refer to *[#/definitions/AggregateOperation](#definitions/AggregateOperation)*.
-        - : Refer to *[#/definitions/CogroupOperation](#definitions/CogroupOperation)*.
-        - : Refer to *[#/definitions/ConvertKeyOperation](#definitions/ConvertKeyOperation)*.
-        - : Refer to *[#/definitions/ConvertKeyValueOperation](#definitions/ConvertKeyValueOperation)*.
-        - : Refer to *[#/definitions/ConvertValueOperation](#definitions/ConvertValueOperation)*.
-        - : Refer to *[#/definitions/CountOperation](#definitions/CountOperation)*.
-        - : Refer to *[#/definitions/FilterNotOperation](#definitions/FilterNotOperation)*.
-        - : Refer to *[#/definitions/FilterOperation](#definitions/FilterOperation)*.
-        - : Refer to *[#/definitions/GroupByKeyOperation](#definitions/GroupByKeyOperation)*.
-        - : Refer to *[#/definitions/GroupByOperation](#definitions/GroupByOperation)*.
-        - : Refer to *[#/definitions/JoinOperationWithGlobalTable](#definitions/JoinOperationWithGlobalTable)*.
-        - : Refer to *[#/definitions/JoinOperationWithStream](#definitions/JoinOperationWithStream)*.
-        - : Refer to *[#/definitions/JoinOperationWithTable](#definitions/JoinOperationWithTable)*.
-        - : Refer to *[#/definitions/LeftJoinOperationWithGlobalTable](#definitions/LeftJoinOperationWithGlobalTable)*.
-        - : Refer to *[#/definitions/LeftJoinOperationWithStream](#definitions/LeftJoinOperationWithStream)*.
-        - : Refer to *[#/definitions/LeftJoinOperationWithTable](#definitions/LeftJoinOperationWithTable)*.
-        - : Refer to *[#/definitions/MergeOperation](#definitions/MergeOperation)*.
-        - : Refer to *[#/definitions/OuterJoinOperationWithStream](#definitions/OuterJoinOperationWithStream)*.
-        - : Refer to *[#/definitions/OuterJoinOperationWithTable](#definitions/OuterJoinOperationWithTable)*.
-        - : Refer to *[#/definitions/PeekOperation](#definitions/PeekOperation)*.
-        - : Refer to *[#/definitions/ReduceOperationWithAdderAndSubtractor](#definitions/ReduceOperationWithAdderAndSubtractor)*.
-        - : Refer to *[#/definitions/ReduceOperationWithReducer](#definitions/ReduceOperationWithReducer)*.
-        - : Refer to *[#/definitions/RepartitionOperation](#definitions/RepartitionOperation)*.
-        - : Refer to *[#/definitions/SuppressOperationUntilTimeLimit](#definitions/SuppressOperationUntilTimeLimit)*.
-        - : Refer to *[#/definitions/SuppressOperationUntilWindowCloses](#definitions/SuppressOperationUntilWindowCloses)*.
-        - : Refer to *[#/definitions/ToStreamOperation](#definitions/ToStreamOperation)*.
-        - : Refer to *[#/definitions/ToTableOperation](#definitions/ToTableOperation)*.
-        - : Refer to *[#/definitions/TransformKeyOperation](#definitions/TransformKeyOperation)*.
-        - : Refer to *[#/definitions/TransformKeyValueOperation](#definitions/TransformKeyValueOperation)*.
-        - : Refer to *[#/definitions/TransformKeyValueToKeyValueListOperation](#definitions/TransformKeyValueToKeyValueListOperation)*.
-        - : Refer to *[#/definitions/TransformKeyValueToValueListOperation](#definitions/TransformKeyValueToValueListOperation)*.
-        - : Refer to *[#/definitions/TransformMetadataOperation](#definitions/TransformMetadataOperation)*.
-        - : Refer to *[#/definitions/TransformValueOperation](#definitions/TransformValueOperation)*.
-        - : Refer to *[#/definitions/WindowBySessionOperation](#definitions/WindowBySessionOperation)*.
-        - : Refer to *[#/definitions/WindowByTimeOperationWithHoppingWindow](#definitions/WindowByTimeOperationWithHoppingWindow)*.
-        - : Refer to *[#/definitions/WindowByTimeOperationWithSlidingWindow](#definitions/WindowByTimeOperationWithSlidingWindow)*.
-        - : Refer to *[#/definitions/WindowByTimeOperationWithTumblingWindow](#definitions/WindowByTimeOperationWithTumblingWindow)*.
+        - *object*: Refer to *[#/definitions/AggregateOperation](#definitions/AggregateOperation)*.
+        - *object*: Refer to *[#/definitions/CogroupOperation](#definitions/CogroupOperation)*.
+        - *object*: Refer to *[#/definitions/ConvertKeyOperation](#definitions/ConvertKeyOperation)*.
+        - *object*: Refer to *[#/definitions/ConvertKeyValueOperation](#definitions/ConvertKeyValueOperation)*.
+        - *object*: Refer to *[#/definitions/ConvertValueOperation](#definitions/ConvertValueOperation)*.
+        - *object*: Refer to *[#/definitions/CountOperation](#definitions/CountOperation)*.
+        - *object*: Refer to *[#/definitions/FilterNotOperation](#definitions/FilterNotOperation)*.
+        - *object*: Refer to *[#/definitions/FilterOperation](#definitions/FilterOperation)*.
+        - *object*: Refer to *[#/definitions/GroupByKeyOperation](#definitions/GroupByKeyOperation)*.
+        - *object*: Refer to *[#/definitions/GroupByOperation](#definitions/GroupByOperation)*.
+        - *object*: Refer to *[#/definitions/JoinOperationWithGlobalTable](#definitions/JoinOperationWithGlobalTable)*.
+        - *object*: Refer to *[#/definitions/JoinOperationWithStream](#definitions/JoinOperationWithStream)*.
+        - *object*: Refer to *[#/definitions/JoinOperationWithTable](#definitions/JoinOperationWithTable)*.
+        - *object*: Refer to *[#/definitions/LeftJoinOperationWithGlobalTable](#definitions/LeftJoinOperationWithGlobalTable)*.
+        - *object*: Refer to *[#/definitions/LeftJoinOperationWithStream](#definitions/LeftJoinOperationWithStream)*.
+        - *object*: Refer to *[#/definitions/LeftJoinOperationWithTable](#definitions/LeftJoinOperationWithTable)*.
+        - *object*: Refer to *[#/definitions/MergeOperation](#definitions/MergeOperation)*.
+        - *object*: Refer to *[#/definitions/OuterJoinOperationWithStream](#definitions/OuterJoinOperationWithStream)*.
+        - *object*: Refer to *[#/definitions/OuterJoinOperationWithTable](#definitions/OuterJoinOperationWithTable)*.
+        - *object*: Refer to *[#/definitions/PeekOperation](#definitions/PeekOperation)*.
+        - *object*: Refer to *[#/definitions/ReduceOperationWithAdderAndSubtractor](#definitions/ReduceOperationWithAdderAndSubtractor)*.
+        - *object*: Refer to *[#/definitions/ReduceOperationWithReducer](#definitions/ReduceOperationWithReducer)*.
+        - *object*: Refer to *[#/definitions/RepartitionOperation](#definitions/RepartitionOperation)*.
+        - *object*: Refer to *[#/definitions/SuppressOperationUntilTimeLimit](#definitions/SuppressOperationUntilTimeLimit)*.
+        - *object*: Refer to *[#/definitions/SuppressOperationUntilWindowCloses](#definitions/SuppressOperationUntilWindowCloses)*.
+        - *object*: Refer to *[#/definitions/ToStreamOperation](#definitions/ToStreamOperation)*.
+        - *object*: Refer to *[#/definitions/ToTableOperation](#definitions/ToTableOperation)*.
+        - *object*: Refer to *[#/definitions/TransformKeyOperation](#definitions/TransformKeyOperation)*.
+        - *object*: Refer to *[#/definitions/TransformKeyValueOperation](#definitions/TransformKeyValueOperation)*.
+        - *object*: Refer to *[#/definitions/TransformKeyValueToKeyValueListOperation](#definitions/TransformKeyValueToKeyValueListOperation)*.
+        - *object*: Refer to *[#/definitions/TransformKeyValueToValueListOperation](#definitions/TransformKeyValueToValueListOperation)*.
+        - *object*: Refer to *[#/definitions/TransformMetadataOperation](#definitions/TransformMetadataOperation)*.
+        - *object*: Refer to *[#/definitions/TransformValueOperation](#definitions/TransformValueOperation)*.
+        - *object*: Refer to *[#/definitions/WindowBySessionOperation](#definitions/WindowBySessionOperation)*.
+        - *object*: Refer to *[#/definitions/WindowByTimeOperationWithHoppingWindow](#definitions/WindowByTimeOperationWithHoppingWindow)*.
+        - *object*: Refer to *[#/definitions/WindowByTimeOperationWithSlidingWindow](#definitions/WindowByTimeOperationWithSlidingWindow)*.
+        - *object*: Refer to *[#/definitions/WindowByTimeOperationWithTumblingWindow](#definitions/WindowByTimeOperationWithTumblingWindow)*.
 - <a id="definitions/PredicateDefinition"></a>**`PredicateDefinition`** *(object)*: Defines a predicate function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the predicate.
     - **Any of**
@@ -1108,7 +1128,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the predicate. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the predicate.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the predicate. Only required for function types, which are not pre-defined.
   - **`stores`** *(array)*: *(optional)* A list of store names that the predicate uses. Only required if the function wants to use a state store.
     - **Items** *(string)*
@@ -1131,7 +1151,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the predicate. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the predicate.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the predicate. Only required for function types, which are not pre-defined.
   - **`stores`** *(array)*: *(optional)* A list of store names that the predicate uses. Only required if the function wants to use a state store.
     - **Items** *(string)*
@@ -1141,18 +1161,18 @@
   - **`mapper`**: *(optional)* A function to convert record into a string for output.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyValuePrinterDefinitionWithImplicitType](#definitions/KeyValuePrinterDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/KeyValuePrinterDefinitionWithImplicitType](#definitions/KeyValuePrinterDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
 - <a id="definitions/ProducerDefinition"></a>**`ProducerDefinition`** *(object)*: Definition of a Producer that regularly generates messages for a topic. Cannot contain additional properties.
   - **`condition`**: *(optional)* A function that validates the generator's result message. Returns "true" when the message may be produced on the topic, "false" otherwise.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/PredicateDefinitionWithImplicitType](#definitions/PredicateDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/PredicateDefinitionWithImplicitType](#definitions/PredicateDefinitionWithImplicitType)*.
   - **`count`**: *(optional)* The number of messages to produce.
   - **`generator`**: The function that generates records.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/GeneratorDefinitionWithImplicitType](#definitions/GeneratorDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/GeneratorDefinitionWithImplicitType](#definitions/GeneratorDefinitionWithImplicitType)*.
   - **`interval`**: The interval with which the generator is called.
     - **Any of**
       - *number*
@@ -1160,36 +1180,36 @@
   - **`to`**: The topic to produce to.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/TopicDefinition](#definitions/TopicDefinition)*.
+      - *object*: Refer to *[#/definitions/TopicDefinition](#definitions/TopicDefinition)*.
   - **`until`**: *(optional)* A predicate that returns true to indicate producing should stop.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/PredicateDefinitionWithImplicitType](#definitions/PredicateDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/PredicateDefinitionWithImplicitType](#definitions/PredicateDefinitionWithImplicitType)*.
 - <a id="definitions/ReduceOperationWithAdderAndSubtractor"></a>**`ReduceOperationWithAdderAndSubtractor`** *(object)*: Operation to reduce a series of records into a single aggregate result. Cannot contain additional properties.
   - **`adder`**: A function that adds a record to the aggregate result.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/ReducerDefinitionWithImplicitType](#definitions/ReducerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/ReducerDefinitionWithImplicitType](#definitions/ReducerDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`store`**: *(optional)* Materialized view of the aggregation.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitType](#definitions/WindowStateStoreDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitType](#definitions/WindowStateStoreDefinitionWithImplicitType)*.
   - **`subtractor`**: A function that removes a record from the aggregate result.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/ReducerDefinitionWithImplicitType](#definitions/ReducerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/ReducerDefinitionWithImplicitType](#definitions/ReducerDefinitionWithImplicitType)*.
   - **`type`**: The type of the operation. Must be one of: `["reduce"]`.
 - <a id="definitions/ReduceOperationWithReducer"></a>**`ReduceOperationWithReducer`** *(object)*: Operation to reduce a series of records into a single aggregate result. Cannot contain additional properties.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`reducer`**: A function that computes a new aggregate result.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/ReducerDefinitionWithImplicitType](#definitions/ReducerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/ReducerDefinitionWithImplicitType](#definitions/ReducerDefinitionWithImplicitType)*.
   - **`store`**: *(optional)* Materialized view of the aggregation.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitType](#definitions/WindowStateStoreDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitType](#definitions/WindowStateStoreDefinitionWithImplicitType)*.
   - **`type`**: The type of the operation. Must be one of: `["reduce"]`.
 - <a id="definitions/ReducerDefinition"></a>**`ReducerDefinition`** *(object)*: Defines a reducer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the reducer.
@@ -1209,7 +1229,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the reducer. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the reducer.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the reducer. Only required for function types, which are not pre-defined.
   - **`type`**: The type of the function. Must be one of: `["reducer"]`.
 - <a id="definitions/ReducerDefinitionWithImplicitType"></a>**`ReducerDefinitionWithImplicitType`** *(object)*: Defines a reducer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
@@ -1230,7 +1250,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the reducer. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the reducer.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the reducer. Only required for function types, which are not pre-defined.
 - <a id="definitions/RepartitionOperation"></a>**`RepartitionOperation`** *(object)*: Operation to (re)partition a stream. Cannot contain additional properties.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
@@ -1238,7 +1258,7 @@
   - **`partitioner`**: *(optional)* A function that partitions stream records.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/StreamPartitionerDefinitionWithImplicitType](#definitions/StreamPartitionerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/StreamPartitionerDefinitionWithImplicitType](#definitions/StreamPartitionerDefinitionWithImplicitType)*.
   - **`type`**: The type of the operation. Must be one of: `["repartition"]`.
 - <a id="definitions/SessionStateStoreDefinition"></a>**`SessionStateStoreDefinition`** *(object)*: Definition of a session state store. Cannot contain additional properties.
   - **`caching`** *(boolean)*: *(optional)* "true" if changed to the session store need to be buffered and periodically released, "false" to emit all changes directly.
@@ -1263,7 +1283,7 @@
   - **`timestampExtractor`**: *(optional)* A function extracts the event time from a consumed record.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/TimestampExtractorDefinitionWithImplicitType](#definitions/TimestampExtractorDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/TimestampExtractorDefinitionWithImplicitType](#definitions/TimestampExtractorDefinitionWithImplicitType)*.
   - **`topic`** *(string, required)*: The name of the Kafka topic for this stream.
   - **`valueType`** *(string, required)*: The value type of the stream.
 - <a id="definitions/StreamPartitionerDefinition"></a>**`StreamPartitionerDefinition`** *(object)*: Defines a stream partitioner function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
@@ -1284,7 +1304,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the stream partitioner. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the stream partitioner.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the stream partitioner. Only required for function types, which are not pre-defined.
   - **`type`**: The type of the function. Must be one of: `["streamPartitioner"]`.
 - <a id="definitions/StreamPartitionerDefinitionWithImplicitType"></a>**`StreamPartitionerDefinitionWithImplicitType`** *(object)*: Defines a stream partitioner function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
@@ -1305,13 +1325,13 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the stream partitioner. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the stream partitioner.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the stream partitioner. Only required for function types, which are not pre-defined.
 - <a id="definitions/StringOrInlinePredicateDefinitionWithImplicitType"></a>**`StringOrInlinePredicateDefinitionWithImplicitType`** *(object)*: Defines the condition under which messages get sent down this branch. Cannot contain additional properties.
   - **`if`**: *(optional)* Defines the condition under which messages get sent down this branch.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/PredicateDefinitionWithImplicitType](#definitions/PredicateDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/PredicateDefinitionWithImplicitType](#definitions/PredicateDefinitionWithImplicitType)*.
 - <a id="definitions/SuppressOperationUntilTimeLimit"></a>**`SuppressOperationUntilTimeLimit`** *(object)*: Operation to suppress messages in the source stream until a time limit is reached. Cannot contain additional properties.
   - **`bufferFullStrategy`**: *(optional)* What to do when the buffer is full. Must be one of: `["emitEarlyWhenFull", "shutdownWhenFull"]`.
   - **`duration`**: The duration for which messages are suppressed.
@@ -1335,7 +1355,7 @@
   - **`store`**: *(optional)* KeyValue state store definition.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
   - **`topic`** *(string, required)*: The name of the Kafka topic for this table.
   - **`valueType`** *(string)*: *(optional)* The value type of the table.
 - <a id="definitions/TableDefinitionSource"></a>**`TableDefinitionSource`** *(object)*: Contains a definition of a Table, which can be referenced by producers and pipelines. Cannot contain additional properties.
@@ -1344,11 +1364,11 @@
   - **`store`**: *(optional)* KeyValue state store definition.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
   - **`timestampExtractor`**: *(optional)* A function extracts the event time from a consumed record.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/TimestampExtractorDefinitionWithImplicitType](#definitions/TimestampExtractorDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/TimestampExtractorDefinitionWithImplicitType](#definitions/TimestampExtractorDefinitionWithImplicitType)*.
   - **`topic`** *(string, required)*: The name of the Kafka topic for this table.
   - **`valueType`** *(string, required)*: The value type of the table.
 - <a id="definitions/TimestampExtractorDefinition"></a>**`TimestampExtractorDefinition`** *(object)*: Defines a timestamp extractor function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
@@ -1369,7 +1389,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the timestamp extractor. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the timestamp extractor.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the timestamp extractor. Only required for function types, which are not pre-defined.
   - **`type`**: The type of the function. Must be one of: `["timestampExtractor"]`.
 - <a id="definitions/TimestampExtractorDefinitionWithImplicitType"></a>**`TimestampExtractorDefinitionWithImplicitType`** *(object)*: Defines a timestamp extractor function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
@@ -1390,13 +1410,13 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the timestamp extractor. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the timestamp extractor.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the timestamp extractor. Only required for function types, which are not pre-defined.
 - <a id="definitions/ToStreamOperation"></a>**`ToStreamOperation`** *(object)*: Convert a Table into a Stream, optionally through a custom key transformer. Cannot contain additional properties.
   - **`mapper`**: *(optional)* A function that computes the output key for every record.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyTransformerDefinitionWithImplicitType](#definitions/KeyTransformerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/KeyTransformerDefinitionWithImplicitType](#definitions/KeyTransformerDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`type`**: The type of the operation. Must be one of: `["toStream"]`.
 - <a id="definitions/ToTableOperation"></a>**`ToTableOperation`** *(object)*: Convert a Stream into a Table. Cannot contain additional properties.
@@ -1404,25 +1424,25 @@
   - **`store`**: *(optional)* Materialized view of the result table.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
   - **`type`**: The type of the operation. Must be one of: `["toTable"]`.
 - <a id="definitions/ToTopicDefinition"></a>**`ToTopicDefinition`** *(object)*: Writes out pipeline messages to a topic. Cannot contain additional properties.
   - **`keyType`** *(string)*: *(optional)* The key type of the topic.
   - **`partitioner`**: *(optional)* A function that partitions the records in the output topic.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/StreamPartitionerDefinitionWithImplicitType](#definitions/StreamPartitionerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/StreamPartitionerDefinitionWithImplicitType](#definitions/StreamPartitionerDefinitionWithImplicitType)*.
   - **`topic`** *(string, required)*: The name of the Kafka topic.
   - **`valueType`** *(string)*: *(optional)* The value type of the topic.
 - <a id="definitions/ToTopicNameExtractorDefinition"></a>**`ToTopicNameExtractorDefinition`** *(object)*: Writes out pipeline messages to a topic as given by a topic name extractor. Cannot contain additional properties.
   - **`partitioner`**: *(optional)* A function that partitions the records in the output topic.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/StreamPartitionerDefinitionWithImplicitType](#definitions/StreamPartitionerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/StreamPartitionerDefinitionWithImplicitType](#definitions/StreamPartitionerDefinitionWithImplicitType)*.
   - **`topicNameExtractor`**: Reference to a pre-defined topic name extractor, or an inline definition of a topic name extractor.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/TopicNameExtractorDefinitionWithImplicitType](#definitions/TopicNameExtractorDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/TopicNameExtractorDefinitionWithImplicitType](#definitions/TopicNameExtractorDefinitionWithImplicitType)*.
 - <a id="definitions/TopicDefinition"></a>**`TopicDefinition`** *(object)*: Contains a definition of a Kafka topic, to be used by producers and pipelines. Cannot contain additional properties.
   - **`keyType`** *(string)*: *(optional)* The key type of the topic.
   - **`topic`** *(string, required)*: The name of the Kafka topic.
@@ -1433,7 +1453,7 @@
   - **`timestampExtractor`**: *(optional)* A function extracts the event time from a consumed record.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/TimestampExtractorDefinitionWithImplicitType](#definitions/TimestampExtractorDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/TimestampExtractorDefinitionWithImplicitType](#definitions/TimestampExtractorDefinitionWithImplicitType)*.
   - **`topic`** *(string, required)*: The name of the Kafka topic.
   - **`valueType`** *(string, required)*: The value type of the topic.
 - <a id="definitions/TopicNameExtractorDefinition"></a>**`TopicNameExtractorDefinition`** *(object)*: Defines a topic name extractor function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
@@ -1454,7 +1474,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the topic name extractor. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the topic name extractor.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the topic name extractor. Only required for function types, which are not pre-defined.
   - **`type`**: The type of the function. Must be one of: `["topicNameExtractor"]`.
 - <a id="definitions/TopicNameExtractorDefinitionWithImplicitType"></a>**`TopicNameExtractorDefinitionWithImplicitType`** *(object)*: Defines a topic name extractor function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
@@ -1475,53 +1495,53 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the topic name extractor. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the topic name extractor.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the topic name extractor. Only required for function types, which are not pre-defined.
 - <a id="definitions/TransformKeyOperation"></a>**`TransformKeyOperation`** *(object)*: Convert the key of every record in the stream to another key. Cannot contain additional properties.
   - **`mapper`**: A function that computes a new key for each record.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyTransformerDefinitionWithImplicitType](#definitions/KeyTransformerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/KeyTransformerDefinitionWithImplicitType](#definitions/KeyTransformerDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`type`**: The type of the operation. Must be one of: `["transformKey", "mapKey", "selectKey"]`.
 - <a id="definitions/TransformKeyValueOperation"></a>**`TransformKeyValueOperation`** *(object)*: Convert the key/value of every record in the stream to another key/value. Cannot contain additional properties.
   - **`mapper`**: A function that computes a new key/value for each record.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyValueTransformerDefinitionWithImplicitType](#definitions/KeyValueTransformerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/KeyValueTransformerDefinitionWithImplicitType](#definitions/KeyValueTransformerDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`type`**: The type of the operation. Must be one of: `["mapKeyValue", "map", "transformKeyValue"]`.
 - <a id="definitions/TransformKeyValueToKeyValueListOperation"></a>**`TransformKeyValueToKeyValueListOperation`** *(object)*: Convert a stream by transforming every record into a list of derived records. Cannot contain additional properties.
   - **`mapper`**: A function that converts every record of a stream to a list of output records.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyValueToKeyValueListTransformerDefinitionWithImplicitType](#definitions/KeyValueToKeyValueListTransformerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/KeyValueToKeyValueListTransformerDefinitionWithImplicitType](#definitions/KeyValueToKeyValueListTransformerDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`type`**: The type of the operation. Must be one of: `["transformKeyValueToKeyValueList", "flatMap"]`.
 - <a id="definitions/TransformKeyValueToValueListOperation"></a>**`TransformKeyValueToValueListOperation`** *(object)*: Convert every record in the stream to a list of output records with the same key. Cannot contain additional properties.
   - **`mapper`**: A function that converts every key/value into a list of result values, each of which will be combined with the original key to form a new message in the output stream.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyValueToValueListTransformerDefinitionWithImplicitType](#definitions/KeyValueToValueListTransformerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/KeyValueToValueListTransformerDefinitionWithImplicitType](#definitions/KeyValueToValueListTransformerDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`type`**: The type of the operation. Must be one of: `["transformKeyValueToValueList", "flatMapValues"]`.
 - <a id="definitions/TransformMetadataOperation"></a>**`TransformMetadataOperation`** *(object)*: Convert the metadata of every record in the stream. Cannot contain additional properties.
   - **`mapper`**: A function that converts the metadata (Kafka headers, timestamp) of every record in the stream.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/MetadataTransformerDefinitionWithImplicitType](#definitions/MetadataTransformerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/MetadataTransformerDefinitionWithImplicitType](#definitions/MetadataTransformerDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`type`**: The type of the operation. Must be one of: `["transformMetadata"]`.
 - <a id="definitions/TransformValueOperation"></a>**`TransformValueOperation`** *(object)*: Convert the value of every record in the stream to another value. Cannot contain additional properties.
   - **`mapper`**: A function that converts the value of every record into another value.
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/ValueTransformerDefinitionWithImplicitType](#definitions/ValueTransformerDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/ValueTransformerDefinitionWithImplicitType](#definitions/ValueTransformerDefinitionWithImplicitType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`store`**: *(optional)* Materialized view of the transformed table (only applies to tables, ignored for streams).
     - **Any of**
       - *string*
-      - : Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitType](#definitions/KeyValueStateStoreDefinitionWithImplicitType)*.
   - **`type`**: The type of the operation. Must be one of: `["mapValue", "transformValue", "mapValues"]`.
 - <a id="definitions/ValueJoinerDefinition"></a>**`ValueJoinerDefinition`** *(object)*: Defines a value joiner function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the value joiner.
@@ -1541,7 +1561,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the value joiner. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the value joiner.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the value joiner. Only required for function types, which are not pre-defined.
   - **`type`**: The type of the function. Must be one of: `["valueJoiner"]`.
 - <a id="definitions/ValueJoinerDefinitionWithImplicitType"></a>**`ValueJoinerDefinitionWithImplicitType`** *(object)*: Defines a value joiner function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
@@ -1562,7 +1582,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the value joiner. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the value joiner.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the value joiner. Only required for function types, which are not pre-defined.
 - <a id="definitions/ValueTransformerDefinition"></a>**`ValueTransformerDefinition`** *(object)*: Defines a value transformer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the value transformer.
@@ -1582,7 +1602,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the value transformer. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the value transformer.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the value transformer. Only required for function types, which are not pre-defined.
   - **`stores`** *(array)*: *(optional)* A list of store names that the value transformer uses. Only required if the function wants to use a state store.
     - **Items** *(string)*
@@ -1605,7 +1625,7 @@
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the value transformer. If this field is not defined, then the name is derived from the context.
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the value transformer.
-    - **Items**: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
+    - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the value transformer. Only required for function types, which are not pre-defined.
   - **`stores`** *(array)*: *(optional)* A list of store names that the value transformer uses. Only required if the function wants to use a state store.
     - **Items** *(string)*

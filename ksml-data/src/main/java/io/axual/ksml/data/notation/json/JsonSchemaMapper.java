@@ -215,6 +215,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             if (!definitions.containsKey(name)) {
                 definitions.put(name, fromDataSchema(structSchema, definitions));
             }
+            target.put(TYPE_NAME, new DataString(OBJECT_TYPE));
             target.put(REF_NAME, new DataString("#/" + DEFINITIONS_NAME + "/" + name));
         }
         if (schema instanceof UnionSchema unionSchema) {
