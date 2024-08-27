@@ -87,24 +87,53 @@ startupProbe:
   httpGet:
     path: /ready
     port: http
+  # -- Minimum consecutive failures for the probe to be considered failed.
+  # A failed startupProbe will mark the container as unhealthy and triggers a restart for that specific container.
   failureThreshold: 30
-  periodSeconds: 2
+  # -- Number of seconds after the container has started before startyp probes are initiated.
+  initialDelaySeconds: 2
+  # -- How often (in seconds) to perform the probe.
+  periodSeconds: 1
+  # -- Minimum consecutive successes for the probe to be considered successful after having failed.
+  successThreshold: 1
+  # -- Number of seconds after which the probe times out.
+  timeoutSeconds: 1
 
 # The readiness probe for the KSML containers
 readinessProbe:
+  # The service definition to call to determine readiness.
   httpGet:
     path: /ready
     port: http
-  failureThreshold: 2
-  periodSeconds: 5
+  # -- Minimum consecutive failures for the probe to be considered failed after having succeeded.
+  # A failed readinessProbe will cause the container to move to the `NotReady` state.
+  failureThreshold: 4
+  # -- Number of seconds after the container has started before readiness probes are initiated.
+  initialDelaySeconds: 20
+  # -- How often (in seconds) to perform the probe.
+  periodSeconds: 10
+  # -- Minimum consecutive successes for the probe to be considered successful after having failed.
+  successThreshold: 1
+  # -- Number of seconds after which the probe times out.
+  timeoutSeconds: 1
 
 # The readiness probe for the KSML containers
 livenessProbe:
+  # The service definition to call to determine liveness.
   httpGet:
     path: /ready
     port: http
-  failureThreshold: 2
-  periodSeconds: 5
+  # -- Minimum consecutive failures for the probe to be considered failed after having succeeded.
+  # A failed livenessProbe will cause the container to be restarted.
+  failureThreshold: 4
+  # -- Number of seconds after the container has started before liveness probes are initiated.
+  initialDelaySeconds: 30
+  # -- How often (in seconds) to perform the probe.
+  periodSeconds: 10
+  # -- Minimum consecutive successes for the probe to be considered successful after having failed.
+  successThreshold: 1
+  # -- Number of seconds after which the probe times out.
+  timeoutSeconds: 1
 
 serviceAccount:
   # Specifies whether a service account should be created
