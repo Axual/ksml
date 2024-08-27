@@ -82,6 +82,30 @@ schemaDefinitions: {}
   # my-schema.avsc: |
   #   ...
 
+# The startup probe for the KSML containers
+startupProbe:
+  httpGet:
+    path: /ready
+    port: http
+  failureThreshold: 30
+  periodSeconds: 2
+
+# The readiness probe for the KSML containers
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: http
+  failureThreshold: 2
+  periodSeconds: 5
+
+# The readiness probe for the KSML containers
+livenessProbe:
+  httpGet:
+    path: /ready
+    port: http
+  failureThreshold: 2
+  periodSeconds: 5
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: true

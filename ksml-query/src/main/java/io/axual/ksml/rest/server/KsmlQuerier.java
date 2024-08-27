@@ -20,26 +20,21 @@ package io.axual.ksml.rest.server;
  * =========================LICENSE_END==================================
  */
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.KeyQueryMetadata;
+import org.apache.kafka.streams.StoreQueryParameters;
 import org.apache.kafka.streams.StreamsMetadata;
 
 import java.util.Collection;
 
-@Slf4j
-public class StoreQuerier {
-    private final StreamsQuerier streamsQuerier;
+public interface KsmlQuerier {
+    Collection<StreamsMetadata> allMetadataForStore(String storeName);
 
-    public StoreQuerier(StreamsQuerier streamsQuerier) {
-        this.streamsQuerier = streamsQuerier;
-    }
+    <K> KeyQueryMetadata queryMetadataForKey(String storeName, K key, Serializer<K> keySerializer);
 
-    public Collection<StreamsMetadata> metadataForStore(String storeName) {
-        return streamsQuerier.allMetadataForStore(storeName);
-    }
+    <T> T store(StoreQueryParameters<T> storeQueryParameters);
 
-    public <K> KeyQueryMetadata metadataForKey(String storeName, K key, Serializer<K> serializer) {
-        return streamsQuerier.queryMetadataForKey(storeName, key, serializer);
-    }
+    ComponentState getStreamRunnerState();
+
+    ComponentState getProducerState();
 }

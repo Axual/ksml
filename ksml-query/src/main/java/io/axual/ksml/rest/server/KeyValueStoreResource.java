@@ -71,7 +71,7 @@ public class KeyValueStoreResource extends StoreResource {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public KeyValueBean getKey(@PathParam("storeName") final String storeName,
                                @PathParam("key") final String key) {
-        KeyQueryMetadata metadataForKey = querier.queryMetadataForKey(storeName, key, new StringSerializer());
+        KeyQueryMetadata metadataForKey = querier().queryMetadataForKey(storeName, key, new StringSerializer());
 
         if (metadataForKey.activeHost().host().equals(thisInstance.host()) && metadataForKey.activeHost().port() == thisInstance.port()) {
             log.info("Querying local store {} for key {}", storeName, key);
@@ -98,7 +98,7 @@ public class KeyValueStoreResource extends StoreResource {
     public KeyValueBean getKeyLocal(@PathParam("storeName") final String storeName,
                                     @PathParam("key") final String key) {
         log.info("Querying local store {} for key {}", storeName, key);
-        var stateStore = querier.store(
+        var stateStore = getStore(
                 StoreQueryParameters.fromNameAndType(storeName, QueryableStoreTypes.keyValueStore()));
         Object value = stateStore.get(key);
         log.info("Found value {}", value);

@@ -48,7 +48,7 @@ public class WindowedKeyValueStoreResource extends StoreResource {
     public List<WindowedKeyValueBean> getAll(@PathParam("storeName") final String storeName) {
         var result = getAllLocal(storeName);
         log.info("Querying remote stores....");
-        querier.allMetadataForStore(storeName)
+        querier().allMetadataForStore(storeName)
                 .stream()
                 .filter(sm -> !(sm.host().equals(thisInstance.host()) && sm.port() == thisInstance.port())) //only query remote node stores
                 .forEach(remoteInstance -> {
@@ -88,7 +88,7 @@ public class WindowedKeyValueStoreResource extends StoreResource {
     public WindowedKeyValueBean getKey(@PathParam("storeName") final String storeName,
                                        @PathParam("key") final String key,
                                        @PathParam("timestamp") final Long timestamp) {
-        KeyQueryMetadata metadataForKey = querier.queryMetadataForKey(storeName, key, new StringSerializer());
+        KeyQueryMetadata metadataForKey = querier().queryMetadataForKey(storeName, key, new StringSerializer());
 
         if (metadataForKey.activeHost().host().equals(thisInstance.host()) && metadataForKey.activeHost().port() == thisInstance.port()) {
             log.info("Querying local store {} for key {}", storeName, key);
@@ -116,7 +116,7 @@ public class WindowedKeyValueStoreResource extends StoreResource {
                                             @PathParam("key") final String key,
                                             @PathParam("timestamp") final Long timestamp) {
         log.info("Querying local store {} for key {}", storeName, key);
-        var stateStore = querier.store(
+        var stateStore = getStore(
                 StoreQueryParameters.fromNameAndType(storeName, QueryableStoreTypes.windowStore()));
         var iterator = stateStore.fetch(key, key, Instant.ofEpochMilli(timestamp), Instant.ofEpochMilli(timestamp));
         KeyValue<Windowed<Object>, Object> latest = null;

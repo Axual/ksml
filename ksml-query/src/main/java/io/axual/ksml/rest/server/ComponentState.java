@@ -4,7 +4,7 @@ package io.axual.ksml.rest.server;
  * ========================LICENSE_START=================================
  * KSML Queryable State Store
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2024 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,10 @@ package io.axual.ksml.rest.server;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.common.serialization.Serializer;
-import org.apache.kafka.streams.KeyQueryMetadata;
-import org.apache.kafka.streams.StoreQueryParameters;
-import org.apache.kafka.streams.StreamsMetadata;
-
-import java.util.Collection;
-
-public interface StreamsQuerier {
-    Collection<StreamsMetadata> allMetadataForStore(String storeName);
-
-    <K> KeyQueryMetadata queryMetadataForKey(String storeName, K key, Serializer<K> keySerializer);
-
-    <T> T store(StoreQueryParameters<T> storeQueryParameters);
+public enum ComponentState {
+    STARTING,
+    STARTED,
+    STOPPING,
+    STOPPED,
+    FAILED
 }
