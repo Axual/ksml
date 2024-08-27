@@ -77,7 +77,7 @@ public class KafkaProducerRunner implements Runner {
 
         try (final Producer<byte[], byte[]> producer = createProducer(getProducerConfigs())) {
             log.info("Starting Kafka producer(s)");
-            while (!stopRunning.get() && !hasFailed.get()) {
+            while (!stopRunning.get() && !hasFailed.get() && scheduler.hasScheduledItems()) {
                 var scheduledGenerator = scheduler.getScheduledItem();
                 if (scheduledGenerator != null) {
                     scheduledGenerator.producer().produceMessage(producer);

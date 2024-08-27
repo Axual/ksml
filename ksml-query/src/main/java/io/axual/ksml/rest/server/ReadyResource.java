@@ -20,35 +20,50 @@ package io.axual.ksml.rest.server;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Set;
+
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 
+import static io.axual.ksml.rest.server.ComponentState.*;
+
 @Slf4j
 @Path("ready")
 public class ReadyResource {
+    private static final Set<ComponentState> NOT_RUNNING_STATES = Set.of(NOT_APPLICABLE, STOPPED, FAILED);
+    private static final Set<ComponentState> RUNNING_STATES = Set.of(STARTING, STARTED, STOPPING);
+
     @GET()
     public Response getReadyState() {
         final var querier = GlobalState.INSTANCE.querier();
+
         if (querier == null) {
             // Service has not started yet
             return Response.serverError().build();
         }
 
-        final var producerRunning = switch (querier.getProducerState()) {
-            case STARTING, STARTED, STOPPING, STOPPED -> true;
-            default -> false;
-        };
-        final var streamsRunning = switch (querier.getStreamRunnerState()) {
-            case STARTING, STARTED, STOPPING, STOPPED -> true;
-            default -> false;
-        };
+        final var producerState = querier.getProducerState();
+        final var streamRunnerState = querier.getStreamRunnerState();
 
-        if (streamsRunning && producerRunning) {
+        log.trace("Ready states - producer '{}' stream runner '{}' ", producerState, streamRunnerState);
+
+        // Check if either Producer and StreamRunner has failed, or if they are BOTH in a not running state.
+        if (producerState == FAILED || streamRunnerState == FAILED ||
+                (NOT_RUNNING_STATES.contains(producerState) && NOT_RUNNING_STATES.contains(streamRunnerState))) {
+            // One of the components has failed, or both are not running.
+            return Response.serverError().build();
+        }
+
+        // Check if either producer of consumer is in a running state
+        if (RUNNING_STATES.contains(producerState) || RUNNING_STATES.contains(streamRunnerState)) {
+            // KSML has started, return HTTP Status code 204 (OK, No Content) if components
             return Response.noContent().build();
         } else {
+            // KSML has started, return HTTP Status code 204 (OK, No Content) if components
             return Response.serverError().build();
         }
     }
+
 }

@@ -39,6 +39,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -71,8 +72,8 @@ import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.rest.server.ComponentState;
-import io.axual.ksml.rest.server.RestServer;
 import io.axual.ksml.rest.server.KsmlQuerier;
+import io.axual.ksml.rest.server.RestServer;
 import io.axual.ksml.runner.backend.KafkaProducerRunner;
 import io.axual.ksml.runner.backend.KafkaStreamsRunner;
 import io.axual.ksml.runner.backend.Runner;
@@ -194,22 +195,23 @@ public class KSMLRunner {
                 });
 
                 Runtime.getRuntime().addShutdownHook(shutdownHook);
+
                 try (var prometheusExport = new PrometheusExport(config.getKsmlConfig().getPrometheusConfig())) {
                     prometheusExport.start();
                     final var executorService = Executors.newFixedThreadPool(2);
-                    final var producerFuture = producer == null ? null : executorService.submit(producer);
-                    final var streamsFuture = streams == null ? null : executorService.submit(streams);
+                    final var producerFuture = producer == null ? CompletableFuture.completedFuture(null) : executorService.submit(producer);
+                    final var streamsFuture = streams == null ? CompletableFuture.completedFuture(null) : executorService.submit(streams);
 
                     try {
                         // Allow the runner(s) to start
                         Utils.sleep(2000);
 
-                        if (streamsFuture != null && restServer != null) {
+                        if (restServer != null) {
                             // Run with the REST server
                             restServer.initGlobalQuerier(getQuerier(streams, producer));
                         }
 
-                        while (producerFuture == null || !producerFuture.isDone() || streamsFuture == null || !streamsFuture.isDone()) {
+                        while (!producerFuture.isDone() || !streamsFuture.isDone()) {
                             final var producerError = producer != null && producer.getState() == Runner.State.FAILED;
                             final var streamsError = streams != null && streams.getState() == Runner.State.FAILED;
 
@@ -254,6 +256,8 @@ public class KSMLRunner {
             log.error("Unhandled exception", t);
             throw FatalError.reportAndExit(t);
         }
+        // Explicit exit, need to find out which threads are actually stopping us
+        System.exit(0);
     }
 
     protected static KsmlQuerier getQuerier(KafkaStreamsRunner streamsRunner, KafkaProducerRunner producerRunner) {
@@ -285,7 +289,7 @@ public class KSMLRunner {
             @Override
             public ComponentState getStreamRunnerState() {
                 if (streamsRunner == null) {
-                    return ComponentState.STARTED;
+                    return ComponentState.NOT_APPLICABLE;
                 }
                 return stateConverter(streamsRunner.getState());
             }
@@ -293,7 +297,7 @@ public class KSMLRunner {
             @Override
             public ComponentState getProducerState() {
                 if (producerRunner == null) {
-                    return ComponentState.STARTED;
+                    return ComponentState.NOT_APPLICABLE;
                 }
                 return stateConverter(producerRunner.getState());
             }
