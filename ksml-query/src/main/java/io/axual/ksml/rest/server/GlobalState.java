@@ -26,16 +26,16 @@ public enum GlobalState {
 
     INSTANCE;
 
-    private StreamsQuerier querier;
+    private KsmlQuerier ksmlQuerier;
     private HostInfo hostInfo;
 
-    public void set(StreamsQuerier querier, HostInfo hostInfo) {
-        this.querier = querier;
+    public synchronized void set(KsmlQuerier ksmlQuerier, HostInfo hostInfo) {
+        this.ksmlQuerier = ksmlQuerier;
         this.hostInfo = hostInfo;
     }
 
-    public StreamsQuerier querier() {
-        return querier;
+    public synchronized KsmlQuerier querier() {
+        return ksmlQuerier;
     }
 
     public HostInfo hostInfo() {

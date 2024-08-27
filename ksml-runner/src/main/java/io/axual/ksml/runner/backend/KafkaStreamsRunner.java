@@ -21,17 +21,12 @@ package io.axual.ksml.runner.backend;
  */
 
 
-import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.utils.Utils;
 import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.KeyQueryMetadata;
-import org.apache.kafka.streams.StoreQueryParameters;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.StreamsMetadata;
 import org.apache.kafka.streams.TopologyConfig;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -43,14 +38,15 @@ import io.axual.ksml.client.producer.ResolvingProducerConfig;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.execution.ExecutionErrorHandler;
 import io.axual.ksml.generator.TopologyDefinition;
-import io.axual.ksml.rest.server.StreamsQuerier;
 import io.axual.ksml.runner.config.ApplicationServerConfig;
 import io.axual.ksml.runner.streams.KSMLClientSupplier;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class KafkaStreamsRunner implements Runner {
+    @Getter
     private final KafkaStreams kafkaStreams;
     private final AtomicBoolean stopRunning = new AtomicBoolean(false);
 
@@ -119,25 +115,6 @@ public class KafkaStreamsRunner implements Runner {
             case PENDING_SHUTDOWN -> State.STOPPING;
             case NOT_RUNNING -> State.STOPPED;
             case PENDING_ERROR, ERROR -> State.FAILED;
-        };
-    }
-
-    public StreamsQuerier getQuerier() {
-        return new StreamsQuerier() {
-            @Override
-            public Collection<StreamsMetadata> allMetadataForStore(String storeName) {
-                return kafkaStreams.streamsMetadataForStore(storeName);
-            }
-
-            @Override
-            public <K> KeyQueryMetadata queryMetadataForKey(String storeName, K key, Serializer<K> keySerializer) {
-                return kafkaStreams.queryMetadataForKey(storeName, key, keySerializer);
-            }
-
-            @Override
-            public <T> T store(StoreQueryParameters<T> storeQueryParameters) {
-                return kafkaStreams.store(storeQueryParameters);
-            }
         };
     }
 

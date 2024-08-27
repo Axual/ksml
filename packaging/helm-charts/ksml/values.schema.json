@@ -190,6 +190,15 @@
         "nameOverride": {
             "type": "string"
         },
+        "startupProbe": {
+            "type": "object"
+        },
+        "readinessProbe": {
+            "type": "object"
+        },
+        "livenessProbe": {
+            "type": "object"
+        },
         "nodeSelector": {
             "type": "object"
         },

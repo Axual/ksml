@@ -20,38 +20,55 @@ package io.axual.ksml.rest.server;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.DataObjectFlattener;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.rest.data.KeyValueBean;
-import io.axual.ksml.rest.data.KeyValueBeans;
-import io.axual.ksml.rest.data.WindowedKeyValueBean;
-import io.axual.ksml.rest.data.WindowedKeyValueBeans;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StoreQueryParameters;
+import org.apache.kafka.streams.errors.UnknownStateStoreException;
 import org.apache.kafka.streams.kstream.Windowed;
 import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.QueryableStoreType;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
+
+import io.axual.ksml.data.mapper.DataObjectFlattener;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.rest.data.KeyValueBean;
+import io.axual.ksml.rest.data.KeyValueBeans;
+import io.axual.ksml.rest.data.WindowedKeyValueBean;
+import io.axual.ksml.rest.data.WindowedKeyValueBeans;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.ServiceUnavailableException;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class StoreResource implements AutoCloseable {
     private static final String QUERYING_MESSAGE = "Querying remote stores....";
     private static final String COMPLETE_STORE_STATE_MESSAGE = "Complete store state {}";
     protected static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
-    protected final StreamsQuerier querier = GlobalState.INSTANCE.querier();
     protected final HostInfo thisInstance = GlobalState.INSTANCE.hostInfo();
     protected final RestClient restClient = new RestClient();
+
+    protected KsmlQuerier querier() {
+        return Optional.ofNullable(GlobalState.INSTANCE.querier()).orElseThrow(ServiceUnavailableException::new);
+    }
+
+    protected <T> T getStore(StoreQueryParameters<T> storeQueryParameters) {
+        try {
+            return querier().store(storeQueryParameters);
+        } catch (UnknownStateStoreException uste) {
+            throw new NotFoundException("Could not find store %s of type %s".formatted(storeQueryParameters.storeName(), storeQueryParameters.queryableStoreType()));
+        }
+    }
+
 
     protected <T, K, V> KeyValueBeans getLocalRange(final String storeName,
                                                     final QueryableStoreType<T> storeQueryParameters,
                                                     final Function<T, KeyValueIterator<K, V>> rangeFunction) {
-        log.info(QUERYING_MESSAGE);
+        log.debug(QUERYING_MESSAGE);
         // Get the KeyValue Store
-        final var store = querier.store(
+        final var store = getStore(
                 StoreQueryParameters.fromNameAndType(storeName, storeQueryParameters));
         final var result = new KeyValueBeans();
         // Apply the function, i.e., query the store
@@ -63,16 +80,16 @@ public class StoreResource implements AutoCloseable {
             result.add(NATIVE_MAPPER.toDataObject(element.key), NATIVE_MAPPER.toDataObject(element.value));
         }
 
-        log.info(COMPLETE_STORE_STATE_MESSAGE, result);
+        log.debug(COMPLETE_STORE_STATE_MESSAGE, result);
         return result;
     }
 
     protected <T, K, V> WindowedKeyValueBeans getLocalWindowRange(final String storeName,
                                                                   final QueryableStoreType<T> storeQueryParameters,
                                                                   final Function<T, KeyValueIterator<K, V>> rangeFunction) {
-        log.info(QUERYING_MESSAGE);
+        log.debug(QUERYING_MESSAGE);
         // Get the KeyValue Store
-        final var store = querier.store(
+        final var store = getStore(
                 StoreQueryParameters.fromNameAndType(storeName, storeQueryParameters));
         final var result = new WindowedKeyValueBeans();
         // Apply the function, i.e., query the store
@@ -85,25 +102,25 @@ public class StoreResource implements AutoCloseable {
             result.add(new WindowedKeyValueBean(window.window(), NATIVE_MAPPER.toDataObject(window.key()), NATIVE_MAPPER.toDataObject(element.value)));
         }
 
-        log.info(COMPLETE_STORE_STATE_MESSAGE, result);
+        log.debug(COMPLETE_STORE_STATE_MESSAGE, result);
         return result;
     }
 
     protected List<KeyValueBean> getAllRemote(String storeName, String stateSubPath) {
-        log.info(QUERYING_MESSAGE);
+        log.debug(QUERYING_MESSAGE);
         var result = new KeyValueBeans();
-        querier.allMetadataForStore(storeName)
+        querier().allMetadataForStore(storeName)
                 .stream()
                 .filter(sm -> !(sm.host().equals(thisInstance.host()) && sm.port() == thisInstance.port())) //only query remote node stores
                 .forEach(remoteInstance -> {
                     String url = "http://" + remoteInstance.host() + ":" + remoteInstance.port() + "/state/" + stateSubPath + "/" + storeName + "/local/all";
-                    log.info("Fetching remote store at {}:{}", remoteInstance.host(), remoteInstance.port());
+                    log.debug("Fetching remote store at {}:{}", remoteInstance.host(), remoteInstance.port());
                     KeyValueBeans remoteResult = restClient.getRemoteKeyValueBeans(url);
-                    log.info("Data from remote store at {}:{} == {}", remoteInstance.host(), remoteInstance.port(), remoteResult);
+                    log.debug("Data from remote store at {}:{} == {}", remoteInstance.host(), remoteInstance.port(), remoteResult);
                     result.add(remoteResult);
                 });
 
-        log.info(COMPLETE_STORE_STATE_MESSAGE, result);
+        log.debug(COMPLETE_STORE_STATE_MESSAGE, result);
         return result.elements();
     }
 

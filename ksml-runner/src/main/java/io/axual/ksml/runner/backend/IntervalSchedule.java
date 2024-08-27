@@ -66,6 +66,10 @@ public class IntervalSchedule {
         }
     }
 
+    public boolean hasScheduledItems() {
+        return !scheduledProducers.isEmpty();
+    }
+
     /**
      * Inner data class to keep a scheduled producer and the time it should be returned.
      */

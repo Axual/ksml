@@ -20,6 +20,7 @@ package io.axual.ksml.rest.server;
  * =========================LICENSE_END==================================
  */
 
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
@@ -27,6 +28,10 @@ import jakarta.ws.rs.ext.ExceptionMapper;
 public class RestServerExceptionMapper implements ExceptionMapper<Throwable> {
     @Override
     public Response toResponse(Throwable throwable) {
+        if (throwable instanceof WebApplicationException) {
+            return ((WebApplicationException) throwable).getResponse();
+        }
+
         var message = throwable.getMessage();
         var status = 500;
 

@@ -23,11 +23,31 @@ package io.axual.ksml.runner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
+import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.utils.Utils;
+import org.apache.kafka.streams.KeyQueryMetadata;
+import org.apache.kafka.streams.StoreQueryParameters;
+import org.apache.kafka.streams.StreamsMetadata;
+import org.apache.kafka.streams.state.HostInfo;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import io.axual.ksml.client.serde.ResolvingDeserializer;
 import io.axual.ksml.client.serde.ResolvingSerializer;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
-import io.axual.ksml.data.mapper.DataTypeSchemaMapper;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.avro.AvroSchemaLoader;
@@ -45,13 +65,14 @@ import io.axual.ksml.data.notation.xml.XmlDataObjectConverter;
 import io.axual.ksml.data.notation.xml.XmlNotation;
 import io.axual.ksml.data.notation.xml.XmlSchemaLoader;
 import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.mapper.DataTypeFlattener;
 import io.axual.ksml.data.schema.SchemaLibrary;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.execution.ErrorHandler;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.generator.TopologyDefinition;
+import io.axual.ksml.rest.server.ComponentState;
+import io.axual.ksml.rest.server.KsmlQuerier;
 import io.axual.ksml.rest.server.RestServer;
 import io.axual.ksml.runner.backend.KafkaProducerRunner;
 import io.axual.ksml.runner.backend.KafkaStreamsRunner;
@@ -61,19 +82,6 @@ import io.axual.ksml.runner.config.KSMLRunnerConfig;
 import io.axual.ksml.runner.exception.ConfigException;
 import io.axual.ksml.runner.prometheus.PrometheusExport;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.common.utils.Utils;
-import org.apache.kafka.streams.state.HostInfo;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 @Slf4j
 public class KSMLRunner {
@@ -106,6 +114,16 @@ public class KSMLRunner {
             }
 
             KsmlInfo.registerKsmlAppInfo(config.getApplicationId());
+
+            // Start the appserver if needed
+            final var appServer = ksmlConfig.getApplicationServerConfig();
+            RestServer restServer = null;
+            // Start rest server to provide service endpoints
+            if (appServer.isEnabled()) {
+                HostInfo hostInfo = new HostInfo(appServer.getHost(), appServer.getPort());
+                restServer = new RestServer(hostInfo);
+                restServer.start();
+            }
 
             // Set up the notation library with all known notations and type override classes
             final var nativeMapper = new DataObjectFlattener(true);
@@ -177,26 +195,23 @@ public class KSMLRunner {
                 });
 
                 Runtime.getRuntime().addShutdownHook(shutdownHook);
+
                 try (var prometheusExport = new PrometheusExport(config.getKsmlConfig().getPrometheusConfig())) {
                     prometheusExport.start();
                     final var executorService = Executors.newFixedThreadPool(2);
-                    final var producerFuture = producer == null ? null : executorService.submit(producer);
-                    final var streamsFuture = streams == null ? null : executorService.submit(streams);
-                    RestServer restServer = null;
+                    final var producerFuture = producer == null ? CompletableFuture.completedFuture(null) : executorService.submit(producer);
+                    final var streamsFuture = streams == null ? CompletableFuture.completedFuture(null) : executorService.submit(streams);
 
                     try {
                         // Allow the runner(s) to start
                         Utils.sleep(2000);
 
-                        final var appServer = ksmlConfig.getApplicationServerConfig();
-                        if (streamsFuture != null && appServer != null && appServer.isEnabled()) {
+                        if (restServer != null) {
                             // Run with the REST server
-                            HostInfo hostInfo = new HostInfo(appServer.getHost(), appServer.getPort());
-                            restServer = new RestServer(hostInfo);
-                            restServer.start(streams.getQuerier());
+                            restServer.initGlobalQuerier(getQuerier(streams, producer));
                         }
 
-                        while (producerFuture == null || !producerFuture.isDone() || streamsFuture == null || !streamsFuture.isDone()) {
+                        while (!producerFuture.isDone() || !streamsFuture.isDone()) {
                             final var producerError = producer != null && producer.getState() == Runner.State.FAILED;
                             final var streamsError = streams != null && streams.getState() == Runner.State.FAILED;
 
@@ -241,6 +256,62 @@ public class KSMLRunner {
             log.error("Unhandled exception", t);
             throw FatalError.reportAndExit(t);
         }
+        // Explicit exit, need to find out which threads are actually stopping us
+        System.exit(0);
+    }
+
+    protected static KsmlQuerier getQuerier(KafkaStreamsRunner streamsRunner, KafkaProducerRunner producerRunner) {
+        return new KsmlQuerier() {
+            @Override
+            public Collection<StreamsMetadata> allMetadataForStore(String storeName) {
+                if (streamsRunner == null) {
+                    return List.of();
+                }
+                return streamsRunner.getKafkaStreams().streamsMetadataForStore(storeName);
+            }
+
+            @Override
+            public <K> KeyQueryMetadata queryMetadataForKey(String storeName, K key, Serializer<K> keySerializer) {
+                if (streamsRunner == null) {
+                    return null;
+                }
+                return streamsRunner.getKafkaStreams().queryMetadataForKey(storeName, key, keySerializer);
+            }
+
+            @Override
+            public <T> T store(StoreQueryParameters<T> storeQueryParameters) {
+                if (streamsRunner == null) {
+                    return null;
+                }
+                return streamsRunner.getKafkaStreams().store(storeQueryParameters);
+            }
+
+            @Override
+            public ComponentState getStreamRunnerState() {
+                if (streamsRunner == null) {
+                    return ComponentState.NOT_APPLICABLE;
+                }
+                return stateConverter(streamsRunner.getState());
+            }
+
+            @Override
+            public ComponentState getProducerState() {
+                if (producerRunner == null) {
+                    return ComponentState.NOT_APPLICABLE;
+                }
+                return stateConverter(producerRunner.getState());
+            }
+
+            ComponentState stateConverter(Runner.State state) {
+                return switch (state) {
+                    case STARTING -> ComponentState.STARTING;
+                    case STARTED -> ComponentState.STARTED;
+                    case STOPPING -> ComponentState.STOPPING;
+                    case STOPPED -> ComponentState.STOPPED;
+                    case FAILED -> ComponentState.FAILED;
+                };
+            }
+        };
     }
 
     private static String determineTitle() {

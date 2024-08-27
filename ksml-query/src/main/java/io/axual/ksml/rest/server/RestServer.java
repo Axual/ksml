@@ -54,6 +54,7 @@ public class RestServer implements AutoCloseable {
 
         // configure REST service
         ResourceConfig rc = new ResourceConfig();
+        rc.register(ReadyResource.class);
         rc.register(KeyValueStoreResource.class);
         rc.register(WindowedKeyValueStoreResource.class);
         rc.register(RestServerExceptionMapper.class);
@@ -68,14 +69,17 @@ public class RestServer implements AutoCloseable {
         config.addHttpHandler(handler, "/");
     }
 
-    public String start(StreamsQuerier querier) {
+    public String start() {
         try {
-            GlobalState.INSTANCE.set(querier, hostInfo);
             server.start();
             return Utils.getHostIPForDiscovery();
         } catch (IOException e) {
             return null;
         }
+    }
+
+    public void initGlobalQuerier(KsmlQuerier ksmlQuerier) {
+        GlobalState.INSTANCE.set(ksmlQuerier, hostInfo);
     }
 
     @Override

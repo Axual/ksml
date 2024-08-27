@@ -4,7 +4,7 @@ package io.axual.ksml.rest.server;
  * ========================LICENSE_START=================================
  * KSML Queryable State Store
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2024 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,26 +20,32 @@ package io.axual.ksml.rest.server;
  * =========================LICENSE_END==================================
  */
 
-import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.serialization.Serializer;
-import org.apache.kafka.streams.KeyQueryMetadata;
-import org.apache.kafka.streams.StreamsMetadata;
-
-import java.util.Collection;
-
-@Slf4j
-public class StoreQuerier {
-    private final StreamsQuerier streamsQuerier;
-
-    public StoreQuerier(StreamsQuerier streamsQuerier) {
-        this.streamsQuerier = streamsQuerier;
-    }
-
-    public Collection<StreamsMetadata> metadataForStore(String storeName) {
-        return streamsQuerier.allMetadataForStore(storeName);
-    }
-
-    public <K> KeyQueryMetadata metadataForKey(String storeName, K key, Serializer<K> serializer) {
-        return streamsQuerier.queryMetadataForKey(storeName, key, serializer);
-    }
+/**
+ * Indicates the state a KSML component or subcomponent is in
+ */
+public enum ComponentState {
+    /**
+     * The component is not relevant or used
+     */
+    NOT_APPLICABLE,
+    /**
+     * The component is still starting
+     */
+    STARTING,
+    /**
+     * The component is in a started state, can be considered active
+     */
+    STARTED,
+    /**
+     * The component is shutting down
+     */
+    STOPPING,
+    /**
+     * The component has stopped gracefully
+     */
+    STOPPED,
+    /**
+     * The component is in a failed state
+     */
+    FAILED
 }
