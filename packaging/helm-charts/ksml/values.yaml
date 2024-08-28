@@ -232,7 +232,7 @@ topologySpreadConstraints: []
 # -- KSML application server port defined in the statefulset.
 applicationServer:
   # -- Start an application server for the component
-  enabled: false
+  enabled: true
   # -- Port on which Application server should be initialized
   port: "8080"
 
