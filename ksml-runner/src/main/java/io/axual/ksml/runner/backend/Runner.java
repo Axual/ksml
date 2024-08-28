@@ -21,13 +21,29 @@ package io.axual.ksml.runner.backend;
  */
 
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 public interface Runner extends Runnable {
     enum State {
-        STARTING,
-        STARTED,
-        STOPPING,
-        STOPPED,
-        FAILED
+        CREATED(1, 2, 5), // Ordinal 0
+        STARTING(2, 3, 4, 5), // Ordinal 1
+        STARTED(1, 3, 4, 5), // Ordinal 2
+        STOPPING(4, 5), // Ordinal 3
+        STOPPED, // Ordinal 4
+        FAILED // Ordinal 5
+        ;
+
+        State(final Integer... validNextStates) {
+            this.validNextStates.addAll(Arrays.asList(validNextStates));
+        }
+
+        private final Set<Integer> validNextStates = new HashSet<>();
+
+        public boolean isValidNextState(State nextState) {
+            return validNextStates.contains(nextState.ordinal());
+        }
     }
 
     State getState();

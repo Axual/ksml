@@ -20,11 +20,6 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.client.producer.ResolvingProducer;
-import io.axual.ksml.generator.TopologyDefinition;
-import io.axual.ksml.python.PythonContext;
-import io.axual.ksml.python.PythonFunction;
-import lombok.Builder;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.slf4j.Logger;
@@ -33,6 +28,12 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import io.axual.ksml.client.producer.ResolvingProducer;
+import io.axual.ksml.generator.TopologyDefinition;
+import io.axual.ksml.python.PythonContext;
+import io.axual.ksml.python.PythonFunction;
+import lombok.Builder;
 
 import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
@@ -44,6 +45,7 @@ public class KafkaProducerRunner implements Runner {
     private final AtomicBoolean hasFailed = new AtomicBoolean(false);
     private final AtomicBoolean stopRunning = new AtomicBoolean(false);
     private final Config config;
+    private State currentState;
 
     @Builder
     public record Config(Map<String, TopologyDefinition> definitions, Map<String, String> kafkaConfig) {
@@ -51,11 +53,22 @@ public class KafkaProducerRunner implements Runner {
 
     public KafkaProducerRunner(Config config) {
         this.config = config;
+        currentState = State.CREATED;
+    }
+
+
+    public synchronized void setState(State newState) {
+        if (currentState.isValidNextState(newState)) {
+            currentState = newState;
+        } else {
+            log.warn("Illegal Producer State transition. Current state is {}. Invalid next state {}", currentState, newState);
+        }
     }
 
     public void run() {
         log.info("Registering Kafka producer(s)");
         isRunning.set(true);
+        setState(State.STARTING);
 
         try {
             config.definitions.forEach((defName, definition) -> {
@@ -76,6 +89,7 @@ public class KafkaProducerRunner implements Runner {
         }
 
         try (final Producer<byte[], byte[]> producer = createProducer(getProducerConfigs())) {
+            setState(State.STARTED);
             log.info("Starting Kafka producer(s)");
             while (!stopRunning.get() && !hasFailed.get() && scheduler.hasScheduledItems()) {
                 var scheduledGenerator = scheduler.getScheduledItem();
@@ -88,9 +102,11 @@ public class KafkaProducerRunner implements Runner {
                 }
             }
         } catch (Throwable e) {
+            setState(State.FAILED);
             hasFailed.set(true);
             log.error("Unhandled producer exception", e);
         }
+        setState(State.STOPPED);
         isRunning.set(false);
         log.info("Producer(s) stopped");
     }
@@ -114,14 +130,13 @@ public class KafkaProducerRunner implements Runner {
     }
 
     @Override
-    public State getState() {
-        if (hasFailed.get()) return State.FAILED;
-        if (isRunning.get()) return State.STARTED;
-        return State.STOPPED;
+    public synchronized State getState() {
+        return currentState;
     }
 
     @Override
     public void stop() {
+        setState(State.STOPPING);
         stopRunning.set(true);
     }
 }
