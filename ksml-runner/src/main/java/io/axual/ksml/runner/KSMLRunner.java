@@ -304,6 +304,7 @@ public class KSMLRunner {
 
             ComponentState stateConverter(Runner.State state) {
                 return switch (state) {
+                    case CREATED -> ComponentState.CREATED;
                     case STARTING -> ComponentState.STARTING;
                     case STARTED -> ComponentState.STARTED;
                     case STOPPING -> ComponentState.STOPPING;

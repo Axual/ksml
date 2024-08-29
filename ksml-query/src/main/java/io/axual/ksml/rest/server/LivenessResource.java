@@ -27,42 +27,39 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 
-import static io.axual.ksml.rest.server.ComponentState.NOT_APPLICABLE;
-import static io.axual.ksml.rest.server.ComponentState.STARTED;
-import static io.axual.ksml.rest.server.ComponentState.STOPPED;
-import static io.axual.ksml.rest.server.ComponentState.STOPPING;
+import static io.axual.ksml.rest.server.ComponentState.*;
 
-@Slf4j(topic = "ksml.rest.service.ready")
-@Path("ready")
-public class ReadyResource {
-    private static final Set<ComponentState> PRODUCER_READY_STATES = Set.of(NOT_APPLICABLE, STARTED, STOPPING, STOPPED);
-    private static final Set<ComponentState> STREAMS_READY_STATES = Set.of(NOT_APPLICABLE, STARTED);
+@Slf4j(topic = "ksml.rest.service.live")
+@Path("live")
+public class LivenessResource {
 
     @GET()
-    public Response getReadyState() {
+    public Response getLivenessState() {
         final var querier = GlobalState.INSTANCE.querier();
 
         if (querier == null) {
             // Service has not started yet
-            log.info("KSML Not Ready -No querier available, still in startup");
+            log.trace("KSML Not Alive - No querier available, still in startup");
             return Response.serverError().build();
         }
 
         final var producerState = querier.getProducerState();
         final var streamRunnerState = querier.getStreamRunnerState();
 
-        if (producerState == NOT_APPLICABLE && streamRunnerState == NOT_APPLICABLE) {
-            log.info("KSML Not Ready - Both producerState and streamRunnerState are disabled");
+        // Misconfiguration
+        if( producerState == NOT_APPLICABLE && streamRunnerState == NOT_APPLICABLE ) {
+            log.trace("KSML Not Alive - Both producerState and streamRunnerState are disabled");
             return Response.serverError().build();
         }
 
-        if (PRODUCER_READY_STATES.contains(producerState) && STREAMS_READY_STATES.contains(streamRunnerState)) {
-            // KSML is running, return HTTP Status code 204 (OK, No Content) if components
-            log.info("KSML Ready - producer state '{}' stream runner state '{}' ", producerState, streamRunnerState);
-            return Response.noContent().build();
-        } else {
-            log.info("KSML Not Ready - producer state '{}' stream runner state '{}' ", producerState, streamRunnerState);
+        if( producerState == FAILED || streamRunnerState == FAILED || streamRunnerState == STOPPED){
+            log.trace("KSML Not Alive - producer state '{}' stream runner state '{}' ", producerState, streamRunnerState);
             return Response.serverError().build();
+        } else {
+            // KSML is alive, return HTTP Status code 204 (OK, No Content) if components
+            log.trace("KSML Alive - producer state '{}' stream runner state '{}' ", producerState, streamRunnerState);
+            return Response.noContent().build();
         }
     }
+
 }

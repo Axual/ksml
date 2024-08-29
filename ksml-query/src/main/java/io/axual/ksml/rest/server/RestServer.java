@@ -54,6 +54,8 @@ public class RestServer implements AutoCloseable {
 
         // configure REST service
         ResourceConfig rc = new ResourceConfig();
+        rc.register(StartupResource.class);
+        rc.register(LivenessResource.class);
         rc.register(ReadyResource.class);
         rc.register(KeyValueStoreResource.class);
         rc.register(WindowedKeyValueStoreResource.class);

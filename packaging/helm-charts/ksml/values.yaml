@@ -85,7 +85,7 @@ schemaDefinitions: {}
 # The startup probe for the KSML containers
 startupProbe:
   httpGet:
-    path: /ready
+    path: /startup
     port: http
   # -- Minimum consecutive failures for the probe to be considered failed.
   # A failed startupProbe will mark the container as unhealthy and triggers a restart for that specific container.
@@ -121,7 +121,7 @@ readinessProbe:
 livenessProbe:
   # The service definition to call to determine liveness.
   httpGet:
-    path: /ready
+    path: /live
     port: http
   # -- Minimum consecutive failures for the probe to be considered failed after having succeeded.
   # A failed livenessProbe will cause the container to be restarted.
