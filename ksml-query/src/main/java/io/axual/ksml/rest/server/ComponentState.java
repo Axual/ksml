@@ -29,6 +29,10 @@ public enum ComponentState {
      */
     NOT_APPLICABLE,
     /**
+     * The component is created, but did not went into start yet
+     */
+    CREATED,
+    /**
      * The component is still starting
      */
     STARTING,
@@ -47,5 +51,5 @@ public enum ComponentState {
     /**
      * The component is in a failed state
      */
-    FAILED
+    FAILED;
 }

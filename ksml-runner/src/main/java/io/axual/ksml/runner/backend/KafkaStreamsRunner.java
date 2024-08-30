@@ -74,7 +74,12 @@ public class KafkaStreamsRunner implements Runner {
         final var topologyGenerator = new TopologyGenerator(applicationId, (String) optimize);
         final var topology = topologyGenerator.create(streamsBuilder, config.definitions);
         kafkaStreams = new KafkaStreams(topology, mapToProperties(streamsProps));
+        kafkaStreams.setStateListener(this::logStreamsStateChange);
         kafkaStreams.setUncaughtExceptionHandler(ExecutionContext.INSTANCE::uncaughtException);
+    }
+
+    private void logStreamsStateChange(KafkaStreams.State newState, KafkaStreams.State oldState) {
+        log.info("Pipeline processing state change. Moving from old state '{}' to new state '{}'", oldState, newState);
     }
 
     private Map<String, Object> getStreamsConfig(Map<String, String> initialConfigs, String storageDirectory, ApplicationServerConfig appServer) {
@@ -108,9 +113,9 @@ public class KafkaStreamsRunner implements Runner {
 
     @Override
     public State getState() {
-        if (kafkaStreams == null) return State.STOPPED;
         return switch (kafkaStreams.state()) {
-            case CREATED, REBALANCING -> State.STARTING;
+            case CREATED -> State.CREATED;
+            case REBALANCING -> State.STARTING;
             case RUNNING -> State.STARTED;
             case PENDING_SHUTDOWN -> State.STOPPING;
             case NOT_RUNNING -> State.STOPPED;
