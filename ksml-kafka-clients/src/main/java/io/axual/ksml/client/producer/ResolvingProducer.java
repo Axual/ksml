@@ -54,11 +54,11 @@ public class ResolvingProducer<K, V> extends ForwardingProducer<K, V> {
                 input.offset(),
                 0,
                 input.timestamp(),
-                null,
                 input.serializedKeySize(),
                 input.serializedValueSize());
     }
 
+    @Deprecated
     @Override
     public void sendOffsetsToTransaction(Map<TopicPartition, OffsetAndMetadata> offsets, String consumerGroupId) throws ProducerFencedException {
         Map<TopicPartition, OffsetAndMetadata> newOffsets = new HashMap<>();
