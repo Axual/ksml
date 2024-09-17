@@ -1,1 +1,5 @@
 Thank you for installing {{ .Chart.Name }}-{{ .Chart.Version }}
+{{ if and .Values.serviceMonitor.enabled (not .Values.prometheus.enabled) }}
+The service monitor has been disabled because Prometheus is not enabled.
+Use prometheus.enabled: true to enable the service monitor
+{{- end }}

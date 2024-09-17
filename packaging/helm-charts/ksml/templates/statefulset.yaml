@@ -42,9 +42,11 @@ spec:
             - name: http
               containerPort: {{ .Values.applicationServer.port }}
               protocol: TCP
+            {{- if .Values.prometheus.enabled }}
             - name: metrics
               containerPort: {{ .Values.prometheus.port }}
               protocol: TCP
+            {{- end }}
           {{- if .Values.startupProbe }}
           startupProbe:
             {{- toYaml .Values.startupProbe | nindent 12 }}
