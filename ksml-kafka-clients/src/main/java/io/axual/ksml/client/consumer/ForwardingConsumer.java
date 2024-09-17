@@ -21,10 +21,7 @@ package io.axual.ksml.client.consumer;
  */
 
 import org.apache.kafka.clients.consumer.*;
-import org.apache.kafka.common.Metric;
-import org.apache.kafka.common.MetricName;
-import org.apache.kafka.common.PartitionInfo;
-import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.*;
 
 import java.time.Duration;
 import java.util.*;
@@ -179,6 +176,11 @@ public class ForwardingConsumer<K, V> implements Consumer<K, V> {
     @Override
     public Map<TopicPartition, OffsetAndMetadata> committed(Set<TopicPartition> partitions, Duration timeout) {
         return delegate.committed(partitions, timeout);
+    }
+
+    @Override
+    public Uuid clientInstanceId(Duration duration) {
+        return delegate.clientInstanceId(duration);
     }
 
     @Override

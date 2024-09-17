@@ -42,7 +42,7 @@ public class ResolvingAdmin extends ForwardingAdmin {
 
     public ResolvingAdmin(Map<String, Object> configs) {
         super(configs);
-        var config = new ResolvingClientConfig(configs);
+        final var config = new ResolvingClientConfig(configs);
         topicResolver = config.topicResolver;
         groupResolver = config.groupResolver;
     }
@@ -58,7 +58,7 @@ public class ResolvingAdmin extends ForwardingAdmin {
 
     @Override
     public DeleteTopicsResult deleteTopics(TopicCollection topicCollection, DeleteTopicsOptions options) {
-        var result = super.deleteTopics(topicResolver.resolve(topicCollection), options);
+        final var result = super.deleteTopics(topicResolver.resolve(topicCollection), options);
         return new ResolvingDeleteTopicsResult(result.topicIdValues(), result.topicNameValues(), topicResolver);
     }
 
@@ -69,13 +69,13 @@ public class ResolvingAdmin extends ForwardingAdmin {
 
     @Override
     public DescribeTopicsResult describeTopics(TopicCollection topicCollection, DescribeTopicsOptions options) {
-        var result = super.describeTopics(topicResolver.resolve(topicCollection), options);
+        final var result = super.describeTopics(topicResolver.resolve(topicCollection), options);
         return new ResolvingDescribeTopicsResult(result.topicIdValues(), result.topicNameValues(), topicResolver);
     }
 
     @Override
     public DescribeAclsResult describeAcls(AclBindingFilter filter, DescribeAclsOptions options) {
-        var result = super.describeAcls(ResolverUtil.resolve(filter, topicResolver, groupResolver), options);
+        final var result = super.describeAcls(ResolverUtil.resolve(filter, topicResolver, groupResolver), options);
         if (result == null) return null;
         return new ResolvingDescribeAclsResult(result.values(), topicResolver, groupResolver);
     }
@@ -156,28 +156,31 @@ public class ResolvingAdmin extends ForwardingAdmin {
     @Override
     public ListConsumerGroupOffsetsResult listConsumerGroupOffsets(Map<String, ListConsumerGroupOffsetsSpec> groupSpecs, ListConsumerGroupOffsetsOptions options) {
         // Resolve the groupSpecs
-        var newGroupSpecs = new HashMap<String, ListConsumerGroupOffsetsSpec>();
+        final var newGroupSpecs = new HashMap<String, ListConsumerGroupOffsetsSpec>();
         groupSpecs.forEach((groupId, spec) -> newGroupSpecs.put(groupResolver.resolve(groupId), new ListConsumerGroupOffsetsSpec().topicPartitions(topicResolver.resolveTopicPartitions(spec.topicPartitions()))));
 
         // Resolve the options
         if (options != null) {
-            var newOptions = new ListConsumerGroupOffsetsOptions().requireStable(options.requireStable());
-            if (options.topicPartitions() != null) {
-                var newTopicPartitions = new ArrayList<TopicPartition>(options.topicPartitions().size());
-                options.topicPartitions().forEach(tp -> newTopicPartitions.add(topicResolver.resolve(tp)));
+            final var newOptions = new ListConsumerGroupOffsetsOptions().requireStable(options.requireStable());
+            final var topicPartitions = options.topicPartitions();
+            if (topicPartitions != null) {
+                final var newTopicPartitions = new ArrayList<TopicPartition>(topicPartitions.size());
+                topicPartitions.forEach(tp -> newTopicPartitions.add(topicResolver.resolve(tp)));
                 newOptions.topicPartitions(newTopicPartitions);
             }
             options = newOptions;
         }
 
         // Call the original API
-        var result = super.listConsumerGroupOffsets(newGroupSpecs, options);
-        // Convert the result to an unresolving result
-        var newResult = new HashMap<CoordinatorKey, KafkaFuture<Map<TopicPartition, OffsetAndMetadata>>>();
+        final var result = super.listConsumerGroupOffsets(newGroupSpecs, options);
+
+        // Convert the result to an unresolved result
+        final var newResult = new HashMap<CoordinatorKey, KafkaFuture<Map<TopicPartition, OffsetAndMetadata>>>();
         newGroupSpecs.keySet().forEach(groupId -> {
-            var future = result.partitionsToOffsetAndMetadata(groupId);
+            final var future = result.partitionsToOffsetAndMetadata(groupId);
             newResult.put(CoordinatorKey.byGroupId(groupId), future);
         });
+
         return new ResolvingListConsumerGroupOffsetsResult(newResult, topicResolver, groupResolver);
     }
 
@@ -262,9 +265,9 @@ public class ResolvingAdmin extends ForwardingAdmin {
 
     private Collection<NewTopic> resolveNewTopics(Collection<NewTopic> newTopics) {
         // Resolve all new topics into a new collection
-        var resolvedTopics = new ArrayList<NewTopic>();
-        for (var newTopic : newTopics) {
-            var resolvedTopic = newTopic.replicasAssignments() == null
+        final var resolvedTopics = new ArrayList<NewTopic>();
+        for (final var newTopic : newTopics) {
+            final var resolvedTopic = newTopic.replicasAssignments() == null
                     ? new NewTopic(topicResolver.resolve(newTopic.name()), newTopic.numPartitions(), newTopic.replicationFactor())
                     : new NewTopic(topicResolver.resolve(newTopic.name()), newTopic.replicasAssignments());
             // Make sure that the config is added properly. Cleanup properties and timestamps are typical properties set in Streams
