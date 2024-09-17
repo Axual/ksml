@@ -266,7 +266,6 @@ resources:
 ksmlRunnerConfig:
   definitions:
     generate: generator.yaml
-#    inspect: peek.yaml
   kafka:
     application.id: example.datagen
 
