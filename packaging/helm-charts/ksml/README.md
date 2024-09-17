@@ -153,8 +153,7 @@ resources:
 
 ksmlRunnerConfig:
   definitions:
-#    generate: generator.yaml
-    inspect: peek.yaml
+    generate: generator.yaml
   kafka:
     application.id: example.datagen
 
@@ -266,8 +265,8 @@ resources:
 
 ksmlRunnerConfig:
   definitions:
-#    generate: generator.yaml
-    inspect: peek.yaml
+    generate: generator.yaml
+#    inspect: peek.yaml
   kafka:
     application.id: example.datagen
 
