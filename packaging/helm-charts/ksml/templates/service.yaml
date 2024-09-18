@@ -11,9 +11,11 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
+    {{- if .Values.prometheus.enabled }}
     - port: {{ .Values.prometheus.port }}
       targetPort: metrics
       protocol: TCP
       name: metrics
+    {{- end }}
   selector:
     {{- include "ksml.selectorLabels" . | nindent 4 }}
