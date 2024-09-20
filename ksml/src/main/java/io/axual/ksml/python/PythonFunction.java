@@ -21,6 +21,15 @@ package io.axual.ksml.python;
  */
 
 
+import org.apache.kafka.streams.processor.StateStore;
+import org.graalvm.polyglot.Value;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.data.object.DataNull;
@@ -33,14 +42,6 @@ import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.store.StateStores;
 import io.axual.ksml.user.UserFunction;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.streams.processor.StateStore;
-import org.graalvm.polyglot.Value;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import static io.axual.ksml.data.notation.UserType.DEFAULT_NOTATION;
 
@@ -65,13 +66,18 @@ public class PythonFunction extends UserFunction {
     }
 
     private PythonFunction(PythonContext context, String namespace, String type, String name, FunctionDefinition definition) {
-        super(name, definition.parameters(), definition.resultType(), definition.storeNames());
+        super(namespace, name, definition.parameters(), definition.resultType(), definition.storeNames());
         converter = context.converter();
         final var pyCode = generatePythonCode(namespace, type, name, definition);
         function = context.registerFunction(pyCode, name + "_caller");
         if (function == null) {
-            System.out.println("Error in generated Python code:\n" + pyCode);
-            throw new ExecutionException("Error in function: " + name);
+            log.error("""
+                    Function {} {}
+                    Error in generated Python code:
+                    
+                    {}
+                    """, namespace, name, pyCode);
+            throw new ExecutionException("Error in function: %s.%s".formatted(namespace, name));
         }
     }
 
@@ -79,15 +85,15 @@ public class PythonFunction extends UserFunction {
     public DataObject call(StateStores stores, DataObject... parameters) {
         // Validate that the defined parameter list matches the amount of passed in parameters
         if (this.fixedParameterCount > parameters.length) {
-            throw new TopologyException("Parameter list does not match function spec: minimally expected " + this.parameters.length + ", got " + parameters.length);
+            throw new TopologyException("Function %s.%s - parameter list does not match function spec: minimally expected %d, got %d".formatted(namespace, name, this.parameters.length, parameters.length));
         }
         if (this.parameters.length < parameters.length) {
-            throw new TopologyException("Parameter list does not match function spec: maximally expected " + this.parameters.length + ", got " + parameters.length);
+            throw new TopologyException("Function %s.%s - parameter list does not match function spec: maximally expected %d, got %d".formatted(namespace, name, this.parameters.length, parameters.length));
         }
         // Validate the parameter types
         for (int index = 0; index < parameters.length; index++) {
             if (!this.parameters[index].type().isAssignableFrom(parameters[index])) {
-                throw new TopologyException("User function \"" + name + "\" expects parameter " + (index + 1) + " (\"" + this.parameters[index].name() + "\") to be " + this.parameters[index].type() + ", but " + parameters[index].type() + " was passed in");
+                throw new TopologyException("Function %s.%s expects parameter %d(\"%s\") to be %s but %s was passed in ".formatted(namespace, name, index + 1, this.parameters[index].name(), this.parameters[index].type(), parameters[index].type()));
             }
         }
 
@@ -98,11 +104,11 @@ public class PythonFunction extends UserFunction {
 
         try {
             // Call the prepared function
-            log.debug("Calling Python function \"{}\" with arguments {}", name, arguments);
+            log.debug("Calling Python function \"{}\" \"{}\" with arguments {}", namespace, name, arguments);
             Value pyResult = function.execute(arguments);
 
             if (pyResult.canExecute()) {
-                throw new ExecutionException("Python code results in a function instead of a value");
+                throw new ExecutionException("Python function %s.%s - Code results in a function instead of a value".formatted(namespace, name));
             }
 
             // Check if the function is supposed to return a result value
@@ -118,7 +124,7 @@ public class PythonFunction extends UserFunction {
             }
         } catch (Exception e) {
             logCall(parameters, null);
-            throw FatalError.reportAndExit(new TopologyException("Error while executing function " + name + ": " + e.getMessage(), e));
+            throw FatalError.reportAndExit(new TopologyException("Error while executing function %s.%s : %s".formatted(namespace, name, e.getMessage())));
         }
     }
 
