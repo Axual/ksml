@@ -1,4 +1,4 @@
-# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+# $schema: https://raw.githubusercontent.com/Axual/ksml/main/docs/ksml-language-spec.json
 
 # This example shows how to generate data and have it sent to a target topic in a given format.
 
@@ -44,13 +44,3 @@ producers:
       topic: ksml_sensordata_avro
       keyType: string
       valueType: avro:SensorData
-
-  # This example uses the otherAvro notation, using the Apicurio Registry API and serializers.
-  # See the ksml-data-generator.yaml for the notation definition
-  sensordata_avro_producer_binary:
-    generator: generate_sensordata_message
-    interval: 3s
-    to:
-      topic: ksml_sensordata_avro_binary
-      keyType: string
-      valueType: otherAvro:SensorData
