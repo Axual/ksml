@@ -6,6 +6,7 @@ ksml:
   prometheus:
   enablePipelines: true
   definitions:
+    # Format is <namespace>: <ksml_definition_filename>
     inspect: 01-example-inspect.yaml
 #    copy: 02-example-copy.yaml
 #    filter: 03-example-filter.yaml

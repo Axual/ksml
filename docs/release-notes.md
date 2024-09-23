@@ -4,6 +4,7 @@
 
 * [Release Notes](#release-notes)
     * [Releases](#releases)
+        * [1.0.2 (2024-09-20)](#102-2024-09-20)
         * [1.0.1 (2024-07-17)](#101-2024-07-17)
         * [1.0.0 (2024-06-28)](#100-2024-06-28)
         * [0.8.0 (2024-03-08)](#080-2024-03-08)
@@ -17,6 +18,16 @@
         * [0.0.3 (2021-07-30)](#003-2021-07-30)
         * [0.0.2 (2021-06-28)](#002-2021-06-28)
         * [0.0.1 (2021-04-30)](#001-2021-04-30)
+
+### 1.0.2 (2024-09-20)
+* KSML
+  * Upgrade to Kafka Streams 3.8.0
+  * Avro Schema Registry settings no longer required if Avro not used 
+  * Add missing object in KSML Json Schema
+  * Fix serialisation and list handling issues
+* Helm charts
+  * Use liveness and readiness and startup probes to fix state issues
+  * Fix conflicting default configuration Prometheus export and ServiceMonitor
 
 ### 1.0.1 (2024-07-17)
 * Topology Optimization can be applied

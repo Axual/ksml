@@ -28,7 +28,7 @@ pipelines:
       - type: windowByTime
         windowType: tumbling
         duration: 20s
-        grace: 10d
+        grace: 10m
       - type: count
         store:
           name: owner_count
