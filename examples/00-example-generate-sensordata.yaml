@@ -44,3 +44,13 @@ producers:
       topic: ksml_sensordata_avro
       keyType: string
       valueType: avro:SensorData
+
+  # The following producer generates messages for 12-example-byte-manipulation.yaml. Enable this producer if you
+  # want to run that specific example.
+  sensordata_avro_producer_binary:
+    generator: generate_sensordata_message
+    interval: 3s
+    to:
+      topic: ksml_sensordata_avro_binary
+      keyType: string
+      valueType: avro:SensorData

@@ -8,12 +8,12 @@
 # message contains a schema id that is not locally recognized. By changing bytes 1-4 in the value,
 # one can override the schema id for further downstream processing.
 
-# Yes, this is hacky, but it may serve a purpose for cases where binary copies are made from
-# remote Kafka clusters that contain conflicting schema ids.
+# Yes, this is hacky, but it may serve a purpose for cases where binary message copies are made from
+# remote Kafka clusters with their own (possibly conflicting) schema ids.
 
 streams:
-  sensor_source:
-    topic: ksml_sensordata_avro
+  sensor_binary_source:
+    topic: ksml_sensordata_avro_binary
     keyType: string
     valueType: bytes
     offsetResetPolicy: latest
@@ -44,7 +44,7 @@ functions:
 
 pipelines:
   main:
-    from: sensor_source
+    from: sensor_binary_source
     via:
      - type: peek
        forEach:
