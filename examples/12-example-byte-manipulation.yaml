@@ -30,7 +30,7 @@ functions:
     code: |
       global newSchemaId
       log.info("Replacing schema in message value: {}", value)
-      if value is not None:
+      if isinstance(value, list):
         if value[0] == 0 and len(value) >= 5:
           value[1] = (newSchemaId & 0xff000000) >> 24
           value[2] = (newSchemaId & 0xff0000) >> 16
