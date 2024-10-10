@@ -98,7 +98,7 @@ public class KafkaStreamsRunner implements Runner {
         }
 
         result.put(StreamsConfig.STATE_DIR_CONFIG, storageDirectory);
-        if (appServer != null && appServer.isEnabled()) {
+        if (appServer != null && appServer.enabled()) {
             result.put(StreamsConfig.APPLICATION_SERVER_CONFIG, appServer.getApplicationServer());
         }
 

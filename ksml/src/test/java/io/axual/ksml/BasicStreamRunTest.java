@@ -27,10 +27,9 @@ import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.avro.AvroSchemaLoader;
 import io.axual.ksml.data.notation.avro.MockAvroNotation;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
-import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
 import io.axual.ksml.data.notation.json.JsonNotation;
+import io.axual.ksml.data.notation.json.JsonSchemaLoader;
 import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.schema.SchemaLibrary;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
@@ -64,9 +63,9 @@ public class BasicStreamRunTest {
     @Test
     void parseAndCheckOuput() throws Exception {
         final var mapper = new NativeDataObjectMapper();
-        final var jsonNotation = new JsonNotation(mapper);
-        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(mapper, jsonNotation::serde), null);
-        NotationLibrary.register(JsonNotation.NOTATION_NAME, jsonNotation, new JsonDataObjectConverter());
+        final var jsonNotation = new JsonNotation(mapper, new JsonSchemaLoader("."));
+        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(mapper, jsonNotation::serde));
+        NotationLibrary.register("json", jsonNotation);
 
         final var uri = ClassLoader.getSystemResource("pipelines/test-copying.yaml").toURI();
         final var path = Paths.get(uri);
@@ -91,17 +90,15 @@ public class BasicStreamRunTest {
     @Test
     void testFilterAvroRecords() throws Exception {
         final var mapper = new NativeDataObjectMapper();
-        final var jsonNotation = new JsonNotation(mapper);
-        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(mapper, jsonNotation::serde), null);
-        NotationLibrary.register(JsonNotation.NOTATION_NAME, jsonNotation, new JsonDataObjectConverter());
-
-        final var avroNotation = new MockAvroNotation(new HashMap<>());
-        NotationLibrary.register(MockAvroNotation.NOTATION_NAME, avroNotation, null);
+        final var jsonNotation = new JsonNotation(mapper, new JsonSchemaLoader("."));
+        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(mapper, jsonNotation::serde));
+        NotationLibrary.register("json", jsonNotation);
 
         URI testDirectory = ClassLoader.getSystemResource("pipelines").toURI();
         String schemaPath = testDirectory.getPath();
         System.out.println("schemaPath = " + schemaPath);
-        SchemaLibrary.registerLoader(MockAvroNotation.NOTATION_NAME, new AvroSchemaLoader(schemaPath));
+        final var avroNotation = new MockAvroNotation(new HashMap<>(), new AvroSchemaLoader(schemaPath));
+        NotationLibrary.register(MockAvroNotation.NOTATION_NAME, avroNotation);
 
         final var uri = ClassLoader.getSystemResource("pipelines/test-filtering.yaml").toURI();
         final var path = Paths.get(uri);

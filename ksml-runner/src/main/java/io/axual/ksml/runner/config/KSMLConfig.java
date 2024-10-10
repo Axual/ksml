@@ -24,6 +24,7 @@ package io.axual.ksml.runner.config;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.data.notation.binary.JsonNodeNativeMapper;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.runner.exception.ConfigException;
@@ -69,6 +70,8 @@ public class KSMLConfig {
 
     @JsonProperty("errorHandling")
     private KSMLErrorHandlingConfig errorHandling;
+    @JsonProperty("notations")
+    private Map<String, NotationConfig> notations;
     @JsonProperty("definitions")
     private Map<String, Object> definitions;
     @JsonProperty("schemas")
@@ -101,6 +104,11 @@ public class KSMLConfig {
     public KSMLErrorHandlingConfig getErrorHandlingConfig() {
         if (errorHandling == null) return KSMLErrorHandlingConfig.builder().build();
         return errorHandling;
+    }
+
+    public Map<String, NotationConfig> notations() {
+        if (notations != null) return ImmutableMap.copyOf(notations);
+        return ImmutableMap.of();
     }
 
     public Map<String, JsonNode> getDefinitions() {

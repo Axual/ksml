@@ -21,15 +21,20 @@ package io.axual.ksml.data.notation.avro;
  */
 
 import com.google.common.collect.ImmutableMap;
+import io.apicurio.registry.serde.avro.AvroKafkaDeserializer;
+import io.apicurio.registry.serde.avro.AvroKafkaSerializer;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.loader.SchemaLoader;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.Notation;
+import io.axual.ksml.data.notation.NotationConverter;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
+import lombok.Getter;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
@@ -37,22 +42,32 @@ import org.apache.kafka.common.serialization.Serializer;
 import java.util.Map;
 
 public class AvroNotation implements Notation {
-    public static final String NOTATION_NAME = "AVRO";
     public static final DataType DEFAULT_TYPE = new StructType();
+
+    public enum SerdeType {
+        APICURIO,
+        CONFLUENT
+    }
+
     private static final AvroDataObjectMapper mapper = new AvroDataObjectMapper();
+    private final SerdeType serdeType;
     private final NativeDataObjectMapper nativeMapper;
     private final Map<String, ?> serdeConfigs;
+    @Getter
+    private final SchemaLoader loader;
     private Serde<Object> keySerde;
     private Serde<Object> valueSerde;
 
-    public AvroNotation(NativeDataObjectMapper nativeMapper, Map<String, ?> configs) {
+    public AvroNotation(SerdeType type, NativeDataObjectMapper nativeMapper, Map<String, ?> configs, SchemaLoader loader) {
+        this.serdeType = type;
         this.nativeMapper = nativeMapper;
         this.serdeConfigs = ImmutableMap.copyOf(configs);
+        this.loader = loader;
     }
 
     @Override
-    public String name() {
-        return NOTATION_NAME;
+    public DataType defaultType() {
+        return DEFAULT_TYPE;
     }
 
     @Override
@@ -61,37 +76,52 @@ public class AvroNotation implements Notation {
 
         // Create the serdes only upon request to prevent error messages on missing SR url configs if AVRO is not used
         if (keySerde == null) {
-            keySerde = new AvroSerde();
+            keySerde = new AvroSerde(serdeType);
             keySerde.configure(serdeConfigs, true);
         }
         if (valueSerde == null) {
-            valueSerde = new AvroSerde();
+            valueSerde = new AvroSerde(serdeType);
             valueSerde.configure(serdeConfigs, false);
         }
         return isKey ? keySerde : valueSerde;
     }
 
+    public NotationConverter converter() {
+        return null;
+    }
+
     private class AvroSerde implements Serde<Object> {
-        private final Serializer<Object> serializer = new KafkaAvroSerializer();
-        private final Deserializer<Object> deserializer = new KafkaAvroDeserializer();
+        private final Serializer<Object> serializer;
+        private final Deserializer<Object> deserializer;
+        private final Serializer<Object> wrapSerializer;
+        private final Deserializer<Object> wrapDeserializer;
 
-        private final Serializer<Object> wrapSerializer =
-                (topic, data) -> {
-                    try {
-                        return serializer.serialize(topic, mapper.fromDataObject(nativeMapper.toDataObject(data)));
-                    } catch (Exception e) {
-                        throw new ExecutionException("Error serializing AVRO message to topic " + topic, e);
-                    }
-                };
+        public AvroSerde(SerdeType type) {
+            serializer = switch (type) {
+                case APICURIO -> new AvroKafkaSerializer<>();
+                case CONFLUENT -> new KafkaAvroSerializer();
+            };
+            deserializer = switch (type) {
+                case APICURIO -> new AvroKafkaDeserializer<>();
+                case CONFLUENT -> new KafkaAvroDeserializer();
+            };
 
-        private final Deserializer<Object> wrapDeserializer =
-                (topic, data) -> {
-                    try {
-                        return mapper.toDataObject(deserializer.deserialize(topic, data));
-                    } catch (Exception e) {
-                        throw new ExecutionException("Error deserializing AVRO message from topic " + topic, e);
-                    }
-                };
+            wrapSerializer = (topic, data) -> {
+                try {
+                    return serializer.serialize(topic, mapper.fromDataObject(nativeMapper.toDataObject(data)));
+                } catch (Exception e) {
+                    throw new ExecutionException("Error serializing AVRO message to topic " + topic, e);
+                }
+            };
+
+            wrapDeserializer = (topic, data) -> {
+                try {
+                    return mapper.toDataObject(deserializer.deserialize(topic, data));
+                } catch (Exception e) {
+                    throw new ExecutionException("Error deserializing AVRO message from topic " + topic, e);
+                }
+            };
+        }
 
         @Override
         public void configure(Map<String, ?> configs, boolean isKey) {

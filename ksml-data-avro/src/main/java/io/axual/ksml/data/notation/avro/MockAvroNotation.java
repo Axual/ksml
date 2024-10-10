@@ -22,8 +22,10 @@ package io.axual.ksml.data.notation.avro;
 
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.loader.SchemaLoader;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.Notation;
+import io.axual.ksml.data.notation.NotationConverter;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
@@ -51,17 +53,22 @@ import java.util.Map;
  * instance of {@link MockSchemaRegistry} to be used.
  */
 public class MockAvroNotation implements Notation {
-    public static final String NOTATION_NAME = "AVRO";
+    public static final String NOTATION_NAME = "avro";
     public static final DataType DEFAULT_TYPE = new StructType();
     private static final AvroDataObjectMapper mapper = new AvroDataObjectMapper();
     private final Map<String, Object> configs = new HashMap<>();
     @Getter
     private final SyncMockSchemaRegistryClient mockSchemaRegistryClient = new SyncMockSchemaRegistryClient();
+    @Getter
+    private final NotationConverter converter = null;
+    @Getter
+    private final SchemaLoader loader;
 
-    public MockAvroNotation(Map<String, ?> configs) {
+    public MockAvroNotation(Map<String, ?> configs, SchemaLoader loader) {
         this.configs.putAll(configs);
         this.configs.put("schema.registry.url", "mock://mock-scope");
         this.configs.put(KafkaAvroDeserializerConfig.AUTO_REGISTER_SCHEMAS, true);
+        this.loader = loader;
     }
 
     public Map<String, Object> getSchemaRegistryConfigs() {
@@ -76,8 +83,8 @@ public class MockAvroNotation implements Notation {
     }
 
     @Override
-    public String name() {
-        return NOTATION_NAME;
+    public DataType defaultType() {
+        return DEFAULT_TYPE;
     }
 
     @Override

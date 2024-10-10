@@ -29,28 +29,19 @@ public class NotationLibrary {
     private NotationLibrary() {
     }
 
-    private record NotationEntry(Notation notation, NotationConverter converter) {
-    }
-
-    private static final Map<String, NotationEntry> notationEntries = new HashMap<>();
+    private static final Map<String, Notation> notationEntries = new HashMap<>();
 
     public static void register(String name, Notation notation) {
-        register(name, notation, null);
+        notationEntries.put(name, notation);
     }
 
-    public static void register(String name, Notation notation, NotationConverter converter) {
-        notationEntries.put(name, new NotationEntry(notation, converter));
+    public static boolean exists(String notation) {
+        return notationEntries.containsKey(notation);
     }
 
-    public static Notation get(String notation) {
+    public static Notation notation(String notation) {
         var result = notation != null ? notationEntries.get(notation) : null;
-        if (result != null) return result.notation;
+        if (result != null) return result;
         throw new DataException("Data notation is not registered in the NotationLibrary: " + (notation != null ? notation : "null"));
-    }
-
-    public static NotationConverter converter(String notation) {
-        var result = notation != null ? notationEntries.get(notation) : null;
-        if (result != null) return result.converter;
-        throw new DataException("Data type notation not found: " + notation);
     }
 }

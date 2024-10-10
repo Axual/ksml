@@ -1,8 +1,8 @@
-package io.axual.ksml.client.util;
+package io.axual.ksml.runner.config;
 
 /*-
  * ========================LICENSE_START=================================
- * Extended Kafka clients for KSML
+ * KSML Runner
  * %%
  * Copyright (C) 2021 - 2023 Axual B.V.
  * %%
@@ -20,19 +20,21 @@ package io.axual.ksml.client.util;
  * =========================LICENSE_END==================================
  */
 
-import java.util.HashMap;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.jackson.Jacksonized;
+
 import java.util.Map;
 
-public class MapUtil {
-    public static Map<String, String> toStringValues(Map<String, ?> map) {
-        var result = new HashMap<String, String>();
-        map.forEach((key, value) -> result.put(key, value != null ? value.toString() : null));
-        return result;
-    }
-
-    public static <K, V> Map<K, V> merge(Map<K, V> map1, Map<K, V> map2) {
-        final var result = new HashMap<>(map1);
-        if (map2 != null) result.putAll(map2);
-        return result;
-    }
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Builder
+@Jacksonized
+@Data
+public class NotationConfig {
+    private String type;
+    private Map<String, String> config;
 }

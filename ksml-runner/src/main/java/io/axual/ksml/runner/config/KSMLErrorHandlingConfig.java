@@ -40,8 +40,8 @@ public class KSMLErrorHandlingConfig {
         if (consume == null) {
             return getDefaultErrorHandlingConfig("ConsumeError");
         }
-        if (consume.getLoggerName() == null) {
-            consume.setLoggerName("ConsumeError");
+        if (consume.loggerName() == null) {
+            consume.loggerName("ConsumeError");
         }
         return consume;
     }
@@ -50,8 +50,8 @@ public class KSMLErrorHandlingConfig {
         if (produce == null) {
             return getDefaultErrorHandlingConfig("ProduceError");
         }
-        if (produce.getLoggerName() == null) {
-            produce.setLoggerName("ProduceError");
+        if (produce.loggerName() == null) {
+            produce.loggerName("ProduceError");
         }
         return produce;
     }
@@ -60,15 +60,15 @@ public class KSMLErrorHandlingConfig {
         if (process == null) {
             return getDefaultErrorHandlingConfig("ProcessError");
         }
-        if (process.getLoggerName() == null) {
-            process.setLoggerName("ProcessError");
+        if (process.loggerName() == null) {
+            process.loggerName("ProcessError");
         }
         return process;
     }
 
     private ErrorHandlingConfig getDefaultErrorHandlingConfig(String logger) {
         var errorHandlingConfig = new ErrorHandlingConfig();
-        errorHandlingConfig.setLoggerName(logger);
+        errorHandlingConfig.loggerName(logger);
         return errorHandlingConfig;
     }
 

@@ -25,7 +25,6 @@ import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
-import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
 import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
@@ -128,9 +127,9 @@ class KafkaProducerRunnerTest {
      */
     private Map<String, TopologyDefinition> loadDefinitions(String filename) throws IOException, URISyntaxException {
         final var mapper = new NativeDataObjectMapper();
-        final var jsonNotation = new JsonNotation(mapper);
-        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(mapper, jsonNotation::serde), null);
-        NotationLibrary.register(JsonNotation.NOTATION_NAME, jsonNotation, new JsonDataObjectConverter());
+        final var jsonNotation = new JsonNotation(mapper, null);
+        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(mapper, jsonNotation::serde));
+        NotationLibrary.register("json", jsonNotation);
 
         final var uri = ClassLoader.getSystemResource(filename).toURI();
         final var path = Paths.get(uri);

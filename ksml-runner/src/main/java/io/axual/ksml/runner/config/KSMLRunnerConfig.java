@@ -44,26 +44,26 @@ public class KSMLRunnerConfig {
     private KSMLConfig ksmlConfig;
 
     @JsonProperty("kafka")
-    private KafkaConfig kafka;
+    private KafkaConfig kafkaConfig;
 
-    public Map<String,String> getKafkaConfig(){
-        var newConfig = new HashMap<>(kafka.kafkaConfig());
-        newConfig.put("application.id", kafka.getApplicationId());
+    public Map<String, String> getKafkaConfig() {
+        var newConfig = new HashMap<>(kafkaConfig.kafkaConfig());
+        newConfig.put("application.id", kafkaConfig.applicationId());
         return newConfig;
     }
 
-    public String getApplicationId(){
-        return kafka.getApplicationId();
+    public String getApplicationId() {
+        return kafkaConfig.applicationId();
     }
 
     @Data
-    public static class KafkaConfig{
+    public static class KafkaConfig {
         @JsonProperty("app.id")
-        @JsonAlias({"applicationId","application.id"})
+        @JsonAlias({"applicationId", "application.id"})
         public String applicationId;
 
         @JsonIgnore
-        private Map<String,String> kafkaConfig = new HashMap<>();
+        private Map<String, String> kafkaConfig = new HashMap<>();
 
         // Capture all other fields that Jackson do not match other members
         @JsonAnyGetter

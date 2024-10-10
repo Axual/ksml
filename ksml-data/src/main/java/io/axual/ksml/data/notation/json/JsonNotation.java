@@ -21,24 +21,31 @@ package io.axual.ksml.data.notation.json;
  */
 
 import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.loader.SchemaLoader;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.Notation;
+import io.axual.ksml.data.notation.NotationConverter;
 import io.axual.ksml.data.serde.JsonSerde;
 import io.axual.ksml.data.type.*;
+import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
 
 public class JsonNotation implements Notation {
-    public static final String NOTATION_NAME = "JSON";
     public static final DataType DEFAULT_TYPE = new UnionType(new StructType(), new ListType());
     private final NativeDataObjectMapper nativeMapper;
+    @Getter
+    private final NotationConverter converter = new JsonDataObjectConverter();
+    @Getter
+    private final SchemaLoader loader;
 
-    public JsonNotation(NativeDataObjectMapper nativeMapper) {
+    public JsonNotation(NativeDataObjectMapper nativeMapper, SchemaLoader loader) {
         this.nativeMapper = nativeMapper;
+        this.loader = loader;
     }
 
     @Override
-    public String name() {
-        return NOTATION_NAME;
+    public DataType defaultType() {
+        return DEFAULT_TYPE;
     }
 
     @Override
@@ -47,6 +54,6 @@ public class JsonNotation implements Notation {
         if (type instanceof MapType || type instanceof ListType || JsonNotation.DEFAULT_TYPE.isAssignableFrom(type))
             return new JsonSerde(nativeMapper, type);
         // Other types can not be serialized as JSON
-        throw new ExecutionException(name() + " serde not found for data type: " + type);
+        throw new ExecutionException("JSON serde not found for data type: " + type);
     }
 }

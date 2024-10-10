@@ -42,7 +42,7 @@ public abstract class StringNotation implements Notation {
         return new StringSerde(nativeMapper, stringMapper, type);
     }
 
-    protected RuntimeException noSerdeFor(DataType type) {
-        return new ExecutionException(name() + " serde not found for data type: " + type);
+    protected RuntimeException noSerdeFor(String notation, DataType type) {
+        return new ExecutionException(notation + " serde not found for data type: " + type);
     }
 }
