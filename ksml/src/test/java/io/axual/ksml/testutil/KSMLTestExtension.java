@@ -92,8 +92,8 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
         log.debug("registering notations");
         final var mapper = new NativeDataObjectMapper();
         final var jsonNotation = new JsonNotation(mapper, null);
-        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(mapper, jsonNotation::serde));
-        NotationLibrary.register("json", jsonNotation);
+        NotationLibrary.register(BinaryNotation.NAME, new BinaryNotation(mapper, jsonNotation::serde));
+        NotationLibrary.register(JsonNotation.NAME, jsonNotation);
     }
 
     @Override
@@ -124,7 +124,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
             avroLoader = new AvroSchemaLoader(schemaPath);
             log.debug("registered schema path: {}", schemaPath);
         }
-        NotationLibrary.register(MockAvroNotation.NOTATION_NAME, new MockAvroNotation(new HashMap<>(), avroLoader));
+        NotationLibrary.register(MockAvroNotation.NAME, new MockAvroNotation(new HashMap<>(), avroLoader));
 
         // get the KSML definition classpath relative path and load the topology into the test driver
         String topologyName = ksmlTest.topology();
@@ -208,7 +208,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
     private Serializer<?> getSerializer(KSMLTopic ksmlTopic, boolean isKey) {
         return switch (isKey ? ksmlTopic.keySerde() : ksmlTopic.valueSerde()) {
             case AVRO -> {
-                final var avroNotation = (MockAvroNotation) NotationLibrary.notation(MockAvroNotation.NOTATION_NAME);
+                final var avroNotation = (MockAvroNotation) NotationLibrary.notation(MockAvroNotation.NAME);
                 var result = new KafkaAvroSerializer(avroNotation.mockSchemaRegistryClient());
                 result.configure(avroNotation.getSchemaRegistryConfigs(), isKey);
                 yield result;
@@ -228,7 +228,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
     private Deserializer<?> getDeserializer(KSMLTopic kamlTopic, boolean isKey) {
         return switch (isKey ? kamlTopic.keySerde() : kamlTopic.valueSerde()) {
             case AVRO -> {
-                final var avroNotation = (MockAvroNotation) NotationLibrary.notation(MockAvroNotation.NOTATION_NAME);
+                final var avroNotation = (MockAvroNotation) NotationLibrary.notation(MockAvroNotation.NAME);
                 final var result = new KafkaAvroDeserializer(avroNotation.mockSchemaRegistryClient());
                 result.configure(avroNotation.getSchemaRegistryConfigs(), isKey);
                 yield result;

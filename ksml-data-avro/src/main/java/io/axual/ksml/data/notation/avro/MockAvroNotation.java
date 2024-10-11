@@ -53,7 +53,7 @@ import java.util.Map;
  * instance of {@link MockSchemaRegistry} to be used.
  */
 public class MockAvroNotation implements Notation {
-    public static final String NOTATION_NAME = "avro";
+    public static final String NAME = "avro";
     public static final DataType DEFAULT_TYPE = new StructType();
     private static final AvroDataObjectMapper mapper = new AvroDataObjectMapper();
     private final Map<String, Object> configs = new HashMap<>();

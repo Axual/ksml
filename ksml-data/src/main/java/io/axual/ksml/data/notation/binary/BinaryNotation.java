@@ -37,7 +37,7 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 
 public class BinaryNotation implements Notation {
-    public static final String NOTATION_NAME = "binary";
+    public static final String NAME = "binary";
     public static final DataType DEFAULT_TYPE = DataType.UNKNOWN;
     private final NativeDataObjectMapper nativeMapper;
     private final SerdeSupplier complexTypeSerdeSupplier;

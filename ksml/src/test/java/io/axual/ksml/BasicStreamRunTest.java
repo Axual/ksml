@@ -64,8 +64,8 @@ public class BasicStreamRunTest {
     void parseAndCheckOuput() throws Exception {
         final var mapper = new NativeDataObjectMapper();
         final var jsonNotation = new JsonNotation(mapper, new JsonSchemaLoader("."));
-        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(mapper, jsonNotation::serde));
-        NotationLibrary.register("json", jsonNotation);
+        NotationLibrary.register(BinaryNotation.NAME, new BinaryNotation(mapper, jsonNotation::serde));
+        NotationLibrary.register(JsonNotation.NAME, jsonNotation);
 
         final var uri = ClassLoader.getSystemResource("pipelines/test-copying.yaml").toURI();
         final var path = Paths.get(uri);
@@ -91,14 +91,14 @@ public class BasicStreamRunTest {
     void testFilterAvroRecords() throws Exception {
         final var mapper = new NativeDataObjectMapper();
         final var jsonNotation = new JsonNotation(mapper, new JsonSchemaLoader("."));
-        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(mapper, jsonNotation::serde));
-        NotationLibrary.register("json", jsonNotation);
+        NotationLibrary.register(BinaryNotation.NAME, new BinaryNotation(mapper, jsonNotation::serde));
+        NotationLibrary.register(JsonNotation.NAME, jsonNotation);
 
         URI testDirectory = ClassLoader.getSystemResource("pipelines").toURI();
         String schemaPath = testDirectory.getPath();
         System.out.println("schemaPath = " + schemaPath);
         final var avroNotation = new MockAvroNotation(new HashMap<>(), new AvroSchemaLoader(schemaPath));
-        NotationLibrary.register(MockAvroNotation.NOTATION_NAME, avroNotation);
+        NotationLibrary.register(MockAvroNotation.NAME, avroNotation);
 
         final var uri = ClassLoader.getSystemResource("pipelines/test-filtering.yaml").toURI();
         final var path = Paths.get(uri);

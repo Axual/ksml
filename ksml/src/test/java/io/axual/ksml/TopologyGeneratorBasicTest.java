@@ -56,8 +56,8 @@ public class TopologyGeneratorBasicTest {
     void parseAndCheckOuput(int nr) throws Exception {
         final var mapper = new NativeDataObjectMapper();
         final var jsonNotation = new JsonNotation(mapper, null);
-        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(mapper, jsonNotation::serde));
-        NotationLibrary.register("json", jsonNotation);
+        NotationLibrary.register(BinaryNotation.NAME, new BinaryNotation(mapper, jsonNotation::serde));
+        NotationLibrary.register(JsonNotation.NAME, jsonNotation);
 
         final var uri = ClassLoader.getSystemResource("pipelines/" + nr + "-demo.yaml").toURI();
         final var path = Paths.get(uri);

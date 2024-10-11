@@ -27,7 +27,7 @@ import io.axual.ksml.data.type.DataType;
 import java.util.Arrays;
 
 public record UserType(String notation, DataType dataType) {
-    public static final String DEFAULT_NOTATION = BinaryNotation.NOTATION_NAME;
+    public static final String DEFAULT_NOTATION = BinaryNotation.NAME;
     public static final UserType UNKNOWN = new UserType(DataType.UNKNOWN);
 
     public UserType(DataType dataType) {

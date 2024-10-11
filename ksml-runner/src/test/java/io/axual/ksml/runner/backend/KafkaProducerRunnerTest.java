@@ -128,8 +128,8 @@ class KafkaProducerRunnerTest {
     private Map<String, TopologyDefinition> loadDefinitions(String filename) throws IOException, URISyntaxException {
         final var mapper = new NativeDataObjectMapper();
         final var jsonNotation = new JsonNotation(mapper, null);
-        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(mapper, jsonNotation::serde));
-        NotationLibrary.register("json", jsonNotation);
+        NotationLibrary.register(BinaryNotation.NAME, new BinaryNotation(mapper, jsonNotation::serde));
+        NotationLibrary.register(JsonNotation.NAME, jsonNotation);
 
         final var uri = ClassLoader.getSystemResource(filename).toURI();
         final var path = Paths.get(uri);
