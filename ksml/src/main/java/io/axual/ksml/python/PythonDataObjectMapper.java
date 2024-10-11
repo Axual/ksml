@@ -28,6 +28,7 @@ import io.axual.ksml.data.type.*;
 import io.axual.ksml.util.ExecutionUtil;
 import org.graalvm.polyglot.Value;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 public class PythonDataObjectMapper extends NativeDataObjectMapper {
@@ -146,7 +147,13 @@ public class PythonDataObjectMapper extends NativeDataObjectMapper {
         if (object instanceof DataLong val) return Value.asValue(val.value());
         if (object instanceof DataFloat val) return Value.asValue(val.value());
         if (object instanceof DataDouble val) return Value.asValue(val.value());
-        if (object instanceof DataBytes val) return Value.asValue(val.value());
+        if (object instanceof DataBytes val) {
+            // Convert the contained byte array to a list, so it can be converted to a Python list by the PythonFunction
+            // wrapper code downstream...
+            final var bytes = new ArrayList<Byte>(val.value().length);
+            for (byte b : val.value()) bytes.add(b);
+            return Value.asValue(bytes);
+        }
         if (object instanceof DataString val) return Value.asValue(val.value());
         if (object instanceof DataList val) return Value.asValue(fromDataList(val));
         if (object instanceof DataStruct val) return Value.asValue(fromDataStruct(val));

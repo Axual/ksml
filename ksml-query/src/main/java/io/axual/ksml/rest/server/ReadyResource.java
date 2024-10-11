@@ -44,7 +44,7 @@ public class ReadyResource {
 
         if (querier == null) {
             // Service has not started yet
-            log.info("KSML Not Ready -No querier available, still in startup");
+            log.trace("KSML Not Ready -No querier available, still in startup");
             return Response.serverError().build();
         }
 
@@ -52,16 +52,16 @@ public class ReadyResource {
         final var streamRunnerState = querier.getStreamRunnerState();
 
         if (producerState == NOT_APPLICABLE && streamRunnerState == NOT_APPLICABLE) {
-            log.info("KSML Not Ready - Both producerState and streamRunnerState are disabled");
+            log.trace("KSML Not Ready - Both producerState and streamRunnerState are disabled");
             return Response.serverError().build();
         }
 
         if (PRODUCER_READY_STATES.contains(producerState) && STREAMS_READY_STATES.contains(streamRunnerState)) {
             // KSML is running, return HTTP Status code 204 (OK, No Content) if components
-            log.info("KSML Ready - producer state '{}' stream runner state '{}' ", producerState, streamRunnerState);
+            log.trace("KSML Ready - producer state '{}' stream runner state '{}' ", producerState, streamRunnerState);
             return Response.noContent().build();
         } else {
-            log.info("KSML Not Ready - producer state '{}' stream runner state '{}' ", producerState, streamRunnerState);
+            log.trace("KSML Not Ready - producer state '{}' stream runner state '{}' ", producerState, streamRunnerState);
             return Response.serverError().build();
         }
     }
