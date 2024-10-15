@@ -30,6 +30,7 @@ import io.axual.ksml.store.StoreUtil;
 import io.axual.ksml.stream.*;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserTimestampExtractor;
+import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -52,6 +53,8 @@ public class TopologyBuildContext {
     private final StreamsBuilder builder;
     private final TopologyResources resources;
     private final PythonContext pythonContext;
+    @Getter
+    private final DataObjectConverter converter = new DataObjectConverter();
 
     // All wrapped KStreams, KTables and KGlobalTables
     private final Map<String, StreamWrapper> streamWrappersByName = new HashMap<>();
@@ -65,10 +68,6 @@ public class TopologyBuildContext {
 
     public String namespace() {
         return resources.namespace();
-    }
-
-    public DataObjectConverter getDataObjectConverter() {
-        return new DataObjectConverter();
     }
 
     public <V> Materialized<Object, V, KeyValueStore<Bytes, byte[]>> materialize(KeyValueStateStoreDefinition store) {

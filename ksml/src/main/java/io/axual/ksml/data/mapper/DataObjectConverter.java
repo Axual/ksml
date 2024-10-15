@@ -31,9 +31,11 @@ import io.axual.ksml.execution.ExecutionContext;
 import static io.axual.ksml.data.notation.UserType.DEFAULT_NOTATION;
 
 // This DataObjectConverter makes expected data types compatible with the actual data that was
-// created. It does so by converting numbers to strings, and vice versa. It can convert complex
+// created. It does so by converting numbers to strings, and vice versa. It converts complex
 // data objects like Enums, Lists and Structs too, recursively going through sub-elements if
-// necessary.
+// necessary. When no standard conversion is possible, the mechanism reverts to using the
+// source or target notation's converter to respectively export or import the data type to
+// the desired type.
 public class DataObjectConverter {
     private static final DataTypeSchemaMapper SCHEMA_MAPPER = new DataTypeFlattener();
 
@@ -76,6 +78,8 @@ public class DataObjectConverter {
                 && targetTupleType.subTypeCount() == valueTuple.size()) {
             return convertTuple(targetTupleType, valueTuple);
         }
+
+        // When we reach this point, real data conversion needs to happen
 
         // First step is to use the converters from the notations to convert the type into the desired target type
         var convertedValue = applyNotationConverters(sourceNotation, value, targetType);
