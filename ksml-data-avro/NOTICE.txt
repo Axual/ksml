@@ -60,7 +60,7 @@ Lists of 72 third-party dependencies.
      (EPL 2.0) (GPL2 w/ CPE) Jakarta Annotations API (jakarta.annotation:jakarta.annotation-api:3.0.0 - https://projects.eclipse.org/projects/ee4j.ca)
      (Apache License 2.0) Jakarta Bean Validation API (jakarta.validation:jakarta.validation-api:3.0.2 - https://beanvalidation.org)
      (EPL-2.0) (GPL-2.0-with-classpath-exception) Jakarta RESTful WS API (jakarta.ws.rs:jakarta.ws.rs-api:3.1.0 - https://github.com/eclipse-ee4j/jaxrs-api)
-     (Apache-2.0) Apache Avro (org.apache.avro:avro:1.11.3 - https://avro.apache.org)
+     (Apache-2.0) Apache Avro (org.apache.avro:avro:1.12.0 - https://avro.apache.org)
      (Apache-2.0) Apache Commons Compress (org.apache.commons:commons-compress:1.26.2 - https://commons.apache.org/proper/commons-compress/)
      (Apache-2.0) Apache Commons Lang (org.apache.commons:commons-lang3:3.14.0 - https://commons.apache.org/proper/commons-lang/)
      (The Apache License, Version 2.0) Apache Kafka (org.apache.kafka:kafka-clients:3.8.0 - https://kafka.apache.org)

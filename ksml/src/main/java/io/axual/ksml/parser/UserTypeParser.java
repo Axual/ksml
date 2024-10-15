@@ -160,7 +160,7 @@ public class UserTypeParser {
 
         // Notation without specific schema
         if (NotationLibrary.exists(datatype)) {
-            return new UserType(notation, NotationLibrary.notation(datatype).defaultType());
+            return new UserType(datatype, NotationLibrary.notation(datatype).defaultType());
         }
 
         throw new TopologyException("Unknown data type: " + datatype);

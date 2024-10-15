@@ -20,12 +20,9 @@ package io.axual.ksml.runner.config;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.jackson.Jacksonized;
 
 import java.util.Map;

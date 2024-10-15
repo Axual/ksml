@@ -68,7 +68,9 @@ public class KSMLRunnerConfig {
         // Capture all other fields that Jackson do not match other members
         @JsonAnyGetter
         public Map<String, String> kafkaConfig() {
-            return kafkaConfig;
+            final var result = new HashMap<>(kafkaConfig);
+            result.put("application.id", applicationId);
+            return result;
         }
 
         @JsonAnySetter

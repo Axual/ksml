@@ -46,8 +46,8 @@ public class NotationFactories {
 
     // Notation constants
     public static final String AVRO = "avro";
-    public static final String APICURIO_AVRO = "apicurioAvro";
-    public static final String CONFLUENT_AVRO = "confluentAvro";
+    public static final String APICURIO_AVRO = "apicurio_avro";
+    public static final String CONFLUENT_AVRO = "confluent_avro";
     public static final String BINARY = "binary";
     public static final String CSV = "csv";
     public static final String JSON = "json";

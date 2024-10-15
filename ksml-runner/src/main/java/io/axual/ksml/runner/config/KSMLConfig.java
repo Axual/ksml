@@ -69,7 +69,7 @@ public class KSMLConfig {
     private boolean enablePipelines = true;
 
     @JsonProperty("errorHandling")
-    private KSMLErrorHandlingConfig errorHandling;
+    private ErrorHandlingConfig errorHandling;
     @JsonProperty("notations")
     private Map<String, NotationConfig> notations;
     @JsonProperty("definitions")
@@ -101,8 +101,8 @@ public class KSMLConfig {
         return applicationServer;
     }
 
-    public KSMLErrorHandlingConfig getErrorHandlingConfig() {
-        if (errorHandling == null) return KSMLErrorHandlingConfig.builder().build();
+    public ErrorHandlingConfig getErrorHandlingConfig() {
+        if (errorHandling == null) return new ErrorHandlingConfig();
         return errorHandling;
     }
 
