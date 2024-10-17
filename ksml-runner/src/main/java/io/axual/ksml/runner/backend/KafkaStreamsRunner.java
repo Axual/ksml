@@ -39,6 +39,7 @@ import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.execution.ExecutionErrorHandler;
 import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.runner.config.ApplicationServerConfig;
+import io.axual.ksml.runner.exception.RunnerException;
 import io.axual.ksml.runner.streams.KSMLClientSupplier;
 import lombok.Builder;
 import lombok.Getter;
@@ -142,6 +143,9 @@ public class KafkaStreamsRunner implements Runner {
             } else {
                 log.info("Kafka Streams has stopped");
             }
+        }
+        if (getState() == State.FAILED) {
+            throw new RunnerException("Kafka Streams is in a failed state");
         }
     }
 
