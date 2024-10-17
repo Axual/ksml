@@ -41,9 +41,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import io.axual.ksml.client.serde.ResolvingDeserializer;
 import io.axual.ksml.client.serde.ResolvingSerializer;
@@ -199,8 +199,9 @@ public class KSMLRunner {
                 try (var prometheusExport = new PrometheusExport(config.getKsmlConfig().getPrometheusConfig())) {
                     prometheusExport.start();
                     final var executorService = Executors.newFixedThreadPool(2);
-                    final var producerFuture = producer == null ? CompletableFuture.completedFuture(null) : executorService.submit(producer);
-                    final var streamsFuture = streams == null ? CompletableFuture.completedFuture(null) : executorService.submit(streams);
+
+                    final var producerFuture = producer == null ? CompletableFuture.completedFuture(null) : CompletableFuture.runAsync(producer, executorService);
+                    final var streamsFuture = streams == null ? CompletableFuture.completedFuture(null) : CompletableFuture.runAsync(streams, executorService);
 
                     try {
                         // Allow the runner(s) to start
@@ -211,40 +212,30 @@ public class KSMLRunner {
                             restServer.initGlobalQuerier(getQuerier(streams, producer));
                         }
 
-                        while (!producerFuture.isDone() || !streamsFuture.isDone()) {
-                            final var producerError = producer != null && producer.getState() == Runner.State.FAILED;
-                            final var streamsError = streams != null && streams.getState() == Runner.State.FAILED;
-
-                            // If either runner has an error, stop all runners
-                            if (producerError || streamsError) {
-                                if (producer != null) producer.stop();
-                                if (streams != null) streams.stop();
-                                if (producer != null) {
-                                    try {
-                                        producerFuture.get(5, TimeUnit.SECONDS);
-                                    } catch (TimeoutException | ExecutionException | InterruptedException e) {
-                                        // Ignore
-                                    }
-                                }
+                        producerFuture.whenComplete((result, exc) -> {
+                            if (exc != null) {
+                                log.info("Producer failed", exc);
+                                // Exception, always stop streams too
                                 if (streams != null) {
-                                    try {
-                                        streamsFuture.get(5, TimeUnit.SECONDS);
-                                    } catch (TimeoutException | ExecutionException | InterruptedException e) {
-                                        // Ignore
-                                    }
+                                    streams.stop();
                                 }
-                                executorService.shutdown();
-                                try {
-                                    if (!executorService.awaitTermination(2000, TimeUnit.MILLISECONDS)) {
-                                        executorService.shutdownNow();
-                                    }
-                                } catch (InterruptedException e) {
-                                    executorService.shutdownNow();
-                                    throw new ExecutionException("Exception caught while shutting down", e);
-                                }
-                                break;
                             }
-                        }
+                        });
+                        streamsFuture.whenComplete((result, exc) -> {
+                            if (exc != null) {
+                                log.info("Stream processing failed", exc);
+                                // Exception, always stop producer too
+                                if (producer != null) {
+                                    producer.stop();
+                                }
+                            }
+                        });
+
+                        final var allFutures = CompletableFuture.allOf(producerFuture, streamsFuture);
+                        // wait for all futures to finish
+                        allFutures.join();
+
+                        closeExecutorService(executorService);
                     } finally {
                         if (restServer != null) restServer.close();
                     }
@@ -253,11 +244,23 @@ public class KSMLRunner {
                 }
             }
         } catch (Throwable t) {
-            log.error("Unhandled exception", t);
+            log.error("KSML Stopping because of unhandled exception");
             throw FatalError.reportAndExit(t);
         }
         // Explicit exit, need to find out which threads are actually stopping us
         System.exit(0);
+    }
+
+    private static void closeExecutorService(final ExecutorService executorService) throws ExecutionException {
+        executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(2000, TimeUnit.MILLISECONDS)) {
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
+            throw new ExecutionException("Exception caught while shutting down", e);
+        }
     }
 
     protected static KsmlQuerier getQuerier(KafkaStreamsRunner streamsRunner, KafkaProducerRunner producerRunner) {

@@ -20,43 +20,37 @@ package io.axual.ksml.execution;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.exception.TopologyException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class FatalError {
+
+    public static final String NEW_LINE = System.lineSeparator();
+    public static final String LOG_ITEM_SEPARATOR = "==========="+NEW_LINE;
+
     private FatalError() {
     }
 
-    public static Throwable topologyError(String message) {
-        return reportAndExit(new TopologyException(message));
-    }
-
     public static RuntimeException reportAndExit(Throwable t) {
-        log.error("\n\n");
-        log.error("Fatal error");
-        printLineSeparator();
-        printExceptionDetails(t);
+        var messageBuilder = new StringBuilder().append(NEW_LINE);
+        messageBuilder.append("FatalError").append(NEW_LINE).append(LOG_ITEM_SEPARATOR);
+        printExceptionDetails(messageBuilder, t);
+        log.error(messageBuilder.toString());
         System.exit(1);
-        // Dummy return to resolve compiler errors
         return new RuntimeException(t.getMessage());
     }
 
-    private static void printExceptionDetails(Throwable t) {
+    private static void printExceptionDetails(StringBuilder messageBuilder, Throwable t) {
         if (t.getCause() != null) {
-            printExceptionDetails(t.getCause());
-            printLineSeparator();
-            log.error("Above error caused: {}", t.getMessage());
+            printExceptionDetails(messageBuilder, t.getCause());
+            messageBuilder.append(LOG_ITEM_SEPARATOR).append(NEW_LINE);
+            messageBuilder.append("Above error caused: ").append(t.getMessage()).append(NEW_LINE);
         } else {
-            log.error("Description: {}", t.getMessage());
+            messageBuilder.append("Description: ").append(t.getMessage()).append(NEW_LINE);
         }
-        log.error("Stack trace:");
+        messageBuilder.append("Stack trace: ").append(NEW_LINE);
         for (var ste : t.getStackTrace()) {
-            log.error("  {}::{} @ {}:{}", ste.getClassName(), ste.getMethodName(), ste.getFileName(), ste.getLineNumber());
+            messageBuilder.append("  %s::%s @ %s:%s".formatted(ste.getClassName(), ste.getMethodName(), ste.getFileName(), ste.getLineNumber())).append(NEW_LINE);
         }
-    }
-
-    private static void printLineSeparator() {
-        log.error("===========");
     }
 }
