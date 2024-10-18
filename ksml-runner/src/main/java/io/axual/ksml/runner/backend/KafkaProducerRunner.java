@@ -33,6 +33,7 @@ import io.axual.ksml.client.producer.ResolvingProducer;
 import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonFunction;
+import io.axual.ksml.runner.exception.RunnerException;
 import lombok.Builder;
 
 import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG;
@@ -84,8 +85,8 @@ public class KafkaProducerRunner implements Runner {
                 });
             });
         } catch (Exception e) {
-            log.error("Error while registering functions and producers", e);
-            hasFailed.set(true);
+            setState(State.FAILED);
+            throw new RunnerException("Error while registering functions and producers", e);
         }
 
         try (final Producer<byte[], byte[]> producer = createProducer(getProducerConfigs())) {
@@ -103,8 +104,7 @@ public class KafkaProducerRunner implements Runner {
             }
         } catch (Throwable e) {
             setState(State.FAILED);
-            hasFailed.set(true);
-            log.error("Unhandled producer exception", e);
+            throw new RunnerException("Unhandled producer exception", e);
         }
         setState(State.STOPPED);
         isRunning.set(false);
