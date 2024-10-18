@@ -20,23 +20,29 @@ package io.axual.ksml.data.notation.soap;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.loader.SchemaLoader;
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.notation.NotationConverter;
 import io.axual.ksml.data.notation.string.StringNotation;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.schema.AnySchema;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
+import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
 
 import static io.axual.ksml.data.notation.soap.SOAPSchema.generateSOAPSchema;
 
 public class SOAPNotation extends StringNotation {
-    public static final String NOTATION_NAME = "SOAP";
     public static final DataType DEFAULT_TYPE = new StructType(generateSOAPSchema(AnySchema.INSTANCE));
     private static final SOAPDataObjectMapper DATA_OBJECT_MAPPER = new SOAPDataObjectMapper();
     private static final SOAPStringMapper STRING_MAPPER = new SOAPStringMapper();
+    @Getter
+    private final NotationConverter converter = new SOAPDataObjectConverter();
+    @Getter
+    private final SchemaLoader loader = null;
 
     public SOAPNotation(NativeDataObjectMapper nativeMapper) {
         super(nativeMapper, new DataObjectMapper<>() {
@@ -53,8 +59,8 @@ public class SOAPNotation extends StringNotation {
     }
 
     @Override
-    public String name() {
-        return NOTATION_NAME;
+    public DataType defaultType() {
+        return DEFAULT_TYPE;
     }
 
     @Override
@@ -62,6 +68,6 @@ public class SOAPNotation extends StringNotation {
         // SOAP types should ways be Maps (or Structs)
         if (type instanceof MapType) return super.serde(type, isKey);
         // Other types can not be serialized as SOAP
-        throw noSerdeFor(type);
+        throw noSerdeFor("SOAP", type);
     }
 }

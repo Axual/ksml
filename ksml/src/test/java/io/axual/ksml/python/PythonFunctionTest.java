@@ -39,7 +39,7 @@ public class PythonFunctionTest {
     final ParameterDefinition one = new ParameterDefinition("one", DataInteger.DATATYPE);
     final ParameterDefinition two = new ParameterDefinition("two", DataInteger.DATATYPE);
     final ParameterDefinition[] params = new ParameterDefinition[]{one, two};
-    final UserType resultType = new UserType(BinaryNotation.NOTATION_NAME, DataInteger.DATATYPE);
+    final UserType resultType = new UserType(BinaryNotation.NAME, DataInteger.DATATYPE);
 
     @ParameterizedTest
     @CsvSource({"1, 2, 3", "100,100,200", "100, -1, 99", "99, -100, -1"})
@@ -104,7 +104,7 @@ public class PythonFunctionTest {
      * Test that Null Key/Values are accepted as parameters
      */
     void testNullKeyValue() {
-        final var stringResultType = new UserType(BinaryNotation.NOTATION_NAME, DataString.DATATYPE);
+        final var stringResultType = new UserType(BinaryNotation.NAME, DataString.DATATYPE);
         final var concatDef = FunctionDefinition.as("concat", params, null, null, "str(one is None) + ' ' + str(two is None)", stringResultType, null);
         final var concat = PythonFunction.forFunction(context, "test", "adder", concatDef);
 

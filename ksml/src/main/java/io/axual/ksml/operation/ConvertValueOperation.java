@@ -20,7 +20,6 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
@@ -41,7 +40,7 @@ public class ConvertValueOperation extends BaseOperation {
         final var k = input.keyType();
         final var v = input.valueType().flatten();
         final var vr = streamDataTypeOf(targetValueType, false).flatten();
-        final var mapper = context.getDataObjectConverter();
+        final var mapper = context.converter();
 
         // Set up the mapping function to convert the value
         ValueMapper<Object, Object> converter = value -> {

@@ -20,20 +20,17 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.exception.ParseException;
+import io.axual.ksml.data.mapper.DataTypeSchemaMapper;
+import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.UserTupleType;
 import io.axual.ksml.data.notation.UserType;
-import io.axual.ksml.data.notation.avro.AvroNotation;
-import io.axual.ksml.data.notation.csv.CsvNotation;
-import io.axual.ksml.data.notation.json.JsonNotation;
-import io.axual.ksml.data.notation.soap.SOAPNotation;
-import io.axual.ksml.data.notation.xml.XmlNotation;
 import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.parser.schema.DataSchemaDSL;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.SchemaLibrary;
-import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.*;
 import io.axual.ksml.exception.TopologyException;
 
@@ -95,8 +92,18 @@ public class UserTypeParser {
 
     private static UserType parseTypeAndNotation(String composedType, String defaultNotation) {
         final var decomposedType = decompose(composedType, defaultNotation);
-        final var datatype = decomposedType.datatype();
         final var notation = decomposedType.notation();
+        final var datatype = decomposedType.datatype();
+
+        // Internal types
+        final var internalType = parseType(datatype);
+        if (internalType != null) {
+            final var n = NotationLibrary.notation(notation);
+            if (n.defaultType() != null && !n.defaultType().isAssignableFrom(internalType)) {
+                throw new DataException("Notation " + notation + " does not allow for data type " + datatype);
+            }
+            return new UserType(notation, internalType);
+        }
 
         // List type
         if (datatype.startsWith(SQUARE_BRACKET_OPEN)) {
@@ -104,9 +111,9 @@ public class UserTypeParser {
                 throw new ParseException("List type not properly closed: " + datatype);
             }
             // Parse the type in brackets separately as the type of list elements. Notation overrides are not allowed
-            // for list elements. If specified (eg. "[avro:SomeSchema]") then the value notation is ignored.
+            // for list elements. If specified (eg. "[avro:SomeSchema]") then the notation is ignored.
             var valueType = parseTypeAndNotation(datatype.substring(1, datatype.length() - 1), notation);
-            // Return the parsed value type with the above parsed notation
+            // Return as list of parsed value type using notation specified by the above parsed parent list type
             return new UserType(notation, new ListType(valueType.dataType()));
         }
 
@@ -137,70 +144,26 @@ public class UserTypeParser {
             return new UserType(notation, new WindowedType(parseType(windowedType)));
         }
 
-        // AVRO with schema
-        if (notation.equalsIgnoreCase(AvroNotation.NOTATION_NAME)) {
-            var schema = SchemaLibrary.getSchema(AvroNotation.NOTATION_NAME, datatype, false);
-            if (!(schema instanceof StructSchema structSchema))
-                throw new ParseException("AVRO schema is not a STRUCT: " + datatype);
-            return new UserType(AvroNotation.NOTATION_NAME, new StructType(structSchema));
+        // Notation type with specific schema
+        if (NotationLibrary.exists(notation)) {
+            final var loader = NotationLibrary.notation(notation).loader();
+            if (loader != null) {
+                // If we reach this point, then we assume that the datatype refers to a schema to load
+                final var schema = SchemaLibrary.getSchema(notation, datatype, false);
+                final var schemaType = new DataTypeSchemaMapper().fromDataSchema(schema);
+                if (!(NotationLibrary.notation(notation).defaultType().isAssignableFrom(schemaType))) {
+                    throw new DataException("Notation " + notation + " does not allow for data type " + datatype);
+                }
+                return new UserType(notation, schemaType);
+            }
         }
 
-        // AVRO without schema
-        if (datatype.equalsIgnoreCase(AvroNotation.NOTATION_NAME)) {
-            return new UserType(AvroNotation.NOTATION_NAME, AvroNotation.DEFAULT_TYPE);
+        // Notation without specific schema
+        if (NotationLibrary.exists(datatype)) {
+            return new UserType(datatype, NotationLibrary.notation(datatype).defaultType());
         }
 
-        // CSV with schema
-        if (notation.equalsIgnoreCase(CsvNotation.NOTATION_NAME)) {
-            var schema = SchemaLibrary.getSchema(CsvNotation.NOTATION_NAME, datatype, false);
-            if (!(schema instanceof StructSchema structSchema))
-                throw new ParseException("CSV schema is not a STRUCT: " + datatype);
-            return new UserType(CsvNotation.NOTATION_NAME, new StructType(structSchema));
-        }
-
-        // CSV without schema
-        if (datatype.equalsIgnoreCase(CsvNotation.NOTATION_NAME)) {
-            return new UserType(CsvNotation.NOTATION_NAME, CsvNotation.DEFAULT_TYPE);
-        }
-
-        // JSON with schema
-        if (notation.equalsIgnoreCase(JsonNotation.NOTATION_NAME)) {
-            var schema = SchemaLibrary.getSchema(JsonNotation.NOTATION_NAME, datatype, false);
-            if (!(schema instanceof StructSchema structSchema))
-                throw new ParseException("JSON schema is not a STRUCT: " + datatype);
-            return new UserType(JsonNotation.NOTATION_NAME, new StructType(structSchema));
-        }
-
-        // JSON without schema
-        if (datatype.equalsIgnoreCase(JsonNotation.NOTATION_NAME)) {
-            return new UserType(JsonNotation.NOTATION_NAME, JsonNotation.DEFAULT_TYPE);
-        }
-
-        // SOAP with schema (not implemented yet)
-        if (notation.equalsIgnoreCase(SOAPNotation.NOTATION_NAME)) {
-            return new UserType(SOAPNotation.NOTATION_NAME, SOAPNotation.DEFAULT_TYPE);
-        }
-
-        // SOAP without schema
-        if (datatype.equalsIgnoreCase(SOAPNotation.NOTATION_NAME)) {
-            return new UserType(SOAPNotation.NOTATION_NAME, SOAPNotation.DEFAULT_TYPE);
-        }
-
-        // XML with schema
-        if (notation.equalsIgnoreCase(XmlNotation.NOTATION_NAME)) {
-            var schema = SchemaLibrary.getSchema(XmlNotation.NOTATION_NAME, datatype, false);
-            if (!(schema instanceof StructSchema structSchema))
-                throw new ParseException("XML schema is not a STRUCT: " + datatype);
-            return new UserType(XmlNotation.NOTATION_NAME, new StructType(structSchema));
-        }
-
-        // XML without schema
-        if (datatype.equalsIgnoreCase(XmlNotation.NOTATION_NAME)) {
-            return new UserType(XmlNotation.NOTATION_NAME, XmlNotation.DEFAULT_TYPE);
-        }
-
-        // Parse the type as an in-built primary data type and return it
-        return new UserType(notation, parseType(datatype));
+        throw new TopologyException("Unknown data type: " + datatype);
     }
 
     // This method decomposes a user type into its components. User types are always of the form "notation:datatype".
@@ -217,7 +180,7 @@ public class UserTypeParser {
             final var parsedType = composedType.substring(composedType.indexOf(NOTATION_SEPARATOR) + 1);
 
             // Return the parsed notation and datatype
-            return new DecomposedType(parsedNotation.toUpperCase(), parsedType);
+            return new DecomposedType(parsedNotation, parsedType);
         }
 
         // Return the whole type string to be processed further, along with default notation
@@ -252,7 +215,7 @@ public class UserTypeParser {
             case DataSchemaDSL.STRING_TYPE, DataSchemaDSL.STRING_TYPE_ALTERNATIVE -> DataString.DATATYPE;
             case DataSchemaDSL.STRUCT_TYPE -> new StructType();
             case DataSchemaDSL.ANY_TYPE, DataSchemaDSL.UNKNOWN_TYPE -> DataType.UNKNOWN;
-            default -> throw new TopologyException("Can not derive dataType: " + type);
+            default -> null;
         };
     }
 

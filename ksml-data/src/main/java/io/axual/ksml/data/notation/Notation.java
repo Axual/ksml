@@ -20,11 +20,16 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.loader.SchemaLoader;
 import io.axual.ksml.data.type.DataType;
 import org.apache.kafka.common.serialization.Serde;
 
 public interface Notation {
-    String name();
+    DataType defaultType();
 
     Serde<Object> serde(DataType type, boolean isKey);
+
+    NotationConverter converter();
+
+    SchemaLoader loader();
 }

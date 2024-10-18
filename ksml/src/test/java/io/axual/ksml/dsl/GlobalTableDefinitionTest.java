@@ -54,7 +54,7 @@ class GlobalTableDefinitionTest {
 
     @Test
     void testGlobalTableDefinition() {
-        NotationLibrary.register(BinaryNotation.NOTATION_NAME, mockNotation);
+        NotationLibrary.register(BinaryNotation.NAME, mockNotation);
         var stringType = UserTypeParser.parse("string");
 
         // given a TableDefinition

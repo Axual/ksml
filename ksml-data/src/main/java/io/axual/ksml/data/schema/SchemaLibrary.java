@@ -21,13 +21,13 @@ package io.axual.ksml.data.schema;
  */
 
 import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.notation.NotationLibrary;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
 public class SchemaLibrary {
-    private static final Map<String, Loader> loaders = new TreeMap<>();
     private static final Map<String, Map<String, NamedSchema>> schemas = new HashMap<>();
 
     public interface Loader {
@@ -60,10 +60,10 @@ public class SchemaLibrary {
             if (schema != null) return schema;
         }
 
-        var loader = loaders.get(notationName);
-        if (loader == null) return null;
+        final var notation = NotationLibrary.notation(notationName);
+        if (notation.loader() == null) return null;
 
-        var schema = loader.load(schemaName);
+        var schema = notation.loader().load(schemaName);
         if (schema instanceof NamedSchema ns) {
             if (notationSchemas == null) {
                 notationSchemas = new TreeMap<>();
@@ -76,9 +76,5 @@ public class SchemaLibrary {
             throw new ExecutionException("Can not load " + (notationName != null ? notationName : "UNKNOWN") + " schema: " + schemaName);
         }
         return schema;
-    }
-
-    public static void registerLoader(String notationName, Loader loader) {
-        loaders.put(notationName, loader);
     }
 }

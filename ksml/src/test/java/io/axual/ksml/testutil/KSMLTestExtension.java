@@ -23,15 +23,14 @@ package io.axual.ksml.testutil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.TopologyGenerator;
+import io.axual.ksml.data.loader.SchemaLoader;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.avro.AvroSchemaLoader;
 import io.axual.ksml.data.notation.avro.MockAvroNotation;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
-import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
 import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.schema.SchemaLibrary;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
@@ -64,8 +63,6 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
 
     private TopologyTestDriver topologyTestDriver;
 
-    final MockAvroNotation avroNotation = new MockAvroNotation(new HashMap<>());
-
     /**
      * Check if the test(s) are running on GraalVM.
      *
@@ -94,10 +91,9 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
     public void beforeAll(ExtensionContext extensionContext) {
         log.debug("registering notations");
         final var mapper = new NativeDataObjectMapper();
-        final var jsonNotation = new JsonNotation(mapper);
-        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(mapper, jsonNotation::serde), null);
-        NotationLibrary.register(JsonNotation.NOTATION_NAME, jsonNotation, new JsonDataObjectConverter());
-        NotationLibrary.register(MockAvroNotation.NOTATION_NAME, avroNotation, null);
+        final var jsonNotation = new JsonNotation(mapper, null);
+        NotationLibrary.register(BinaryNotation.NAME, new BinaryNotation(mapper, jsonNotation::serde));
+        NotationLibrary.register(JsonNotation.NAME, jsonNotation);
     }
 
     @Override
@@ -118,14 +114,17 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
         }
 
         log.debug("Setting up KSML test");
+        // set up AVRO loader
+        SchemaLoader avroLoader = null;
         // if a schema path is specified, set up AVRO
         if (!ksmlTest.schemapath().equals(ksmlTest.NO_SCHEMAS)) {
             log.debug("register schema path: `{}`", ksmlTest.schemapath());
             URI schemaDirectory = ClassLoader.getSystemResource(ksmlTest.schemapath()).toURI();
             String schemaPath = schemaDirectory.getPath();
-            SchemaLibrary.registerLoader(MockAvroNotation.NOTATION_NAME, new AvroSchemaLoader(schemaPath));
+            avroLoader = new AvroSchemaLoader(schemaPath);
             log.debug("registered schema path: {}", schemaPath);
         }
+        NotationLibrary.register(MockAvroNotation.NAME, new MockAvroNotation(new HashMap<>(), avroLoader));
 
         // get the KSML definition classpath relative path and load the topology into the test driver
         String topologyName = ksmlTest.topology();
@@ -182,8 +181,6 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
             // method was not annotated, nothing to do
             return;
         }
-        // to decide: unregister schema directory? But not like this probably
-        SchemaLibrary.registerLoader(MockAvroNotation.NOTATION_NAME, null);
 
         // clean up
         if (topologyTestDriver != null) {
@@ -211,6 +208,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
     private Serializer<?> getSerializer(KSMLTopic ksmlTopic, boolean isKey) {
         return switch (isKey ? ksmlTopic.keySerde() : ksmlTopic.valueSerde()) {
             case AVRO -> {
+                final var avroNotation = (MockAvroNotation) NotationLibrary.notation(MockAvroNotation.NAME);
                 var result = new KafkaAvroSerializer(avroNotation.mockSchemaRegistryClient());
                 result.configure(avroNotation.getSchemaRegistryConfigs(), isKey);
                 yield result;
@@ -230,7 +228,8 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
     private Deserializer<?> getDeserializer(KSMLTopic kamlTopic, boolean isKey) {
         return switch (isKey ? kamlTopic.keySerde() : kamlTopic.valueSerde()) {
             case AVRO -> {
-                var result = new KafkaAvroDeserializer(avroNotation.mockSchemaRegistryClient());
+                final var avroNotation = (MockAvroNotation) NotationLibrary.notation(MockAvroNotation.NAME);
+                final var result = new KafkaAvroDeserializer(avroNotation.mockSchemaRegistryClient());
                 result.configure(avroNotation.getSchemaRegistryConfigs(), isKey);
                 yield result;
             }

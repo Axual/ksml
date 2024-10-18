@@ -31,7 +31,6 @@ import java.util.Properties;
 
 @Slf4j
 public class KsmlInfo {
-
     private static final String DEFAULT_APP_NAME = "KSML";
     private static final String DEFAULT_APP_VERSION = "";
     private static final String DEFAULT_BUILD_TIME = "";
@@ -42,7 +41,6 @@ public class KsmlInfo {
     public static final KsmlInfoMBean BEAN_CONTENT = new KsmlInfoMBean();
 
     static {
-
         String appName, appVersion, buildTime;
         try {
             ClassLoader cl = KSMLRunner.class.getClassLoader();
@@ -89,7 +87,6 @@ public class KsmlInfo {
     }
 
     public static class KsmlInfoMBean implements IKsmlInfoMXBean {
-
         @Override
         public int getValue() {
             return 1;

@@ -3,19 +3,71 @@
 ### Table of Contents
 
 1. [Introduction](#introduction)
-2. [Primitives](#primitives)
-3. [Any](#any)
-4. [Duration](#duration)
-5. [Enum](#enum)
-6. [List](#list)
-7. [Struct](#struct)
-8. [Tuple](#tuple)
-9. [Windowed](#windowed)
+2. [Notations](#notations)
+3. [Primitives](#primitives)
+4. [Any](#any)
+5. [Duration](#duration)
+6. [Enum](#enum)
+7. [List](#list)
+8. [Struct](#struct)
+9. [Tuple](#tuple)
+10. [Windowed](#windowed)
 
 ## Introduction
 
-KSML supports a wide range of simple and complex types.
-Types are very useful.
+KSML supports a wide range of simple and complex types. In addition, each data type
+can be read from Kafka, and written to Kafka, using _Notations_. More about Notations
+in the following paragraph. The paragraphs after will dive more into the data
+types that KSML supports.
+
+## Notations
+
+KSML has a number of simple and complex data types. Simple data types contain a
+single value. For example, a `long` or a `string` type can hold only one value.
+Complex data types contain multiple values. For example, a `list` or a `struct`
+can contain zero or more other simple or complex values. For example, a `struct`
+is comparable to a key/value map, where all keys are of type `string`. Its contents
+could be represented as:
+
+```json
+{
+  "name": "Albert",
+  "lastName": "Einstein",
+  "dateOfBirth": "14-08-1879",
+  "profession": "Patent clerk",
+  "children": 3,
+  "isAlive": false
+}
+```
+
+There are several ways in which structured objects are read from or written to
+Kafka topics. For instance, using AVRO, JSON or XML. Each use the same `struct`
+but translate it differently to a binary or string representation that can be
+stored in Kafka.
+
+To facilitate these different ways of writing, KSML supports _Notations_. Each
+notation can be seen as 'the format that data is written in' to Kafka. Below is
+a list of all supported notations:
+
+| Notation | Link                                                                                                         | Implementations               |
+|----------|--------------------------------------------------------------------------------------------------------------|-------------------------------|
+| AVRO     | [https://avro.apache.org](https://avro.apache.org)                                                           | apicurio_avro, confluent_avro |
+| CSV      | [https://en.wikipedia.org/wiki/Comma-separated_values](https://en.wikipedia.org/wiki/Comma-separated_values) | <internal, Jackson>           |
+| JSON     | [https://json.org](https://json.org)                                                                         | <internal, Jackson>           |
+| SOAP     | [https://en.wikipedia.org/wiki/SOAP](https://en.wikipedia.org/wiki/SOAP)                                     | <internal, Jakarta>           |
+| XML      | [https://en.wikipedia.org/wiki/XML](https://en.wikipedia.org/wiki/XML)                                       | <internal, Jackson>           |
+
+Notations are a natural extension to data types. They can be used as:
+```
+notation:datatype
+```
+
+For example:
+```
+avro:SensorData     # AVRO with schema SensorData (loaded from SensorData.avsc)
+json                # Schemaless JSON
+xml:PersonSchema    # XML with schema PersonSchema (loaded from PersonSchema.xsd)
+```
 
 ## Primitives
 
@@ -83,7 +135,10 @@ Examples:
 
 Structs are key-value maps, as usually found in AVRO or JSON messages. They are defined
 using:
-```struct```
+
+```
+struct
+```
 
 ## Tuple
 

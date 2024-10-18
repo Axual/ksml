@@ -23,58 +23,55 @@ package io.axual.ksml.runner.config;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Builder
-@Jacksonized
-public class KSMLErrorHandlingConfig {
-    private ErrorHandlingConfig consume;
-    private ErrorHandlingConfig produce;
-    private ErrorHandlingConfig process;
+@Data
+public class ErrorHandlingConfig {
+    private ErrorTypeHandlingConfig consume;
+    private ErrorTypeHandlingConfig produce;
+    private ErrorTypeHandlingConfig process;
 
-
-    public ErrorHandlingConfig getConsumerErrorHandlingConfig() {
+    public ErrorTypeHandlingConfig consumerErrorHandlingConfig() {
         if (consume == null) {
-            return getDefaultErrorHandlingConfig("ConsumeError");
+            return defaultErrorTypeHandlingConfig("ConsumeError");
         }
-        if (consume.getLoggerName() == null) {
-            consume.setLoggerName("ConsumeError");
+        if (consume.loggerName() == null) {
+            consume.loggerName("ConsumeError");
         }
         return consume;
     }
 
-    public ErrorHandlingConfig getProducerErrorHandlingConfig() {
+    public ErrorTypeHandlingConfig producerErrorHandlingConfig() {
         if (produce == null) {
-            return getDefaultErrorHandlingConfig("ProduceError");
+            return defaultErrorTypeHandlingConfig("ProduceError");
         }
-        if (produce.getLoggerName() == null) {
-            produce.setLoggerName("ProduceError");
+        if (produce.loggerName() == null) {
+            produce.loggerName("ProduceError");
         }
         return produce;
     }
 
-    public ErrorHandlingConfig getProcessErrorHandlingConfig() {
+    public ErrorTypeHandlingConfig processErrorHandlingConfig() {
         if (process == null) {
-            return getDefaultErrorHandlingConfig("ProcessError");
+            return defaultErrorTypeHandlingConfig("ProcessError");
         }
-        if (process.getLoggerName() == null) {
-            process.setLoggerName("ProcessError");
+        if (process.loggerName() == null) {
+            process.loggerName("ProcessError");
         }
         return process;
     }
 
-    private ErrorHandlingConfig getDefaultErrorHandlingConfig(String logger) {
-        var errorHandlingConfig = new ErrorHandlingConfig();
-        errorHandlingConfig.setLoggerName(logger);
+    private ErrorTypeHandlingConfig defaultErrorTypeHandlingConfig(String logger) {
+        var errorHandlingConfig = new ErrorTypeHandlingConfig();
+        errorHandlingConfig.loggerName(logger);
         return errorHandlingConfig;
     }
 
-    @Setter
-    @Getter
-    public static class ErrorHandlingConfig {
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @Data
+    public static class ErrorTypeHandlingConfig {
         private boolean log = true;
         private boolean logPayload = false;
         private String loggerName;

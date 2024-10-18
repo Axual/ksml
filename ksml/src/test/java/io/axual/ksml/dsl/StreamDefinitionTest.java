@@ -52,7 +52,7 @@ class StreamDefinitionTest {
 
     @Test
     void testStreamDefinition() {
-        NotationLibrary.register(BinaryNotation.NOTATION_NAME, mockNotation);
+        NotationLibrary.register(BinaryNotation.NAME, mockNotation);
 
         // given a StreamDefinition
         var streamDefinition = new StreamDefinition("topic", "string", "string", null, null);

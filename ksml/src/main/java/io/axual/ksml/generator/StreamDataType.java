@@ -47,7 +47,7 @@ public record StreamDataType(UserType userType, boolean isKey) {
     }
 
     public Serde<Object> serde() {
-        final var notation = NotationLibrary.get(userType.notation());
+        final var notation = NotationLibrary.notation(userType.notation());
         if (userType.dataType() instanceof UnionType unionType)
             return new UnionSerde(FLATTENER.flatten(unionType), isKey, notation::serde);
         var serde = notation.serde(FLATTENER.flatten(userType.dataType()), isKey);

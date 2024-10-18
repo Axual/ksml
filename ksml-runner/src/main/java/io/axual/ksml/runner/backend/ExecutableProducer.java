@@ -110,9 +110,9 @@ public class ExecutableProducer {
                 ? PythonFunction.forPredicate(context, namespace, cond.name(), cond)
                 : PythonFunction.forPredicate(context, namespace, name, cond)
                 : null;
-        final var keySerde = NotationLibrary.get(target.keyType().notation()).serde(target.keyType().dataType(), true);
+        final var keySerde = NotationLibrary.notation(target.keyType().notation()).serde(target.keyType().dataType(), true);
         final var keySerializer = new ResolvingSerializer<>(keySerde.serializer(), kafkaConfig);
-        final var valueSerde = NotationLibrary.get(target.valueType().notation()).serde(target.valueType().dataType(), false);
+        final var valueSerde = NotationLibrary.notation(target.valueType().notation()).serde(target.valueType().dataType(), false);
         final var valueSerializer = new ResolvingSerializer<>(valueSerde.serializer(), kafkaConfig);
         final var reschedulingStrategy = setupRescheduling(producerDefinition, context, namespace, name);
 
