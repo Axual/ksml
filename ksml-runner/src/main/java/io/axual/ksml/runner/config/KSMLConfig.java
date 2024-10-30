@@ -52,7 +52,7 @@ public class KSMLConfig {
 
     @JsonProperty("applicationServer")
     @Builder.Default
-    private ApplicationServerConfig applicationServer = DEFAULT_APPSERVER_CONFIG;
+    private ApplicationServerConfig applicationServerConfig = DEFAULT_APPSERVER_CONFIG;
     @JsonProperty("prometheus")
     @Builder.Default
     @Getter
@@ -68,7 +68,7 @@ public class KSMLConfig {
     private boolean enablePipelines = true;
 
     @JsonProperty("errorHandling")
-    private KSMLErrorHandlingConfig errorHandling;
+    private KSMLErrorHandlingConfig errorHandlingConfig;
     @JsonProperty("definitions")
     private Map<String, Object> definitions;
     @JsonProperty("schemas")
@@ -95,12 +95,12 @@ public class KSMLConfig {
     }
 
     public ApplicationServerConfig applicationServerConfig() {
-        return applicationServer;
+        return applicationServerConfig;
     }
 
     public KSMLErrorHandlingConfig errorHandlingConfig() {
-        if (errorHandling == null) return KSMLErrorHandlingConfig.builder().build();
-        return errorHandling;
+        if (errorHandlingConfig == null) return KSMLErrorHandlingConfig.builder().build();
+        return errorHandlingConfig;
     }
 
     public Map<String, JsonNode> definitions() {

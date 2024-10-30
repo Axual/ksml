@@ -337,7 +337,7 @@ public class KSMLRunner {
         // KSML definitions with on stdout and exit
         if (args.length >= 1 && WRITE_KSML_SCHEMA_ARGUMENT.equals(args[0])) {
             final var parser = new TopologyDefinitionParser("dummy");
-            final var schema = new JsonSchemaMapper().fromDataSchema(parser.schema());
+            final var schema = new JsonSchemaMapper(true).fromDataSchema(parser.schema());
 
             final var filename = args.length >= 2 ? args[1] : null;
             if (filename != null) {

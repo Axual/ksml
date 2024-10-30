@@ -35,7 +35,6 @@ import java.util.Set;
 import static io.axual.ksml.data.schema.DataField.NO_INDEX;
 
 public class JsonSchemaMapper implements DataSchemaMapper<String> {
-    private static final JsonDataObjectMapper MAPPER = new JsonDataObjectMapper();
     private static final String TITLE_NAME = "title";
     private static final String DESCRIPTION_NAME = "description";
     private static final String TYPE_NAME = "type";
@@ -55,11 +54,16 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     private static final String NUMBER_TYPE = "number";
     private static final String OBJECT_TYPE = "object";
     private static final String STRING_TYPE = "string";
+    private final JsonDataObjectMapper mapper;
+
+    public JsonSchemaMapper(boolean prettyPrint) {
+        mapper = new JsonDataObjectMapper(prettyPrint);
+    }
 
     @Override
     public DataSchema toDataSchema(String namespace, String name, String value) {
         // Convert JSON to internal DataObject format
-        var schema = MAPPER.toDataObject(value);
+        var schema = mapper.toDataObject(value);
         if (schema instanceof DataStruct schemaStruct) {
             return toDataSchema(namespace, name, schemaStruct);
         }
@@ -135,7 +139,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             final var result = fromDataSchema(structSchema);
             // First translate the schema into DataObjects
             // The use the mapper to convert it into JSON
-            return MAPPER.fromDataObject(result);
+            return mapper.fromDataObject(result);
         }
         return null;
     }

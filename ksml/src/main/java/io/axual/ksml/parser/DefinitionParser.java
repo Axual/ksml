@@ -172,6 +172,14 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         return freeField(childName, valueIfNull, doc, ParserWithSchemas.of(ParseNode::asInt, DataSchema.integerSchema()));
     }
 
+    protected StructsParser<Long> longField(String childName, String doc) {
+        return longField(childName, null, doc);
+    }
+
+    protected StructsParser<Long> longField(String childName, Long valueIfNull, String doc) {
+        return freeField(childName, valueIfNull, doc, ParserWithSchemas.of(ParseNode::asLong, DataSchema.longSchema()));
+    }
+
     protected StructsParser<String> stringField(String childName, String doc) {
         return stringField(childName, null, doc);
     }

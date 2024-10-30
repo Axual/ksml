@@ -22,18 +22,18 @@ package io.axual.ksml.runner.config;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Builder
 @Jacksonized
 public class KSMLErrorHandlingConfig {
-    private ErrorHandlingConfig consume;
-    private ErrorHandlingConfig produce;
-    private ErrorHandlingConfig process;
+    private final ErrorHandlingConfig consume;
+    private final ErrorHandlingConfig produce;
+    private final ErrorHandlingConfig process;
 
     public ErrorHandlingConfig consumerErrorHandlingConfig() {
         if (consume == null) {
@@ -71,12 +71,15 @@ public class KSMLErrorHandlingConfig {
         return errorHandlingConfig;
     }
 
-    @Setter
-    @Getter
+    @Data
     public static class ErrorHandlingConfig {
+        @JsonProperty("log")
         private boolean log = true;
+        @JsonProperty("logPayload")
         private boolean logPayload = false;
+        @JsonProperty("loggerName")
         private String loggerName;
+        @JsonProperty("handler")
         private Handler handler = Handler.STOP;
 
         public enum Handler {
