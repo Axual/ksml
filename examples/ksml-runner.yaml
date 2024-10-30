@@ -15,7 +15,7 @@ ksml:
   prometheus:
     enabled: true                 # Set to true to enable, or false to disable
     host: 0.0.0.0                 # IP address to bind the Prometheus agent server to
-    port: 8080                    # Port number to listen on
+    port: 9999                    # Port number to listen on
 
   # This section enables error handling or error ignoring for certain types of errors.
   errorHandling:
@@ -93,7 +93,7 @@ ksml:
 kafka:
   application.id: io.ksml.example.streaming
   bootstrap.servers: broker:9093
-  schema.registry.url: http://localhost:8081
+  schema.registry.url: http://schema_registry:8081
   security.protocol: PLAINTEXT
   auto.offset.reset: earliest
   acks: all

@@ -30,8 +30,5 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Builder
 @Jacksonized
-@Data
-public class NotationConfig {
-    private String type;
-    private Map<String, String> config;
+public record NotationConfig(String type, Map<String, String> config) {
 }
