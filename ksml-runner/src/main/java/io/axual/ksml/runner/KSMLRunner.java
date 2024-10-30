@@ -106,7 +106,7 @@ public class KSMLRunner {
             }
 
             final var config = readConfiguration(configFile);
-            final var ksmlConfig = config.getKsmlConfig();
+            final var ksmlConfig = config.ksmlConfig();
             log.info("Using directories: config: {}, schema: {}, storage: {}", ksmlConfig.getConfigDirectory(), ksmlConfig.getSchemaDirectory(), ksmlConfig.getStorageDirectory());
             final var definitions = ksmlConfig.getDefinitions();
             if (definitions == null || definitions.isEmpty()) {
@@ -119,7 +119,7 @@ public class KSMLRunner {
             final var appServer = ksmlConfig.getApplicationServerConfig();
             RestServer restServer = null;
             // Start rest server to provide service endpoints
-            if (appServer.isEnabled()) {
+            if (appServer.enabled()) {
                 HostInfo hostInfo = new HostInfo(appServer.getHost(), appServer.getPort());
                 restServer = new RestServer(hostInfo);
                 restServer.start();
@@ -163,11 +163,11 @@ public class KSMLRunner {
             });
 
 
-            if (!ksmlConfig.isEnableProducers() && !producerSpecs.isEmpty()) {
+            if (!ksmlConfig.enableProducers() && !producerSpecs.isEmpty()) {
                 log.warn("Producers are disabled for this runner. The supplied producer specifications will be ignored.");
                 producerSpecs.clear();
             }
-            if (!ksmlConfig.isEnablePipelines() && !pipelineSpecs.isEmpty()) {
+            if (!ksmlConfig.enablePipelines() && !pipelineSpecs.isEmpty()) {
                 log.warn("Pipelines are disabled for this runner. The supplied pipeline specifications will be ignored.");
                 pipelineSpecs.clear();
             }
@@ -196,7 +196,7 @@ public class KSMLRunner {
 
                 Runtime.getRuntime().addShutdownHook(shutdownHook);
 
-                try (var prometheusExport = new PrometheusExport(config.getKsmlConfig().getPrometheusConfig())) {
+                try (var prometheusExport = new PrometheusExport(config.ksmlConfig().prometheusConfig())) {
                     prometheusExport.start();
                     final var executorService = Executors.newFixedThreadPool(2);
 
@@ -270,7 +270,7 @@ public class KSMLRunner {
                 if (streamsRunner == null) {
                     return List.of();
                 }
-                return streamsRunner.getKafkaStreams().streamsMetadataForStore(storeName);
+                return streamsRunner.kafkaStreams().streamsMetadataForStore(storeName);
             }
 
             @Override
@@ -278,7 +278,7 @@ public class KSMLRunner {
                 if (streamsRunner == null) {
                     return null;
                 }
-                return streamsRunner.getKafkaStreams().queryMetadataForKey(storeName, key, keySerializer);
+                return streamsRunner.kafkaStreams().queryMetadataForKey(storeName, key, keySerializer);
             }
 
             @Override
@@ -286,7 +286,7 @@ public class KSMLRunner {
                 if (streamsRunner == null) {
                     return null;
                 }
-                return streamsRunner.getKafkaStreams().store(storeQueryParameters);
+                return streamsRunner.kafkaStreams().store(storeQueryParameters);
             }
 
             @Override
@@ -369,7 +369,7 @@ public class KSMLRunner {
         try {
             final var config = mapper.readValue(configFile, KSMLRunnerConfig.class);
             if (config != null) {
-                if (config.getKsmlConfig() == null) {
+                if (config.ksmlConfig() == null) {
                     throw new ConfigException("Section \"ksml\" is missing in configuration");
                 }
                 if (config.getKafkaConfig() == null) {
@@ -385,14 +385,14 @@ public class KSMLRunner {
 
 
     private static ErrorHandler getErrorHandler(KSMLErrorHandlingConfig.ErrorHandlingConfig config) {
-        final var handlerType = switch (config.getHandler()) {
+        final var handlerType = switch (config.handler()) {
             case CONTINUE -> ErrorHandler.HandlerType.CONTINUE_ON_FAIL;
             case STOP -> ErrorHandler.HandlerType.STOP_ON_FAIL;
         };
         return new ErrorHandler(
-                config.isLog(),
-                config.isLogPayload(),
-                config.getLoggerName(),
+                config.log(),
+                config.logPayload(),
+                config.loggerName(),
                 handlerType);
     }
 }

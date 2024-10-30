@@ -48,12 +48,12 @@ public class KSMLRunnerConfig {
 
     public Map<String,String> getKafkaConfig(){
         var newConfig = new HashMap<>(kafka.kafkaConfig());
-        newConfig.put("application.id", kafka.getApplicationId());
+        newConfig.put("application.id", kafka.applicationId());
         return newConfig;
     }
 
     public String getApplicationId(){
-        return kafka.getApplicationId();
+        return kafka.applicationId();
     }
 
     @Data

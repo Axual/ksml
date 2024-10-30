@@ -20,6 +20,7 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
@@ -114,10 +115,16 @@ public class DataList implements DataObject, Iterable<DataObject> {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(type.toString()).append(": [");
+        return toString(Printer.INTERNAL);
+    }
+
+    @Override
+    public String toString(Printer printer) {
+        final var sb = new StringBuilder(printer.schemaString(this));
+        sb.append("[");
         for (int index = 0; index < size(); index++) {
             if (index > 0) sb.append(", ");
-            sb.append(get(index).toString());
+            sb.append(get(index).toString(printer.childObjectPrinter()));
         }
         sb.append("]");
         return sb.toString();

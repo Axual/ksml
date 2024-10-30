@@ -54,7 +54,7 @@ public class PrometheusExport implements Closeable {
     @Synchronized
     public void start() throws Exception {
         Metrics.init();
-        if (!config.isEnabled()) {
+        if (!config.enabled()) {
             log.info("Prometheus export is disabled");
             return;
         }

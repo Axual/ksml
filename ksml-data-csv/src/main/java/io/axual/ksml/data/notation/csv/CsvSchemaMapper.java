@@ -22,6 +22,7 @@ package io.axual.ksml.data.notation.csv;
 
 import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.DataValue;
@@ -48,7 +49,14 @@ public class CsvSchemaMapper implements DataSchemaMapper<String> {
     private DataSchema toDataSchema(String namespace, String name, DataList fieldNames) {
         List<DataField> fields = new ArrayList<>();
         for (var fieldName : fieldNames) {
-            fields.add(new DataField(fieldName.toString(), DataSchema.create(DataSchema.Type.STRING), fieldName.toString(), NO_INDEX, true, false, new DataValue("")));
+            fields.add(new DataField(
+                    fieldName.toString(DataObject.Printer.INTERNAL),
+                    DataSchema.create(DataSchema.Type.STRING),
+                    fieldName.toString(DataObject.Printer.INTERNAL),
+                    NO_INDEX,
+                    true,
+                    false,
+                    new DataValue("")));
         }
         return new StructSchema(namespace, name, "CSV schema", fields);
     }
