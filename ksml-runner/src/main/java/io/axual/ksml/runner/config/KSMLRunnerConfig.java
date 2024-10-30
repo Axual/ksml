@@ -44,16 +44,16 @@ public class KSMLRunnerConfig {
     private KSMLConfig ksmlConfig;
 
     @JsonProperty("kafka")
-    private KafkaConfig kafka;
+    private KafkaConfig kafkaConfig;
 
     public Map<String,String> getKafkaConfig(){
-        var newConfig = new HashMap<>(kafka.kafkaConfig());
-        newConfig.put("application.id", kafka.applicationId());
+        var newConfig = new HashMap<>(kafkaConfig.kafkaConfig());
+        newConfig.put("application.id", kafkaConfig.applicationId());
         return newConfig;
     }
 
     public String getApplicationId(){
-        return kafka.applicationId();
+        return kafkaConfig.applicationId();
     }
 
     @Data

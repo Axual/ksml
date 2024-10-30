@@ -82,33 +82,33 @@ public class KSMLConfig {
         return configPath.toAbsolutePath().normalize().toString();
     }
 
-    public String getConfigDirectory() {
+    public String configDirectory() {
         return getDirectory("configDirectory", configDirectory != null ? configDirectory : System.getProperty("user.dir"));
     }
 
-    public String getSchemaDirectory() {
-        return getDirectory("schemaDirectory", schemaDirectory != null ? schemaDirectory : getConfigDirectory());
+    public String schemaDirectory() {
+        return getDirectory("schemaDirectory", schemaDirectory != null ? schemaDirectory : configDirectory());
     }
 
-    public String getStorageDirectory() {
+    public String storageDirectory() {
         return getDirectory("storageDirectory", storageDirectory != null ? storageDirectory : System.getProperty("java.io.tmpdir"));
     }
 
-    public ApplicationServerConfig getApplicationServerConfig() {
+    public ApplicationServerConfig applicationServerConfig() {
         return applicationServer;
     }
 
-    public KSMLErrorHandlingConfig getErrorHandlingConfig() {
+    public KSMLErrorHandlingConfig errorHandlingConfig() {
         if (errorHandling == null) return KSMLErrorHandlingConfig.builder().build();
         return errorHandling;
     }
 
-    public Map<String, JsonNode> getDefinitions() {
+    public Map<String, JsonNode> definitions() {
         final var result = new HashMap<String, JsonNode>();
         if (definitions != null) {
             for (Map.Entry<String, Object> definition : definitions.entrySet()) {
                 if (definition.getValue() instanceof String definitionFile) {
-                    final var definitionFilePath = Paths.get(getConfigDirectory(), definitionFile);
+                    final var definitionFilePath = Paths.get(configDirectory(), definitionFile);
                     if (Files.notExists(definitionFilePath) || !Files.isRegularFile(definitionFilePath)) {
                         throw new ConfigException("definitionFile", definitionFilePath, "The provided KSML definition file does not exists or is not a regular file");
                     }

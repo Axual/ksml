@@ -107,8 +107,8 @@ public class KSMLRunner {
 
             final var config = readConfiguration(configFile);
             final var ksmlConfig = config.ksmlConfig();
-            log.info("Using directories: config: {}, schema: {}, storage: {}", ksmlConfig.getConfigDirectory(), ksmlConfig.getSchemaDirectory(), ksmlConfig.getStorageDirectory());
-            final var definitions = ksmlConfig.getDefinitions();
+            log.info("Using directories: config: {}, schema: {}, storage: {}", ksmlConfig.configDirectory(), ksmlConfig.schemaDirectory(), ksmlConfig.storageDirectory());
+            final var definitions = ksmlConfig.definitions();
             if (definitions == null || definitions.isEmpty()) {
                 throw new ConfigException("definitions", definitions, "No KSML definitions found in configuration");
             }
@@ -116,7 +116,7 @@ public class KSMLRunner {
             KsmlInfo.registerKsmlAppInfo(config.getApplicationId());
 
             // Start the appserver if needed
-            final var appServer = ksmlConfig.getApplicationServerConfig();
+            final var appServer = ksmlConfig.applicationServerConfig();
             RestServer restServer = null;
             // Start rest server to provide service endpoints
             if (appServer.enabled()) {
@@ -136,17 +136,17 @@ public class KSMLRunner {
             NotationLibrary.register(XmlNotation.NOTATION_NAME, new XmlNotation(nativeMapper), new XmlDataObjectConverter());
 
             // Register schema loaders
-            final var schemaDirectory = ksmlConfig.getSchemaDirectory();
+            final var schemaDirectory = ksmlConfig.schemaDirectory();
             SchemaLibrary.registerLoader(AvroNotation.NOTATION_NAME, new AvroSchemaLoader(schemaDirectory));
             SchemaLibrary.registerLoader(CsvNotation.NOTATION_NAME, new CsvSchemaLoader(schemaDirectory));
             SchemaLibrary.registerLoader(JsonNotation.NOTATION_NAME, new JsonSchemaLoader(schemaDirectory));
             SchemaLibrary.registerLoader(XmlNotation.NOTATION_NAME, new XmlSchemaLoader(schemaDirectory));
 
-            final var errorHandling = ksmlConfig.getErrorHandlingConfig();
+            final var errorHandling = ksmlConfig.errorHandlingConfig();
             if (errorHandling != null) {
-                ExecutionContext.INSTANCE.setConsumeHandler(getErrorHandler(errorHandling.getConsumerErrorHandlingConfig()));
-                ExecutionContext.INSTANCE.setProduceHandler(getErrorHandler(errorHandling.getProducerErrorHandlingConfig()));
-                ExecutionContext.INSTANCE.setProcessHandler(getErrorHandler(errorHandling.getProcessErrorHandlingConfig()));
+                ExecutionContext.INSTANCE.setConsumeHandler(getErrorHandler(errorHandling.consumerErrorHandlingConfig()));
+                ExecutionContext.INSTANCE.setProduceHandler(getErrorHandler(errorHandling.producerErrorHandlingConfig()));
+                ExecutionContext.INSTANCE.setProcessHandler(getErrorHandler(errorHandling.processErrorHandlingConfig()));
             }
             ExecutionContext.INSTANCE.serdeWrapper(
                     serde -> new Serdes.WrapperSerde<>(
@@ -177,8 +177,8 @@ public class KSMLRunner {
                     .kafkaConfig(config.getKafkaConfig())
                     .build());
             final var streams = pipelineSpecs.isEmpty() ? null : new KafkaStreamsRunner(KafkaStreamsRunner.Config.builder()
-                    .storageDirectory(ksmlConfig.getStorageDirectory())
-                    .appServer(ksmlConfig.getApplicationServerConfig())
+                    .storageDirectory(ksmlConfig.storageDirectory())
+                    .appServer(ksmlConfig.applicationServerConfig())
                     .definitions(pipelineSpecs)
                     .kafkaConfig(config.getKafkaConfig())
                     .build());

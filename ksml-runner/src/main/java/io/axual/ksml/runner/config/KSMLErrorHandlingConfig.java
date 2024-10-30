@@ -35,9 +35,9 @@ public class KSMLErrorHandlingConfig {
     private ErrorHandlingConfig produce;
     private ErrorHandlingConfig process;
 
-    public ErrorHandlingConfig getConsumerErrorHandlingConfig() {
+    public ErrorHandlingConfig consumerErrorHandlingConfig() {
         if (consume == null) {
-            return getDefaultErrorHandlingConfig("ConsumeError");
+            return defaultErrorHandlingConfig("ConsumeError");
         }
         if (consume.loggerName() == null) {
             consume.loggerName("ConsumeError");
@@ -45,9 +45,9 @@ public class KSMLErrorHandlingConfig {
         return consume;
     }
 
-    public ErrorHandlingConfig getProducerErrorHandlingConfig() {
+    public ErrorHandlingConfig producerErrorHandlingConfig() {
         if (produce == null) {
-            return getDefaultErrorHandlingConfig("ProduceError");
+            return defaultErrorHandlingConfig("ProduceError");
         }
         if (produce.loggerName() == null) {
             produce.loggerName("ProduceError");
@@ -55,9 +55,9 @@ public class KSMLErrorHandlingConfig {
         return produce;
     }
 
-    public ErrorHandlingConfig getProcessErrorHandlingConfig() {
+    public ErrorHandlingConfig processErrorHandlingConfig() {
         if (process == null) {
-            return getDefaultErrorHandlingConfig("ProcessError");
+            return defaultErrorHandlingConfig("ProcessError");
         }
         if (process.loggerName() == null) {
             process.loggerName("ProcessError");
@@ -65,7 +65,7 @@ public class KSMLErrorHandlingConfig {
         return process;
     }
 
-    private ErrorHandlingConfig getDefaultErrorHandlingConfig(String logger) {
+    private ErrorHandlingConfig defaultErrorHandlingConfig(String logger) {
         var errorHandlingConfig = new ErrorHandlingConfig();
         errorHandlingConfig.loggerName(logger);
         return errorHandlingConfig;
