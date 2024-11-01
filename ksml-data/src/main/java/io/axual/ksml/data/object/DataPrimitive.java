@@ -22,6 +22,7 @@ package io.axual.ksml.data.object;
 
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.util.ValuePrinter;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -46,6 +47,13 @@ public class DataPrimitive<T> implements DataObject {
 
     @Override
     public String toString() {
-        return value != null ? value.toString() : type + ": null";
+        return toString(Printer.INTERNAL);
+    }
+
+    @Override
+    public String toString(Printer printer) {
+        return value != null
+                ? ValuePrinter.print(value, printer != Printer.INTERNAL)
+                : printer.forceSchemaString(this) + ValuePrinter.print(value, printer != Printer.INTERNAL);
     }
 }

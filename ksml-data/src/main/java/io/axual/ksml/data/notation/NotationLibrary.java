@@ -39,7 +39,7 @@ public class NotationLibrary {
         return notations.containsKey(notation);
     }
 
-    public static Notation notation(String notation) {
+    public static Notation get(String notation) {
         var result = notation != null ? notations.get(notation) : null;
         if (result != null) return result;
         throw new DataException("Data notation is not registered in the NotationLibrary: " + (notation != null ? notation : "null"));

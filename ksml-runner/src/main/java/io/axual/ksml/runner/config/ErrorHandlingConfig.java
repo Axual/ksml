@@ -22,20 +22,22 @@ package io.axual.ksml.runner.config;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Data
+@Builder
+@Jacksonized
 public class ErrorHandlingConfig {
-    private ErrorTypeHandlingConfig consume;
-    private ErrorTypeHandlingConfig produce;
-    private ErrorTypeHandlingConfig process;
+    private final ErrorTypeHandlingConfig consume;
+    private final ErrorTypeHandlingConfig produce;
+    private final ErrorTypeHandlingConfig process;
 
     public ErrorTypeHandlingConfig consumerErrorHandlingConfig() {
         if (consume == null) {
-            return defaultErrorTypeHandlingConfig("ConsumeError");
+            return defaultErrorHandlingConfig("ConsumeError");
         }
         if (consume.loggerName() == null) {
             consume.loggerName("ConsumeError");
@@ -45,7 +47,7 @@ public class ErrorHandlingConfig {
 
     public ErrorTypeHandlingConfig producerErrorHandlingConfig() {
         if (produce == null) {
-            return defaultErrorTypeHandlingConfig("ProduceError");
+            return defaultErrorHandlingConfig("ProduceError");
         }
         if (produce.loggerName() == null) {
             produce.loggerName("ProduceError");
@@ -55,7 +57,7 @@ public class ErrorHandlingConfig {
 
     public ErrorTypeHandlingConfig processErrorHandlingConfig() {
         if (process == null) {
-            return defaultErrorTypeHandlingConfig("ProcessError");
+            return defaultErrorHandlingConfig("ProcessError");
         }
         if (process.loggerName() == null) {
             process.loggerName("ProcessError");
@@ -63,18 +65,21 @@ public class ErrorHandlingConfig {
         return process;
     }
 
-    private ErrorTypeHandlingConfig defaultErrorTypeHandlingConfig(String logger) {
-        var errorHandlingConfig = new ErrorTypeHandlingConfig();
-        errorHandlingConfig.loggerName(logger);
-        return errorHandlingConfig;
+    private ErrorTypeHandlingConfig defaultErrorHandlingConfig(String logger) {
+        var result = new ErrorTypeHandlingConfig();
+        result.loggerName(logger);
+        return result;
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
     @Data
     public static class ErrorTypeHandlingConfig {
+        @JsonProperty("log")
         private boolean log = true;
+        @JsonProperty("logPayload")
         private boolean logPayload = false;
+        @JsonProperty("loggerName")
         private String loggerName;
+        @JsonProperty("handler")
         private Handler handler = Handler.STOP;
 
         public enum Handler {

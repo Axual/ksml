@@ -107,15 +107,14 @@ public class UserFunction {
         checkType(definition.type(), value);
     }
 
-    protected void logCall(Object[] parameters, Object result) {
+    protected void logCall(DataObject[] parameters, Object result) {
         // Log the called function in debug
         if (LOG.isDebugEnabled()) {
             // Check all parameters and copy them into the interpreter as prefixed globals
             StringBuilder paramsAndValues = new StringBuilder();
             for (int index = 0; index < parameters.length; index++) {
                 paramsAndValues.append(!paramsAndValues.isEmpty() ? ", " : "");
-                String valueQuote = parameters[index] instanceof String ? "'" : "";
-                paramsAndValues.append(this.parameters[index].name()).append("=").append(valueQuote).append(parameters[index] != null ? parameters[index] : "null").append(valueQuote);
+                paramsAndValues.append(this.parameters[index].name()).append("=").append(parameters[index] != null ? parameters[index].toString(DataObject.Printer.EXTERNAL_ALL_SCHEMA) : "null");
             }
             if (result != null) {
                 LOG.debug("User function {}.{}({}) returned {}", namespace, name, paramsAndValues, result);

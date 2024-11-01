@@ -208,7 +208,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
     private Serializer<?> getSerializer(KSMLTopic ksmlTopic, boolean isKey) {
         return switch (isKey ? ksmlTopic.keySerde() : ksmlTopic.valueSerde()) {
             case AVRO -> {
-                final var avroNotation = (MockAvroNotation) NotationLibrary.notation(MockAvroNotation.NAME);
+                final var avroNotation = (MockAvroNotation) NotationLibrary.get(MockAvroNotation.NAME);
                 var result = new KafkaAvroSerializer(avroNotation.mockSchemaRegistryClient());
                 result.configure(avroNotation.getSchemaRegistryConfigs(), isKey);
                 yield result;
@@ -228,7 +228,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
     private Deserializer<?> getDeserializer(KSMLTopic kamlTopic, boolean isKey) {
         return switch (isKey ? kamlTopic.keySerde() : kamlTopic.valueSerde()) {
             case AVRO -> {
-                final var avroNotation = (MockAvroNotation) NotationLibrary.notation(MockAvroNotation.NAME);
+                final var avroNotation = (MockAvroNotation) NotationLibrary.get(MockAvroNotation.NAME);
                 final var result = new KafkaAvroDeserializer(avroNotation.mockSchemaRegistryClient());
                 result.configure(avroNotation.getSchemaRegistryConfigs(), isKey);
                 yield result;

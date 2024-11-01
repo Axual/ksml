@@ -141,7 +141,7 @@ class KafkaProducerRunnerTest {
     /**
      * Create a KafkaProducerRunner from the given config, but with a mock Kafka producer.
      *
-     * @param config a {@link io.axual.ksml.runner.backend.KafkaProducerRunner.Config}.
+     * @param config a {@link KafkaProducerRunner.Config}.
      * @return a {@link KafkaProducerRunner} with a mocked producer.
      */
     private KafkaProducerRunner runnerUnderTest(KafkaProducerRunner.Config config) {

@@ -84,9 +84,10 @@ public class KSMLRunner {
             }
 
             final var config = readConfiguration(configFile);
-            final var ksmlConfig = config.ksml();
-            log.info("Using directories: config: {}, schema: {}, storage: {}", ksmlConfig.getConfigDirectory(), ksmlConfig.getSchemaDirectory(), ksmlConfig.getStorageDirectory());
-            final var definitions = ksmlConfig.getDefinitions();
+            final var ksmlConfig = config.ksmlConfig();
+            log.info("Using directories: config: {}, schema: {}, storage: {}", ksmlConfig.configDirectory(), ksmlConfig.schemaDirectory(), ksmlConfig.storageDirectory());
+
+            final var definitions = ksmlConfig.definitions();
             if (definitions == null || definitions.isEmpty()) {
                 throw new ConfigException("definitions", definitions, "No KSML definitions found in configuration");
             }
@@ -94,7 +95,7 @@ public class KSMLRunner {
             KsmlInfo.registerKsmlAppInfo(config.applicationId());
 
             // Start the appserver if needed
-            final var appServer = ksmlConfig.getApplicationServerConfig();
+            final var appServer = ksmlConfig.applicationServerConfig();
             RestServer restServer = null;
             // Start rest server to provide service endpoints
             if (appServer.enabled()) {
@@ -104,7 +105,7 @@ public class KSMLRunner {
             }
 
             // Set up all default notations and register them in the NotationLibrary
-            final var notationFactories = new NotationFactories(config.kafka().kafkaConfig(), ksmlConfig.getSchemaDirectory());
+            final var notationFactories = new NotationFactories(config.kafkaConfig(), ksmlConfig.schemaDirectory());
             for (final var notation : notationFactories.notations().entrySet()) {
                 NotationLibrary.register(notation.getKey(), notation.getValue().create(null));
             }
@@ -134,7 +135,7 @@ public class KSMLRunner {
                 log.warn("No implementation specified for AVRO notation. If you use AVRO in your KSML definition, add the required configuration to the ksml-runner.yaml");
             }
 
-            final var errorHandling = ksmlConfig.getErrorHandlingConfig();
+            final var errorHandling = ksmlConfig.errorHandlingConfig();
             if (errorHandling != null) {
                 ExecutionContext.INSTANCE.setConsumeHandler(getErrorHandler(errorHandling.consumerErrorHandlingConfig()));
                 ExecutionContext.INSTANCE.setProduceHandler(getErrorHandler(errorHandling.producerErrorHandlingConfig()));
@@ -142,8 +143,8 @@ public class KSMLRunner {
             }
             ExecutionContext.INSTANCE.serdeWrapper(
                     serde -> new Serdes.WrapperSerde<>(
-                            new ResolvingSerializer<>(serde.serializer(), config.kafka().kafkaConfig()),
-                            new ResolvingDeserializer<>(serde.deserializer(), config.kafka().kafkaConfig())));
+                            new ResolvingSerializer<>(serde.serializer(), config.kafkaConfig()),
+                            new ResolvingDeserializer<>(serde.deserializer(), config.kafkaConfig())));
 
             final Map<String, TopologyDefinition> producerSpecs = new HashMap<>();
             final Map<String, TopologyDefinition> pipelineSpecs = new HashMap<>();
@@ -166,13 +167,13 @@ public class KSMLRunner {
 
             final var producer = producerSpecs.isEmpty() ? null : new KafkaProducerRunner(KafkaProducerRunner.Config.builder()
                     .definitions(producerSpecs)
-                    .kafkaConfig(config.kafka().kafkaConfig())
+                    .kafkaConfig(config.kafkaConfig())
                     .build());
             final var streams = pipelineSpecs.isEmpty() ? null : new KafkaStreamsRunner(KafkaStreamsRunner.Config.builder()
-                    .storageDirectory(ksmlConfig.getStorageDirectory())
-                    .appServer(ksmlConfig.getApplicationServerConfig())
+                    .storageDirectory(ksmlConfig.storageDirectory())
+                    .appServer(ksmlConfig.applicationServerConfig())
                     .definitions(pipelineSpecs)
-                    .kafkaConfig(config.kafka().kafkaConfig())
+                    .kafkaConfig(config.kafkaConfig())
                     .build());
 
             if (producer != null || streams != null) {
@@ -188,7 +189,7 @@ public class KSMLRunner {
 
                 Runtime.getRuntime().addShutdownHook(shutdownHook);
 
-                try (var prometheusExport = new PrometheusExport(config.ksml().prometheusConfig())) {
+                try (var prometheusExport = new PrometheusExport(config.ksmlConfig().prometheusConfig())) {
                     prometheusExport.start();
                     final var executorService = Executors.newFixedThreadPool(2);
 
@@ -329,7 +330,7 @@ public class KSMLRunner {
         // KSML definitions with on stdout and exit
         if (args.length >= 1 && WRITE_KSML_SCHEMA_ARGUMENT.equals(args[0])) {
             final var parser = new TopologyDefinitionParser("dummy");
-            final var schema = new JsonSchemaMapper().fromDataSchema(parser.schema());
+            final var schema = new JsonSchemaMapper(true).fromDataSchema(parser.schema());
 
             final var filename = args.length >= 2 ? args[1] : null;
             if (filename != null) {
@@ -361,10 +362,10 @@ public class KSMLRunner {
         try {
             final var config = mapper.readValue(configFile, KSMLRunnerConfig.class);
             if (config != null) {
-                if (config.ksml() == null) {
+                if (config.ksmlConfig() == null) {
                     throw new ConfigException("Section \"ksml\" is missing in configuration");
                 }
-                if (config.kafka() == null) {
+                if (config.kafkaConfig() == null) {
                     throw new ConfigException("Section \"kafka\" is missing in configuration");
                 }
                 return config;
