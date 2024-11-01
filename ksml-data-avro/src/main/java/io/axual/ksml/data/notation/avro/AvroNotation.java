@@ -21,6 +21,15 @@ package io.axual.ksml.data.notation.avro;
  */
 
 import com.google.common.collect.ImmutableMap;
+
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serializer;
+
+import java.nio.ByteBuffer;
+import java.util.Map;
+
 import io.apicurio.registry.serde.avro.AvroKafkaDeserializer;
 import io.apicurio.registry.serde.avro.AvroKafkaSerializer;
 import io.axual.ksml.data.exception.DataException;
@@ -35,11 +44,6 @@ import io.axual.ksml.data.type.StructType;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import lombok.Getter;
-import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serializer;
-
-import java.util.Map;
 
 public class AvroNotation implements Notation {
     public static final DataType DEFAULT_TYPE = new StructType();
@@ -106,21 +110,9 @@ public class AvroNotation implements Notation {
                 case CONFLUENT -> new KafkaAvroDeserializer();
             };
 
-            wrapSerializer = (topic, data) -> {
-                try {
-                    return serializer.serialize(topic, mapper.fromDataObject(nativeMapper.toDataObject(data)));
-                } catch (Exception e) {
-                    throw new ExecutionException("Error serializing AVRO message to topic " + topic, e);
-                }
-            };
-
-            wrapDeserializer = (topic, data) -> {
-                try {
-                    return mapper.toDataObject(deserializer.deserialize(topic, data));
-                } catch (Exception e) {
-                    throw new ExecutionException("Error deserializing AVRO message from topic " + topic, e);
-                }
-            };
+            var wrappedSerde = new WrappedSerde(serializer,deserializer,nativeMapper);
+            wrapSerializer = wrappedSerde;
+            wrapDeserializer = wrappedSerde;
         }
 
         @Override
@@ -137,6 +129,65 @@ public class AvroNotation implements Notation {
         @Override
         public Deserializer<Object> deserializer() {
             return wrapDeserializer;
+        }
+    }
+
+    private record WrappedSerde(Serializer<Object> serializer, Deserializer<Object> deserializer, NativeDataObjectMapper nativeMapper) implements Serializer<Object>, Deserializer<Object> {
+        @Override
+        public Object deserialize(final String topic, final byte[] data) {
+            try {
+                return mapper.toDataObject(deserializer.deserialize(topic, data));
+            } catch (Exception e) {
+                throw new ExecutionException("Error deserializing AVRO message from topic " + topic, e);
+            }
+        }
+
+        @Override
+        public Object deserialize(final String topic, final Headers headers, final byte[] data) {
+            try {
+                return mapper.toDataObject(deserializer.deserialize(topic, headers, data));
+            } catch (Exception e) {
+                throw new ExecutionException("Error deserializing AVRO message from topic " + topic, e);
+            }
+        }
+
+        @Override
+        public Object deserialize(final String topic, final Headers headers, final ByteBuffer data) {
+            try {
+                return mapper.toDataObject(deserializer.deserialize(topic, headers, data));
+            } catch (Exception e) {
+                throw new ExecutionException("Error deserializing AVRO message from topic " + topic, e);
+            }
+        }
+
+        @Override
+        public void configure(final Map<String, ?> configs, final boolean isKey) {
+            serializer.configure(configs, isKey);
+            deserializer.configure(configs, isKey);
+        }
+
+        @Override
+        public byte[] serialize(final String topic, final Object data) {
+            try {
+                return serializer.serialize(topic, mapper.fromDataObject(nativeMapper.toDataObject(data)));
+            } catch (Exception e) {
+                throw new ExecutionException("Error serializing AVRO message to topic " + topic, e);
+            }
+        }
+
+        @Override
+        public byte[] serialize(final String topic, final Headers headers, final Object data) {
+            try {
+                return serializer.serialize(topic, headers, mapper.fromDataObject(nativeMapper.toDataObject(data)));
+            } catch (Exception e) {
+                throw new ExecutionException("Error serializing AVRO message to topic " + topic, e);
+            }
+        }
+
+        @Override
+        public void close() {
+           serializer.close();
+           deserializer.close();
         }
     }
 }

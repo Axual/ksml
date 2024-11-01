@@ -1,8 +1,8 @@
 ksml:
   # The examples directory is mounted to /ksml in the docker compose definition
-  configDirectory: /ksml          # When not set defaults to the working directory
-  schemaDirectory: /ksml          # When not set defaults to the config directory
-  storageDirectory: /tmp          # When not set defaults to the default JVM temp directory
+#  configDirectory: /ksml          # When not set defaults to the working directory
+#  schemaDirectory: /ksml          # When not set defaults to the config directory
+#  storageDirectory: /tmp          # When not set defaults to the default JVM temp directory
 
   # This section defines if a REST endpoint is opened on the KSML runner, through which
   # state stores and/or readiness / liveness probes can be accessed.
@@ -13,7 +13,7 @@ ksml:
 
   # This section defines whether a Prometheus endpoint is opened to allow metric scraping.
   prometheus:
-    enabled: true                 # Set to true to enable, or false to disable
+    enabled: false                 # Set to true to enable, or false to disable
     host: 0.0.0.0                 # IP address to bind the Prometheus agent server to
     port: 9999                    # Port number to listen on
 
@@ -41,27 +41,46 @@ ksml:
       type: confluent_avro         # For AVRO there are two implementations: apicurio_avro and confluent_avro
       ## Below this line, specify properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
       config:
-        schema.registry.url: https://url.to.schena.registry.org
+        # The example uses Apicurio, using the Apicurio Confluent Compatibility URL
+        schema.registry.url: http://localhost:8081/apis/ccompat/v7
+        auto.register.schemas: true
         normalize.schemas: true
-        schema.registry.ssl.protocol: TLSv1.3
-        schema.registry.ssl.enabled.protocols: TLSv1.3,TLSv1.2
-        schema.registry.ssl.endpoint.identification.algorithm: ""
-        schema.registry.ssl.keystore.type: JKS
-        schema.registry.ssl.truststore.type: JKS
-        schema.registry.ssl.key.password: password
-        schema.registry.ssl.keystore.password: password
-        schema.registry.ssl.keystore.location: /path/to/keystore.jks
-        schema.registry.ssl.truststore.password: password
-        schema.registry.ssl.truststore.location: /path/to/truststore.jks
-        auto.register.schemas: false
+        # Below is an example SSL configuration for Confluent Serialization library
+        # schema.registry.ssl.protocol: TLSv1.3
+        # schema.registry.ssl.enabled.protocols: TLSv1.3,TLSv1.2
+        # schema.registry.ssl.endpoint.identification.algorithm: ""
+        # schema.registry.ssl.keystore.location: /path/to/keystore.jks
+        # schema.registry.ssl.keystore.type: JKS
+        # schema.registry.ssl.key.password: password
+        # schema.registry.ssl.keystore.password: password
+        # schema.registry.ssl.truststore.location: /path/to/truststore.jks
+        # schema.registry.ssl.truststore.type: JKS
+        # schema.registry.ssl.truststore.password: password
+
     # Definition for "other_avro" notation. With this config, you can use a type like otherAvro:SchenaName in your
     # KSML definition, which then uses the Apicurio implementation for AVRO.
     otherAvro:
       type: apicurio_avro         # For AVRO there are two implementations: apicurio_avro and confluent_avro
       ## Below this line, specify properties to be passed into Apicurio's AvroKafkaSerializer and AvroKafkaDeserializer
       config:
-        apicurio.registry.url: https://sr2
-        apicurio.registry.schema-resolver: CustomResolver
+        apicurio.registry.url: http://schema_registry:8081/apis/registry/v3
+        # Register schema if it does not exist
+        apicurio.registry.auto-register: "true"
+        # Apicurio Avro serialisation settings
+        # apicurio.registry.avro.encoding: "BINARY"
+        # apicurio.registry.headers.enabled: "true"
+        # apicurio.registry.serde.IdHandler: "io.apicurio.registry.serde.Default4ByteIdHandler"
+        # apicurio.registry.schema-resolver: "io.apicurio.registry.resolver.DefaultSchemaResolver"
+
+        # Below is an example SSL configuration for Apicurio Serialization library from Apicurio documentation
+        # apicurio.registry.request.ssl.keystore.location: /path/to/keystore.jks
+        # apicurio.registry.request.ssl.keystore.type: JKS
+        # apicurio.registry.request.ssl.keystore.password: password
+        # apicurio.registry.request.ssl.key.password: password
+        # apicurio.registry.request.ssl.truststore.location: /path/to/truststore.jks
+        # apicurio.registry.request.ssl.truststore.type: JKS
+        # apicurio.registry.request.ssl.truststore.password: password
+
 
   enableProducers: true           # Set to true to allow producer definitions to be parsed in the KSML definitions and be executed.
   enablePipelines: false          # Set to true to allow pipeline definitions to be parsed in the KSML definitions and be executed.
@@ -69,7 +88,7 @@ ksml:
   # Section where you specify which KSML definitions to load, parse and execute.
   definitions:
     # Format is <namespace>: <ksml_definition_filename>
-    generate_alert_setting: 00-example-generate-alertsettings.yaml
+#    generate_alert_setting: 00-example-generate-alertsettings.yaml
     generate_sensor_data: 00-example-generate-sensordata.yaml
 
 # This setup connects to the Kafka broker and schema registry started with the example docker-compose file
@@ -77,7 +96,6 @@ ksml:
 kafka:
   bootstrap.servers: broker:9093
   application.id: io.ksml.example.producer
-  schema.registry.url: http://schema_registry:8081
   security.protocol: PLAINTEXT
   acks: all
 

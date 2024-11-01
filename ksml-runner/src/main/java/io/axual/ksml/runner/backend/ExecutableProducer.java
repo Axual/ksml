@@ -20,6 +20,15 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.header.internals.RecordHeaders;
+import org.apache.kafka.common.serialization.Serializer;
+
+import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+
 import io.axual.ksml.client.serde.ResolvingSerializer;
 import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
@@ -38,13 +47,6 @@ import io.axual.ksml.user.UserGenerator;
 import io.axual.ksml.user.UserPredicate;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.serialization.Serializer;
-
-import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 import static io.axual.ksml.data.notation.UserType.DEFAULT_NOTATION;
 
@@ -151,12 +153,16 @@ public class ExecutableProducer {
                     valueStr = valueStr.replace("\n", "\\\\n");
                     log.info("Message: key={}, value={}", keyStr, valueStr);
 
-                    var serializedKey = keySerializer.serialize(topic, NATIVE_MAPPER.fromDataObject(key));
-                    var serializedValue = valueSerializer.serialize(topic, NATIVE_MAPPER.fromDataObject(value));
+                    // Headers are sometimes needed for Apicurio serialisation
+                    var headers = new RecordHeaders();
+                    var serializedKey = keySerializer.serialize(topic, headers, NATIVE_MAPPER.fromDataObject(key));
+                    var serializedValue = valueSerializer.serialize(topic, headers, NATIVE_MAPPER.fromDataObject(value));
                     ProducerRecord<byte[], byte[]> message = new ProducerRecord<>(
                             topic,
+                            null,
                             serializedKey,
-                            serializedValue
+                            serializedValue,
+                            headers
                     );
                     var future = producer.send(message);
                     try {

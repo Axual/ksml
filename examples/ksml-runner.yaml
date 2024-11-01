@@ -28,7 +28,7 @@ ksml:
       log: true                   # Log errors true/false
       logPayload: true            # Upon error, should the payload of the message be dumped to the log file.
       loggerName: ProcessError    # Definition of the error logger name.
-      handler: continueOnFail     # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
+      handler: stopOnFail     # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
     produce:
       log: true                   # Log errors true/false
       logPayload: true            # Upon error, should the payload of the message be dumped to the log file.
@@ -41,27 +41,45 @@ ksml:
       type: confluent_avro         # For AVRO there are two implementations: apicurio_avro and confluent_avro
       ## Below this line, specify properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
       config:
-        schema.registry.url: https://url.to.schena.registry.org
+        # Link to Apicurio Confluent Compatibility URL
+        schema.registry.url: http://schema_registry:8081/apis/ccompat/v88
+        auto.register.schemas: true
         normalize.schemas: true
-        schema.registry.ssl.protocol: TLSv1.3
-        schema.registry.ssl.enabled.protocols: TLSv1.3,TLSv1.2
-        schema.registry.ssl.endpoint.identification.algorithm: ""
-        schema.registry.ssl.keystore.type: JKS
-        schema.registry.ssl.truststore.type: JKS
-        schema.registry.ssl.key.password: password
-        schema.registry.ssl.keystore.password: password
-        schema.registry.ssl.keystore.location: /path/to/keystore.jks
-        schema.registry.ssl.truststore.password: password
-        schema.registry.ssl.truststore.location: /path/to/truststore.jks
-        auto.register.schemas: false
+        # Below is an example SSL configuration for Confluent Serialization library
+        # schema.registry.ssl.protocol: TLSv1.3
+        # schema.registry.ssl.enabled.protocols: TLSv1.3,TLSv1.2
+        # schema.registry.ssl.endpoint.identification.algorithm: ""
+        # schema.registry.ssl.keystore.location: /path/to/keystore.jks
+        # schema.registry.ssl.keystore.type: JKS
+        # schema.registry.ssl.key.password: password
+        # schema.registry.ssl.keystore.password: password
+        # schema.registry.ssl.truststore.location: /path/to/truststore.jks
+        # schema.registry.ssl.truststore.type: JKS
+        # schema.registry.ssl.truststore.password: password
+
     # Definition for "other_avro" notation. With this config, you can use a type like otherAvro:SchenaName in your
     # KSML definition, which then uses the Apicurio implementation for AVRO.
     otherAvro:
       type: apicurio_avro         # For AVRO there are two implementations: apicurio_avro and confluent_avro
       ## Below this line, specify properties to be passed into Apicurio's AvroKafkaSerializer and AvroKafkaDeserializer
       config:
-        apicurio.registry.url: https://sr2
-        apicurio.registry.schema-resolver: CustomResolver
+        apicurio.registry.url: http://schema_registry:8081/apis/registry/v3
+        # Register schema if it does not exist
+        apicurio.registry.auto-register: "true"
+        # Apicurio Avro serialisation settings
+        # apicurio.registry.avro.encoding: "BINARY"
+        # apicurio.registry.headers.enabled: "true"
+        # apicurio.registry.serde.IdHandler: "io.apicurio.registry.serde.Default4ByteIdHandler"
+        # apicurio.registry.schema-resolver: "io.apicurio.registry.resolver.DefaultSchemaResolver"
+
+        # Below is an example SSL configuration for Apicurio Serialization library from Apicurio documentation
+        # apicurio.registry.request.ssl.keystore.location: /path/to/keystore.jks
+        # apicurio.registry.request.ssl.keystore.type: JKS
+        # apicurio.registry.request.ssl.keystore.password: password
+        # apicurio.registry.request.ssl.key.password: password
+        # apicurio.registry.request.ssl.truststore.location: /path/to/truststore.jks
+        # apicurio.registry.request.ssl.truststore.type: JKS
+        # apicurio.registry.request.ssl.truststore.password: password
 
   enableProducers: true           # Set to true to allow producer definitions to be parsed in the KSML definitions and be executed.
   enablePipelines: true           # Set to true to allow pipeline definitions to be parsed in the KSML definitions and be executed.
@@ -92,11 +110,15 @@ ksml:
 # These examples are intended to run from a inside a container on the same network
 kafka:
   application.id: io.ksml.example.streaming
+  # The group instance id is used to identify a single instance of the application, allowing for
+  # faster rebalances and less partition reassignments. The name must be unique for each member in the group.
+  group.instance.id: example-instance
+
   bootstrap.servers: broker:9093
-  schema.registry.url: http://schema_registry:8081
   security.protocol: PLAINTEXT
   auto.offset.reset: earliest
   acks: all
+
 
   # These are Kafka SSL configuration properties. Check the documentation at1
   # Check the documentation at https://kafka.apache.org/documentation/#producerconfigs for more properties
