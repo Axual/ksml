@@ -33,17 +33,19 @@ services:
       KAFKA_CFG_MIN_INSYNC_REPLICAS: 1
       KAFKA_CFG_NUM_PARTITIONS: 1
     healthcheck:
-      test: kafka-topics.sh --bootstrap-server broker:9093 --list | fgrep -q ksml_sensordata_table
-      interval: 30s
+      # If the kafka topics can list data, the broker is healthy
+      test: kafka-topics.sh --bootstrap-server broker:9093 --list
+      interval: 5s
       timeout: 10s
-      retries: 5
-      start_period: 20s
+      retries: 10
+      start_period: 5s
 
   schema_registry:
     image: apicurio/apicurio-registry:3.0.2
     hostname: schema_registry
     depends_on:
-      - broker
+      broker:
+        condition: service_healthy
     ports:
       - "8081:8081"
     networks:
@@ -57,11 +59,12 @@ services:
       APICURIO_KAFKASQL_BOOTSTRAP_SERVERS: 'broker:9093'
       APICURIO_KAFKASQL_TOPIC: '_apciurio-kafkasql-store'
     healthcheck:
+      # If the api endpoint is available, the service is considered healthy
       test: curl http://localhost:8081/apis
-      interval: 30s
+      interval: 15s
       timeout: 10s
-      retries: 5
-      start_period: 20s
+      retries: 10
+      start_period: 10s
 
   # This "container" is a workaround to pre-create topics
   kafka-setup:
@@ -70,7 +73,8 @@ services:
     networks:
       - ksml
     depends_on:
-      - broker
+      broker:
+        condition: service_healthy
     restart: on-failure
     command: "bash -c 'echo Trying to create topics... && \
                        kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_avro && \
@@ -94,9 +98,9 @@ services:
                        kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic io.ksml.example.processor-ownerCount-changelog'"
 
   example-producer:
-    image: axual/ksml:local
+    image: axual/ksml:latest
     hostname: kafka-data-generator
-    restart: no
+    restart: on-failure
     networks:
       - ksml
     working_dir: /ksml
@@ -105,6 +109,10 @@ services:
     volumes:
     - ./examples:/ksml
     depends_on:
-      - broker
-      - schema_registry
-      - kafka-setup
+      broker:
+        condition: service_healthy
+      schema_registry:
+        condition: service_healthy
+      kafka-setup:
+        condition: service_completed_successfully
+

@@ -1,8 +1,8 @@
 ksml:
   # The examples directory is mounted to /ksml in the docker compose definition
-#  configDirectory: /ksml          # When not set defaults to the working directory
-#  schemaDirectory: /ksml          # When not set defaults to the config directory
-#  storageDirectory: /tmp          # When not set defaults to the default JVM temp directory
+  configDirectory: .          # When not set defaults to the working directory
+  schemaDirectory: .          # When not set defaults to the config directory
+  storageDirectory: /tmp          # When not set defaults to the default JVM temp directory
 
   # This section defines if a REST endpoint is opened on the KSML runner, through which
   # state stores and/or readiness / liveness probes can be accessed.
@@ -42,7 +42,7 @@ ksml:
       ## Below this line, specify properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
       config:
         # The example uses Apicurio, using the Apicurio Confluent Compatibility URL
-        schema.registry.url: http://localhost:8081/apis/ccompat/v7
+        schema.registry.url: http://schema_registry:8081/apis/ccompat/v7
         auto.register.schemas: true
         normalize.schemas: true
         # Below is an example SSL configuration for Confluent Serialization library
