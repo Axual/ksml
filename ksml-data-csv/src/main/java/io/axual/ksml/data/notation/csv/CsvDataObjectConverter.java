@@ -20,7 +20,6 @@ package io.axual.ksml.data.notation.csv;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.NotationConverter;
 import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataList;

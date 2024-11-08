@@ -54,7 +54,7 @@ class TableDefinitionTest {
 
     @Test
     void testTableDefinition() {
-        NotationLibrary.register(BinaryNotation.NOTATION_NAME, mockNotation);
+        NotationLibrary.register(BinaryNotation.NAME, mockNotation);
         var stringType = UserTypeParser.parse("string");
 
         // given a TableDefinition

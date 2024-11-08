@@ -20,8 +20,10 @@ package io.axual.ksml.data.notation.binary;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.loader.SchemaLoader;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.Notation;
+import io.axual.ksml.data.notation.NotationConverter;
 import io.axual.ksml.data.serde.ByteSerde;
 import io.axual.ksml.data.serde.NullSerde;
 import io.axual.ksml.data.serde.SerdeSupplier;
@@ -35,9 +37,14 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 
 public class BinaryNotation implements Notation {
-    public static final String NOTATION_NAME = "BINARY";
+    public static final String NAME = "binary";
+    public static final DataType DEFAULT_TYPE = DataType.UNKNOWN;
     private final NativeDataObjectMapper nativeMapper;
     private final SerdeSupplier complexTypeSerdeSupplier;
+    @Getter
+    private final NotationConverter converter = null;
+    @Getter
+    private final SchemaLoader loader = null;
 
     public BinaryNotation(NativeDataObjectMapper nativeMapper, SerdeSupplier complexTypeSerdeSupplier) {
         this.nativeMapper = nativeMapper;
@@ -45,8 +52,8 @@ public class BinaryNotation implements Notation {
     }
 
     @Override
-    public String name() {
-        return NOTATION_NAME;
+    public DataType defaultType() {
+        return DEFAULT_TYPE;
     }
 
     @Override

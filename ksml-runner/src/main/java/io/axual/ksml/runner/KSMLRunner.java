@@ -20,10 +20,30 @@ package io.axual.ksml.runner;
  * =========================LICENSE_END==================================
  */
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
+import io.axual.ksml.client.serde.ResolvingDeserializer;
+import io.axual.ksml.client.serde.ResolvingSerializer;
+import io.axual.ksml.data.notation.NotationLibrary;
+import io.axual.ksml.data.notation.json.JsonSchemaMapper;
+import io.axual.ksml.data.parser.ParseNode;
+import io.axual.ksml.definition.parser.TopologyDefinitionParser;
+import io.axual.ksml.execution.ErrorHandler;
+import io.axual.ksml.execution.ExecutionContext;
+import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.generator.TopologyDefinition;
+import io.axual.ksml.rest.server.ComponentState;
+import io.axual.ksml.rest.server.KsmlQuerier;
+import io.axual.ksml.rest.server.RestServer;
+import io.axual.ksml.runner.backend.KafkaProducerRunner;
+import io.axual.ksml.runner.backend.KafkaStreamsRunner;
+import io.axual.ksml.runner.backend.Runner;
+import io.axual.ksml.runner.config.ErrorHandlingConfig;
+import io.axual.ksml.runner.config.KSMLRunnerConfig;
+import io.axual.ksml.runner.exception.ConfigException;
+import io.axual.ksml.runner.notation.NotationFactories;
+import io.axual.ksml.runner.prometheus.PrometheusExport;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.utils.Utils;
@@ -39,49 +59,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
-import io.axual.ksml.client.serde.ResolvingDeserializer;
-import io.axual.ksml.client.serde.ResolvingSerializer;
-import io.axual.ksml.data.mapper.DataObjectFlattener;
-import io.axual.ksml.data.notation.NotationLibrary;
-import io.axual.ksml.data.notation.avro.AvroNotation;
-import io.axual.ksml.data.notation.avro.AvroSchemaLoader;
-import io.axual.ksml.data.notation.binary.BinaryNotation;
-import io.axual.ksml.data.notation.csv.CsvDataObjectConverter;
-import io.axual.ksml.data.notation.csv.CsvNotation;
-import io.axual.ksml.data.notation.csv.CsvSchemaLoader;
-import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
-import io.axual.ksml.data.notation.json.JsonNotation;
-import io.axual.ksml.data.notation.json.JsonSchemaLoader;
-import io.axual.ksml.data.notation.json.JsonSchemaMapper;
-import io.axual.ksml.data.notation.soap.SOAPDataObjectConverter;
-import io.axual.ksml.data.notation.soap.SOAPNotation;
-import io.axual.ksml.data.notation.xml.XmlDataObjectConverter;
-import io.axual.ksml.data.notation.xml.XmlNotation;
-import io.axual.ksml.data.notation.xml.XmlSchemaLoader;
-import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.schema.SchemaLibrary;
-import io.axual.ksml.definition.parser.TopologyDefinitionParser;
-import io.axual.ksml.execution.ErrorHandler;
-import io.axual.ksml.execution.ExecutionContext;
-import io.axual.ksml.execution.FatalError;
-import io.axual.ksml.generator.TopologyDefinition;
-import io.axual.ksml.rest.server.ComponentState;
-import io.axual.ksml.rest.server.KsmlQuerier;
-import io.axual.ksml.rest.server.RestServer;
-import io.axual.ksml.runner.backend.KafkaProducerRunner;
-import io.axual.ksml.runner.backend.KafkaStreamsRunner;
-import io.axual.ksml.runner.backend.Runner;
-import io.axual.ksml.runner.config.KSMLErrorHandlingConfig;
-import io.axual.ksml.runner.config.KSMLRunnerConfig;
-import io.axual.ksml.runner.exception.ConfigException;
-import io.axual.ksml.runner.prometheus.PrometheusExport;
-import lombok.extern.slf4j.Slf4j;
+import java.util.concurrent.*;
 
 @Slf4j
 public class KSMLRunner {
@@ -106,52 +84,66 @@ public class KSMLRunner {
             }
 
             final var config = readConfiguration(configFile);
-            final var ksmlConfig = config.getKsmlConfig();
+            final var ksmlConfig = config.ksml();
             log.info("Using directories: config: {}, schema: {}, storage: {}", ksmlConfig.getConfigDirectory(), ksmlConfig.getSchemaDirectory(), ksmlConfig.getStorageDirectory());
             final var definitions = ksmlConfig.getDefinitions();
             if (definitions == null || definitions.isEmpty()) {
                 throw new ConfigException("definitions", definitions, "No KSML definitions found in configuration");
             }
 
-            KsmlInfo.registerKsmlAppInfo(config.getApplicationId());
+            KsmlInfo.registerKsmlAppInfo(config.applicationId());
 
             // Start the appserver if needed
             final var appServer = ksmlConfig.getApplicationServerConfig();
             RestServer restServer = null;
             // Start rest server to provide service endpoints
-            if (appServer.isEnabled()) {
+            if (appServer.enabled()) {
                 HostInfo hostInfo = new HostInfo(appServer.getHost(), appServer.getPort());
                 restServer = new RestServer(hostInfo);
                 restServer.start();
             }
 
-            // Set up the notation library with all known notations and type override classes
-            final var nativeMapper = new DataObjectFlattener(true);
-            final var jsonNotation = new JsonNotation(nativeMapper);
-            NotationLibrary.register(AvroNotation.NOTATION_NAME, new AvroNotation(nativeMapper, config.getKafkaConfig()), null);
-            NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(nativeMapper, jsonNotation::serde), null);
-            NotationLibrary.register(CsvNotation.NOTATION_NAME, new CsvNotation(nativeMapper), new CsvDataObjectConverter());
-            NotationLibrary.register(JsonNotation.NOTATION_NAME, jsonNotation, new JsonDataObjectConverter());
-            NotationLibrary.register(SOAPNotation.NOTATION_NAME, new SOAPNotation(nativeMapper), new SOAPDataObjectConverter());
-            NotationLibrary.register(XmlNotation.NOTATION_NAME, new XmlNotation(nativeMapper), new XmlDataObjectConverter());
+            // Set up all default notations and register them in the NotationLibrary
+            final var notationFactories = new NotationFactories(config.kafka().kafkaConfig(), ksmlConfig.getSchemaDirectory());
+            for (final var notation : notationFactories.notations().entrySet()) {
+                NotationLibrary.register(notation.getKey(), notation.getValue().create(null));
+            }
 
-            // Register schema loaders
-            final var schemaDirectory = ksmlConfig.getSchemaDirectory();
-            SchemaLibrary.registerLoader(AvroNotation.NOTATION_NAME, new AvroSchemaLoader(schemaDirectory));
-            SchemaLibrary.registerLoader(CsvNotation.NOTATION_NAME, new CsvSchemaLoader(schemaDirectory));
-            SchemaLibrary.registerLoader(JsonNotation.NOTATION_NAME, new JsonSchemaLoader(schemaDirectory));
-            SchemaLibrary.registerLoader(XmlNotation.NOTATION_NAME, new XmlSchemaLoader(schemaDirectory));
+            // Set up all notation overrides from the KSML config
+            for (final var notationEntry : ksmlConfig.notations().entrySet()) {
+                final var notationStr = notationEntry.getKey() != null ? notationEntry.getKey() : "undefined";
+                final var notationConfig = notationEntry.getValue();
+                final var factoryName = notationConfig != null ? notationConfig.type() : "unknown";
+                if (notationConfig != null && factoryName != null) {
+                    final var factory = notationFactories.notations().get(factoryName);
+                    if (factory == null) {
+                        throw FatalError.reportAndExit(new ConfigException("Unknown notation type: " + factoryName));
+                    }
+                    NotationLibrary.register(notationStr, factory.create(notationConfig.config()));
+                } else {
+                    log.warn("Notation configuration incomplete: notation=" + notationStr + ", type=" + factoryName);
+                }
+            }
+
+            // Ensure typical defaults are used for AVRO
+            // WARNING: Defaults for notations will be deprecated in the future. Make sure you explicitly configure
+            // notations with multiple implementations (like AVRO) in your ksml-runner.yaml.
+            if (!NotationLibrary.exists(NotationFactories.AVRO)) {
+                final var defaultAvro = notationFactories.confluentAvro();
+                NotationLibrary.register(NotationFactories.AVRO, defaultAvro.create(null));
+                log.warn("No implementation specified for AVRO notation. If you use AVRO in your KSML definition, add the required configuration to the ksml-runner.yaml");
+            }
 
             final var errorHandling = ksmlConfig.getErrorHandlingConfig();
             if (errorHandling != null) {
-                ExecutionContext.INSTANCE.setConsumeHandler(getErrorHandler(errorHandling.getConsumerErrorHandlingConfig()));
-                ExecutionContext.INSTANCE.setProduceHandler(getErrorHandler(errorHandling.getProducerErrorHandlingConfig()));
-                ExecutionContext.INSTANCE.setProcessHandler(getErrorHandler(errorHandling.getProcessErrorHandlingConfig()));
+                ExecutionContext.INSTANCE.setConsumeHandler(getErrorHandler(errorHandling.consumerErrorHandlingConfig()));
+                ExecutionContext.INSTANCE.setProduceHandler(getErrorHandler(errorHandling.producerErrorHandlingConfig()));
+                ExecutionContext.INSTANCE.setProcessHandler(getErrorHandler(errorHandling.processErrorHandlingConfig()));
             }
             ExecutionContext.INSTANCE.serdeWrapper(
                     serde -> new Serdes.WrapperSerde<>(
-                            new ResolvingSerializer<>(serde.serializer(), config.getKafkaConfig()),
-                            new ResolvingDeserializer<>(serde.deserializer(), config.getKafkaConfig())));
+                            new ResolvingSerializer<>(serde.serializer(), config.kafka().kafkaConfig()),
+                            new ResolvingDeserializer<>(serde.deserializer(), config.kafka().kafkaConfig())));
 
             final Map<String, TopologyDefinition> producerSpecs = new HashMap<>();
             final Map<String, TopologyDefinition> pipelineSpecs = new HashMap<>();
@@ -163,24 +155,24 @@ public class KSMLRunner {
             });
 
 
-            if (!ksmlConfig.isEnableProducers() && !producerSpecs.isEmpty()) {
+            if (!ksmlConfig.enableProducers() && !producerSpecs.isEmpty()) {
                 log.warn("Producers are disabled for this runner. The supplied producer specifications will be ignored.");
                 producerSpecs.clear();
             }
-            if (!ksmlConfig.isEnablePipelines() && !pipelineSpecs.isEmpty()) {
+            if (!ksmlConfig.enablePipelines() && !pipelineSpecs.isEmpty()) {
                 log.warn("Pipelines are disabled for this runner. The supplied pipeline specifications will be ignored.");
                 pipelineSpecs.clear();
             }
 
             final var producer = producerSpecs.isEmpty() ? null : new KafkaProducerRunner(KafkaProducerRunner.Config.builder()
                     .definitions(producerSpecs)
-                    .kafkaConfig(config.getKafkaConfig())
+                    .kafkaConfig(config.kafka().kafkaConfig())
                     .build());
             final var streams = pipelineSpecs.isEmpty() ? null : new KafkaStreamsRunner(KafkaStreamsRunner.Config.builder()
                     .storageDirectory(ksmlConfig.getStorageDirectory())
                     .appServer(ksmlConfig.getApplicationServerConfig())
                     .definitions(pipelineSpecs)
-                    .kafkaConfig(config.getKafkaConfig())
+                    .kafkaConfig(config.kafka().kafkaConfig())
                     .build());
 
             if (producer != null || streams != null) {
@@ -196,7 +188,7 @@ public class KSMLRunner {
 
                 Runtime.getRuntime().addShutdownHook(shutdownHook);
 
-                try (var prometheusExport = new PrometheusExport(config.getKsmlConfig().getPrometheusConfig())) {
+                try (var prometheusExport = new PrometheusExport(config.ksml().prometheusConfig())) {
                     prometheusExport.start();
                     final var executorService = Executors.newFixedThreadPool(2);
 
@@ -270,7 +262,7 @@ public class KSMLRunner {
                 if (streamsRunner == null) {
                     return List.of();
                 }
-                return streamsRunner.getKafkaStreams().streamsMetadataForStore(storeName);
+                return streamsRunner.kafkaStreams().streamsMetadataForStore(storeName);
             }
 
             @Override
@@ -278,7 +270,7 @@ public class KSMLRunner {
                 if (streamsRunner == null) {
                     return null;
                 }
-                return streamsRunner.getKafkaStreams().queryMetadataForKey(storeName, key, keySerializer);
+                return streamsRunner.kafkaStreams().queryMetadataForKey(storeName, key, keySerializer);
             }
 
             @Override
@@ -286,7 +278,7 @@ public class KSMLRunner {
                 if (streamsRunner == null) {
                     return null;
                 }
-                return streamsRunner.getKafkaStreams().store(storeQueryParameters);
+                return streamsRunner.kafkaStreams().store(storeQueryParameters);
             }
 
             @Override
@@ -369,10 +361,10 @@ public class KSMLRunner {
         try {
             final var config = mapper.readValue(configFile, KSMLRunnerConfig.class);
             if (config != null) {
-                if (config.getKsmlConfig() == null) {
+                if (config.ksml() == null) {
                     throw new ConfigException("Section \"ksml\" is missing in configuration");
                 }
-                if (config.getKafkaConfig() == null) {
+                if (config.kafka() == null) {
                     throw new ConfigException("Section \"kafka\" is missing in configuration");
                 }
                 return config;
@@ -384,15 +376,15 @@ public class KSMLRunner {
     }
 
 
-    private static ErrorHandler getErrorHandler(KSMLErrorHandlingConfig.ErrorHandlingConfig config) {
-        final var handlerType = switch (config.getHandler()) {
+    private static ErrorHandler getErrorHandler(ErrorHandlingConfig.ErrorTypeHandlingConfig config) {
+        final var handlerType = switch (config.handler()) {
             case CONTINUE -> ErrorHandler.HandlerType.CONTINUE_ON_FAIL;
             case STOP -> ErrorHandler.HandlerType.STOP_ON_FAIL;
         };
         return new ErrorHandler(
-                config.isLog(),
-                config.isLogPayload(),
-                config.getLoggerName(),
+                config.log(),
+                config.logPayload(),
+                config.loggerName(),
                 handlerType);
     }
 }
