@@ -42,7 +42,7 @@ services:
 
   schema_registry:
     image: apicurio/apicurio-registry:3.0.2
-    hostname: schema_registry
+    hostname: schema-registry
     depends_on:
       broker:
         condition: service_healthy
