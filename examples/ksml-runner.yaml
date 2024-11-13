@@ -42,7 +42,7 @@ ksml:
       ## Below this line, specify properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
       config:
         # Link to Apicurio Confluent Compatibility URL
-        schema.registry.url: http://schema_registry:8081/apis/ccompat/v7
+        schema.registry.url: http://schema-registry:8081/apis/ccompat/v7
         auto.register.schemas: true
         normalize.schemas: true
         # Below is an example SSL configuration for Confluent Serialization library
