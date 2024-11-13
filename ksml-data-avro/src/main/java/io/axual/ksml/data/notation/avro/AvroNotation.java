@@ -21,6 +21,15 @@ package io.axual.ksml.data.notation.avro;
  */
 
 import com.google.common.collect.ImmutableMap;
+
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serializer;
+
+import java.nio.ByteBuffer;
+import java.util.Map;
+
 import io.apicurio.registry.serde.avro.AvroKafkaDeserializer;
 import io.apicurio.registry.serde.avro.AvroKafkaSerializer;
 import io.axual.ksml.data.exception.DataException;
@@ -35,13 +44,6 @@ import io.axual.ksml.data.type.StructType;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import lombok.Getter;
-import org.apache.kafka.common.header.Headers;
-import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serializer;
-
-import java.nio.ByteBuffer;
-import java.util.Map;
 
 public class AvroNotation implements Notation {
     public static final DataType DEFAULT_TYPE = new StructType();
