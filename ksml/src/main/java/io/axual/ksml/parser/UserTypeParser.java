@@ -163,7 +163,7 @@ public class UserTypeParser {
             return new UserType(datatype, NotationLibrary.get(datatype).defaultType());
         }
 
-        throw new TopologyException("Unknown data type: " + datatype);
+        throw new TopologyException("Unknown type: " + notation + ":" + datatype);
     }
 
     // This method decomposes a user type into its components. User types are always of the form "notation:datatype".

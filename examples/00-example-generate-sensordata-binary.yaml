@@ -37,10 +37,12 @@ functions:
     resultType: (string, json)                    # Indicate the type of key and value
 
 producers:
-  sensordata_avro_producer:
+  # This example uses the otherAvro notation, using the Apicurio Registry API and serializers.
+  # See the ksml-data-generator.yaml for the notation definition
+  sensordata_avro_producer_binary:
     generator: generate_sensordata_message
     interval: 3s
     to:
-      topic: ksml_sensordata_avro
+      topic: ksml_sensordata_avro_binary
       keyType: string
-      valueType: avro:SensorData
+      valueType: otherAvro:SensorData
