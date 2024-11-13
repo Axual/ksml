@@ -1,10 +1,10 @@
-package io.axual.ksml.data.object;
+package io.axual.ksml.data.util;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Data Library
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2024 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,22 +20,11 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.ExecutionException;
-import io.axual.ksml.data.type.EnumType;
+public class ValuePrinter {
+    private static final String QUOTE = "\"";
 
-public class DataEnum extends DataPrimitive<String> {
-    public DataEnum(String value, EnumType type) {
-        super(type, value);
-        if (!validateValue(value)) {
-            throw new ExecutionException("Invalid enum value for type " + type.schemaName() + ": " + value);
-        }
-    }
-
-    private boolean validateValue(String value) {
-        if (value == null) return true;
-        for (String symbol : ((EnumType) type()).symbols()) {
-            if (symbol.equals(value)) return true;
-        }
-        return false;
+    public static String print(Object value, boolean quoted) {
+        var quote = quoted && value instanceof String ? QUOTE : "";
+        return value != null ? quote + value + quote : "null";
     }
 }

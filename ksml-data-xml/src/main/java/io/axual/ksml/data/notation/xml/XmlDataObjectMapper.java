@@ -230,7 +230,7 @@ public class XmlDataObjectMapper implements DataObjectMapper<String> {
             return;
         }
         if (value != null) {
-            element.setTextContent(value.toString());
+            element.setTextContent(value.toString(DataObject.Printer.INTERNAL));
         }
     }
 }

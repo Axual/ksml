@@ -24,4 +24,27 @@ import io.axual.ksml.data.type.DataType;
 
 public interface DataObject {
     DataType type();
+
+    enum Printer {
+        INTERNAL,
+        EXTERNAL_NO_SCHEMA,
+        EXTERNAL_TOP_SCHEMA,
+        EXTERNAL_ALL_SCHEMA;
+
+        public Printer childObjectPrinter() {
+            if (this == INTERNAL) return INTERNAL;
+            return this == EXTERNAL_ALL_SCHEMA ? EXTERNAL_ALL_SCHEMA : EXTERNAL_NO_SCHEMA;
+        }
+
+        public String forceSchemaString(DataObject value) {
+            return value.type().schemaName() + ": ";
+        }
+
+        public String schemaString(DataObject value) {
+            if (this == INTERNAL || this == EXTERNAL_NO_SCHEMA) return "";
+            return forceSchemaString(value);
+        }
+    }
+
+    String toString(Printer printer);
 }

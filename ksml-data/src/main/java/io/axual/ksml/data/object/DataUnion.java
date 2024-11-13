@@ -28,7 +28,7 @@ public class DataUnion extends DataPrimitive<DataObject> {
     }
 
     @Override
-    public String toString() {
-        return type().toString() + ": " + super.toString();
+    public String toString(Printer printer) {
+        return printer.schemaString(this) + (value() != null ? value().toString(printer.childObjectPrinter()) : "null");
     }
 }

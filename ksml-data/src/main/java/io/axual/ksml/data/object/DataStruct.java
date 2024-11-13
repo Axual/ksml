@@ -23,6 +23,7 @@ package io.axual.ksml.data.object;
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.util.ValuePrinter;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -50,7 +51,6 @@ public class DataStruct implements DataObject {
         // If both (do not) start with the meta char, then sort as normal
         return o1.compareTo(o2);
     };
-    private static final String QUOTE = "\"";
 
     public interface DataStructApplier<T> {
         void apply(T value) throws Exception;
@@ -93,7 +93,7 @@ public class DataStruct implements DataObject {
     }
 
     public <T> void getIfPresent(String key, Class<T> clazz, DataStructApplier<T> applier) {
-        var value = get(key);
+        final var value = get(key);
         if (value != null && clazz.isAssignableFrom(value.getClass())) {
             try {
                 applier.apply((T) value);
@@ -108,7 +108,7 @@ public class DataStruct implements DataObject {
     }
 
     public <T> T getAs(String key, Class<T> clazz, T defaultValue) {
-        var value = get(key);
+        final var value = get(key);
         if (value != null && clazz.isAssignableFrom(value.getClass())) {
             return (T) value;
         }
@@ -116,7 +116,7 @@ public class DataStruct implements DataObject {
     }
 
     public DataString getAsString(String key) {
-        var result = get(key);
+        final var result = get(key);
         return result instanceof DataString str ? str : result != null ? new DataString(result.toString()) : null;
     }
 
@@ -136,29 +136,33 @@ public class DataStruct implements DataObject {
 
     @Override
     public String toString() {
-        var schemaName = type.schemaName() + ": ";
+        return toString(Printer.INTERNAL);
+    }
+
+    @Override
+    public String toString(Printer printer) {
+        final var schemaName = printer.schemaString(this);
 
         // Return NULL as value
         if (isNull()) return schemaName + "null";
 
-        Iterator<Map.Entry<String, DataObject>> i = entrySet().iterator();
+        final var iterator = entrySet().iterator();
 
         // Return empty struct as value
-        if (!i.hasNext()) return schemaName + "{}";
+        if (!iterator.hasNext()) return schemaName + "{}";
 
-        StringBuilder sb = new StringBuilder();
-        sb.append(schemaName).append('{');
+        // Iterate through all entries
+        final var sb = new StringBuilder(schemaName).append("{");
         while (true) {
-            Map.Entry<String, DataObject> e = i.next();
-            String key = e.getKey();
-            DataObject value = e.getValue();
-            var quote = (value instanceof DataString ? QUOTE : "");
-            sb.append(QUOTE).append(key).append(QUOTE);
-            sb.append(':');
-            sb.append(quote).append(value == this ? "(this Map)" : value).append(quote);
-            if (!i.hasNext())
-                return sb.append('}').toString();
-            sb.append(',').append(' ');
+            final var entry = iterator.next();
+            final var key = entry.getKey();
+            final var value = entry.getValue();
+            sb.append(ValuePrinter.print(key, true));
+            sb.append(": ");
+            sb.append(value.toString(printer.childObjectPrinter()));
+            if (!iterator.hasNext())
+                return sb.append("}").toString();
+            sb.append(", ");
         }
     }
 }
