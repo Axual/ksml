@@ -21,6 +21,7 @@ package io.axual.ksml.runner.backend;
  */
 
 
+import io.axual.ksml.runner.streams.KSMLClientSupplier;
 import org.apache.kafka.common.utils.Utils;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -40,7 +41,6 @@ import io.axual.ksml.execution.ExecutionErrorHandler;
 import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.runner.config.ApplicationServerConfig;
 import io.axual.ksml.runner.exception.RunnerException;
-import io.axual.ksml.runner.streams.KSMLClientSupplier;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

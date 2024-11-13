@@ -170,7 +170,7 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
             var fieldType = fieldStruct.get(ATTRIBUTES_ELEMENT_NAME) instanceof DataStruct attributeStruct ? attributeStruct.get(TYPE_NAME) : null;
             if (fieldType instanceof DataString fieldTypeString) {
                 var type = fieldTypeString.value().contains(":") ? fieldTypeString.value().substring(fieldTypeString.value().indexOf(":") + 1) : fieldTypeString.value();
-                return simpleField(fieldName.toString(), type);
+                return simpleField(fieldName.toString(DataObject.Printer.INTERNAL), type);
             } else {
                 // Field type is not specified, so dig down into the elements below to find out the type
                 var complexTypeElement = fieldStruct.get(COMPLEX_TYPE_NAME);
@@ -178,7 +178,14 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
                     var sequenceElement = complexTypeStruct.get(SEQUENCE_NAME);
                     if (sequenceElement instanceof DataStruct sequenceStruct) {
                         var fields = parseFields(sequenceStruct);
-                        return new DataField(fieldName.toString(), new StructSchema(null, fieldName.toString(), "Converted from XSD", fields), null);
+                        return new DataField(
+                                fieldName.toString(DataObject.Printer.INTERNAL),
+                                new StructSchema(
+                                        null,
+                                        fieldName.toString(DataObject.Printer.INTERNAL),
+                                        "Converted from XSD",
+                                        fields),
+                                null);
                     }
                 }
             }

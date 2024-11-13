@@ -1,8 +1,8 @@
-package io.axual.ksml.runner.backend;
+package io.axual.ksml.data.util;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Runner
+ * KSML Data Library
  * %%
  * Copyright (C) 2021 - 2024 Axual B.V.
  * %%
@@ -20,15 +20,11 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.object.DataObject;
+public class ValuePrinter {
+    private static final String QUOTE = "\"";
 
-/**
- * Reschedule strategy which runs the function only once.
- */
-public class SingleShotReschedule implements RescheduleStrategy {
-
-    @Override
-    public boolean  shouldReschedule(DataObject key, DataObject value) {
-        return false;
+    public static String print(Object value, boolean quoted) {
+        var quote = quoted && value instanceof String ? QUOTE : "";
+        return value != null ? quote + value + quote : "null";
     }
 }

@@ -29,7 +29,6 @@ import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.operation.StoreOperation;
 import io.axual.ksml.operation.StreamOperation;
-import io.axual.ksml.operation.ToOperation;
 import io.axual.ksml.stream.StreamWrapper;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
@@ -137,19 +136,6 @@ public class TopologyGenerator {
     }
 
     private void generate(TopologyDefinition specification, TopologyBuildContext context) {
-        // Register all topics
-        final var knownTopics = new HashSet<String>();
-        specification.topics().forEach((name, def) -> knownTopics.add(def.topic()));
-
-        // Add source and target topics to the set of known topics
-        specification.pipelines().forEach((name, def) -> {
-            if (def.source() != null && def.source().definition() != null)
-                knownTopics.add(def.source().definition().topic());
-            if (def.sink() instanceof ToOperation toOperation && toOperation.topic != null) {
-                knownTopics.add(toOperation.topic.topic());
-            }
-        });
-
         // Preload the function into the Python context
         specification.functions().forEach((name, func) -> context.createUserFunction(func));
 

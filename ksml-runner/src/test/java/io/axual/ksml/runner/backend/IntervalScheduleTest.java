@@ -20,6 +20,8 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.runner.producer.ExecutableProducer;
+import io.axual.ksml.runner.producer.IntervalSchedule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

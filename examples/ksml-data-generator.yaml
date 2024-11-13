@@ -42,7 +42,7 @@ ksml:
       ## Below this line, specify properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
       config:
         # The example uses Apicurio, using the Apicurio Confluent Compatibility URL
-        schema.registry.url: http://schema_registry:8081/apis/ccompat/v7
+        schema.registry.url: http://schema-registry:8081/apis/ccompat/v7
         auto.register.schemas: true
         normalize.schemas: true
         # Below is an example SSL configuration for Confluent Serialization library
@@ -81,15 +81,16 @@ ksml:
         # apicurio.registry.request.ssl.truststore.type: JKS
         # apicurio.registry.request.ssl.truststore.password: password
 
-
   enableProducers: true           # Set to true to allow producer definitions to be parsed in the KSML definitions and be executed.
   enablePipelines: false          # Set to true to allow pipeline definitions to be parsed in the KSML definitions and be executed.
 
   # Section where you specify which KSML definitions to load, parse and execute.
   definitions:
     # Format is <namespace>: <ksml_definition_filename>
-#    generate_alert_setting: 00-example-generate-alertsettings.yaml
+    generate_alert_setting: 00-example-generate-alertsettings.yaml
     generate_sensor_data: 00-example-generate-sensordata.yaml
+#    generate_sensor_data_batch: 00-example-generate-sensordata-batch.yaml
+#    generate_sensor_data_binary: 00-example-generate-sensordata-binary.yaml
 
 # This setup connects to the Kafka broker and schema registry started with the example docker-compose file
 # These examples are intended to run from a inside a container on the same network
@@ -118,7 +119,6 @@ kafka:
 # These patterns are resolved into the actual name used on Kafka using the values in this configuration map
 # and the topic names specified in the definition YAML files
 
-
 #  tenant: "ksmldemo"
 #  instance: "dta"
 #  environment: "dev"
@@ -126,4 +126,3 @@ kafka:
 #  # Results in Kafka topic ksmldemo-dta-dev-<topic name from KSML definition YAML>
 #  group.id.pattern: "{tenant}-{instance}-{environment}-{group.id}"
 #  transactional.id.pattern: "{tenant}-{instance}-{environment}-{transactional.id}"
-

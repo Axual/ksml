@@ -37,15 +37,15 @@ public class DataBytes extends DataPrimitive<byte[]> {
     }
 
     @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder(type().toString()).append(": ");
-        if (value() == null) return builder.append("null").toString();
-        builder.append("[");
+    public String toString(Printer printer) {
+        final var sb = new StringBuilder(printer.schemaString(this));
+        if (value() == null) return sb.append("null").toString();
+        sb.append("[");
         for (int index = 0; index < value().length; index++) {
-            if (index > 0) builder.append(", ");
-            builder.append(String.format("%02X ", value()[index]));
+            if (index > 0) sb.append(", ");
+            sb.append(String.format("%02X ", value()[index]));
         }
-        builder.append("]");
-        return builder.toString();
+        sb.append("]");
+        return sb.toString();
     }
 }

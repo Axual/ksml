@@ -20,6 +20,7 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.value.Tuple;
@@ -46,6 +47,11 @@ public class DataTuple extends Tuple<DataObject> implements DataObject {
 
     @Override
     public String toString() {
-        return type.toString() + ": " + super.toString();
+        return toString(Printer.INTERNAL);
+    }
+
+    @Override
+    public String toString(Printer printer) {
+        return printer.schemaString(this) + super.toString();
     }
 }

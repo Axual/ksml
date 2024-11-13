@@ -105,14 +105,14 @@ public class DataObjectConverter {
         }
 
         // First we see if the target notation is able to interpret the source value
-        var targetConverter = NotationLibrary.notation(targetType.notation()).converter();
+        var targetConverter = NotationLibrary.get(targetType.notation()).converter();
         if (targetConverter != null) {
             final var target = targetConverter.convert(value, targetType);
             if (target != null && targetType.dataType().isAssignableFrom(target.type())) return target;
         }
 
         // If the target notation was not able to convert, then try the source notation
-        var sourceConverter = NotationLibrary.notation(sourceNotation).converter();
+        var sourceConverter = NotationLibrary.get(sourceNotation).converter();
         if (sourceConverter != null) {
             final var target = sourceConverter.convert(value, targetType);
             if (target != null && targetType.dataType().isAssignableFrom(target.type())) return target;

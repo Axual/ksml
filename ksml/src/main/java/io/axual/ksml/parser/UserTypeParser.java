@@ -98,7 +98,7 @@ public class UserTypeParser {
         // Internal types
         final var internalType = parseType(datatype);
         if (internalType != null) {
-            final var n = NotationLibrary.notation(notation);
+            final var n = NotationLibrary.get(notation);
             if (n.defaultType() != null && !n.defaultType().isAssignableFrom(internalType)) {
                 throw new DataException("Notation " + notation + " does not allow for data type " + datatype);
             }
@@ -146,12 +146,12 @@ public class UserTypeParser {
 
         // Notation type with specific schema
         if (NotationLibrary.exists(notation)) {
-            final var loader = NotationLibrary.notation(notation).loader();
+            final var loader = NotationLibrary.get(notation).loader();
             if (loader != null) {
                 // If we reach this point, then we assume that the datatype refers to a schema to load
                 final var schema = SchemaLibrary.getSchema(notation, datatype, false);
                 final var schemaType = new DataTypeSchemaMapper().fromDataSchema(schema);
-                if (!(NotationLibrary.notation(notation).defaultType().isAssignableFrom(schemaType))) {
+                if (!(NotationLibrary.get(notation).defaultType().isAssignableFrom(schemaType))) {
                     throw new DataException("Notation " + notation + " does not allow for data type " + datatype);
                 }
                 return new UserType(notation, schemaType);
@@ -160,10 +160,10 @@ public class UserTypeParser {
 
         // Notation without specific schema
         if (NotationLibrary.exists(datatype)) {
-            return new UserType(datatype, NotationLibrary.notation(datatype).defaultType());
+            return new UserType(datatype, NotationLibrary.get(datatype).defaultType());
         }
 
-        throw new TopologyException("Unknown data type: " + datatype);
+        throw new TopologyException("Unknown type: " + notation + ":" + datatype);
     }
 
     // This method decomposes a user type into its components. User types are always of the form "notation:datatype".

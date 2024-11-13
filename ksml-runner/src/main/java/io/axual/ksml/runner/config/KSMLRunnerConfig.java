@@ -41,13 +41,19 @@ public class KSMLRunnerConfig {
     private static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 
     @JsonProperty("ksml")
-    private KSMLConfig ksml;
+    private KSMLConfig ksmlConfig;
 
     @JsonProperty("kafka")
-    private KafkaConfig kafka;
+    private KafkaConfig kafkaConfig;
 
     public String applicationId() {
-        return kafka.applicationId;
+        return kafkaConfig.applicationId;
+    }
+
+    public Map<String, String> kafkaConfig() {
+        var newConfig = new HashMap<>(kafkaConfig.kafkaConfig());
+        newConfig.put("application.id", kafkaConfig.applicationId());
+        return newConfig;
     }
 
     @Data
