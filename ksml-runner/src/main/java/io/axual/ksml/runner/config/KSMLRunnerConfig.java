@@ -60,7 +60,7 @@ public class KSMLRunnerConfig {
     public static class KafkaConfig {
         @JsonProperty("app.id")
         @JsonAlias({"applicationId", "application.id"})
-        public String applicationId;
+        private String applicationId;
 
         @JsonIgnore
         private Map<String, String> kafkaConfig = new HashMap<>();
