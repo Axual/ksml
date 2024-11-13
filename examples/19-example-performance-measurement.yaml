@@ -1,0 +1,44 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# This example behaves similarly to example 2 (copy) but includes Python code to measure KSML's performance. It does
+# so by storing the message count and startup timestamp in global variables, and outputting log statements every 100
+# #messages, containing #messages processed, #seconds running since first message came in, and average #msg/sec.
+
+streams:
+  sensor_source:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+    offsetResetPolicy: latest
+  sensor_copy:
+    topic: ksml_sensordata_copy
+    keyType: string
+    valueType: avro:SensorData
+
+pipelines:
+  main:
+    from: sensor_source
+    via:
+      # Use a PEEK operation to initialize the global messageCount and startTime
+      - type: peek
+        forEach:
+          globalCode: |
+            from datetime import datetime
+            messageCount, startTime = 0, 0
+          code: |
+            # Declare global variables, since we are updating them below
+            global messageCount, startTime
+            if messageCount == 0:
+              startTime = datetime.now()
+            messageCount += 1
+      # Output performance thus far, done in separate PEEK to allow easy insertion of other operations above
+      - type: peek
+        forEach:
+          code: |
+            # No need to include the global statement here, since we only read and don't update the global variables
+            # For every 100 messages that we process, we output a log statement with performance indication so far
+            if messageCount % 100 == 0:
+              # Prevent division by zero by using 1 second as minimum
+              runtime = max(1, (datetime.now() - startTime).total_seconds())
+              log.warn("Processed {} messages in {} seconds = {} msg/sec", messageCount, runtime, round(messageCount / runtime, 2))
+    to: sensor_copy

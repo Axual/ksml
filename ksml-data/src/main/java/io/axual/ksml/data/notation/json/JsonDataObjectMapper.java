@@ -28,17 +28,21 @@ import io.axual.ksml.data.type.DataType;
 
 public class JsonDataObjectMapper implements DataObjectMapper<String> {
     private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
-    private static final StringMapper<Object> STRING_MAPPER = new JsonStringMapper();
+    private final StringMapper<Object> stringMapper;
+
+    public JsonDataObjectMapper(boolean prettyPrint) {
+        stringMapper = new JsonStringMapper(prettyPrint);
+    }
 
     @Override
     public DataObject toDataObject(DataType expected, String value) {
-        var object = STRING_MAPPER.fromString(value);
+        var object = stringMapper.fromString(value);
         return NATIVE_MAPPER.toDataObject(expected, object);
     }
 
     @Override
     public String fromDataObject(DataObject value) {
         var object = NATIVE_MAPPER.fromDataObject(value);
-        return STRING_MAPPER.toString(object);
+        return stringMapper.toString(object);
     }
 }

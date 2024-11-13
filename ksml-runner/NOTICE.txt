@@ -1,5 +1,5 @@
 
-Lists of 123 third-party dependencies.
+Lists of 130 third-party dependencies.
      (Eclipse Public License - v 1.0) (GNU Lesser General Public License) Logback Classic Module (ch.qos.logback:logback-classic:1.5.6 - http://logback.qos.ch/logback-classic)
      (Eclipse Public License - v 1.0) (GNU Lesser General Public License) Logback Core Module (ch.qos.logback:logback-core:1.5.6 - http://logback.qos.ch/logback-core)
      (MIT License) minimal-json (com.eclipsesource.minimal-json:minimal-json:0.9.5 - https://github.com/ralfstx/minimal-json)
@@ -24,6 +24,13 @@ Lists of 123 third-party dependencies.
      (Eclipse Distribution License - v 1.0) Jakarta SOAP Implementation (com.sun.xml.messaging.saaj:saaj-impl:3.0.4 - https://projects.eclipse.org/projects/ee4j/metro-saaj/saaj-impl)
      (Apache-2.0) Apache Commons Codec (commons-codec:commons-codec:1.17.0 - https://commons.apache.org/proper/commons-codec/)
      (Apache-2.0) Apache Commons IO (commons-io:commons-io:2.16.1 - https://commons.apache.org/proper/commons-io/)
+     (Apache License Version 2.0) apicurio-common-rest-client-common (io.apicurio:apicurio-common-rest-client-common:0.1.18.Final - https://www.apicur.io/apicurio-common-rest-client-common/)
+     (Apache License Version 2.0) apicurio-common-rest-client-jdk (io.apicurio:apicurio-common-rest-client-jdk:0.1.18.Final - https://www.apicur.io/apicurio-common-rest-client-jdk/)
+     (Apache License Version 2.0) apicurio-registry-client (io.apicurio:apicurio-registry-client:2.6.5.Final - https://www.apicur.io/apicurio-registry-client/)
+     (Apache License Version 2.0) apicurio-registry-common (io.apicurio:apicurio-registry-common:2.6.5.Final - https://www.apicur.io/apicurio-registry-common/)
+     (Apache License Version 2.0) apicurio-registry-schema-resolver (io.apicurio:apicurio-registry-schema-resolver:2.6.5.Final - https://www.apicur.io/apicurio-registry-schema-resolver/)
+     (Apache License Version 2.0) apicurio-registry-serde-common (io.apicurio:apicurio-registry-serde-common:2.6.5.Final - https://www.apicur.io/apicurio-registry-serde-common/)
+     (Apache License Version 2.0) apicurio-registry-serdes-avro-serde (io.apicurio:apicurio-registry-serdes-avro-serde:2.6.5.Final - https://www.apicur.io/apicurio-registry-serdes-avro-serde/)
      (Apache 2.0) KSML (io.axual.ksml:ksml:1.1.0-SNAPSHOT - https://github.com/Axual/ksml/ksml)
      (Apache 2.0) KSML Data Library (io.axual.ksml:ksml-data:1.1.0-SNAPSHOT - https://github.com/Axual/ksml/ksml-data)
      (Apache 2.0) KSML Data Library - AVRO (io.axual.ksml:ksml-data-avro:1.1.0-SNAPSHOT - https://github.com/Axual/ksml/ksml-data-avro)
@@ -64,7 +71,7 @@ Lists of 123 third-party dependencies.
      (Eclipse Distribution License - v 1.0) Jakarta XML Binding API (jakarta.xml.bind:jakarta.xml.bind-api:4.0.2 - https://github.com/jakartaee/jaxb-api/jakarta.xml.bind-api)
      (Eclipse Distribution License - v 1.0) Jakarta SOAP with Attachments API (jakarta.xml.soap:jakarta.xml.soap-api:3.0.2 - https://github.com/jakartaee/saaj-api)
      (Apache License, Version 2.0) (MIT License) Logstash Logback Encoder (net.logstash.logback:logstash-logback-encoder:7.4 - https://github.com/logfellow/logstash-logback-encoder)
-     (Apache-2.0) Apache Avro (org.apache.avro:avro:1.11.4 - https://avro.apache.org)
+     (Apache-2.0) Apache Avro (org.apache.avro:avro:1.12.0 - https://avro.apache.org)
      (Apache-2.0) Apache Commons Compress (org.apache.commons:commons-compress:1.26.2 - https://commons.apache.org/proper/commons-compress/)
      (Apache-2.0) Apache Commons Lang (org.apache.commons:commons-lang3:3.14.0 - https://commons.apache.org/proper/commons-lang/)
      (Apache-2.0) Apache Commons Text (org.apache.commons:commons-text:1.12.0 - https://commons.apache.org/proper/commons-text)

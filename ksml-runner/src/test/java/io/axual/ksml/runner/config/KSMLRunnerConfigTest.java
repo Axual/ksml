@@ -46,6 +46,6 @@ class KSMLRunnerConfigTest {
         final var ksmlRunnerConfig = objectMapper.readValue(yaml, KSMLRunnerConfig.class);
 
         assertNotNull(ksmlRunnerConfig.ksmlConfig());
-        assertNotNull(ksmlRunnerConfig.getKafkaConfig());
+        assertNotNull(ksmlRunnerConfig.kafkaConfig());
     }
 }

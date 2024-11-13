@@ -24,6 +24,7 @@ package io.axual.ksml.runner.config;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.data.notation.binary.JsonNodeNativeMapper;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.runner.exception.ConfigException;
@@ -52,7 +53,7 @@ public class KSMLConfig {
 
     @JsonProperty("applicationServer")
     @Builder.Default
-    private ApplicationServerConfig applicationServer = DEFAULT_APPSERVER_CONFIG;
+    private ApplicationServerConfig applicationServerConfig = DEFAULT_APPSERVER_CONFIG;
     @JsonProperty("prometheus")
     @Builder.Default
     @Getter
@@ -68,7 +69,9 @@ public class KSMLConfig {
     private boolean enablePipelines = true;
 
     @JsonProperty("errorHandling")
-    private KSMLErrorHandlingConfig errorHandling;
+    private ErrorHandlingConfig errorHandlingConfig;
+    @JsonProperty("notations")
+    private Map<String, NotationConfig> notations;
     @JsonProperty("definitions")
     private Map<String, Object> definitions;
     @JsonProperty("schemas")
@@ -95,12 +98,17 @@ public class KSMLConfig {
     }
 
     public ApplicationServerConfig applicationServerConfig() {
-        return applicationServer;
+        return applicationServerConfig;
     }
 
-    public KSMLErrorHandlingConfig errorHandlingConfig() {
-        if (errorHandling == null) return KSMLErrorHandlingConfig.builder().build();
-        return errorHandling;
+    public ErrorHandlingConfig errorHandlingConfig() {
+        if (errorHandlingConfig == null) return ErrorHandlingConfig.builder().build();
+        return errorHandlingConfig;
+    }
+
+    public Map<String, NotationConfig> notations() {
+        if (notations != null) return ImmutableMap.copyOf(notations);
+        return ImmutableMap.of();
     }
 
     public Map<String, JsonNode> definitions() {

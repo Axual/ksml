@@ -1,4 +1,4 @@
-# $schema: https://raw.githubusercontent.com/Axual/ksml/main/docs/ksml-language-spec.json
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
 # This example shows how to generate data and have it sent to a target topic in a given format.
 
@@ -37,9 +37,12 @@ functions:
     resultType: (string, json)                    # Indicate the type of key and value
 
 producers:
+  # Produce 10k messages in batches of 100 messages with a 1ms interval
   sensordata_avro_producer:
     generator: generate_sensordata_message
-    interval: 3s
+    interval: 1
+    count: 10000
+    batchSize: 100
     to:
       topic: ksml_sensordata_avro
       keyType: string

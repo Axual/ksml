@@ -1,10 +1,10 @@
-package io.axual.ksml.runner.backend;
+package io.axual.ksml.runner.config;
 
 /*-
  * ========================LICENSE_START=================================
  * KSML Runner
  * %%
- * Copyright (C) 2021 - 2024 Axual B.V.
+ * Copyright (C) 2021 - 2023 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,14 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.object.DataObject;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Builder;
+import lombok.extern.jackson.Jacksonized;
 
-/**
- * Reschedule strategy which runs the function only once.
- */
-public class SingleShotReschedule implements RescheduleStrategy {
+import java.util.Map;
 
-    @Override
-    public boolean  shouldReschedule(DataObject key, DataObject value) {
-        return false;
-    }
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Builder
+@Jacksonized
+public record NotationConfig(String type, Map<String, String> config) {
 }

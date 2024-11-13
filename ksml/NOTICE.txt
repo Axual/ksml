@@ -1,5 +1,5 @@
 
-Lists of 72 third-party dependencies.
+Lists of 79 third-party dependencies.
      (MIT License) minimal-json (com.eclipsesource.minimal-json:minimal-json:0.9.5 - https://github.com/ralfstx/minimal-json)
      (The Apache Software License, Version 2.0) Jackson-annotations (com.fasterxml.jackson.core:jackson-annotations:2.17.1 - https://github.com/FasterXML/jackson)
      (The Apache Software License, Version 2.0) Jackson-core (com.fasterxml.jackson.core:jackson-core:2.17.1 - https://github.com/FasterXML/jackson-core)
@@ -19,6 +19,13 @@ Lists of 72 third-party dependencies.
      (Eclipse Distribution License - v 1.0) Jakarta SOAP Implementation (com.sun.xml.messaging.saaj:saaj-impl:3.0.4 - https://projects.eclipse.org/projects/ee4j/metro-saaj/saaj-impl)
      (Apache-2.0) Apache Commons Codec (commons-codec:commons-codec:1.17.0 - https://commons.apache.org/proper/commons-codec/)
      (Apache-2.0) Apache Commons IO (commons-io:commons-io:2.16.1 - https://commons.apache.org/proper/commons-io/)
+     (Apache License Version 2.0) apicurio-common-rest-client-common (io.apicurio:apicurio-common-rest-client-common:0.1.18.Final - https://www.apicur.io/apicurio-common-rest-client-common/)
+     (Apache License Version 2.0) apicurio-common-rest-client-jdk (io.apicurio:apicurio-common-rest-client-jdk:0.1.18.Final - https://www.apicur.io/apicurio-common-rest-client-jdk/)
+     (Apache License Version 2.0) apicurio-registry-client (io.apicurio:apicurio-registry-client:2.6.5.Final - https://www.apicur.io/apicurio-registry-client/)
+     (Apache License Version 2.0) apicurio-registry-common (io.apicurio:apicurio-registry-common:2.6.5.Final - https://www.apicur.io/apicurio-registry-common/)
+     (Apache License Version 2.0) apicurio-registry-schema-resolver (io.apicurio:apicurio-registry-schema-resolver:2.6.5.Final - https://www.apicur.io/apicurio-registry-schema-resolver/)
+     (Apache License Version 2.0) apicurio-registry-serde-common (io.apicurio:apicurio-registry-serde-common:2.6.5.Final - https://www.apicur.io/apicurio-registry-serde-common/)
+     (Apache License Version 2.0) apicurio-registry-serdes-avro-serde (io.apicurio:apicurio-registry-serdes-avro-serde:2.6.5.Final - https://www.apicur.io/apicurio-registry-serdes-avro-serde/)
      (Apache 2.0) KSML Data Library (io.axual.ksml:ksml-data:1.1.0-SNAPSHOT - https://github.com/Axual/ksml/ksml-data)
      (Apache 2.0) KSML Data Library - AVRO (io.axual.ksml:ksml-data-avro:1.1.0-SNAPSHOT - https://github.com/Axual/ksml/ksml-data-avro)
      (Apache 2.0) KSML Data Library - CSV (io.axual.ksml:ksml-data-csv:1.1.0-SNAPSHOT - https://github.com/Axual/ksml/ksml-data-csv)
@@ -36,7 +43,7 @@ Lists of 72 third-party dependencies.
      (EDL 1.0) Jakarta Activation API (jakarta.activation:jakarta.activation-api:2.1.3 - https://github.com/jakartaee/jaf-api)
      (Apache License 2.0) Jakarta Bean Validation API (jakarta.validation:jakarta.validation-api:3.0.2 - https://beanvalidation.org)
      (Eclipse Distribution License - v 1.0) Jakarta SOAP with Attachments API (jakarta.xml.soap:jakarta.xml.soap-api:3.0.2 - https://github.com/jakartaee/saaj-api)
-     (Apache-2.0) Apache Avro (org.apache.avro:avro:1.11.4 - https://avro.apache.org)
+     (Apache-2.0) Apache Avro (org.apache.avro:avro:1.12.0 - https://avro.apache.org)
      (Apache-2.0) Apache Commons Compress (org.apache.commons:commons-compress:1.26.2 - https://commons.apache.org/proper/commons-compress/)
      (Apache-2.0) Apache Commons Lang (org.apache.commons:commons-lang3:3.14.0 - https://commons.apache.org/proper/commons-lang/)
      (The Apache License, Version 2.0) Apache Kafka (org.apache.kafka:kafka-clients:3.8.0 - https://kafka.apache.org)

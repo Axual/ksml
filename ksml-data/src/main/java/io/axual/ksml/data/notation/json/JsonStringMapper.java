@@ -29,8 +29,13 @@ import java.io.IOException;
 import java.io.StringWriter;
 
 public class JsonStringMapper implements StringMapper<Object> {
-    protected final ObjectMapper mapper = new ObjectMapper();
     private static final JsonNodeNativeMapper NATIVE_MAPPER = new JsonNodeNativeMapper();
+    protected final ObjectMapper mapper = new ObjectMapper();
+    private final boolean prettyPrint;
+
+    public JsonStringMapper(boolean prettyPrint) {
+        this.prettyPrint = prettyPrint;
+    }
 
     @Override
     public Object fromString(String value) {
@@ -48,7 +53,10 @@ public class JsonStringMapper implements StringMapper<Object> {
         if (value == null) return null; // Allow null as native input, return null string as output
         try {
             final var writer = new StringWriter();
-            mapper.writeTree(mapper.createGenerator(writer), NATIVE_MAPPER.fromNative(value));
+            final var generator = prettyPrint
+                    ? mapper.writerWithDefaultPrettyPrinter().createGenerator(writer)
+                    : mapper.createGenerator(writer);
+            mapper.writeTree(generator, NATIVE_MAPPER.fromNative(value));
             return writer.toString();
         } catch (IOException e) {
             throw new DataException("Can not convert object to JSON string: " + value, e);

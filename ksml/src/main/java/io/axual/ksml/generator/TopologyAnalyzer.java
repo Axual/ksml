@@ -24,46 +24,49 @@ import io.axual.ksml.definition.StateStoreDefinition;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyDescription;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 public class TopologyAnalyzer {
     public record TopologyAnalysis(Set<String> inputTopics, Set<String> intermediateTopics,
-                                   Set<String> outputTopics, Map<String, StateStoreDefinition> stores) {
+                                   Set<String> outputTopics, Set<String> internalTopics) {
     }
 
-    public static TopologyAnalysis analyze(Topology topology, String applicationId, Collection<String> knownTopics) {
+    public static TopologyAnalysis analyze(Topology topology, String applicationId) {
         // Derive all input, intermediate and output topics
-        final var topologyInputs = new HashSet<String>();
-        final var topologyOutputs = new HashSet<String>();
-        final var inputTopics = new HashSet<String>();
-        final var outputTopics = new HashSet<String>();
-        final var intermediateTopics = new HashSet<String>();
+        final var inputTopics = new TreeSet<String>();
+        final var intermediateTopics = new TreeSet<String>();
+        final var outputTopics = new TreeSet<String>();
+        final var internalTopics = new TreeSet<String>();
 
-        analyzeTopology(topology, topologyInputs, topologyOutputs);
+        analyzeTopology(topology, inputTopics, outputTopics);
 
-        for (String topic : topologyInputs) {
-            if (knownTopics.contains(topic)) {
-                inputTopics.add(topic);
-            } else {
-                intermediateTopics.add(applicationId + "-" + topic);
+        // Intermediate topics are both input and output topics, so sort them into a separate set
+        for (final var topic : inputTopics) {
+            if (outputTopics.contains(topic)) {
+                intermediateTopics.add(topic);
+                outputTopics.remove(topic);
             }
         }
+        inputTopics.removeAll(intermediateTopics);
 
-        for (String topic : topologyOutputs) {
-            if (knownTopics.contains(topic)) {
-                outputTopics.add(topic);
-            } else {
-                intermediateTopics.add(applicationId + "-" + topic);
+        // Internal topics end in "changelog" or "repartition", so sort them into a separate set
+        for (final var topic : intermediateTopics) {
+            if (topic.endsWith("-changelog") || topic.endsWith("-repartition")) {
+                internalTopics.add(topic);
             }
         }
+        intermediateTopics.removeAll(internalTopics);
 
         // Return the built topology and its context
         return new TopologyAnalysis(
                 inputTopics,
                 intermediateTopics,
                 outputTopics,
-                new HashMap<>());
-//                context.getStoreDefinitions());
+                internalTopics.stream().map(topic -> applicationId + "-" + topic).collect(Collectors.toSet()));
     }
 
     private static void analyzeTopology(Topology topology, Set<String> inputTopics, Set<String> outputTopics) {
@@ -77,7 +80,7 @@ public class TopologyAnalyzer {
                             inputTopics.add(sourceNode.topicPattern().pattern());
                     }
                     if (node instanceof TopologyDescription.Processor processorNode) {
-//                        stores.addAll(processorNode.stores());
+                        // Ignore store names here
                     }
                     if (node instanceof TopologyDescription.Sink sinkNode && sinkNode.topic() != null) {
                         outputTopics.add(sinkNode.topic());

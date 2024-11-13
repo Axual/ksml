@@ -22,22 +22,22 @@ package io.axual.ksml.runner.config;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Builder
 @Jacksonized
-public class KSMLErrorHandlingConfig {
-    private ErrorHandlingConfig consume;
-    private ErrorHandlingConfig produce;
-    private ErrorHandlingConfig process;
+public class ErrorHandlingConfig {
+    private final ErrorTypeHandlingConfig consume;
+    private final ErrorTypeHandlingConfig produce;
+    private final ErrorTypeHandlingConfig process;
 
-    public ErrorHandlingConfig consumerErrorHandlingConfig() {
+    public ErrorTypeHandlingConfig consumerErrorHandlingConfig() {
         if (consume == null) {
-            return defaultErrorHandlingConfig("ConsumeError");
+            return defaultErrorTypeHandlingConfig("ConsumeError");
         }
         if (consume.loggerName() == null) {
             consume.loggerName("ConsumeError");
@@ -45,9 +45,9 @@ public class KSMLErrorHandlingConfig {
         return consume;
     }
 
-    public ErrorHandlingConfig producerErrorHandlingConfig() {
+    public ErrorTypeHandlingConfig producerErrorHandlingConfig() {
         if (produce == null) {
-            return defaultErrorHandlingConfig("ProduceError");
+            return defaultErrorTypeHandlingConfig("ProduceError");
         }
         if (produce.loggerName() == null) {
             produce.loggerName("ProduceError");
@@ -55,9 +55,9 @@ public class KSMLErrorHandlingConfig {
         return produce;
     }
 
-    public ErrorHandlingConfig processErrorHandlingConfig() {
+    public ErrorTypeHandlingConfig processErrorHandlingConfig() {
         if (process == null) {
-            return defaultErrorHandlingConfig("ProcessError");
+            return defaultErrorTypeHandlingConfig("ProcessError");
         }
         if (process.loggerName() == null) {
             process.loggerName("ProcessError");
@@ -65,18 +65,21 @@ public class KSMLErrorHandlingConfig {
         return process;
     }
 
-    private ErrorHandlingConfig defaultErrorHandlingConfig(String logger) {
-        var errorHandlingConfig = new ErrorHandlingConfig();
+    private ErrorTypeHandlingConfig defaultErrorTypeHandlingConfig(String logger) {
+        var errorHandlingConfig = new ErrorTypeHandlingConfig();
         errorHandlingConfig.loggerName(logger);
         return errorHandlingConfig;
     }
 
-    @Setter
-    @Getter
-    public static class ErrorHandlingConfig {
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @Data
+    public static class ErrorTypeHandlingConfig {
         private boolean log = true;
+        @JsonProperty("logPayload")
         private boolean logPayload = false;
+        @JsonProperty("loggerName")
         private String loggerName;
+        @JsonProperty("handler")
         private Handler handler = Handler.STOP;
 
         public enum Handler {

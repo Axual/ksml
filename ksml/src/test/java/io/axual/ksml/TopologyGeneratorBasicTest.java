@@ -25,7 +25,6 @@ import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
-import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
 import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
@@ -56,9 +55,9 @@ public class TopologyGeneratorBasicTest {
     @ValueSource(ints = {1, 2, 3, 4, 5})
     void parseAndCheckOuput(int nr) throws Exception {
         final var mapper = new NativeDataObjectMapper();
-        final var jsonNotation = new JsonNotation(mapper);
-        NotationLibrary.register(BinaryNotation.NOTATION_NAME, new BinaryNotation(mapper, jsonNotation::serde), null);
-        NotationLibrary.register(JsonNotation.NOTATION_NAME, jsonNotation, new JsonDataObjectConverter());
+        final var jsonNotation = new JsonNotation(mapper, null);
+        NotationLibrary.register(BinaryNotation.NAME, new BinaryNotation(mapper, jsonNotation::serde));
+        NotationLibrary.register(JsonNotation.NAME, jsonNotation);
 
         final var uri = ClassLoader.getSystemResource("pipelines/" + nr + "-demo.yaml").toURI();
         final var path = Paths.get(uri);

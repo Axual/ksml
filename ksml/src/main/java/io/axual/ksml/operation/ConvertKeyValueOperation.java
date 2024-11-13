@@ -44,7 +44,7 @@ public class ConvertKeyValueOperation extends BaseOperation {
         final var v = input.valueType().flatten();
         final var kr = streamDataTypeOf(targetKeyType, true).flatten();
         final var vr = streamDataTypeOf(targetValueType, false).flatten();
-        final var mapper = context.getDataObjectConverter();
+        final var mapper = context.converter();
 
         // Set up the mapping function to convert the key and value
         KeyValueMapper<Object, Object, KeyValue<Object, Object>> converter = (key, value) -> {

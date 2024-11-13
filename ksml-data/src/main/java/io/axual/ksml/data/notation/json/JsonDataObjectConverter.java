@@ -31,7 +31,7 @@ import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.UnionType;
 
 public class JsonDataObjectConverter implements NotationConverter {
-    private static final JsonDataObjectMapper DATA_OBJECT_MAPPER = new JsonDataObjectMapper();
+    private static final JsonDataObjectMapper DATA_OBJECT_MAPPER = new JsonDataObjectMapper(false);
 
     @Override
     public DataObject convert(DataObject value, UserType targetType) {
