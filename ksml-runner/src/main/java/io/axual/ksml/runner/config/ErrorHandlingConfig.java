@@ -37,7 +37,7 @@ public class ErrorHandlingConfig {
 
     public ErrorTypeHandlingConfig consumerErrorHandlingConfig() {
         if (consume == null) {
-            return defaultErrorHandlingConfig("ConsumeError");
+            return defaultErrorTypeHandlingConfig("ConsumeError");
         }
         if (consume.loggerName() == null) {
             consume.loggerName("ConsumeError");
@@ -47,7 +47,7 @@ public class ErrorHandlingConfig {
 
     public ErrorTypeHandlingConfig producerErrorHandlingConfig() {
         if (produce == null) {
-            return defaultErrorHandlingConfig("ProduceError");
+            return defaultErrorTypeHandlingConfig("ProduceError");
         }
         if (produce.loggerName() == null) {
             produce.loggerName("ProduceError");
@@ -57,7 +57,7 @@ public class ErrorHandlingConfig {
 
     public ErrorTypeHandlingConfig processErrorHandlingConfig() {
         if (process == null) {
-            return defaultErrorHandlingConfig("ProcessError");
+            return defaultErrorTypeHandlingConfig("ProcessError");
         }
         if (process.loggerName() == null) {
             process.loggerName("ProcessError");
@@ -65,15 +65,15 @@ public class ErrorHandlingConfig {
         return process;
     }
 
-    private ErrorTypeHandlingConfig defaultErrorHandlingConfig(String logger) {
-        var result = new ErrorTypeHandlingConfig();
-        result.loggerName(logger);
-        return result;
+    private ErrorTypeHandlingConfig defaultErrorTypeHandlingConfig(String logger) {
+        var errorHandlingConfig = new ErrorTypeHandlingConfig();
+        errorHandlingConfig.loggerName(logger);
+        return errorHandlingConfig;
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     @Data
     public static class ErrorTypeHandlingConfig {
-        @JsonProperty("log")
         private boolean log = true;
         @JsonProperty("logPayload")
         private boolean logPayload = false;

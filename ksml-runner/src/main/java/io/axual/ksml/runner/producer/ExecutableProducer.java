@@ -20,14 +20,6 @@ package io.axual.ksml.runner.producer;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.serialization.Serializer;
-
-import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-
 import io.axual.ksml.client.serde.ResolvingSerializer;
 import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
@@ -45,10 +37,16 @@ import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserGenerator;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.serialization.Serializer;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import static io.axual.ksml.data.notation.UserType.DEFAULT_NOTATION;

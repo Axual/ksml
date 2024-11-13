@@ -8,6 +8,10 @@ streams:
     keyType: string
     valueType: avro:SensorData
     offsetResetPolicy: latest
+  sensor_source_avro_binary:
+    topic: ksml_sensordata_avro_binary
+    keyType: string
+    valueType: otherAvro:SensorData
   sensor_source_csv:
     topic: ksml_sensordata_csv
     keyType: string
@@ -36,6 +40,10 @@ pipelines:
     from: sensor_source_avro
     forEach:
       code: log_message(key, value, format="AVRO")
+  consume_avro_binary:
+    from: sensor_source_avro_binary
+    forEach:
+      code: log_message(key, value, format="OTHER_AVRO")
   consume_csv:
     from: sensor_source_csv
     forEach:

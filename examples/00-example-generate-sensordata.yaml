@@ -1,4 +1,4 @@
-# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+# $schema: https://raw.githubusercontent.com/Axual/ksml/main/docs/ksml-language-spec.json
 
 # This example shows how to generate data and have it sent to a target topic in a given format.
 
