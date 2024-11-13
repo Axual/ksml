@@ -81,7 +81,6 @@ ksml:
         # apicurio.registry.request.ssl.truststore.type: JKS
         # apicurio.registry.request.ssl.truststore.password: password
 
-
   enableProducers: true           # Set to true to allow producer definitions to be parsed in the KSML definitions and be executed.
   enablePipelines: false          # Set to true to allow pipeline definitions to be parsed in the KSML definitions and be executed.
 
@@ -117,7 +116,6 @@ kafka:
 # Use these configuration properties when connecting to a cluster using the Axual naming patterns.
 # These patterns are resolved into the actual name used on Kafka using the values in this configuration map
 # and the topic names specified in the definition YAML files
-
 
 #  tenant: "ksmldemo"
 #  instance: "dta"

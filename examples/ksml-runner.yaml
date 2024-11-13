@@ -119,7 +119,6 @@ kafka:
   auto.offset.reset: earliest
   acks: all
 
-
   # These are Kafka SSL configuration properties. Check the documentation at1
   # Check the documentation at https://kafka.apache.org/documentation/#producerconfigs for more properties
 
