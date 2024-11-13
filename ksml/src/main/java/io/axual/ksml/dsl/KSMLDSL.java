@@ -74,6 +74,7 @@ public class KSMLDSL {
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Producers {
         public static final String GENERATOR = "generator";
+        public static final String BATCH_SIZE = "batchSize";
         public static final String INTERVAL = "interval";
         public static final String CONDITION = "condition";
         public static final String TARGET = "to";

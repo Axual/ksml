@@ -53,7 +53,7 @@ public class KSMLConfig {
 
     @JsonProperty("applicationServer")
     @Builder.Default
-    private ApplicationServerConfig applicationServer = DEFAULT_APPSERVER_CONFIG;
+    private ApplicationServerConfig applicationServerConfig = DEFAULT_APPSERVER_CONFIG;
     @JsonProperty("prometheus")
     @Builder.Default
     @Getter
@@ -98,7 +98,7 @@ public class KSMLConfig {
     }
 
     public ApplicationServerConfig applicationServerConfig() {
-        return applicationServer;
+        return applicationServerConfig;
     }
 
     public ErrorHandlingConfig errorHandlingConfig() {

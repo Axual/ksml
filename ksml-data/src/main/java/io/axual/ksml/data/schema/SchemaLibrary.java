@@ -60,7 +60,7 @@ public class SchemaLibrary {
             if (schema != null) return schema;
         }
 
-        final var notation = NotationLibrary.notation(notationName);
+        final var notation = NotationLibrary.get(notationName);
         if (notation.loader() == null) return null;
 
         var schema = notation.loader().load(schemaName);

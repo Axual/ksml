@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class JsonSchemaLoader extends SchemaLoader {
-    private static final JsonSchemaMapper MAPPER = new JsonSchemaMapper();
+    private static final JsonSchemaMapper MAPPER = new JsonSchemaMapper(false);
 
     public JsonSchemaLoader(String schemaDirectory) {
         super("JSON", schemaDirectory, ".json");

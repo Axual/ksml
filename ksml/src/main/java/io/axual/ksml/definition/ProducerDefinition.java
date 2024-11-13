@@ -22,9 +22,13 @@ package io.axual.ksml.definition;
 
 import java.time.Duration;
 
-public record ProducerDefinition(FunctionDefinition generator, Duration interval, FunctionDefinition condition,
-                                 TopicDefinition target, Integer count,
-                                 FunctionDefinition until) implements Definition {
+public record ProducerDefinition(FunctionDefinition generator,
+                                 FunctionDefinition condition,
+                                 FunctionDefinition until,
+                                 TopicDefinition target,
+                                 Long messageCount,
+                                 Long batchSize,
+                                 Duration interval) implements Definition {
     @Override
     public String toString() {
         return definitionType();

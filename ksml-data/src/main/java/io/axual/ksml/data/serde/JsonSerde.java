@@ -26,7 +26,7 @@ import io.axual.ksml.data.notation.json.JsonDataObjectMapper;
 import io.axual.ksml.data.type.DataType;
 
 public class JsonSerde extends StringSerde {
-    private static final DataObjectMapper<String> STRING_MAPPER = new JsonDataObjectMapper();
+    private static final DataObjectMapper<String> STRING_MAPPER = new JsonDataObjectMapper(false);
 
     public JsonSerde(NativeDataObjectMapper nativeMapper, DataType expectedType) {
         super(nativeMapper, STRING_MAPPER, expectedType);

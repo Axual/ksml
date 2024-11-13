@@ -22,6 +22,7 @@ package io.axual.ksml.runner.config;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -71,8 +72,11 @@ public class ErrorHandlingConfig {
     @Data
     public static class ErrorTypeHandlingConfig {
         private boolean log = true;
+        @JsonProperty("logPayload")
         private boolean logPayload = false;
+        @JsonProperty("loggerName")
         private String loggerName;
+        @JsonProperty("handler")
         private Handler handler = Handler.STOP;
 
         public enum Handler {

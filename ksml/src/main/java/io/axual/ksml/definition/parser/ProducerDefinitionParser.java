@@ -40,11 +40,12 @@ public class ProducerDefinitionParser extends TopologyResourceAwareParser<Produc
                 "",
                 "Definition of a Producer that regularly generates messages for a topic",
                 functionField(Producers.GENERATOR, "The function that generates records", new GeneratorDefinitionParser(false)),
-                durationField(Producers.INTERVAL, "The interval with which the generator is called"),
                 optional(functionField(Producers.CONDITION, "A function that validates the generator's result message. Returns \"true\" when the message may be produced on the topic, \"false\" otherwise.", new PredicateDefinitionParser(false))),
-                topicField(Producers.TARGET, "The topic to produce to", new TopicDefinitionParser(resources(), false)),
-                optional(integerField(Producers.COUNT, "The number of messages to produce.")),
                 optional(functionField(Producers.UNTIL, "A predicate that returns true to indicate producing should stop.", new PredicateDefinitionParser(false))),
-                (generator, interval, condition, target, count, until, tags) -> new ProducerDefinition(generator, interval, condition, target, count, until));
+                topicField(Producers.TARGET, "The topic to produce to", new TopicDefinitionParser(resources(), false)),
+                optional(longField(Producers.COUNT, "The number of messages to produce.")),
+                optional(longField(Producers.BATCH_SIZE, 1L, "The size of batches")),
+                optional(durationField(Producers.INTERVAL, "The interval with which the generator is called")),
+                (generator, condition, until, target, count, batchSize, interval, tags) -> new ProducerDefinition(generator, condition, until, target, count, batchSize, interval));
     }
 }
