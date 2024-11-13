@@ -112,27 +112,24 @@ public class KSMLRunner {
 
             // Set up all notation overrides from the KSML config
             for (final var notationEntry : ksmlConfig.notations().entrySet()) {
-                final var notationStr = notationEntry.getKey() != null ? notationEntry.getKey() : "undefined";
+                final var notation = notationEntry.getKey();
                 final var notationConfig = notationEntry.getValue();
-                final var factoryName = notationConfig != null ? notationConfig.type() : "unknown";
-                if (notationConfig != null && factoryName != null) {
-                    final var factory = notationFactories.notations().get(factoryName);
-                    if (factory == null) {
-                        throw FatalError.reportAndExit(new ConfigException("Unknown notation type: " + factoryName));
+                if (notation != null && notationConfig != null) {
+                    final var n = notationFactories.notations().get(notationConfig.type());
+                    if (n == null) {
+                        throw FatalError.reportAndExit(new ConfigException("Notation type '" + notationConfig.type() + "' not found"));
                     }
-                    NotationLibrary.register(notationStr, factory.create(notationConfig.config()));
-                } else {
-                    log.warn("Notation configuration incomplete: notation=" + notationStr + ", type=" + factoryName);
+                    NotationLibrary.register(notation, n.create(notationConfig.config()));
                 }
             }
 
-            // Ensure typical defaults are used for AVRO
-            // WARNING: Defaults for notations will be deprecated in the future. Make sure you explicitly configure
-            // notations with multiple implementations (like AVRO) in your ksml-runner.yaml.
+            // Ensure typical defaults are used
+            // WARNING: Defaults for notations will be deprecated in the future. Make sure you explicitly define
+            // notations that have multiple implementations in your ksml-runner.yaml.
             if (!NotationLibrary.exists(NotationFactories.AVRO)) {
                 final var defaultAvro = notationFactories.confluentAvro();
                 NotationLibrary.register(NotationFactories.AVRO, defaultAvro.create(null));
-                log.warn("No implementation specified for AVRO notation. If you use AVRO in your KSML definition, add the required configuration to the ksml-runner.yaml");
+                log.warn("No implementation specified for AVRO notation. If you plan to use AVRO, add the required implementation to the ksml-runner.yaml");
             }
 
             final var errorHandling = ksmlConfig.errorHandlingConfig();
