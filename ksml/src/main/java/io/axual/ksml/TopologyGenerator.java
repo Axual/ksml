@@ -21,17 +21,6 @@ package io.axual.ksml;
  */
 
 
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.Topology;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-
 import io.axual.ksml.definition.GlobalTableDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.TableDefinition;
@@ -42,6 +31,13 @@ import io.axual.ksml.operation.StoreOperation;
 import io.axual.ksml.operation.StreamOperation;
 import io.axual.ksml.operation.ToOperation;
 import io.axual.ksml.stream.StreamWrapper;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.Topology;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 public class TopologyGenerator {
     private static final Logger LOG = LoggerFactory.getLogger(TopologyGenerator.class);
@@ -56,7 +52,7 @@ public class TopologyGenerator {
         // Parse configuration
         this.applicationId = applicationId;
         this.optimization = new Properties();
-        if(optimization != null) {
+        if (optimization != null) {
             this.optimization.put(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, optimization);
         }
     }
@@ -64,16 +60,16 @@ public class TopologyGenerator {
     public Topology create(StreamsBuilder streamsBuilder, Map<String, TopologyDefinition> definitions) {
         if (definitions.isEmpty()) return null;
 
-        final var knownTopics = new HashSet<String>();
+        final var stores = new TreeMap<String, StateStoreDefinition>();
 
         definitions.forEach((name, definition) -> {
             final var context = new TopologyBuildContext(streamsBuilder, definition);
             generate(definition, context);
+            stores.putAll(definition.stateStores());
         });
 
-
         var topology = streamsBuilder.build(optimization);
-        var analysis = TopologyAnalyzer.analyze(topology, applicationId, knownTopics);
+        var analysis = TopologyAnalyzer.analyze(topology, applicationId);
 
         StringBuilder summary = new StringBuilder("\n\n");
         summary.append(topology != null ? topology.describe() : "null");
@@ -82,10 +78,11 @@ public class TopologyGenerator {
         appendTopics(summary, "Input topics", analysis.inputTopics());
         appendTopics(summary, "Intermediate topics", analysis.intermediateTopics());
         appendTopics(summary, "Output topics", analysis.outputTopics());
+        appendTopics(summary, "Internal topics", analysis.internalTopics());
 
-        appendStores(summary, "Registered state stores", analysis.stores());
+        appendStores(summary, "Registered state stores", stores);
 
-        LOG.info("\n{}\n", summary);
+        LOG.info("\n{}", summary);
 
         return topology;
     }
@@ -102,25 +99,26 @@ public class TopologyGenerator {
         if (!stores.isEmpty()) {
             builder.append(description).append(":\n");
         }
-        for (var entry : stores.entrySet()) {
+        for (final var storeEntry : stores.entrySet()) {
             builder
                     .append("  ")
-                    .append(entry.getKey())
+                    .append(storeEntry.getKey())
                     .append(" (")
-                    .append(entry.getValue().type())
+                    .append(storeEntry.getValue().type())
                     .append("): key=")
-                    .append(entry.getValue().keyType())
+                    .append(storeEntry.getValue().keyType())
                     .append(", value=")
-                    .append(entry.getValue().valueType())
+                    .append(storeEntry.getValue().valueType())
                     .append(", url_path=/state/")
-                    .append(switch (entry.getValue().type()) {
+                    .append(switch (storeEntry.getValue().type()) {
                         case KEYVALUE_STORE -> "keyValue";
                         case SESSION_STORE -> "session";
                         case WINDOW_STORE -> "window";
                     })
                     .append("/")
-                    .append(entry.getKey())
-                    .append("/");
+                    .append(storeEntry.getKey())
+                    .append("/")
+                    .append("\n");
         }
     }
 
@@ -213,7 +211,7 @@ public class TopologyGenerator {
             LOG.info("""
                     Generating Kafka Streams topology for pipeline {}:
                     {}
-                    """,name,tsBuilder);
+                    """, name, tsBuilder);
 
         });
     }
