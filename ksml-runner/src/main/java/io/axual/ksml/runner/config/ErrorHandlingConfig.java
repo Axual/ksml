@@ -22,9 +22,7 @@ package io.axual.ksml.runner.config;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Builder;
 import lombok.Data;
-import lombok.extern.jackson.Jacksonized;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data

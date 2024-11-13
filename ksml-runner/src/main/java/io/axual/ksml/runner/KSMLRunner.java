@@ -84,7 +84,7 @@ public class KSMLRunner {
             }
 
             final var config = readConfiguration(configFile);
-            final var ksmlConfig = config.ksml();
+            final var ksmlConfig = config.ksmlConfig();
             log.info("Using directories: config: {}, schema: {}, storage: {}", ksmlConfig.getConfigDirectory(), ksmlConfig.getSchemaDirectory(), ksmlConfig.getStorageDirectory());
             final var definitions = ksmlConfig.getDefinitions();
             if (definitions == null || definitions.isEmpty()) {
@@ -104,34 +104,31 @@ public class KSMLRunner {
             }
 
             // Set up all default notations and register them in the NotationLibrary
-            final var notationFactories = new NotationFactories(config.kafka().kafkaConfig(), ksmlConfig.getSchemaDirectory());
+            final var notationFactories = new NotationFactories(config.kafkaConfig(), ksmlConfig.getSchemaDirectory());
             for (final var notation : notationFactories.notations().entrySet()) {
                 NotationLibrary.register(notation.getKey(), notation.getValue().create(null));
             }
 
             // Set up all notation overrides from the KSML config
             for (final var notationEntry : ksmlConfig.notations().entrySet()) {
-                final var notationStr = notationEntry.getKey() != null ? notationEntry.getKey() : "undefined";
+                final var notation = notationEntry.getKey();
                 final var notationConfig = notationEntry.getValue();
-                final var factoryName = notationConfig != null ? notationConfig.type() : "unknown";
-                if (notationConfig != null && factoryName != null) {
-                    final var factory = notationFactories.notations().get(factoryName);
-                    if (factory == null) {
-                        throw FatalError.reportAndExit(new ConfigException("Unknown notation type: " + factoryName));
+                if (notation != null && notationConfig != null) {
+                    final var n = notationFactories.notations().get(notationConfig.type());
+                    if (n == null) {
+                        throw FatalError.reportAndExit(new ConfigException("Notation type '" + notationConfig.type() + "' not found"));
                     }
-                    NotationLibrary.register(notationStr, factory.create(notationConfig.config()));
-                } else {
-                    log.warn("Notation configuration incomplete: notation=" + notationStr + ", type=" + factoryName);
+                    NotationLibrary.register(notation, n.create(notationConfig.config()));
                 }
             }
 
-            // Ensure typical defaults are used for AVRO
-            // WARNING: Defaults for notations will be deprecated in the future. Make sure you explicitly configure
-            // notations with multiple implementations (like AVRO) in your ksml-runner.yaml.
+            // Ensure typical defaults are used
+            // WARNING: Defaults for notations will be deprecated in the future. Make sure you explicitly define
+            // notations that have multiple implementations in your ksml-runner.yaml.
             if (!NotationLibrary.exists(NotationFactories.AVRO)) {
                 final var defaultAvro = notationFactories.confluentAvro();
                 NotationLibrary.register(NotationFactories.AVRO, defaultAvro.create(null));
-                log.warn("No implementation specified for AVRO notation. If you use AVRO in your KSML definition, add the required configuration to the ksml-runner.yaml");
+                log.warn("No implementation specified for AVRO notation. If you plan to use AVRO, add the required implementation to the ksml-runner.yaml");
             }
 
             final var errorHandling = ksmlConfig.getErrorHandlingConfig();
@@ -142,8 +139,8 @@ public class KSMLRunner {
             }
             ExecutionContext.INSTANCE.serdeWrapper(
                     serde -> new Serdes.WrapperSerde<>(
-                            new ResolvingSerializer<>(serde.serializer(), config.kafka().kafkaConfig()),
-                            new ResolvingDeserializer<>(serde.deserializer(), config.kafka().kafkaConfig())));
+                            new ResolvingSerializer<>(serde.serializer(), config.kafkaConfig()),
+                            new ResolvingDeserializer<>(serde.deserializer(), config.kafkaConfig())));
 
             final Map<String, TopologyDefinition> producerSpecs = new HashMap<>();
             final Map<String, TopologyDefinition> pipelineSpecs = new HashMap<>();
@@ -166,13 +163,13 @@ public class KSMLRunner {
 
             final var producer = producerSpecs.isEmpty() ? null : new KafkaProducerRunner(KafkaProducerRunner.Config.builder()
                     .definitions(producerSpecs)
-                    .kafkaConfig(config.kafka().kafkaConfig())
+                    .kafkaConfig(config.kafkaConfig())
                     .build());
             final var streams = pipelineSpecs.isEmpty() ? null : new KafkaStreamsRunner(KafkaStreamsRunner.Config.builder()
                     .storageDirectory(ksmlConfig.getStorageDirectory())
                     .appServer(ksmlConfig.getApplicationServerConfig())
                     .definitions(pipelineSpecs)
-                    .kafkaConfig(config.kafka().kafkaConfig())
+                    .kafkaConfig(config.kafkaConfig())
                     .build());
 
             if (producer != null || streams != null) {
@@ -188,7 +185,7 @@ public class KSMLRunner {
 
                 Runtime.getRuntime().addShutdownHook(shutdownHook);
 
-                try (var prometheusExport = new PrometheusExport(config.ksml().prometheusConfig())) {
+                try (var prometheusExport = new PrometheusExport(config.ksmlConfig().prometheusConfig())) {
                     prometheusExport.start();
                     final var executorService = Executors.newFixedThreadPool(2);
 
@@ -361,10 +358,10 @@ public class KSMLRunner {
         try {
             final var config = mapper.readValue(configFile, KSMLRunnerConfig.class);
             if (config != null) {
-                if (config.ksml() == null) {
+                if (config.ksmlConfig() == null) {
                     throw new ConfigException("Section \"ksml\" is missing in configuration");
                 }
-                if (config.kafka() == null) {
+                if (config.kafkaConfig() == null) {
                     throw new ConfigException("Section \"kafka\" is missing in configuration");
                 }
                 return config;
