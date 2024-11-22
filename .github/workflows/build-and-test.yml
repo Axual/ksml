@@ -3,7 +3,8 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - main
+      - 'main'
+      - 'releases/**'
       - branch-*
   pull_request:
     types: [opened, synchronize, reopened]
@@ -34,8 +35,8 @@ jobs:
         with:
           context: .
           push: true
-          tags: localhost:5000/name/app:latest
+          tags: localhost:5000/name/app:1.0-latest
 
       - name: Inspect
         run: |
-          docker buildx imagetools inspect localhost:5000/name/app:latest
+          docker buildx imagetools inspect localhost:5000/name/app:1.0-latest

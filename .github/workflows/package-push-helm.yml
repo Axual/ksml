@@ -8,7 +8,7 @@ on:
         description: "The app version that should be set in the chart"
       version:
         required: false
-        default: 0.0.0-snapshot
+        default: 1.0.0-snapshot
         type: string
         description: "The version of the chart to be released"
   workflow_call:
@@ -18,12 +18,11 @@ on:
         type: string
       version:
         required: false
-        default: 0.0.0-snapshot
+        default: 1.0.0-snapshot
         type: string
 
 jobs:
   build-push-helm:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.merged }}
     runs-on: ubuntu-latest
     steps:
       - name: Install Helm
