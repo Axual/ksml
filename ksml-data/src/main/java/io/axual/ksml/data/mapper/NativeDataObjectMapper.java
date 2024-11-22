@@ -27,6 +27,7 @@ import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.SchemaLibrary;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.*;
+import io.axual.ksml.data.util.MapUtil;
 import io.axual.ksml.data.value.Tuple;
 
 import java.util.ArrayList;
@@ -98,7 +99,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         if (value instanceof List<?> val)
             return nativeToDataList((List<Object>) val, expected instanceof ListType expectedList ? expectedList.valueType() : DataType.UNKNOWN);
         if (value instanceof Map<?, ?> val)
-            return nativeToDataStruct((Map<String, Object>) val, expected instanceof StructType expectedStruct ? expectedStruct.schema() : null);
+            return nativeToDataStruct(MapUtil.stringKeys(val), expected instanceof StructType expectedStruct ? expectedStruct.schema() : null);
         if (value instanceof Tuple<?> val) return toDataTuple((Tuple<Object>) val);
         throw new ExecutionException("Can not convert to DataObject: " + value.getClass().getSimpleName());
     }

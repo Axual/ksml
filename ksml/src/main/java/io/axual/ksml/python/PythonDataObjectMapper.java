@@ -25,6 +25,7 @@ import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.type.*;
+import io.axual.ksml.data.util.MapUtil;
 import io.axual.ksml.util.ExecutionUtil;
 import org.graalvm.polyglot.Value;
 
@@ -134,7 +135,7 @@ public class PythonDataObjectMapper extends NativeDataObjectMapper {
     private DataObject mapToNative(DataType expected, Value object) {
         Map<?, ?> map = ExecutionUtil.tryThis(() -> object.as(Map.class));
         if (map == null) return null;
-        return nativeToDataStruct((Map<String, Object>) map, expected instanceof StructType structType ? structType.schema() : null);
+        return nativeToDataStruct(MapUtil.stringKeys(map), expected instanceof StructType structType ? structType.schema() : null);
     }
 
     @Override
