@@ -23,9 +23,9 @@ package io.axual.ksml.data.parser.schema;
 import io.axual.ksml.data.parser.BaseParser;
 import io.axual.ksml.data.parser.ParseNode;
 
-public class SymbolParser extends BaseParser<String> {
+public class IntegerParser extends BaseParser<Integer> {
     @Override
-    public String parse(ParseNode node) {
-        return node.asString();
+    public Integer parse(ParseNode node) {
+        return node.asInt();
     }
 }

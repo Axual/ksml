@@ -156,7 +156,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
                     final var value = stringParser.parse(node);
                     if (value == null)
                         throw new ParseException(node, "Empty value not allowed for enum " + schema.name());
-                    if (!Set.copyOf(schema.symbols()).contains(value))
+                    if (!schema.symbols().containsKey(value))
                         throw new ParseException(node, "Illegal value for enum " + schema.name() + ": " + value);
                     return value;
                 },

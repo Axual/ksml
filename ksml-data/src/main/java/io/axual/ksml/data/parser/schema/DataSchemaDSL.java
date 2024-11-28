@@ -41,6 +41,7 @@ public class DataSchemaDSL {
     public static final String DATA_FIELD_DOC_FIELD = "doc";
     public static final String DATA_FIELD_REQUIRED_FIELD = "required";
     public static final String DATA_FIELD_CONSTANT_FIELD = "constant";
+    public static final String DATA_FIELD_INDEX_FIELD = "index";
     public static final String DATA_FIELD_DEFAULT_VALUE_FIELD = "defaultValue";
     public static final String DATA_FIELD_ORDER_FIELD = "order";
     public static final String UNKNOWN_TYPE = "?";

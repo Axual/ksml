@@ -40,11 +40,12 @@ public class DataFieldParser extends BaseParser<DataField> {
         final var required = parseBoolean(node, DataSchemaDSL.DATA_FIELD_REQUIRED_FIELD);
         final var property = deductSchemaAndRequired(schema, required);
         final var constant = parseBoolean(node, DataSchemaDSL.DATA_FIELD_CONSTANT_FIELD);
+        final var index = parseInteger(node, DataSchemaDSL.DATA_FIELD_INDEX_FIELD);
         return new DataField(
                 parseString(node, DataSchemaDSL.DATA_FIELD_NAME_FIELD),
                 property.left(),
                 parseString(node, DataSchemaDSL.DATA_FIELD_DOC_FIELD),
-                DataField.NO_INDEX,
+                index,
                 property.right(),
                 constant != null && constant,
                 new DataValueParser().parse(node.get(DataSchemaDSL.DATA_FIELD_DEFAULT_VALUE_FIELD)),

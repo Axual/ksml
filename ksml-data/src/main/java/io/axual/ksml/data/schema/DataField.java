@@ -24,6 +24,8 @@ import io.axual.ksml.data.exception.ExecutionException;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import java.util.Objects;
+
 @Getter
 @EqualsAndHashCode
 public class DataField {
@@ -43,6 +45,7 @@ public class DataField {
     private final Order order;
 
     public DataField(String name, DataSchema schema, String doc, int index, boolean required, boolean constant, DataValue defaultValue, Order order) {
+        Objects.requireNonNull(schema);
         this.name = name;
         this.schema = schema;
         this.doc = doc;
@@ -79,6 +82,7 @@ public class DataField {
     public DataField withDefaultValue(DataValue possibleValues) {
         return new DataField(name, schema, doc, index, required, constant, defaultValue, order);
     }
+
     public DataField withDoc(String doc) {
         return new DataField(name, schema, doc, index, required, constant, defaultValue, order);
     }

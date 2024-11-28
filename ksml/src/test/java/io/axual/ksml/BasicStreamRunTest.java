@@ -61,7 +61,7 @@ public class BasicStreamRunTest {
     private final StreamsBuilder streamsBuilder = new StreamsBuilder();
 
     @Test
-    void parseAndCheckOuput() throws Exception {
+    void parseAndCheckOutput() throws Exception {
         final var mapper = new NativeDataObjectMapper();
         final var jsonNotation = new JsonNotation(mapper, new JsonSchemaLoader("."));
         NotationLibrary.register(BinaryNotation.NAME, new BinaryNotation(mapper, jsonNotation::serde));

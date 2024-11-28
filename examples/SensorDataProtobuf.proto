@@ -1,0 +1,32 @@
+// Proto schema formatted by Wire, do not edit.
+// Source:
+
+syntax = "proto3";
+
+package io.axual.ksml.example;
+
+message SensorDataProtobuf {
+  string name = 1;
+
+  sint64 timestamp = 2;
+
+  string value = 3;
+
+  SensorType type = 4;
+
+  string unit = 5;
+
+  string color = 6;
+
+  string city = 7;
+
+  string owner = 8;
+}
+
+enum SensorType {
+  AREA = 0;
+  HUMIDITY = 1;
+  TEMPERATURE = 4;
+  LENGTH = 2;
+  STATE = 3;
+}

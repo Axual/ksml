@@ -50,6 +50,7 @@
         <module>ksml-data</module>
         <module>ksml-data-avro</module>
         <module>ksml-data-csv</module>
+        <module>ksml-data-protobuf</module>
         <module>ksml-data-soap</module>
         <module>ksml-data-xml</module>
         <module>ksml</module>
@@ -65,8 +66,8 @@
         <apache.commons.text.version>1.12.0</apache.commons.text.version>
         <apache.commons.compress.version>1.26.2</apache.commons.compress.version>
         <apache.kafka.version>3.8.0</apache.kafka.version>
-        <apicurio.avro.version>2.6.5.Final</apicurio.avro.version>
-        <confluent.version>7.6.1</confluent.version>
+        <apicurio.version>2.6.5.Final</apicurio.version>
+        <confluent.version>7.7.1</confluent.version>
         <graalvm.version>23.1.2</graalvm.version>
         <graalvm.polyglot.version>23.1.2</graalvm.polyglot.version>
         <graalvm.python.version>23.1.2</graalvm.python.version>
@@ -78,6 +79,7 @@
         <logback.version>1.5.6</logback.version>
         <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
         <lombok.version>1.18.32</lombok.version>
+        <protobuf.version>3.25.5</protobuf.version>
         <saaj.version>3.0.4</saaj.version>
         <slf4j.version>2.0.13</slf4j.version>
 
@@ -145,6 +147,11 @@
             <dependency>
                 <groupId>io.axual.ksml</groupId>
                 <artifactId>ksml-data-csv</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml-data-protobuf</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -219,6 +226,12 @@
                 <version>${apache.avro.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${protobuf.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka-clients</artifactId>
                 <version>${apache.kafka.version}</version>
@@ -232,12 +245,23 @@
             <dependency>
                 <groupId>io.apicurio</groupId>
                 <artifactId>apicurio-registry-serdes-avro-serde</artifactId>
-                <version>${apicurio.avro.version}</version>
+                <version>${apicurio.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.apicurio</groupId>
+                <artifactId>apicurio-registry-protobuf-schema-utilities</artifactId>
+                <version>${apicurio.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.confluent</groupId>
                 <artifactId>kafka-avro-serializer</artifactId>
                 <version>${confluent.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.apicurio</groupId>
+                <artifactId>apicurio-registry-serdes-protobuf-serde</artifactId>
+                <version>${apicurio.version}</version>
             </dependency>
 
             <dependency>

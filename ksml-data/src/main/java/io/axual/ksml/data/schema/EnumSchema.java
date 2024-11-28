@@ -20,36 +20,55 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.type.EnumType;
+import io.axual.ksml.data.util.MapUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Getter
 @EqualsAndHashCode
 public class EnumSchema extends NamedSchema {
-    private final List<String> symbols;
+    public static final int NO_INDEX = EnumType.NO_INDEX;
+    private final Map<String, Integer> symbols;
+    private final Map<Integer, String> reverseSymbols;
     private final String defaultValue;
 
     public EnumSchema(String namespace, String name, String doc, List<String> possibleValues) {
         this(namespace, name, doc, possibleValues, null);
     }
 
+    public EnumSchema(String namespace, String name, String doc, Map<String, Integer> possibleValues) {
+        this(namespace, name, doc, possibleValues, null);
+    }
+
     public EnumSchema(String namespace, String name, String doc, List<String> symbols, String defaultValue) {
+        this(namespace, name, doc, MapUtil.listToMap(symbols, NO_INDEX), defaultValue);
+    }
+
+    public EnumSchema(String namespace, String name, String doc, Map<String, Integer> symbols, String defaultValue) {
         super(Type.ENUM, namespace, name, doc);
-        this.symbols = Collections.unmodifiableList(symbols);
+        this.symbols = Collections.unmodifiableMap(symbols);
+        final var reverseSymbols = MapUtil.invertMap(symbols);
+        reverseSymbols.remove(NO_INDEX);
+        this.reverseSymbols = Collections.unmodifiableMap(reverseSymbols);
         this.defaultValue = defaultValue;
     }
 
     @Override
     public boolean isAssignableFrom(DataSchema otherSchema) {
         if (!super.isAssignableFrom(otherSchema)) return false;
-        if (!(otherSchema instanceof EnumSchema enumSchema)) return false;
-        // This schema is assignable from the other schema when the list of symbols is a superset
-        // of the otherSchema's set of symbols.
-        for (String symbol : enumSchema.symbols) {
-            if (!symbols.contains(symbol)) return false;
+        if (!(otherSchema instanceof EnumSchema otherEnum)) return false;
+        // This schema is assignable from the other enum when the map of symbols is a superset
+        // of the otherEnum's set of symbols.
+        for (final var otherSymbol : otherEnum.symbols.entrySet()) {
+            if (!symbols.containsKey(otherSymbol.getKey())) return false;
+            final var index = symbols.get(otherSymbol.getKey());
+            if (!Objects.equals(otherSymbol.getValue(), index)) return false;
         }
         return true;
     }

@@ -1,10 +1,10 @@
-package io.axual.ksml.data.object;
+package io.axual.ksml.data.notation.protobuf;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Data Library - PROTOBUF
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2024 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,20 +20,17 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.ExecutionException;
-import io.axual.ksml.data.type.EnumType;
+import java.util.List;
+import java.util.function.Function;
 
-public class DataEnum extends DataPrimitive<String> {
-    public DataEnum(String value, EnumType type) {
-        super(type, value);
-        if (!validateValue(value)) {
-            throw new ExecutionException("Invalid enum value for type " + type.schemaName() + ": " + value);
+public class ProtobufUtil {
+    public static <T> T findInList(List<T> list, Function<T, String> toName, String name) {
+        if (list == null) return null;
+        for (final var element : list) {
+            final var elementName = toName.apply(element);
+            if (elementName == null && name == null) return element;
+            if (elementName != null && elementName.equals(name)) return element;
         }
-    }
-
-    private boolean validateValue(String value) {
-        if (value == null) return true;
-        if (((EnumType) type()).symbols().containsKey(value)) return true;
-        return false;
+        return null;
     }
 }

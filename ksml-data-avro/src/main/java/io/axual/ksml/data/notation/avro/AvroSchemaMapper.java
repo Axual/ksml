@@ -24,6 +24,7 @@ import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.schema.*;
+import io.axual.ksml.data.util.MapUtil;
 import org.apache.avro.Schema;
 
 import java.util.ArrayList;
@@ -150,7 +151,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
                     Schema.createFixed(((FixedSchema) schema).name(), ((FixedSchema) schema).doc(), ((FixedSchema) schema).namespace(), ((FixedSchema) schema).size());
             case STRING -> Schema.create(Schema.Type.STRING);
             case ENUM ->
-                    Schema.createEnum(((EnumSchema) schema).name(), ((EnumSchema) schema).doc(), ((EnumSchema) schema).namespace(), ((EnumSchema) schema).symbols(), ((EnumSchema) schema).defaultValue());
+                    Schema.createEnum(((EnumSchema) schema).name(), ((EnumSchema) schema).doc(), ((EnumSchema) schema).namespace(), MapUtil.mapToList(((EnumSchema) schema).symbols()), ((EnumSchema) schema).defaultValue());
             case LIST -> Schema.createArray(convertToAvro(((ListSchema) schema).valueSchema(), true));
             case MAP -> Schema.createMap(convertToAvro(((MapSchema) schema).valueSchema(), true));
             case STRUCT ->

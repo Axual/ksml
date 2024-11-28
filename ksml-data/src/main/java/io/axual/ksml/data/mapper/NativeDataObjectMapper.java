@@ -138,7 +138,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
 
         if (value instanceof String) return DataString.DATATYPE;
 
-        if (value.getClass().isEnum()) return inferEnumType(value);
+        if (value instanceof Enum<?> val) return inferEnumType(val);
         if (value instanceof List<?> val) return inferListType(val);
         if (value instanceof Map<?, ?> val) return inferStructType(val);
         if (value instanceof Tuple<?> val) return inferTupleType(val);
@@ -146,7 +146,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         return DataType.UNKNOWN;
     }
 
-    private EnumType inferEnumType(Object value) {
+    private EnumType inferEnumType(Enum<?> value) {
         var enumConstants = value.getClass().getEnumConstants();
         var symbols = new String[enumConstants.length];
         for (int index = 0; index < symbols.length; index++) {
