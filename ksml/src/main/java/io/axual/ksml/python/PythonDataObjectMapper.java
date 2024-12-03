@@ -44,7 +44,7 @@ public class PythonDataObjectMapper extends NativeDataObjectMapper {
             object = valueToNative(expected, value);
         }
 
-        // If we expect a union dataType, then check its possible types, else convert by value.
+        // If we expect a union dataType, then check its value types, else convert by value.
         if (expected instanceof UnionType unionType)
             return unionToDataObject(unionType, object);
 
@@ -53,12 +53,12 @@ public class PythonDataObjectMapper extends NativeDataObjectMapper {
     }
 
     private DataObject unionToDataObject(UnionType unionType, Object object) {
-        for (DataType possibleType : unionType.possibleTypes()) {
+        for (final var valueType : unionType.valueTypes()) {
             try {
-                var result = toDataObject(possibleType, object);
+                var result = toDataObject(valueType.type(), object);
                 if (result != null) return result;
             } catch (Exception e) {
-                // Ignore exception and move to next possible dataType
+                // Ignore exception and move to next value type
             }
         }
 

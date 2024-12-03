@@ -30,7 +30,7 @@ public class DataSchemaDSL {
     public static final String NAMED_SCHEMA_NAMESPACE_FIELD = "namespace";
     public static final String NAMED_SCHEMA_NAME_FIELD = "name";
     public static final String NAMED_SCHEMA_DOC_FIELD = "doc";
-    public static final String ENUM_SCHEMA_POSSIBLEVALUES_FIELD = "symbols";
+    public static final String ENUM_SCHEMA_SYMBOLS_FIELD = "symbols";
     public static final String ENUM_SCHEMA_DEFAULTVALUE_FIELD = "defaultValue";
     public static final String FIXED_SCHEMA_SIZE_FIELD = "size";
     public static final String LIST_SCHEMA_VALUES_FIELD = "items";

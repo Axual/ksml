@@ -35,28 +35,8 @@ import static io.axual.ksml.parser.DefinitionParser.SCHEMA_NAMESPACE;
 
 @Slf4j
 public class SchemaUtil {
-    public static List<StructSchema> possibleSchemas(DataSchema schema) {
-        final var result = new ArrayList<StructSchema>();
-        if (schema instanceof UnionSchema unionSchema) {
-            for (final var possibleSchema : unionSchema.possibleSchemas()) {
-                if (possibleSchema instanceof StructSchema structSchema) {
-                    result.add(structSchema);
-                } else {
-                    log.warn("Could not convert union subtype: " + possibleSchema.type());
-                }
-            }
-        } else {
-            if (schema instanceof StructSchema structSchema) {
-                result.add(structSchema);
-            } else {
-                log.warn("Could not convert subtype: " + schema.type());
-            }
-        }
-        return result;
-    }
-
     public static void addToSchemas(List<StructSchema> schemas, String name, String doc, StructsParser<?> subParser) {
-        final var subSchemas = possibleSchemas(subParser.schema());
+        final var subSchemas = getSubSchemas(subParser.schema());
         if (schemas.isEmpty()) {
             schemas.addAll(subSchemas);
         } else {
@@ -80,5 +60,25 @@ public class SchemaUtil {
             schemas.clear();
             schemas.addAll(newSchemas);
         }
+    }
+
+    private static List<StructSchema> getSubSchemas(DataSchema schema) {
+        final var result = new ArrayList<StructSchema>();
+        if (schema instanceof UnionSchema unionSchema) {
+            for (final var valueType : unionSchema.valueTypes()) {
+                if (valueType.schema() instanceof StructSchema structSchema) {
+                    result.add(structSchema);
+                } else {
+                    log.warn("Could not convert union subtype: {}", valueType.schema().type());
+                }
+            }
+        } else {
+            if (schema instanceof StructSchema structSchema) {
+                result.add(structSchema);
+            } else {
+                log.warn("Could not convert subtype: {}", schema.type());
+            }
+        }
+        return result;
     }
 }

@@ -25,34 +25,39 @@ import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 
 @Getter
 @EqualsAndHashCode
 public class UnionSchema extends DataSchema {
-    private final DataSchema[] possibleSchemas;
+    // Normally a union would contain value schema only, but for PROTOBUF we need to remember field name and index.
+    // Therefore, we keep an array of DataFields instead of DataSchemas.
+    private final DataField[] valueTypes;
 
-    public UnionSchema(DataSchema... possibleSchemas) {
-        this(true, possibleSchemas);
+    public UnionSchema(DataField... valueTypes) {
+        this(true, valueTypes);
     }
 
-    public UnionSchema(boolean optimize, DataSchema... possibleSchemas) {
+    // Optimize
+    // Make this public when the need arises to manually control optimization
+    private UnionSchema(boolean flatten, DataField... valueTypes) {
         super(Type.UNION);
-        this.possibleSchemas = optimize ? getPossibleSchemas(possibleSchemas) : possibleSchemas;
+        this.valueTypes = flatten ? recursivelyGetValueTypes(valueTypes) : valueTypes;
     }
 
-    public DataSchema[] getPossibleSchemas(DataSchema[] possibleSchemas) {
-        // Here we flatten the list of possible schemas by recursively walking through all possible types. Any sub-unions
-        // are exploded and taken up in this union's list of possible types.
-        final var result = new ArrayList<DataSchema>();
-        for (final var possibleSchema : possibleSchemas) {
-            if (possibleSchema instanceof UnionSchema unionSchema) {
-                final var subSchemas = getPossibleSchemas(unionSchema.possibleSchemas);
-                result.addAll(Arrays.stream(subSchemas).toList());
+    private DataField[] recursivelyGetValueTypes(DataField[] valueTypes) {
+        // Here we flatten the list of value types by recursively walking through all value types. Any sub-unions
+        // are exploded and taken up in this union's list of value types.
+        final var result = new ArrayList<DataField>();
+        for (final var valueType : valueTypes) {
+            if (valueType.schema() instanceof UnionSchema unionSchema) {
+                final var subFields = recursivelyGetValueTypes(unionSchema.valueTypes);
+                result.addAll(Arrays.stream(subFields).toList());
             } else {
-                result.add(possibleSchema);
+                result.add(valueType);
             }
         }
-        return result.toArray(new DataSchema[]{});
+        return result.toArray(new DataField[]{});
     }
 
     @Override
@@ -64,21 +69,42 @@ public class UnionSchema extends DataSchema {
         // By convention, we are not assignable if the other schema is null.
         if (otherSchema == null) return false;
 
-        // If the other schema is a union, then we compare all possible types of that union.
+        // If the other schema is a union, then we compare all value types of that union.
         if (otherSchema instanceof UnionSchema otherUnionSchema) {
-            // This schema is assignable from the other union schema when all of its possible
-            // schema can be assigned to this union schema.
-            for (DataSchema otherUnionsPossibleSchema : otherUnionSchema.possibleSchemas) {
-                if (!isAssignableFrom(otherUnionsPossibleSchema)) return false;
+            // This schema is assignable from the other union fields when all of its value types can be assigned to
+            // this union.
+            for (final var otherUnionsValueType : otherUnionSchema.valueTypes) {
+                if (!isAssignableFrom(otherUnionsValueType)) return false;
             }
             return true;
         }
 
         // The other schema is not a union --> we are assignable from the other schema if at least
-        // one of our possible schema is assignable from the other schema.
-        for (DataSchema possibleSchema : possibleSchemas) {
-            if (possibleSchema.isAssignableFrom(otherSchema)) return true;
+        // one of our value schema is assignable from the other schema.
+        for (final var valueType : valueTypes) {
+            if (valueType.schema().isAssignableFrom(otherSchema)) return true;
         }
         return false;
+    }
+
+    private boolean isAssignableFrom(DataField otherField) {
+        for (final var valueType : valueTypes) {
+            // First check if the schema of this field and the other field are compatible
+            if (valueType.schema().isAssignableFrom(otherField.schema())) {
+                // If they are, then manually check if we allow assignment from the other field to this field
+                if (allowAssignment(valueType, otherField)) return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean allowAssignment(DataField thisField, DataField otherField) {
+        // Allow assignments from an anonymous union type, having name or index unset
+        if (thisField.name() == null || otherField.name() == null) return true;
+        if (thisField.index() == DataField.NO_INDEX || otherField.index() == DataField.NO_INDEX) return true;
+        // This code is specifically made for PROTOBUF oneOf types, containing a field name and index. We allow
+        // assignment only if both fields match.
+        if (!Objects.equals(thisField.name(), otherField.name())) return false;
+        return Objects.equals(thisField.index(), otherField.index());
     }
 }

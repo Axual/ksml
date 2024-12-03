@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package io.axual.ksml.data.notation.protobuf.example;
+
+message sensor_data {
+  string name = 1;                    // The name of the sensor
+  int64 timestamp = 2;                // The timestamp of the sensor reading
+  string value = 3;                   // The value of the sensor, represented as string
+  SensorType type = 4;                // The type of the sensor
+  string unit = 5;                    // The unit of the sensor
+  optional string color = 6;          // The color of the sensor
+  optional string city = 7;           // The city of the sensor
+  optional string owner = 8;          // The owner of the sensor
+
+  enum SensorType {
+    SENSOR_TYPE_AREA_UNSPECIFIED = 0;
+    SENSOR_TYPE_HUMIDITY = 1;
+    SENSOR_TYPE_LENGTH = 2;
+    SENSOR_TYPE_STATE = 3;
+    SENSOR_TYPE_TEMPERATURE = 4;
+  }
+}

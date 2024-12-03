@@ -22,6 +22,7 @@ package io.axual.ksml.parser;
 
 import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.parser.ParserWithSchemas;
+import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
@@ -35,7 +36,7 @@ public interface StructsParser<T> extends ParserWithSchemas<T> {
 
     default DataSchema schema() {
         final var schemas = schemas();
-        return schemas.size() == 1 ? schemas.getFirst() : new UnionSchema(schemas.toArray(DataSchema[]::new));
+        return schemas.size() == 1 ? schemas.getFirst() : new UnionSchema(schemas.stream().map(DataField::new).toArray(DataField[]::new));
     }
 
     static <T> StructsParser<T> of(final Function<ParseNode, T> parseFunc, StructSchema schema) {

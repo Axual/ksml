@@ -21,24 +21,15 @@ package io.axual.ksml.data.notation.protobuf;
  */
 
 
-import com.google.protobuf.Descriptors;
 import com.squareup.wire.schema.Location;
-import com.squareup.wire.schema.internal.parser.ProtoFileElement;
-import com.squareup.wire.schema.internal.parser.ProtoParser;
+import io.apicurio.registry.rules.compatibility.protobuf.ProtobufCompatibilityCheckerLibrary;
 import io.apicurio.registry.serde.protobuf.ProtobufSchemaParser;
-import io.apicurio.registry.utils.IoUtil;
-import io.apicurio.registry.utils.protobuf.schema.DynamicSchema;
-import io.apicurio.registry.utils.protobuf.schema.FileDescriptorUtils;
-import io.apicurio.registry.utils.protobuf.schema.ProtobufSchema;
-import io.axual.ksml.data.exception.SchemaException;
+import io.apicurio.registry.utils.protobuf.schema.ProtobufFile;
 import io.axual.ksml.data.loader.SchemaLoader;
 import io.axual.ksml.data.schema.DataSchema;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Optional;
 
 @Slf4j
 public class ProtobufSchemaLoader extends SchemaLoader {
@@ -51,111 +42,25 @@ public class ProtobufSchemaLoader extends SchemaLoader {
 
     @Override
     protected DataSchema parseSchema(String name, String schema) {
+        runCompatibilityTest(name, schema);
         final var proto = new ProtobufSchemaParser<>().parseSchema(schema.getBytes(), Collections.emptyMap());
         return MAPPER.toDataSchema(name, proto);
-
-
-
-//        final var proto = FileDescriptorUtils.toFileDescriptorProto(schema, name, Optional.empty(),new HashMap<>());
-//        final var s = new ProtobufSchema(proto.,null);
-//
-//        try {
-//            final var proto = DynamicSchema.parseFrom(schema.getBytes());
-//            return MAPPER.toDataSchema(name, proto);
-//        } catch (Descriptors.DescriptorValidationException | IOException e) {
-//            throw new SchemaException("Could not parse PROTOBUF schema '" + name + "': " + e.getMessage(), e);
-//        }
     }
 
-//    private ProtoFileElement parseProto(String name, String schema) {
-//        try {
-//            return ProtoParser.Companion.parse(DEFAULT_LOCATION, schema);
-//        } catch (Exception e) {
-//            // If the file did not contain a text schema, then see if we can decode it as binary
-//            try {
-//                return convertToFileElement(DescriptorProtos.FileDescriptorProto.parseFrom(schema.getBytes()));
-//            } catch (Exception e2) {
-//                throw new SchemaException("Could not parse PROTOBUF schema '" + name + "': " + e.getMessage(), e2);
-//            }
-//        }
-//    }
-
-//    private ProtoFileElement convertToFileElement(DescriptorProtos.FileDescriptorProto fileDescriptor) {
-//        final var imports = new ArrayList<String>();
-//        final var publicImports = new ArrayList<String>();
-//        final var types = new ArrayList<TypeElement>();
-//        fileDescriptor.getMessageTypeList().forEach(m -> types.add(convertToMessage(fileDescriptor, m)));
-//        fileDescriptor.getEnumTypeList().forEach(e -> types.add(convertToEnum(e)));
-//        return new ProtoFileElement(DEFAULT_LOCATION,
-//                fileDescriptor.getPackage(),
-//                fileDescriptor.getSyntax(),
-//                imports,
-//                publicImports,
-//                types,
-//                services.build(),
-//                extendElements.build(),
-//                options.build()
-//        );
-//    }
-//
-//    private MessageElement convertToMessage(DescriptorProtos.FileDescriptorProto fileDescriptor, DescriptorProtos.DescriptorProto messageDescriptor) {
-//        final var fields = new ArrayList<FieldElement>();
-//        final var nested = new ArrayList<TypeElement>();
-//        final var reserved = new ArrayList<ReservedElement>();
-//        final var extensions = new ArrayList<ExtensionsElement>();
-//        final var oneOfs = new HashMap<String, List<FieldElement>>();
-//        final var oneOfOptions = new HashMap<String, String>();
-//
-//        return new MessageElement(DEFAULT_LOCATION,
-//                descriptor.getName(),
-//                "",
-//                nested,
-//                options,
-//                reserved,
-//                fields,
-//                oneofs.stream()
-//                        .map(e -> toOneof(e.getKey(), e.getValue(), oneofsOptions.get(e.getKey())))
-//                        .filter(e -> !e.getFields().isEmpty())
-//                        .collect(Collectors.toList()),
-//                extensions,
-//                Collections.emptyList(),
-//                extendElements
-//        );
-//    }
-//
-//    private TypeElement convertToEnum(DescriptorProtos.EnumDescriptorProto enumDescriptor) {
-//        final var constants = new ArrayList<EnumConstantElement>();
-//        for (final var element:enumDescriptor.getValueList()) {
-//            final var options = new ArrayList<OptionElement>();
-//            if (element.getOptions().hasDeprecated())
-//                options.add(new OptionElement("deprecated", OptionElement.Kind.BOOLEAN, element.getOptions().getDeprecated(), false));
-//            if (element.getOptions().hasDebugRedact())
-//                options.add(new OptionElement("debug_redact", OptionElement.Kind.BOOLEAN, element.getOptions().getDeprecated(), false));
-//            if (element.getOptions().hasFeatures())
-//                options.add(convertToFeaturesOption(element.getOptions().getFeatures()));
-//            //TODO: meta features
-//            options.addAll(convertToCustomOptions(element.getOptions()));
-//            constants.add(new EnumConstantElement(DEFAULT_LOCATION, element.getName(), element.getNumber(), "", options));
-//        }
-//
-//        final var reserveds = new ArrayList<ReservedElement>();
-//        for (final var range: enumDescriptor.getReservedRangeList()) {
-//            reserveds.add(convertToReserved(range));
-//        }
-//        for (final var name: enumDescriptor.getReservedNameList()) {
-//            reserveds.add(new ReservedElement(DEFAULT_LOCATION, "", Collections.singletonList(name)));
-//        }
-//
-//        final var options = new ArrayList<OptionElement>();
-//        if (enumDescriptor.getOptions().hasAllowAlias())
-//            options.add(new OptionElement(ALLOW_ALIAS, OptionElement.Kind.BOOLEAN, enumDescriptor.getOptions().getAllowAlias(), false));
-//        if (enumDescriptor.getOptions().hasDeprecated())
-//            options.add(new OptionElement(DEPRECATED, OptionElement.Kind.BOOLEAN, enumDescriptor.getOptions().getDeprecated(), false));
-//        if (enumDescriptor.getOptions().hasFeatures())
-//          options.add(convertToFeaturesOption(enumDescriptor.getOptions().getFeatures()));
-//        // TODO: meta features
-//        options.addAll(convertToCustomOptions(enumDescriptor.getOptions()));
-//
-//        return new EnumElement(DEFAULT_LOCATION, enumDescriptor.getName(), "", options, constants, reserveds);
-//    }
+    private void runCompatibilityTest(String name, String schemaIn) {
+        // This method checks for code completeness of ProtobufSchemaMapper. It will warn if schema translation to
+        // DataSchema and back gives deltas between ProtobufSchemas.
+        final var proto = new ProtobufSchemaParser<>().parseSchema(schemaIn.getBytes(), Collections.emptyMap());
+        final var internalSchema = MAPPER.toDataSchema(name, proto);
+        final var out = MAPPER.fromDataSchema(internalSchema);
+        final var outFd = out.getFileDescriptor();
+        final var outFe = new ProtobufSchemaParser<>().toProtoFileElement(outFd);
+        final var schemaOut = outFe.toSchema();
+        final var checker = new ProtobufCompatibilityCheckerLibrary(new ProtobufFile(schemaIn), new ProtobufFile(schemaOut));
+        final var diffs = checker.findDifferences();
+        final var compatible = diffs.isEmpty();
+        if (!compatible) {
+            log.warn("PROTOBUF schema {} in/out is not compatible: {}", name, diffs);
+        }
+    }
 }

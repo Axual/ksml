@@ -56,8 +56,8 @@ public class DataObjectConverter {
 
         // Recurse into union types
         if (targetType.dataType() instanceof UnionType targetUnionType) {
-            for (int index = 0; index < targetUnionType.possibleTypes().length; index++) {
-                var convertedValue = convert(sourceNotation, value, new UserType(targetUnionType.possibleTypes()[index]), true);
+            for (int index = 0; index < targetUnionType.valueTypes().length; index++) {
+                var convertedValue = convert(sourceNotation, value, new UserType(targetUnionType.valueTypes()[index].type()), true);
                 if (convertedValue != null) return convertedValue;
             }
         }

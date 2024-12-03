@@ -48,7 +48,7 @@ public class DataObjectSerializer implements Serializer<DataObject> {
     public DataObjectSerializer(DataType type, DataSchemaMapper<DataType> dataTypeSchemaMapper) {
         this.expectedType = type;
         final var dataObjectSchema = dataTypeSchemaMapper.toDataSchema(expectedType);
-        final var wrapperField = new DataField(FIELD_NAME, dataObjectSchema, "");
+        final var wrapperField = new DataField(FIELD_NAME, dataObjectSchema);
         wrapperSchema = new StructSchema(DATA_SCHEMA_NAMESPACE, DATA_OBJECT_TYPE_NAME, "", List.of(wrapperField));
         wrapperType = dataTypeSchemaMapper.fromDataSchema(wrapperSchema);
         try (final var jsonSerde = new JsonSerde(new NativeDataObjectMapper(), wrapperType)) {

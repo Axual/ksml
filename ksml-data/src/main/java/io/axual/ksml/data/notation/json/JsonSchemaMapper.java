@@ -223,14 +223,14 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             target.put(REF_NAME, new DataString("#/" + DEFINITIONS_NAME + "/" + name));
         }
         if (schema instanceof UnionSchema unionSchema) {
-            // Convert to an array of possible types
-            final var possibleTypes = new DataList();
-            for (var possibleSchema : unionSchema.possibleSchemas()) {
+            // Convert to an array of value types
+            final var valueTypes = new DataList();
+            for (var valueType : unionSchema.valueTypes()) {
                 final var typeStruct = new DataStruct();
-                convertType(possibleSchema, false, null, typeStruct, definitions);
-                possibleTypes.add(typeStruct);
+                convertType(valueType.schema(), false, null, typeStruct, definitions);
+                valueTypes.add(typeStruct);
             }
-            target.put(ANY_OF_NAME, possibleTypes);
+            target.put(ANY_OF_NAME, valueTypes);
         }
     }
 }

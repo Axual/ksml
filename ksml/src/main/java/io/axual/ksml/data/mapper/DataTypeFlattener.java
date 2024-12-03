@@ -54,21 +54,25 @@ public class DataTypeFlattener extends DataTypeSchemaMapper {
         return dataType;
     }
 
-    public UnionType flatten(UnionType unionType) {
-        // When we get a UnionType, we flatten it recursively
-        var cookedUnionTypes = new DataType[unionType.possibleTypes().length];
-        for (int index = 0; index < unionType.possibleTypes().length; index++) {
-            var userType = unionType.possibleTypes()[index];
-            cookedUnionTypes[index] = flatten(userType);
-        }
-        return new UnionType(cookedUnionTypes);
-    }
-
     public UserType flatten(UserType userType) {
         return new UserType(userType.notation(), flatten(userType.dataType()));
     }
 
     public StreamDataType flatten(StreamDataType streamDataType) {
         return new StreamDataType(flatten(streamDataType.userType()), streamDataType.isKey());
+    }
+
+    public UnionType.ValueType flatten(UnionType.ValueType fieldType) {
+        return new UnionType.ValueType(fieldType.name(), flatten(fieldType.type()), fieldType.index());
+    }
+
+    public UnionType flatten(UnionType unionType) {
+        // When we get a UnionType, we flatten it recursively
+        var cookedUnionTypes = new UnionType.ValueType[unionType.valueTypes().length];
+        for (int index = 0; index < unionType.valueTypes().length; index++) {
+            final var fieldType = unionType.valueTypes()[index];
+            cookedUnionTypes[index] = flatten(fieldType);
+        }
+        return new UnionType(cookedUnionTypes);
     }
 }

@@ -28,6 +28,7 @@ import com.squareup.wire.schema.Location;
 import com.squareup.wire.schema.internal.parser.ProtoFileElement;
 import io.apicurio.registry.utils.protobuf.schema.ProtobufSchema;
 import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataNull;
@@ -82,6 +83,9 @@ public class ProtobufDataObjectMapper implements DataObjectMapper<Message> {
                         final var nativeValue = NATIVE_DATA_MAPPER.fromDataObject(struct.get(field.getName()));
                         if (field.getType() == Descriptors.FieldDescriptor.Type.ENUM) {
                             final var evd = field.getEnumType().findValueByName(nativeValue.toString());
+                            if (evd == null) {
+                                throw new SchemaException("Value '" + nativeValue + "' not found in enum type '" + field.getEnumType().getName() + "'");
+                            }
                             msg.setField(field, evd);
                         } else {
                             msg.setField(field, nativeValue);

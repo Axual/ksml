@@ -117,10 +117,10 @@ public class DataSchema {
     public boolean isAssignableFrom(DataSchema otherSchema) {
         if (otherSchema == null) return false;
 
-        // Assignable if non of the union's possible types conflict
+        // Assignable if none of the union's possible types conflict
         if (otherSchema instanceof UnionSchema otherUnion) {
-            for (var possibleSchema : otherUnion.possibleSchemas()) {
-                if (!this.isAssignableFrom(possibleSchema)) return false;
+            for (final var possibleField : otherUnion.valueTypes()) {
+                if (!this.isAssignableFrom(possibleField.schema())) return false;
             }
             return true;
         }

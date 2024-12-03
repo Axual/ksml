@@ -20,6 +20,7 @@ package io.axual.ksml.data.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.MapSchema;
 import io.axual.ksml.data.schema.UnionSchema;
@@ -40,6 +41,6 @@ public class MapWithSchemaParser<T> extends MapParser<T> implements ParserWithSc
         super(childTagKey, childTagValuePrefix, valueParser);
         schema = valueParser.schemas().size() == 1
                 ? new MapSchema(valueParser.schemas().getFirst())
-                : new MapSchema(new UnionSchema(valueParser.schemas().toArray(DataSchema[]::new)));
+                : new MapSchema(new UnionSchema(valueParser.schemas().stream().map(DataField::new).toArray(DataField[]::new)));
     }
 }

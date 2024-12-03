@@ -43,7 +43,7 @@ public abstract class NamedSchema extends DataSchema {
     }
 
     public String toString() {
-        return (namespace != null && !namespace.isEmpty() ? namespace + "." : "") + name;
+        return fullName();
     }
 
     public String namespace() {
@@ -52,6 +52,10 @@ public abstract class NamedSchema extends DataSchema {
 
     public String name() {
         return name;
+    }
+
+    public String fullName() {
+        return (namespace != null && !namespace.isEmpty() ? namespace + "." : "") + name;
     }
 
     public String doc() {

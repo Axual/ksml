@@ -59,8 +59,16 @@ public class DataField {
         }
     }
 
+    public DataField(DataSchema schema) {
+        this(null, schema);
+    }
+
+    public DataField(String name, DataSchema schema) {
+        this(name, schema, null);
+    }
+
     public DataField(String name, DataSchema schema, String doc) {
-        this(name, schema, doc, -1);
+        this(name, schema, doc, NO_INDEX);
     }
 
     public DataField(String name, DataSchema schema, String doc, int index) {
@@ -77,13 +85,5 @@ public class DataField {
 
     public boolean isAssignableFrom(DataField field) {
         return field != null && schema.isAssignableFrom(field.schema);
-    }
-
-    public DataField withDefaultValue(DataValue possibleValues) {
-        return new DataField(name, schema, doc, index, required, constant, defaultValue, order);
-    }
-
-    public DataField withDoc(String doc) {
-        return new DataField(name, schema, doc, index, required, constant, defaultValue, order);
     }
 }

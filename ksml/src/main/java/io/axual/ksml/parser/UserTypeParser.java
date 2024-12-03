@@ -35,6 +35,7 @@ import io.axual.ksml.data.type.*;
 import io.axual.ksml.exception.TopologyException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static io.axual.ksml.data.notation.UserType.UNKNOWN;
 
@@ -135,7 +136,7 @@ public class UserTypeParser {
         // union(type1,type2,...)
         if (datatype.startsWith(UNION_TYPE + ROUND_BRACKET_OPEN) && datatype.endsWith(ROUND_BRACKET_CLOSE)) {
             var unionSubtypes = datatype.substring(UNION_TYPE.length() + 1, datatype.length() - 1);
-            return new UserType(notation, new UnionType(UserType.userTypesToDataTypes(parseListOfTypesAndNotation(unionSubtypes, notation))));
+            return new UserType(notation, new UnionType(Arrays.stream(UserType.userTypesToDataTypes(parseListOfTypesAndNotation(unionSubtypes, notation))).map(UnionType.ValueType::new).toArray(UnionType.ValueType[]::new)));
         }
 
         // windowed(type)

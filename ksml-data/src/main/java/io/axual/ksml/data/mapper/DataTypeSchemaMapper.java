@@ -49,11 +49,16 @@ public class DataTypeSchemaMapper implements DataSchemaMapper<DataType> {
         if (type instanceof MapType mapType)
             return new MapSchema(toDataSchema(namespace, name, mapType.valueType()));
         if (type instanceof UnionType unionType) {
-            var schemas = new DataSchema[unionType.possibleTypes().length];
-            for (int index = 0; index < unionType.possibleTypes().length; index++) {
-                schemas[index] = toDataSchema(unionType.possibleTypes()[index]);
+            var fields = new DataField[unionType.valueTypes().length];
+            for (int index = 0; index < unionType.valueTypes().length; index++) {
+                final var valueType = unionType.valueTypes()[index];
+                fields[index] = new DataField(
+                        valueType.name(),
+                        toDataSchema(valueType.type()),
+                        null,
+                        valueType.index());
             }
-            return new UnionSchema(schemas);
+            return new UnionSchema(fields);
         }
         throw new ExecutionException("Can not convert dataType " + type + " to a schema");
     }
@@ -79,9 +84,13 @@ public class DataTypeSchemaMapper implements DataSchemaMapper<DataType> {
         if (schema instanceof MapSchema mapSchema)
             return new MapType(fromDataSchema(mapSchema.valueSchema()));
         if (schema instanceof UnionSchema unionSchema) {
-            var types = new DataType[unionSchema.possibleSchemas().length];
-            for (int index = 0; index < unionSchema.possibleSchemas().length; index++) {
-                types[index] = fromDataSchema(unionSchema.possibleSchemas()[index]);
+            var types = new UnionType.ValueType[unionSchema.valueTypes().length];
+            for (int index = 0; index < unionSchema.valueTypes().length; index++) {
+                final var valueType = unionSchema.valueTypes()[index];
+                types[index] = new UnionType.ValueType(
+                        valueType.name(),
+                        fromDataSchema(valueType.schema()),
+                        valueType.index());
             }
             return new UnionType(types);
         }

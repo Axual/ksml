@@ -27,29 +27,41 @@ import java.util.List;
 
 public class ProtobufReadContext {
     private final ProtobufSchema schema;
+    private final String namespace;
 
     public ProtobufReadContext(ProtobufSchema schema) {
         this.schema = schema;
+        this.namespace = schema.getFileDescriptor().getPackage();
     }
 
     public String namespace() {
         return schema.getProtoFileElement().getPackageName();
     }
 
-    public Descriptors.GenericDescriptor type(String name) {
-        final var fd = schema.getFileDescriptor();
-        final var descriptor = findType(fd.getMessageTypes(), name);
-        if (descriptor != null) return descriptor;
-        return ProtobufUtil.findInList(fd.getEnumTypes(), Descriptors.EnumDescriptor::getName, name);
+    public record FindResult(Descriptors.GenericDescriptor descriptor) {
+        public String namespace() {
+            final var result = descriptor.getFullName();
+            final var lastDot = result.lastIndexOf(".");
+            return lastDot <= 0 ? result : result.substring(0, lastDot);
+        }
     }
 
-    private Descriptors.GenericDescriptor findType(List<Descriptors.Descriptor> descriptors, String name) {
+    public FindResult type(String name) {
+        final var fd = schema.getFileDescriptor();
+        final var descriptor = findType(fd.getPackage(), fd.getMessageTypes(), name);
+        if (descriptor != null) return descriptor;
+        final var enm = ProtobufUtil.findInList(fd.getEnumTypes(), Descriptors.EnumDescriptor::getFullName, namespace + "." + name);
+        if (enm != null) return new FindResult(enm);
+        return null;
+    }
+
+    private FindResult findType(String namespace, List<Descriptors.Descriptor> descriptors, String name) {
         for (final var descriptor : descriptors) {
-            if (descriptor.getName().equals(name)) return descriptor;
-            final var subMsg = findType(descriptor.getNestedTypes(), name);
+            if (descriptor.getName().equals(name)) return new FindResult(descriptor);
+            final var subMsg = findType(namespace + "." + descriptor.getName(), descriptor.getNestedTypes(), name);
             if (subMsg != null) return subMsg;
             final var subEnum = descriptor.findEnumTypeByName(name);
-            if (subEnum != null) return subEnum;
+            if (subEnum != null) return new FindResult(subEnum);
         }
         return null;
     }

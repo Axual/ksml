@@ -45,8 +45,8 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
     public Object fromDataSchema(DataSchema schema) {
         if (schema instanceof UnionSchema unionSchema) {
             final var result = new ArrayList<>();
-            for (DataSchema possibleSchema : unionSchema.possibleSchemas())
-                result.add(convertSchema(possibleSchema));
+            for (final var valueType : unionSchema.valueTypes())
+                result.add(convertField(valueType));
             return result;
         }
 
@@ -68,7 +68,7 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
         if (namedSchema.doc() != null)
             result.put(DataSchemaDSL.NAMED_SCHEMA_DOC_FIELD, namedSchema.doc());
         if (namedSchema instanceof EnumSchema enumSchema) {
-            result.put(DataSchemaDSL.ENUM_SCHEMA_POSSIBLEVALUES_FIELD, enumSchema.symbols());
+            result.put(DataSchemaDSL.ENUM_SCHEMA_SYMBOLS_FIELD, enumSchema.symbols());
             if (enumSchema.defaultValue() != null)
                 result.put(DataSchemaDSL.ENUM_SCHEMA_DEFAULTVALUE_FIELD, enumSchema.defaultValue());
         }

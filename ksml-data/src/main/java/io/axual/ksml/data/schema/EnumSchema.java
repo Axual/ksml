@@ -38,12 +38,12 @@ public class EnumSchema extends NamedSchema {
     private final Map<Integer, String> reverseSymbols;
     private final String defaultValue;
 
-    public EnumSchema(String namespace, String name, String doc, List<String> possibleValues) {
-        this(namespace, name, doc, possibleValues, null);
+    public EnumSchema(String namespace, String name, String doc, List<String> symbols) {
+        this(namespace, name, doc, symbols, null);
     }
 
-    public EnumSchema(String namespace, String name, String doc, Map<String, Integer> possibleValues) {
-        this(namespace, name, doc, possibleValues, null);
+    public EnumSchema(String namespace, String name, String doc, Map<String, Integer> symbols) {
+        this(namespace, name, doc, symbols, null);
     }
 
     public EnumSchema(String namespace, String name, String doc, List<String> symbols, String defaultValue) {

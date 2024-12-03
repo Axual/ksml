@@ -22,15 +22,14 @@ package io.axual.ksml.data.notation.protobuf;
 
 import com.google.protobuf.Descriptors;
 import com.squareup.wire.Syntax;
-import com.squareup.wire.schema.Location;
-import com.squareup.wire.schema.internal.parser.ProtoFileElement;
+import io.apicurio.registry.serde.protobuf.ProtobufSchemaParser;
 import io.apicurio.registry.utils.protobuf.schema.DynamicSchema;
 import io.apicurio.registry.utils.protobuf.schema.EnumDefinition;
 import io.apicurio.registry.utils.protobuf.schema.MessageDefinition;
 import io.apicurio.registry.utils.protobuf.schema.ProtobufSchema;
 import io.axual.ksml.data.exception.SchemaException;
+import lombok.Getter;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,6 +37,7 @@ public class ProtobufWriteContext {
     private static final ProtobufSchemaMapper MAPPER = new ProtobufSchemaMapper();
     private static final Syntax DEFAULT_SYNTAX = Syntax.PROTO_3;
     private static final Descriptors.FileDescriptor[] NO_DEPENDENCIES = new Descriptors.FileDescriptor[0];
+    @Getter
     private final String namespace;
     private final String name;
     private final Map<String, MessageDefinition> messages = new HashMap<>();
@@ -66,18 +66,8 @@ public class ProtobufWriteContext {
         try {
             final var ds = result.build();
             final var fd = Descriptors.FileDescriptor.buildFrom(ds.getFileDescriptorProto(), NO_DEPENDENCIES);
-            final var descriptor = fd.findMessageTypeByName(name);
-            final var fileElem = new ProtoFileElement(
-                    Location.get(""),
-                    namespace,
-                    DEFAULT_SYNTAX,
-                    Collections.emptyList(),
-                    Collections.emptyList(),
-                    Collections.emptyList(),
-                    Collections.emptyList(),
-                    Collections.emptyList(),
-                    Collections.emptyList());
-            return new ProtobufSchema(fd, fileElem);
+            final var fe = new ProtobufSchemaParser<>().toProtoFileElement(fd);
+            return new ProtobufSchema(fd, fe);
         } catch (Descriptors.DescriptorValidationException e) {
             throw new SchemaException("Could not generate dynamic PROTOBUF schema" + name + ": " + e.getMessage(), e);
         }

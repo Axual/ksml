@@ -23,13 +23,13 @@ package io.axual.ksml.data.parser.schema;
 import io.axual.ksml.data.parser.BaseParser;
 import io.axual.ksml.data.parser.ListParser;
 import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.UnionSchema;
 
 public class UnionSchemaParser extends BaseParser<UnionSchema> {
     @Override
     public UnionSchema parse(ParseNode node) {
-        var possibleTypes = new ListParser<>("union-type", "type", new DataSchemaParser()).parse(node);
-        return new UnionSchema(possibleTypes.toArray(new DataSchema[0]));
+        var valueTypes = new ListParser<>("union-type", "type", new DataFieldParser()).parse(node);
+        return new UnionSchema(valueTypes.toArray(DataField[]::new));
     }
 }
