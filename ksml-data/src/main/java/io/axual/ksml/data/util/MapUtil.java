@@ -21,18 +21,16 @@ package io.axual.ksml.data.util;
  */
 
 import java.util.*;
+import java.util.function.BiFunction;
 
 public class MapUtil {
-    public static <K, V> Map<K, V> arrayToMap(K[] array, V fixedValue) {
-        final Map<K, V> result = new LinkedHashMap<K, V>(array.length);
-        Arrays.stream(array).forEach(k -> result.put(k, fixedValue));
-        return result;
-    }
-
-    public static <K, V> Map<K, V> listToMap(List<K> list, V fixedValue) {
-        final Map<K, V> result = new LinkedHashMap<>(list.size());
-        list.forEach(k -> result.put(k, fixedValue));
-        return result;
+    public static <K, V> Map.Entry<K, V> findInMap(Map<K, V> map, BiFunction<K, V, Boolean> matcher) {
+        for (final var entry : map.entrySet()) {
+            if (matcher.apply(entry.getKey(), entry.getValue())) {
+                return entry;
+            }
+        }
+        return null;
     }
 
     public static <K, V> Map<V, K> invertMap(Map<K, V> map) {

@@ -36,6 +36,7 @@ import io.axual.ksml.exception.TopologyException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static io.axual.ksml.data.notation.UserType.UNKNOWN;
 
@@ -130,7 +131,7 @@ public class UserTypeParser {
         // enum(literal1,literal2,...)
         if (datatype.startsWith(ENUM_TYPE + ROUND_BRACKET_OPEN) && datatype.endsWith(ROUND_BRACKET_CLOSE)) {
             var literals = datatype.substring(ENUM_TYPE.length() + 1, datatype.length() - 1);
-            return new UserType(notation, new EnumType(parseListOfLiterals(literals)));
+            return new UserType(notation, new EnumType(Symbols.from(parseListOfLiterals(literals))));
         }
 
         // union(type1,type2,...)
@@ -188,16 +189,16 @@ public class UserTypeParser {
         return new DecomposedType(defaultNotation, composedType);
     }
 
-    private static String[] parseListOfLiterals(String literals) {
+    private static List<String> parseListOfLiterals(String literals) {
         // Literals are optionally double-quoted
-        var splitLiterals = literals.split(TYPE_SEPARATOR);
-        var result = new String[splitLiterals.length];
-        for (int index = 0; index < splitLiterals.length; index++) {
-            var literal = splitLiterals[index];
+        final var splitLiterals = literals.split(TYPE_SEPARATOR);
+        final var result = new ArrayList<String>();
+        for (final var literal : splitLiterals) {
             if (literal.length() > 2 && literal.startsWith(DOUBLE_QUOTE) && literal.endsWith(DOUBLE_QUOTE)) {
-                literal = literal.substring(1, literal.length() - 2);
+                result.add(literal.substring(1, literal.length() - 2));
+            } else {
+                result.add(literal);
             }
-            result[index] = literal;
         }
         return result;
     }

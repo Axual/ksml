@@ -20,7 +20,7 @@ package io.axual.ksml.data.notation.protobuf;
  * =========================LICENSE_END==================================
  */
 
-import com.google.protobuf.Descriptors;
+import com.squareup.wire.schema.internal.parser.TypeElement;
 import io.apicurio.registry.utils.protobuf.schema.ProtobufSchema;
 
 import java.util.List;
@@ -38,30 +38,23 @@ public class ProtobufReadContext {
         return schema.getProtoFileElement().getPackageName();
     }
 
-    public record FindResult(Descriptors.GenericDescriptor descriptor) {
-        public String namespace() {
-            final var result = descriptor.getFullName();
-            final var lastDot = result.lastIndexOf(".");
-            return lastDot <= 0 ? result : result.substring(0, lastDot);
-        }
+    public record FindResult(String namespace, TypeElement type) {
     }
 
     public FindResult type(String name) {
-        final var fd = schema.getFileDescriptor();
-        final var descriptor = findType(fd.getPackage(), fd.getMessageTypes(), name);
+        final var fileElement = schema.getProtoFileElement();
+        final var descriptor = findType(fileElement.getPackageName(), fileElement.getTypes(), name);
         if (descriptor != null) return descriptor;
-        final var enm = ProtobufUtil.findInList(fd.getEnumTypes(), Descriptors.EnumDescriptor::getFullName, namespace + "." + name);
-        if (enm != null) return new FindResult(enm);
+        final var enm = ProtobufUtil.findInList(fileElement.getTypes(), TypeElement::getName, namespace + "." + name);
+        if (enm != null) return new FindResult(namespace, enm);
         return null;
     }
 
-    private FindResult findType(String namespace, List<Descriptors.Descriptor> descriptors, String name) {
-        for (final var descriptor : descriptors) {
-            if (descriptor.getName().equals(name)) return new FindResult(descriptor);
-            final var subMsg = findType(namespace + "." + descriptor.getName(), descriptor.getNestedTypes(), name);
+    private FindResult findType(String namespace, List<TypeElement> types, String name) {
+        for (final var type : types) {
+            if (type.getName().equals(name)) return new FindResult(namespace, type);
+            final var subMsg = findType(namespace + "." + type.getName(), type.getNestedTypes(), name);
             if (subMsg != null) return subMsg;
-            final var subEnum = descriptor.findEnumTypeByName(name);
-            if (subEnum != null) return new FindResult(subEnum);
         }
         return null;
     }

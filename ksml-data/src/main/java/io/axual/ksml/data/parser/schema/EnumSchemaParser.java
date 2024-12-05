@@ -24,6 +24,7 @@ import io.axual.ksml.data.parser.BaseParser;
 import io.axual.ksml.data.parser.MapParser;
 import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.EnumSchema;
+import io.axual.ksml.data.type.Symbols;
 
 public class EnumSchemaParser extends BaseParser<EnumSchema> {
     @Override
@@ -32,7 +33,7 @@ public class EnumSchemaParser extends BaseParser<EnumSchema> {
                 parseString(node, DataSchemaDSL.NAMED_SCHEMA_NAMESPACE_FIELD),
                 parseString(node, DataSchemaDSL.NAMED_SCHEMA_NAME_FIELD),
                 parseString(node, DataSchemaDSL.NAMED_SCHEMA_DOC_FIELD),
-                new MapParser<Integer>("enum-symbol", "symbol", new IntegerParser()).parse(node.get(DataSchemaDSL.ENUM_SCHEMA_SYMBOLS_FIELD)),
-                parseString(node, DataSchemaDSL.ENUM_SCHEMA_DEFAULTVALUE_FIELD));
+                new SymbolsParser().parse(node.get(DataSchemaDSL.ENUM_SCHEMA_SYMBOLS_FIELD)),
+                parseString(node, DataSchemaDSL.ENUM_SCHEMA_DEFAULT_VALUE_FIELD));
     }
 }

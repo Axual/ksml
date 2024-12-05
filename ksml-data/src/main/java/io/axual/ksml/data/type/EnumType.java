@@ -21,23 +21,21 @@ package io.axual.ksml.data.type;
  */
 
 import io.axual.ksml.data.parser.schema.DataSchemaDSL;
-import io.axual.ksml.data.util.MapUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import java.util.Map;
+import java.util.List;
 
 @Getter
 @EqualsAndHashCode
 public class EnumType extends SimpleType {
-    public static final int NO_INDEX = -1;
-    private final Map<String, Integer> symbols;
+    private final Symbols symbols;
 
-    public EnumType(String... symbols) {
-        this(MapUtil.arrayToMap(symbols, NO_INDEX));
+    public EnumType(List<String> symbols) {
+        this(Symbols.from(symbols));
     }
 
-    public EnumType(Map<String, Integer> symbols) {
+    public EnumType(Symbols symbols) {
         super(String.class, DataSchemaDSL.ENUM_TYPE);
         this.symbols = symbols;
     }

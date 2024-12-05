@@ -1,32 +1,26 @@
 // Proto schema formatted by Wire, do not edit.
-// Source:
+// Source: 
 
 syntax = "proto3";
 
 package io.axual.ksml.example;
 
 message SensorDataProtobuf {
-  string name = 1;
-
-  sint64 timestamp = 2;
-
-  string value = 3;
-
-  SensorType type = 4;
-
-  string unit = 5;
-
-  string color = 6;
-
-  string city = 7;
-
-  string owner = 8;
+  string name = 1;                    // The name of the sensor
+  int64 timestamp = 2;                // The timestamp of the sensor reading
+  string value = 3;                   // The value of the sensor, represented as string
+  SensorType type = 4;                // The type of the sensor
+  string unit = 5;                    // The unit of the sensor
+  optional string color = 6;          // The color of the sensor
+  optional string city = 7;           // The city of the sensor
+  optional string owner = 8;          // The owner of the sensor
 }
 
 enum SensorType {
-  AREA = 0;
-  HUMIDITY = 1;
-  TEMPERATURE = 4;
-  LENGTH = 2;
-  STATE = 3;
+  UNSPECIFIED = 0;
+  AREA = 1;
+  HUMIDITY = 2;
+  TEMPERATURE = 3;
+  LENGTH = 4;
+  STATE = 5;
 }

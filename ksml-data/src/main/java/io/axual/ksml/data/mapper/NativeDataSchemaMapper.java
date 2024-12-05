@@ -26,6 +26,8 @@ import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.parser.schema.DataSchemaDSL;
 import io.axual.ksml.data.parser.schema.DataSchemaParser;
 import io.axual.ksml.data.schema.*;
+import io.axual.ksml.data.type.SymbolMetadata;
+import io.axual.ksml.data.type.Symbols;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -68,19 +70,32 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
         if (namedSchema.doc() != null)
             result.put(DataSchemaDSL.NAMED_SCHEMA_DOC_FIELD, namedSchema.doc());
         if (namedSchema instanceof EnumSchema enumSchema) {
-            result.put(DataSchemaDSL.ENUM_SCHEMA_SYMBOLS_FIELD, enumSchema.symbols());
+            result.put(DataSchemaDSL.ENUM_SCHEMA_SYMBOLS_FIELD, convertSymbols(enumSchema.symbols()));
             if (enumSchema.defaultValue() != null)
-                result.put(DataSchemaDSL.ENUM_SCHEMA_DEFAULTVALUE_FIELD, enumSchema.defaultValue());
+                result.put(DataSchemaDSL.ENUM_SCHEMA_DEFAULT_VALUE_FIELD, enumSchema.defaultValue());
         }
         if (namedSchema instanceof FixedSchema fixedSchema)
             result.put(DataSchemaDSL.FIXED_SCHEMA_SIZE_FIELD, fixedSchema.size());
         if (namedSchema instanceof StructSchema structSchema) {
-            var fields = new ArrayList<Map<String, Object>>();
+            final var fields = new ArrayList<Map<String, Object>>();
             result.put(DataSchemaDSL.STRUCT_SCHEMA_FIELDS_FIELD, fields);
-            for (DataField field : structSchema.fields()) {
+            for (final var field : structSchema.fields()) {
                 fields.add(convertField(field));
             }
         }
+    }
+
+    private Map<String, Object> convertSymbols(Symbols symbols) {
+        final var result = new LinkedHashMap<String, Object>();
+        symbols.forEach((name, meta) -> result.put(name, convertSymbolMeta(meta)));
+        return result;
+    }
+
+    private Map<String, Object> convertSymbolMeta(SymbolMetadata metadata) {
+        final var result = new LinkedHashMap<String, Object>();
+        result.put(DataSchemaDSL.ENUM_SCHEMA_DOC_FIELD, metadata.doc());
+        result.put(DataSchemaDSL.ENUM_SCHEMA_INDEX_FIELD, metadata.index());
+        return result;
     }
 
     private Object convertSchema(DataSchema schema) {

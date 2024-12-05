@@ -21,41 +21,34 @@ package io.axual.ksml.data.schema;
  */
 
 import io.axual.ksml.data.type.EnumType;
-import io.axual.ksml.data.util.MapUtil;
+import io.axual.ksml.data.type.Symbols;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 @Getter
 @EqualsAndHashCode
 public class EnumSchema extends NamedSchema {
-    public static final int NO_INDEX = EnumType.NO_INDEX;
-    private final Map<String, Integer> symbols;
-    private final Map<Integer, String> reverseSymbols;
+    private final Symbols symbols;
     private final String defaultValue;
 
     public EnumSchema(String namespace, String name, String doc, List<String> symbols) {
         this(namespace, name, doc, symbols, null);
     }
 
-    public EnumSchema(String namespace, String name, String doc, Map<String, Integer> symbols) {
+    public EnumSchema(String namespace, String name, String doc, Symbols symbols) {
         this(namespace, name, doc, symbols, null);
     }
 
     public EnumSchema(String namespace, String name, String doc, List<String> symbols, String defaultValue) {
-        this(namespace, name, doc, MapUtil.listToMap(symbols, NO_INDEX), defaultValue);
+        this(namespace, name, doc, Symbols.from(symbols), defaultValue);
     }
 
-    public EnumSchema(String namespace, String name, String doc, Map<String, Integer> symbols, String defaultValue) {
+    public EnumSchema(String namespace, String name, String doc, Symbols symbols, String defaultValue) {
         super(Type.ENUM, namespace, name, doc);
-        this.symbols = Collections.unmodifiableMap(symbols);
-        final var reverseSymbols = MapUtil.invertMap(symbols);
-        reverseSymbols.remove(NO_INDEX);
-        this.reverseSymbols = Collections.unmodifiableMap(reverseSymbols);
+        this.symbols = symbols;
         this.defaultValue = defaultValue;
     }
 
