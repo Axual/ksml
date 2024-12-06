@@ -43,7 +43,7 @@ public class DataBytes extends DataPrimitive<byte[]> {
         sb.append("[");
         for (int index = 0; index < value().length; index++) {
             if (index > 0) sb.append(", ");
-            sb.append(String.format("%02X ", value()[index]));
+            sb.append(String.format("%02X", value()[index]));
         }
         sb.append("]");
         return sb.toString();

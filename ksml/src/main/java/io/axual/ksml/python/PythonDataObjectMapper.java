@@ -109,7 +109,7 @@ public class PythonDataObjectMapper extends NativeDataObjectMapper {
         if (expected == DataBytes.DATATYPE) {
             var bytes = new byte[(int) object.getArraySize()];
             for (var index = 0; index < object.getArraySize(); index++) {
-                bytes[index] = object.getArrayElement(index).asByte();
+                bytes[index] = (byte) object.getArrayElement(index).asInt();
             }
             return bytes;
         }
