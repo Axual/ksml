@@ -44,3 +44,11 @@ producers:
       topic: ksml_sensordata_avro
       keyType: string
       valueType: avro:SensorData
+
+  sensordata_protobuf_producer:
+    generator: generate_sensordata_message
+    interval: 3s
+    to:
+      topic: ksml_sensordata_protobuf
+      keyType: string
+      valueType: protobuf:SensorDataProtobuf

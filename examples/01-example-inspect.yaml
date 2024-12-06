@@ -16,6 +16,10 @@ streams:
     topic: ksml_sensordata_json
     keyType: string
     valueType: json:SensorData
+  sensor_source_protobuf:
+    topic: ksml_sensordata_protobuf
+    keyType: string
+    valueType: protobuf:SensorDataProtobuf
   sensor_source_xml:
     topic: ksml_sensordata_xml
     keyType: string
@@ -44,6 +48,10 @@ pipelines:
     from: sensor_source_json
     forEach:
       code: log_message(key, value, format="JSON")
+  consume_protobuf:
+    from: sensor_source_protobuf
+    forEach:
+      code: log_message(key, value, format="PROTOBUF")
   consume_xml:
     from: sensor_source_xml
     forEach:
