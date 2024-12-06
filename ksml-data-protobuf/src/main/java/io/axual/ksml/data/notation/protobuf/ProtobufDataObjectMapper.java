@@ -23,10 +23,6 @@ package io.axual.ksml.data.notation.protobuf;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.Message;
-import com.squareup.wire.Syntax;
-import com.squareup.wire.schema.Location;
-import com.squareup.wire.schema.internal.parser.ProtoFileElement;
-import io.apicurio.registry.utils.protobuf.schema.ProtobufSchema;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataObjectMapper;
@@ -37,12 +33,11 @@ import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.type.DataType;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collections;
-
 @Slf4j
 public class ProtobufDataObjectMapper implements DataObjectMapper<Message> {
-    private static final ProtobufSchemaMapper PROTOBUF_SCHEMA_MAPPER = new ProtobufSchemaMapper();
     private static final NativeDataObjectMapper NATIVE_DATA_MAPPER = new NativeDataObjectMapper();
+    private static final ProtobufDescriptorFileElementMapper DESCRIPTOR_ELEMENT_MAPPER = new ProtobufDescriptorFileElementMapper();
+    private static final ProtobufFileElementSchemaMapper ELEMENT_SCHEMA_MAPPER = new ProtobufFileElementSchemaMapper();
 
     @Override
     public DataObject toDataObject(DataType expected, Message value) {
@@ -50,34 +45,28 @@ public class ProtobufDataObjectMapper implements DataObjectMapper<Message> {
         final var descriptor = value.getDescriptorForType();
         final var namespace = descriptor.getFile().getPackage();
         final var name = descriptor.getName();
-        final var fileElem = new ProtoFileElement(
-                Location.get(""), namespace,
-                Syntax.valueOf(descriptor.getFile().toProto().getSyntax()),
-                Collections.emptyList(),
-                Collections.emptyList(),
-                Collections.emptyList(),
-                Collections.emptyList(),
-                Collections.emptyList(),
-                Collections.emptyList());
-        final var schema = PROTOBUF_SCHEMA_MAPPER.toDataSchema(namespace, name, new ProtobufSchema(descriptor.getFile(), fileElem));
-
+        final var fileElement = DESCRIPTOR_ELEMENT_MAPPER.toFileElement(descriptor);
+        final var schema = ELEMENT_SCHEMA_MAPPER.toDataSchema(namespace, name, fileElement);
         final var result = new DataStruct(schema);
         for (final var field : value.getAllFields().entrySet()) {
-            result.put(field.getKey().getName(), NATIVE_DATA_MAPPER.toDataObject(field.getValue()));
+            var val = field.getValue();
+            if (val instanceof Descriptors.EnumValueDescriptor enumValue) val = enumValue.getName();
+            result.put(field.getKey().getName(), NATIVE_DATA_MAPPER.toDataObject(val));
         }
-        return new DataStruct(schema);
+        return result;
     }
 
     @Override
     public Message fromDataObject(DataObject value) {
-        if (value instanceof DataNull) return null;
+        if (value == null || value instanceof DataNull) return null;
         if (value instanceof DataStruct struct) {
             final var dataSchema = struct.type().schema();
             if (dataSchema != null) {
-                final var protoSchema = PROTOBUF_SCHEMA_MAPPER.fromDataSchema(dataSchema);
-                final var msgSchema = protoSchema.getFileDescriptor().findMessageTypeByName(dataSchema.name());
-                final var msg = DynamicMessage.newBuilder(protoSchema.getFileDescriptor().findMessageTypeByName(dataSchema.name()));
-                for (final var field : msgSchema.getFields()) {
+                final var fileElement = ELEMENT_SCHEMA_MAPPER.fromDataSchema(dataSchema);
+                final var descriptor = DESCRIPTOR_ELEMENT_MAPPER.toDescriptor(dataSchema.namespace(), dataSchema.name(), fileElement);
+                final var msgDescriptor = descriptor.findMessageTypeByName(dataSchema.name());
+                final var msg = DynamicMessage.newBuilder(msgDescriptor);
+                for (final var field : msgDescriptor.getFields()) {
                     final var fieldValue = struct.get(field.getName());
                     if (fieldValue != null) {
                         final var nativeValue = NATIVE_DATA_MAPPER.fromDataObject(struct.get(field.getName()));
@@ -99,6 +88,6 @@ public class ProtobufDataObjectMapper implements DataObjectMapper<Message> {
                 return msg.build();
             }
         }
-        return null;
+        throw new DataException("Can not convert '" + value.type() + "' into a PROTOBUF message");
     }
 }

@@ -20,281 +20,30 @@ package io.axual.ksml.data.notation.protobuf;
  * =========================LICENSE_END==================================
  */
 
-import com.squareup.wire.schema.Field;
-import com.squareup.wire.schema.internal.parser.*;
 import io.apicurio.registry.utils.protobuf.schema.ProtobufSchema;
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataSchemaMapper;
-import io.axual.ksml.data.schema.*;
-import io.axual.ksml.data.type.Symbol;
-import io.axual.ksml.data.util.ListUtil;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
-
-import static io.apicurio.registry.utils.protobuf.schema.FileDescriptorUtils.DEFAULT_LOCATION;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.NamedSchema;
+import io.axual.ksml.data.schema.StructSchema;
 
 public class ProtobufSchemaMapper implements DataSchemaMapper<ProtobufSchema> {
-    private static final int PROTOBUF_ENUM_DEFAULT_VALUE_INDEX = 0;
-    private final Set<String> processedDescriptors = new HashSet<>();
+    private static final ProtobufDescriptorFileElementMapper DESCRIPTOR_ELEMENT_MAPPER = new ProtobufDescriptorFileElementMapper();
+    private static final ProtobufFileElementSchemaMapper ELEMENT_SCHEMA_MAPPER = new ProtobufFileElementSchemaMapper();
 
     @Override
-    public StructSchema toDataSchema(String namespace, String name, ProtobufSchema schema) {
-        // Look up the message name in the schema
-        final var message = findMessage(schema, name);
-
-        // Create a read context and parse the message into a struct schema
-        final var context = new ProtobufReadContext(schema);
-        // Convert the message fields
-        final var fields = convertMessageFieldsToDataSchema(context, message);
-        // Return a new struct schema with the converted fields
-        return new StructSchema(context.namespace(), message.getName(), "", fields);
-    }
-
-    private static MessageElement findMessage(ProtobufSchema schema, String name) {
-        // Find the message by name in the schema's message types
-        for (final var msg : schema.getProtoFileElement().getTypes()) {
-            if (msg instanceof MessageElement msgElement && msgElement.getName().equals(name)) return msgElement;
-        }
-        throw new SchemaException("Could not find message of type '" + name + "' in PROTOBUF schema '" + schema.getFileDescriptor().getName() + "'");
-    }
-
-    private List<DataField> convertMessageFieldsToDataSchema(ProtobufReadContext context, MessageElement message) {
-        // Get the list of oneOfs
-        final var oneOfs = message.getOneOfs();
-        // Map all oneOfs to their respective list of fields
-        final Map<OneOfElement, List<FieldElement>> oneOfMap = new HashMap<>();
-        oneOfs.forEach(oo -> oneOfMap.put(oo, oo.getFields()));
-        // Collect all the fields in a flat collection
-        final Set<FieldElement> oneOfFields = new HashSet<>();
-        oneOfMap.forEach((key, value) -> oneOfFields.addAll(value));
-        // Get the list of fields for this message
-        final var messageFields = new ArrayList<>(message.getFields());
-        // Remove the oneOf fields
-        messageFields.removeAll(oneOfFields);
-
-        // Convert the list of fields and oneOfs
-        List<DataField> result = new ArrayList<>(messageFields.size());
-
-        // Convert all fields and add to the result list
-        for (final var field : messageFields) {
-            result.add(convertFieldToDataSchema(context, field));
-        }
-
-        // Convert all oneOfs
-        for (final var oneOf : oneOfMap.entrySet()) {
-            // Convert the oneOf to a UnionSchema
-            final var ooFields = new ArrayList<DataField>();
-            for (final var field : oneOf.getValue())
-                ooFields.add(convertFieldToDataSchema(context, field));
-            final var oneOfUnion = new UnionSchema(ooFields.toArray(DataField[]::new));
-            result.add(new DataField(oneOf.getKey().getName(), oneOfUnion));
-        }
-
-        // Return the list of converted fields
-        return result;
-    }
-
-    private DataField convertFieldToDataSchema(ProtobufReadContext context, FieldElement field) {
-        // Don't get a default value for an embedded message field
-        final var defaultValue = field.getDefaultValue() != null
-                ? field.getDefaultValue()
-                : null;
-        final var name = field.getName();
-        final var required = field.getLabel() == null || field.getLabel() == Field.Label.REQUIRED;
-        final var list = field.getLabel() == Field.Label.REPEATED;
-        final var type = convertType(context, field);
-        if (type == null) {
-            throw new SchemaException("Schema for field '" + field.getName() + "' can not be NULL");
-        }
-        return new DataField(name, list ? new ListSchema(type) : type, field.getDocumentation(), field.getTag(), required);
-    }
-
-    private DataSchema convertType(ProtobufReadContext context, FieldElement field) {
-        switch (field.getType()) {
-            case "double":
-                return DataSchema.doubleSchema();
-            case "float":
-                return DataSchema.floatSchema();
-            case "int64":
-                return DataSchema.longSchema();
-            case "uint64":
-                return DataSchema.longSchema();
-            case "int32":
-                return DataSchema.integerSchema();
-            case "fixed64":
-                return DataSchema.longSchema();
-            case "fixed32":
-                return DataSchema.integerSchema();
-            case "boolean":
-                return DataSchema.booleanSchema();
-            case "string":
-                return DataSchema.stringSchema();
-            case "bytes":
-                return DataSchema.bytesSchema();
-            case "uint32":
-                return DataSchema.integerSchema();
-            case "sfixed32":
-                return DataSchema.integerSchema();
-            case "sfixed64":
-                return DataSchema.longSchema();
-            case "sint32":
-                return DataSchema.integerSchema();
-            case "sint64":
-                return DataSchema.longSchema();
-        }
-
-        // Look up the non-standard type
-        if (!field.getType().isEmpty()) {
-            final var findResult = context.type(field.getType());
-            if (findResult != null && findResult.type() instanceof EnumElement enumElement) {
-                final var symbols = enumElement.getConstants().stream().map(constant -> new Symbol(constant.getName(), constant.getDocumentation(), constant.getTag())).toList();
-                if (symbols.isEmpty()) {
-                    throw new SchemaException("Protobuf enum type '" + enumElement.getName() + "' has no constants defined");
-                }
-                final var defaultValue = ListUtil.find(symbols, symbol -> symbol.index() == PROTOBUF_ENUM_DEFAULT_VALUE_INDEX);
-                return new EnumSchema(findResult.namespace(), enumElement.getName(), findResult.type().getDocumentation(), symbols, defaultValue != null ? defaultValue.name() : null);
-            }
-            if (findResult != null && findResult.type() instanceof MessageElement msgElement) {
-                final var fields = convertMessageFieldsToDataSchema(context, msgElement);
-                return new StructSchema(findResult.namespace(), msgElement.getName(), "", fields);
-            }
-        }
-
-        throw new SchemaException("Protobuf field '" + field.getName() + "' has unknown type '" + (field.getType() != null ? field.getType() : "null") + "'");
+    public DataSchema toDataSchema(String namespace, String name, ProtobufSchema schema) {
+        return ELEMENT_SCHEMA_MAPPER.toDataSchema(namespace, name, schema.getProtoFileElement());
     }
 
     @Override
     public ProtobufSchema fromDataSchema(DataSchema schema) {
         final var name = schema instanceof NamedSchema namedSchema ? " '" + namedSchema.name() + "'" : null;
-
         if (schema instanceof StructSchema structSchema) {
-            final var context = new ProtobufWriteContext(structSchema.namespace(), structSchema.name());
-            final var message = convertToMessageElement(context, structSchema);
-            context.addType(message);
-            return context.toProtobufSchema();
+            final var fileElement = ELEMENT_SCHEMA_MAPPER.fromDataSchema(structSchema);
+            final var descriptor = DESCRIPTOR_ELEMENT_MAPPER.toDescriptor(structSchema.namespace(), structSchema.name(), fileElement);
+            return new ProtobufSchema(descriptor, fileElement);
         }
-
         throw new SchemaException("Can not convert " + schema.type() + " into dynamic PROTOBUF schema" + name);
-    }
-
-    private MessageElement convertToMessageElement(ProtobufWriteContext context, StructSchema schema) {
-        final var nestedTypes = new ArrayList<TypeElement>();
-        final var oneOfs = new ArrayList<OneOfElement>();
-
-        final var fields = new ArrayList<FieldElement>();
-        for (final var field : schema.fields()) {
-            final var type = convertFieldToType(context, nestedTypes, oneOfs, schema.name(), field);
-            if (type != null) fields.add(convertToFieldElement(field, type));
-        }
-
-        return new MessageElement(
-                DEFAULT_LOCATION,
-                schema.name(),
-                schema.doc(),
-                nestedTypes,
-                Collections.emptyList(),
-                Collections.emptyList(),
-                fields,
-                oneOfs,
-                Collections.emptyList(),
-                Collections.emptyList(),
-                Collections.emptyList());
-    }
-
-    @NotNull
-    private static FieldElement convertToFieldElement(DataField field, String type) {
-        final var required = field.required();
-        final var list = field.schema().type() == DataSchema.Type.LIST;
-        final var defaultValue = field.defaultValue() != null ? field.defaultValue().toString() : null;
-        final var fieldElement = new FieldElement(
-                DEFAULT_LOCATION,
-                required ? null : list ? Field.Label.REPEATED : Field.Label.OPTIONAL,
-                type,
-                field.name(),
-                defaultValue,
-                null,
-                field.index(),
-                field.doc(),
-                Collections.emptyList());
-        return fieldElement;
-    }
-
-    private String convertFieldToType(ProtobufWriteContext context, List<TypeElement> parentNestedTypes, List<OneOfElement> parentOneOfs, String parentName, DataField field) {
-        if (field.schema() instanceof UnionSchema unionSchema) {
-            final var valueTypes = new ArrayList<FieldElement>();
-            for (int index = 0; index < unionSchema.valueTypes().length; index++) {
-                final var vt = unionSchema.valueTypes()[index];
-                final var valueType = new FieldElement(
-                        DEFAULT_LOCATION,
-                        Field.Label.ONE_OF,
-                        convertFieldToType(context, parentNestedTypes, parentOneOfs, parentName, vt),
-                        vt.name(),
-                        vt.defaultValue() != null ? vt.defaultValue().toString() : null,
-                        null,
-                        vt.index(),
-                        vt.doc(),
-                        Collections.emptyList());
-                valueTypes.add(valueType);
-            }
-
-            final var oneOf = new OneOfElement(field.name(), field.doc() != null ? field.doc() : "", valueTypes, Collections.emptyList(), Collections.emptyList(), DEFAULT_LOCATION);
-            parentOneOfs.add(oneOf);
-        }
-
-        return convertSchemaToType(context, parentNestedTypes, parentName, field.schema());
-    }
-
-    private EnumElement convertToEnumElement(EnumSchema schema) {
-        final var constants = schema.symbols().stream().map(symbol -> new EnumConstantElement(DEFAULT_LOCATION, symbol.name(), symbol.index(), symbol.doc(), Collections.emptyList())).toList();
-        return new EnumElement(DEFAULT_LOCATION, schema.name(), schema.doc(), Collections.emptyList(), constants, Collections.emptyList());
-    }
-
-    private String convertSchemaToType(ProtobufWriteContext context, List<TypeElement> parentNestedTypes, String
-            parentName, DataSchema schema) {
-        if (schema instanceof EnumSchema enumSchema) {
-            final var enm = convertToEnumElement(enumSchema);
-            // Find out if the enum is nested, or defined at top level
-            if (enumSchema.namespace() != null && enumSchema.namespace().equals(context.namespace() + "." + parentName)) {
-                if (notDuplicate(enumSchema.fullName())) {
-                    parentNestedTypes.add(enm);
-                }
-            } else {
-                context.addType(enm);
-            }
-            return enumSchema.name();
-        }
-        if (schema instanceof ListSchema listSchema) {
-            // The repeated label is caught above, so only convert the value schema to a type
-            return convertSchemaToType(context, parentNestedTypes, parentName, listSchema.valueSchema());
-        }
-        if (schema instanceof StructSchema structSchema) {
-            final var message = convertToMessageElement(context, structSchema);
-            // Find out if the message is nested, or defined at top level
-            if (structSchema.namespace() != null && structSchema.namespace().equals(context.namespace() + "." + parentName)) {
-                if (notDuplicate(structSchema.fullName()))
-                    parentNestedTypes.add(message);
-            } else {
-                context.addType(message);
-            }
-            return structSchema.name();
-        }
-        return switch (schema.type()) {
-            case BOOLEAN -> "boolean";
-            case BYTE, SHORT, INTEGER -> "int32";
-            case LONG -> "int64";
-            case DOUBLE -> "double";
-            case FLOAT -> "float";
-            case STRING -> "string";
-            case MAP -> null;
-            case UNION -> null;
-            default -> throw new SchemaException("Can not convert schema type " + schema.type() + " to PROTOBUF type");
-        };
-    }
-
-    private boolean notDuplicate(String name) {
-        final var result = !processedDescriptors.contains(name);
-        processedDescriptors.add(name);
-        return result;
     }
 }

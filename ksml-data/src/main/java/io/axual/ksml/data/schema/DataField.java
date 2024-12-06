@@ -83,6 +83,10 @@ public class DataField {
         this(name, schema, doc, index, required, constant, defaultValue, Order.ASCENDING);
     }
 
+    public boolean hasDoc() {
+        return doc != null && !doc.isEmpty();
+    }
+
     public boolean isAssignableFrom(DataField field) {
         return field != null && schema.isAssignableFrom(field.schema);
     }

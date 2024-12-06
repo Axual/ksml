@@ -99,7 +99,7 @@ public class ProtobufNotation implements Notation {
 
         public ProtobufSerde(SerdeType type) {
             serializer = switch (type) {
-                case APICURIO ->  new ProtobufKafkaSerializer<>();
+                case APICURIO -> new ProtobufKafkaSerializer<>();
             };
             deserializer = switch (type) {
                 case APICURIO -> new ProtobufKafkaDeserializer<>();

@@ -42,24 +42,16 @@ public abstract class NamedSchema extends DataSchema {
         this.doc = doc;
     }
 
+    public boolean hasDoc() {
+        return doc != null && !doc.isEmpty();
+    }
+
     public String toString() {
         return fullName();
     }
 
-    public String namespace() {
-        return namespace;
-    }
-
-    public String name() {
-        return name;
-    }
-
     public String fullName() {
         return (namespace != null && !namespace.isEmpty() ? namespace + "." : "") + name;
-    }
-
-    public String doc() {
-        return doc;
     }
 
     public boolean isAssignableFrom(DataSchema otherSchema) {

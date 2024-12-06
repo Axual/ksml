@@ -34,7 +34,6 @@ import java.util.Collections;
 @Slf4j
 public class ProtobufSchemaLoader extends SchemaLoader {
     private static final ProtobufSchemaMapper MAPPER = new ProtobufSchemaMapper();
-    private static final Location DEFAULT_LOCATION = Location.get("");
 
     public ProtobufSchemaLoader(String schemaDirectory) {
         super("PROTOBUF", schemaDirectory, ".proto");

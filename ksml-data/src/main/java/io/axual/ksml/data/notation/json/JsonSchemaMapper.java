@@ -156,9 +156,8 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     public DataStruct fromDataSchema(StructSchema structSchema, DataStruct definitions) {
         final var result = new DataStruct();
         final var title = structSchema.name();
-        final var doc = structSchema.doc();
         if (title != null) result.put(TITLE_NAME, new DataString(title));
-        if (doc != null) result.put(DESCRIPTION_NAME, new DataString(doc));
+        if (structSchema.hasDoc()) result.put(DESCRIPTION_NAME, new DataString(structSchema.doc()));
         result.put(TYPE_NAME, new DataString(OBJECT_TYPE));
         final var requiredProperties = new DataList(DataString.DATATYPE);
         final var properties = new DataStruct();

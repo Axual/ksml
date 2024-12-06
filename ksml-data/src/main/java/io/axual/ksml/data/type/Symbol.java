@@ -23,15 +23,17 @@ package io.axual.ksml.data.type;
 import io.axual.ksml.data.schema.DataField;
 
 public record Symbol(String name, String doc, int index) {
-    public static final String NO_DOCUMENTATION = "";
-
     public Symbol(String name) {
-        this(name, NO_DOCUMENTATION, DataField.NO_INDEX);
+        this(name, null, DataField.NO_INDEX);
     }
 
     public Symbol(String name, String doc, int index) {
         this.name = name;
-        this.doc = doc != null && !doc.isEmpty() ? doc : NO_DOCUMENTATION;
+        this.doc = doc;
         this.index = index;
+    }
+
+    public boolean hasDoc() {
+        return doc != null && !doc.isEmpty();
     }
 }

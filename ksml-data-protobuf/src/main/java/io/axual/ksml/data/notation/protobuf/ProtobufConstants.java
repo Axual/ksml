@@ -20,17 +20,13 @@ package io.axual.ksml.data.notation.protobuf;
  * =========================LICENSE_END==================================
  */
 
-import java.util.List;
-import java.util.function.Function;
+import com.google.protobuf.Descriptors;
+import com.squareup.wire.Syntax;
+import com.squareup.wire.schema.Location;
 
-public class ProtobufUtil {
-    public static <T> T findInList(List<T> list, Function<T, String> toName, String name) {
-        if (list == null) return null;
-        for (final var element : list) {
-            final var elementName = toName.apply(element);
-            if (elementName == null && name == null) return element;
-            if (elementName != null && elementName.equals(name)) return element;
-        }
-        return null;
-    }
+public class ProtobufConstants {
+    public static final Location DEFAULT_LOCATION = Location.get("");
+    public static final Syntax DEFAULT_SYNTAX = Syntax.PROTO_3;
+    public static final Descriptors.FileDescriptor[] NO_DEPENDENCIES = new Descriptors.FileDescriptor[0];
+    public static final String NO_DOCUMENTATION = "";
 }
