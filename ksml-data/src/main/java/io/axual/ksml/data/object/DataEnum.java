@@ -22,6 +22,7 @@ package io.axual.ksml.data.object;
 
 import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.type.EnumType;
+import io.axual.ksml.data.util.ListUtil;
 
 public class DataEnum extends DataPrimitive<String> {
     public DataEnum(String value, EnumType type) {
@@ -33,7 +34,7 @@ public class DataEnum extends DataPrimitive<String> {
 
     private boolean validateValue(String value) {
         if (value == null) return true;
-        if (((EnumType) type()).symbols().containsKey(value)) return true;
-        return false;
+        final var symbols = ((EnumType) type()).symbols();
+        return ListUtil.find(symbols, s -> s.name().equals(value)) != null;
     }
 }

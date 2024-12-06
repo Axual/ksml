@@ -20,33 +20,24 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.EnumType;
-import io.axual.ksml.data.type.Symbols;
+import io.axual.ksml.data.type.Symbol;
+import io.axual.ksml.data.util.ListUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.List;
-import java.util.Objects;
 
 @Getter
 @EqualsAndHashCode
 public class EnumSchema extends NamedSchema {
-    private final Symbols symbols;
+    private final List<Symbol> symbols;
     private final String defaultValue;
 
-    public EnumSchema(String namespace, String name, String doc, List<String> symbols) {
+    public EnumSchema(String namespace, String name, String doc, List<Symbol> symbols) {
         this(namespace, name, doc, symbols, null);
     }
 
-    public EnumSchema(String namespace, String name, String doc, Symbols symbols) {
-        this(namespace, name, doc, symbols, null);
-    }
-
-    public EnumSchema(String namespace, String name, String doc, List<String> symbols, String defaultValue) {
-        this(namespace, name, doc, Symbols.from(symbols), defaultValue);
-    }
-
-    public EnumSchema(String namespace, String name, String doc, Symbols symbols, String defaultValue) {
+    public EnumSchema(String namespace, String name, String doc, List<Symbol> symbols, String defaultValue) {
         super(Type.ENUM, namespace, name, doc);
         this.symbols = symbols;
         this.defaultValue = defaultValue;
@@ -58,10 +49,9 @@ public class EnumSchema extends NamedSchema {
         if (!(otherSchema instanceof EnumSchema otherEnum)) return false;
         // This schema is assignable from the other enum when the map of symbols is a superset
         // of the otherEnum's set of symbols.
-        for (final var otherSymbol : otherEnum.symbols.entrySet()) {
-            if (!symbols.containsKey(otherSymbol.getKey())) return false;
-            final var index = symbols.get(otherSymbol.getKey());
-            if (!Objects.equals(otherSymbol.getValue(), index)) return false;
+        for (final var otherSymbol : otherEnum.symbols) {
+            // Validate that the other symbol is present and equal in our own symbol list
+            if (ListUtil.find(symbols, s -> s.equals(otherSymbol)) == null) return false;
         }
         return true;
     }

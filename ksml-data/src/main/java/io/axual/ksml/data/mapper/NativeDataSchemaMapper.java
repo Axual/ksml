@@ -26,11 +26,12 @@ import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.parser.schema.DataSchemaDSL;
 import io.axual.ksml.data.parser.schema.DataSchemaParser;
 import io.axual.ksml.data.schema.*;
-import io.axual.ksml.data.type.SymbolMetadata;
-import io.axual.ksml.data.type.Symbols;
+import io.axual.ksml.data.type.Symbol;
+import io.axual.ksml.data.util.ListUtil;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
@@ -85,16 +86,15 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
         }
     }
 
-    private Map<String, Object> convertSymbols(Symbols symbols) {
-        final var result = new LinkedHashMap<String, Object>();
-        symbols.forEach((name, meta) -> result.put(name, convertSymbolMeta(meta)));
-        return result;
+    private List<Object> convertSymbols(List<Symbol> symbols) {
+        return ListUtil.map(symbols, this::convertSymbol);
     }
 
-    private Map<String, Object> convertSymbolMeta(SymbolMetadata metadata) {
+    private Map<String, Object> convertSymbol(Symbol symbol) {
         final var result = new LinkedHashMap<String, Object>();
-        result.put(DataSchemaDSL.ENUM_SCHEMA_DOC_FIELD, metadata.doc());
-        result.put(DataSchemaDSL.ENUM_SCHEMA_INDEX_FIELD, metadata.index());
+        result.put(DataSchemaDSL.ENUM_SYMBOL_NAME_FIELD, symbol.name());
+        result.put(DataSchemaDSL.ENUM_SYMBOL_DOC_FIELD, symbol.doc());
+        result.put(DataSchemaDSL.ENUM_SYMBOL_INDEX_FIELD, symbol.index());
         return result;
     }
 

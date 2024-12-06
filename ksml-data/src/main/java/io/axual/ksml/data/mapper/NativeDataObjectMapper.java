@@ -152,7 +152,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         for (final var enumConstant : enumConstants) {
             symbols.add(enumConstant.toString());
         }
-        return new EnumType(Symbols.from(symbols));
+        return new EnumType(symbols.stream().map(Symbol::new).toList());
     }
 
     private ListType inferListType(List<?> list) {

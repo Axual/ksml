@@ -1,4 +1,4 @@
-package io.axual.ksml.data.parser.schema;
+package io.axual.ksml.data.util;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,15 +20,18 @@ package io.axual.ksml.data.parser.schema;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.parser.BaseParser;
-import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.type.SymbolMetadata;
+import java.util.List;
+import java.util.function.Function;
 
-public class SymbolMetadataParser extends BaseParser<SymbolMetadata> {
-    @Override
-    public SymbolMetadata parse(ParseNode node) {
-        return new SymbolMetadata(
-                parseString(node, DataSchemaDSL.ENUM_SCHEMA_DOC_FIELD),
-                parseInteger(node, DataSchemaDSL.ENUM_SCHEMA_INDEX_FIELD));
+public class ListUtil {
+    public static <V> V find(List<V> list, Function<V, Boolean> matcher) {
+        for (final var entry : list) {
+            if (matcher.apply(entry)) return entry;
+        }
+        return null;
+    }
+
+    public static <T, R> List<R> map(List<T> list, Function<T, R> mapper) {
+        return list.stream().map(mapper).toList();
     }
 }

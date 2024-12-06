@@ -25,6 +25,7 @@ import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.parser.*;
 import io.axual.ksml.data.schema.*;
 import io.axual.ksml.data.tag.ContextTags;
+import io.axual.ksml.data.util.ListUtil;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.util.SchemaUtil;
 import lombok.Getter;
@@ -164,7 +165,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
                     final var value = stringParser.parse(node);
                     if (value == null)
                         throw new ParseException(node, "Empty value not allowed for enum " + schema.name());
-                    if (!schema.symbols().containsKey(value))
+                    if (ListUtil.find(schema.symbols(), symbol -> symbol.name().equals(value)) == null)
                         throw new ParseException(node, "Illegal value for enum " + schema.name() + ": " + value);
                     return value;
                 },

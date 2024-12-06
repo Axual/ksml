@@ -29,13 +29,9 @@ import java.util.List;
 @Getter
 @EqualsAndHashCode
 public class EnumType extends SimpleType {
-    private final Symbols symbols;
+    private final List<Symbol> symbols;
 
-    public EnumType(List<String> symbols) {
-        this(Symbols.from(symbols));
-    }
-
-    public EnumType(Symbols symbols) {
+    public EnumType(List<Symbol> symbols) {
         super(String.class, DataSchemaDSL.ENUM_TYPE);
         this.symbols = symbols;
     }

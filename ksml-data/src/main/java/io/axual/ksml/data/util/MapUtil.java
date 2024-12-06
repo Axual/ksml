@@ -24,21 +24,6 @@ import java.util.*;
 import java.util.function.BiFunction;
 
 public class MapUtil {
-    public static <K, V> Map.Entry<K, V> findInMap(Map<K, V> map, BiFunction<K, V, Boolean> matcher) {
-        for (final var entry : map.entrySet()) {
-            if (matcher.apply(entry.getKey(), entry.getValue())) {
-                return entry;
-            }
-        }
-        return null;
-    }
-
-    public static <K, V> Map<V, K> invertMap(Map<K, V> map) {
-        final var result = new LinkedHashMap<V, K>(map.size());
-        map.forEach((k, v) -> result.put(v, k));
-        return result;
-    }
-
     public static <K, V> List<K> mapToList(Map<K, V> map) {
         final var result = new ArrayList<K>(map.size());
         map.forEach((k, v) -> result.add(k));

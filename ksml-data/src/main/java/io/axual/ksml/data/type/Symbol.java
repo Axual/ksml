@@ -20,6 +20,18 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-public record SymbolMetadata(String doc, int index) {
-    public static final int NO_INDEX = -1;
+import io.axual.ksml.data.schema.DataField;
+
+public record Symbol(String name, String doc, int index) {
+    public static final String NO_DOCUMENTATION = "";
+
+    public Symbol(String name) {
+        this(name, NO_DOCUMENTATION, DataField.NO_INDEX);
+    }
+
+    public Symbol(String name, String doc, int index) {
+        this.name = name;
+        this.doc = doc != null && !doc.isEmpty() ? doc : NO_DOCUMENTATION;
+        this.index = index;
+    }
 }

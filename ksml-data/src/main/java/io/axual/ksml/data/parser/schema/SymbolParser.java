@@ -1,4 +1,4 @@
-package io.axual.ksml.data.type;
+package io.axual.ksml.data.parser.schema;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,25 +20,25 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import io.axual.ksml.data.exception.ParseException;
+import io.axual.ksml.data.parser.BaseParser;
+import io.axual.ksml.data.parser.ParseNode;
+import io.axual.ksml.data.type.Symbol;
 
-import static io.axual.ksml.data.type.SymbolMetadata.NO_INDEX;
+public class SymbolParser extends BaseParser<Symbol> {
+    @Override
+    public Symbol parse(ParseNode node) {
+        if (node.isObject()) {
+            return new Symbol(
+                    parseString(node, DataSchemaDSL.ENUM_SYMBOL_NAME_FIELD),
+                    parseString(node, DataSchemaDSL.ENUM_SYMBOL_DOC_FIELD),
+                    parseInteger(node, DataSchemaDSL.ENUM_SYMBOL_INDEX_FIELD));
+        }
 
-public class Symbols extends LinkedHashMap<String, SymbolMetadata> {
-    private static final SymbolMetadata DEFAULT_METADATA = new SymbolMetadata(null, NO_INDEX);
+        if (node.isString()) {
+            return new Symbol(node.asString());
+        }
 
-    public Symbols() {
-    }
-
-    public Symbols(Map<String, SymbolMetadata> map) {
-        putAll(map);
-    }
-
-    public static Symbols from(List<String> symbols) {
-        final var result = new Symbols();
-        for (final var symbol : symbols) result.put(symbol, DEFAULT_METADATA);
-        return result;
+        throw new ParseException(node, "Could not parse enum symbol");
     }
 }

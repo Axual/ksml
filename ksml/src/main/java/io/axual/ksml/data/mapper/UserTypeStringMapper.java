@@ -23,7 +23,6 @@ package io.axual.ksml.data.mapper;
 import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.type.*;
-import io.axual.ksml.data.util.MapUtil;
 import io.axual.ksml.parser.UserTypeParser;
 
 import java.util.stream.Collectors;
@@ -55,7 +54,7 @@ public class UserTypeStringMapper {
     }
 
     private String enumTypeToString(EnumType enumType) {
-        return "enum(" + String.join(",", MapUtil.mapToList(enumType.symbols())) + ")";
+        return "enum(" + String.join(",", enumType.symbols().stream().map(Symbol::name).toList()) + ")";
     }
 
     private String listTypeToString(ListType listType) {
@@ -70,9 +69,5 @@ public class UserTypeStringMapper {
     private String tupleTypeToString(TupleType tupleType) {
         var types = tupleType.subTypes().stream().map(this::toString).collect(Collectors.joining(","));
         return "(" + types + ")";
-    }
-
-    public UserType fromString(String type) {
-        return UserTypeParser.parse(type);
     }
 }

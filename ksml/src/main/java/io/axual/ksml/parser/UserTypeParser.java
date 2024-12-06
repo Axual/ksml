@@ -131,7 +131,7 @@ public class UserTypeParser {
         // enum(literal1,literal2,...)
         if (datatype.startsWith(ENUM_TYPE + ROUND_BRACKET_OPEN) && datatype.endsWith(ROUND_BRACKET_CLOSE)) {
             var literals = datatype.substring(ENUM_TYPE.length() + 1, datatype.length() - 1);
-            return new UserType(notation, new EnumType(Symbols.from(parseListOfLiterals(literals))));
+            return new UserType(notation, new EnumType(parseListOfLiterals(literals).stream().map(Symbol::new).toList()));
         }
 
         // union(type1,type2,...)
@@ -278,6 +278,10 @@ public class UserTypeParser {
         types.add("any");
         types.add("?");
         types.add("notation:schema");
-        return new EnumSchema(DefinitionParser.SCHEMA_NAMESPACE, "UserType", "UserTypes are the basic types used in streams and pipelines", types);
+        return new EnumSchema(
+                DefinitionParser.SCHEMA_NAMESPACE,
+                "UserType",
+                "UserTypes are the basic types used in streams and pipelines",
+                types.stream().map(Symbol::new).toList());
     }
 }

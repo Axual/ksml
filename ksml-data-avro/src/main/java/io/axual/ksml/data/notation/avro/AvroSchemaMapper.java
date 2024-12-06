@@ -24,7 +24,7 @@ import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.schema.*;
-import io.axual.ksml.data.util.MapUtil;
+import io.axual.ksml.data.type.Symbol;
 import org.apache.avro.Schema;
 
 import java.util.ArrayList;
@@ -83,7 +83,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             case ARRAY ->
                     new SchemaAndRequired(new ListSchema(convertToDataSchema(schema.getElementType()).schema()), true);
             case ENUM -> new SchemaAndRequired(
-                    new EnumSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getEnumSymbols(), schema.getEnumDefault()),
+                    new EnumSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getEnumSymbols().stream().map(Symbol::new).toList(), schema.getEnumDefault()),
                     true);
             case MAP -> new SchemaAndRequired(new MapSchema(convertToDataSchema(schema.getValueType()).schema()), true);
             case RECORD -> new SchemaAndRequired(toDataSchema(schema.getName(), schema), true);
@@ -150,7 +150,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
                     Schema.createFixed(((FixedSchema) schema).name(), ((FixedSchema) schema).doc(), ((FixedSchema) schema).namespace(), ((FixedSchema) schema).size());
             case STRING -> Schema.create(Schema.Type.STRING);
             case ENUM ->
-                    Schema.createEnum(((EnumSchema) schema).name(), ((EnumSchema) schema).doc(), ((EnumSchema) schema).namespace(), MapUtil.mapToList(((EnumSchema) schema).symbols()), ((EnumSchema) schema).defaultValue());
+                    Schema.createEnum(((EnumSchema) schema).name(), ((EnumSchema) schema).doc(), ((EnumSchema) schema).namespace(), ((EnumSchema) schema).symbols().stream().map(Symbol::name).toList(), ((EnumSchema) schema).defaultValue());
             case LIST -> Schema.createArray(convertToAvro(((ListSchema) schema).valueSchema(), true));
             case MAP -> Schema.createMap(convertToAvro(((MapSchema) schema).valueSchema(), true));
             case STRUCT ->

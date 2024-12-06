@@ -26,13 +26,11 @@ import io.apicurio.registry.utils.protobuf.schema.ProtobufSchema;
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.schema.*;
-import io.axual.ksml.data.type.SymbolMetadata;
-import io.axual.ksml.data.type.Symbols;
-import io.axual.ksml.data.util.MapUtil;
+import io.axual.ksml.data.type.Symbol;
+import io.axual.ksml.data.util.ListUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static io.apicurio.registry.utils.protobuf.schema.FileDescriptorUtils.DEFAULT_LOCATION;
 
@@ -150,16 +148,12 @@ public class ProtobufSchemaMapper implements DataSchemaMapper<ProtobufSchema> {
         if (!field.getType().isEmpty()) {
             final var findResult = context.type(field.getType());
             if (findResult != null && findResult.type() instanceof EnumElement enumElement) {
-                final var symbols = new Symbols(
-                        enumElement.getConstants().stream().collect(
-                                Collectors.toMap(
-                                        EnumConstantElement::getName,
-                                        constant -> new SymbolMetadata(constant.getDocumentation(), constant.getTag()))));
+                final var symbols = enumElement.getConstants().stream().map(constant -> new Symbol(constant.getName(), constant.getDocumentation(), constant.getTag())).toList();
                 if (symbols.isEmpty()) {
                     throw new SchemaException("Protobuf enum type '" + enumElement.getName() + "' has no constants defined");
                 }
-                final var defaultValue = MapUtil.findInMap(symbols, (k, v) -> v.index() == PROTOBUF_ENUM_DEFAULT_VALUE_INDEX);
-                return new EnumSchema(findResult.namespace(), enumElement.getName(), findResult.type().getDocumentation(), symbols, defaultValue != null ? defaultValue.getKey() : null);
+                final var defaultValue = ListUtil.find(symbols, symbol -> symbol.index() == PROTOBUF_ENUM_DEFAULT_VALUE_INDEX);
+                return new EnumSchema(findResult.namespace(), enumElement.getName(), findResult.type().getDocumentation(), symbols, defaultValue != null ? defaultValue.name() : null);
             }
             if (findResult != null && findResult.type() instanceof MessageElement msgElement) {
                 final var fields = convertMessageFieldsToDataSchema(context, msgElement);
@@ -252,7 +246,7 @@ public class ProtobufSchemaMapper implements DataSchemaMapper<ProtobufSchema> {
     }
 
     private EnumElement convertToEnumElement(EnumSchema schema) {
-        final var constants = schema.symbols().entrySet().stream().map(entry -> new EnumConstantElement(DEFAULT_LOCATION, entry.getKey(), entry.getValue().index(), entry.getValue().doc(), Collections.emptyList())).toList();
+        final var constants = schema.symbols().stream().map(symbol -> new EnumConstantElement(DEFAULT_LOCATION, symbol.name(), symbol.index(), symbol.doc(), Collections.emptyList())).toList();
         return new EnumElement(DEFAULT_LOCATION, schema.name(), schema.doc(), Collections.emptyList(), constants, Collections.emptyList());
     }
 

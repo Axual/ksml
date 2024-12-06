@@ -32,8 +32,9 @@ public class DataSchemaDSL {
     public static final String NAMED_SCHEMA_DOC_FIELD = "doc";
     public static final String ENUM_SCHEMA_SYMBOLS_FIELD = "symbols";
     public static final String ENUM_SCHEMA_DEFAULT_VALUE_FIELD = "defaultValue";
-    public static final String ENUM_SCHEMA_DOC_FIELD = "doc";
-    public static final String ENUM_SCHEMA_INDEX_FIELD = "index";
+    public static final String ENUM_SYMBOL_NAME_FIELD = "name";
+    public static final String ENUM_SYMBOL_DOC_FIELD = "doc";
+    public static final String ENUM_SYMBOL_INDEX_FIELD = "index";
     public static final String FIXED_SCHEMA_SIZE_FIELD = "size";
     public static final String LIST_SCHEMA_VALUES_FIELD = "items";
     public static final String MAP_SCHEMA_VALUES_FIELD = "values";

@@ -195,7 +195,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         }
         if (schema instanceof EnumSchema enumSchema) {
             DataList enumList = new DataList();
-            enumSchema.symbols().keySet().forEach(s -> enumList.add(new DataString(s)));
+            enumSchema.symbols().forEach(symbol -> enumList.add(new DataString(symbol.name())));
             target.put(ENUM_NAME, enumList);
         }
         if (schema instanceof ListSchema listSchema) {
