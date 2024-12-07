@@ -15,8 +15,10 @@ functions:
       sensorCounter = (sensorCounter+1) % 10      # Increase the counter for next iteration
 
       value = randbytes(randrange(1000))
+      if randrange(2) == 0 and len(value) > 0:    # For half of the byte arrays that has at least one byte
+        value = bytes.fromhex('00') + value       # Simulate magic byte for AVRO schema id replacement (example 12)
     expression: (key, value)                      # Return a message tuple with the key and value
-    resultType: (string, bytes)                  # Indicate the type of key and value
+    resultType: (string, bytes)                   # Indicate the type of key and value
 
 producers:
   # This example uses the otherAvro notation, using the Apicurio Registry API and serializers.
