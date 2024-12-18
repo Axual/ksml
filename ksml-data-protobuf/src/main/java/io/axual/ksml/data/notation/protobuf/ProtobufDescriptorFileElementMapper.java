@@ -49,9 +49,9 @@ public class ProtobufDescriptorFileElementMapper {
 
         private boolean notDuplicateType(String namespace, TypeElement type) {
             final var fullName = (namespace != null && !namespace.isEmpty() ? namespace + "." : "") + type.getName();
-            final var result = types.contains(fullName);
+            final var result = !types.contains(fullName);
             types.add(fullName);
-            return !result;
+            return result;
         }
 
         public Descriptors.FileDescriptor convert(String namespace, String name, ProtoFileElement fileElement) {
@@ -65,10 +65,14 @@ public class ProtobufDescriptorFileElementMapper {
             // Convert all top-level messages and enums
             for (final var type : fileElement.getTypes()) {
                 if (type instanceof MessageElement messageElement) {
-                    result.addMessageDefinition(toMessageDefinition(namespace, messageElement));
+                    if (notDuplicateType(namespace, messageElement)) {
+                        result.addMessageDefinition(toMessageDefinition(namespace, messageElement));
+                    }
                 }
                 if (type instanceof EnumElement enumElement) {
-                    result.addEnumDefinition(toEnumDefinition(namespace, enumElement));
+                    if (notDuplicateType(namespace, enumElement)) {
+                        result.addEnumDefinition(toEnumDefinition(namespace, enumElement));
+                    }
                 }
             }
 

@@ -45,8 +45,16 @@ public class EnumSchema extends NamedSchema {
 
     @Override
     public boolean isAssignableFrom(DataSchema otherSchema) {
+        // Check cross-type compatibility first and allow those assignments
+        if (type() == Type.STRING && otherSchema.type() == Type.ENUM) return true; // ENUMs are convertable to String
+        if (type() == Type.ENUM && otherSchema.type() == Type.STRING) return true; // Strings are convertable to ENUM
+
+        // Check super's compatibility
         if (!super.isAssignableFrom(otherSchema)) return false;
+
+        // If okay then check class compatibility
         if (!(otherSchema instanceof EnumSchema otherEnum)) return false;
+
         // This schema is assignable from the other enum when the map of symbols is a superset
         // of the otherEnum's set of symbols.
         for (final var otherSymbol : otherEnum.symbols) {

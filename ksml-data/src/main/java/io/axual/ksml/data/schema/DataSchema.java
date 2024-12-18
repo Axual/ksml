@@ -116,18 +116,7 @@ public class DataSchema {
 
     public boolean isAssignableFrom(DataSchema otherSchema) {
         if (otherSchema == null) return false;
-
-        // Assignable if none of the union's possible types conflict
-        if (otherSchema instanceof UnionSchema otherUnion) {
-            for (final var possibleField : otherUnion.valueTypes()) {
-                if (!this.isAssignableFrom(possibleField.schema())) return false;
-            }
-            return true;
-        }
-
-        if (type == otherSchema.type) return true;
         if (type == Type.STRING && otherSchema.type == Type.NULL) return true; // Allow assigning from NULL values
-        if (type == Type.STRING && otherSchema.type == Type.ENUM) return true; // ENUMs are convertable to String
-        return type == Type.ENUM && otherSchema.type == Type.STRING; // Strings are convertable to ENUM
+        return type == otherSchema.type; // Base scenario: compare types and return true if similar
     }
 }

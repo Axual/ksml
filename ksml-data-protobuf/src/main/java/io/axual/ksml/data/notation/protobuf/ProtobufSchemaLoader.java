@@ -53,7 +53,7 @@ public class ProtobufSchemaLoader extends SchemaLoader {
         final var internalSchema = MAPPER.toDataSchema(name, proto);
         final var out = MAPPER.fromDataSchema(internalSchema);
         final var outFd = out.getFileDescriptor();
-        final var outFe = new ProtobufSchemaParser<>().toProtoFileElement(outFd);
+        final var outFe = out.getProtoFileElement();
         final var schemaOut = outFe.toSchema();
         final var checker = new ProtobufCompatibilityCheckerLibrary(new ProtobufFile(schemaIn), new ProtobufFile(schemaOut));
         final var diffs = checker.findDifferences();

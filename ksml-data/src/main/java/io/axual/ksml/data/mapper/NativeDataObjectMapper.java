@@ -191,10 +191,6 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         // library. If this field is set, then look up the schema by name in the library.
         if (map.containsKey(STRUCT_TYPE_FIELD)) {
             final var typeName = map.get(STRUCT_TYPE_FIELD).toString();
-//            final var userType = UserTypeParser.parse(typeName);
-//            if (userType.dataType() instanceof StructType structType) return structType.schema();
-//            throw
-//            return userType.
             return SchemaLibrary.getSchema(typeName, false);
         }
 

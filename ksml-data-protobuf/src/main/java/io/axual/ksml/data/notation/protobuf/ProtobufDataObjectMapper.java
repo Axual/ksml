@@ -25,69 +25,77 @@ import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.Message;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.exception.SchemaException;
-import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.type.DataType;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ProtobufDataObjectMapper implements DataObjectMapper<Message> {
-    private static final NativeDataObjectMapper NATIVE_DATA_MAPPER = new NativeDataObjectMapper();
+public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
     private static final ProtobufDescriptorFileElementMapper DESCRIPTOR_ELEMENT_MAPPER = new ProtobufDescriptorFileElementMapper();
     private static final ProtobufFileElementSchemaMapper ELEMENT_SCHEMA_MAPPER = new ProtobufFileElementSchemaMapper();
 
     @Override
-    public DataObject toDataObject(DataType expected, Message value) {
-        if (value == null) return NativeDataObjectMapper.convertFromNull(expected);
-        final var descriptor = value.getDescriptorForType();
+    public DataObject toDataObject(DataType expected, Object value) {
+        if (value instanceof Message message) return convertFromMessage(message);
+        return super.toDataObject(expected, value);
+    }
+
+    private DataObject convertFromMessage(Message message) {
+        final var descriptor = message.getDescriptorForType();
         final var namespace = descriptor.getFile().getPackage();
         final var name = descriptor.getName();
         final var fileElement = DESCRIPTOR_ELEMENT_MAPPER.toFileElement(descriptor);
         final var schema = ELEMENT_SCHEMA_MAPPER.toDataSchema(namespace, name, fileElement);
         final var result = new DataStruct(schema);
-        for (final var field : value.getAllFields().entrySet()) {
+        for (final var field : message.getAllFields().entrySet()) {
             var val = field.getValue();
             if (val instanceof Descriptors.EnumValueDescriptor enumValue) val = enumValue.getName();
-            result.put(field.getKey().getName(), NATIVE_DATA_MAPPER.toDataObject(val));
+            result.put(field.getKey().getName(), toDataObject(val));
         }
         return result;
     }
 
     @Override
-    public Message fromDataObject(DataObject value) {
-        if (value == null || value instanceof DataNull) return null;
+    public Object fromDataObject(DataObject value) {
         if (value instanceof DataStruct struct) {
-            final var dataSchema = struct.type().schema();
-            if (dataSchema != null) {
-                final var fileElement = ELEMENT_SCHEMA_MAPPER.fromDataSchema(dataSchema);
-                final var descriptor = DESCRIPTOR_ELEMENT_MAPPER.toDescriptor(dataSchema.namespace(), dataSchema.name(), fileElement);
-                final var msgDescriptor = descriptor.findMessageTypeByName(dataSchema.name());
-                final var msg = DynamicMessage.newBuilder(msgDescriptor);
-                for (final var field : msgDescriptor.getFields()) {
-                    final var fieldValue = struct.get(field.getName());
-                    if (fieldValue != null) {
-                        final var nativeValue = NATIVE_DATA_MAPPER.fromDataObject(struct.get(field.getName()));
-                        if (field.getType() == Descriptors.FieldDescriptor.Type.ENUM) {
-                            final var evd = field.getEnumType().findValueByName(nativeValue.toString());
-                            if (evd == null) {
-                                throw new SchemaException("Value '" + nativeValue + "' not found in enum type '" + field.getEnumType().getName() + "'");
-                            }
-                            msg.setField(field, evd);
-                        } else {
-                            msg.setField(field, nativeValue);
-                        }
-                    } else {
-                        if (field.isRequired()) {
-                            throw new DataException("PROTOBUF message of type '" + dataSchema.name() + "' is missing required field '" + field.getName() + "'");
-                        }
+            return convertToMessage(struct);
+        }
+        return super.fromDataObject(value);
+//        if (!expectMessage || result instanceof Message) return result;
+//        throw new DataException("Can not convert '" + value.type() + "' into a PROTOBUF message");
+    }
+
+    private Message convertToMessage(DataStruct struct) {
+        final var dataSchema = struct.type().schema();
+        if (dataSchema == null) {
+            throw new DataException("Can not convert schemaless STRUCT into a PROTOBUF message");
+        }
+        final var fileElement = ELEMENT_SCHEMA_MAPPER.fromDataSchema(dataSchema);
+        final var descriptor = DESCRIPTOR_ELEMENT_MAPPER.toDescriptor(dataSchema.namespace(), dataSchema.name(), fileElement);
+        final var msgDescriptor = descriptor.findMessageTypeByName(dataSchema.name());
+        final var msg = DynamicMessage.newBuilder(msgDescriptor);
+        for (final var field : msgDescriptor.getFields()) {
+            final var fieldValue = struct.get(field.getName());
+            if (fieldValue != null) {
+                final var nativeValue = fromDataObject(struct.get(field.getName()));
+                if (field.getType() == Descriptors.FieldDescriptor.Type.ENUM) {
+                    final var evd = field.getEnumType().findValueByName(nativeValue.toString());
+                    if (evd == null) {
+                        throw new SchemaException("Value '" + nativeValue + "' not found in enum type '" + field.getEnumType().getName() + "'");
                     }
+                    msg.setField(field, evd);
+                } else {
+                    msg.setField(field, nativeValue);
                 }
-                return msg.build();
+            } else {
+                if (field.isRequired()) {
+                    throw new DataException("PROTOBUF message of type '" + dataSchema.name() + "' is missing required field '" + field.getName() + "'");
+                }
             }
         }
-        throw new DataException("Can not convert '" + value.type() + "' into a PROTOBUF message");
+        return msg.build();
     }
 }
+

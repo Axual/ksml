@@ -50,7 +50,7 @@ public class ProtobufNotation implements Notation {
         APICURIO,
     }
 
-    private static final ProtobufDataObjectMapper mapper = new ProtobufDataObjectMapper();
+    private static final ProtobufDataObjectMapper MAPPER = new ProtobufDataObjectMapper();
     private final SerdeType serdeType;
     private final NativeDataObjectMapper nativeMapper;
     private final Map<String, ?> serdeConfigs;
@@ -132,7 +132,7 @@ public class ProtobufNotation implements Notation {
         @Override
         public DataObject deserialize(final String topic, final byte[] data) {
             try {
-                return mapper.toDataObject(deserializer.deserialize(topic, data));
+                return MAPPER.toDataObject(deserializer.deserialize(topic, data));
             } catch (Exception e) {
                 throw new ExecutionException("Error deserializing Protobuf message from topic " + topic, e);
             }
@@ -141,7 +141,7 @@ public class ProtobufNotation implements Notation {
         @Override
         public DataObject deserialize(final String topic, final Headers headers, final byte[] data) {
             try {
-                return mapper.toDataObject(deserializer.deserialize(topic, headers, data));
+                return MAPPER.toDataObject(deserializer.deserialize(topic, headers, data));
             } catch (Exception e) {
                 throw new ExecutionException("Error deserializing Protobuf message from topic " + topic, e);
             }
@@ -150,7 +150,7 @@ public class ProtobufNotation implements Notation {
         @Override
         public DataObject deserialize(final String topic, final Headers headers, final ByteBuffer data) {
             try {
-                return mapper.toDataObject(deserializer.deserialize(topic, headers, data));
+                return MAPPER.toDataObject(deserializer.deserialize(topic, headers, data));
             } catch (Exception e) {
                 throw new ExecutionException("Error deserializing Protobuf message from topic " + topic, e);
             }
@@ -165,7 +165,11 @@ public class ProtobufNotation implements Notation {
         @Override
         public byte[] serialize(final String topic, final Object data) {
             try {
-                return serializer.serialize(topic, mapper.fromDataObject(nativeMapper.toDataObject(data)));
+                if (data == null) return serializer.serialize(topic, null);
+                final var dataObject = nativeMapper.toDataObject(data);
+                final var message = MAPPER.fromDataObject(dataObject);
+                if (message instanceof Message msg) return serializer.serialize(topic, msg);
+                throw new ExecutionException("Could not convert '" + dataObject.type() + "' to PROTOBUF message");
             } catch (Exception e) {
                 throw new ExecutionException("Error serializing Protobuf message to topic " + topic, e);
             }
@@ -174,7 +178,11 @@ public class ProtobufNotation implements Notation {
         @Override
         public byte[] serialize(final String topic, final Headers headers, final Object data) {
             try {
-                return serializer.serialize(topic, headers, mapper.fromDataObject(nativeMapper.toDataObject(data)));
+                if (data == null) return serializer.serialize(topic, headers, null);
+                final var dataObject = nativeMapper.toDataObject(data);
+                final var message = MAPPER.fromDataObject(dataObject);
+                if (message instanceof Message msg) return serializer.serialize(topic, headers, msg);
+                throw new ExecutionException("Could not convert '" + dataObject.type() + "' to PROTOBUF message");
             } catch (Exception e) {
                 throw new ExecutionException("Error serializing Protobuf message to topic " + topic, e);
             }

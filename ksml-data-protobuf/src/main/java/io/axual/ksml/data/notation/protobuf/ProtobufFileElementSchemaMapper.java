@@ -170,7 +170,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         if (schema instanceof StructSchema structSchema) {
             final var context = new ProtobufWriteContext(structSchema.namespace());
             final var message = convertToMessageElement(context, structSchema);
-            context.addType(message);
+            context.addType("", message);
             return context.toProtoFileElement();
         }
 
@@ -224,7 +224,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
                 final var vt = unionSchema.valueTypes()[index];
                 final var valueType = new FieldElement(
                         DEFAULT_LOCATION,
-                        Field.Label.ONE_OF,
+                        null,
                         convertFieldToType(context, parentNestedTypes, parentOneOfs, parentName, vt),
                         vt.name(),
                         vt.defaultValue() != null ? vt.defaultValue().toString() : null,
@@ -242,8 +242,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         return convertSchemaToType(context, parentNestedTypes, parentName, field.schema());
     }
 
-    private String convertSchemaToType(ProtobufWriteContext context, List<TypeElement> parentNestedTypes, String
-            parentName, DataSchema schema) {
+    private String convertSchemaToType(ProtobufWriteContext context, List<TypeElement> parentNestedTypes, String parentName, DataSchema schema) {
         if (schema instanceof EnumSchema enumSchema) {
             final var enm = convertToEnumElement(enumSchema);
             // Find out if the enum is nested, or defined at top level
@@ -252,7 +251,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
                     parentNestedTypes.add(enm);
                 }
             } else {
-                context.addType(enm);
+                context.addType(parentName, enm);
             }
             return enumSchema.name();
         }
@@ -267,7 +266,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
                 if (notDuplicate(structSchema.fullName()))
                     parentNestedTypes.add(message);
             } else {
-                context.addType(message);
+                context.addType(parentName, message);
             }
             return structSchema.name();
         }
@@ -295,10 +294,9 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         return result;
     }
 
-    ////////////////////////////////////////////////////////////////////////////
-    // READ CONTEXT
-    ////////////////////////////////////////////////////////////////////////////
-
+    /**
+     * This is a helper class to convert from ProtoFileElements to DataSchema with type lookups
+     */
     public static class ProtobufReadContext {
         private final ProtoFileElement fileElement;
         private final String namespace;
@@ -329,21 +327,24 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////
-    // WRITE CONTEXT
-    ////////////////////////////////////////////////////////////////////////////
-
+    /**
+     * This is a helper class to convert from DataSchema to ProtoFileElements without type duplication
+     */
     private static class ProtobufWriteContext {
         private final String namespace;
+        private final Set<String> typeNames = new HashSet<>();
         private final List<TypeElement> types = new ArrayList<>();
 
         public ProtobufWriteContext(String namespace) {
             this.namespace = namespace;
         }
 
-        public void addType(TypeElement type) {
-            final var fullName = (namespace != null && !namespace.isEmpty() ? namespace + "." : "") + type.getName();
-            if (ListUtil.find(types, t -> t.getName().equals(fullName)) == null) {
+        public void addType(String parentNamespace, TypeElement type) {
+            final var nsPrefix = namespace != null && !namespace.isEmpty() ? namespace + "." : "";
+            final var parentPrefix = parentNamespace != null && !parentNamespace.isEmpty() ? parentNamespace + "." : "";
+            final var fullName = nsPrefix + parentPrefix + type.getName();
+            if (!typeNames.contains(fullName)) {
+                typeNames.add(fullName);
                 types.add(type);
             }
         }

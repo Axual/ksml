@@ -90,4 +90,9 @@ public class DataField {
     public boolean isAssignableFrom(DataField field) {
         return field != null && schema.isAssignableFrom(field.schema);
     }
+
+    @Override
+    public String toString() {
+        return (name != null ? name : "<anonymous>") + ": " + schema + " (" + index + (required ? "" : ", optional") + ")";
+    }
 }
