@@ -63,8 +63,6 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
             return convertToMessage(struct);
         }
         return super.fromDataObject(value);
-//        if (!expectMessage || result instanceof Message) return result;
-//        throw new DataException("Can not convert '" + value.type() + "' into a PROTOBUF message");
     }
 
     private Message convertToMessage(DataStruct struct) {
