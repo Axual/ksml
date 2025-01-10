@@ -36,7 +36,6 @@ import static io.axual.ksml.data.notation.protobuf.ProtobufConstants.NO_DOCUMENT
 
 public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFileElement> {
     private static final int PROTOBUF_ENUM_DEFAULT_VALUE_INDEX = 0;
-    private final Set<String> processedDescriptors = new HashSet<>();
 
     @Override
     public StructSchema toDataSchema(String namespace, String name, ProtoFileElement fileElement) {
@@ -247,7 +246,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
             final var enm = convertToEnumElement(enumSchema);
             // Find out if the enum is nested, or defined at top level
             if (enumSchema.namespace() != null && enumSchema.namespace().equals(context.namespace + "." + parentName)) {
-                if (notDuplicate(enumSchema.fullName())) {
+                if (context.notDuplicate(enumSchema.fullName())) {
                     parentNestedTypes.add(enm);
                 }
             } else {
@@ -263,7 +262,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
             final var message = convertToMessageElement(context, structSchema);
             // Find out if the message is nested, or defined at top level
             if (structSchema.namespace() != null && structSchema.namespace().equals(context.namespace + "." + parentName)) {
-                if (notDuplicate(structSchema.fullName()))
+                if (context.notDuplicate(structSchema.fullName()))
                     parentNestedTypes.add(message);
             } else {
                 context.addType(parentName, message);
@@ -286,12 +285,6 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
     private EnumElement convertToEnumElement(EnumSchema schema) {
         final var constants = schema.symbols().stream().map(symbol -> new EnumConstantElement(DEFAULT_LOCATION, symbol.name(), symbol.index(), symbol.hasDoc() ? symbol.doc() : NO_DOCUMENTATION, Collections.emptyList())).toList();
         return new EnumElement(DEFAULT_LOCATION, schema.name(), schema.hasDoc() ? schema.doc() : NO_DOCUMENTATION, Collections.emptyList(), constants, Collections.emptyList());
-    }
-
-    private boolean notDuplicate(String name) {
-        final var result = !processedDescriptors.contains(name);
-        processedDescriptors.add(name);
-        return result;
     }
 
     /**
@@ -334,9 +327,16 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         private final String namespace;
         private final Set<String> typeNames = new HashSet<>();
         private final List<TypeElement> types = new ArrayList<>();
+        private final Set<String> processedDescriptors = new HashSet<>();
 
         public ProtobufWriteContext(String namespace) {
             this.namespace = namespace;
+        }
+
+        private boolean notDuplicate(String name) {
+            final var result = !processedDescriptors.contains(name);
+            processedDescriptors.add(name);
+            return result;
         }
 
         public void addType(String parentNamespace, TypeElement type) {
