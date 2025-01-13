@@ -40,7 +40,7 @@ public class TopologyBaseResourcesParser extends DefinitionParser<TopologyBaseRe
                 TopologyBaseResources.class,
                 "",
                 "Contains a list of functions and state stores to be used in streams, producers and pipelines",
-                optional(mapField(STORES, "store", "state store definition", "State stores that can be referenced in producers and pipelines", new StateStoreDefinitionParser())),
+                optional(mapField(STORES, "store", "state store definition", "State stores that can be referenced in producers and pipelines", new StateStoreDefinitionParser(false))),
                 optional(mapField(FUNCTIONS, "function", "function definition", "Functions that can be referenced in producers and pipelines", new TypedFunctionDefinitionParser())),
                 (stores, functions, tags) -> {
                     final var result = new TopologyBaseResources(namespace);
