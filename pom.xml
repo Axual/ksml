@@ -65,9 +65,9 @@
         <apache.avro.version>1.12.0</apache.avro.version>
         <apache.commons.text.version>1.12.0</apache.commons.text.version>
         <apache.commons.compress.version>1.26.2</apache.commons.compress.version>
-        <apache.kafka.version>3.8.0</apache.kafka.version>
-        <apicurio.version>2.6.5.Final</apicurio.version>
-        <confluent.version>7.7.1</confluent.version>
+        <apache.kafka.version>3.8.1</apache.kafka.version>
+        <apicurio.avro.version>2.6.6.Final</apicurio.avro.version>
+        <confluent.version>7.6.1</confluent.version>
         <graalvm.version>23.1.2</graalvm.version>
         <graalvm.polyglot.version>23.1.2</graalvm.polyglot.version>
         <graalvm.python.version>23.1.2</graalvm.python.version>
@@ -76,7 +76,7 @@
         <jakarta.soap.version>3.0.2</jakarta.soap.version>
         <janino.version>3.1.12</janino.version>
         <jersey.version>3.1.7</jersey.version>
-        <logback.version>1.5.6</logback.version>
+        <logback.version>1.5.13</logback.version>
         <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
         <lombok.version>1.18.32</lombok.version>
         <protobuf.version>3.25.5</protobuf.version>
