@@ -9,7 +9,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/AggregatorDefinitionWithImplicitType",
+            "$ref" : "#/definitions/AggregatorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* (GroupedTable) A function that adds a record to the aggregation result"
@@ -18,7 +18,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/AggregatorDefinitionWithImplicitType",
+            "$ref" : "#/definitions/AggregatorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* (GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result"
@@ -27,7 +27,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/InitializerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/InitializerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "The initializer function, which generates an initial value for every set of aggregated records"
@@ -36,7 +36,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/MergerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/MergerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* (SessionWindowedStream, SessionWindowedCogroupedStream) A function that combines two aggregation results"
@@ -49,7 +49,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitType",
+            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the result aggregation"
@@ -58,7 +58,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/AggregatorDefinitionWithImplicitType",
+            "$ref" : "#/definitions/AggregatorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* (GroupedTable) A function that removes a record from the aggregation result"
@@ -131,7 +131,7 @@
       "title" : "AggregatorDefinition",
       "type" : "object"
     },
-    "AggregatorDefinitionWithImplicitType" : {
+    "AggregatorDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Defines a aggregator function, that gets injected into the Kafka Streams topology",
       "properties" : {
@@ -182,7 +182,7 @@
           "type" : "string"
         }
       },
-      "title" : "AggregatorDefinitionWithImplicitType",
+      "title" : "AggregatorDefinitionWithImplicitStoreType",
       "type" : "object"
     },
     "BranchDefinitionWithPipeline" : {
@@ -196,7 +196,7 @@
         "branch" : {
           "description" : "*(optional)* Defines a single branch, consisting of a condition and a pipeline to execute for messages that fulfil the predicate",
           "items" : {
-            "$ref" : "#/definitions/StringOrInlinePredicateDefinitionWithImplicitType",
+            "$ref" : "#/definitions/StringOrInlinePredicateDefinitionWithImplicitStoreType",
             "type" : "object"
           },
           "type" : "array"
@@ -205,7 +205,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ForEachActionDefinitionWithImplicitType",
+            "$ref" : "#/definitions/ForEachActionDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that gets called for every message in the stream"
@@ -214,7 +214,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/PredicateDefinitionWithImplicitType",
+            "$ref" : "#/definitions/PredicateDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Defines the condition under which messages get sent down this branch"
@@ -376,7 +376,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/AggregatorDefinitionWithImplicitType",
+            "$ref" : "#/definitions/AggregatorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "(GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result"
@@ -389,7 +389,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitType",
+            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the co-grouped stream"
@@ -506,7 +506,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/PredicateDefinitionWithImplicitType",
+            "$ref" : "#/definitions/PredicateDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that returns \"false\" when records are accepted, \"true\" otherwise"
@@ -519,7 +519,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitType",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the filtered table (only applies to tables, ignored for streams)"
@@ -541,7 +541,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/PredicateDefinitionWithImplicitType",
+            "$ref" : "#/definitions/PredicateDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that returns \"true\" when records are accepted, \"false\" otherwise"
@@ -554,7 +554,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitType",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the filtered table (only applies to tables, ignored for streams)"
@@ -634,7 +634,7 @@
       "title" : "ForEachActionDefinition",
       "type" : "object"
     },
-    "ForEachActionDefinitionWithImplicitType" : {
+    "ForEachActionDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Defines a foreach action function, that gets injected into the Kafka Streams topology",
       "properties" : {
@@ -692,7 +692,7 @@
           "type" : "array"
         }
       },
-      "title" : "ForEachActionDefinitionWithImplicitType",
+      "title" : "ForEachActionDefinitionWithImplicitStoreType",
       "type" : "object"
     },
     "ForeignKeyExtractorDefinition" : {
@@ -754,7 +754,7 @@
       "title" : "ForeignKeyExtractorDefinition",
       "type" : "object"
     },
-    "ForeignKeyExtractorDefinitionWithImplicitType" : {
+    "ForeignKeyExtractorDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Defines a foreign key extractor function, that gets injected into the Kafka Streams topology",
       "properties" : {
@@ -805,7 +805,7 @@
           "type" : "string"
         }
       },
-      "title" : "ForeignKeyExtractorDefinitionWithImplicitType",
+      "title" : "ForeignKeyExtractorDefinitionWithImplicitStoreType",
       "type" : "object"
     },
     "GeneratorDefinition" : {
@@ -867,7 +867,7 @@
       "title" : "GeneratorDefinition",
       "type" : "object"
     },
-    "GeneratorDefinitionWithImplicitType" : {
+    "GeneratorDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Defines a message generator function, that gets injected into the Kafka Streams topology",
       "properties" : {
@@ -918,10 +918,10 @@
           "type" : "string"
         }
       },
-      "title" : "GeneratorDefinitionWithImplicitType",
+      "title" : "GeneratorDefinitionWithImplicitStoreType",
       "type" : "object"
     },
-    "GenericFunctionDefinitionWithImplicitType" : {
+    "GenericFunctionDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Defines a generic function function, that gets injected into the Kafka Streams topology",
       "properties" : {
@@ -976,7 +976,7 @@
           "enum" : [ "generic" ]
         }
       },
-      "title" : "GenericFunctionDefinitionWithImplicitType",
+      "title" : "GenericFunctionDefinitionWithImplicitStoreType",
       "type" : "object"
     },
     "GlobalTableDefinition" : {
@@ -991,7 +991,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitType",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* KeyValue state store definition"
@@ -1025,7 +1025,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitType",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* KeyValue state store definition"
@@ -1034,7 +1034,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/TimestampExtractorDefinitionWithImplicitType",
+            "$ref" : "#/definitions/TimestampExtractorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function extracts the event time from a consumed record"
@@ -1064,7 +1064,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitType",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the grouped stream"
@@ -1086,7 +1086,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueMapperDefinitionWithImplicitType",
+            "$ref" : "#/definitions/KeyValueMapperDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "Function to map records to a key they can be grouped on"
@@ -1099,7 +1099,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitType",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the grouped stream or table"
@@ -1172,7 +1172,7 @@
       "title" : "InitializerDefinition",
       "type" : "object"
     },
-    "InitializerDefinitionWithImplicitType" : {
+    "InitializerDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Defines a initializer function, that gets injected into the Kafka Streams topology",
       "properties" : {
@@ -1223,7 +1223,7 @@
           "type" : "string"
         }
       },
-      "title" : "InitializerDefinitionWithImplicitType",
+      "title" : "InitializerDefinitionWithImplicitStoreType",
       "type" : "object"
     },
     "JoinOperationWithGlobalTable" : {
@@ -1243,7 +1243,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueMapperDefinitionWithImplicitType",
+            "$ref" : "#/definitions/KeyValueMapperDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that maps the key value from the stream to the primary key type of the globalTable"
@@ -1260,7 +1260,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that joins two values"
@@ -1326,7 +1326,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that joins two values"
@@ -1344,7 +1344,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ForeignKeyExtractorDefinitionWithImplicitType",
+            "$ref" : "#/definitions/ForeignKeyExtractorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that can translate the join table value to a primary key"
@@ -1365,7 +1365,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that partitions the records on the join table"
@@ -1374,7 +1374,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that partitions the records on the primary table"
@@ -1411,7 +1411,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that joins two values"
@@ -1487,7 +1487,7 @@
       "title" : "KeyTransformerDefinition",
       "type" : "object"
     },
-    "KeyTransformerDefinitionWithImplicitType" : {
+    "KeyTransformerDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Defines a key transformer function, that gets injected into the Kafka Streams topology",
       "properties" : {
@@ -1545,7 +1545,7 @@
           "type" : "array"
         }
       },
-      "title" : "KeyTransformerDefinitionWithImplicitType",
+      "title" : "KeyTransformerDefinitionWithImplicitStoreType",
       "type" : "object"
     },
     "KeyValueMapperDefinition" : {
@@ -1607,7 +1607,7 @@
       "title" : "KeyValueMapperDefinition",
       "type" : "object"
     },
-    "KeyValueMapperDefinitionWithImplicitType" : {
+    "KeyValueMapperDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Defines a keyvalue mapper function, that gets injected into the Kafka Streams topology",
       "properties" : {
@@ -1658,7 +1658,7 @@
           "type" : "string"
         }
       },
-      "title" : "KeyValueMapperDefinitionWithImplicitType",
+      "title" : "KeyValueMapperDefinitionWithImplicitStoreType",
       "type" : "object"
     },
     "KeyValuePrinterDefinition" : {
@@ -1720,7 +1720,7 @@
       "title" : "KeyValuePrinterDefinition",
       "type" : "object"
     },
-    "KeyValuePrinterDefinitionWithImplicitType" : {
+    "KeyValuePrinterDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Defines a keyvalue printer function, that gets injected into the Kafka Streams topology",
       "properties" : {
@@ -1771,7 +1771,7 @@
           "type" : "string"
         }
       },
-      "title" : "KeyValuePrinterDefinitionWithImplicitType",
+      "title" : "KeyValuePrinterDefinitionWithImplicitStoreType",
       "type" : "object"
     },
     "KeyValueStateStoreDefinition" : {
@@ -1835,7 +1835,7 @@
       "title" : "KeyValueStateStoreDefinition",
       "type" : "object"
     },
-    "KeyValueStateStoreDefinitionWithImplicitType" : {
+    "KeyValueStateStoreDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Definition of a keyValue state store",
       "properties" : {
@@ -1892,7 +1892,55 @@
           "type" : "boolean"
         }
       },
-      "title" : "KeyValueStateStoreDefinitionWithImplicitType",
+      "title" : "KeyValueStateStoreDefinitionWithImplicitStoreType",
+      "type" : "object"
+    },
+    "KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType" : {
+      "additionalProperties" : false,
+      "description" : "Definition of a keyValue state store",
+      "properties" : {
+        "caching" : {
+          "description" : "*(optional)* \"true\" if changed to the keyValue store need to be buffered and periodically released, \"false\" to emit all changes directly",
+          "type" : "boolean"
+        },
+        "historyRetention" : {
+          "anyOf" : [ {
+            "type" : "number"
+          }, {
+            "type" : "string"
+          } ],
+          "description" : "*(optional)* (Versioned only) The duration for which old record versions are available for query (cannot be negative)"
+        },
+        "logging" : {
+          "description" : "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this keyValue store, \"false\" otherwise",
+          "type" : "boolean"
+        },
+        "persistent" : {
+          "description" : "*(optional)* \"true\" if this keyValue store needs to be stored on disk, \"false\" otherwise",
+          "type" : "boolean"
+        },
+        "segmentInterval" : {
+          "anyOf" : [ {
+            "type" : "number"
+          }, {
+            "type" : "string"
+          } ],
+          "description" : "*(optional)* Size of segments for storing old record versions (must be positive). Old record versions for the same key in a single segment are stored (updated and accessed) together. The only impact of this parameter is performance. If segments are large and a workload results in many record versions for the same key being collected in a single segment, performance may degrade as a result. On the other hand, historical reads (which access older segments) and out-of-order writes may slow down if there are too many segments."
+        },
+        "timestamped" : {
+          "description" : "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise",
+          "type" : "boolean"
+        },
+        "type" : {
+          "description" : "The type of the state store",
+          "enum" : [ "keyValue" ]
+        },
+        "versioned" : {
+          "description" : "*(optional)* \"true\" if elements in the store are versioned, \"false\" otherwise",
+          "type" : "boolean"
+        }
+      },
+      "title" : "KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
       "type" : "object"
     },
     "KeyValueToKeyValueListTransformerDefinition" : {
@@ -1961,7 +2009,7 @@
       "title" : "KeyValueToKeyValueListTransformerDefinition",
       "type" : "object"
     },
-    "KeyValueToKeyValueListTransformerDefinitionWithImplicitType" : {
+    "KeyValueToKeyValueListTransformerDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Defines a keyvalue-to-keyvaluelist transformer function, that gets injected into the Kafka Streams topology",
       "properties" : {
@@ -2019,7 +2067,7 @@
           "type" : "array"
         }
       },
-      "title" : "KeyValueToKeyValueListTransformerDefinitionWithImplicitType",
+      "title" : "KeyValueToKeyValueListTransformerDefinitionWithImplicitStoreType",
       "type" : "object"
     },
     "KeyValueToValueListTransformerDefinition" : {
@@ -2088,7 +2136,7 @@
       "title" : "KeyValueToValueListTransformerDefinition",
       "type" : "object"
     },
-    "KeyValueToValueListTransformerDefinitionWithImplicitType" : {
+    "KeyValueToValueListTransformerDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Defines a keyvalue-to-valuelist transformer function, that gets injected into the Kafka Streams topology",
       "properties" : {
@@ -2146,7 +2194,7 @@
           "type" : "array"
         }
       },
-      "title" : "KeyValueToValueListTransformerDefinitionWithImplicitType",
+      "title" : "KeyValueToValueListTransformerDefinitionWithImplicitStoreType",
       "type" : "object"
     },
     "KeyValueTransformerDefinition" : {
@@ -2215,7 +2263,7 @@
       "title" : "KeyValueTransformerDefinition",
       "type" : "object"
     },
-    "KeyValueTransformerDefinitionWithImplicitType" : {
+    "KeyValueTransformerDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Defines a keyvalue transformer function, that gets injected into the Kafka Streams topology",
       "properties" : {
@@ -2273,7 +2321,7 @@
           "type" : "array"
         }
       },
-      "title" : "KeyValueTransformerDefinitionWithImplicitType",
+      "title" : "KeyValueTransformerDefinitionWithImplicitStoreType",
       "type" : "object"
     },
     "LeftJoinOperationWithGlobalTable" : {
@@ -2293,7 +2341,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueMapperDefinitionWithImplicitType",
+            "$ref" : "#/definitions/KeyValueMapperDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that maps the key value from the stream with the primary key of the globalTable"
@@ -2310,7 +2358,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that joins two values"
@@ -2376,7 +2424,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that joins two values"
@@ -2394,7 +2442,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ForeignKeyExtractorDefinitionWithImplicitType",
+            "$ref" : "#/definitions/ForeignKeyExtractorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that can translate the join table value to a primary key"
@@ -2415,7 +2463,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that partitions the records on the join table"
@@ -2424,7 +2472,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that partitions the records on the primary table"
@@ -2461,7 +2509,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that joins two values"
@@ -2556,7 +2604,7 @@
       "title" : "MergerDefinition",
       "type" : "object"
     },
-    "MergerDefinitionWithImplicitType" : {
+    "MergerDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Defines a merger function, that gets injected into the Kafka Streams topology",
       "properties" : {
@@ -2607,7 +2655,7 @@
           "type" : "string"
         }
       },
-      "title" : "MergerDefinitionWithImplicitType",
+      "title" : "MergerDefinitionWithImplicitStoreType",
       "type" : "object"
     },
     "MetadataTransformerDefinition" : {
@@ -2676,7 +2724,7 @@
       "title" : "MetadataTransformerDefinition",
       "type" : "object"
     },
-    "MetadataTransformerDefinitionWithImplicitType" : {
+    "MetadataTransformerDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Defines a metadata transformer function, that gets injected into the Kafka Streams topology",
       "properties" : {
@@ -2734,7 +2782,7 @@
           "type" : "array"
         }
       },
-      "title" : "MetadataTransformerDefinitionWithImplicitType",
+      "title" : "MetadataTransformerDefinitionWithImplicitStoreType",
       "type" : "object"
     },
     "OuterJoinOperationWithStream" : {
@@ -2793,7 +2841,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that joins two values"
@@ -2843,7 +2891,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/ValueJoinerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that joins two values"
@@ -2882,7 +2930,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ForEachActionDefinitionWithImplicitType",
+            "$ref" : "#/definitions/ForEachActionDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that gets called for every message in the stream"
@@ -2920,7 +2968,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ForEachActionDefinitionWithImplicitType",
+            "$ref" : "#/definitions/ForEachActionDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that gets called for every message in the stream"
@@ -3150,7 +3198,7 @@
       "title" : "PredicateDefinition",
       "type" : "object"
     },
-    "PredicateDefinitionWithImplicitType" : {
+    "PredicateDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Defines a predicate function, that gets injected into the Kafka Streams topology",
       "properties" : {
@@ -3208,7 +3256,7 @@
           "type" : "array"
         }
       },
-      "title" : "PredicateDefinitionWithImplicitType",
+      "title" : "PredicateDefinitionWithImplicitStoreType",
       "type" : "object"
     },
     "PrintOperation" : {
@@ -3227,7 +3275,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValuePrinterDefinitionWithImplicitType",
+            "$ref" : "#/definitions/KeyValuePrinterDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function to convert record into a string for output"
@@ -3252,7 +3300,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/PredicateDefinitionWithImplicitType",
+            "$ref" : "#/definitions/PredicateDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that validates the generator's result message. Returns \"true\" when the message may be produced on the topic, \"false\" otherwise."
@@ -3265,7 +3313,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/GeneratorDefinitionWithImplicitType",
+            "$ref" : "#/definitions/GeneratorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "The function that generates records"
@@ -3291,7 +3339,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/PredicateDefinitionWithImplicitType",
+            "$ref" : "#/definitions/PredicateDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A predicate that returns true to indicate producing should stop."
@@ -3309,7 +3357,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ReducerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/ReducerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that adds a record to the aggregate result"
@@ -3322,7 +3370,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitType",
+            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the aggregation"
@@ -3331,7 +3379,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ReducerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/ReducerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that removes a record from the aggregate result"
@@ -3357,7 +3405,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ReducerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/ReducerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that computes a new aggregate result"
@@ -3366,7 +3414,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitType",
+            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the aggregation"
@@ -3439,7 +3487,7 @@
       "title" : "ReducerDefinition",
       "type" : "object"
     },
-    "ReducerDefinitionWithImplicitType" : {
+    "ReducerDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Defines a reducer function, that gets injected into the Kafka Streams topology",
       "properties" : {
@@ -3490,7 +3538,7 @@
           "type" : "string"
         }
       },
-      "title" : "ReducerDefinitionWithImplicitType",
+      "title" : "ReducerDefinitionWithImplicitStoreType",
       "type" : "object"
     },
     "RepartitionOperation" : {
@@ -3508,7 +3556,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that partitions stream records"
@@ -3608,7 +3656,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/TimestampExtractorDefinitionWithImplicitType",
+            "$ref" : "#/definitions/TimestampExtractorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function extracts the event time from a consumed record"
@@ -3685,7 +3733,7 @@
       "title" : "StreamPartitionerDefinition",
       "type" : "object"
     },
-    "StreamPartitionerDefinitionWithImplicitType" : {
+    "StreamPartitionerDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Defines a stream partitioner function, that gets injected into the Kafka Streams topology",
       "properties" : {
@@ -3736,10 +3784,10 @@
           "type" : "string"
         }
       },
-      "title" : "StreamPartitionerDefinitionWithImplicitType",
+      "title" : "StreamPartitionerDefinitionWithImplicitStoreType",
       "type" : "object"
     },
-    "StringOrInlinePredicateDefinitionWithImplicitType" : {
+    "StringOrInlinePredicateDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Defines the condition under which messages get sent down this branch",
       "properties" : {
@@ -3747,13 +3795,13 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/PredicateDefinitionWithImplicitType",
+            "$ref" : "#/definitions/PredicateDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Defines the condition under which messages get sent down this branch"
         }
       },
-      "title" : "StringOrInlinePredicateDefinitionWithImplicitType",
+      "title" : "StringOrInlinePredicateDefinitionWithImplicitStoreType",
       "type" : "object"
     },
     "SuppressOperationUntilTimeLimit" : {
@@ -3842,7 +3890,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitType",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* KeyValue state store definition"
@@ -3876,7 +3924,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitType",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
             "type" : "object"
           } ],
           "description" : "*(optional)* KeyValue state store definition"
@@ -3885,7 +3933,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/TimestampExtractorDefinitionWithImplicitType",
+            "$ref" : "#/definitions/TimestampExtractorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function extracts the event time from a consumed record"
@@ -3962,7 +4010,7 @@
       "title" : "TimestampExtractorDefinition",
       "type" : "object"
     },
-    "TimestampExtractorDefinitionWithImplicitType" : {
+    "TimestampExtractorDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Defines a timestamp extractor function, that gets injected into the Kafka Streams topology",
       "properties" : {
@@ -4013,7 +4061,7 @@
           "type" : "string"
         }
       },
-      "title" : "TimestampExtractorDefinitionWithImplicitType",
+      "title" : "TimestampExtractorDefinitionWithImplicitStoreType",
       "type" : "object"
     },
     "ToStreamOperation" : {
@@ -4024,7 +4072,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyTransformerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/KeyTransformerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that computes the output key for every record"
@@ -4054,7 +4102,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitType",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the result table"
@@ -4080,7 +4128,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that partitions the records in the output topic"
@@ -4106,7 +4154,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function that partitions the records in the output topic"
@@ -4115,7 +4163,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/TopicNameExtractorDefinitionWithImplicitType",
+            "$ref" : "#/definitions/TopicNameExtractorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "Reference to a pre-defined topic name extractor, or an inline definition of a topic name extractor"
@@ -4162,7 +4210,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/TimestampExtractorDefinitionWithImplicitType",
+            "$ref" : "#/definitions/TimestampExtractorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* A function extracts the event time from a consumed record"
@@ -4239,7 +4287,7 @@
       "title" : "TopicNameExtractorDefinition",
       "type" : "object"
     },
-    "TopicNameExtractorDefinitionWithImplicitType" : {
+    "TopicNameExtractorDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Defines a topic name extractor function, that gets injected into the Kafka Streams topology",
       "properties" : {
@@ -4290,7 +4338,7 @@
           "type" : "string"
         }
       },
-      "title" : "TopicNameExtractorDefinitionWithImplicitType",
+      "title" : "TopicNameExtractorDefinitionWithImplicitStoreType",
       "type" : "object"
     },
     "TransformKeyOperation" : {
@@ -4301,7 +4349,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyTransformerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/KeyTransformerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that computes a new key for each record"
@@ -4327,7 +4375,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueTransformerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/KeyValueTransformerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that computes a new key/value for each record"
@@ -4353,7 +4401,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueToKeyValueListTransformerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/KeyValueToKeyValueListTransformerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that converts every record of a stream to a list of output records."
@@ -4379,7 +4427,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueToValueListTransformerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/KeyValueToValueListTransformerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that converts every key/value into a list of result values, each of which will be combined with the original key to form a new message in the output stream"
@@ -4405,7 +4453,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/MetadataTransformerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/MetadataTransformerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that converts the metadata (Kafka headers, timestamp) of every record in the stream"
@@ -4431,7 +4479,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/ValueTransformerDefinitionWithImplicitType",
+            "$ref" : "#/definitions/ValueTransformerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "A function that converts the value of every record into another value"
@@ -4444,7 +4492,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitType",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the transformed table (only applies to tables, ignored for streams)"
@@ -4517,7 +4565,7 @@
       "title" : "ValueJoinerDefinition",
       "type" : "object"
     },
-    "ValueJoinerDefinitionWithImplicitType" : {
+    "ValueJoinerDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Defines a value joiner function, that gets injected into the Kafka Streams topology",
       "properties" : {
@@ -4568,7 +4616,7 @@
           "type" : "string"
         }
       },
-      "title" : "ValueJoinerDefinitionWithImplicitType",
+      "title" : "ValueJoinerDefinitionWithImplicitStoreType",
       "type" : "object"
     },
     "ValueTransformerDefinition" : {
@@ -4637,7 +4685,7 @@
       "title" : "ValueTransformerDefinition",
       "type" : "object"
     },
-    "ValueTransformerDefinitionWithImplicitType" : {
+    "ValueTransformerDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Defines a value transformer function, that gets injected into the Kafka Streams topology",
       "properties" : {
@@ -4695,7 +4743,7 @@
           "type" : "array"
         }
       },
-      "title" : "ValueTransformerDefinitionWithImplicitType",
+      "title" : "ValueTransformerDefinitionWithImplicitStoreType",
       "type" : "object"
     },
     "WindowBySessionOperation" : {
@@ -4911,7 +4959,7 @@
       "title" : "WindowStateStoreDefinition",
       "type" : "object"
     },
-    "WindowStateStoreDefinitionWithImplicitType" : {
+    "WindowStateStoreDefinitionWithImplicitStoreType" : {
       "additionalProperties" : false,
       "description" : "Definition of a window state store",
       "properties" : {
@@ -4968,7 +5016,7 @@
           "description" : "*(optional)* Size of the windows (cannot be negative)"
         }
       },
-      "title" : "WindowStateStoreDefinitionWithImplicitType",
+      "title" : "WindowStateStoreDefinitionWithImplicitStoreType",
       "type" : "object"
     }
   },
@@ -4991,7 +5039,7 @@
             "$ref" : "#/definitions/GeneratorDefinition",
             "type" : "object"
           }, {
-            "$ref" : "#/definitions/GenericFunctionDefinitionWithImplicitType",
+            "$ref" : "#/definitions/GenericFunctionDefinitionWithImplicitStoreType",
             "type" : "object"
           }, {
             "$ref" : "#/definitions/InitializerDefinition",

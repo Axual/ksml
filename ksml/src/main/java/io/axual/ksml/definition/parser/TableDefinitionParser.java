@@ -26,7 +26,6 @@ import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyBaseResources;
 import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyBaseResourceAwareParser;
@@ -65,17 +64,8 @@ public class TableDefinitionParser extends TopologyBaseResourceAwareParser<Table
                     keyType = keyType != null ? keyType : UserType.UNKNOWN;
                     valueType = valueType != null ? valueType : UserType.UNKNOWN;
                     final var policy = OffsetResetPolicyParser.parseResetPolicy(resetPolicy);
-                    if (store != null) {
-                        if (store.keyType().equals(UserType.UNKNOWN)) store = store.withKeyType(keyType);
-                        if (store.valueType().equals(UserType.UNKNOWN)) store = store.withValueType(valueType);
-                        if (!store.keyType().dataType().isAssignableFrom(keyType.dataType())) {
-                            throw new TopologyException("Incompatible key types between table '" + topic + "' and its corresponding state store: " + keyType.dataType() + " and " + store.keyType().dataType());
-                        }
-                        if (!store.valueType().dataType().isAssignableFrom(valueType.dataType())) {
-                            throw new TopologyException("Incompatible value types between table '" + topic + "' and its corresponding state store: " + valueType.dataType() + " and " + store.valueType().dataType());
-                        }
-                    }
-                    return new TableDefinition(topic, keyType, valueType, tsExtractor, policy, store);
+                    // If a backing store is used, then align its name, keyType and valueType to the topic
+                    return new TableDefinition(topic, keyType, valueType, tsExtractor, policy, store != null ? store.with(topic, keyType, valueType) : null);
                 });
         return structsParser(
                 TableDefinition.class,
@@ -88,22 +78,13 @@ public class TableDefinitionParser extends TopologyBaseResourceAwareParser<Table
                 (topic, keyType, valueType, store, tags) -> {
                     keyType = keyType != null ? keyType : UserType.UNKNOWN;
                     valueType = valueType != null ? valueType : UserType.UNKNOWN;
-                    if (store != null) {
-                        if (store.keyType().equals(UserType.UNKNOWN)) store = store.withKeyType(keyType);
-                        if (store.valueType().equals(UserType.UNKNOWN)) store = store.withValueType(valueType);
-                        if (!store.keyType().dataType().isAssignableFrom(keyType.dataType())) {
-                            throw new TopologyException("Incompatible key types between table '" + topic + "' and its corresponding state store: " + keyType.dataType() + " and " + store.keyType().dataType());
-                        }
-                        if (!store.valueType().dataType().isAssignableFrom(valueType.dataType())) {
-                            throw new TopologyException("Incompatible value types between table '" + topic + "' and its corresponding state store: " + valueType.dataType() + " and " + store.valueType().dataType());
-                        }
-                    }
-                    return new TableDefinition(topic, keyType, valueType, null, null, store);
+                    // If a backing store is used, then align its name, keyType and valueType to the topic
+                    return new TableDefinition(topic, keyType, valueType, null, null, store != null ? store.with(topic, keyType, valueType) : null);
                 });
     }
 
     private StructsParser<KeyValueStateStoreDefinition> storeField() {
-        final var storeParser = new StateStoreDefinitionParser(StoreType.KEYVALUE_STORE);
+        final var storeParser = new StateStoreDefinitionParser(StoreType.KEYVALUE_STORE, true);
         final var resourceParser = new TopologyResourceParser<>("state store", Streams.STORE, "KeyValue state store definition", null, storeParser);
         final var schemas = optional(resourceParser).schemas();
         return new StructsParser<>() {
