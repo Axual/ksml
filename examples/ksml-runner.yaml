@@ -7,7 +7,7 @@ ksml:
   enablePipelines: true
   definitions:
     # Format is <namespace>: <ksml_definition_filename>
-    inspect: 01-example-inspect.yaml
+#    inspect: 01-example-inspect.yaml
 #    copy: 02-example-copy.yaml
 #    filter: 03-example-filter.yaml
 #    branch: 04-example-branch.yaml
@@ -15,7 +15,7 @@ ksml:
 #    duplicate: 06-example-duplicate.yaml
 #    convert: 07-example-convert.yaml
 #    count: 08-example-count.yaml
-#    aggregate: 09-example-aggregate.yaml
+    aggregate: 09-example-aggregate.yaml
 #    queryable_table: 10-example-queryable-table.yaml
 #    field_modification: 11-example-field-modification.yaml
 #    byte_manipulation: 12-example-byte-manipulation.yaml
@@ -33,10 +33,12 @@ kafka:
 #  bootstrap.servers: localhost:9092
 #  schema.registry.url: http://localhost:8081
   bootstrap.servers: broker:9093
-  schema.registry.url: http://schema_registry:8081
+  schema.registry.url: http://schema-registry:8081/apis/ccompat/v7
   security.protocol: PLAINTEXT
   auto.offset.reset: earliest
   acks: all
+  # group.instance.id sets the identifier for a specific member of a group, allowing for quicker rebalances during development
+  group.instance.id: local-ksml
 
 # These are Kafka SSL configuration properties. Check the documentation at1
 # Check the documentation at https://kafka.apache.org/documentation/#producerconfigs for more properties

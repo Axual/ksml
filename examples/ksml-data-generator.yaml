@@ -12,7 +12,7 @@ ksml:
 kafka:
   bootstrap.servers: broker:9093
   application.id: io.ksml.example.producer
-  schema.registry.url: http://schema_registry:8081
+  schema.registry.url: http://schema-registry:8081/apis/ccompat/v7
   security.protocol: PLAINTEXT
   acks: all
 

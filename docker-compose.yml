@@ -7,7 +7,7 @@ networks:
 services:
 
   broker:
-    image: bitnami/kafka:3.7.0
+    image: bitnami/kafka:3.8.0
     hostname: broker
     ports:
       - "9092:9092"
@@ -33,42 +33,48 @@ services:
       KAFKA_CFG_MIN_INSYNC_REPLICAS: 1
       KAFKA_CFG_NUM_PARTITIONS: 1
     healthcheck:
-      test: kafka-topics.sh --bootstrap-server broker:9093 --list | fgrep -q ksml_sensordata_table
-      interval: 30s
+      # If the kafka topics can list data, the broker is healthy
+      test: kafka-topics.sh --bootstrap-server broker:9093 --list
+      interval: 5s
       timeout: 10s
-      retries: 5
-      start_period: 20s
+      retries: 10
+      start_period: 5s
 
   schema_registry:
-    image: confluentinc/cp-schema-registry:7.3.6
-    hostname: schema_registry
+    image: apicurio/apicurio-registry:3.0.2
+    hostname: schema-registry
     depends_on:
-      - broker
+      broker:
+        condition: service_healthy
     ports:
       - "8081:8081"
     networks:
       - ksml
     restart: always
     environment:
-      SCHEMA_REGISTRY_HOST_NAME: schema_registry
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'PLAINTEXT://broker:9093'
-      SCHEMA_REGISTRY_KAFKASTORE_TOPIC_REPLICATION_FACTOR: 1
-      SCHEMA_REGISTRY_ZK_NAMESPACE: 'mySRNS'
+      QUARKUS_HTTP_PORT: 8081
+      QUARKUS_HTTP_CORS_ORIGINS: '*'
+      QUARKUS_PROFILE: "prod"
+      APICURIO_STORAGE_KIND: kafkasql
+      APICURIO_KAFKASQL_BOOTSTRAP_SERVERS: 'broker:9093'
+      APICURIO_KAFKASQL_TOPIC: '_apciurio-kafkasql-store'
     healthcheck:
-      test: curl http://localhost:8081 | fgrep -q "{}"
-      interval: 30s
+      # If the api endpoint is available, the service is considered healthy
+      test: curl http://localhost:8081/apis
+      interval: 15s
       timeout: 10s
-      retries: 5
-      start_period: 20s
+      retries: 10
+      start_period: 10s
 
   # This "container" is a workaround to pre-create topics
   kafka-setup:
-    image: bitnami/kafka:3.7.0
+    image: bitnami/kafka:3.8.0
     hostname: kafka-setup
     networks:
       - ksml
     depends_on:
-      - broker
+      broker:
+        condition: service_healthy
     restart: on-failure
     command: "bash -c 'echo Trying to create topics... && \
                        kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_avro && \
@@ -94,7 +100,7 @@ services:
   example-producer:
     image: axual/ksml:1.0-snapshot
     hostname: kafka-data-generator
-    restart: always
+    restart: on-failure
     networks:
       - ksml
     working_dir: /ksml
@@ -103,6 +109,10 @@ services:
     volumes:
     - ./examples:/ksml
     depends_on:
-      - broker
-      - schema_registry
-      - kafka-setup
+      broker:
+        condition: service_healthy
+      schema_registry:
+        condition: service_healthy
+      kafka-setup:
+        condition: service_completed_successfully
+
