@@ -49,7 +49,7 @@ public abstract class StoreOperationParser<T extends StoreOperation> extends Ope
     }
 
     protected StructsParser<StateStoreDefinition> storeField(boolean required, String doc, StoreType expectedStoreType) {
-        final var stateStoreParser = new StateStoreDefinitionParser(expectedStoreType);
+        final var stateStoreParser = new StateStoreDefinitionParser(expectedStoreType, false);
         final var resourceParser = new TopologyResourceParser<>("state store", KSMLDSL.Operations.STORE_ATTRIBUTE, doc, (name, context) -> resources().stateStore(name), stateStoreParser);
         final var schemas = required ? resourceParser.schemas() : optional(resourceParser).schemas();
         return new StructsParser<>() {

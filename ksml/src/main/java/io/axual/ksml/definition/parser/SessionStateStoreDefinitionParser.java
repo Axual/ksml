@@ -39,7 +39,7 @@ public class SessionStateStoreDefinitionParser extends DefinitionParser<SessionS
     protected StructsParser<SessionStateStoreDefinition> parser() {
         return structsParser(
                 SessionStateStoreDefinition.class,
-                requireType ? "" : KSMLDSL.Types.WITH_IMPLICIT_TYPE_POSTFIX,
+                requireType ? "" : KSMLDSL.Types.WITH_IMPLICIT_STORE_TYPE_POSTFIX,
                 "Definition of a session state store",
                 optional(stringField(KSMLDSL.Stores.NAME, false, null, "The name of the session store. If this field is not defined, then the name is derived from the context.")),
                 optional(booleanField(KSMLDSL.Stores.PERSISTENT, "\"true\" if this session store needs to be stored on disk, \"false\" otherwise")),

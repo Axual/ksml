@@ -39,7 +39,7 @@ public class WindowStateStoreDefinitionParser extends DefinitionParser<WindowSta
     protected StructsParser<WindowStateStoreDefinition> parser() {
         return structsParser(
                 WindowStateStoreDefinition.class,
-                requireType ? "" : KSMLDSL.Types.WITH_IMPLICIT_TYPE_POSTFIX,
+                requireType ? "" : KSMLDSL.Types.WITH_IMPLICIT_STORE_TYPE_POSTFIX,
                 "Definition of a window state store",
                 optional(stringField(KSMLDSL.Stores.NAME, false, null, "The name of the window store. If this field is not defined, then the name is derived from the context.")),
                 optional(booleanField(KSMLDSL.Stores.PERSISTENT, "\"true\" if this window store needs to be stored on disk, \"false\" otherwise")),
