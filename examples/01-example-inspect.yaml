@@ -19,7 +19,7 @@ streams:
   sensor_source_protobuf:
     topic: ksml_sensordata_protobuf
     keyType: string
-    valueType: protobuf:SensorDataProtobuf
+    valueType: protobuf:sensor_data
   sensor_source_xml:
     topic: ksml_sensordata_xml
     keyType: string

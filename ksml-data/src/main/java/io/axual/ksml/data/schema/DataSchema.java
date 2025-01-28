@@ -117,6 +117,7 @@ public class DataSchema {
     public boolean isAssignableFrom(DataSchema otherSchema) {
         if (otherSchema == null) return false;
         if (type == Type.STRING && otherSchema.type == Type.NULL) return true; // Allow assigning from NULL values
+        if (type == Type.STRING && otherSchema.type == Type.ENUM) return true; // Allow assigning from ENUM values
         return type == otherSchema.type; // Base scenario: compare types and return true if similar
     }
 }
