@@ -60,11 +60,14 @@ public class TopologyResourcesParser extends DefinitionParser<TopologyResources>
                 resources.stateStores().forEach(result::register);
                 resources.functions().forEach(result::register);
                 // Parse all defined streams, using this topology's name as operation prefix
-                streamsParser.parse(node).forEach(result::register);
+                final var streams = streamsParser.parse(node);
+                if (streams != null) streams.forEach(result::register);
                 // Parse all defined tables, using this topology's name as operation prefix
-                tablesParser.parse(node).forEach(result::register);
+                final var tables = tablesParser.parse(node);
+                if (tables != null) tables.forEach(result::register);
                 // Parse all defined global tables, using this topology's name as operation prefix
-                globalTablesParser.parse(node).forEach(result::register);
+                final var globalTables = globalTablesParser.parse(node);
+                if (globalTables != null) globalTables.forEach(result::register);
                 return result;
             }
 
