@@ -1,4 +1,4 @@
-# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
 
 # This example shows how to branch processing of messages from a simple stream. Here we fork processing of "blue
 # sensors" and "red sensors" into a separate branch each. All other sensors will be processed in a default branch.

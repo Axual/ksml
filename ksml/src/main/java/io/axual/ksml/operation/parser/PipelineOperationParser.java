@@ -57,7 +57,6 @@ public class PipelineOperationParser extends ChoiceParser<StreamOperation> {
         result.put(KSMLDSL.Operations.SELECT_KEY, new TransformKeyOperationParser(resources));
         result.put(KSMLDSL.Operations.TRANSFORM_KEY, new TransformKeyOperationParser(resources));
         result.put(KSMLDSL.Operations.MAP, new TransformKeyValueOperationParser(resources));
-        result.put(KSMLDSL.Operations.MAP_KEY_VALUE, new TransformKeyValueOperationParser(resources));
         result.put(KSMLDSL.Operations.TRANSFORM_KEY_VALUE, new TransformKeyValueOperationParser(resources));
         result.put(KSMLDSL.Operations.TRANSFORM_METADATA, new TransformMetadataOperationParser(resources));
         result.put(KSMLDSL.Operations.MAP_VALUE, new TransformValueOperationParser(resources));

@@ -29,7 +29,7 @@
       - *object*: Refer to *[#/definitions/ValueJoinerDefinition](#definitions/ValueJoinerDefinition)*.
       - *object*: Refer to *[#/definitions/ValueTransformerDefinition](#definitions/ValueTransformerDefinition)*.
 - **`globalTables`** *(object)*: *(optional)* GlobalTables that can be referenced in producers and pipelines.
-  - **`^[a-zA-Z0-9_]+$`** *(object)*: Refer to *[#/definitions/GlobalTableDefinitionSource](#definitions/GlobalTableDefinitionSource)*.
+  - **`^[a-zA-Z0-9_]+$`** *(object)*: Refer to *[#/definitions/GlobalTableDefinition](#definitions/GlobalTableDefinition)*.
 - **`pipelines`** *(object)*: *(optional)* Collection of named pipelines.
   - **`^[a-zA-Z0-9_]+$`** *(object)*: Refer to *[#/definitions/PipelineDefinition](#definitions/PipelineDefinition)*.
 - **`producers`** *(object)*: *(optional)* Collection of named producers.
@@ -41,9 +41,9 @@
       - *object*: Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
       - *object*: Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
 - **`streams`** *(object)*: *(optional)* Streams that can be referenced in producers and pipelines.
-  - **`^[a-zA-Z0-9_]+$`** *(object)*: Refer to *[#/definitions/StreamDefinitionSource](#definitions/StreamDefinitionSource)*.
+  - **`^[a-zA-Z0-9_]+$`** *(object)*: Refer to *[#/definitions/StreamDefinition](#definitions/StreamDefinition)*.
 - **`tables`** *(object)*: *(optional)* Tables that can be referenced in producers and pipelines.
-  - **`^[a-zA-Z0-9_]+$`** *(object)*: Refer to *[#/definitions/TableDefinitionSource](#definitions/TableDefinitionSource)*.
+  - **`^[a-zA-Z0-9_]+$`** *(object)*: Refer to *[#/definitions/TableDefinition](#definitions/TableDefinition)*.
 ## Definitions
 
 - <a id="definitions/AggregateOperation"></a>**`AggregateOperation`** *(object)*: An aggregate operation. Cannot contain additional properties.
@@ -379,14 +379,6 @@
   - **`resultType`** *(string)*: *(optional)* The data type returned by the generic function. Only required for function types, which are not pre-defined.
   - **`type`**: The type of the function. Must be one of: `["generic"]`.
 - <a id="definitions/GlobalTableDefinition"></a>**`GlobalTableDefinition`** *(object)*: Contains a definition of a GlobalTable, which can be referenced by producers and pipelines. Cannot contain additional properties.
-  - **`keyType`** *(string)*: *(optional)* The key type of the global table.
-  - **`store`**: *(optional)* KeyValue state store definition.
-    - **Any of**
-      - *string*
-      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType)*.
-  - **`topic`** *(string, required)*: The name of the Kafka topic for this global table.
-  - **`valueType`** *(string)*: *(optional)* The value type of the global table.
-- <a id="definitions/GlobalTableDefinitionSource"></a>**`GlobalTableDefinitionSource`** *(object)*: Contains a definition of a GlobalTable, which can be referenced by producers and pipelines. Cannot contain additional properties.
   - **`keyType`** *(string, required)*: The key type of the global table.
   - **`offsetResetPolicy`** *(string)*: *(optional)* Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted).
   - **`store`**: *(optional)* KeyValue state store definition.
@@ -399,6 +391,14 @@
       - *object*: Refer to *[#/definitions/TimestampExtractorDefinitionWithImplicitStoreType](#definitions/TimestampExtractorDefinitionWithImplicitStoreType)*.
   - **`topic`** *(string, required)*: The name of the Kafka topic for this global table.
   - **`valueType`** *(string, required)*: The value type of the global table.
+- <a id="definitions/GlobalTableDefinitionAsJoinTarget"></a>**`GlobalTableDefinitionAsJoinTarget`** *(object)*: Reference to a GlobalTable in a join operation. Cannot contain additional properties.
+  - **`keyType`** *(string)*: *(optional)* The key type of the global table.
+  - **`store`**: *(optional)* KeyValue state store definition.
+    - **Any of**
+      - *string*
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType)*.
+  - **`topic`** *(string, required)*: The name of the Kafka topic for this global table.
+  - **`valueType`** *(string)*: *(optional)* The value type of the global table.
 - <a id="definitions/GroupByKeyOperation"></a>**`GroupByKeyOperation`** *(object)*: Operation to group all messages with the same key together. Cannot contain additional properties.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`store`**: *(optional)* Materialized view of the grouped stream.
@@ -462,7 +462,7 @@
   - **`globalTable`**: A reference to the globalTable, or an inline definition of the globalTable to join with.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/GlobalTableDefinition](#definitions/GlobalTableDefinition)*.
+      - *object*: Refer to *[#/definitions/GlobalTableDefinitionAsJoinTarget](#definitions/GlobalTableDefinitionAsJoinTarget)*.
   - **`mapper`**: A function that maps the key value from the stream to the primary key type of the globalTable.
     - **Any of**
       - *string*
@@ -488,7 +488,7 @@
   - **`stream`**: A reference to the Stream, or an inline definition of the stream to join with.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/StreamDefinition](#definitions/StreamDefinition)*.
+      - *object*: Refer to *[#/definitions/StreamDefinitionAsJoinTarget](#definitions/StreamDefinitionAsJoinTarget)*.
   - **`timeDifference`**: The maximum time difference for a join over two streams on the same key.
     - **Any of**
       - *number*
@@ -525,7 +525,7 @@
   - **`table`**: A reference to the table, or an inline definition of the table to join with.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/TableDefinition](#definitions/TableDefinition)*.
+      - *object*: Refer to *[#/definitions/TableDefinitionAsJoinTarget](#definitions/TableDefinitionAsJoinTarget)*.
   - **`type`**: The type of the operation. Must be one of: `["join"]`.
   - **`valueJoiner`**: A function that joins two values.
     - **Any of**
@@ -848,7 +848,7 @@
   - **`globalTable`**: A reference to the globalTable, or an inline definition of the globalTable to join with.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/GlobalTableDefinition](#definitions/GlobalTableDefinition)*.
+      - *object*: Refer to *[#/definitions/GlobalTableDefinitionAsJoinTarget](#definitions/GlobalTableDefinitionAsJoinTarget)*.
   - **`mapper`**: A function that maps the key value from the stream with the primary key of the globalTable.
     - **Any of**
       - *string*
@@ -874,7 +874,7 @@
   - **`stream`**: A reference to the stream, or an inline definition of the stream to leftJoin with.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/StreamDefinition](#definitions/StreamDefinition)*.
+      - *object*: Refer to *[#/definitions/StreamDefinitionAsJoinTarget](#definitions/StreamDefinitionAsJoinTarget)*.
   - **`timeDifference`**: The maximum time difference for a leftJoin over two streams on the same key.
     - **Any of**
       - *number*
@@ -911,7 +911,7 @@
   - **`table`**: A reference to the Table, or an inline definition of the Table to join with.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/TableDefinition](#definitions/TableDefinition)*.
+      - *object*: Refer to *[#/definitions/TableDefinitionAsJoinTarget](#definitions/TableDefinitionAsJoinTarget)*.
   - **`type`**: The type of the operation. Must be one of: `["leftJoin"]`.
   - **`valueJoiner`**: A function that joins two values.
     - **Any of**
@@ -922,7 +922,7 @@
   - **`stream`**: The stream to merge with.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/StreamDefinitionSource](#definitions/StreamDefinitionSource)*.
+      - *object*: Refer to *[#/definitions/StreamDefinition](#definitions/StreamDefinition)*.
   - **`type`**: The type of the operation. Must be one of: `["merge"]`.
 - <a id="definitions/MergerDefinition"></a>**`MergerDefinition`** *(object)*: Defines a merger function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the merger.
@@ -1025,7 +1025,7 @@
   - **`stream`**: A reference to the stream, or an inline definition of the stream to outerJoin with.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/StreamDefinition](#definitions/StreamDefinition)*.
+      - *object*: Refer to *[#/definitions/StreamDefinitionAsJoinTarget](#definitions/StreamDefinitionAsJoinTarget)*.
   - **`timeDifference`**: The maximum time difference for an outerJoin over two streams on the same key.
     - **Any of**
       - *number*
@@ -1046,7 +1046,7 @@
   - **`table`**: A reference to the table, or an inline definition of the table to outerJoin with.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/TableDefinition](#definitions/TableDefinition)*.
+      - *object*: Refer to *[#/definitions/TableDefinitionAsJoinTarget](#definitions/TableDefinitionAsJoinTarget)*.
   - **`type`**: The type of the operation. Must be one of: `["outerJoin"]`.
   - **`valueJoiner`**: A function that joins two values.
     - **Any of**
@@ -1290,10 +1290,6 @@
   - **`type`**: The type of the state store. Must be one of: `["session"]`.
   - **`valueType`** *(string)*: *(optional)* The value type of the session store.
 - <a id="definitions/StreamDefinition"></a>**`StreamDefinition`** *(object)*: Contains a definition of a Stream, which can be referenced by producers and pipelines. Cannot contain additional properties.
-  - **`keyType`** *(string)*: *(optional)* The key type of the stream.
-  - **`topic`** *(string, required)*: The name of the Kafka topic for this stream.
-  - **`valueType`** *(string)*: *(optional)* The value type of the stream.
-- <a id="definitions/StreamDefinitionSource"></a>**`StreamDefinitionSource`** *(object)*: Contains a definition of a Stream, which can be referenced by producers and pipelines. Cannot contain additional properties.
   - **`keyType`** *(string, required)*: The key type of the stream.
   - **`offsetResetPolicy`** *(string)*: *(optional)* Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted).
   - **`timestampExtractor`**: *(optional)* A function extracts the event time from a consumed record.
@@ -1302,6 +1298,10 @@
       - *object*: Refer to *[#/definitions/TimestampExtractorDefinitionWithImplicitStoreType](#definitions/TimestampExtractorDefinitionWithImplicitStoreType)*.
   - **`topic`** *(string, required)*: The name of the Kafka topic for this stream.
   - **`valueType`** *(string, required)*: The value type of the stream.
+- <a id="definitions/StreamDefinitionAsJoinTarget"></a>**`StreamDefinitionAsJoinTarget`** *(object)*: Reference to a Stream in a join or merge operation. Cannot contain additional properties.
+  - **`keyType`** *(string)*: *(optional)* The key type of the stream.
+  - **`topic`** *(string, required)*: The name of the Kafka topic for this stream.
+  - **`valueType`** *(string)*: *(optional)* The value type of the stream.
 - <a id="definitions/StreamPartitionerDefinition"></a>**`StreamPartitionerDefinition`** *(object)*: Defines a stream partitioner function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the stream partitioner.
     - **Any of**
@@ -1367,14 +1367,6 @@
   - **`type`**: The type of the operation. Must be one of: `["suppress"]`.
   - **`until`**: The until of the Operation to suppress messages in the source stream until a certain limit is reached. Must be one of: `["windowCloses"]`.
 - <a id="definitions/TableDefinition"></a>**`TableDefinition`** *(object)*: Contains a definition of a Table, which can be referenced by producers and pipelines. Cannot contain additional properties.
-  - **`keyType`** *(string)*: *(optional)* The key type of the table.
-  - **`store`**: *(optional)* KeyValue state store definition.
-    - **Any of**
-      - *string*
-      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType)*.
-  - **`topic`** *(string, required)*: The name of the Kafka topic for this table.
-  - **`valueType`** *(string)*: *(optional)* The value type of the table.
-- <a id="definitions/TableDefinitionSource"></a>**`TableDefinitionSource`** *(object)*: Contains a definition of a Table, which can be referenced by producers and pipelines. Cannot contain additional properties.
   - **`keyType`** *(string, required)*: The key type of the table.
   - **`offsetResetPolicy`** *(string)*: *(optional)* Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted).
   - **`store`**: *(optional)* KeyValue state store definition.
@@ -1387,6 +1379,14 @@
       - *object*: Refer to *[#/definitions/TimestampExtractorDefinitionWithImplicitStoreType](#definitions/TimestampExtractorDefinitionWithImplicitStoreType)*.
   - **`topic`** *(string, required)*: The name of the Kafka topic for this table.
   - **`valueType`** *(string, required)*: The value type of the table.
+- <a id="definitions/TableDefinitionAsJoinTarget"></a>**`TableDefinitionAsJoinTarget`** *(object)*: Reference to a Table in a join operation. Cannot contain additional properties.
+  - **`keyType`** *(string)*: *(optional)* The key type of the table.
+  - **`store`**: *(optional)* KeyValue state store definition.
+    - **Any of**
+      - *string*
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType)*.
+  - **`topic`** *(string, required)*: The name of the Kafka topic for this table.
+  - **`valueType`** *(string)*: *(optional)* The value type of the table.
 - <a id="definitions/TimestampExtractorDefinition"></a>**`TimestampExtractorDefinition`** *(object)*: Defines a timestamp extractor function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the timestamp extractor.
     - **Any of**
@@ -1526,7 +1526,7 @@
       - *string*
       - *object*: Refer to *[#/definitions/KeyValueTransformerDefinitionWithImplicitStoreType](#definitions/KeyValueTransformerDefinitionWithImplicitStoreType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
-  - **`type`**: The type of the operation. Must be one of: `["mapKeyValue", "map", "transformKeyValue"]`.
+  - **`type`**: The type of the operation. Must be one of: `["map", "transformKeyValue"]`.
 - <a id="definitions/TransformKeyValueToKeyValueListOperation"></a>**`TransformKeyValueToKeyValueListOperation`** *(object)*: Convert a stream by transforming every record into a list of derived records. Cannot contain additional properties.
   - **`mapper`**: A function that converts every record of a stream to a list of output records.
     - **Any of**

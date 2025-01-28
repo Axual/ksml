@@ -35,6 +35,9 @@ ksml:
       loggerName: ProduceError    # Definition of the error logger name.
       handler: continueOnFail     # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
 
+  enableProducers: true           # Set to true to allow producer definitions to be parsed in the KSML definitions and be executed.
+  enablePipelines: true           # Set to true to allow pipeline definitions to be parsed in the KSML definitions and be executed.
+
   # This section tells KSML with which serializers / deserializers to handle certain notation types.
   notations:
     avro:                          # Definition for "avro" notation
@@ -57,7 +60,7 @@ ksml:
         # schema.registry.ssl.truststore.type: JKS
         # schema.registry.ssl.truststore.password: password
 
-    # Definition for "other_avro" notation. With this config, you can use a type like otherAvro:SchenaName in your
+    # Definition for "otherAvro" notation. With this config, you can use a type like otherAvro:SchemaName in your
     # KSML definition, which then uses the Apicurio implementation for AVRO.
     otherAvro:
       type: apicurio_avro         # For AVRO there are two implementations: apicurio_avro and confluent_avro
@@ -81,8 +84,21 @@ ksml:
         # apicurio.registry.request.ssl.truststore.type: JKS
         # apicurio.registry.request.ssl.truststore.password: password
 
-  enableProducers: true           # Set to true to allow producer definitions to be parsed in the KSML definitions and be executed.
-  enablePipelines: true           # Set to true to allow pipeline definitions to be parsed in the KSML definitions and be executed.
+    protobuf:                      # Definition for "protobuf" notation
+      type: apicurio_protobuf      # For Protobuf there is only one implementation: apicurio_protobuf
+      ## Below this line, specify properties to be passed into Apicurio's ProtobufKafkaSerializer and ProtobufKafkaDeserializer
+      config:
+        apicurio.registry.url: http://schema-registry:8081/apis/registry/v2
+        # Register schema if it does not exist
+        apicurio.registry.auto-register: "true"
+        # Apicurio Avro serialisation settings
+        apicurio.rest.request.ssl.truststore.location: /Users/dizzl/dev/axual/ksml/workspace/axual/dizzl/demo1.app.dizzl.com.sr.truststore.jks
+        apicurio.rest.request.ssl.truststore.password: notsecret
+        apicurio.rest.request.ssl.truststore.type: JKS
+        apicurio.rest.request.ssl.keystore.location: /Users/dizzl/dev/axual/ksml/workspace/axual/dizzl/demo1.app.dizzl.com.sr.keystore.jks
+        apicurio.rest.request.ssl.keystore.password: notsecret
+        apicurio.rest.request.ssl.keystore.type: JKS
+        apicurio.rest.request.ssl.key.password: notsecret
 
   # Section where you specify which KSML definitions to load, parse and execute.
   definitions:

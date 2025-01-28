@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package io.axual.ksml.data.notation.protobuf.example;
+package io.axual.ksml.example;
 
 message sensor_data {
   string name = 1;                    // The name of the sensor
@@ -13,10 +13,11 @@ message sensor_data {
   optional string owner = 8;          // The owner of the sensor
 
   enum SensorType {
-    SENSOR_TYPE_AREA_UNSPECIFIED = 0;
-    SENSOR_TYPE_HUMIDITY = 1;
-    SENSOR_TYPE_LENGTH = 2;
-    SENSOR_TYPE_STATE = 3;
-    SENSOR_TYPE_TEMPERATURE = 4;
+    UNSPECIFIED = 0;
+    AREA = 1;
+    HUMIDITY = 2;
+    LENGTH = 3;
+    STATE = 4;
+    TEMPERATURE = 5;
   }
 }

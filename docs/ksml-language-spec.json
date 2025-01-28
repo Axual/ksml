@@ -984,36 +984,6 @@
       "description" : "Contains a definition of a GlobalTable, which can be referenced by producers and pipelines",
       "properties" : {
         "keyType" : {
-          "description" : "*(optional)* The key type of the global table",
-          "type" : "string"
-        },
-        "store" : {
-          "anyOf" : [ {
-            "type" : "string"
-          }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
-            "type" : "object"
-          } ],
-          "description" : "*(optional)* KeyValue state store definition"
-        },
-        "topic" : {
-          "description" : "The name of the Kafka topic for this global table",
-          "type" : "string"
-        },
-        "valueType" : {
-          "description" : "*(optional)* The value type of the global table",
-          "type" : "string"
-        }
-      },
-      "required" : [ "topic" ],
-      "title" : "GlobalTableDefinition",
-      "type" : "object"
-    },
-    "GlobalTableDefinitionSource" : {
-      "additionalProperties" : false,
-      "description" : "Contains a definition of a GlobalTable, which can be referenced by producers and pipelines",
-      "properties" : {
-        "keyType" : {
           "description" : "The key type of the global table",
           "type" : "string"
         },
@@ -1049,7 +1019,37 @@
         }
       },
       "required" : [ "topic", "keyType", "valueType" ],
-      "title" : "GlobalTableDefinitionSource",
+      "title" : "GlobalTableDefinition",
+      "type" : "object"
+    },
+    "GlobalTableDefinitionAsJoinTarget" : {
+      "additionalProperties" : false,
+      "description" : "Reference to a GlobalTable in a join operation",
+      "properties" : {
+        "keyType" : {
+          "description" : "*(optional)* The key type of the global table",
+          "type" : "string"
+        },
+        "store" : {
+          "anyOf" : [ {
+            "type" : "string"
+          }, {
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
+            "type" : "object"
+          } ],
+          "description" : "*(optional)* KeyValue state store definition"
+        },
+        "topic" : {
+          "description" : "The name of the Kafka topic for this global table",
+          "type" : "string"
+        },
+        "valueType" : {
+          "description" : "*(optional)* The value type of the global table",
+          "type" : "string"
+        }
+      },
+      "required" : [ "topic" ],
+      "title" : "GlobalTableDefinitionAsJoinTarget",
       "type" : "object"
     },
     "GroupByKeyOperation" : {
@@ -1234,7 +1234,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/GlobalTableDefinition",
+            "$ref" : "#/definitions/GlobalTableDefinitionAsJoinTarget",
             "type" : "object"
           } ],
           "description" : "A reference to the globalTable, or an inline definition of the globalTable to join with"
@@ -1305,7 +1305,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamDefinition",
+            "$ref" : "#/definitions/StreamDefinitionAsJoinTarget",
             "type" : "object"
           } ],
           "description" : "A reference to the Stream, or an inline definition of the stream to join with"
@@ -1398,7 +1398,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/TableDefinition",
+            "$ref" : "#/definitions/TableDefinitionAsJoinTarget",
             "type" : "object"
           } ],
           "description" : "A reference to the table, or an inline definition of the table to join with"
@@ -2332,7 +2332,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/GlobalTableDefinition",
+            "$ref" : "#/definitions/GlobalTableDefinitionAsJoinTarget",
             "type" : "object"
           } ],
           "description" : "A reference to the globalTable, or an inline definition of the globalTable to join with"
@@ -2403,7 +2403,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamDefinition",
+            "$ref" : "#/definitions/StreamDefinitionAsJoinTarget",
             "type" : "object"
           } ],
           "description" : "A reference to the stream, or an inline definition of the stream to leftJoin with"
@@ -2496,7 +2496,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/TableDefinition",
+            "$ref" : "#/definitions/TableDefinitionAsJoinTarget",
             "type" : "object"
           } ],
           "description" : "A reference to the Table, or an inline definition of the Table to join with"
@@ -2531,7 +2531,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamDefinitionSource",
+            "$ref" : "#/definitions/StreamDefinition",
             "type" : "object"
           } ],
           "description" : "The stream to merge with"
@@ -2820,7 +2820,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/StreamDefinition",
+            "$ref" : "#/definitions/StreamDefinitionAsJoinTarget",
             "type" : "object"
           } ],
           "description" : "A reference to the stream, or an inline definition of the stream to outerJoin with"
@@ -2878,7 +2878,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/TableDefinition",
+            "$ref" : "#/definitions/TableDefinitionAsJoinTarget",
             "type" : "object"
           } ],
           "description" : "A reference to the table, or an inline definition of the table to outerJoin with"
@@ -3624,27 +3624,6 @@
       "description" : "Contains a definition of a Stream, which can be referenced by producers and pipelines",
       "properties" : {
         "keyType" : {
-          "description" : "*(optional)* The key type of the stream",
-          "type" : "string"
-        },
-        "topic" : {
-          "description" : "The name of the Kafka topic for this stream",
-          "type" : "string"
-        },
-        "valueType" : {
-          "description" : "*(optional)* The value type of the stream",
-          "type" : "string"
-        }
-      },
-      "required" : [ "topic" ],
-      "title" : "StreamDefinition",
-      "type" : "object"
-    },
-    "StreamDefinitionSource" : {
-      "additionalProperties" : false,
-      "description" : "Contains a definition of a Stream, which can be referenced by producers and pipelines",
-      "properties" : {
-        "keyType" : {
           "description" : "The key type of the stream",
           "type" : "string"
         },
@@ -3671,7 +3650,28 @@
         }
       },
       "required" : [ "topic", "keyType", "valueType" ],
-      "title" : "StreamDefinitionSource",
+      "title" : "StreamDefinition",
+      "type" : "object"
+    },
+    "StreamDefinitionAsJoinTarget" : {
+      "additionalProperties" : false,
+      "description" : "Reference to a Stream in a join or merge operation",
+      "properties" : {
+        "keyType" : {
+          "description" : "*(optional)* The key type of the stream",
+          "type" : "string"
+        },
+        "topic" : {
+          "description" : "The name of the Kafka topic for this stream",
+          "type" : "string"
+        },
+        "valueType" : {
+          "description" : "*(optional)* The value type of the stream",
+          "type" : "string"
+        }
+      },
+      "required" : [ "topic" ],
+      "title" : "StreamDefinitionAsJoinTarget",
       "type" : "object"
     },
     "StreamPartitionerDefinition" : {
@@ -3883,36 +3883,6 @@
       "description" : "Contains a definition of a Table, which can be referenced by producers and pipelines",
       "properties" : {
         "keyType" : {
-          "description" : "*(optional)* The key type of the table",
-          "type" : "string"
-        },
-        "store" : {
-          "anyOf" : [ {
-            "type" : "string"
-          }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
-            "type" : "object"
-          } ],
-          "description" : "*(optional)* KeyValue state store definition"
-        },
-        "topic" : {
-          "description" : "The name of the Kafka topic for this table",
-          "type" : "string"
-        },
-        "valueType" : {
-          "description" : "*(optional)* The value type of the table",
-          "type" : "string"
-        }
-      },
-      "required" : [ "topic" ],
-      "title" : "TableDefinition",
-      "type" : "object"
-    },
-    "TableDefinitionSource" : {
-      "additionalProperties" : false,
-      "description" : "Contains a definition of a Table, which can be referenced by producers and pipelines",
-      "properties" : {
-        "keyType" : {
           "description" : "The key type of the table",
           "type" : "string"
         },
@@ -3948,7 +3918,37 @@
         }
       },
       "required" : [ "topic", "keyType", "valueType" ],
-      "title" : "TableDefinitionSource",
+      "title" : "TableDefinition",
+      "type" : "object"
+    },
+    "TableDefinitionAsJoinTarget" : {
+      "additionalProperties" : false,
+      "description" : "Reference to a Table in a join operation",
+      "properties" : {
+        "keyType" : {
+          "description" : "*(optional)* The key type of the table",
+          "type" : "string"
+        },
+        "store" : {
+          "anyOf" : [ {
+            "type" : "string"
+          }, {
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType",
+            "type" : "object"
+          } ],
+          "description" : "*(optional)* KeyValue state store definition"
+        },
+        "topic" : {
+          "description" : "The name of the Kafka topic for this table",
+          "type" : "string"
+        },
+        "valueType" : {
+          "description" : "*(optional)* The value type of the table",
+          "type" : "string"
+        }
+      },
+      "required" : [ "topic" ],
+      "title" : "TableDefinitionAsJoinTarget",
       "type" : "object"
     },
     "TimestampExtractorDefinition" : {
@@ -4386,7 +4386,7 @@
         },
         "type" : {
           "description" : "The type of the operation",
-          "enum" : [ "mapKeyValue", "map", "transformKeyValue" ]
+          "enum" : [ "map", "transformKeyValue" ]
         }
       },
       "required" : [ "mapper", "type" ],
@@ -5098,7 +5098,7 @@
       "description" : "*(optional)* GlobalTables that can be referenced in producers and pipelines",
       "patternProperties" : {
         "^[a-zA-Z0-9_]+$" : {
-          "$ref" : "#/definitions/GlobalTableDefinitionSource",
+          "$ref" : "#/definitions/GlobalTableDefinition",
           "type" : "object"
         }
       },
@@ -5146,7 +5146,7 @@
       "description" : "*(optional)* Streams that can be referenced in producers and pipelines",
       "patternProperties" : {
         "^[a-zA-Z0-9_]+$" : {
-          "$ref" : "#/definitions/StreamDefinitionSource",
+          "$ref" : "#/definitions/StreamDefinition",
           "type" : "object"
         }
       },
@@ -5156,7 +5156,7 @@
       "description" : "*(optional)* Tables that can be referenced in producers and pipelines",
       "patternProperties" : {
         "^[a-zA-Z0-9_]+$" : {
-          "$ref" : "#/definitions/TableDefinitionSource",
+          "$ref" : "#/definitions/TableDefinition",
           "type" : "object"
         }
       },

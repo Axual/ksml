@@ -36,14 +36,13 @@ import io.axual.ksml.store.StoreType;
 import java.util.List;
 
 public class GlobalTableDefinitionParser extends TopologyBaseResourceAwareParser<GlobalTableDefinition> {
-    private static final String DOC = "Contains a definition of a GlobalTable, which can be referenced by producers and pipelines";
     private static final String TOPIC_DOC = "The name of the Kafka topic for this global table";
 
-    private final boolean isSource;
+    private final boolean isJoinTarget;
 
-    public GlobalTableDefinitionParser(TopologyBaseResources resources, boolean isSource) {
+    public GlobalTableDefinitionParser(TopologyBaseResources resources, boolean isJoinTarget) {
         super(resources);
-        this.isSource = isSource;
+        this.isJoinTarget = isJoinTarget;
     }
 
     @Override
@@ -55,10 +54,10 @@ public class GlobalTableDefinitionParser extends TopologyBaseResourceAwareParser
         final var offsetResetPolicyField = optional(stringField(KSMLDSL.Streams.OFFSET_RESET_POLICY, "Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted)"));
 
 
-        if (isSource) return structsParser(
+        if (!isJoinTarget) return structsParser(
                 GlobalTableDefinition.class,
-                "Source",
-                DOC,
+                "",
+                "Contains a definition of a GlobalTable, which can be referenced by producers and pipelines",
                 stringField(KSMLDSL.Streams.TOPIC, TOPIC_DOC),
                 keyField,
                 valueField,
@@ -74,8 +73,8 @@ public class GlobalTableDefinitionParser extends TopologyBaseResourceAwareParser
 
         return structsParser(
                 GlobalTableDefinition.class,
-                "",
-                DOC,
+                "AsJoinTarget",
+                "Reference to a GlobalTable in a join operation",
                 stringField(KSMLDSL.Streams.TOPIC, TOPIC_DOC),
                 optional(keyField),
                 optional(valueField),

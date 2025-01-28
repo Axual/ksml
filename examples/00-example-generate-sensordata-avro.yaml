@@ -1,4 +1,4 @@
-# $schema: https://raw.githubusercontent.com/Axual/ksml/main/docs/ksml-language-spec.json
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
 
 # This example shows how to generate data and have it sent to a target topic in a given format.
 
@@ -29,16 +29,6 @@ functions:
       value["owner"] = random.choice([ "Alice", "Bob", "Charlie", "Dave", "Evan" ])
       value["city"] = random.choice([ "Amsterdam", "Xanten", "Utrecht", "Alkmaar", "Leiden" ])
       
-      
-      value["nestedType"] = random.choice(["UNSPECIFIED", "AREA", "HUMIDITY", "LENGTH", "STATE", "TEMPERATURE"])
-      value["extra"] = [0.5]
-      value["sensorType"] = ["AREA", "HUMIDITY", "LENGTH", "STATE", "TEMPERATURE"]
-      value["subs"] = [{}, {}]
-      value["subs"][0] = {"name": "NAAM", "address": "SOMEWHERE"}
-      value["subs"][1] = {"name": "OOKNAAM", "address": "OOKSOMEWHERE"}
-      value["somethingelse"] = "boe"
-      value["sibling"] = {"name": "NAME", "address":"ADDRESS"}
-      
       if random.randrange(10) == 0:
         key = None
       if random.randrange(10) == 0:
@@ -54,11 +44,3 @@ producers:
       topic: ksml_sensordata_avro
       keyType: string
       valueType: avro:SensorData
-
-  sensordata_protobuf_producer:
-    generator: generate_sensordata_message
-    interval: 3s
-    to:
-      topic: ksml_sensordata_protobuf_test
-      keyType: string
-      valueType: protobuf:sensor_data_test

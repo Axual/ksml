@@ -256,7 +256,6 @@ public class KSMLDSL {
         public static final String MAP_KEY = "mapKey";
         public static final String SELECT_KEY = "selectKey";
         public static final String MAP = "map";
-        public static final String MAP_KEY_VALUE = "mapKeyValue";
         public static final String MAP_VALUE = "mapValue";
         public static final String MAP_VALUES = "mapValues";
 

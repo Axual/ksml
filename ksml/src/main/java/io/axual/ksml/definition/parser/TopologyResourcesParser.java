@@ -20,7 +20,6 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.parser.MapParser;
 import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.generator.TopologyBaseResources;
@@ -42,9 +41,9 @@ public class TopologyResourcesParser extends DefinitionParser<TopologyResources>
     @Override
     public StructsParser<TopologyResources> parser() {
         final var dummyResources = new TopologyBaseResources("dummy");
-        final var streamsParser = optional(mapField(STREAMS, "stream", "stream definition", "Streams that can be referenced in producers and pipelines", new StreamDefinitionParser(dummyResources, true)));
-        final var tablesParser = optional(mapField(TABLES, "table", "table definition", "Tables that can be referenced in producers and pipelines", new TableDefinitionParser(dummyResources, true)));
-        final var globalTablesParser = optional(mapField(GLOBAL_TABLES, "globalTable", "globalTable definition", "GlobalTables that can be referenced in producers and pipelines", new GlobalTableDefinitionParser(dummyResources, true)));
+        final var streamsParser = optional(mapField(STREAMS, "stream", "stream definition", "Streams that can be referenced in producers and pipelines", new StreamDefinitionParser(dummyResources, false)));
+        final var tablesParser = optional(mapField(TABLES, "table", "table definition", "Tables that can be referenced in producers and pipelines", new TableDefinitionParser(dummyResources, false)));
+        final var globalTablesParser = optional(mapField(GLOBAL_TABLES, "globalTable", "globalTable definition", "GlobalTables that can be referenced in producers and pipelines", new GlobalTableDefinitionParser(dummyResources, false)));
 
         final var fields = baseResourcesParser.schemas().getFirst().fields();
         fields.addAll(streamsParser.schemas().getFirst().fields());
@@ -61,11 +60,11 @@ public class TopologyResourcesParser extends DefinitionParser<TopologyResources>
                 resources.stateStores().forEach(result::register);
                 resources.functions().forEach(result::register);
                 // Parse all defined streams, using this topology's name as operation prefix
-                new MapParser<>("stream", "stream definition", new StreamDefinitionParser(resources, true)).parse(node.get(STREAMS)).forEach(result::register);
+                streamsParser.parse(node).forEach(result::register);
                 // Parse all defined tables, using this topology's name as operation prefix
-                new MapParser<>("table", "table definition", new TableDefinitionParser(resources, true)).parse(node.get(TABLES)).forEach(result::register);
+                tablesParser.parse(node).forEach(result::register);
                 // Parse all defined global tables, using this topology's name as operation prefix
-                new MapParser<>("globalTable", "globalTable definition", new GlobalTableDefinitionParser(resources, true)).parse(node.get(GLOBAL_TABLES)).forEach(result::register);
+                globalTablesParser.parse(node).forEach(result::register);
                 return result;
             }
 

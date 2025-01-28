@@ -88,9 +88,10 @@ ksml:
   definitions:
     # Format is <namespace>: <ksml_definition_filename>
     generate_alert_setting: 00-example-generate-alertsettings.yaml
-    generate_sensor_data: 00-example-generate-sensordata.yaml
-#    generate_sensor_data_batch: 00-example-generate-sensordata-batch.yaml
+    generate_sensor_data_avro: 00-example-generate-sensordata-avro.yaml
+#    generate_sensor_data_avro_batch: 00-example-generate-sensordata-avro-batch.yaml
 #    generate_sensor_data_binary: 00-example-generate-sensordata-binary.yaml
+#    generate_sensor_data_protobuf: 00-example-generate-sensordata-protobuf.yaml
 
 # This setup connects to the Kafka broker and schema registry started with the example docker-compose file
 # These examples are intended to run from a inside a container on the same network

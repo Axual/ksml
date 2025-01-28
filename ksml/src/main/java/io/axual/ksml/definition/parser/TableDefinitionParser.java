@@ -37,23 +37,22 @@ import java.util.List;
 import static io.axual.ksml.dsl.KSMLDSL.Streams;
 
 public class TableDefinitionParser extends TopologyBaseResourceAwareParser<TableDefinition> {
-    private static final String DOC = "Contains a definition of a Table, which can be referenced by producers and pipelines";
     private static final String TOPIC_DOC = "The name of the Kafka topic for this table";
-    private final boolean isSource;
+    private final boolean isJoinTarget;
 
-    public TableDefinitionParser(TopologyBaseResources resources, boolean isSource) {
+    public TableDefinitionParser(TopologyBaseResources resources, boolean isJoinTarget) {
         super(resources);
-        this.isSource = isSource;
+        this.isJoinTarget = isJoinTarget;
     }
 
     @Override
     public StructsParser<TableDefinition> parser() {
         final var keyField = userTypeField(Streams.KEY_TYPE, "The key type of the table");
         final var valueField = userTypeField(Streams.VALUE_TYPE, "The value type of the table");
-        if (isSource) return structsParser(
+        if (!isJoinTarget) return structsParser(
                 TableDefinition.class,
-                "Source",
-                DOC,
+                "",
+                "Contains a definition of a Table, which can be referenced by producers and pipelines",
                 stringField(Streams.TOPIC, TOPIC_DOC),
                 keyField,
                 valueField,
@@ -69,8 +68,8 @@ public class TableDefinitionParser extends TopologyBaseResourceAwareParser<Table
                 });
         return structsParser(
                 TableDefinition.class,
-                "",
-                DOC,
+                "AsJoinTarget",
+                "Reference to a Table in a join operation",
                 stringField(Streams.TOPIC, TOPIC_DOC),
                 optional(keyField),
                 optional(valueField),

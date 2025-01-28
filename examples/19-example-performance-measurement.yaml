@@ -1,4 +1,4 @@
-# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
 
 # This example behaves similarly to example 2 (copy) but includes Python code to measure KSML's performance. It does
 # so by storing the message count and startup timestamp in global variables, and outputting log statements every 100
