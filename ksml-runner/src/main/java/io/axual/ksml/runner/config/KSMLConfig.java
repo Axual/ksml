@@ -60,9 +60,14 @@ public class KSMLConfig {
     @Builder.Default
     @Getter
     private PrometheusConfig prometheusConfig = DEFAULT_PROMETHEUS_CONFIG;
+
     private String configDirectory;
     private String schemaDirectory;
     private String storageDirectory;
+
+    @Builder.Default
+    private boolean createStorageDirectory = false;
+
     @Getter
     @Builder.Default
     private boolean enableProducers = true;
@@ -112,7 +117,7 @@ public class KSMLConfig {
     }
 
     public String storageDirectory() {
-        return getDirectory("storageDirectory", storageDirectory != null ? storageDirectory : System.getProperty("java.io.tmpdir"), true);
+        return getDirectory("storageDirectory", storageDirectory != null ? storageDirectory : System.getProperty("java.io.tmpdir"), createStorageDirectory);
     }
 
     public ApplicationServerConfig applicationServerConfig() {
