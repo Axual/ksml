@@ -24,6 +24,8 @@ import io.axual.ksml.data.exception.ExecutionException;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import java.util.Objects;
+
 @Getter
 @EqualsAndHashCode
 public class DataField {
@@ -43,6 +45,7 @@ public class DataField {
     private final Order order;
 
     public DataField(String name, DataSchema schema, String doc, int index, boolean required, boolean constant, DataValue defaultValue, Order order) {
+        Objects.requireNonNull(schema);
         this.name = name;
         this.schema = schema;
         this.doc = doc;
@@ -56,8 +59,16 @@ public class DataField {
         }
     }
 
+    public DataField(DataSchema schema) {
+        this(null, schema);
+    }
+
+    public DataField(String name, DataSchema schema) {
+        this(name, schema, null);
+    }
+
     public DataField(String name, DataSchema schema, String doc) {
-        this(name, schema, doc, -1);
+        this(name, schema, doc, NO_INDEX);
     }
 
     public DataField(String name, DataSchema schema, String doc, int index) {
@@ -72,14 +83,16 @@ public class DataField {
         this(name, schema, doc, index, required, constant, defaultValue, Order.ASCENDING);
     }
 
+    public boolean hasDoc() {
+        return doc != null && !doc.isEmpty();
+    }
+
     public boolean isAssignableFrom(DataField field) {
         return field != null && schema.isAssignableFrom(field.schema);
     }
 
-    public DataField withDefaultValue(DataValue possibleValues) {
-        return new DataField(name, schema, doc, index, required, constant, defaultValue, order);
-    }
-    public DataField withDoc(String doc) {
-        return new DataField(name, schema, doc, index, required, constant, defaultValue, order);
+    @Override
+    public String toString() {
+        return (name != null ? name : "<anonymous>") + ": " + schema + " (" + index + (required ? "" : ", optional") + ")";
     }
 }

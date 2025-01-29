@@ -32,7 +32,9 @@ import org.apache.kafka.common.serialization.Serde;
 
 public class JsonNotation implements Notation {
     public static final String NAME = "json";
-    public static final DataType DEFAULT_TYPE = new UnionType(new StructType(), new ListType());
+    public static final DataType DEFAULT_TYPE = new UnionType(
+            new UnionType.ValueType(new StructType()),
+            new UnionType.ValueType(new ListType()));
     private final NativeDataObjectMapper nativeMapper;
     @Getter
     private final NotationConverter converter = new JsonDataObjectConverter();

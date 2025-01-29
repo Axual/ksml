@@ -138,7 +138,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
 
         if (value instanceof String) return DataString.DATATYPE;
 
-        if (value.getClass().isEnum()) return inferEnumType(value);
+        if (value instanceof Enum<?> val) return inferEnumType(val);
         if (value instanceof List<?> val) return inferListType(val);
         if (value instanceof Map<?, ?> val) return inferStructType(val);
         if (value instanceof Tuple<?> val) return inferTupleType(val);
@@ -146,13 +146,13 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         return DataType.UNKNOWN;
     }
 
-    private EnumType inferEnumType(Object value) {
-        var enumConstants = value.getClass().getEnumConstants();
-        var symbols = new String[enumConstants.length];
-        for (int index = 0; index < symbols.length; index++) {
-            symbols[index] = enumConstants[index].toString();
+    private EnumType inferEnumType(Enum<?> value) {
+        final var enumConstants = value.getClass().getEnumConstants();
+        final var symbols = new ArrayList<String>();
+        for (final var enumConstant : enumConstants) {
+            symbols.add(enumConstant.toString());
         }
-        return new EnumType(symbols);
+        return new EnumType(symbols.stream().map(Symbol::new).toList());
     }
 
     private ListType inferListType(List<?> list) {
@@ -168,7 +168,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     }
 
     private StructType inferStructType(Map<?, ?> map, DataSchema expected) {
-        var schema = inferStructSchema(map, expected);
+        final var schema = inferStructSchema(map, expected);
         if (schema instanceof StructSchema structSchema) return new StructType(structSchema);
         if (schema != null)
             throw new DataException("Map can not be converted to " + schema);
@@ -191,10 +191,6 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         // library. If this field is set, then look up the schema by name in the library.
         if (map.containsKey(STRUCT_TYPE_FIELD)) {
             final var typeName = map.get(STRUCT_TYPE_FIELD).toString();
-//            final var userType = UserTypeParser.parse(typeName);
-//            if (userType.dataType() instanceof StructType structType) return structType.schema();
-//            throw
-//            return userType.
             return SchemaLibrary.getSchema(typeName, false);
         }
 
@@ -212,16 +208,16 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     }
 
     protected DataList nativeToDataList(List<Object> list, DataType valueType) {
-        DataList result = new DataList(valueType);
+        final var result = new DataList(valueType);
         list.forEach(element -> result.add(toDataObject(valueType, element)));
         return result;
     }
 
     protected DataObject nativeToDataStruct(Map<String, Object> map, DataSchema schema) {
-        var type = inferStructType(map, schema);
+        final var type = inferStructType(map, schema);
         map.remove(STRUCT_SCHEMA_FIELD);
         map.remove(STRUCT_TYPE_FIELD);
-        DataStruct result = new DataStruct(type.schema());
+        final var result = new DataStruct(type.schema());
         map.forEach((key, value) -> {
             var field = type.schema() != null ? type.schema().field(key) : null;
             var fieldSchema = field != null ? field.schema() : null;
@@ -232,7 +228,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     }
 
     protected DataTuple toDataTuple(Tuple<Object> tuple) {
-        DataObject[] elements = new DataObject[tuple.size()];
+        final var elements = new DataObject[tuple.size()];
         for (var index = 0; index < tuple.size(); index++) {
             elements[index] = toDataObject(tuple.get(index));
         }
@@ -269,18 +265,18 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
 
     public List<Object> fromDataList(DataList list) {
         if (list.isNull()) return null;
-        List<Object> result = new ArrayList<>();
+        final var result = new ArrayList<>();
         list.forEach(element -> result.add(fromDataObject(element)));
         return result;
     }
 
     public Map<String, Object> fromDataStruct(DataStruct struct) {
         if (struct.isNull()) return null;
-        Map<String, Object> result = new TreeMap<>(DataStruct.COMPARATOR);
+        final var result = new TreeMap<>(DataStruct.COMPARATOR);
         struct.forEach((key, value) -> result.put(key, fromDataObject(value)));
 
         // Convert schema to native format by encoding it in meta fields
-        var schema = struct.type().schema();
+        final var schema = struct.type().schema();
         if (schema != null && includeTypeInfo) {
             result.put(STRUCT_TYPE_FIELD, schema.name());
             result.put(STRUCT_SCHEMA_FIELD, SCHEMA_SERDE.fromDataSchema(schema));
@@ -291,7 +287,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     }
 
     public Tuple<Object> fromDataTuple(DataTuple value) {
-        var elements = new Object[value.size()];
+        final var elements = new Object[value.size()];
         for (int index = 0; index < value.size(); index++) {
             elements[index] = fromDataObject(value.get(index));
         }

@@ -24,15 +24,15 @@ import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.schema.*;
+import io.axual.ksml.data.type.Symbol;
 import org.apache.avro.Schema;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static io.axual.ksml.data.schema.DataField.NO_INDEX;
 
-// First attempt at providing an internal schema class. The implementation relies heavily on Avro
-// at the moment, which is fine for now, but may change in the future.
 public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     private static final AvroDataObjectMapper avroMapper = new AvroDataObjectMapper();
     private static final Schema AVRO_NULL_TYPE = Schema.create(Schema.Type.NULL);
@@ -83,7 +83,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             case ARRAY ->
                     new SchemaAndRequired(new ListSchema(convertToDataSchema(schema.getElementType()).schema()), true);
             case ENUM -> new SchemaAndRequired(
-                    new EnumSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getEnumSymbols(), schema.getEnumDefault()),
+                    new EnumSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getEnumSymbols().stream().map(Symbol::new).toList(), schema.getEnumDefault()),
                     true);
             case MAP -> new SchemaAndRequired(new MapSchema(convertToDataSchema(schema.getValueType()).schema()), true);
             case RECORD -> new SchemaAndRequired(toDataSchema(schema.getName(), schema), true);
@@ -105,13 +105,13 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             }
         }
 
-        return new SchemaAndRequired(new UnionSchema(convertToDataSchema(unionTypes).toArray(DataSchema[]::new)), true);
+        return new SchemaAndRequired(new UnionSchema(convertToDataFields(unionTypes).toArray(DataField[]::new)), true);
     }
 
-    private List<DataSchema> convertToDataSchema(List<Schema> schemas) {
-        var result = new ArrayList<DataSchema>();
+    private List<DataField> convertToDataFields(List<Schema> schemas) {
+        var result = new ArrayList<DataField>();
         for (Schema schema : schemas) {
-            result.add(convertToDataSchema(schema).schema());
+            result.add(new DataField(convertToDataSchema(schema).schema()));
         }
         return result;
     }
@@ -150,25 +150,26 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
                     Schema.createFixed(((FixedSchema) schema).name(), ((FixedSchema) schema).doc(), ((FixedSchema) schema).namespace(), ((FixedSchema) schema).size());
             case STRING -> Schema.create(Schema.Type.STRING);
             case ENUM ->
-                    Schema.createEnum(((EnumSchema) schema).name(), ((EnumSchema) schema).doc(), ((EnumSchema) schema).namespace(), ((EnumSchema) schema).symbols(), ((EnumSchema) schema).defaultValue());
+                    Schema.createEnum(((EnumSchema) schema).name(), ((EnumSchema) schema).doc(), ((EnumSchema) schema).namespace(), ((EnumSchema) schema).symbols().stream().map(Symbol::name).toList(), ((EnumSchema) schema).defaultValue());
             case LIST -> Schema.createArray(convertToAvro(((ListSchema) schema).valueSchema(), true));
             case MAP -> Schema.createMap(convertToAvro(((MapSchema) schema).valueSchema(), true));
             case STRUCT ->
                     Schema.createRecord(((StructSchema) schema).name(), ((StructSchema) schema).doc(), ((StructSchema) schema).namespace(), false, convertFieldsToAvro(((StructSchema) schema).fields()));
-            case UNION -> Schema.createUnion(convertToAvro(((UnionSchema) schema).possibleSchemas()));
+            case UNION ->
+                    Schema.createUnion(convertToAvro(Arrays.stream(((UnionSchema) schema).valueTypes()).map(DataField::schema).toArray(DataSchema[]::new)));
         };
 
         // If the field is required, then return it
         if (required) return result;
 
-        // The field is not required, so we convert the schema to a UNION, with NULL as possible element
+        // The field is not required, so we convert the schema to a UNION, with NULL as possible value type
 
         // If the schema is already of type UNION, then inject a NULL type at the start of array of types
         if (result.getType() == Schema.Type.UNION) {
             final var types = result.getTypes();
             // If NULL is already part of the UNION types, then return the UNION as is
             if (types.contains(AVRO_NULL_TYPE)) return result;
-            // Add NULL as possible type at the start of the array
+            // Add NULL as possible value type at the start of the array
             types.addFirst(AVRO_NULL_TYPE);
             return Schema.createUnion(types);
         }

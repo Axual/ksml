@@ -26,9 +26,12 @@ import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.parser.schema.DataSchemaDSL;
 import io.axual.ksml.data.parser.schema.DataSchemaParser;
 import io.axual.ksml.data.schema.*;
+import io.axual.ksml.data.type.Symbol;
+import io.axual.ksml.data.util.ListUtil;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
@@ -45,8 +48,8 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
     public Object fromDataSchema(DataSchema schema) {
         if (schema instanceof UnionSchema unionSchema) {
             final var result = new ArrayList<>();
-            for (DataSchema possibleSchema : unionSchema.possibleSchemas())
-                result.add(convertSchema(possibleSchema));
+            for (final var valueType : unionSchema.valueTypes())
+                result.add(convertField(valueType));
             return result;
         }
 
@@ -65,22 +68,34 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
         if (namedSchema.namespace() != null)
             result.put(DataSchemaDSL.NAMED_SCHEMA_NAMESPACE_FIELD, namedSchema.namespace());
         result.put(DataSchemaDSL.NAMED_SCHEMA_NAME_FIELD, namedSchema.name());
-        if (namedSchema.doc() != null)
+        if (namedSchema.hasDoc())
             result.put(DataSchemaDSL.NAMED_SCHEMA_DOC_FIELD, namedSchema.doc());
         if (namedSchema instanceof EnumSchema enumSchema) {
-            result.put(DataSchemaDSL.ENUM_SCHEMA_POSSIBLEVALUES_FIELD, enumSchema.symbols());
+            result.put(DataSchemaDSL.ENUM_SCHEMA_SYMBOLS_FIELD, convertSymbols(enumSchema.symbols()));
             if (enumSchema.defaultValue() != null)
-                result.put(DataSchemaDSL.ENUM_SCHEMA_DEFAULTVALUE_FIELD, enumSchema.defaultValue());
+                result.put(DataSchemaDSL.ENUM_SCHEMA_DEFAULT_VALUE_FIELD, enumSchema.defaultValue());
         }
         if (namedSchema instanceof FixedSchema fixedSchema)
             result.put(DataSchemaDSL.FIXED_SCHEMA_SIZE_FIELD, fixedSchema.size());
         if (namedSchema instanceof StructSchema structSchema) {
-            var fields = new ArrayList<Map<String, Object>>();
+            final var fields = new ArrayList<Map<String, Object>>();
             result.put(DataSchemaDSL.STRUCT_SCHEMA_FIELDS_FIELD, fields);
-            for (DataField field : structSchema.fields()) {
+            for (final var field : structSchema.fields()) {
                 fields.add(convertField(field));
             }
         }
+    }
+
+    private List<Object> convertSymbols(List<Symbol> symbols) {
+        return ListUtil.map(symbols, this::convertSymbol);
+    }
+
+    private Map<String, Object> convertSymbol(Symbol symbol) {
+        final var result = new LinkedHashMap<String, Object>();
+        result.put(DataSchemaDSL.ENUM_SYMBOL_NAME_FIELD, symbol.name());
+        if (symbol.hasDoc()) result.put(DataSchemaDSL.ENUM_SYMBOL_DOC_FIELD, symbol.doc());
+        result.put(DataSchemaDSL.ENUM_SYMBOL_INDEX_FIELD, symbol.index());
+        return result;
     }
 
     private Object convertSchema(DataSchema schema) {
@@ -107,6 +122,8 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
         result.put(DataSchemaDSL.DATA_FIELD_NAME_FIELD, field.name());
         result.put(DataSchemaDSL.DATA_FIELD_DOC_FIELD, field.doc());
         result.put(DataSchemaDSL.DATA_FIELD_REQUIRED_FIELD, field.required());
+        result.put(DataSchemaDSL.DATA_FIELD_CONSTANT_FIELD, field.constant());
+        result.put(DataSchemaDSL.DATA_FIELD_INDEX_FIELD, field.index());
         result.put(DataSchemaDSL.DATA_FIELD_SCHEMA_FIELD, convertSchema(field.schema()));
         if (field.defaultValue() != null)
             encodeDefaultValue(result, DataSchemaDSL.DATA_FIELD_DEFAULT_VALUE_FIELD, field.defaultValue());

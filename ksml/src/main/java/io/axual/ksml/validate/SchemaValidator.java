@@ -91,8 +91,8 @@ public class SchemaValidator {
 //        var typeCheck = validateType(object, SchemaUtil.schemaToEnumType(schema));
 //        if (!typeCheck.valid()) return typeCheck;
 //        var dataEnum = (DataEnum) object;
-//        for (String possibleValue : schema.possibleValues()) {
-//            if (dataEnum.value().equals(possibleValue)) return new ValidationResult();
+//        for (final var symbol : schema.symbols()) {
+//            if (dataEnum.value().equals(symbol)) return new ValidationResult();
 //        }
 //        return new ValidationResult("Illegal enumeration value: " + dataEnum.value());
 //    }

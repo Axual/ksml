@@ -22,6 +22,7 @@ package io.axual.ksml.operation.parser;
 
 
 import io.axual.ksml.data.schema.EnumSchema;
+import io.axual.ksml.data.type.Symbol;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
@@ -45,7 +46,7 @@ public class SuppressOperationParser extends OperationParser<SuppressOperation> 
                 SCHEMA_NAMESPACE,
                 "BufferFullStrategy",
                 "What to do when the buffer is full",
-                List.of(Operations.Suppress.BUFFER_FULL_STRATEGY_EMIT, Operations.Suppress.BUFFER_FULL_STRATEGY_SHUTDOWN));
+                List.of(new Symbol(Operations.Suppress.BUFFER_FULL_STRATEGY_EMIT), new Symbol(Operations.Suppress.BUFFER_FULL_STRATEGY_SHUTDOWN)));
 
         untilTimeLimitParser = structsParser(
                 SuppressOperation.class,

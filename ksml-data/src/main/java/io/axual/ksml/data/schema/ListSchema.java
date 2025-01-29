@@ -43,4 +43,9 @@ public class ListSchema extends DataSchema {
         // the otherSchema's value schema.
         return valueSchema.isAssignableFrom(otherListSchema.valueSchema);
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + " of " + valueSchema;
+    }
 }

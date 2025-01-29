@@ -45,11 +45,7 @@ public class KeyValueStateStoreDefinition extends StateStoreDefinition {
         this.segmentInterval = segmentInterval != null ? segmentInterval : Duration.ZERO;
     }
 
-    public KeyValueStateStoreDefinition withKeyType(UserType keyType) {
-        return new KeyValueStateStoreDefinition(name(), persistent(), timestamped(), versioned(), historyRetention(), segmentInterval(), keyType, valueType(), caching(), logging());
-    }
-
-    public KeyValueStateStoreDefinition withValueType(UserType valueType) {
-        return new KeyValueStateStoreDefinition(name(), persistent(), timestamped(), versioned(), historyRetention(), segmentInterval(), keyType(), valueType, caching(), logging());
+    public KeyValueStateStoreDefinition with(String name, UserType keyType, UserType valueType) {
+        return new KeyValueStateStoreDefinition(name, persistent(), timestamped(), versioned(), historyRetention(), segmentInterval(), keyType, valueType, caching(), logging());
     }
 }

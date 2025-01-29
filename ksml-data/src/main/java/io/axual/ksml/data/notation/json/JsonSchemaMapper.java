@@ -156,9 +156,8 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     public DataStruct fromDataSchema(StructSchema structSchema, DataStruct definitions) {
         final var result = new DataStruct();
         final var title = structSchema.name();
-        final var doc = structSchema.doc();
         if (title != null) result.put(TITLE_NAME, new DataString(title));
-        if (doc != null) result.put(DESCRIPTION_NAME, new DataString(doc));
+        if (structSchema.hasDoc()) result.put(DESCRIPTION_NAME, new DataString(structSchema.doc()));
         result.put(TYPE_NAME, new DataString(OBJECT_TYPE));
         final var requiredProperties = new DataList(DataString.DATATYPE);
         final var properties = new DataStruct();
@@ -195,7 +194,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         }
         if (schema instanceof EnumSchema enumSchema) {
             DataList enumList = new DataList();
-            enumSchema.symbols().forEach(s -> enumList.add(new DataString(s)));
+            enumSchema.symbols().forEach(symbol -> enumList.add(new DataString(symbol.name())));
             target.put(ENUM_NAME, enumList);
         }
         if (schema instanceof ListSchema listSchema) {
@@ -223,14 +222,14 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             target.put(REF_NAME, new DataString("#/" + DEFINITIONS_NAME + "/" + name));
         }
         if (schema instanceof UnionSchema unionSchema) {
-            // Convert to an array of possible types
-            final var possibleTypes = new DataList();
-            for (var possibleSchema : unionSchema.possibleSchemas()) {
+            // Convert to an array of value types
+            final var valueTypes = new DataList();
+            for (var valueType : unionSchema.valueTypes()) {
                 final var typeStruct = new DataStruct();
-                convertType(possibleSchema, false, null, typeStruct, definitions);
-                possibleTypes.add(typeStruct);
+                convertType(valueType.schema(), false, null, typeStruct, definitions);
+                valueTypes.add(typeStruct);
             }
-            target.put(ANY_OF_NAME, possibleTypes);
+            target.put(ANY_OF_NAME, valueTypes);
         }
     }
 }

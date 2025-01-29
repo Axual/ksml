@@ -22,6 +22,7 @@ package io.axual.ksml.data.notation.avro;
 
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.loader.SchemaLoader;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.Notation;
@@ -36,6 +37,7 @@ import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import lombok.Getter;
+import org.apache.avro.JsonSchemaFormatter;
 import org.apache.avro.Schema;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
@@ -77,8 +79,12 @@ public class MockAvroNotation implements Notation {
 
     public void registerSubjectSchema(String subject, Schema schema) throws RestClientException, IOException {
         synchronized (mockSchemaRegistryClient) {
-            var parsedSchema = mockSchemaRegistryClient.parseSchema(AvroSchema.TYPE, schema.toString(true), List.of());
-            mockSchemaRegistryClient.register(subject, parsedSchema.get());
+            var parsedSchema = mockSchemaRegistryClient.parseSchema(AvroSchema.TYPE, new JsonSchemaFormatter(true).format(schema), List.of());
+            if (parsedSchema.isPresent()) {
+                mockSchemaRegistryClient.register(subject, parsedSchema.get());
+            } else {
+                throw new SchemaException("Could not parse schema: " + schema.toString());
+            }
         }
     }
 

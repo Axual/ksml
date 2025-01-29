@@ -24,12 +24,14 @@ import io.axual.ksml.data.parser.schema.DataSchemaDSL;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
 @EqualsAndHashCode
 public class EnumType extends SimpleType {
-    private final String[] symbols;
+    private final List<Symbol> symbols;
 
-    public EnumType(String... symbols) {
+    public EnumType(List<Symbol> symbols) {
         super(String.class, DataSchemaDSL.ENUM_TYPE);
         this.symbols = symbols;
     }

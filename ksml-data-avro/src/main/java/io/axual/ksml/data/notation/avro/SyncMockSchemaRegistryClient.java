@@ -64,8 +64,13 @@ public class SyncMockSchemaRegistryClient implements SchemaRegistryClient {
     }
 
     @Override
-    public synchronized RegisterSchemaResponse registerWithResponse(String subject, ParsedSchema schema, boolean normalize) throws RestClientException {
+    public synchronized RegisterSchemaResponse registerWithResponse(String subject, ParsedSchema schema, boolean normalize) throws IOException, RestClientException {
         return wrappedClient.registerWithResponse(subject, schema, normalize);
+    }
+
+    @Override
+    public synchronized RegisterSchemaResponse registerWithResponse(String subject, ParsedSchema schema, boolean normalize, boolean propagateSchemaTags) throws RestClientException {
+        return wrappedClient.registerWithResponse(subject, schema, normalize, propagateSchemaTags);
     }
 
     @Override

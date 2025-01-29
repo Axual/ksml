@@ -32,18 +32,18 @@ import java.util.Map;
 import static io.axual.ksml.dsl.KSMLDSL.Stores;
 
 public class StateStoreDefinitionParser extends ChoiceParser<StateStoreDefinition> {
-    public StateStoreDefinitionParser() {
-        this(null);
+    public StateStoreDefinitionParser(boolean isTableBackingStore) {
+        this(null, isTableBackingStore);
     }
 
-    public StateStoreDefinitionParser(StoreType expectedType) {
-        super(Stores.TYPE, StoreType.class.getSimpleName(), "state store", null, types(expectedType));
+    public StateStoreDefinitionParser(StoreType expectedType, boolean isTableBackingStore) {
+        super(Stores.TYPE, StoreType.class.getSimpleName(), "state store", null, types(expectedType, isTableBackingStore));
     }
 
-    private static Map<String, StructsParser<? extends StateStoreDefinition>> types(StoreType expectedType) {
+    private static Map<String, StructsParser<? extends StateStoreDefinition>> types(StoreType expectedType, boolean isTableBackingStore) {
         final var result = new HashMap<String, StructsParser<? extends StateStoreDefinition>>();
         if (expectedType == null || expectedType == StoreType.KEYVALUE_STORE) {
-            result.put(StoreType.KEYVALUE_STORE.externalName(), new KeyValueStateStoreDefinitionParser(expectedType == null));
+            result.put(StoreType.KEYVALUE_STORE.externalName(), new KeyValueStateStoreDefinitionParser(expectedType == null, isTableBackingStore));
         }
         if (expectedType == null || expectedType == StoreType.SESSION_STORE) {
             result.put(StoreType.SESSION_STORE.externalName(), new SessionStateStoreDefinitionParser(expectedType == null));

@@ -12,12 +12,15 @@
     * [count](#count)
     * [filter](#filter)
     * [filterNot](#filternot)
+    * [flatMap](#flatmap)
+    * [flatMapValues](#flatmapvalues)
     * [groupBy](#groupby)
     * [groupByKey](#groupbykey)
     * [join](#join)
     * [leftJoin](#leftjoin)
     * [map](#map)
     * [mapKey](#mapkey)
+    * [mapValue](#mapvalue)
     * [mapValues](#mapvalues)
     * [merge](#merge)
     * [outerJoin](#outerjoin)
@@ -298,6 +301,46 @@ messages for which the predicate returns `False` are accepted, while those that 
 filtered out.
 See [filter](#filter) for details on how to implement.
 
+### flatMap
+
+This operation takes a message and transforms it into zero, one or more new messages, which may have different key and
+value types than the source.
+
+| Stream Type      | Returns            | Parameter | Value Type          | Required | Description                                                                                                                                                                                            |
+|:-----------------|:-------------------|:----------|:--------------------|:---------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream]`<K,V>` | [KStream]`<KR,VR>` | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return type should be a list of type `[(KR,VR)]` containing a list of transformed `key` and `value` pairs. |
+
+Example:
+
+```yaml
+from: input_stream
+via:
+  - type: flatMap
+    mapper:
+      expression: [ (key,value), (key,value) ]   # duplicate all incoming messages
+to: output_stream
+```
+
+### flatMapValues
+
+This operation takes a message and transforms it into zero, one or more new values, which may have different value types
+than the source. Every entry in the result list is combined with the source key and produced on the output stream.
+
+| Stream Type      | Returns           | Parameter | Value Type          | Description                                                                                                                                                                        |
+|:-----------------|:------------------|:----------|:--------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream]`<K,V>` | [KStream]`<K,VR>` | `mapper`  | Inline or reference | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return type should be a list of type `[VR]` containing a list of transformed `value`s. |
+
+Example:
+
+```yaml
+from: input_stream
+via:
+  - type: flatMapValues
+    mapper:
+      expression: [ value+1, value+2, value+3 ]   # creates 3 new messages [key,VR] for every input message
+to: output_stream
+```
+
 ### groupBy
 
 Group the records of a stream by value resulting from a KeyValueMapper.
@@ -315,7 +358,9 @@ Example:
 from: input_stream
 via:
   - type: groupBy
-    mapper: my_mapper_function
+    mapper:
+       expression: value["some_field"]
+       resultType: string
   - type: aggregate
     initializer:
       expression: 0
@@ -428,15 +473,73 @@ to: output_stream
 
 ### map
 
-This is an alias for [transformKeyValue](#transformkeyvalue).
+This operation takes a message and transforms the key and value into a new key and value, which can each have a
+different type than the source message key and value.
+
+| Stream Type      | Returns            | Parameter | Value Type          | Required | Description                                                                                                                                                                               |
+|:-----------------|:-------------------|:----------|:--------------------|:---------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream]`<K,V>` | [KStream]`<KR,VR>` | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return type should be a tuple of type `(KR,VR)` containing the transformed `key` and `value`. |
+
+Example:
+
+```yaml
+from: input_stream
+via:
+  - type: map
+    mapper:
+      expression: (str(key), str(value))   # convert key and value from source type to string
+to: output_stream
+```
 
 ### mapKey
 
-This is an alias for [transformKey](#transformkey).
+This is an alias for [selectKey](#selectkey).
+
+Example:
+
+```yaml
+from: input_stream
+via:
+  - type: mapKey
+    mapper:
+      expression: str(key)   # convert key from source type to string
+to: output_stream
+```
+
+### mapValue
+
+This is an alias for [mapValues](#mapvalues).
+
+Example:
+
+```yaml
+from: input_stream
+via:
+  - type: mapValue
+    mapper:
+      expression: str(value)   # convert value from source type to String
+to: output_stream
+```
 
 ### mapValues
 
-This is an alias for [transformValue](#transformvalue).
+This operation takes a message and transforms its value to a new value, which may have different value type
+than the source.
+
+| Stream Type      | Returns           | Parameter | Value Type          | Required | Description                                                                                                                             |
+|:-----------------|:------------------|:----------|:--------------------|:---------|:----------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream]`<K,V>` | [KStream]`<K,VR>` | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return type should be a value of type `VR`. |
+
+Example:
+
+```yaml
+from: input_stream
+via:
+  - type: mapValues
+    mapper:
+      expression: str(value)   # convert value from source type to String
+to: output_stream
+```
 
 ### merge
 
@@ -584,7 +687,22 @@ to: output_stream
 
 ### selectKey
 
-This is an alias for [transformKey](#transformkey).
+This operation takes a message and transforms the key into a new key, which may have a different type.
+
+| Stream Type      | Returns           | Parameter | Value Type          | Required | Description                                                                                                                                                     |
+|:-----------------|:------------------|:----------|:--------------------|:---------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [KStream]`<K,V>` | [KStream]`<KR,V>` | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return value is the key of resulting stream, which is of type `KR`. |
+
+Example:
+
+```yaml
+from: input_stream
+via:
+  - type: selectKey
+    mapper:
+      expression: str(key)   # convert key from source type to string
+to: output_stream
+```
 
 ### suppress
 
@@ -636,11 +754,7 @@ to: output_stream
 
 ### transformKey
 
-This operation takes a message and transforms the key into a new key, which may have a different type.
-
-| Stream Type      | Returns           | Parameter | Value Type          | Required | Description                                                                                                                                                     |
-|:-----------------|:------------------|:----------|:--------------------|:---------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [KStream]`<K,V>` | [KStream]`<KR,V>` | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return value is the key of resulting stream, which is of type `KR`. |
+This is an alias for [selectKey](#selectkey).
 
 Example:
 
@@ -655,12 +769,7 @@ to: output_stream
 
 ### transformKeyValue
 
-This operation takes a message and transforms the key and value into a new key and value, which can each have a
-different type than the source message key and value.
-
-| Stream Type      | Returns            | Parameter | Value Type          | Required | Description                                                                                                                                                                               |
-|:-----------------|:-------------------|:----------|:--------------------|:---------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [KStream]`<K,V>` | [KStream]`<KR,VR>` | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return type should be a tuple of type `(KR,VR)` containing the transformed `key` and `value`. |
+This is an alias for [map](#map).
 
 Example:
 
@@ -675,12 +784,7 @@ to: output_stream
 
 ### transformKeyValueToKeyValueList
 
-This operation takes a message and transforms it into zero, one or more new messages, which may have different key and
-value types than the source.
-
-| Stream Type      | Returns            | Parameter | Value Type          | Required | Description                                                                                                                                                                                            |
-|:-----------------|:-------------------|:----------|:--------------------|:---------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [KStream]`<K,V>` | [KStream]`<KR,VR>` | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return type should be a list of type `[(KR,VR)]` containing a list of transformed `key` and `value` pairs. |
+This is an alias for [flatMap](#flatmap).
 
 Example:
 
@@ -695,12 +799,7 @@ to: output_stream
 
 ### transformKeyValueToValueList
 
-This operation takes a message and transforms it into zero, one or more new values, which may have different value types
-than the source. Every entry in the result list is combined with the source key and produced on the output stream.
-
-| Stream Type      | Returns           | Parameter | Value Type          | Description                                                                                                                                                                        |
-|:-----------------|:------------------|:----------|:--------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [KStream]`<K,V>` | [KStream]`<K,VR>` | `mapper`  | Inline or reference | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return type should be a list of type `[VR]` containing a list of transformed `value`s. |
+This is an alias for [flapMapValues](#flatmapvalues).
 
 Example:
 
@@ -735,12 +834,7 @@ to: output_stream
 
 ### transformValue
 
-This operation takes a message and transforms its value to a new value, which may have different value type
-than the source.
-
-| Stream Type      | Returns           | Parameter | Value Type          | Required | Description                                                                                                                             |
-|:-----------------|:------------------|:----------|:--------------------|:---------|:----------------------------------------------------------------------------------------------------------------------------------------|
-| [KStream]`<K,V>` | [KStream]`<K,VR>` | `mapper`  | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return type should be a value of type `VR`. |
+This is an alias for [mapValues](#mapvalues).
 
 Example:
 
