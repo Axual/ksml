@@ -3,6 +3,7 @@ ksml:
   configDirectory: .              # When not set defaults to the working directory
   schemaDirectory: .              # When not set defaults to the config directory
   storageDirectory: /tmp          # When not set defaults to the default JVM temp directory
+  createStorageDirectory: false   # When set to true, the storage directory will be created if it does not exist
 
   # This section defines if a REST endpoint is opened on the KSML runner, through which
   # state stores and/or readiness / liveness probes can be accessed.
