@@ -22,8 +22,7 @@ ENV PATH=/opt/graal/bin:$PATH \
 RUN set -eux \
     	&& microdnf upgrade -y --nodocs \
         && microdnf install -y --nodocs procps tar unzip gzip zlib openssl-devel gcc gcc-c++ make patch glibc-langpack-en libxcrypt shadow-utils \
-	&& groupadd --gid 1024 ksml \
-        && useradd -g ksml -u 1024 -d "$KSML_HOME" -ms /bin/sh -f -1 ksml \
+        && useradd -g 0 -u 1024 -d "$KSML_HOME" -ms /bin/sh -f -1 ksml \
         && chown -R ksml:0 "$KSML_HOME" /opt                               \
         && chmod -R g=u /home /opt
 
@@ -73,7 +72,7 @@ ENV JAVA_HOME=/opt/graalvm
 COPY --chown=ksml:0 --from=graal-builder /opt/graal/ /opt/graal/
 
 WORKDIR /home/ksml
-USER 1024
+USER 1024:0
 #There is no more GraalPy command here and no venv
 #RUN graalpy -m venv graalenv && \
 #    echo "source $HOME/graalenv/bin/activate" >> ~/.bashrc
