@@ -87,6 +87,11 @@ spec:
         - name: ksml-logging
           configMap:
             name: {{ include "ksml.fullname" . }}-logging
+        {{- if not .Values.store.spec }}
+        - name: ksml-store
+          emptyDir:
+            sizeLimit: 10Mi
+        {{- end }}
       {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -111,8 +116,14 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- end }}
+
+  {{- if .Values.store.spec }}
   volumeClaimTemplates:
     - metadata:
         name: ksml-store
       spec:
         {{- toYaml .Values.store.spec | nindent 8 }}
+  {{- end }}
+  {{- with .Values.volumeClaimTemplates }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}

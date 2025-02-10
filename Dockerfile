@@ -72,7 +72,7 @@ ENV JAVA_HOME=/opt/graalvm
 COPY --chown=ksml:0 --from=graal-builder /opt/graal/ /opt/graal/
 
 WORKDIR /home/ksml
-USER 1024:0
+USER 1024
 #There is no more GraalPy command here and no venv
 #RUN graalpy -m venv graalenv && \
 #    echo "source $HOME/graalenv/bin/activate" >> ~/.bashrc
