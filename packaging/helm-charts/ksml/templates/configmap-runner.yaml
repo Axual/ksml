@@ -9,7 +9,8 @@ data:
     ksml:
       configDirectory: {{ .Values.ksmlRunnerConfig.definitionDirectory | quote }}
       schemaDirectory: {{ .Values.ksmlRunnerConfig.schemaDirectory | quote }}
-      storageDirectory: "/ksml-store"
+      storageDirectory: {{ .Values.ksmlRunnerConfig.storageDirectory | quote }}
+      createStorageDirectory: {{ .Values.ksmlRunnerConfig.createStorageDirectory  }}
       enableProducers: {{ .Values.ksmlRunnerConfig.producersEnabled }}
       enablePipelines: {{ .Values.ksmlRunnerConfig.pipelinesEnabled }}
       errorHandling:

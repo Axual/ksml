@@ -21,10 +21,18 @@ package io.axual.ksml.runner.config;
  */
 
 
+import com.google.common.collect.ImmutableMap;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.ImmutableMap;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+
 import io.axual.ksml.data.notation.binary.JsonNodeNativeMapper;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.runner.exception.ConfigException;
@@ -32,12 +40,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.jackson.Jacksonized;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -58,9 +60,14 @@ public class KSMLConfig {
     @Builder.Default
     @Getter
     private PrometheusConfig prometheusConfig = DEFAULT_PROMETHEUS_CONFIG;
+
     private String configDirectory;
     private String schemaDirectory;
     private String storageDirectory;
+
+    @Builder.Default
+    private boolean createStorageDirectory = false;
+
     @Getter
     @Builder.Default
     private boolean enableProducers = true;
@@ -78,9 +85,25 @@ public class KSMLConfig {
     private Map<String, Object> schemas;
 
     private String getDirectory(String configVariable, String directory) {
+        return getDirectory(configVariable, directory, false);
+    }
+
+    private String getDirectory(String configVariable, String directory, boolean createIfNotExist) {
         final var configPath = Paths.get(directory);
-        if (Files.notExists(configPath) || !Files.isDirectory(configPath)) {
-            throw new ConfigException(configVariable, directory, "The provided path does not exist or is not a directory");
+        if (Files.notExists(configPath)) {
+            if (createIfNotExist) {
+                log.info("Directory {} does not exists, creating ", configPath);
+                try {
+                    Files.createDirectories(configPath);
+                } catch (IOException e) {
+                    throw new ConfigException(configVariable, directory, "Could not create the directory", e);
+                }
+            } else {
+                throw new ConfigException(configVariable, directory, "The provided path does not exist");
+            }
+        }
+        if (!Files.isDirectory(configPath)) {
+            throw new ConfigException(configVariable, directory, "The provided path is not a directory");
         }
         return configPath.toAbsolutePath().normalize().toString();
     }
@@ -94,7 +117,7 @@ public class KSMLConfig {
     }
 
     public String storageDirectory() {
-        return getDirectory("storageDirectory", storageDirectory != null ? storageDirectory : System.getProperty("java.io.tmpdir"));
+        return getDirectory("storageDirectory", storageDirectory != null ? storageDirectory : System.getProperty("java.io.tmpdir"), createStorageDirectory);
     }
 
     public ApplicationServerConfig applicationServerConfig() {
