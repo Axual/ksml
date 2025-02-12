@@ -38,6 +38,10 @@
         </dependency>
         <dependency>
             <groupId>io.axual.ksml</groupId>
+            <artifactId>ksml-data-protobuf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.axual.ksml</groupId>
             <artifactId>ksml-data-soap</artifactId>
         </dependency>
         <dependency>

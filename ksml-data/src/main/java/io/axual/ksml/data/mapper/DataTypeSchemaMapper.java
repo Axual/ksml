@@ -24,10 +24,6 @@ import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.schema.*;
 import io.axual.ksml.data.type.*;
-import lombok.Getter;
-import lombok.Setter;
-
-import java.util.Arrays;
 
 public class DataTypeSchemaMapper implements DataSchemaMapper<DataType> {
     public DataSchema toDataSchema(String namespace, String name, DataType type) {
@@ -44,7 +40,7 @@ public class DataTypeSchemaMapper implements DataSchemaMapper<DataType> {
         if (type == DataString.DATATYPE) return DataSchema.create(DataSchema.Type.STRING);
 
         if (type instanceof EnumType enumType)
-            return new EnumSchema(null, enumType.schemaName(), "", Arrays.asList(enumType.symbols()));
+            return new EnumSchema(null, enumType.schemaName(), "", enumType.symbols());
         if (type instanceof ListType listType)
             return new ListSchema(toDataSchema(listType.valueType()));
         // Check structs first, since they are a subclass of maps
@@ -53,11 +49,16 @@ public class DataTypeSchemaMapper implements DataSchemaMapper<DataType> {
         if (type instanceof MapType mapType)
             return new MapSchema(toDataSchema(namespace, name, mapType.valueType()));
         if (type instanceof UnionType unionType) {
-            var schemas = new DataSchema[unionType.possibleTypes().length];
-            for (int index = 0; index < unionType.possibleTypes().length; index++) {
-                schemas[index] = toDataSchema(unionType.possibleTypes()[index]);
+            var fields = new DataField[unionType.valueTypes().length];
+            for (int index = 0; index < unionType.valueTypes().length; index++) {
+                final var valueType = unionType.valueTypes()[index];
+                fields[index] = new DataField(
+                        valueType.name(),
+                        toDataSchema(valueType.type()),
+                        null,
+                        valueType.index());
             }
-            return new UnionSchema(schemas);
+            return new UnionSchema(fields);
         }
         throw new ExecutionException("Can not convert dataType " + type + " to a schema");
     }
@@ -76,16 +77,20 @@ public class DataTypeSchemaMapper implements DataSchemaMapper<DataType> {
         if (schema.type() == DataSchema.Type.STRING) return DataString.DATATYPE;
 
         if (schema instanceof EnumSchema enumSchema)
-            return new EnumType(enumSchema.symbols().toArray(new String[0]));
+            return new EnumType(enumSchema.symbols());
         if (schema instanceof ListSchema listSchema)
             return new ListType(fromDataSchema(listSchema.valueSchema()));
         if (schema instanceof StructSchema structSchema) return new StructType(structSchema);
         if (schema instanceof MapSchema mapSchema)
             return new MapType(fromDataSchema(mapSchema.valueSchema()));
         if (schema instanceof UnionSchema unionSchema) {
-            var types = new DataType[unionSchema.possibleSchemas().length];
-            for (int index = 0; index < unionSchema.possibleSchemas().length; index++) {
-                types[index] = fromDataSchema(unionSchema.possibleSchemas()[index]);
+            var types = new UnionType.ValueType[unionSchema.valueTypes().length];
+            for (int index = 0; index < unionSchema.valueTypes().length; index++) {
+                final var valueType = unionSchema.valueTypes()[index];
+                types[index] = new UnionType.ValueType(
+                        valueType.name(),
+                        fromDataSchema(valueType.schema()),
+                        valueType.index());
             }
             return new UnionType(types);
         }

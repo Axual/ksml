@@ -25,24 +25,31 @@ import lombok.Getter;
 import java.util.Arrays;
 import java.util.Objects;
 
+import static io.axual.ksml.data.schema.DataField.NO_INDEX;
+
 @Getter
 public class UnionType extends ComplexType {
     private static final String UNION_NAME = "Union";
-    private final DataType[] possibleTypes;
+    private final ValueType[] valueTypes;
 
-    public UnionType(DataType... possibleTypes) {
-        super(Object.class, varListToArray(possibleTypes));
-        this.possibleTypes = possibleTypes;
+    // A field type
+    public record ValueType(String name, DataType type, int index) {
+        public ValueType(DataType type) {
+            this(null, type, NO_INDEX);
+        }
     }
 
-    private static DataType[] varListToArray(DataType... dataTypes) {
-        var result = new DataType[dataTypes.length];
-        System.arraycopy(dataTypes, 0, result, 0, dataTypes.length);
+    public UnionType(ValueType... valueTypes) {
+        super(Object.class, valueTypesToDataTypes(valueTypes));
+        this.valueTypes = valueTypes;
+    }
+
+    private static DataType[] valueTypesToDataTypes(ValueType... valueTypes) {
+        var result = new DataType[valueTypes.length];
+        for (int index = 0; index < valueTypes.length; index++) {
+            result[index] = valueTypes[index].type();
+        }
         return result;
-    }
-
-    public DataType[] possibleTypes() {
-        return possibleTypes;
     }
 
     @Override
@@ -63,19 +70,19 @@ public class UnionType extends ComplexType {
         if (type instanceof UnionType otherUnion && isAssignableFromOtherUnion(otherUnion)) return true;
 
         // If the union did not match in its entirety, then check for assignable subtypes
-        for (var possibleType : possibleTypes) {
-            if (possibleType.isAssignableFrom(type)) return true;
+        for (var valueType : valueTypes) {
+            if (valueType.type.isAssignableFrom(type)) return true;
         }
         return false;
     }
 
     private boolean isAssignableFromOtherUnion(UnionType other) {
-        var otherPossibleTypes = other.possibleTypes();
-        if (possibleTypes.length != otherPossibleTypes.length) return false;
-        for (int index = 0; index < possibleTypes.length; index++) {
-            if (!possibleTypes[index].isAssignableFrom(otherPossibleTypes[index]))
+        var otherValueTypes = other.valueTypes();
+        if (valueTypes.length != otherValueTypes.length) return false;
+        for (int index = 0; index < valueTypes.length; index++) {
+            if (!valueTypes[index].type.isAssignableFrom(otherValueTypes[index]))
                 return false;
-            if (!otherPossibleTypes[index].isAssignableFrom(possibleTypes[index]))
+            if (!otherValueTypes[index].type.isAssignableFrom(valueTypes[index]))
                 return false;
         }
         return true;
@@ -83,8 +90,8 @@ public class UnionType extends ComplexType {
 
     @Override
     public boolean isAssignableFrom(Object value) {
-        for (var possibleType : possibleTypes) {
-            if (possibleType.isAssignableFrom(value)) return true;
+        for (final var valueType : valueTypes) {
+            if (valueType.type.isAssignableFrom(value)) return true;
         }
         return false;
     }
@@ -97,6 +104,6 @@ public class UnionType extends ComplexType {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), Arrays.hashCode(possibleTypes));
+        return Objects.hash(super.hashCode(), Arrays.hashCode(valueTypes));
     }
 }

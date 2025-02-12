@@ -184,8 +184,7 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
                                         null,
                                         fieldName.toString(DataObject.Printer.INTERNAL),
                                         "Converted from XSD",
-                                        fields),
-                                null);
+                                        fields));
                     }
                 }
             }
@@ -203,7 +202,7 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
             default -> null;
         };
         if (schema == null) return null;
-        return new DataField(name, schema, null);
+        return new DataField(name, schema);
     }
 
     @Override

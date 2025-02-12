@@ -20,6 +20,7 @@ package io.axual.ksml.data.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.ListSchema;
 import io.axual.ksml.data.schema.UnionSchema;
@@ -40,6 +41,6 @@ public class ListWithSchemaParser<T> extends ListParser<T> implements ParserWith
         super(childTagKey, childTagValuePrefix, valueParser);
         schema = valueParser.schemas().size() == 1
                 ? new ListSchema(valueParser.schemas().getFirst())
-                : new ListSchema(new UnionSchema(valueParser.schemas().toArray(DataSchema[]::new)));
+                : new ListSchema(new UnionSchema(valueParser.schemas().stream().map(DataField::new).toArray(DataField[]::new)));
     }
 }

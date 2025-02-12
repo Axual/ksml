@@ -30,6 +30,8 @@ import io.axual.ksml.data.value.Pair;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import static io.axual.ksml.data.schema.DataField.NO_INDEX;
+
 public class DataFieldParser extends BaseParser<DataField> {
     private static final DataSchemaParser dataSchemaParser = new DataSchemaParser();
     private static final DataSchema NULL_SCHEMA = DataSchema.create(DataSchema.Type.NULL);
@@ -40,11 +42,12 @@ public class DataFieldParser extends BaseParser<DataField> {
         final var required = parseBoolean(node, DataSchemaDSL.DATA_FIELD_REQUIRED_FIELD);
         final var property = deductSchemaAndRequired(schema, required);
         final var constant = parseBoolean(node, DataSchemaDSL.DATA_FIELD_CONSTANT_FIELD);
+        final var index = parseInteger(node, DataSchemaDSL.DATA_FIELD_INDEX_FIELD);
         return new DataField(
                 parseString(node, DataSchemaDSL.DATA_FIELD_NAME_FIELD),
                 property.left(),
                 parseString(node, DataSchemaDSL.DATA_FIELD_DOC_FIELD),
-                DataField.NO_INDEX,
+                index != null ? index : NO_INDEX,
                 property.right(),
                 constant != null && constant,
                 new DataValueParser().parse(node.get(DataSchemaDSL.DATA_FIELD_DEFAULT_VALUE_FIELD)),
@@ -58,14 +61,16 @@ public class DataFieldParser extends BaseParser<DataField> {
         // We could not parse a required field. In that case, the field is required if the schema is a UnionSchema with
         // a NULL type in its list.
         if (!(schema instanceof UnionSchema unionSchema)) return Pair.of(schema, true);
-        final var possibleSchemas = Arrays.stream(unionSchema.possibleSchemas()).toList();
+        final var valueTypes = Arrays.stream(unionSchema.valueTypes()).toList();
 
         // If there is no NULL type in the list, then conclude this is a required field
-        if (!possibleSchemas.contains(DataSchema.create(DataSchema.Type.NULL))) return Pair.of(schema, true);
+        for (final var valueType : valueTypes) {
+            if (valueType.schema().type() == DataSchema.Type.NULL) return Pair.of(schema, true);
+        }
 
         // Create a copy of the union without NULL and return it along with "required=false"
-        final var newSchemas = new ArrayList<>(possibleSchemas);
-        newSchemas.remove(NULL_SCHEMA);
-        return Pair.of(new UnionSchema(newSchemas.toArray(DataSchema[]::new)), false);
+        final var newFields = new ArrayList<>(valueTypes);
+        newFields.removeIf(field -> field.schema().type() == DataSchema.Type.NULL);
+        return Pair.of(new UnionSchema(newFields.toArray(DataField[]::new)), false);
     }
 }

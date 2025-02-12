@@ -29,23 +29,22 @@ import io.axual.ksml.parser.TopologyBaseResourceAwareParser;
 import static io.axual.ksml.dsl.KSMLDSL.Streams;
 
 public class StreamDefinitionParser extends TopologyBaseResourceAwareParser<StreamDefinition> {
-    private static final String DOC = "Contains a definition of a Stream, which can be referenced by producers and pipelines";
     private static final String TOPIC_DOC = "The name of the Kafka topic for this stream";
-    private final boolean isSource;
+    private final boolean isJoinTarget;
 
-    public StreamDefinitionParser(TopologyBaseResources resources, boolean isSource) {
+    public StreamDefinitionParser(TopologyBaseResources resources, boolean isJoinTarget) {
         super(resources);
-        this.isSource = isSource;
+        this.isJoinTarget = isJoinTarget;
     }
 
     @Override
     public StructsParser<StreamDefinition> parser() {
         final var keyField = userTypeField(Streams.KEY_TYPE, "The key type of the stream");
         final var valueField = userTypeField(Streams.VALUE_TYPE, "The value type of the stream");
-        if (isSource) return structsParser(
+        if (!isJoinTarget) return structsParser(
                 StreamDefinition.class,
-                "Source",
-                DOC,
+                "",
+                "Contains a definition of a Stream, which can be referenced by producers and pipelines",
                 stringField(Streams.TOPIC, TOPIC_DOC),
                 keyField,
                 valueField,
@@ -57,8 +56,8 @@ public class StreamDefinitionParser extends TopologyBaseResourceAwareParser<Stre
                 });
         return structsParser(
                 StreamDefinition.class,
-                "",
-                DOC,
+                "AsJoinTarget",
+                "Reference to a Stream in a join or merge operation",
                 stringField(Streams.TOPIC, TOPIC_DOC),
                 optional(keyField),
                 optional(valueField),

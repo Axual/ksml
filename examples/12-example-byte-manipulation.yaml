@@ -1,4 +1,4 @@
-# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
 
 # This example shows how to read from a binary stream, manipulate specific bytes and output
 # messages on a target stream. For validation purposes a second pipeline outputs the manipulated
@@ -31,7 +31,7 @@ functions:
       global newSchemaId
       log.info("Replacing schema in message value: {}", value)
       if isinstance(value, list):
-        if value[0] == 0 and len(value) >= 5:
+        if len(value) >= 5 and value[0] == 0:
           value[1] = (newSchemaId & 0xff000000) >> 24
           value[2] = (newSchemaId & 0xff0000) >> 16
           value[3] = (newSchemaId & 0xff00) >> 8

@@ -56,8 +56,8 @@ public class DataObjectConverter {
 
         // Recurse into union types
         if (targetType.dataType() instanceof UnionType targetUnionType) {
-            for (int index = 0; index < targetUnionType.possibleTypes().length; index++) {
-                var convertedValue = convert(sourceNotation, value, new UserType(targetUnionType.possibleTypes()[index]), true);
+            for (int index = 0; index < targetUnionType.valueTypes().length; index++) {
+                var convertedValue = convert(sourceNotation, value, new UserType(targetUnionType.valueTypes()[index].type()), true);
                 if (convertedValue != null) return convertedValue;
             }
         }
@@ -129,6 +129,40 @@ public class DataObjectConverter {
         // Come up with default values if we convert from Null
         if (value == null || value instanceof DataNull)
             return NativeDataObjectMapper.convertFromNull(targetType);
+
+        // Convert numbers to their proper specific type
+        if (value instanceof DataByte val) {
+            if (targetType == DataShort.DATATYPE) return new DataShort(val.value().shortValue());
+            if (targetType == DataInteger.DATATYPE) return new DataInteger(val.value().intValue());
+            if (targetType == DataLong.DATATYPE) return new DataLong(val.value().longValue());
+            return val;
+        }
+        if (value instanceof DataShort val) {
+            if (targetType == DataByte.DATATYPE) return new DataByte(val.value().byteValue());
+            if (targetType == DataInteger.DATATYPE) return new DataInteger(val.value().intValue());
+            if (targetType == DataLong.DATATYPE) return new DataLong(val.value().longValue());
+            return val;
+        }
+        if (value instanceof DataInteger val) {
+            if (targetType == DataByte.DATATYPE) return new DataByte(val.value().byteValue());
+            if (targetType == DataShort.DATATYPE) return new DataShort(val.value().shortValue());
+            if (targetType == DataLong.DATATYPE) return new DataLong(val.value().longValue());
+            return val;
+        }
+        if (value instanceof DataLong val) {
+            if (targetType == DataByte.DATATYPE) return new DataByte(val.value().byteValue());
+            if (targetType == DataShort.DATATYPE) return new DataShort(val.value().shortValue());
+            if (targetType == DataInteger.DATATYPE) return new DataInteger(val.value().intValue());
+            return val;
+        }
+        if (value instanceof DataDouble val) {
+            if (targetType == DataFloat.DATATYPE) return new DataFloat(val.value().floatValue());
+            return val;
+        }
+        if (value instanceof DataFloat val) {
+            if (targetType == DataDouble.DATATYPE) return new DataDouble(val.value().doubleValue());
+            return val;
+        }
 
         // Convert from anything to String
         if (targetType == DataString.DATATYPE) return convertToString(value);

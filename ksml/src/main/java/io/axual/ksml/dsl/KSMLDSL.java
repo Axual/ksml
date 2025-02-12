@@ -256,7 +256,6 @@ public class KSMLDSL {
         public static final String MAP_KEY = "mapKey";
         public static final String SELECT_KEY = "selectKey";
         public static final String MAP = "map";
-        public static final String MAP_KEY_VALUE = "mapKeyValue";
         public static final String MAP_VALUE = "mapValue";
         public static final String MAP_VALUES = "mapValues";
 
@@ -345,7 +344,8 @@ public class KSMLDSL {
         // Type names used in the exported JSON Schema
         public static final String FUNCTION_TYPE = "FunctionType";
         public static final String WITH_PREFIX = "With";
-        public static final String WITH_IMPLICIT_TYPE_POSTFIX = WITH_PREFIX + "ImplicitType";
+        public static final String WITH_IMPLICIT_STORE_TYPE_POSTFIX = WITH_PREFIX + "ImplicitStoreType";
+        public static final String WITH_IMPLICIT_KEY_AND_VALUE_TYPE = WITH_PREFIX + "ImplicitKeyAndValueType";
         public static final String WITH_STREAM = WITH_PREFIX + "Stream";
         public static final String WITH_TABLE = WITH_PREFIX + "Table";
         public static final String WITH_GLOBAL_TABLE = WITH_PREFIX + "GlobalTable";

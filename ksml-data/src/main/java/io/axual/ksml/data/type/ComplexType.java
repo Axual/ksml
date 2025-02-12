@@ -20,14 +20,10 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-
-import lombok.Getter;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-@Getter
 public abstract class ComplexType implements DataType {
     private final Class<?> containerClass;
     private final DataType[] subTypes;

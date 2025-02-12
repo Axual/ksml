@@ -2,9 +2,9 @@ package io.axual.ksml.data.parser.schema;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Data Library
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2024 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,25 @@ package io.axual.ksml.data.parser.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.ParseException;
 import io.axual.ksml.data.parser.BaseParser;
 import io.axual.ksml.data.parser.ParseNode;
+import io.axual.ksml.data.type.Symbol;
 
-public class SymbolParser extends BaseParser<String> {
+public class SymbolParser extends BaseParser<Symbol> {
     @Override
-    public String parse(ParseNode node) {
-        return node.asString();
+    public Symbol parse(ParseNode node) {
+        if (node.isObject()) {
+            return new Symbol(
+                    parseString(node, DataSchemaDSL.ENUM_SYMBOL_NAME_FIELD),
+                    parseString(node, DataSchemaDSL.ENUM_SYMBOL_DOC_FIELD),
+                    parseInteger(node, DataSchemaDSL.ENUM_SYMBOL_INDEX_FIELD));
+        }
+
+        if (node.isString()) {
+            return new Symbol(node.asString());
+        }
+
+        throw new ParseException(node, "Could not parse enum symbol");
     }
 }

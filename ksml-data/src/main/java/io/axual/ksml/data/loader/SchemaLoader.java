@@ -83,7 +83,7 @@ public abstract class SchemaLoader implements SchemaLibrary.Loader {
         }
 
         // Warn and exit
-        log.warn("Could not find/load " + schemaType + " schema: " + schemaFile);
+        log.warn("Could not find/load {} schema: {}", schemaType, schemaFile);
         return null;
     }
 

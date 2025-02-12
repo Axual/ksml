@@ -31,11 +31,12 @@ import io.axual.ksml.data.type.UnionType;
 import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
 
+@Getter
 public class CsvNotation extends StringNotation {
-    public static final DataType DEFAULT_TYPE = new UnionType(new StructType(), new ListType());
-    @Getter
+    public static final DataType DEFAULT_TYPE = new UnionType(
+            new UnionType.ValueType(new StructType()),
+            new UnionType.ValueType(new ListType()));
     private final NotationConverter converter = new CsvDataObjectConverter();
-    @Getter
     private final SchemaLoader loader;
 
     public CsvNotation(NativeDataObjectMapper nativeMapper, SchemaLoader loader) {

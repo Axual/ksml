@@ -25,12 +25,16 @@ import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.parser.*;
 import io.axual.ksml.data.schema.*;
 import io.axual.ksml.data.tag.ContextTags;
+import io.axual.ksml.data.util.ListUtil;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.util.SchemaUtil;
 import lombok.Getter;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public abstract class DefinitionParser<T> extends BaseParser<T> implements StructsParser<T> {
     public static final String SCHEMA_NAMESPACE = "io.axual.ksml";
@@ -43,7 +47,10 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
 
     public DefinitionParser() {
         final var codeStringParser = new StringValueParser(value -> value ? "True" : "False");
-        final var codeSchema = new UnionSchema(DataSchema.booleanSchema(), DataSchema.longSchema(), DataSchema.stringSchema());
+        final var codeSchema = new UnionSchema(
+                new DataField(null, DataSchema.booleanSchema()),
+                new DataField(null, DataSchema.longSchema()),
+                new DataField(null, DataSchema.stringSchema()));
         this.codeParser = ParserWithSchema.of(codeStringParser::parse, codeSchema);
     }
 
@@ -97,7 +104,9 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         public FieldParser(String childName, boolean constant, V valueIfNull, String doc, ParserWithSchemas<V> valueParser) {
             final var defaultValue = valueIfNull != null ? new DataValue(valueIfNull) : null;
             final var parsedSchemas = valueParser.schemas();
-            final var fieldSchema = parsedSchemas.size() == 1 ? parsedSchemas.getFirst() : new UnionSchema(parsedSchemas.toArray(DataSchema[]::new));
+            final var fieldSchema = parsedSchemas.size() == 1
+                    ? parsedSchemas.getFirst()
+                    : new UnionSchema(parsedSchemas.stream().map(s -> new DataField(null, s)).toArray(DataField[]::new));
             field = new DataField(childName, fieldSchema, doc, DataField.NO_INDEX, true, constant, defaultValue);
             schemas = List.of(structSchema((String) null, null, List.of(field)));
             this.valueParser = valueParser;
@@ -156,7 +165,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
                     final var value = stringParser.parse(node);
                     if (value == null)
                         throw new ParseException(node, "Empty value not allowed for enum " + schema.name());
-                    if (!Set.copyOf(schema.symbols()).contains(value))
+                    if (ListUtil.find(schema.symbols(), symbol -> symbol.name().equals(value)) == null)
                         throw new ParseException(node, "Illegal value for enum " + schema.name() + ": " + value);
                     return value;
                 },
