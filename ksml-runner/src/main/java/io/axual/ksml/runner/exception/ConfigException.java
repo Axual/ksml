@@ -28,6 +28,9 @@ public class ConfigException extends RunnerException {
     public ConfigException(String message) {
         super(message);
     }
+    public ConfigException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
     public ConfigException(String configKey, Object configValue) {
         this(configKey, configValue, DEFAULT_MESSAGE);
@@ -35,5 +38,8 @@ public class ConfigException extends RunnerException {
 
     public ConfigException(String configKey, Object configValue, String message) {
         this(message + String.format(MESSAGE_DETAIL_FORMAT, configKey, configValue != null ? configValue : "null"));
+    }
+    public ConfigException(String configKey, Object configValue, String message, Throwable cause) {
+        this(message + String.format(MESSAGE_DETAIL_FORMAT, configKey, configValue != null ? configValue : "null"), cause);
     }
 }

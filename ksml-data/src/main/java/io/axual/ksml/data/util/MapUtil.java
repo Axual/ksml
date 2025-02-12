@@ -4,7 +4,11 @@ package io.axual.ksml.data.util;
  * ========================LICENSE_START=================================
  * KSML Data Library
  * %%
+<<<<<<< HEAD
  * Copyright (C) 2021 - 2024 Axual B.V.
+=======
+ * Copyright (C) 2021 - 2025 Axual B.V.
+>>>>>>> main
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,19 +24,17 @@ package io.axual.ksml.data.util;
  * =========================LICENSE_END==================================
  */
 
-import java.util.*;
-import java.util.function.BiFunction;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MapUtil {
-    public static <K, V> List<K> mapToList(Map<K, V> map) {
-        final var result = new ArrayList<K>(map.size());
-        map.forEach((k, v) -> result.add(k));
-        return result;
-    }
-
     public static Map<String, Object> stringKeys(Map<?, ?> map) {
         final var result = new HashMap<String, Object>();
         map.forEach((key, value) -> result.put(key != null ? key.toString() : null, value));
         return result;
+    }
+    
+    private MapUtil() {
+        // Prevent instantiation
     }
 }

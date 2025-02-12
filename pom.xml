@@ -84,12 +84,11 @@
         <slf4j.version>2.0.13</slf4j.version>
 
         <!-- test dependency versions -->
-        <jupiter.version>5.10.2</jupiter.version>
-        <hamcrest.version>2.2</hamcrest.version>
-        <mockito-core.version>5.12.0</mockito-core.version>
-        <mockito-junit-jupiter.version>5.12.0</mockito-junit-jupiter.version>
-        <junit-pioneer.version>2.2.0</junit-pioneer.version>
-        <junit-platform.version>1.10.2</junit-platform.version>
+        <junit.version>5.11.4</junit.version>
+        <hamcrest.version>3.0</hamcrest.version>
+        <mockito-core.version>5.15.2</mockito-core.version>
+        <mockito-junit-jupiter.version>5.15.2</mockito-junit-jupiter.version>
+        <junit-pioneer.version>2.3.0</junit-pioneer.version>
 
         <!-- project and java version settings -->
         <java.source.version>21</java.source.version>
@@ -364,33 +363,16 @@
             </dependency>
 
             <dependency>
-                <groupId>org.junit.jupiter</groupId>
-                <artifactId>junit-jupiter-api</artifactId>
-                <version>${jupiter.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.junit.jupiter</groupId>
-                <artifactId>junit-jupiter-engine</artifactId>
-                <version>${jupiter.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.junit.jupiter</groupId>
-                <artifactId>junit-jupiter-params</artifactId>
-                <version>${jupiter.version}</version>
-                <scope>test</scope>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${junit.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>org.junit-pioneer</groupId>
                 <artifactId>junit-pioneer</artifactId>
                 <version>${junit-pioneer.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.junit.platform</groupId>
-                <artifactId>junit-platform-commons</artifactId>
-                <version>${junit-platform.version}</version>
                 <scope>test</scope>
             </dependency>
 

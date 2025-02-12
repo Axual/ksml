@@ -46,7 +46,7 @@ Lists of 63 third-party dependencies.
      (EPL-2.0) (GPL-2.0-with-classpath-exception) Jakarta RESTful WS API (jakarta.ws.rs:jakarta.ws.rs-api:3.1.0 - https://github.com/eclipse-ee4j/jaxrs-api)
      (Apache-2.0) Apache Commons Compress (org.apache.commons:commons-compress:1.26.2 - https://commons.apache.org/proper/commons-compress/)
      (Apache-2.0) Apache Commons Lang (org.apache.commons:commons-lang3:3.14.0 - https://commons.apache.org/proper/commons-lang/)
-     (The Apache License, Version 2.0) Apache Kafka (org.apache.kafka:kafka-clients:3.8.1 - https://kafka.apache.org)
+     (The Apache License, Version 2.0) Apache Kafka (org.apache.kafka:kafka-clients:3.9.0 - https://kafka.apache.org)
      (The MIT License) Checker Qual (org.checkerframework:checker-qual:3.42.0 - https://checkerframework.org/)
      (Apache License, version 2.0) JBoss Logging 3 (org.jboss.logging:jboss-logging:3.4.1.Final - http://www.jboss.org)
      (Apache License 2.0) slf4j to JBoss Logging Adapter (org.jboss.slf4j:slf4j-jboss-logging:1.2.1.Final - http://www.jboss.org)

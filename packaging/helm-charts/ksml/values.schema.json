@@ -93,6 +93,12 @@
                 "schemaDirectory": {
                     "type": "string"
                 },
+                "storageDirectory": {
+                    "type": "string"
+                },
+                "createStorageDirectory": {
+                    "type": "boolean"
+                },
                 "producersEnabled": {
                     "type": "boolean"
                 },
@@ -146,6 +152,7 @@
             "required": [
                 "definitionDirectory",
                 "schemaDirectory",
+                "storageDirectory",
                 "definitions",
                 "kafka"
             ]
@@ -296,6 +303,9 @@
             "type": "array"
         },
         "volumeMounts": {
+            "type": "array"
+        },
+        "volumeClaimTemplates": {
             "type": "array"
         },
         "volumes": {
