@@ -80,6 +80,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -90,6 +92,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -99,6 +103,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -139,6 +145,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -149,6 +157,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -158,6 +168,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -576,6 +588,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -586,6 +600,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -595,6 +611,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -642,6 +660,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -652,6 +672,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -661,6 +683,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -703,6 +727,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -713,6 +739,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -722,6 +750,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -762,6 +792,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -772,6 +804,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -781,6 +815,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -816,6 +852,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -826,6 +864,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -835,6 +875,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -875,6 +917,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -885,6 +929,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -894,6 +940,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -929,6 +977,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -939,6 +989,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -948,6 +1000,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -1121,6 +1175,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -1131,6 +1187,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -1140,6 +1198,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -1180,6 +1240,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -1190,6 +1252,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -1199,6 +1263,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -1276,7 +1342,7 @@
       "properties" : {
         "grace" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -1312,7 +1378,7 @@
         },
         "timeDifference" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -1351,7 +1417,7 @@
         },
         "grace" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -1429,6 +1495,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -1439,6 +1507,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -1448,6 +1518,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -1495,6 +1567,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -1505,6 +1579,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -1514,6 +1590,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -1556,6 +1634,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -1566,6 +1646,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -1575,6 +1657,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -1615,6 +1699,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -1625,6 +1711,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -1634,6 +1722,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -1669,6 +1759,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -1679,6 +1771,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -1688,6 +1782,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -1728,6 +1824,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -1738,6 +1836,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -1747,6 +1847,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -1784,7 +1886,7 @@
         },
         "historyRetention" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -1808,7 +1910,7 @@
         },
         "segmentInterval" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -1845,7 +1947,7 @@
         },
         "historyRetention" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -1869,7 +1971,7 @@
         },
         "segmentInterval" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -1905,7 +2007,7 @@
         },
         "historyRetention" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -1921,7 +2023,7 @@
         },
         "segmentInterval" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -1951,6 +2053,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -1961,6 +2065,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -1970,6 +2076,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -2017,6 +2125,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -2027,6 +2137,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -2036,6 +2148,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -2078,6 +2192,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -2088,6 +2204,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -2097,6 +2215,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -2144,6 +2264,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -2154,6 +2276,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -2163,6 +2287,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -2205,6 +2331,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -2215,6 +2343,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -2224,6 +2354,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -2271,6 +2403,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -2281,6 +2415,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -2290,6 +2426,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -2374,7 +2512,7 @@
       "properties" : {
         "grace" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -2410,7 +2548,7 @@
         },
         "timeDifference" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -2449,7 +2587,7 @@
         },
         "grace" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -2553,6 +2691,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -2563,6 +2703,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -2572,6 +2714,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -2612,6 +2756,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -2622,6 +2768,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -2631,6 +2779,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -2666,6 +2816,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -2676,6 +2828,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -2685,6 +2839,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -2732,6 +2888,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -2742,6 +2900,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -2751,6 +2911,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -2791,7 +2953,7 @@
       "properties" : {
         "grace" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -2827,7 +2989,7 @@
         },
         "timeDifference" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -3140,6 +3302,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -3150,6 +3314,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -3159,6 +3325,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -3206,6 +3374,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -3216,6 +3386,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -3225,6 +3397,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -3294,7 +3468,7 @@
       "properties" : {
         "batchSize" : {
           "description" : "*(optional)* The size of batches",
-          "type" : "number"
+          "type" : "integer"
         },
         "condition" : {
           "anyOf" : [ {
@@ -3307,7 +3481,7 @@
         },
         "count" : {
           "description" : "*(optional)* The number of messages to produce.",
-          "type" : "number"
+          "type" : "integer"
         },
         "generator" : {
           "anyOf" : [ {
@@ -3320,7 +3494,7 @@
         },
         "interval" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -3436,6 +3610,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -3446,6 +3622,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -3455,6 +3633,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -3495,6 +3675,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -3505,6 +3687,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -3514,6 +3698,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -3550,7 +3736,8 @@
           "type" : "string"
         },
         "numberOfPartitions" : {
-          "description" : "*(optional)* The target number of partitions"
+          "description" : "*(optional)* The target number of partitions",
+          "type" : "integer"
         },
         "partitioner" : {
           "anyOf" : [ {
@@ -3596,7 +3783,7 @@
         },
         "retention" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -3682,6 +3869,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -3692,6 +3881,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -3701,6 +3892,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -3741,6 +3934,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -3751,6 +3946,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -3760,6 +3957,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -3814,7 +4013,7 @@
         },
         "duration" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -3959,6 +4158,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -3969,6 +4170,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -3978,6 +4181,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -4018,6 +4223,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -4028,6 +4235,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -4037,6 +4246,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -4236,6 +4447,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -4246,6 +4459,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -4255,6 +4470,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -4295,6 +4512,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -4305,6 +4524,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -4314,6 +4535,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -4514,6 +4737,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -4524,6 +4749,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -4533,6 +4760,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -4573,6 +4802,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -4583,6 +4814,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -4592,6 +4825,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -4627,6 +4862,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -4637,6 +4874,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -4646,6 +4885,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -4693,6 +4934,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -4703,6 +4946,8 @@
           "anyOf" : [ {
             "type" : "boolean"
           }, {
+            "type" : "integer"
+          }, {
             "type" : "number"
           }, {
             "type" : "string"
@@ -4712,6 +4957,8 @@
         "globalCode" : {
           "anyOf" : [ {
             "type" : "boolean"
+          }, {
+            "type" : "integer"
           }, {
             "type" : "number"
           }, {
@@ -4752,7 +4999,7 @@
       "properties" : {
         "grace" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -4760,7 +5007,7 @@
         },
         "inactivityGap" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -4785,7 +5032,7 @@
       "properties" : {
         "advanceBy" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -4793,7 +5040,7 @@
         },
         "duration" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -4801,7 +5048,7 @@
         },
         "grace" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -4830,7 +5077,7 @@
       "properties" : {
         "grace" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -4842,7 +5089,7 @@
         },
         "timeDifference" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -4867,7 +5114,7 @@
       "properties" : {
         "duration" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -4875,7 +5122,7 @@
         },
         "grace" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -4928,7 +5175,7 @@
         },
         "retention" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -4948,7 +5195,7 @@
         },
         "windowSize" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -4989,7 +5236,7 @@
         },
         "retention" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],
@@ -5009,7 +5256,7 @@
         },
         "windowSize" : {
           "anyOf" : [ {
-            "type" : "number"
+            "type" : "integer"
           }, {
             "type" : "string"
           } ],

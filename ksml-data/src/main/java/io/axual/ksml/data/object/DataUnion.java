@@ -22,6 +22,16 @@ package io.axual.ksml.data.object;
 
 import io.axual.ksml.data.type.UnionType;
 
+/**
+ * Represents a wrapper for a boolean value as part of the {@link DataObject} framework.
+ *
+ * <p>The {@code DataBoolean} class encapsulates a boolean value to integrate seamlessly
+ * into the structured data model used in schema-compliant or stream-processed data.
+ * It enables boolean values to be used as {@link DataObject} types, making them compatible
+ * with the framework and allowing for standardized processing.</p>
+ *
+ * @see DataObject
+ */
 public class DataUnion extends DataPrimitive<DataObject> {
     public DataUnion(UnionType type, DataObject value) {
         super(type, value);

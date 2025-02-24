@@ -20,8 +20,8 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.store.StoreType;
+import io.axual.ksml.type.UserType;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 

@@ -21,7 +21,7 @@ package io.axual.ksml.data.exception;
  */
 
 public class SchemaException extends BaseException {
-    private static final String ACTIVITY = "Schema";
+    private static final String ACTIVITY = "schema";
 
     public SchemaException(String message) {
         super(ACTIVITY, message);

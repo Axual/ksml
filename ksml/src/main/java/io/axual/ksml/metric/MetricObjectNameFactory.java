@@ -21,7 +21,6 @@ package io.axual.ksml.metric;
  */
 
 import com.codahale.metrics.jmx.ObjectNameFactory;
-import io.axual.ksml.data.tag.ContextTag;
 import io.axual.ksml.exception.MetricObjectNamingException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,9 +38,9 @@ class MetricObjectNameFactory implements ObjectNameFactory {
     private static final String TAG_KEY_TYPE = "type";
     private static final Set<String> INVALID_TAG_KEYS = Set.of(TAG_KEY_NAME, TAG_KEY_TYPE);
 
-    private final List<ContextTag> staticTags;
+    private final List<MetricTag> staticTags;
 
-    MetricObjectNameFactory(List<ContextTag> staticTags) {
+    MetricObjectNameFactory(List<MetricTag> staticTags) {
         if (staticTags.stream().anyMatch(tag -> tag == null || INVALID_TAG_KEYS.contains(tag.key()))) {
             throw new IllegalArgumentException("Invalid tags provided");
         }
@@ -53,7 +52,7 @@ class MetricObjectNameFactory implements ObjectNameFactory {
         final var metricName = MetricObjectNaming.metricNameFromString(name);
         final var metricTags = metricName.tags();
 
-        final var tagList = new ArrayList<ContextTag>(staticTags.size() + metricTags.size());
+        final var tagList = new ArrayList<MetricTag>(staticTags.size() + metricTags.size());
         tagList.addAll(staticTags);
         tagList.addAll(metricTags);
 

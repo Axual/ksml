@@ -20,10 +20,10 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.parser.NamedObjectParser;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.DefinitionParser;
+import io.axual.ksml.parser.NamedObjectParser;
 import io.axual.ksml.parser.StructsParser;
 
 public class KeyValueStateStoreDefinitionParser extends DefinitionParser<KeyValueStateStoreDefinition> implements NamedObjectParser {
@@ -93,10 +93,5 @@ public class KeyValueStateStoreDefinitionParser extends DefinitionParser<KeyValu
     @Override
     public void defaultShortName(String name) {
         defaultShortName = name;
-    }
-
-    @Override
-    public void defaultLongName(String name) {
-        // Ignore
     }
 }

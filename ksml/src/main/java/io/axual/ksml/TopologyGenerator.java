@@ -121,20 +121,6 @@ public class TopologyGenerator {
         }
     }
 
-    private String getPrefix(String source) {
-        // The source contains the full path to the source YAML file. We generate a prefix for
-        // naming Kafka Streams Processor nodes by just taking the filename (eg. everything after
-        // the last slash in the file path) and removing the file extension if it exists.
-        while (source.contains("/")) {
-            source = source.substring(source.indexOf("/") + 1);
-        }
-        if (source.contains(".")) {
-            source = source.substring(0, source.lastIndexOf("."));
-        }
-        if (!source.isEmpty()) source += "_";
-        return source;
-    }
-
     private void generate(TopologyDefinition specification, TopologyBuildContext context) {
         // Preload the function into the Python context
         specification.functions().forEach((name, func) -> context.createUserFunction(func));

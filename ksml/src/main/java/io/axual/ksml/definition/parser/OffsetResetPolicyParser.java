@@ -32,4 +32,8 @@ public class OffsetResetPolicyParser {
             return Topology.AutoOffsetReset.LATEST;
         throw new TopologyException("Unknown offset reset policy: " + resetPolicy);
     }
+
+    private OffsetResetPolicyParser() {
+        // Prevent instantiation.
+    }
 }

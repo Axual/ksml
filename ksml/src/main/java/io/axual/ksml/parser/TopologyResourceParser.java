@@ -21,11 +21,10 @@ package io.axual.ksml.parser;
  */
 
 
-import io.axual.ksml.data.exception.ParseException;
-import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.*;
-import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.definition.TopologyResource;
+import io.axual.ksml.exception.ParseException;
+import io.axual.ksml.metric.MetricTags;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,15 +36,15 @@ public class TopologyResourceParser<T, F extends T> extends DefinitionParser<Top
     private final String resourceType;
     private final String childName;
     private final String doc;
-    private final BiFunction<String, ContextTags, T> lookup;
+    private final BiFunction<String, MetricTags, T> lookup;
     private final StructsParser<F> inlineParser;
     private final boolean allowLookupFail;
 
-    public TopologyResourceParser(String resourceType, String childName, String doc, BiFunction<String, ContextTags, T> lookup, StructsParser<F> inlineParser) {
+    public TopologyResourceParser(String resourceType, String childName, String doc, BiFunction<String, MetricTags, T> lookup, StructsParser<F> inlineParser) {
         this(resourceType, childName, doc, lookup, inlineParser, false);
     }
 
-    public TopologyResourceParser(String resourceType, String childName, String doc, BiFunction<String, ContextTags, T> lookup, StructsParser<F> inlineParser, boolean allowLookupFail) {
+    public TopologyResourceParser(String resourceType, String childName, String doc, BiFunction<String, MetricTags, T> lookup, StructsParser<F> inlineParser, boolean allowLookupFail) {
         this.resourceType = resourceType;
         this.childName = childName;
         this.doc = doc;
@@ -57,7 +56,7 @@ public class TopologyResourceParser<T, F extends T> extends DefinitionParser<Top
     @Override
     public StructsParser<TopologyResource<T>> parser() {
         final var schemas = new ArrayList<DataSchema>();
-        schemas.add(DataSchema.stringSchema());
+        schemas.add(DataSchema.STRING_SCHEMA);
         schemas.addAll(inlineParser.schemas());
         final var typeName = "StringOrInline" + String.join("OrInline", inlineParser.schemas().stream().map(NamedSchema::name).toArray(String[]::new));
 //        final var doc = "Reference to " + resourceType + ", or inline " + String.join(", or inline ", inlineParser.schemas().stream().map(NamedSchema::name).toArray(String[]::new));

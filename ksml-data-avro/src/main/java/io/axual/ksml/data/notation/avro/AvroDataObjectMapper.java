@@ -35,10 +35,6 @@ import org.apache.avro.util.Utf8;
 public class AvroDataObjectMapper extends NativeDataObjectMapper {
     private static final AvroSchemaMapper AVRO_SCHEMA_MAPPER = new AvroSchemaMapper();
 
-    protected AvroDataObjectMapper() {
-        super(true);
-    }
-
     @Override
     public DataObject toDataObject(DataType expected, Object value) {
         if (value == null || value == JsonProperties.NULL_VALUE)

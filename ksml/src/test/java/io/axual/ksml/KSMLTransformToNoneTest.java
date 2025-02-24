@@ -20,14 +20,13 @@ package io.axual.ksml;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.streams.TestInputTopic;
-import org.apache.kafka.streams.TestOutputTopic;
-import org.junit.jupiter.api.extension.ExtendWith;
-
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.streams.TestInputTopic;
+import org.apache.kafka.streams.TestOutputTopic;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -51,6 +50,6 @@ class KSMLTransformToNoneTest {
         assertFalse(outputTopic.isEmpty(), "record should be copied");
         var keyValue = outputTopic.readKeyValue();
         assertNull(keyValue.value);
-        System.out.printf("Output topic key=%s, value=%s\n", keyValue.key, keyValue.value);
+        System.out.printf("Output topic key=%s, value=%s%n", keyValue.key, keyValue.value);
     }
 }

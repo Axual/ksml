@@ -20,7 +20,6 @@ package io.axual.ksml.stream;
  * =========================LICENSE_END==================================
  */
 
-
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.StreamOperation;

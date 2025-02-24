@@ -33,7 +33,7 @@ public class MapUtil {
         map.forEach((key, value) -> result.put(key != null ? key.toString() : null, value));
         return result;
     }
-    
+
     private MapUtil() {
         // Prevent instantiation
     }

@@ -22,12 +22,15 @@ package io.axual.ksml.runner.backend;
 
 import io.axual.ksml.runner.producer.ExecutableProducer;
 import io.axual.ksml.runner.producer.IntervalSchedule;
+import org.apache.commons.io.ThreadUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -56,7 +59,7 @@ class IntervalScheduleTest {
         assertNull(scheduler.getScheduledItem());
 
         // after the wait time expires, it is returned
-        Thread.sleep(400);
+        ThreadUtils.sleep(Duration.ofMillis(400));
         assertNotNull(scheduler.getScheduledItem());
     }
 
@@ -69,7 +72,7 @@ class IntervalScheduleTest {
         scheduler.schedule(two, now + 100);
 
         // and we wait until the longest of the timeouts expire
-        Thread.sleep(600);
+        ThreadUtils.sleep(Duration.ofMillis(600));
 
         // the item that had the shortest wait time is returned first
         assertEquals(two, scheduler.getScheduledItem().producer());

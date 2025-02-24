@@ -141,8 +141,7 @@ public class ResolvingAdmin extends ForwardingAdmin {
     }
 
     @Override
-    public DescribeConsumerGroupsResult describeConsumerGroups(Collection<String> groupIds,
-                                                               DescribeConsumerGroupsOptions options) {
+    public DescribeConsumerGroupsResult describeConsumerGroups(Collection<String> groupIds, DescribeConsumerGroupsOptions options) {
         return new ResolvingDescribeConsumerGroupsResult(
                 super.describeConsumerGroups(groupResolver.resolve(groupIds), options).describedGroups(),
                 groupResolver);

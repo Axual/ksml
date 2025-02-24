@@ -25,6 +25,7 @@ import org.apache.kafka.common.TopicPartition;
 
 import java.util.*;
 import java.util.regex.Pattern;
+
 public interface TopicResolver extends Resolver {
     /**
      * Translates the internal representation of topic pattern to the external one.
@@ -58,7 +59,7 @@ public interface TopicResolver extends Resolver {
     default Set<String> resolve(Collection<String> topics) {
         if (topics == null) return new HashSet<>();
 
-        Set<String> result = new HashSet<>(topics.size());
+        Set<String> result = HashSet.newHashSet(topics.size());
         for (String topic : topics) {
             String resolvedTopic = resolve(topic);
             if (resolvedTopic != null) {
@@ -77,7 +78,7 @@ public interface TopicResolver extends Resolver {
     default Set<TopicPartition> resolveTopicPartitions(Collection<TopicPartition> topicPartitions) {
         if (topicPartitions == null) return new HashSet<>();
 
-        Set<TopicPartition> result = new HashSet<>(topicPartitions.size());
+        Set<TopicPartition> result = HashSet.newHashSet(topicPartitions.size());
         for (TopicPartition partition : topicPartitions) {
             result.add(resolve(partition));
         }
@@ -95,7 +96,7 @@ public interface TopicResolver extends Resolver {
     default <V> Map<TopicPartition, V> resolve(Map<TopicPartition, V> topicPartitionMap) {
         if (topicPartitionMap == null) return new HashMap<>();
 
-        Map<TopicPartition, V> result = new HashMap<>(topicPartitionMap.size());
+        Map<TopicPartition, V> result = HashMap.newHashMap(topicPartitionMap.size());
         for (Map.Entry<TopicPartition, V> entry : topicPartitionMap.entrySet()) {
             result.put(resolve(entry.getKey()), entry.getValue());
         }
@@ -138,7 +139,7 @@ public interface TopicResolver extends Resolver {
     default Set<String> unresolve(Collection<String> topics) {
         if (topics == null) return new HashSet<>();
 
-        Set<String> result = new HashSet<>(topics.size());
+        Set<String> result = HashSet.newHashSet(topics.size());
         for (String topic : topics) {
             String unresolvedTopic = unresolve(topic);
             if (unresolvedTopic != null) {
@@ -157,7 +158,7 @@ public interface TopicResolver extends Resolver {
     default Set<TopicPartition> unresolveTopicPartitions(Collection<TopicPartition> topicPartitions) {
         if (topicPartitions == null) return new HashSet<>();
 
-        Set<TopicPartition> result = new HashSet<>(topicPartitions.size());
+        Set<TopicPartition> result = HashSet.newHashSet(topicPartitions.size());
         for (TopicPartition partition : topicPartitions) {
             TopicPartition unresolvedPartition = unresolve(partition);
             if (unresolvedPartition != null) {
@@ -178,7 +179,7 @@ public interface TopicResolver extends Resolver {
     default <V> Map<TopicPartition, V> unresolve(Map<TopicPartition, V> topicPartitionMap) {
         if (topicPartitionMap == null) return new HashMap<>();
 
-        Map<TopicPartition, V> result = new HashMap<>(topicPartitionMap.size());
+        Map<TopicPartition, V> result = HashMap.newHashMap(topicPartitionMap.size());
         for (Map.Entry<TopicPartition, V> entry : topicPartitionMap.entrySet()) {
             TopicPartition unresolvedTopic = unresolve(entry.getKey());
             if (unresolvedTopic != null) {

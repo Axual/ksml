@@ -20,7 +20,6 @@ package io.axual.ksml.store;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.SessionStateStoreDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
@@ -115,25 +114,26 @@ public class StoreUtil {
                                                              Serde<Object> keySerde, Serde<V> valueSerde) {
     }
 
-    public static <V> MaterializedStore<V, KeyValueStore<Bytes, byte[]>> materialize(KeyValueStateStoreDefinition store, String topicName) {
+    public static <V> MaterializedStore<V, KeyValueStore<Bytes, byte[]>> materialize(KeyValueStateStoreDefinition store) {
         Materialized<Object, V, KeyValueStore<Bytes, byte[]>> mat = Materialized.as(getStoreSupplier(store));
-        return materialize(mat, store, topicName);
+        return materialize(mat, store);
     }
 
-    public static <V> MaterializedStore<V, SessionStore<Bytes, byte[]>> materialize(SessionStateStoreDefinition store, String topicName) {
+    public static <V> MaterializedStore<V, SessionStore<Bytes, byte[]>> materialize(SessionStateStoreDefinition store) {
         Materialized<Object, V, SessionStore<Bytes, byte[]>> mat = Materialized.as(getStoreSupplier(store));
         if (store.retention() != null) mat = mat.withRetention(store.retention());
-        return materialize(mat, store, topicName);
+        return materialize(mat, store);
     }
 
-    public static <V> MaterializedStore<V, WindowStore<Bytes, byte[]>> materialize(WindowStateStoreDefinition store, String topicName) {
+    public static <V> MaterializedStore<V, WindowStore<Bytes, byte[]>> materialize(WindowStateStoreDefinition store) {
         Materialized<Object, V, WindowStore<Bytes, byte[]>> mat = Materialized.as(getStoreSupplier(store));
         if (store.retention() != null) mat = mat.withRetention(store.retention());
-        return materialize(mat, store, topicName);
+        return materialize(mat, store);
     }
 
-    private static <V, S extends StateStore> MaterializedStore<V, S> materialize(Materialized<Object, V, S> mat, StateStoreDefinition store, String topicName) {
+    private static <V, S extends StateStore> MaterializedStore<V, S> materialize(Materialized<Object, V, S> mat, StateStoreDefinition store) {
         final var keySerde = new StreamDataType(store.keyType(), true).serde();
+        @SuppressWarnings("unchecked")
         final var valueSerde = (Serde<V>) new StreamDataType(store.valueType(), false).serde();
         mat = mat.withKeySerde(keySerde).withValueSerde(valueSerde);
         mat = store.caching() ? mat.withCachingEnabled() : mat.withCachingDisabled();

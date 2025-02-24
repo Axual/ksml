@@ -20,10 +20,10 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
+import io.axual.ksml.type.UserType;
 import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.ValueMapper;
 

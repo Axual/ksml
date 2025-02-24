@@ -56,7 +56,7 @@ public class StructType extends MapType {
     }
 
     @Override
-    public String schemaName() {
+    public String name() {
         return schema != null ? schema.name() : name;
     }
 

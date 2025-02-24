@@ -20,34 +20,62 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 
 public abstract class ComplexType implements DataType {
     private final Class<?> containerClass;
+    @Getter
+    private final String name;
+    @Getter
+    private final String spec;
     private final DataType[] subTypes;
 
-    public ComplexType(Class<?> containerClass, DataType... subTypes) {
+    protected ComplexType(Class<?> containerClass, String name, String spec, DataType... subTypes) {
         this.containerClass = containerClass;
+        this.name = name;
+        this.spec = spec;
         this.subTypes = subTypes;
-    }
-
-    @Override
-    public String toString() {
-        var subTypeStr = new StringBuilder();
-        for (final var subType : subTypes) {
-            subTypeStr.append(!subTypeStr.isEmpty() ? ", " : "").append(subType);
-        }
-        return containerName() + "<" + subTypeStr + ">";
-    }
-
-    public String containerName() {
-        return containerClass.getSimpleName();
     }
 
     public Class<?> containerClass() {
         return containerClass;
+    }
+
+    protected static String buildName(String baseName, DataType... subTypes) {
+        return buildName(baseName, "Of", subTypes);
+    }
+
+    protected static String buildName(String baseName, String midString, DataType... subTypes) {
+        return buildName(baseName, midString, "And", subTypes);
+    }
+
+    protected static String buildName(String baseName, String midString, String subTypeConcatenation, DataType... subTypes) {
+        StringBuilder builder = new StringBuilder(baseName);
+        if (subTypes.length > 0) {
+            builder.append(midString);
+            for (int index = 0; index < subTypes.length; index++) {
+                if (index > 0) builder.append(subTypeConcatenation);
+                final var subTypeName = subTypes[index].name();
+                if (subTypeName != null && !subTypeName.isEmpty()) {
+                    builder.append(subTypeName.substring(0, 1).toUpperCase()).append(subTypeName.substring(1));
+                }
+            }
+        }
+        return builder.toString();
+    }
+
+    protected static String buildSpec(DataType... subTypes) {
+        StringBuilder builder = new StringBuilder();
+        if (subTypes.length > 0) {
+            for (int index = 0; index < subTypes.length; index++) {
+                if (index > 0) builder.append(", ");
+                builder.append(subTypes[index].spec());
+            }
+        }
+        return builder.toString();
     }
 
     public int subTypeCount() {
@@ -56,30 +84,6 @@ public abstract class ComplexType implements DataType {
 
     public DataType subType(int index) {
         return subTypes[index];
-    }
-
-    public List<DataType> subTypes() {
-        return List.of(subTypes);
-    }
-
-    protected String schemaName(String baseName) {
-        return schemaName(baseName, "Of");
-    }
-
-    protected String schemaName(String baseName, String midString) {
-        return schemaName(baseName, midString, "And");
-    }
-
-    protected String schemaName(String baseName, String midString, String subTypeConcatenation) {
-        StringBuilder builder = new StringBuilder(baseName);
-        if (subTypes.length > 0) {
-            builder.append(midString);
-            for (int index = 0; index < subTypes.length; index++) {
-                if (index > 0) builder.append(subTypeConcatenation);
-                builder.append(subTypes[index].schemaName());
-            }
-        }
-        return builder.toString();
     }
 
     @Override
@@ -99,6 +103,11 @@ public abstract class ComplexType implements DataType {
             if (!subTypes[i].isAssignableFrom(type.subTypes[i])) return false;
         }
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 
     public boolean equals(Object obj) {

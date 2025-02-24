@@ -24,14 +24,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.axual.ksml.client.serde.ResolvingDeserializer;
 import io.axual.ksml.client.serde.ResolvingSerializer;
-import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.json.JsonSchemaMapper;
-import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.execution.ErrorHandler;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.generator.TopologyDefinition;
+import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.rest.server.ComponentState;
 import io.axual.ksml.rest.server.KsmlQuerier;
 import io.axual.ksml.rest.server.RestServer;
@@ -104,10 +103,13 @@ public class KSMLRunner {
                 restServer.start();
             }
 
+            // Set up the default schema directory
+            ExecutionContext.INSTANCE.schemaLibrary().schemaDirectory(ksmlConfig.schemaDirectory());
+
             // Set up all default notations and register them in the NotationLibrary
-            final var notationFactories = new NotationFactories(config.kafkaConfig(), ksmlConfig.schemaDirectory());
+            final var notationFactories = new NotationFactories(config.kafkaConfig());
             for (final var notation : notationFactories.notations().entrySet()) {
-                NotationLibrary.register(notation.getKey(), notation.getValue().create(null));
+                ExecutionContext.INSTANCE.notationLibrary().register(notation.getValue().create(notation.getKey(), null));
             }
 
             // Set up all notation overrides from the KSML config
@@ -120,7 +122,7 @@ public class KSMLRunner {
                     if (factory == null) {
                         throw FatalError.reportAndExit(new ConfigException("Unknown notation type: " + factoryName));
                     }
-                    NotationLibrary.register(notationStr, factory.create(notationConfig.config()));
+                    ExecutionContext.INSTANCE.notationLibrary().register(factory.create(notationStr, notationConfig.config()));
                 } else {
                     log.warn("Notation configuration incomplete: notation=" + notationStr + ", type=" + factoryName);
                 }
@@ -129,17 +131,17 @@ public class KSMLRunner {
             // Ensure typical defaults are used for AVRO
             // WARNING: Defaults for notations will be deprecated in the future. Make sure you explicitly configure
             // notations with multiple implementations (like AVRO) in your ksml-runner.yaml.
-            if (!NotationLibrary.exists(NotationFactories.AVRO)) {
+            if (!ExecutionContext.INSTANCE.notationLibrary().exists(NotationFactories.AVRO)) {
                 final var defaultAvro = notationFactories.confluentAvro();
-                NotationLibrary.register(NotationFactories.AVRO, defaultAvro.create(null));
+                ExecutionContext.INSTANCE.notationLibrary().register(defaultAvro.create(NotationFactories.AVRO, null));
                 log.warn("No implementation specified for AVRO notation. If you use AVRO in your KSML definition, add the required configuration to the ksml-runner.yaml");
             }
 
             final var errorHandling = ksmlConfig.errorHandlingConfig();
             if (errorHandling != null) {
-                ExecutionContext.INSTANCE.setConsumeHandler(getErrorHandler(errorHandling.consumerErrorHandlingConfig()));
-                ExecutionContext.INSTANCE.setProduceHandler(getErrorHandler(errorHandling.producerErrorHandlingConfig()));
-                ExecutionContext.INSTANCE.setProcessHandler(getErrorHandler(errorHandling.processErrorHandlingConfig()));
+                ExecutionContext.INSTANCE.errorHandling().setConsumeHandler(getErrorHandler(errorHandling.consumerErrorHandlingConfig()));
+                ExecutionContext.INSTANCE.errorHandling().setProduceHandler(getErrorHandler(errorHandling.producerErrorHandlingConfig()));
+                ExecutionContext.INSTANCE.errorHandling().setProcessHandler(getErrorHandler(errorHandling.processErrorHandlingConfig()));
             }
             ExecutionContext.INSTANCE.serdeWrapper(
                     serde -> new Serdes.WrapperSerde<>(

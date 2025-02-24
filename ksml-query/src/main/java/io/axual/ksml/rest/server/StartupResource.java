@@ -20,12 +20,12 @@ package io.axual.ksml.rest.server;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Set;
-
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Set;
 
 import static io.axual.ksml.rest.server.ComponentState.*;
 

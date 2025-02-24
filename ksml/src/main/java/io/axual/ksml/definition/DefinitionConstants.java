@@ -49,37 +49,37 @@ public class DefinitionConstants {
     private DefinitionConstants() {
     }
 
-    public static final ParameterDefinition[] NO_PARAMETERS = new ParameterDefinition[]{};
-    public static final ParameterDefinition[] FOREIGN_KEY_EXTRACTOR_PARAMETERS = new ParameterDefinition[]{
+    protected static final ParameterDefinition[] NO_PARAMETERS = new ParameterDefinition[]{};
+    protected static final ParameterDefinition[] FOREIGN_KEY_EXTRACTOR_PARAMETERS = new ParameterDefinition[]{
             new ParameterDefinition(PARAM_VALUE, DataType.UNKNOWN)};
-    public static final ParameterDefinition[] KEY_AND_TWO_VALUE_PARAMETERS = new ParameterDefinition[]{
+    protected static final ParameterDefinition[] KEY_AND_TWO_VALUE_PARAMETERS = new ParameterDefinition[]{
             new ParameterDefinition(PARAM_KEY, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_VALUE1, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_VALUE2, DataType.UNKNOWN)};
-    public static final ParameterDefinition[] KEY_VALUE_AGGREGATEDVALUE_PARAMETERS = new ParameterDefinition[]{
+    protected static final ParameterDefinition[] KEY_VALUE_AGGREGATED_VALUE_PARAMETERS = new ParameterDefinition[]{
             new ParameterDefinition(PARAM_KEY, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_VALUE, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_AGGREGATED_VALUE, DataType.UNKNOWN)};
-    public static final ParameterDefinition[] KEY_VALUE_PARAMETERS = new ParameterDefinition[]{
+    protected static final ParameterDefinition[] KEY_VALUE_PARAMETERS = new ParameterDefinition[]{
             new ParameterDefinition(PARAM_KEY, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_VALUE, DataType.UNKNOWN)};
-    public static final ParameterDefinition[] KEY_VALUE_METADATA_PARAMETERS = new ParameterDefinition[]{
+    protected static final ParameterDefinition[] KEY_VALUE_METADATA_PARAMETERS = new ParameterDefinition[]{
             new ParameterDefinition(PARAM_KEY, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_VALUE, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_METADATA, METADATA_TYPE)};
-    public static final ParameterDefinition[] STREAM_PARTITIONER_PARAMETERS = new ParameterDefinition[]{
+    protected static final ParameterDefinition[] STREAM_PARTITIONER_PARAMETERS = new ParameterDefinition[]{
             new ParameterDefinition(PARAM_TOPIC, DataString.DATATYPE),
             new ParameterDefinition(PARAM_KEY, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_VALUE, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_NUM_PARTITIONS, DataInteger.DATATYPE)};
-    public static final ParameterDefinition[] TOPIC_NAME_EXTRACTOR_PARAMETERS = new ParameterDefinition[]{
+    protected static final ParameterDefinition[] TOPIC_NAME_EXTRACTOR_PARAMETERS = new ParameterDefinition[]{
             new ParameterDefinition(PARAM_KEY, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_VALUE, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_RECORD_CONTEXT, new MapType(DataType.UNKNOWN))};
-    public static final ParameterDefinition[] TWO_VALUE_PARAMETERS = new ParameterDefinition[]{
+    protected static final ParameterDefinition[] TWO_VALUE_PARAMETERS = new ParameterDefinition[]{
             new ParameterDefinition(PARAM_VALUE1, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_VALUE2, DataType.UNKNOWN)};
-    public static final ParameterDefinition[] TIMESTAMP_EXTRACTOR_PARAMETERS = new ParameterDefinition[]{
+    protected static final ParameterDefinition[] TIMESTAMP_EXTRACTOR_PARAMETERS = new ParameterDefinition[]{
             new ParameterDefinition(PARAM_RECORD, CONSUMER_RECORD_TYPE),
             new ParameterDefinition(PARAM_PREVIOUS_TIMESTAMP, DataLong.DATATYPE)};
 }

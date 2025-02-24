@@ -26,9 +26,9 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvGenerator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvParser;
-import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.DataObjectMapper;
-import io.axual.ksml.data.mapper.DataTypeSchemaMapper;
+import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataObject;
@@ -52,7 +52,7 @@ public class CsvDataObjectMapper implements DataObjectMapper<String> {
             .with(CsvGenerator.Feature.ESCAPE_QUOTE_CHAR_WITH_ESCAPE_CHAR)
             .with(CsvGenerator.Feature.ALWAYS_QUOTE_STRINGS);
     private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
-    private static final DataTypeSchemaMapper SCHEMA_MAPPER = new DataTypeSchemaMapper();
+    private static final DataTypeDataSchemaMapper SCHEMA_MAPPER = new DataTypeDataSchemaMapper();
 
     @Override
     public DataObject toDataObject(DataType expected, String value) {
@@ -66,7 +66,7 @@ public class CsvDataObjectMapper implements DataObjectMapper<String> {
                 }
             }
         } catch (IOException e) {
-            throw new ExecutionException("Could not parse CSV", e);
+            throw new DataException("Could not parse CSV", e);
         }
         return new DataList(DataString.DATATYPE);
     }
@@ -129,7 +129,7 @@ public class CsvDataObjectMapper implements DataObjectMapper<String> {
         try {
             return CSV_WRITER.writeValueAsString(line);
         } catch (JsonProcessingException e) {
-            throw new ExecutionException("Could not write CSV", e);
+            throw new DataException("Could not write CSV", e);
         }
     }
 }

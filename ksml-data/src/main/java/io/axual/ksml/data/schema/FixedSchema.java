@@ -23,16 +23,61 @@ package io.axual.ksml.data.schema;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+/**
+ * A schema representation for fixed-size binary data in the KSML framework.
+ * <p>
+ * The {@code FixedSchema} class extends the {@link NamedSchema} and is used to define
+ * schemas for fixed-size binary data. It provides a {@code size} attribute that specifies
+ * the exact length of the binary data.
+ * </p>
+ * <p>
+ * This schema is useful for scenarios where the binary data must always conform to a
+ * specific size, such as for serialization or protocol definitions.
+ * </p>
+ */
 @Getter
 @EqualsAndHashCode
 public class FixedSchema extends NamedSchema {
+    /**
+     * The fixed size (in bytes) of the binary data represented by this schema.
+     * <p>
+     * This value is a positive integer, and it must be explicitly defined at
+     * the time of schema creation.
+     * </p>
+     */
     private final int size;
 
+    /**
+     * Constructs a {@code FixedSchema} with the given namespace, name, documentation,
+     * and size.
+     *
+     * @param namespace The namespace of this schema, typically used to avoid name collisions.
+     * @param name      The name of the fixed schema.
+     * @param doc       A brief description or documentation for this schema.
+     * @param size      The fixed size (in bytes) for the binary data represented by this schema.
+     *                  This must be a positive integer.
+     * @throws IllegalArgumentException if the {@code size} is less than 0.
+     */
     public FixedSchema(String namespace, String name, String doc, int size) {
-        super(Type.FIXED, namespace, name, doc);
+        super(DataSchemaConstants.FIXED_TYPE, namespace, name, doc);
+        if (size < 0) {
+            throw new IllegalArgumentException("Size of FIXED type can not be smaller than zero. Found " + size);
+        }
         this.size = size;
     }
 
+    /**
+     * Determines if this schema can be assigned from another schema.
+     * <p>
+     * This method checks whether the provided {@code otherSchema} is compatible
+     * with this {@code FixedSchema}. Compatibility typically means that the other schema
+     * has the same fixed size and similar characteristics.
+     * </p>
+     *
+     * @param otherSchema The other {@link DataSchema} to be checked for compatibility.
+     * @return {@code true} if the other schema is assignable from this schema;
+     * {@code false} otherwise.
+     */
     @Override
     public boolean isAssignableFrom(DataSchema otherSchema) {
         if (!super.isAssignableFrom(otherSchema)) return false;

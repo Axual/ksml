@@ -22,7 +22,6 @@ package io.axual.ksml.metric;
 
 import com.codahale.metrics.*;
 import com.codahale.metrics.jmx.JmxReporter;
-import io.axual.ksml.data.tag.ContextTag;
 import io.axual.ksml.exception.MetricRegistrationException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,7 +35,7 @@ import java.util.function.Supplier;
  * <p>
  * Unique names for a metric are generated from the provided {@link MetricName}. There can be no duplicate metrics using the same name.
  * <p>
- * The JMX Domain is provided when the JMX Exposure is started, and additional {@link ContextTag} can be provided which will be added to the JMX MBean name.
+ * The JMX Domain is provided when the JMX Exposure is started, and additional {@link MetricTag} can be provided which will be added to the JMX MBean name.
  * <p>
  * The MBean name will be <i>{@literal <domain>:type=<metricType>,name=<metricName.name>,[any additional tags],[metricName.tags] }</i>
  */
@@ -187,7 +186,7 @@ public class MetricsRegistry {
      * @param domain     the JMX domain where the metrics are exposed
      * @param commonTags These tags are added to every MBean to allow unique names for JMX. For example the name and task id for a connector task.
      */
-    public void enableJmx(String domain, List<ContextTag> commonTags) {
+    public void enableJmx(String domain, List<MetricTag> commonTags) {
         disableJmx();
 
         jmxReporter = JmxReporter.forRegistry(metricRegistry)

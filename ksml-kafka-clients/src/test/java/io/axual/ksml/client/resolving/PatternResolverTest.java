@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 
 @Slf4j
-public class PatternResolverTest {
+class PatternResolverTest {
     private static final String TOPIC = "topic";
     private static final String TENANT = "tenant";
     private static final String INSTANCE = "instance";

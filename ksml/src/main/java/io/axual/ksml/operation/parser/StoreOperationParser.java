@@ -20,18 +20,16 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.ParseException;
-import io.axual.ksml.data.parser.NamedObjectParser;
-import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.parser.StateStoreDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.operation.StoreOperation;
 import io.axual.ksml.operation.StoreOperationConfig;
+import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.store.StoreType;
@@ -39,11 +37,11 @@ import io.axual.ksml.store.StoreType;
 import java.util.List;
 
 public abstract class StoreOperationParser<T extends StoreOperation> extends OperationParser<T> {
-    public StoreOperationParser(String type, TopologyResources resources) {
+    protected StoreOperationParser(String type, TopologyResources resources) {
         super(type, resources);
     }
 
-    protected StoreOperationConfig storeOperationConfig(String name, ContextTags tags, StateStoreDefinition store) {
+    protected StoreOperationConfig storeOperationConfig(String name, MetricTags tags, StateStoreDefinition store) {
         name = validateName("Store", name, defaultShortName(), true);
         return new StoreOperationConfig(name != null ? resources().getUniqueOperationName(name) : resources().getUniqueOperationName(tags), tags, store);
     }
@@ -55,10 +53,8 @@ public abstract class StoreOperationParser<T extends StoreOperation> extends Ope
         return new StructsParser<>() {
             @Override
             public StateStoreDefinition parse(ParseNode node) {
-                if (stateStoreParser instanceof NamedObjectParser nop) {
-                    nop.defaultShortName(node.name());
-                    nop.defaultLongName(node.longName());
-                }
+                stateStoreParser.defaultShortName(node.name());
+                stateStoreParser.defaultLongName(node.longName());
                 final var resource = resourceParser.parse(node);
                 if (resource != null && resource.definition() instanceof StateStoreDefinition def) return def;
                 if (!required) return null;
@@ -70,10 +66,5 @@ public abstract class StoreOperationParser<T extends StoreOperation> extends Ope
                 return schemas;
             }
         };
-    }
-
-    @Override
-    public DataSchema schema() {
-        return super.schema();
     }
 }

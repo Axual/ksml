@@ -44,6 +44,7 @@ public class ConsumerRecordSchema {
 
     // Private constants are the schema descriptions and doc fields
     private static final String CONSUMER_RECORD_SCHEMA_TIMESTAMP_DOC = "Record timestamp";
+    private static final String CONSUMER_RECORD_SCHEMA_TIMESTAMP_TYPE_DOC = "Record timestamp type";
     public static final String CONSUMER_RECORD_SCHEMA_KEY_DOC = "Record key";
     public static final String CONSUMER_RECORD_SCHEMA_VALUE_DOC = "Record value";
     public static final String CONSUMER_RECORD_SCHEMA_TOPIC_DOC = "Record topic";
@@ -53,12 +54,13 @@ public class ConsumerRecordSchema {
 
     private static StructSchema generateConsumerRecordSchema() {
         final var fields = new ArrayList<DataField>();
-        fields.add(new DataField(CONSUMER_RECORD_SCHEMA_TIMESTAMP_FIELD, DataSchema.create(DataSchema.Type.LONG), CONSUMER_RECORD_SCHEMA_TIMESTAMP_DOC, 1));
-        fields.add(new DataField(CONSUMER_RECORD_SCHEMA_KEY_FIELD, DataSchema.create(DataSchema.Type.LONG), CONSUMER_RECORD_SCHEMA_KEY_DOC, 2));
-        fields.add(new DataField(CONSUMER_RECORD_SCHEMA_VALUE_FIELD, DataSchema.create(DataSchema.Type.LONG), CONSUMER_RECORD_SCHEMA_VALUE_DOC, 3));
-        fields.add(new DataField(CONSUMER_RECORD_SCHEMA_TOPIC_FIELD, DataSchema.create(DataSchema.Type.LONG), CONSUMER_RECORD_SCHEMA_TOPIC_DOC, 4));
-        fields.add(new DataField(CONSUMER_RECORD_SCHEMA_PARTITION_FIELD, DataSchema.create(DataSchema.Type.LONG), CONSUMER_RECORD_SCHEMA_PARTITION_DOC, 5));
-        fields.add(new DataField(CONSUMER_RECORD_SCHEMA_OFFSET_FIELD, DataSchema.create(DataSchema.Type.LONG), CONSUMER_RECORD_SCHEMA_OFFSET_DOC, 6));
+        fields.add(new DataField(CONSUMER_RECORD_SCHEMA_TIMESTAMP_FIELD, DataSchema.LONG_SCHEMA, CONSUMER_RECORD_SCHEMA_TIMESTAMP_DOC, 1));
+        fields.add(new DataField(CONSUMER_RECORD_SCHEMA_TIMESTAMP_TYPE_FIELD, DataSchema.STRING_SCHEMA, CONSUMER_RECORD_SCHEMA_TIMESTAMP_TYPE_DOC, 2));
+        fields.add(new DataField(CONSUMER_RECORD_SCHEMA_KEY_FIELD, DataSchema.ANY_SCHEMA, CONSUMER_RECORD_SCHEMA_KEY_DOC, 3));
+        fields.add(new DataField(CONSUMER_RECORD_SCHEMA_VALUE_FIELD, DataSchema.ANY_SCHEMA, CONSUMER_RECORD_SCHEMA_VALUE_DOC, 4));
+        fields.add(new DataField(CONSUMER_RECORD_SCHEMA_TOPIC_FIELD, DataSchema.STRING_SCHEMA, CONSUMER_RECORD_SCHEMA_TOPIC_DOC, 5));
+        fields.add(new DataField(CONSUMER_RECORD_SCHEMA_PARTITION_FIELD, DataSchema.INTEGER_SCHEMA, CONSUMER_RECORD_SCHEMA_PARTITION_DOC, 6));
+        fields.add(new DataField(CONSUMER_RECORD_SCHEMA_OFFSET_FIELD, DataSchema.LONG_SCHEMA, CONSUMER_RECORD_SCHEMA_OFFSET_DOC, 7));
         return new StructSchema(DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE, CONSUMER_RECORD_SCHEMA_NAME, KAFKA_PREFIX + CONSUMER_RECORD_SCHEMA_NAME, fields);
     }
 }

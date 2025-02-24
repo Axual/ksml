@@ -21,7 +21,6 @@ package io.axual.ksml.operation;
  */
 
 
-import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
@@ -30,6 +29,7 @@ import io.axual.ksml.operation.processor.FixedKeyOperationProcessorSupplier;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
+import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserPredicate;
 import org.apache.kafka.streams.kstream.Named;
 
@@ -58,7 +58,7 @@ public class FilterOperation extends StoreOperation {
         final var supplier = new FixedKeyOperationProcessorSupplier<>(
                 name,
                 FilterProcessor::new,
-                (stores, record) -> userPred.test(stores, flattenValue(record.key()), flattenValue(record.value())),
+                (stores, rec) -> userPred.test(stores, flattenValue(rec.key()), flattenValue(rec.value())),
                 storeNames);
         final var output = name != null
                 ? input.stream.processValues(supplier, Named.as(name), storeNames)

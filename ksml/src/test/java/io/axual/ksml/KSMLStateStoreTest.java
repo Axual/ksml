@@ -39,10 +39,10 @@ public class KSMLStateStoreTest {
 
     TopologyTestDriver topologyTestDriver;
 
-    @KSMLTest(topology = "pipelines/test-state-store.yaml", schemapath = "pipelines",
+    @KSMLTest(topology = "pipelines/test-state-store.yaml", schemaDirectory = "pipelines",
             inputTopics = {@KSMLTopic(topic = "ksml_sensordata_avro", variable = "sensorIn", valueSerde = KSMLTopic.SerdeType.AVRO)}
             , outputTopics = {}, testDriverRef = "topologyTestDriver")
-    void testJoin() throws Exception {
+    void testJoin() {
 
         // given that we get events with a higher reading in matching cities
         sensorIn.pipeInput("sensor1", SensorData.builder()

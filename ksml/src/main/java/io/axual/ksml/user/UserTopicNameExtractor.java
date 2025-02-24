@@ -21,14 +21,14 @@ package io.axual.ksml.user;
  */
 
 
-import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.mapper.RecordContextDataObjectMapper;
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.exception.ExecutionException;
+import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.Invoker;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.processor.RecordContext;
@@ -40,7 +40,7 @@ public class UserTopicNameExtractor extends Invoker implements TopicNameExtracto
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
     private static final RecordContextDataObjectMapper RECORD_CONTEXT_MAPPER = new RecordContextDataObjectMapper();
 
-    public UserTopicNameExtractor(UserFunction function, ContextTags tags) {
+    public UserTopicNameExtractor(UserFunction function, MetricTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_TOPICNAMEEXTRACTOR);
         verifyParameterCount(3);
         verifyResultType(EXPECTED_RESULT_TYPE);

@@ -21,15 +21,10 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.data.notation.UserType;
-import io.axual.ksml.parser.UserTypeParser;
+import io.axual.ksml.type.UserType;
 import org.apache.kafka.streams.Topology;
 
 public class StreamDefinition extends TopicDefinition {
-    public StreamDefinition(String topic, String keyType, String valueType, FunctionDefinition tsExtractor, Topology.AutoOffsetReset resetPolicy) {
-        this(topic, UserTypeParser.parse(keyType), UserTypeParser.parse(valueType), tsExtractor, resetPolicy);
-    }
-
     public StreamDefinition(String topic, UserType keyType, UserType valueType, FunctionDefinition tsExtractor, Topology.AutoOffsetReset resetPolicy) {
         super(topic, keyType, valueType, tsExtractor, resetPolicy);
     }

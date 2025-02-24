@@ -51,10 +51,10 @@ public class WindowedSchema {
 
     public static StructSchema generateWindowedSchema(WindowedType windowedType, Function<DataType, DataSchema> dataTypeToSchema) {
         var fields = new ArrayList<DataField>();
-        fields.add(new DataField(WINDOWED_SCHEMA_START_FIELD, DataSchema.create(DataSchema.Type.LONG), WINDOWED_SCHEMA_START_FIELD_DOC));
-        fields.add(new DataField(WINDOWED_SCHEMA_END_FIELD, DataSchema.create(DataSchema.Type.LONG), WINDOWED_SCHEMA_END_FIELD_DOC));
-        fields.add(new DataField(WINDOWED_SCHEMA_START_TIME_FIELD, DataSchema.create(DataSchema.Type.STRING), WINDOWED_SCHEMA_START_TIME_FIELD_DOC));
-        fields.add(new DataField(WINDOWED_SCHEMA_END_TIME_FIELD, DataSchema.create(DataSchema.Type.STRING), WINDOWED_SCHEMA_END_TIME_FIELD_DOC));
+        fields.add(new DataField(WINDOWED_SCHEMA_START_FIELD, DataSchema.LONG_SCHEMA, WINDOWED_SCHEMA_START_FIELD_DOC));
+        fields.add(new DataField(WINDOWED_SCHEMA_END_FIELD, DataSchema.LONG_SCHEMA, WINDOWED_SCHEMA_END_FIELD_DOC));
+        fields.add(new DataField(WINDOWED_SCHEMA_START_TIME_FIELD, DataSchema.STRING_SCHEMA, WINDOWED_SCHEMA_START_TIME_FIELD_DOC));
+        fields.add(new DataField(WINDOWED_SCHEMA_END_TIME_FIELD, DataSchema.STRING_SCHEMA, WINDOWED_SCHEMA_END_TIME_FIELD_DOC));
 
         var keySchema = dataTypeToSchema.apply(windowedType.keyType());
         fields.add(new DataField(WINDOWED_SCHEMA_KEY_FIELD, keySchema, WINDOWED_SCHEMA_KEY_FIELD_DOC));
@@ -62,12 +62,12 @@ public class WindowedSchema {
         return new StructSchema(
                 DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE,
                 schemaName(windowedType),
-                WINDOWED_SCHEMA_DOC_PREFIX + windowedType.keyType().schemaName(),
+                WINDOWED_SCHEMA_DOC_PREFIX + windowedType.keyType().name(),
                 fields);
     }
 
     private static String schemaName(WindowedType windowedType) {
-        final var keyType = windowedType.keyType().schemaName();
+        final var keyType = windowedType.keyType().name();
         final var type = keyType != null && !keyType.isEmpty() ? keyType : "type";
         return "Windowed" + type.substring(0, 1).toUpperCase() + type.substring(1);
     }

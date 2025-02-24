@@ -20,8 +20,8 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.store.StoreType;
+import io.axual.ksml.type.UserType;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -37,7 +37,7 @@ public abstract class GlobalStateStoreDefinition extends AbstractDefinition {
     private final boolean caching;
     private final boolean logging;
 
-    public GlobalStateStoreDefinition(StoreType type, String name, Boolean persistent, Boolean timestamped, UserType keyType, UserType valueType, Boolean caching, Boolean logging) {
+    protected GlobalStateStoreDefinition(StoreType type, String name, Boolean persistent, Boolean timestamped, UserType keyType, UserType valueType, Boolean caching, Boolean logging) {
         this.type = type;
         this.name = name;
         this.persistent = persistent != null && persistent;
@@ -48,6 +48,7 @@ public abstract class GlobalStateStoreDefinition extends AbstractDefinition {
         this.logging = logging != null && logging;
     }
 
+    @Override
     public String toString() {
         return super.toString() + " [name=" + (name == null ? "Unnamed" : name) + "]";
     }

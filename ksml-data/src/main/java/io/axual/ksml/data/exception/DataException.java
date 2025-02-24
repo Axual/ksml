@@ -23,7 +23,7 @@ package io.axual.ksml.data.exception;
 import io.axual.ksml.data.type.DataType;
 
 public class DataException extends BaseException {
-    private static final String ACTIVITY = "Data";
+    private static final String ACTIVITY = "data";
 
     public DataException(String message) {
         super(ACTIVITY, message);

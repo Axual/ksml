@@ -20,16 +20,45 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.parser.schema.DataSchemaDSL;
+import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.type.SimpleType;
 
+/**
+ * Represents a wrapper for a string value as part of the {@link DataObject} framework.
+ *
+ * <p>The {@code DataString} class encapsulates a string value to integrate seamlessly
+ * into the structured data model used in schema-compliant or stream-processed data.
+ * It enables string values to be used as {@link DataObject} types, making them compatible
+ * with the framework and allowing for standardized processing.</p>
+ *
+ * @see DataObject
+ */
 public class DataString extends DataPrimitive<String> {
-    public static final SimpleType DATATYPE = new SimpleType(String.class, DataSchemaDSL.STRING_TYPE);
+    /**
+     * Represents the data type of this {@code DataString}, which is {@code String},
+     * mapped to the schema definition in {@link DataSchemaConstants#STRING_TYPE}.
+     * <p>This constant ensures that the type metadata for a {@code DataString} is
+     * consistent across all usages in the framework.</p>
+     */
+    public static final SimpleType DATATYPE = new SimpleType(String.class, DataSchemaConstants.STRING_TYPE);
 
+    /**
+     * Constructs a {@code DataDouble} instance with a null value.
+     * <p>This constructor creates a {@code DataDouble} that does not hold any actual
+     * {@code Double} value, effectively representing a "null" double in the framework.</p>
+     */
     public DataString() {
         this(null);
     }
 
+    /**
+     * Constructs a {@code DataDouble} instance with the specified {@code Double} value.
+     *
+     * <p>If the input value is {@code null}, the {@code DataDouble} will represent
+     * the absence of a value (a null double).</p>
+     *
+     * @param value The {@code Double} value to encapsulate, or {@code null} to represent a null value.
+     */
     public DataString(String value) {
         super(DATATYPE, value);
     }

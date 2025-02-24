@@ -44,7 +44,7 @@ public class KSMLBranchingTest {
 
     TestOutputTopic outputRed;
 
-    @KSMLTest(topology = "pipelines/test-branching.yaml", schemapath = "pipelines",
+    @KSMLTest(topology = "pipelines/test-branching.yaml", schemaDirectory = "pipelines",
             inputTopics = {@KSMLTopic(variable = "inputTopic", topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)},
             outputTopics = {@KSMLTopic(variable = "outputBlue", topic = "ksml_sensordata_blue", valueSerde = KSMLTopic.SerdeType.AVRO),
                     @KSMLTopic(variable = "outputRed", topic = "ksml_sensordata_red", valueSerde = KSMLTopic.SerdeType.AVRO)

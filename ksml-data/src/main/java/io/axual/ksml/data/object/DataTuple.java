@@ -20,7 +20,7 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.value.Tuple;
@@ -29,27 +29,64 @@ import lombok.Getter;
 
 import java.util.Arrays;
 
-// This is a bit of an odd-one-out class for holding tuples of DataObjects. It can explicitly NOT hold represent a
-// NULL tuple for now. We should look into this more in the future to see if this makes sense or not.
+/**
+ * Represents a wrapper for a boolean value as part of the {@link DataObject} framework.
+ *
+ * <p>The {@code DataBoolean} class encapsulates a boolean value to integrate seamlessly
+ * into the structured data model used in schema-compliant or stream-processed data.
+ * It enables boolean values to be used as {@link DataObject} types, making them compatible
+ * with the framework and allowing for standardized processing.</p>
+ *
+ * @see DataObject
+ */
 @Getter
 @EqualsAndHashCode
 public class DataTuple extends Tuple<DataObject> implements DataObject {
+    /**
+     * Represents the data type of this {@code DataBoolean}, which is {@code Boolean},
+     * mapped to the schema definition in {@link DataSchemaConstants#BOOLEAN_TYPE}.
+     * <p>This constant ensures that the type metadata for a {@code DataBoolean} is
+     * consistent across all usages in the framework.</p>
+     */
     private final DataType type;
 
+    /**
+     * Constructs an empty {@code DataList} with the specified value type.
+     *
+     * <p>This constructor allows defining the type of elements the list should contain,
+     * enabling schema validation during data processing.</p>
+     *
+     * @param elements The {@link DataType} of the elements to be stored in the list.
+     */
     public DataTuple(DataObject... elements) {
         super(elements);
-        this.type = new TupleType(convertElements(elements));
+        this.type = new TupleType(elementsToDataTypes(elements));
     }
 
-    private static DataType[] convertElements(DataObject... elements) {
+    /**
+     * Converts an array of DataObjects
+     *
+     * @return The string representation of this {@code DataTuple}.
+     */
+    private static DataType[] elementsToDataTypes(DataObject... elements) {
         return Arrays.stream(elements).map(DataObject::type).toArray(DataType[]::new);
     }
 
+    /**
+     * Retrieves a string representation of this {@code DataTuple}.
+     *
+     * @return The string representation of this {@code DataTuple}.
+     */
     @Override
     public String toString() {
         return toString(Printer.INTERNAL);
     }
 
+    /**
+     * Retrieves a string representation of this {@code DataTuple} using the given Printer.
+     *
+     * @return The string representation of this {@code DataTuple}.
+     */
     @Override
     public String toString(Printer printer) {
         return printer.schemaString(this) + super.toString();

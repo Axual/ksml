@@ -28,28 +28,22 @@ import java.util.Objects;
 @Getter
 public class SimpleType implements DataType {
     private final Class<?> containerClass;
-    private final String containerName;
+    private final String name;
+    private final String spec;
 
-    public SimpleType(Class<?> containerClass, String containerName) {
+    public SimpleType(Class<?> containerClass, String name) {
+        this(containerClass, name, name);
+    }
+
+    public SimpleType(Class<?> containerClass, String name, String spec) {
         this.containerClass = containerClass;
-        this.containerName = containerName;
+        this.name = name;
+        this.spec = spec;
     }
 
     @Override
     public String toString() {
-        return containerName();
-    }
-
-    public Class<?> containerClass() {
-        return containerClass;
-    }
-
-    public String containerName() {
-        return containerName;
-    }
-
-    public String schemaName() {
-        return containerName();
+        return spec;
     }
 
     @Override

@@ -43,14 +43,6 @@ import static io.axual.ksml.dsl.WindowedSchema.*;
 public class DataObjectFlattener extends NativeDataObjectMapper {
     private static final DataTypeFlattener FLATTENER = new DataTypeFlattener();
 
-    public DataObjectFlattener() {
-        super();
-    }
-
-    public DataObjectFlattener(boolean includeTypeInfo) {
-        super(includeTypeInfo);
-    }
-
     @Override
     public DataObject toDataObject(Object value) {
         if (value instanceof Windowed<?> windowedObject) {

@@ -21,14 +21,13 @@ package io.axual.ksml.data.mapper;
  */
 
 import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.notation.NotationLibrary;
-import io.axual.ksml.data.notation.UserTupleType;
-import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.type.*;
 import io.axual.ksml.execution.ExecutionContext;
+import io.axual.ksml.type.UserTupleType;
+import io.axual.ksml.type.UserType;
 
-import static io.axual.ksml.data.notation.UserType.DEFAULT_NOTATION;
+import static io.axual.ksml.type.UserType.DEFAULT_NOTATION;
 
 // This DataObjectConverter makes expected data types compatible with the actual data that was
 // created. It does so by converting numbers to strings, and vice versa. It converts complex
@@ -37,7 +36,7 @@ import static io.axual.ksml.data.notation.UserType.DEFAULT_NOTATION;
 // source or target notation's converter to respectively export or import the data type to
 // the desired type.
 public class DataObjectConverter {
-    private static final DataTypeSchemaMapper SCHEMA_MAPPER = new DataTypeFlattener();
+    private static final DataTypeDataSchemaMapper SCHEMA_MAPPER = new DataTypeFlattener();
 
     public DataObject convert(String sourceNotation, DataObject value, UserType targetType) {
         return convert(sourceNotation, value, targetType, false);
@@ -56,8 +55,8 @@ public class DataObjectConverter {
 
         // Recurse into union types
         if (targetType.dataType() instanceof UnionType targetUnionType) {
-            for (int index = 0; index < targetUnionType.valueTypes().length; index++) {
-                var convertedValue = convert(sourceNotation, value, new UserType(targetUnionType.valueTypes()[index].type()), true);
+            for (int index = 0; index < targetUnionType.memberTypes().length; index++) {
+                var convertedValue = convert(sourceNotation, value, new UserType(targetUnionType.memberTypes()[index].type()), true);
                 if (convertedValue != null) return convertedValue;
             }
         }
@@ -75,7 +74,7 @@ public class DataObjectConverter {
         // Recurse into tuples
         if (targetType.dataType() instanceof TupleType targetTupleType
                 && value instanceof DataTuple valueTuple
-                && targetTupleType.subTypeCount() == valueTuple.size()) {
+                && targetTupleType.subTypeCount() == valueTuple.elements().size()) {
             return convertTuple(targetTupleType, valueTuple);
         }
 
@@ -95,7 +94,7 @@ public class DataObjectConverter {
         if (allowFail) return null;
 
         // We can't perform the conversion, so report a fatal error
-        throw new DataException("Can not convert value to " + targetType + ": " + ExecutionContext.INSTANCE.maskData(value));
+        throw new DataException("Can not convert value to " + targetType + ": " + ExecutionContext.INSTANCE.errorHandling().maskData(value));
     }
 
     private DataObject applyNotationConverters(String sourceNotation, DataObject value, UserType targetType) {
@@ -105,16 +104,16 @@ public class DataObjectConverter {
         }
 
         // First we see if the target notation is able to interpret the source value
-        var targetConverter = NotationLibrary.get(targetType.notation()).converter();
+        var targetConverter = ExecutionContext.INSTANCE.notationLibrary().get(targetType.notation()).converter();
         if (targetConverter != null) {
-            final var target = targetConverter.convert(value, targetType);
+            final var target = targetConverter.convert(value, targetType.dataType());
             if (target != null && targetType.dataType().isAssignableFrom(target.type())) return target;
         }
 
         // If the target notation was not able to convert, then try the source notation
-        var sourceConverter = NotationLibrary.get(sourceNotation).converter();
+        var sourceConverter = ExecutionContext.INSTANCE.notationLibrary().get(sourceNotation).converter();
         if (sourceConverter != null) {
-            final var target = sourceConverter.convert(value, targetType);
+            final var target = sourceConverter.convert(value, targetType.dataType());
             if (target != null && targetType.dataType().isAssignableFrom(target.type())) return target;
         }
 
@@ -127,8 +126,7 @@ public class DataObjectConverter {
         if (targetType.isAssignableFrom(value)) return value;
 
         // Come up with default values if we convert from Null
-        if (value == null || value instanceof DataNull)
-            return NativeDataObjectMapper.convertFromNull(targetType);
+        if (value == null || value instanceof DataNull) return NativeDataObjectMapper.convertFromNull(targetType);
 
         // Convert numbers to their proper specific type
         if (value instanceof DataByte val) {
@@ -167,19 +165,19 @@ public class DataObjectConverter {
         // Convert from anything to String
         if (targetType == DataString.DATATYPE) return convertToString(value);
 
-        // Convert from Strings to anything
-        if (value instanceof DataString str) {
-            return convertFromString(targetType, str.value());
+        // Convert from String to anything
+        if (value instanceof DataString stringValue) {
+            return convertFromString(targetType, stringValue.value());
         }
 
         // Convert list without a value type to a list with a specific value type
-        if (value instanceof DataList list && targetType instanceof ListType listType) {
-            return convertList(listType, list);
+        if (value instanceof DataList listValue && targetType instanceof ListType targetListType) {
+            return convertList(targetListType, listValue);
         }
 
         // Convert from schemaless structs to a struct with a schema
-        if (value instanceof DataStruct struct && targetType instanceof StructType structType) {
-            return convertStruct(structType, struct);
+        if (value instanceof DataStruct structValue && targetType instanceof StructType targetStructType) {
+            return convertStruct(targetStructType, structValue);
         }
 
         // If no conversion was found suitable, then just return the object itself
@@ -249,14 +247,14 @@ public class DataObjectConverter {
     }
 
     private DataObject convertTuple(TupleType expected, DataTuple value) {
-        final var convertedDataObjects = new DataObject[value.size()];
-        for (int index = 0; index < value.size(); index++) {
+        final var convertedDataObjects = new DataObject[value.elements().size()];
+        for (int index = 0; index < value.elements().size(); index++) {
             // If the tuple type contains the notation, then use that notation for conversion, otherwise use the
             // default notation
             final var elementType = expected instanceof UserTupleType targetUserTupleType
                     ? targetUserTupleType.getUserType(index)
                     : new UserType(expected.subType(index));
-            convertedDataObjects[index] = convert(DEFAULT_NOTATION, value.get(index), elementType);
+            convertedDataObjects[index] = convert(DEFAULT_NOTATION, value.elements().get(index), elementType);
         }
         return new DataTuple(convertedDataObjects);
     }

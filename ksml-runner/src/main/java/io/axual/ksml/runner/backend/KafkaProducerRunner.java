@@ -106,7 +106,7 @@ public class KafkaProducerRunner implements Runner {
                     }
                 }
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             setState(State.FAILED);
             throw new RunnerException("Unhandled producer exception", e);
         }

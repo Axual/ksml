@@ -95,9 +95,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
 
     private DataField convertFieldToDataSchema(ProtobufReadContext context, FieldElement field) {
         // Don't get a default value for an embedded message field
-        final var defaultValue = field.getDefaultValue() != null
-                ? field.getDefaultValue()
-                : null;
+        final var defaultValue = field.getDefaultValue() != null ? field.getDefaultValue() : null;
         final var name = field.getName();
         final var required = field.getLabel() == null || field.getLabel() == Field.Label.REQUIRED;
         final var list = field.getLabel() == Field.Label.REPEATED;
@@ -105,41 +103,26 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         if (type == null) {
             throw new SchemaException("Schema for field '" + field.getName() + "' can not be NULL");
         }
-        return new DataField(name, list ? new ListSchema(type) : type, field.getDocumentation(), field.getTag(), required);
+        return new DataField(name, list ? new ListSchema(type) : type, field.getDocumentation(), field.getTag(), required, false, defaultValue != null ? new DataValue(defaultValue) : null);
     }
 
     private DataSchema convertType(ProtobufReadContext context, FieldElement field) {
         switch (field.getType()) {
-            case "double":
-                return DataSchema.doubleSchema();
-            case "float":
-                return DataSchema.floatSchema();
-            case "int64":
-                return DataSchema.longSchema();
-            case "uint64":
-                return DataSchema.longSchema();
-            case "int32":
-                return DataSchema.integerSchema();
-            case "fixed64":
-                return DataSchema.longSchema();
-            case "fixed32":
-                return DataSchema.integerSchema();
             case "boolean":
-                return DataSchema.booleanSchema();
+                return DataSchema.BOOLEAN_SCHEMA;
+            case "int32", "fixed32", "sfixed32", "sint32", "uint32":
+                return DataSchema.INTEGER_SCHEMA;
+            case "int64", "fixed64", "sfixed64", "sint64", "uint64":
+                return DataSchema.LONG_SCHEMA;
+            case "float":
+                return DataSchema.FLOAT_SCHEMA;
+            case "double":
+                return DataSchema.DOUBLE_SCHEMA;
             case "string":
-                return DataSchema.stringSchema();
+                return DataSchema.STRING_SCHEMA;
             case "bytes":
-                return DataSchema.bytesSchema();
-            case "uint32":
-                return DataSchema.integerSchema();
-            case "sfixed32":
-                return DataSchema.integerSchema();
-            case "sfixed64":
-                return DataSchema.longSchema();
-            case "sint32":
-                return DataSchema.integerSchema();
-            case "sint64":
-                return DataSchema.longSchema();
+                return DataSchema.BYTES_SCHEMA;
+            default:
         }
 
         // Look up the non-standard type
@@ -202,7 +185,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
 
     private static FieldElement convertToFieldElement(DataField field, String type) {
         final var required = field.required();
-        final var list = field.schema().type() == DataSchema.Type.LIST;
+        final var list = field.schema() instanceof ListSchema;
         final var defaultValue = field.defaultValue() != null ? field.defaultValue().toString() : null;
         return new FieldElement(
                 DEFAULT_LOCATION,
@@ -218,9 +201,9 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
 
     private String convertFieldToType(ProtobufWriteContext context, List<TypeElement> parentNestedTypes, List<OneOfElement> parentOneOfs, String parentName, DataField field) {
         if (field.schema() instanceof UnionSchema unionSchema) {
-            final var valueTypes = new ArrayList<FieldElement>();
-            for (int index = 0; index < unionSchema.valueTypes().length; index++) {
-                final var vt = unionSchema.valueTypes()[index];
+            final var memberTypes = new ArrayList<FieldElement>();
+            for (int index = 0; index < unionSchema.memberSchemas().length; index++) {
+                final var vt = unionSchema.memberSchemas()[index];
                 final var valueType = new FieldElement(
                         DEFAULT_LOCATION,
                         null,
@@ -231,10 +214,10 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
                         vt.index(),
                         vt.doc(),
                         Collections.emptyList());
-                valueTypes.add(valueType);
+                memberTypes.add(valueType);
             }
 
-            final var oneOf = new OneOfElement(field.name(), field.doc() != null ? field.doc() : "", valueTypes, Collections.emptyList(), Collections.emptyList(), DEFAULT_LOCATION);
+            final var oneOf = new OneOfElement(field.name(), field.doc() != null ? field.doc() : "", memberTypes, Collections.emptyList(), Collections.emptyList(), DEFAULT_LOCATION);
             parentOneOfs.add(oneOf);
         }
 
@@ -242,6 +225,14 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
     }
 
     private String convertSchemaToType(ProtobufWriteContext context, List<TypeElement> parentNestedTypes, String parentName, DataSchema schema) {
+        if (schema == DataSchema.BOOLEAN_SCHEMA) return "boolean";
+        if (schema == DataSchema.BYTE_SCHEMA || schema == DataSchema.SHORT_SCHEMA || schema == DataSchema.INTEGER_SCHEMA)
+            return "int32";
+        if (schema == DataSchema.LONG_SCHEMA) return "int64";
+        if (schema == DataSchema.FLOAT_SCHEMA) return "float";
+        if (schema == DataSchema.DOUBLE_SCHEMA) return "double";
+        if (schema == DataSchema.BYTES_SCHEMA || schema instanceof FixedSchema) return "bytes";
+        if (schema == DataSchema.STRING_SCHEMA) return "string";
         if (schema instanceof EnumSchema enumSchema) {
             final var enm = convertToEnumElement(enumSchema);
             // Find out if the enum is nested, or defined at top level
@@ -258,6 +249,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
             // The repeated label is caught above, so only convert the value schema to a type
             return convertSchemaToType(context, parentNestedTypes, parentName, listSchema.valueSchema());
         }
+        if (schema instanceof MapSchema) return null;
         if (schema instanceof StructSchema structSchema) {
             final var message = convertToMessageElement(context, structSchema);
             // Find out if the message is nested, or defined at top level
@@ -269,17 +261,8 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
             }
             return structSchema.name();
         }
-        return switch (schema.type()) {
-            case BOOLEAN -> "boolean";
-            case BYTE, SHORT, INTEGER -> "int32";
-            case LONG -> "int64";
-            case DOUBLE -> "double";
-            case FLOAT -> "float";
-            case STRING -> "string";
-            case MAP -> null;
-            case UNION -> null;
-            default -> throw new SchemaException("Can not convert schema type " + schema.type() + " to PROTOBUF type");
-        };
+        if (schema instanceof UnionSchema) return null;
+        throw new SchemaException("Can not convert schema type " + schema.type() + " to PROTOBUF type");
     }
 
     private EnumElement convertToEnumElement(EnumSchema schema) {

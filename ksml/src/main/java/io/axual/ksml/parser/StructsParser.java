@@ -20,8 +20,6 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.parser.ParserWithSchemas;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;

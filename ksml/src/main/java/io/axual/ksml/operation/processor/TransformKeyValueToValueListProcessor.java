@@ -25,7 +25,7 @@ import org.apache.kafka.streams.processor.api.FixedKeyRecord;
 
 public class TransformKeyValueToValueListProcessor extends FixedKeyOperationProcessor {
     public interface TransformKeyValueToValueListAction {
-        Iterable<Object> apply(StateStores stores, FixedKeyRecord<Object, Object> record);
+        Iterable<Object> apply(StateStores stores, FixedKeyRecord<Object, Object> rec);
     }
 
     private final TransformKeyValueToValueListAction action;
@@ -36,12 +36,9 @@ public class TransformKeyValueToValueListProcessor extends FixedKeyOperationProc
     }
 
     @Override
-    public void process(FixedKeyRecord<Object, Object> record) {
-        var vList = action.apply(stores, record);
-        if (vList != null) {
-            for (var v : vList) {
-                context.forward(record.withValue(v));
-            }
-        }
+    public void process(FixedKeyRecord<Object, Object> rec) {
+        var values = action.apply(stores, rec);
+        if (values != null)
+            for (var value : values) context.forward(rec.withValue(value));
     }
 }

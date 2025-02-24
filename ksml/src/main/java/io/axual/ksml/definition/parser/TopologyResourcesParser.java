@@ -20,11 +20,11 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.generator.TopologyBaseResources;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.parser.DefinitionParser;
+import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.parser.StructsParser;
 
 import java.util.List;

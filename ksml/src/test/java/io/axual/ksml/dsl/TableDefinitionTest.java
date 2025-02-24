@@ -21,14 +21,14 @@ package io.axual.ksml.dsl;
  */
 
 import io.axual.ksml.data.notation.Notation;
-import io.axual.ksml.data.notation.NotationLibrary;
-import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.TableDefinition;
+import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.stream.KTableWrapper;
+import io.axual.ksml.type.UserType;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.Materialized;
@@ -42,6 +42,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class TableDefinitionTest {
@@ -54,16 +55,18 @@ class TableDefinitionTest {
 
     @Test
     void testTableDefinition() {
-        NotationLibrary.register(BinaryNotation.NAME, mockNotation);
-        var stringType = UserTypeParser.parse("string");
+        when(mockNotation.name()).thenReturn(UserType.DEFAULT_NOTATION);
+        ExecutionContext.INSTANCE.notationLibrary().register(mockNotation);
+
+        final var stringType = UserTypeParser.parse("string");
 
         // given a TableDefinition
-        var tableDefinition = new TableDefinition("topic", stringType, stringType, null, null, new KeyValueStateStoreDefinition("storename", stringType, stringType));
-        var resources = new TopologyResources("test");
+        final var tableDefinition = new TableDefinition("topic", stringType, stringType, null, null, new KeyValueStateStoreDefinition("storename", stringType, stringType));
+        final var resources = new TopologyResources("test");
 
-        var context = new TopologyBuildContext(builder, resources);
+        final var context = new TopologyBuildContext(builder, resources);
         // when it adds itself to Builder
-        var streamWrapper = context.getStreamWrapper(tableDefinition);
+        final var streamWrapper = context.getStreamWrapper(tableDefinition);
 
         // it adds a KTable to the StreamsBuilder with key and value dataType, and returns a KTableWrapper instance
         verify(mockNotation).serde(stringType.dataType(), true);

@@ -20,7 +20,7 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.parser.schema.DataSchemaDSL;
+import io.axual.ksml.data.schema.DataSchemaConstants;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -32,7 +32,7 @@ public class EnumType extends SimpleType {
     private final List<Symbol> symbols;
 
     public EnumType(List<Symbol> symbols) {
-        super(String.class, DataSchemaDSL.ENUM_TYPE);
+        super(String.class, DataSchemaConstants.ENUM_TYPE);
         this.symbols = symbols;
     }
 }

@@ -20,33 +20,20 @@ package io.axual.ksml.data.notation.xml;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.loader.SchemaLoader;
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.notation.NotationConverter;
 import io.axual.ksml.data.notation.string.StringNotation;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
-import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
 
 public class XmlNotation extends StringNotation {
     public static final DataType DEFAULT_TYPE = new StructType();
     private static final DataObjectMapper<String> MAPPER = new XmlDataObjectMapper();
-    @Getter
-    private final NotationConverter converter = new XmlDataObjectConverter();
-    @Getter
-    private final SchemaLoader loader;
 
-    public XmlNotation(NativeDataObjectMapper nativeMapper, SchemaLoader loader) {
-        super(nativeMapper, MAPPER);
-        this.loader = loader;
-    }
-
-    @Override
-    public DataType defaultType() {
-        return DEFAULT_TYPE;
+    public XmlNotation(String name, NativeDataObjectMapper nativeMapper) {
+        super(name, ".xsd", DEFAULT_TYPE, new XmlDataObjectConverter(), new XmlSchemaParser(), nativeMapper, MAPPER);
     }
 
     @Override
@@ -54,6 +41,6 @@ public class XmlNotation extends StringNotation {
         // XML types should ways be Maps (or Structs)
         if (type instanceof MapType) return super.serde(type, isKey);
         // Other types can not be serialized as XML
-        throw noSerdeFor("XML", type);
+        throw noSerdeFor(type);
     }
 }

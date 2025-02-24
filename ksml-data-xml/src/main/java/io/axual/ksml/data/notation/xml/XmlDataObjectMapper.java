@@ -21,7 +21,6 @@ package io.axual.ksml.data.notation.xml;
  */
 
 import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataNull;
@@ -76,7 +75,7 @@ public class XmlDataObjectMapper implements DataObjectMapper<String> {
             transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
             transformer.setOutputProperty(OutputKeys.INDENT, "no");
         } catch (Exception e) {
-            throw new ExecutionException("Could not initialize XML Document Builder", e);
+            throw new DataException("Could not initialize XML Document Builder", e);
         }
     }
 
@@ -145,8 +144,7 @@ public class XmlDataObjectMapper implements DataObjectMapper<String> {
                 childValues.add(value);
 
                 // Increase the name counter
-                var count = childNameCount.get(name);
-                if (count == null) count = 0L;
+                var count = childNameCount.getOrDefault(name, 0L);
                 childNameCount.put(name, count + 1);
             }
             child = child.getNextSibling();
@@ -174,7 +172,7 @@ public class XmlDataObjectMapper implements DataObjectMapper<String> {
 
     private DataString stringToDataObject(String content) {
         if (content == null) return null;
-        content = content.replaceAll("\n", "").trim();
+        content = content.replace("\n", "").trim();
         if (!content.isEmpty()) return new DataString(content);
         return null;
     }
@@ -185,7 +183,7 @@ public class XmlDataObjectMapper implements DataObjectMapper<String> {
 
         var doc = documentBuilder.newDocument();
         if (value instanceof DataStruct valueStruct && !valueStruct.isNull()) {
-            var rootName = valueStruct.type().schemaName();
+            var rootName = valueStruct.type().name();
             var rootElement = doc.createElement(rootName);
             elementFromDataObject(doc::createElement, rootElement, valueStruct);
             doc.appendChild(rootElement);
@@ -196,11 +194,11 @@ public class XmlDataObjectMapper implements DataObjectMapper<String> {
                 transformer.transform(new DOMSource(doc), new StreamResult(writer));
                 return writer.toString();
             } catch (TransformerException e) {
-                throw new ExecutionException("Could not transform value to XML: " + value, e);
+                throw new DataException("Could not transform value to XML: " + value, e);
             }
         }
 
-        throw new ExecutionException("Could not transform value to XML: " + value);
+        throw new DataException("Could not transform value to XML: " + value);
     }
 
     private void elementFromDataObject(ElementCreator elementCreator, Element element, DataObject value) {

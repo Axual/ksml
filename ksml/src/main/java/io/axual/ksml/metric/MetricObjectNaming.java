@@ -20,8 +20,6 @@ package io.axual.ksml.metric;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.tag.ContextTag;
-import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.exception.MetricObjectNamingException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -41,14 +39,14 @@ class MetricObjectNaming {
         return stringFromNameAndMetricsTags(metricName.name(), metricName.tags());
     }
 
-    static String stringFromNameAndMetricsTags(String name, List<ContextTag> tags) {
-        final var tagsWithName = new ArrayList<ContextTag>(tags.size() + 1);
-        tagsWithName.add(new ContextTag(NAME_TAG_KEY, name));
+    static String stringFromNameAndMetricsTags(String name, List<MetricTag> tags) {
+        final var tagsWithName = new ArrayList<MetricTag>(tags.size() + 1);
+        tagsWithName.add(new MetricTag(NAME_TAG_KEY, name));
         tagsWithName.addAll(tags);
         return stringFromMetricsTags(tagsWithName);
     }
 
-    static String stringFromMetricsTags(List<ContextTag> tags) {
+    static String stringFromMetricsTags(List<MetricTag> tags) {
         final var keys = new HashSet<String>();
         var builder = new StringBuilder();
 
@@ -67,9 +65,9 @@ class MetricObjectNaming {
         return builder.toString();
     }
 
-    static ContextTags metricTagsFromString(String name) {
+    static MetricTags metricTagsFromString(String name) {
         var keyValues = StringUtils.splitByWholeSeparator(name, TAG_SEPARATOR);
-        var tags = new ContextTags();
+        var tags = new MetricTags();
         for (var kvString : keyValues) {
             if (kvString == null || kvString.isBlank()) {
                 continue;

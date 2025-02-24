@@ -49,10 +49,10 @@ public class RecordContextSchema {
 
     private static StructSchema generateRecordContextSchema() {
         final var fields = new ArrayList<DataField>();
-        fields.add(new DataField(RECORD_CONTEXT_SCHEMA_OFFSET_FIELD, DataSchema.create(DataSchema.Type.LONG), RECORD_CONTEXT_SCHEMA_OFFSET_DOC));
-        fields.add(new DataField(RECORD_CONTEXT_SCHEMA_TIMESTAMP_FIELD, DataSchema.create(DataSchema.Type.LONG), RECORD_CONTEXT_SCHEMA_TIMESTAMP_DOC));
-        fields.add(new DataField(RECORD_CONTEXT_SCHEMA_TOPIC_FIELD, DataSchema.create(DataSchema.Type.STRING), RECORD_CONTEXT_SCHEMA_TOPIC_DOC));
-        fields.add(new DataField(RECORD_CONTEXT_SCHEMA_PARTITION_FIELD, DataSchema.create(DataSchema.Type.INTEGER), RECORD_CONTEXT_SCHEMA_PARTITION_DOC));
+        fields.add(new DataField(RECORD_CONTEXT_SCHEMA_OFFSET_FIELD, DataSchema.LONG_SCHEMA, RECORD_CONTEXT_SCHEMA_OFFSET_DOC));
+        fields.add(new DataField(RECORD_CONTEXT_SCHEMA_TIMESTAMP_FIELD, DataSchema.LONG_SCHEMA, RECORD_CONTEXT_SCHEMA_TIMESTAMP_DOC));
+        fields.add(new DataField(RECORD_CONTEXT_SCHEMA_TOPIC_FIELD, DataSchema.STRING_SCHEMA, RECORD_CONTEXT_SCHEMA_TOPIC_DOC));
+        fields.add(new DataField(RECORD_CONTEXT_SCHEMA_PARTITION_FIELD, DataSchema.INTEGER_SCHEMA, RECORD_CONTEXT_SCHEMA_PARTITION_DOC));
         fields.add(new DataField(RECORD_CONTEXT_SCHEMA_HEADERS_FIELD, new ListSchema(HEADER_SCHEMA), RECORD_CONTEXT_SCHEMA_HEADERS_DOC));
         return new StructSchema(DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE, RECORD_CONTEXT_SCHEMA_NAME, KAFKA_PREFIX + RECORD_CONTEXT_SCHEMA_NAME, fields);
     }

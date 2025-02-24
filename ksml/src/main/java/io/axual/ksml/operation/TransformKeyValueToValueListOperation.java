@@ -21,7 +21,6 @@ package io.axual.ksml.operation;
  */
 
 
-import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.definition.FunctionDefinition;
@@ -31,6 +30,7 @@ import io.axual.ksml.operation.processor.FixedKeyOperationProcessorSupplier;
 import io.axual.ksml.operation.processor.TransformKeyValueToValueListProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
+import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserKeyValueToValueListTransformer;
 
 public class TransformKeyValueToValueListOperation extends BaseOperation {
@@ -64,7 +64,7 @@ public class TransformKeyValueToValueListOperation extends BaseOperation {
         final var supplier = new FixedKeyOperationProcessorSupplier<>(
                 name,
                 TransformKeyValueToValueListProcessor::new,
-                (stores, record) -> userMap.apply(stores, flattenValue(record.key()), flattenValue(record.value())),
+                (stores, rec) -> userMap.apply(stores, flattenValue(rec.key()), flattenValue(rec.value())),
                 storeNames);
         final var named = namedOf();
         final var output = named != null

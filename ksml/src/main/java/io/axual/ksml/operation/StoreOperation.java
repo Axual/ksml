@@ -21,13 +21,13 @@ package io.axual.ksml.operation;
  */
 
 
-import io.axual.ksml.data.exception.ExecutionException;
-import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.SessionStateStoreDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.WindowStateStoreDefinition;
+import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.type.UserType;
 import lombok.Getter;
 
 @Getter

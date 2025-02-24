@@ -25,7 +25,7 @@ import org.apache.kafka.streams.processor.api.FixedKeyRecord;
 
 public class TransformValueProcessor extends FixedKeyOperationProcessor {
     public interface TransformValueAction {
-        Object apply(StateStores stores, FixedKeyRecord<Object, Object> record);
+        Object apply(StateStores stores, FixedKeyRecord<Object, Object> rec);
     }
 
     private final TransformValueAction action;
@@ -36,8 +36,8 @@ public class TransformValueProcessor extends FixedKeyOperationProcessor {
     }
 
     @Override
-    public void process(FixedKeyRecord<Object, Object> record) {
-        var v = action.apply(stores, record);
-        context.forward(record.withValue(v));
+    public void process(FixedKeyRecord<Object, Object> rec) {
+        var v = action.apply(stores, rec);
+        context.forward(rec.withValue(v));
     }
 }

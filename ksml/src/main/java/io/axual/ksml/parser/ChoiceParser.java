@@ -20,15 +20,12 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.ParseException;
-import io.axual.ksml.data.parser.BaseParser;
-import io.axual.ksml.data.parser.NamedObjectParser;
-import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataValue;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.Symbol;
+import io.axual.ksml.exception.ParseException;
 import lombok.Getter;
 
 import java.util.*;
@@ -51,10 +48,10 @@ public class ChoiceParser<T> extends BaseParser<T> implements StructsParser<T>, 
         // To generate proper JSON Schema, first map all parseable schema to fixed values associated with them
         final Map<StructSchema, List<String>> schemaToChildValues = new HashMap<>();
         this.parsers.forEach((name, parser) -> {
-            final var schemas = parser.schemas();
-            for (final var schema : schemas) {
-                schemaToChildValues.putIfAbsent(schema, new ArrayList<>());
-                schemaToChildValues.get(schema).add(name);
+            final var parserSchemas = parser.schemas();
+            for (final var parserSchema : parserSchemas) {
+                schemaToChildValues.putIfAbsent(parserSchema, new ArrayList<>());
+                schemaToChildValues.get(parserSchema).add(name);
             }
         });
 

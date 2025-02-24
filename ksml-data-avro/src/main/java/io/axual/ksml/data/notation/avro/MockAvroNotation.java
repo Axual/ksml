@@ -21,20 +21,18 @@ package io.axual.ksml.data.notation.avro;
  */
 
 import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.exception.SchemaException;
-import io.axual.ksml.data.loader.SchemaLoader;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.notation.BaseNotation;
 import io.axual.ksml.data.notation.Notation;
-import io.axual.ksml.data.notation.NotationConverter;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
 import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry;
+import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
-import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import lombok.Getter;
 import org.apache.avro.JsonSchemaFormatter;
@@ -54,23 +52,18 @@ import java.util.Map;
  * Internally, the schema registry URL is set to <code>mock://mock-scope</code> which will cause an
  * instance of {@link MockSchemaRegistry} to be used.
  */
-public class MockAvroNotation implements Notation {
+public class MockAvroNotation extends BaseNotation {
     public static final String NAME = "avro";
-    public static final DataType DEFAULT_TYPE = new StructType();
-    private static final AvroDataObjectMapper mapper = new AvroDataObjectMapper();
+    private static final AvroDataObjectMapper AVRO_MAPPER = new AvroDataObjectMapper();
     private final Map<String, Object> configs = new HashMap<>();
     @Getter
     private final SyncMockSchemaRegistryClient mockSchemaRegistryClient = new SyncMockSchemaRegistryClient();
-    @Getter
-    private final NotationConverter converter = null;
-    @Getter
-    private final SchemaLoader loader;
 
-    public MockAvroNotation(Map<String, ?> configs, SchemaLoader loader) {
+    public MockAvroNotation(Map<String, ?> configs) {
+        super(NAME, ".avsc", new StructType(), null, new AvroSchemaParser());
         this.configs.putAll(configs);
         this.configs.put("schema.registry.url", "mock://mock-scope");
-        this.configs.put(KafkaAvroDeserializerConfig.AUTO_REGISTER_SCHEMAS, true);
-        this.loader = loader;
+        this.configs.put(AbstractKafkaSchemaSerDeConfig.AUTO_REGISTER_SCHEMAS, true);
     }
 
     public Map<String, Object> getSchemaRegistryConfigs() {
@@ -89,18 +82,13 @@ public class MockAvroNotation implements Notation {
     }
 
     @Override
-    public DataType defaultType() {
-        return DEFAULT_TYPE;
-    }
-
-    @Override
     public Serde<Object> serde(DataType type, boolean isKey) {
         if (type instanceof MapType) {
             var result = new AvroSerde();
             result.configure(configs, isKey);
             return result;
         }
-        throw new DataException("Avro serde not found for data type " + type);
+        throw new DataException("AVRO serde not found for data type " + type);
     }
 
     private class AvroSerde implements Serde<Object> {
@@ -111,18 +99,18 @@ public class MockAvroNotation implements Notation {
         private final Serializer<Object> wrapSerializer =
                 (topic, data) -> {
                     try {
-                        return serializer.serialize(topic, mapper.fromDataObject(nativeMapper.toDataObject(data)));
+                        return serializer.serialize(topic, AVRO_MAPPER.fromDataObject(nativeMapper.toDataObject(data)));
                     } catch (Exception e) {
-                        throw new ExecutionException("Error serializing AVRO message to topic " + topic, e);
+                        throw new DataException("Error serializing AVRO message to topic " + topic, e);
                     }
                 };
 
         private final Deserializer<Object> wrapDeserializer =
                 (topic, data) -> {
                     try {
-                        return mapper.toDataObject(deserializer.deserialize(topic, data));
+                        return AVRO_MAPPER.toDataObject(deserializer.deserialize(topic, data));
                     } catch (Exception e) {
-                        throw new ExecutionException("Error deserializing AVRO message from topic " + topic, e);
+                        throw new DataException("Error deserializing AVRO message from topic " + topic, e);
                     }
                 };
 

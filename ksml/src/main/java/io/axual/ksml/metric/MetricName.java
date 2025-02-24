@@ -20,13 +20,11 @@ package io.axual.ksml.metric;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.tag.ContextTag;
-import io.axual.ksml.data.tag.ContextTags;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * The MetricName identifies a single metric in the system. If a name is used multiple times,
- * one or more {@link ContextTag} can be added to identify the instance.
+ * one or more {@link MetricTag} can be added to identify the instance.
  * <p>
  * Example: A metric counting the number of produce calls for a topic partition would look like
  * <pre>
@@ -36,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
  * </pre>
  */
 @Slf4j
-public record MetricName(String name, ContextTags tags) {
+public record MetricName(String name, MetricTags tags) {
     public MetricName {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Metric name can not be null or empty");
@@ -44,7 +42,7 @@ public record MetricName(String name, ContextTags tags) {
     }
 
     public MetricName(String name) {
-        this(name, new ContextTags());
+        this(name, new MetricTags());
     }
 
     @Override

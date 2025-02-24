@@ -21,8 +21,8 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.type.UserType;
 import lombok.Getter;
 
 import java.util.ArrayList;

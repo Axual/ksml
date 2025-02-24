@@ -20,7 +20,7 @@ package io.axual.ksml.operation.processor;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.store.StateStores;
 import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.processor.api.Processor;
@@ -32,7 +32,7 @@ public abstract class OperationProcessor implements Processor<Object, Object, Ob
     private final String[] storeNames;
     protected final StateStores stores = new StateStores();
 
-    public OperationProcessor(String name, String[] storeNames) {
+    protected OperationProcessor(String name, String[] storeNames) {
         this.name = name;
         this.storeNames = storeNames;
     }

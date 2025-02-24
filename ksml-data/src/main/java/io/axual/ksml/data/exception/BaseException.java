@@ -24,11 +24,11 @@ public abstract class BaseException extends RuntimeException {
     private static final String PREFIX = "KSML ";
     private static final String POSTFIX = " error: ";
 
-    public BaseException(String activity, String message) {
+    protected BaseException(String activity, String message) {
         super(PREFIX + activity + POSTFIX + message);
     }
 
-    public BaseException(String activity, String message, Throwable t) {
+    protected BaseException(String activity, String message, Throwable t) {
         super(PREFIX + activity + POSTFIX + message, t);
     }
 }

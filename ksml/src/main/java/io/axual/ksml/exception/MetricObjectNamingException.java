@@ -23,7 +23,7 @@ package io.axual.ksml.exception;
 import io.axual.ksml.data.exception.BaseException;
 
 public class MetricObjectNamingException extends BaseException {
-    private static final String ACTIVITY = "Metric object naming";
+    private static final String ACTIVITY = "metric object naming";
 
     public MetricObjectNamingException(String message) {
         super(ACTIVITY, message);

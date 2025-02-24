@@ -20,18 +20,42 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.type.EnumType;
 import io.axual.ksml.data.util.ListUtil;
 
+/**
+ * Represents a wrapper for an enumerated value as part of the {@link DataObject} framework.
+ *
+ * <p>The {@code DataEnum} class encapsulates an enumerated value to integrate seamlessly
+ * into the structured data model used in schema-compliant or stream-processed data.
+ * It enables enumerated values to be used as {@link DataObject} types, making them compatible
+ * with the framework and allowing for standardized processing.</p>
+ *
+ * @see DataObject
+ */
 public class DataEnum extends DataPrimitive<String> {
+    /**
+     * Constructs a {@code DataEnum} instance with the specified {@code String} value.
+     *
+     * <p>The input value can not be {@code null} and should be one of the allowed symbols
+     * from the specified enum type.</p>
+     *
+     * @param value The {@code String} value to encapsulate, which should be a symbol of the specified {@code EnumType}.
+     * @param type  The specified enumeration type, which contains a list of symbols that the enumeration can hold.
+     */
     public DataEnum(String value, EnumType type) {
         super(type, value);
         if (!validateValue(value)) {
-            throw new ExecutionException("Invalid enum value for type " + type.schemaName() + ": " + value);
+            throw new DataException("Invalid enum value for type " + type.name() + ": " + value);
         }
     }
 
+    /**
+     * Validate that a given value is allowed by the enum type by looking up the value in the symbol list.
+     *
+     * @return true if the value is found in the symbol list, false otherwise.
+     */
     private boolean validateValue(String value) {
         if (value == null) return true;
         final var symbols = ((EnumType) type()).symbols();

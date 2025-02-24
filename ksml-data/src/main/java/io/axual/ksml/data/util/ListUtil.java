@@ -22,16 +22,21 @@ package io.axual.ksml.data.util;
 
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class ListUtil {
-    public static <V> V find(List<V> list, Function<V, Boolean> matcher) {
+    public static <V> V find(List<V> list, Predicate<V> matcher) {
         for (final var entry : list) {
-            if (matcher.apply(entry)) return entry;
+            if (matcher.test(entry)) return entry;
         }
         return null;
     }
 
     public static <T, R> List<R> map(List<T> list, Function<T, R> mapper) {
         return list.stream().map(mapper).toList();
+    }
+
+    private ListUtil() {
+        // Prevent instantiation.
     }
 }

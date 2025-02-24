@@ -39,11 +39,6 @@ public class JsonVerifier {
         this.cursor = rootNode;
     }
 
-    private JsonVerifier(JsonNode rootNode) {
-        this.rootNode = rootNode;
-        this.cursor = rootNode;
-    }
-
     public static JsonVerifier verifyJson(String json) throws JsonProcessingException {
         return new JsonVerifier(json);
     }

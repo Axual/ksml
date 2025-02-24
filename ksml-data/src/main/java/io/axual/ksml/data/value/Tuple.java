@@ -22,11 +22,13 @@ package io.axual.ksml.data.value;
 
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import java.util.List;
 
 // This class implements a Tuple with any number of elements
 @EqualsAndHashCode
+@Getter
 public class Tuple<T> {
     private final List<T> elements;
 
@@ -35,25 +37,12 @@ public class Tuple<T> {
         this.elements = List.of(elements);
     }
 
-    public List<T> elements() {
-        // Okay to return, since it this is an unmodifiable list
-        return elements;
-    }
-
-    public T get(int index) {
-        return elements.get(index);
-    }
-
-    public int size() {
-        return elements.size();
-    }
-
     @Override
     public String toString() {
         var sb = new StringBuilder("(");
         for (int index = 0; index < elements.size(); index++) {
             if (index > 0) sb.append(", ");
-            sb.append(elements().get(index).toString());
+            sb.append(elements.get(index).toString());
         }
         sb.append(")");
         return sb.toString();

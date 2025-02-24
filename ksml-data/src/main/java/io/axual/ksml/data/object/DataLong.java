@@ -20,16 +20,45 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.parser.schema.DataSchemaDSL;
+import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.type.SimpleType;
 
+/**
+ * Represents a wrapper for a long value as part of the {@link DataObject} framework.
+ *
+ * <p>The {@code DataLong} class encapsulates a long value to integrate seamlessly
+ * into the structured data model used in schema-compliant or stream-processed data.
+ * It enables long values to be used as {@link DataObject} types, making them compatible
+ * with the framework and allowing for standardized processing.</p>
+ *
+ * @see DataObject
+ */
 public class DataLong extends DataPrimitive<Long> {
-    public static final SimpleType DATATYPE = new SimpleType(Long.class, DataSchemaDSL.LONG_TYPE);
+    /**
+     * Represents the data type of this {@code DataLong}, which is {@code Long},
+     * mapped to the schema definition in {@link DataSchemaConstants#LONG_TYPE}.
+     * <p>This constant ensures that the type metadata for a {@code DataLong} is
+     * consistent across all usages in the framework.</p>
+     */
+    public static final SimpleType DATATYPE = new SimpleType(Long.class, DataSchemaConstants.LONG_TYPE);
 
+    /**
+     * Constructs a {@code DataLong} instance with a null value.
+     * <p>This constructor creates a {@code DataLong} that does not hold any actual
+     * {@code Long} value, effectively representing a "null" long in the framework.</p>
+     */
     public DataLong() {
         this(null);
     }
 
+    /**
+     * Constructs a {@code DataLong} instance with the specified {@code Long} value.
+     *
+     * <p>If the input value is {@code null}, the {@code DataLong} will represent
+     * the absence of a value (a null long).</p>
+     *
+     * @param value The {@code Long} value to encapsulate, or {@code null} to represent a null value.
+     */
     public DataLong(Long value) {
         super(DATATYPE, value);
     }

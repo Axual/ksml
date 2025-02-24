@@ -22,11 +22,10 @@ package io.axual.ksml.generator;
 
 
 import io.axual.ksml.data.mapper.DataTypeFlattener;
-import io.axual.ksml.data.notation.NotationLibrary;
-import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.serde.UnionSerde;
 import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.execution.ExecutionContext;
+import io.axual.ksml.type.UserType;
 import org.apache.kafka.common.serialization.Serde;
 
 public record StreamDataType(UserType userType, boolean isKey) {
@@ -42,12 +41,12 @@ public record StreamDataType(UserType userType, boolean isKey) {
 
     @Override
     public String toString() {
-        var schemaName = userType.dataType().schemaName();
+        var schemaName = userType.dataType().name();
         return (userType.notation() != null ? userType.notation().toLowerCase() : "unknown notation") + (schemaName != null && !schemaName.isEmpty() ? ":" : "") + schemaName;
     }
 
     public Serde<Object> serde() {
-        final var notation = NotationLibrary.get(userType.notation());
+        final var notation = ExecutionContext.INSTANCE.notationLibrary().get(userType.notation());
         if (userType.dataType() instanceof UnionType unionType)
             return new UnionSerde(FLATTENER.flatten(unionType), isKey, notation::serde);
         var serde = notation.serde(FLATTENER.flatten(userType.dataType()), isKey);

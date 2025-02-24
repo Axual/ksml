@@ -20,8 +20,6 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.parser.ParserWithSchemas;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.UnionSchema;
@@ -32,13 +30,11 @@ import java.time.Duration;
 import java.util.List;
 import java.util.function.ToLongFunction;
 
-import static io.axual.ksml.data.schema.DataField.NO_INDEX;
-
 @Getter
 public class DurationParser implements ParserWithSchemas<Duration> {
     private final List<DataSchema> schemas = List.of(new UnionSchema(
-            new DataField(null, DataSchema.longSchema(), "Duration in milliseconds"),
-            new DataField(null, DataSchema.stringSchema(), "Duration with unit")));
+            new DataField(null, DataSchema.LONG_SCHEMA, "Duration in milliseconds"),
+            new DataField(null, DataSchema.STRING_SCHEMA, "Duration with unit")));
 
     @Override
     public Duration parse(ParseNode node) {
@@ -70,6 +66,9 @@ public class DurationParser implements ParserWithSchemas<Duration> {
                 }
                 case 'w' -> {
                     return Duration.ofDays(parser.applyAsLong(durationStr) * 7);
+                }
+                default -> {
+                    // Parsed below as long
                 }
             }
         }

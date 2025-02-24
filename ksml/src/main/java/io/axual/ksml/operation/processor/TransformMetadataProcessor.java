@@ -26,7 +26,7 @@ import org.apache.kafka.streams.processor.api.FixedKeyRecord;
 
 public class TransformMetadataProcessor extends FixedKeyOperationProcessor {
     public interface TransformMetadataAction {
-        RecordMetadata apply(StateStores stores, FixedKeyRecord<Object, Object> record);
+        RecordMetadata apply(StateStores stores, FixedKeyRecord<Object, Object> rec);
     }
 
     private final TransformMetadataAction action;
@@ -37,10 +37,10 @@ public class TransformMetadataProcessor extends FixedKeyOperationProcessor {
     }
 
     @Override
-    public void process(FixedKeyRecord<Object, Object> record) {
-        var result = action.apply(stores, record);
-        if (result.timestamp() != null) record = record.withTimestamp(result.timestamp());
-        if (result.headers() != null) record = record.withHeaders(result.headers());
-        context.forward(record);
+    public void process(FixedKeyRecord<Object, Object> rec) {
+        var result = action.apply(stores, rec);
+        if (result.timestamp() != null) rec = rec.withTimestamp(result.timestamp());
+        if (result.headers() != null) rec = rec.withHeaders(result.headers());
+        context.forward(rec);
     }
 }

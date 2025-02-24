@@ -27,6 +27,7 @@ import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.StructSchema;
 
 import java.util.ArrayList;
@@ -109,6 +110,11 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
     private static final String TYPE_NAME = "type";
     private static final String COMPLEX_TYPE_NAME = "complexType";
     private static final String SEQUENCE_NAME = "sequence";
+    private static final String ANY_NAME = "any";
+    private static final String BOOLEAN_NAME = "boolean";
+    private static final String INTEGER_NAME = "integer";
+    private static final String LONG_NAME = "long";
+    private static final String STRING_NAME = "string";
 
     @Override
     public StructSchema toDataSchema(String namespace, String name, String schema) {
@@ -194,11 +200,11 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
 
     private DataField simpleField(String name, String type) {
         var schema = switch (type) {
-            case "any" -> DataSchema.create(DataSchema.Type.ANY);
-            case "boolean" -> DataSchema.create(DataSchema.Type.BOOLEAN);
-            case "integer" -> DataSchema.create(DataSchema.Type.INTEGER);
-            case "long" -> DataSchema.create(DataSchema.Type.LONG);
-            case "string" -> DataSchema.create(DataSchema.Type.STRING);
+            case ANY_NAME -> DataSchema.ANY_SCHEMA;
+            case BOOLEAN_NAME -> DataSchema.BOOLEAN_SCHEMA;
+            case INTEGER_NAME -> DataSchema.INTEGER_SCHEMA;
+            case LONG_NAME -> DataSchema.LONG_SCHEMA;
+            case STRING_NAME -> DataSchema.STRING_SCHEMA;
             default -> null;
         };
         if (schema == null) return null;
@@ -244,13 +250,13 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
         return result;
     }
 
-    public String simpleType(DataSchema.Type type) {
+    public String simpleType(String type) {
         return switch (type) {
-            case ANY -> "any";
-            case BOOLEAN -> "boolean";
-            case INTEGER -> "integer";
-            case LONG -> "long";
-            case STRING -> "string";
+            case DataSchemaConstants.ANY_TYPE -> ANY_NAME;
+            case DataSchemaConstants.BOOLEAN_TYPE -> BOOLEAN_NAME;
+            case DataSchemaConstants.INTEGER_TYPE -> INTEGER_NAME;
+            case DataSchemaConstants.LONG_TYPE -> LONG_NAME;
+            case DataSchemaConstants.STRING_TYPE -> STRING_NAME;
             default -> null;
         };
     }

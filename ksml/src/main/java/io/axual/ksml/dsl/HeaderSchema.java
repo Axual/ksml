@@ -20,8 +20,11 @@ package io.axual.ksml.dsl;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.DataTypeSchemaMapper;
-import io.axual.ksml.data.schema.*;
+import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.DataSchemaConstants;
+import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
 
 import java.util.ArrayList;
@@ -32,7 +35,7 @@ public class HeaderSchema {
 
     // Public constants are the fixed schemas and the field names
     public static final StructSchema HEADER_SCHEMA = generateHeaderSchema();
-    public static final DataType HEADER_TYPE = new DataTypeSchemaMapper().fromDataSchema(HEADER_SCHEMA);
+    public static final DataType HEADER_TYPE = new DataTypeDataSchemaMapper().fromDataSchema(HEADER_SCHEMA);
     public static final String HEADER_SCHEMA_NAME = "Header";
     public static final String HEADER_SCHEMA_KEY_FIELD = "key";
     public static final String HEADER_SCHEMA_VALUE_FIELD = "value";
@@ -42,8 +45,8 @@ public class HeaderSchema {
 
     private static StructSchema generateHeaderSchema() {
         final var headerFields = new ArrayList<DataField>();
-        headerFields.add(new DataField(HEADER_SCHEMA_KEY_FIELD, DataSchema.stringSchema(), HEADER_SCHEMA_KEY_DOC, 1));
-        headerFields.add(new DataField(HEADER_SCHEMA_VALUE_FIELD, AnySchema.INSTANCE, HEADER_SCHEMA_VALUE_DOC, 2));
+        headerFields.add(new DataField(HEADER_SCHEMA_KEY_FIELD, DataSchema.STRING_SCHEMA, HEADER_SCHEMA_KEY_DOC, 1));
+        headerFields.add(new DataField(HEADER_SCHEMA_VALUE_FIELD, DataSchema.ANY_SCHEMA, HEADER_SCHEMA_VALUE_DOC, 2));
         return new StructSchema(DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE, HEADER_SCHEMA_NAME, KAFKA_PREFIX + HEADER_SCHEMA_NAME, headerFields);
     }
 }

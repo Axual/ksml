@@ -21,6 +21,18 @@ package io.axual.ksml.python;
  */
 
 
+import io.axual.ksml.data.mapper.DataObjectConverter;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.definition.ParameterDefinition;
+import io.axual.ksml.exception.ExecutionException;
+import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.store.StateStores;
+import io.axual.ksml.user.UserFunction;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.processor.StateStore;
 import org.graalvm.polyglot.Value;
 
@@ -30,20 +42,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import io.axual.ksml.data.exception.ExecutionException;
-import io.axual.ksml.data.mapper.DataObjectConverter;
-import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.definition.ParameterDefinition;
-import io.axual.ksml.exception.TopologyException;
-import io.axual.ksml.execution.FatalError;
-import io.axual.ksml.store.StateStores;
-import io.axual.ksml.user.UserFunction;
-import lombok.extern.slf4j.Slf4j;
-
-import static io.axual.ksml.data.notation.UserType.DEFAULT_NOTATION;
+import static io.axual.ksml.type.UserType.DEFAULT_NOTATION;
 
 @Slf4j
 public class PythonFunction extends UserFunction {
@@ -189,18 +188,18 @@ public class PythonFunction extends UserFunction {
                 """
                         import polyglot
                         import java
-
+                        
                         ArrayList = java.type('java.util.ArrayList')
                         HashMap = java.type('java.util.HashMap')
                         TreeMap = java.type('java.util.TreeMap')
                         stores = None
-
+                        
                         # global Python code goes here (first argument)
                         %1$s
-
+                        
                         # function definition and expression go here (second argument)
                         %2$s
-
+                        
                         def convert_to_python(value):
                           if value == None: # don't modify to "is" operator, since Java's null is not exactly the same as None
                             return None
@@ -215,7 +214,7 @@ public class PythonFunction extends UserFunction {
                               result.append(convert_to_python(e))
                             return result
                           return value
-
+                        
                         def convert_from_python(value):
                           if value == None: # don't modify to "is" operator, since Java's null is not exactly the same as None
                             return None
@@ -230,7 +229,7 @@ public class PythonFunction extends UserFunction {
                               result.put(convert_from_python(k), convert_from_python(v))
                             return result
                           return value
-
+                        
                         # caller definition goes here (third argument)
                         @polyglot.export_value
                         %3$s
@@ -258,11 +257,11 @@ public class PythonFunction extends UserFunction {
             result.add(line);
             injectCode = false;
             if (line.trim().startsWith("def ") && line.trim().endsWith(":")) {
-                final var function = line.trim().substring(4, line.length() - 1).trim();
-                if (function.contains("(") && function.endsWith(")")) {
+                final var functionDef = line.trim().substring(4, line.length() - 1).trim();
+                if (functionDef.contains("(") && functionDef.endsWith(")")) {
                     injectCode = true;
                     defIndent = lineIndent;
-                    functionName = function.substring(0, function.indexOf("("));
+                    functionName = functionDef.substring(0, functionDef.indexOf("("));
                 }
             }
         }

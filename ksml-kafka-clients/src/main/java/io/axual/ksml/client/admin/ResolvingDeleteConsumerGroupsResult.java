@@ -32,7 +32,7 @@ public class ResolvingDeleteConsumerGroupsResult extends ExtendableDeleteConsume
 
     public ResolvingDeleteConsumerGroupsResult(Map<String, KafkaFuture<Void>> futures, GroupResolver groupResolver) {
         super(futures);
-        this.unresolvedFutures = new HashMap<>(futures.size());
+        this.unresolvedFutures = HashMap.newHashMap(futures.size());
         futures.forEach((groupId, future) -> {
             String unresolvedGroupId = groupResolver.unresolve(groupId);
             if (unresolvedGroupId != null) {

@@ -52,10 +52,10 @@ class KSMLCopyAndFilterTest {
         inputTopic.pipeInput("key1", "value1");
         assertFalse(outputTopic.isEmpty(), "record should be copied");
         var keyValue = outputTopic.readKeyValue();
-        System.out.printf("Output topic key=%s, value=%s\n", keyValue.key, keyValue.value);
+        System.out.printf("Output topic key=%s, value=%s%n", keyValue.key, keyValue.value);
     }
 
-    @KSMLTest(topology = "pipelines/test-filtering.yaml", schemapath = "pipelines",
+    @KSMLTest(topology = "pipelines/test-filtering.yaml", schemaDirectory = "pipelines",
             inputTopics = {@KSMLTopic(variable = "inputTopic", topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)},
             outputTopics = {@KSMLTopic(variable = "outputTopic", topic = "ksml_sensordata_filtered", valueSerde = KSMLTopic.SerdeType.AVRO)})
     @DisplayName("Records can be filtered by KSML")
@@ -79,7 +79,7 @@ class KSMLCopyAndFilterTest {
         List<GenericRecord> outputValues = outputTopic.readValuesToList();
         assertEquals(2, outputValues.size());
         assertTrue(outputValues.stream()
-                .map(record -> record.get("color").toString())
+                .map(rec -> rec.get("color").toString())
                 .allMatch(color -> color.equals("blue")));
     }
 }

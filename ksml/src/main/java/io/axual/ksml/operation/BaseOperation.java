@@ -21,11 +21,8 @@ package io.axual.ksml.operation;
  */
 
 import io.axual.ksml.data.mapper.DataObjectFlattener;
-import io.axual.ksml.data.mapper.DataTypeFlattener;
-import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.WindowedType;
@@ -33,6 +30,8 @@ import io.axual.ksml.definition.*;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.metric.MetricTags;
+import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserFunction;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.utils.Bytes;
@@ -65,12 +64,11 @@ public abstract class BaseOperation implements StreamOperation {
         }
     }
 
-    private static final DataObjectFlattener dataObjectFlattener = new DataObjectFlattener(true);
-    private static final DataTypeFlattener dataTypeFlattener = new DataTypeFlattener();
+    private static final DataObjectFlattener DATA_OBJECT_FLATTENER = new DataObjectFlattener();
     protected final String name;
-    protected final ContextTags tags;
+    protected final MetricTags tags;
 
-    public BaseOperation(OperationConfig config) {
+    protected BaseOperation(OperationConfig config) {
         var error = NameValidator.validateNameAndReturnError(config.name());
         if (error != null) {
             log.warn("Ignoring name with error '" + config.name() + "': " + error);
@@ -91,7 +89,7 @@ public abstract class BaseOperation implements StreamOperation {
     }
 
     protected DataObject flattenValue(Object value) {
-        return dataObjectFlattener.toDataObject(value);
+        return DATA_OBJECT_FLATTENER.toDataObject(value);
     }
 
     protected void checkNotNull(Object object, String description) {
@@ -222,7 +220,7 @@ public abstract class BaseOperation implements StreamOperation {
 
     protected void checkType(String subject, DataType type, TypeComparator comparator) {
         if (!comparator.checker.compare(type)) {
-            throw topologyError(subject + " is expected to be " + comparator.faultDescription + ", but found " + type.schemaName());
+            throw topologyError(subject + " is expected to be " + comparator.faultDescription + ", but found " + type.name());
         }
     }
 

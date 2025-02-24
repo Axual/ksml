@@ -34,6 +34,7 @@ public abstract class TopologyResourceAwareParser<T> extends TopologyBaseResourc
         this.resources = resources;
     }
 
+    @Override
     protected TopologyResources resources() {
         if (resources != null) return resources;
         throw new TopologyException("Topology resources not properly initialized. This is a programming error.");

@@ -23,9 +23,9 @@ package io.axual.ksml.user;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.Invoker;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 
@@ -33,7 +33,7 @@ public class UserKeyValuePrinter extends Invoker implements KeyValueMapper<Objec
     private static final DataType EXPECTED_RESULT_TYPE = DataString.DATATYPE;
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
-    public UserKeyValuePrinter(UserFunction function, ContextTags tags) {
+    public UserKeyValuePrinter(UserFunction function, MetricTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_KEYVALUEPRINTER);
         verifyParameterCount(2);
         verifyResultType(EXPECTED_RESULT_TYPE);

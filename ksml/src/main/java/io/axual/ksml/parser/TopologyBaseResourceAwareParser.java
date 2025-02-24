@@ -21,13 +21,12 @@ package io.axual.ksml.parser;
  */
 
 
-import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyBaseResources;
+import io.axual.ksml.metric.MetricTags;
 
 import java.util.List;
 import java.util.function.BiFunction;
@@ -50,7 +49,7 @@ public abstract class TopologyBaseResourceAwareParser<T> extends DefinitionParse
         return StructsParser.of(resourceParser::parseDefinition, resourceParser.schemas());
     }
 
-    protected <S> StructsParser<S> lookupField(String resourceType, String childName, String doc, BiFunction<String, ContextTags, S> lookup, DefinitionParser<? extends S> parser) {
+    protected <S> StructsParser<S> lookupField(String resourceType, String childName, String doc, BiFunction<String, MetricTags, S> lookup, DefinitionParser<? extends S> parser) {
         final var resourceParser = new TopologyResourceParser<>(resourceType, childName, doc, lookup, parser);
         final var schemas = resourceParser.schemas();
         return new StructsParser<>() {
@@ -68,7 +67,7 @@ public abstract class TopologyBaseResourceAwareParser<T> extends DefinitionParse
         };
     }
 
-    protected <S> StructsParser<TopologyResource<S>> topologyResourceField(String resourceType, String childName, String doc, BiFunction<String, ContextTags, S> lookup, DefinitionParser<S> parser) {
+    protected <S> StructsParser<TopologyResource<S>> topologyResourceField(String resourceType, String childName, String doc, BiFunction<String, MetricTags, S> lookup, DefinitionParser<S> parser) {
         return new TopologyResourceParser<>(resourceType, childName, doc, lookup, parser, true);
     }
 }

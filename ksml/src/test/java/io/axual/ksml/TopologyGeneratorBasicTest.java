@@ -23,12 +23,12 @@ package io.axual.ksml;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.notation.json.JsonNotation;
-import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
+import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.YAMLObjectMapper;
+import io.axual.ksml.parser.ParseNode;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TopologyDescription;
 import org.graalvm.home.Version;
@@ -46,8 +46,7 @@ import java.nio.file.Paths;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class TopologyGeneratorBasicTest {
-
+class TopologyGeneratorBasicTest {
     private final StreamsBuilder streamsBuilder = new StreamsBuilder();
 
     @ParameterizedTest
@@ -55,9 +54,9 @@ public class TopologyGeneratorBasicTest {
     @ValueSource(ints = {1, 2, 3, 4, 5})
     void parseAndCheckOuput(int nr) throws Exception {
         final var mapper = new NativeDataObjectMapper();
-        final var jsonNotation = new JsonNotation(mapper, null);
-        NotationLibrary.register(BinaryNotation.NAME, new BinaryNotation(mapper, jsonNotation::serde));
-        NotationLibrary.register(JsonNotation.NAME, jsonNotation);
+        final var jsonNotation = new JsonNotation("json", mapper);
+        ExecutionContext.INSTANCE.notationLibrary().register(new BinaryNotation("binary", mapper, jsonNotation::serde));
+        ExecutionContext.INSTANCE.notationLibrary().register(jsonNotation);
 
         final var uri = ClassLoader.getSystemResource("pipelines/" + nr + "-demo.yaml").toURI();
         final var path = Paths.get(uri);

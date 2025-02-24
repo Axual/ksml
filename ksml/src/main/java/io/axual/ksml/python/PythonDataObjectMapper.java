@@ -21,20 +21,21 @@ package io.axual.ksml.python;
  */
 
 import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.exception.ExecutionException;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.*;
+import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.type.*;
 import io.axual.ksml.data.util.MapUtil;
+import io.axual.ksml.exception.ExecutionException;
+import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.util.ExecutionUtil;
 import org.graalvm.polyglot.Value;
 
 import java.util.ArrayList;
 import java.util.Map;
 
-public class PythonDataObjectMapper extends NativeDataObjectMapper {
-    public PythonDataObjectMapper(boolean includeTypeInfo) {
-        super(includeTypeInfo);
+public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
+    public PythonDataObjectMapper(boolean includeSchemaInfo) {
+        super(includeSchemaInfo);
     }
 
     @Override
@@ -53,9 +54,9 @@ public class PythonDataObjectMapper extends NativeDataObjectMapper {
     }
 
     private DataObject unionToDataObject(UnionType unionType, Object object) {
-        for (final var valueType : unionType.valueTypes()) {
+        for (final var memberType : unionType.memberTypes()) {
             try {
-                var result = toDataObject(valueType.type(), object);
+                var result = toDataObject(memberType.type(), object);
                 if (result != null) return result;
             } catch (Exception e) {
                 // Ignore exception and move to next value type
@@ -81,8 +82,6 @@ public class PythonDataObjectMapper extends NativeDataObjectMapper {
 
         // By default, try to decode a dict as a struct
         if (object.hasHashEntries()) {
-            // TODO: Check if the following conditions should also make us go in this statement block
-            // expected == null || expected instanceof MapType || expected.isAssignableFrom(new StructType())
             var result = mapToNative(expected, object);
             if (result != null) return result;
         }
@@ -136,6 +135,11 @@ public class PythonDataObjectMapper extends NativeDataObjectMapper {
         Map<?, ?> map = ExecutionUtil.tryThis(() -> object.as(Map.class));
         if (map == null) return null;
         return nativeToDataStruct(MapUtil.stringKeys(map), expected instanceof StructType structType ? structType.schema() : null);
+    }
+
+    @Override
+    protected DataSchema loadSchema(String schemaName) {
+        return ExecutionContext.INSTANCE.schemaLibrary().getSchema(schemaName, false);
     }
 
     @Override

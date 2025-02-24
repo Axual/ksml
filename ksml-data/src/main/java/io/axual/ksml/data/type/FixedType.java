@@ -20,7 +20,7 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.parser.schema.DataSchemaDSL;
+import io.axual.ksml.data.schema.DataSchemaConstants;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -30,7 +30,7 @@ public class FixedType extends SimpleType {
     private final int size;
 
     public FixedType(int size) {
-        super(byte[].class, DataSchemaDSL.FIXED_TYPE);
+        super(byte[].class, DataSchemaConstants.FIXED_TYPE);
         this.size = size;
     }
 }

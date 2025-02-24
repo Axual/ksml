@@ -20,6 +20,7 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.schema.DataSchemaConstants;
 import lombok.Getter;
 
 import java.util.Arrays;
@@ -29,37 +30,29 @@ import static io.axual.ksml.data.schema.DataField.NO_INDEX;
 
 @Getter
 public class UnionType extends ComplexType {
-    private static final String UNION_NAME = "Union";
-    private final ValueType[] valueTypes;
+    private final MemberType[] memberTypes;
 
     // A field type
-    public record ValueType(String name, DataType type, int index) {
-        public ValueType(DataType type) {
+    public record MemberType(String name, DataType type, int index) {
+        public MemberType(DataType type) {
             this(null, type, NO_INDEX);
         }
     }
 
-    public UnionType(ValueType... valueTypes) {
-        super(Object.class, valueTypesToDataTypes(valueTypes));
-        this.valueTypes = valueTypes;
+    public UnionType(MemberType... memberTypes) {
+        super(Object.class,
+                buildName("Union", "Of", "Or", memberTypesToDataTypes(memberTypes)),
+                DataSchemaConstants.UNION_TYPE + "(" + buildSpec(memberTypesToDataTypes(memberTypes)) + ")",
+                memberTypesToDataTypes(memberTypes));
+        this.memberTypes = memberTypes;
     }
 
-    private static DataType[] valueTypesToDataTypes(ValueType... valueTypes) {
-        var result = new DataType[valueTypes.length];
-        for (int index = 0; index < valueTypes.length; index++) {
-            result[index] = valueTypes[index].type();
+    private static DataType[] memberTypesToDataTypes(MemberType... memberTypes) {
+        var result = new DataType[memberTypes.length];
+        for (int index = 0; index < memberTypes.length; index++) {
+            result[index] = memberTypes[index].type();
         }
         return result;
-    }
-
-    @Override
-    public String containerName() {
-        return UNION_NAME;
-    }
-
-    @Override
-    public String schemaName() {
-        return schemaName(UNION_NAME, "Of", "Or");
     }
 
     @Override
@@ -70,19 +63,19 @@ public class UnionType extends ComplexType {
         if (type instanceof UnionType otherUnion && isAssignableFromOtherUnion(otherUnion)) return true;
 
         // If the union did not match in its entirety, then check for assignable subtypes
-        for (var valueType : valueTypes) {
-            if (valueType.type.isAssignableFrom(type)) return true;
+        for (var memberType : memberTypes) {
+            if (memberType.type.isAssignableFrom(type)) return true;
         }
         return false;
     }
 
     private boolean isAssignableFromOtherUnion(UnionType other) {
-        var otherValueTypes = other.valueTypes();
-        if (valueTypes.length != otherValueTypes.length) return false;
-        for (int index = 0; index < valueTypes.length; index++) {
-            if (!valueTypes[index].type.isAssignableFrom(otherValueTypes[index]))
+        var otherMemberTypes = other.memberTypes();
+        if (memberTypes.length != otherMemberTypes.length) return false;
+        for (int index = 0; index < memberTypes.length; index++) {
+            if (!memberTypes[index].type.isAssignableFrom(otherMemberTypes[index]))
                 return false;
-            if (!otherValueTypes[index].type.isAssignableFrom(valueTypes[index]))
+            if (!otherMemberTypes[index].type.isAssignableFrom(memberTypes[index]))
                 return false;
         }
         return true;
@@ -90,8 +83,8 @@ public class UnionType extends ComplexType {
 
     @Override
     public boolean isAssignableFrom(Object value) {
-        for (final var valueType : valueTypes) {
-            if (valueType.type.isAssignableFrom(value)) return true;
+        for (final var memberType : memberTypes) {
+            if (memberType.type.isAssignableFrom(value)) return true;
         }
         return false;
     }
@@ -104,6 +97,6 @@ public class UnionType extends ComplexType {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), Arrays.hashCode(valueTypes));
+        return Objects.hash(super.hashCode(), Arrays.hashCode(memberTypes));
     }
 }

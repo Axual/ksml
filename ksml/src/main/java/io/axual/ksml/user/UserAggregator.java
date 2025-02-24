@@ -24,15 +24,15 @@ package io.axual.ksml.user;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.Invoker;
 import org.apache.kafka.streams.kstream.Aggregator;
 
 public class UserAggregator extends Invoker implements Aggregator<Object, Object, Object> {
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
-    public UserAggregator(UserFunction function, ContextTags tags) {
+    public UserAggregator(UserFunction function, MetricTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_AGGREGATOR);
         verifyParameterCount(3);
     }

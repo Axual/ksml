@@ -24,70 +24,70 @@ import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.*;
 
 public class AsOperation extends BaseOperation {
-    public final String name;
+    public final String targetName;
 
-    public AsOperation(OperationConfig config, String name) {
+    public AsOperation(OperationConfig config, String targetName) {
         super(config);
-        this.name = name;
+        this.targetName = targetName;
     }
 
     @Override
     public StreamWrapper apply(KStreamWrapper input, TopologyBuildContext context) {
-        context.registerStreamWrapper(name, input);
+        context.registerStreamWrapper(targetName, input);
         return null;
     }
 
     @Override
     public StreamWrapper apply(KTableWrapper input, TopologyBuildContext context) {
-        context.registerStreamWrapper(name, input);
+        context.registerStreamWrapper(targetName, input);
         return null;
     }
 
     @Override
     public StreamWrapper apply(GlobalKTableWrapper input, TopologyBuildContext context) {
-        context.registerStreamWrapper(name, input);
+        context.registerStreamWrapper(targetName, input);
         return null;
     }
 
     @Override
     public StreamWrapper apply(KGroupedStreamWrapper input, TopologyBuildContext context) {
-        context.registerStreamWrapper(name, input);
+        context.registerStreamWrapper(targetName, input);
         return null;
     }
 
     @Override
     public StreamWrapper apply(KGroupedTableWrapper input, TopologyBuildContext context) {
-        context.registerStreamWrapper(name, input);
+        context.registerStreamWrapper(targetName, input);
         return null;
     }
 
     @Override
     public StreamWrapper apply(SessionWindowedKStreamWrapper input, TopologyBuildContext context) {
-        context.registerStreamWrapper(name, input);
+        context.registerStreamWrapper(targetName, input);
         return null;
     }
 
     @Override
     public StreamWrapper apply(TimeWindowedKStreamWrapper input, TopologyBuildContext context) {
-        context.registerStreamWrapper(name, input);
+        context.registerStreamWrapper(targetName, input);
         return null;
     }
 
     @Override
     public StreamWrapper apply(CogroupedKStreamWrapper input, TopologyBuildContext context) {
-        context.registerStreamWrapper(name, input);
+        context.registerStreamWrapper(targetName, input);
         return null;
     }
 
     @Override
     public StreamWrapper apply(SessionWindowedCogroupedKStreamWrapper input, TopologyBuildContext context) {
-        context.registerStreamWrapper(name, input);
+        context.registerStreamWrapper(targetName, input);
         return null;
     }
 
     @Override
     public StreamWrapper apply(TimeWindowedCogroupedKStreamWrapper input, TopologyBuildContext context) {
-        context.registerStreamWrapper(name, input);
+        context.registerStreamWrapper(targetName, input);
         return null;
     }
 }

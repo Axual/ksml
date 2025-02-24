@@ -29,4 +29,8 @@ public class ProtobufConstants {
     public static final Syntax DEFAULT_SYNTAX = Syntax.PROTO_3;
     public static final Descriptors.FileDescriptor[] NO_DEPENDENCIES = new Descriptors.FileDescriptor[0];
     public static final String NO_DOCUMENTATION = "";
+
+    private ProtobufConstants() {
+        // Prevent instantiation.
+    }
 }

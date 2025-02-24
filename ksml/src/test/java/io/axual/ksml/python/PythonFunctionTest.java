@@ -20,13 +20,12 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.UserType;
-import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
+import io.axual.ksml.type.UserType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -34,12 +33,12 @@ import org.junit.jupiter.params.provider.CsvSource;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
-public class PythonFunctionTest {
+class PythonFunctionTest {
     final PythonContext context = new PythonContext();
     final ParameterDefinition one = new ParameterDefinition("one", DataInteger.DATATYPE);
     final ParameterDefinition two = new ParameterDefinition("two", DataInteger.DATATYPE);
     final ParameterDefinition[] params = new ParameterDefinition[]{one, two};
-    final UserType resultType = new UserType(BinaryNotation.NAME, DataInteger.DATATYPE);
+    final UserType resultType = new UserType(UserType.DEFAULT_NOTATION, DataInteger.DATATYPE);
 
     @ParameterizedTest
     @CsvSource({"1, 2, 3", "100,100,200", "100, -1, 99", "99, -100, -1"})
@@ -64,7 +63,7 @@ public class PythonFunctionTest {
         var pythonCode = """
                 def myAddFunc(one, two):
                   return one + two
-                    
+                
                 """;
         final var adderDef = FunctionDefinition.as("adder", params, null, pythonCode.split("\n"), "myAddFunc(one, two)", resultType, null);
         final var adder = PythonFunction.forFunction(context, "test", "adder", adderDef);
@@ -86,7 +85,7 @@ public class PythonFunctionTest {
         var pythonCode = """
                 def myAddFunc(one, two):
                   return one + two
-                    
+                
                 """;
         final var adderDef = FunctionDefinition.as("adder", params, pythonCode.split("\n"), null, "myAddFunc(one, two)", resultType, null);
         final var adder = PythonFunction.forFunction(context, "test", "adder", adderDef);
@@ -104,7 +103,7 @@ public class PythonFunctionTest {
      * Test that Null Key/Values are accepted as parameters
      */
     void testNullKeyValue() {
-        final var stringResultType = new UserType(BinaryNotation.NAME, DataString.DATATYPE);
+        final var stringResultType = new UserType(UserType.DEFAULT_NOTATION, DataString.DATATYPE);
         final var concatDef = FunctionDefinition.as("concat", params, null, null, "str(one is None) + ' ' + str(two is None)", stringResultType, null);
         final var concat = PythonFunction.forFunction(context, "test", "adder", concatDef);
 

@@ -20,16 +20,15 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.parser.NamedObjectParser;
 import io.axual.ksml.definition.SessionStateStoreDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.DefinitionParser;
+import io.axual.ksml.parser.NamedObjectParser;
 import io.axual.ksml.parser.StructsParser;
 
 public class SessionStateStoreDefinitionParser extends DefinitionParser<SessionStateStoreDefinition> implements NamedObjectParser {
     private final boolean requireType;
     private String defaultShortName;
-    private String defaultLongName;
 
     public SessionStateStoreDefinitionParser(boolean requireType) {
         this.requireType = requireType;
@@ -58,10 +57,5 @@ public class SessionStateStoreDefinitionParser extends DefinitionParser<SessionS
     @Override
     public void defaultShortName(String name) {
         defaultShortName = name;
-    }
-
-    @Override
-    public void defaultLongName(String name) {
-        defaultLongName = name;
     }
 }

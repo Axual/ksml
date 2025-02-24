@@ -41,7 +41,7 @@ public class KSMLJoinTest {
 
     TestOutputTopic sensorAlerts;
 
-    @KSMLTest(topology = "pipelines/test-joining.yaml", schemapath = "pipelines",
+    @KSMLTest(topology = "pipelines/test-joining.yaml", schemaDirectory = "pipelines",
             inputTopics = {@KSMLTopic(topic = "ksml_sensordata_avro", variable = "sensorIn", valueSerde = KSMLTopic.SerdeType.AVRO),
                     @KSMLTopic(topic = "ksml_sensoralert_settings", variable = "alertSettings", valueSerde = KSMLTopic.SerdeType.AVRO)},
             outputTopics = {@KSMLTopic(topic = "ksml_sensoralert", variable = "sensorAlerts")})

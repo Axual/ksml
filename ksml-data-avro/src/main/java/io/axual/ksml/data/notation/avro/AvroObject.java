@@ -21,8 +21,7 @@ package io.axual.ksml.data.notation.avro;
  */
 
 import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.exception.ExecutionException;
-import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
@@ -40,7 +39,7 @@ public class AvroObject implements GenericRecord {
 
     public AvroObject(StructSchema schema, Map<?, ?> source) {
         if (schema == null) {
-            throw new ExecutionException("Can not create an AVRO object without schema");
+            throw new DataException("Can not create an AVRO object without schema");
         }
         this.schema = schema;
         schema.fields().forEach(field -> put(field.name(), source.get(field.name())));
@@ -50,10 +49,10 @@ public class AvroObject implements GenericRecord {
     public void put(String key, Object value) {
         var field = schema.field(key);
 
-        if (field.schema().type() == DataSchema.Type.STRUCT && value instanceof Map) {
-            value = new AvroObject((StructSchema) field.schema(), (Map<?, ?>) value);
+        if (field.schema() instanceof StructSchema structSchema && value instanceof Map) {
+            value = new AvroObject(structSchema, (Map<?, ?>) value);
         }
-        if (field.schema().type() == DataSchema.Type.ENUM) {
+        if (field.schema() instanceof EnumSchema) {
             value = new GenericData.EnumSymbol(schemaMapper.fromDataSchema(field.schema()), value != null ? value.toString() : null);
         }
 

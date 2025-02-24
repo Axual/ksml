@@ -20,7 +20,7 @@ package io.axual.ksml.data.serde;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.value.Null;
 import lombok.Getter;
 import org.apache.kafka.common.serialization.Deserializer;
@@ -33,6 +33,6 @@ public class NullSerde implements Serde<Object> {
     private final Serializer<Object> serializer = (topic, data) -> SERIALIZED_NULL;
     private final Deserializer<Object> deserializer = (topic, data) -> {
         if (data == null || data.length == 0) return Null.NULL;
-        throw new ExecutionException("Can only deserialize empty byte arrays as DataNull");
+        throw new DataException("Can only deserialize empty byte arrays as DataNull");
     };
 }

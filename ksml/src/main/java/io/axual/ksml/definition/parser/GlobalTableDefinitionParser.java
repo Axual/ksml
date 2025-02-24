@@ -21,17 +21,17 @@ package io.axual.ksml.definition.parser;
  */
 
 
-import io.axual.ksml.data.notation.UserType;
-import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.GlobalTableDefinition;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyBaseResources;
+import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyBaseResourceAwareParser;
 import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.store.StoreType;
+import io.axual.ksml.type.UserType;
 
 import java.util.List;
 

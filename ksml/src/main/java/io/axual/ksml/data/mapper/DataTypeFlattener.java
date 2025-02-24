@@ -20,7 +20,6 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.StructType;
@@ -28,10 +27,11 @@ import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.dsl.WindowedSchema;
 import io.axual.ksml.generator.StreamDataType;
+import io.axual.ksml.type.UserType;
 
 import static io.axual.ksml.dsl.WindowedSchema.generateWindowedSchema;
 
-public class DataTypeFlattener extends DataTypeSchemaMapper {
+public class DataTypeFlattener extends DataTypeDataSchemaMapper {
     @Override
     public DataSchema toDataSchema(String namespace, String name, DataType type) {
         // Check for the Kafka Streams / KSML specific types here, otherwise return default conversion
@@ -62,15 +62,15 @@ public class DataTypeFlattener extends DataTypeSchemaMapper {
         return new StreamDataType(flatten(streamDataType.userType()), streamDataType.isKey());
     }
 
-    public UnionType.ValueType flatten(UnionType.ValueType fieldType) {
-        return new UnionType.ValueType(fieldType.name(), flatten(fieldType.type()), fieldType.index());
+    public UnionType.MemberType flatten(UnionType.MemberType fieldType) {
+        return new UnionType.MemberType(fieldType.name(), flatten(fieldType.type()), fieldType.index());
     }
 
     public UnionType flatten(UnionType unionType) {
         // When we get a UnionType, we flatten it recursively
-        var cookedUnionTypes = new UnionType.ValueType[unionType.valueTypes().length];
-        for (int index = 0; index < unionType.valueTypes().length; index++) {
-            final var fieldType = unionType.valueTypes()[index];
+        var cookedUnionTypes = new UnionType.MemberType[unionType.memberTypes().length];
+        for (int index = 0; index < unionType.memberTypes().length; index++) {
+            final var fieldType = unionType.memberTypes()[index];
             cookedUnionTypes[index] = flatten(fieldType);
         }
         return new UnionType(cookedUnionTypes);

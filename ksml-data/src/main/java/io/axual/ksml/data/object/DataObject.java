@@ -37,7 +37,7 @@ public interface DataObject {
         }
 
         public String forceSchemaString(DataObject value) {
-            return value.type().schemaName() + ": ";
+            return value.type().name() + ": ";
         }
 
         public String schemaString(DataObject value) {

@@ -25,16 +25,16 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class DataBooleanTest {
+class DataBooleanTest {
 
     @Test
-    public void testDefaultValueConstructor() {
+    void testDefaultValueConstructor() {
         DataBoolean dataBoolean = new DataBoolean();
         assertNull(dataBoolean.value());
     }
 
     @Test
-    public void testValueConstructor() {
+    void testValueConstructor() {
         DataBoolean dataBoolean = new DataBoolean(true);
         assertEquals(true, dataBoolean.value());
     }

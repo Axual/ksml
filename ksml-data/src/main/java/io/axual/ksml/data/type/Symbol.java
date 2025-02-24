@@ -27,12 +27,6 @@ public record Symbol(String name, String doc, int index) {
         this(name, null, DataField.NO_INDEX);
     }
 
-    public Symbol(String name, String doc, int index) {
-        this.name = name;
-        this.doc = doc;
-        this.index = index;
-    }
-
     public boolean hasDoc() {
         return doc != null && !doc.isEmpty();
     }

@@ -20,7 +20,7 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.exception.DataException;
 
 import java.util.List;
 
@@ -30,11 +30,7 @@ public class ListType extends ComplexType {
     }
 
     public ListType(DataType valueType) {
-        super(List.class, valueType);
-    }
-
-    public String schemaName() {
-        return "ListOf" + valueType().schemaName();
+        super(List.class, buildName("List", valueType), "[" + buildSpec(valueType) + "]", valueType);
     }
 
     public DataType valueType() {
@@ -47,6 +43,6 @@ public class ListType extends ComplexType {
                 outerType.subTypeCount() == 1) {
             return new ListType(outerType.subType(0));
         }
-        throw new ExecutionException("Could not convert type to List: " + type);
+        throw new DataException("Could not convert type to List: " + type);
     }
 }

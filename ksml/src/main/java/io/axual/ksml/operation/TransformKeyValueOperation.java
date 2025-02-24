@@ -21,16 +21,16 @@ package io.axual.ksml.operation;
  */
 
 
-import io.axual.ksml.data.exception.ExecutionException;
-import io.axual.ksml.data.notation.UserTupleType;
-import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.processor.OperationProcessorSupplier;
 import io.axual.ksml.operation.processor.TransformKeyValueProcessor;
 import io.axual.ksml.stream.BaseStreamWrapper;
 import io.axual.ksml.stream.KStreamWrapper;
+import io.axual.ksml.type.UserTupleType;
+import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserKeyValueTransformer;
 import org.apache.kafka.streams.kstream.KStream;
 
@@ -66,7 +66,7 @@ public class TransformKeyValueOperation extends BaseOperation {
             final var supplier = new OperationProcessorSupplier<>(
                     name,
                     TransformKeyValueProcessor::new,
-                    (stores, record) -> userMap.apply(stores, record.key(), record.value()),
+                    (stores, rec) -> userMap.apply(stores, rec.key(), rec.value()),
                     storeNames);
             final var named = namedOf();
             final KStream<Object, Object> output = named != null

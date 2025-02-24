@@ -20,10 +20,10 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.parser.NamedObjectParser;
 import io.axual.ksml.definition.BranchDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.parser.NamedObjectParser;
 import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyResourceAwareParser;
 
