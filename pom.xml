@@ -265,6 +265,11 @@
                 <version>${apicurio.version}</version>
             </dependency>
             <dependency>
+                <groupId>io.apicurio</groupId>
+                <artifactId>apicurio-registry-schema-resolver</artifactId>
+                <version>${apicurio.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>io.confluent</groupId>
                 <artifactId>kafka-avro-serializer</artifactId>
                 <version>${confluent.version}</version>

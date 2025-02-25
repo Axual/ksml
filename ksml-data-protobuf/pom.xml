@@ -41,7 +41,6 @@
         <dependency>
             <groupId>io.apicurio</groupId>
             <artifactId>apicurio-registry-schema-resolver</artifactId>
-            <version>2.6.8.Final</version>
         </dependency>
 
         <!-- Other dependencies -->
