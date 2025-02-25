@@ -25,7 +25,6 @@ import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.util.ValuePrinter;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.*;
@@ -47,7 +46,6 @@ import java.util.function.BiConsumer;
  * <p>This implementation ensures consistent ordering of keys and maintains safety through its encapsulated operations.</p>
  */
 @Getter
-@EqualsAndHashCode
 public class DataStruct implements DataObject {
     /**
      * Character used for identifying "meta" keys. Meta keys (keys that start with this character)
@@ -66,8 +64,8 @@ public class DataStruct implements DataObject {
         if (o1 == null || o1.isEmpty()) return -1;
         if (o2 == null || o2.isEmpty()) return 1;
 
-        var meta1 = o1.startsWith(META_ATTRIBUTE_CHAR);
-        var meta2 = o2.startsWith(META_ATTRIBUTE_CHAR);
+        final var meta1 = o1.startsWith(META_ATTRIBUTE_CHAR);
+        final var meta2 = o2.startsWith(META_ATTRIBUTE_CHAR);
 
         // If only the first string starts with the meta char, then sort it last
         if (meta1 && !meta2) return 1;
@@ -319,5 +317,26 @@ public class DataStruct implements DataObject {
                 return sb.append("}").toString();
             sb.append(", ");
         }
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) return true;
+        if (other == null || getClass() != other.getClass()) return false;
+        DataStruct that = (DataStruct) other;
+        if (!type.isAssignableFrom(that.type) || !that.type.isAssignableFrom(type)) return false;
+        if (contents.size() != that.contents.size()) return false;
+        for (final var content : contents.entrySet()) {
+            final var thisContent = content.getValue();
+            final var thatContent = that.contents.get(content.getKey());
+            if (!thisContent.equals(thatContent))
+                return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), contents, type);
     }
 }

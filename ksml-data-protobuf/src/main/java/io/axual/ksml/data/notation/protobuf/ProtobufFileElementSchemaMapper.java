@@ -63,13 +63,25 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         // Map all oneOfs to their respective list of fields
         final Map<OneOfElement, List<FieldElement>> oneOfMap = new HashMap<>();
         oneOfs.forEach(oo -> oneOfMap.put(oo, oo.getFields()));
-        // Collect all the fields in a flat collection
-        final Set<FieldElement> oneOfFields = new HashSet<>();
-        oneOfMap.forEach((key, value) -> oneOfFields.addAll(value));
         // Get the list of fields for this message
         final var messageFields = new ArrayList<>(message.getFields());
-        // Remove the oneOf fields
-        messageFields.removeAll(oneOfFields);
+        // Collect all the fields in a flat collection
+        final Set<FieldElement> oneOfFields = new HashSet<>();
+        oneOfMap.forEach((key, value) -> {
+            oneOfFields.add(
+                    new FieldElement(
+                            DEFAULT_LOCATION,
+                            Field.Label.OPTIONAL,
+                            "UNION",
+                            key.getName(),
+                            null,
+                            null,
+                            -1,
+                            "",
+                            Collections.emptyList()));
+            // Remove the oneOf fields
+            messageFields.removeAll(value);
+        });
 
         // Convert the list of fields and oneOfs
         List<DataField> result = new ArrayList<>(messageFields.size());
@@ -133,7 +145,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
                 if (symbols.isEmpty()) {
                     throw new SchemaException("Protobuf enum type '" + enumElement.getName() + "' has no constants defined");
                 }
-                final var defaultValue = ListUtil.find(symbols, symbol -> symbol.index() == PROTOBUF_ENUM_DEFAULT_VALUE_INDEX);
+                final var defaultValue = ListUtil.find(symbols, symbol -> symbol.tag() == PROTOBUF_ENUM_DEFAULT_VALUE_INDEX);
                 return new EnumSchema(findResult.namespace(), enumElement.getName(), findResult.type().getDocumentation(), symbols, defaultValue != null ? defaultValue.name() : null);
             }
             if (findResult != null && findResult.type() instanceof MessageElement msgElement) {
@@ -194,7 +206,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
                 field.name(),
                 defaultValue,
                 null,
-                field.index(),
+                field.tag(),
                 field.doc(),
                 Collections.emptyList());
     }
@@ -203,18 +215,18 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         if (field.schema() instanceof UnionSchema unionSchema) {
             final var memberTypes = new ArrayList<FieldElement>();
             for (int index = 0; index < unionSchema.memberSchemas().length; index++) {
-                final var vt = unionSchema.memberSchemas()[index];
-                final var valueType = new FieldElement(
+                final var memberSchema = unionSchema.memberSchemas()[index];
+                final var memberType = new FieldElement(
                         DEFAULT_LOCATION,
                         null,
-                        convertFieldToType(context, parentNestedTypes, parentOneOfs, parentName, vt),
-                        vt.name(),
-                        vt.defaultValue() != null ? vt.defaultValue().toString() : null,
+                        convertFieldToType(context, parentNestedTypes, parentOneOfs, parentName, memberSchema),
+                        memberSchema.name(),
+                        memberSchema.defaultValue() != null ? memberSchema.defaultValue().toString() : null,
                         null,
-                        vt.index(),
-                        vt.doc(),
+                        memberSchema.tag(),
+                        memberSchema.doc(),
                         Collections.emptyList());
-                memberTypes.add(valueType);
+                memberTypes.add(memberType);
             }
 
             final var oneOf = new OneOfElement(field.name(), field.doc() != null ? field.doc() : "", memberTypes, Collections.emptyList(), Collections.emptyList(), DEFAULT_LOCATION);
@@ -266,7 +278,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
     }
 
     private EnumElement convertToEnumElement(EnumSchema schema) {
-        final var constants = schema.symbols().stream().map(symbol -> new EnumConstantElement(DEFAULT_LOCATION, symbol.name(), symbol.index(), symbol.hasDoc() ? symbol.doc() : NO_DOCUMENTATION, Collections.emptyList())).toList();
+        final var constants = schema.symbols().stream().map(symbol -> new EnumConstantElement(DEFAULT_LOCATION, symbol.name(), symbol.tag(), symbol.hasDoc() ? symbol.doc() : NO_DOCUMENTATION, Collections.emptyList())).toList();
         return new EnumElement(DEFAULT_LOCATION, schema.name(), schema.hasDoc() ? schema.doc() : NO_DOCUMENTATION, Collections.emptyList(), constants, Collections.emptyList());
     }
 

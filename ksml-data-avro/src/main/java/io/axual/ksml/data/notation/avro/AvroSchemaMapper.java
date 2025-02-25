@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static io.axual.ksml.data.schema.DataField.NO_INDEX;
+import static io.axual.ksml.data.schema.DataField.NO_TAG;
 
 public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     private static final AvroDataObjectMapper avroMapper = new AvroDataObjectMapper();
@@ -122,7 +122,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             var defaultValue = convertFromAvroDefault(field);
             var schemaAndRequired = convertToDataSchema(field.schema());
             // TODO: think about how to model fixed values in AVRO and replace the "false" with logic
-            result.add(new DataField(field.name(), schemaAndRequired.schema(), field.doc(), NO_INDEX, schemaAndRequired.required(), false, defaultValue, convertOrderFromAvro(field.order())));
+            result.add(new DataField(field.name(), schemaAndRequired.schema(), field.doc(), NO_TAG, schemaAndRequired.required(), false, defaultValue, convertOrderFromAvro(field.order())));
         }
         return result;
     }

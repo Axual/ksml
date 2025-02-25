@@ -32,7 +32,7 @@ public class DataSchemaDSL {
     public static final String ENUM_SCHEMA_DEFAULT_VALUE_FIELD = "defaultValue";
     public static final String ENUM_SYMBOL_NAME_FIELD = "name";
     public static final String ENUM_SYMBOL_DOC_FIELD = "doc";
-    public static final String ENUM_SYMBOL_INDEX_FIELD = "index";
+    public static final String ENUM_SYMBOL_TAG_FIELD = "tag";
     public static final String FIXED_SCHEMA_SIZE_FIELD = "size";
     public static final String LIST_SCHEMA_VALUES_FIELD = "items";
     public static final String MAP_SCHEMA_VALUES_FIELD = "values";
@@ -42,7 +42,7 @@ public class DataSchemaDSL {
     public static final String DATA_FIELD_DOC_FIELD = "doc";
     public static final String DATA_FIELD_REQUIRED_FIELD = "required";
     public static final String DATA_FIELD_CONSTANT_FIELD = "constant";
-    public static final String DATA_FIELD_INDEX_FIELD = "index";
+    public static final String DATA_FIELD_TAG_FIELD = "tag";
     public static final String DATA_FIELD_DEFAULT_VALUE_FIELD = "defaultValue";
     public static final String DATA_FIELD_ORDER_FIELD = "order";
     public static final String UNKNOWN_TYPE = "?";

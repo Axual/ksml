@@ -35,9 +35,9 @@ import java.util.Objects;
 @EqualsAndHashCode
 public class DataField {
     /**
-     * Constant value representing the absence of an index.
+     * Constant value representing the absence of a tag.
      */
-    public static final int NO_INDEX = -1;
+    public static final int NO_TAG = -1;
 
     /**
      * Enum representing the sorting order of the field.
@@ -76,10 +76,10 @@ public class DataField {
      */
     private final boolean constant;
     /**
-     * The index of the field in the schema. Defaults to {@link #NO_INDEX} if
+     * The tag of the field in the schema. Defaults to {@link #NO_TAG} if
      * not specified.
      */
-    private final int index;
+    private final int tag;
     /**
      * The default value assigned to the field, if any. Can be null if no
      * default is defined.
@@ -97,19 +97,19 @@ public class DataField {
      * @param name         The name of the field. Can be null for an anonymous field.
      * @param schema       The schema of the field. Cannot be null.
      * @param doc          The documentation string for the field. Can be null.
-     * @param index        The index of the field in the schema.
+     * @param tag          The tag of the field in the schema.
      * @param required     Whether the field is required (mandatory).
      * @param constant     Whether the field is constant and unmodifiable.
      * @param defaultValue The default value of the field. Can be null.
      * @param order        The sorting order of the field (ascending, descending, or ignored).
      * @throws DataException if the field is marked as required and the default value is null.
      */
-    public DataField(String name, DataSchema schema, String doc, int index, boolean required, boolean constant, DataValue defaultValue, Order order) {
+    public DataField(String name, DataSchema schema, String doc, int tag, boolean required, boolean constant, DataValue defaultValue, Order order) {
         Objects.requireNonNull(schema);
         this.name = name;
         this.schema = schema;
         this.doc = doc;
-        this.index = index;
+        this.tag = schema instanceof UnionSchema ? NO_TAG : tag;
         this.required = required;
         this.constant = constant;
         this.defaultValue = defaultValue;
@@ -146,32 +146,32 @@ public class DataField {
      * @param doc    The documentation string for the field. Can be null.
      */
     public DataField(String name, DataSchema schema, String doc) {
-        this(name, schema, doc, NO_INDEX);
+        this(name, schema, doc, NO_TAG);
     }
 
     /**
-     * Constructs a new optional DataField with the specified name, schema, documentation, and index.
+     * Constructs a new optional DataField with the specified name, schema, documentation, and tag.
      *
      * @param name   The name of the field.
      * @param schema The schema of the field. Cannot be null.
      * @param doc    The documentation string for the field. Can be null.
-     * @param index  The index of the field in the schema.
+     * @param tag    The tag of the field in the schema.
      */
-    public DataField(String name, DataSchema schema, String doc, int index) {
-        this(name, schema, doc, index, true, false, null);
+    public DataField(String name, DataSchema schema, String doc, int tag) {
+        this(name, schema, doc, tag, true, false, null);
     }
 
     /**
-     * Constructs a new DataField with the specified name, schema, documentation, index, and required status.
+     * Constructs a new DataField with the specified name, schema, documentation, tag, and required status.
      *
      * @param name     The name of the field.
      * @param schema   The schema of the field. Cannot be null.
      * @param doc      The documentation string for the field. Can be null.
-     * @param index    The index of the field.
+     * @param tag      The tag of the field.
      * @param required Whether the field is required.
      */
-    public DataField(String name, DataSchema schema, String doc, int index, boolean required) {
-        this(name, schema, doc, index, required, false, null);
+    public DataField(String name, DataSchema schema, String doc, int tag, boolean required) {
+        this(name, schema, doc, tag, required, false, null);
     }
 
     /**
@@ -180,13 +180,13 @@ public class DataField {
      * @param name         The name of the field.
      * @param schema       The schema of the field. Cannot be null.
      * @param doc          The documentation string for the field. Can be null.
-     * @param index        The index of the field.
+     * @param tag          The tag of the field.
      * @param required     Whether the field is required.
      * @param constant     Whether the field is constant and unmodifiable.
      * @param defaultValue The default value of the field. Can be null.
      */
-    public DataField(String name, DataSchema schema, String doc, int index, boolean required, boolean constant, DataValue defaultValue) {
-        this(name, schema, doc, index, required, constant, defaultValue, Order.ASCENDING);
+    public DataField(String name, DataSchema schema, String doc, int tag, boolean required, boolean constant, DataValue defaultValue) {
+        this(name, schema, doc, tag, required, constant, defaultValue, Order.ASCENDING);
     }
 
     /**
@@ -201,20 +201,20 @@ public class DataField {
     /**
      * Checks whether the schema of this field is assignable from another field's schema.
      *
-     * @param field The other field to compare against.
+     * @param otherField The other field to compare against.
      * @return true if this field's schema can be assigned from the provided field's schema, false otherwise.
      */
-    public boolean isAssignableFrom(DataField field) {
-        return field != null && schema.isAssignableFrom(field.schema);
+    public boolean isAssignableFrom(DataField otherField) {
+        return otherField != null && schema.isAssignableFrom(otherField.schema);
     }
 
     /**
-     * Returns a string representation of the DataField, including its name, schema, index, and required status.
+     * Returns a string representation of the DataField, including its name, schema, tag, and required status.
      *
      * @return A string summarizing the field's details.
      */
     @Override
     public String toString() {
-        return (name != null ? name : "<anonymous>") + ": " + schema + " (" + index + (required ? "" : ", optional") + ")";
+        return (name != null ? name : "<anonymous>") + ": " + schema + " (" + tag + (required ? "" : ", optional") + ")";
     }
 }

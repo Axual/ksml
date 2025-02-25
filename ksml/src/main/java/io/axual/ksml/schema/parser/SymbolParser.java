@@ -32,7 +32,7 @@ public class SymbolParser extends BaseParser<Symbol> {
             return new Symbol(
                     parseString(node, DataSchemaDSL.ENUM_SYMBOL_NAME_FIELD),
                     parseString(node, DataSchemaDSL.ENUM_SYMBOL_DOC_FIELD),
-                    parseInteger(node, DataSchemaDSL.ENUM_SYMBOL_INDEX_FIELD));
+                    parseInteger(node, DataSchemaDSL.ENUM_SYMBOL_TAG_FIELD));
         }
 
         if (node.isString()) {

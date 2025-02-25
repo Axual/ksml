@@ -22,6 +22,7 @@ package io.axual.ksml.data.notation.protobuf;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.Message;
+import io.apicurio.registry.rest.client.RegistryClient;
 import io.apicurio.registry.serde.protobuf.ProtobufKafkaDeserializer;
 import io.apicurio.registry.serde.protobuf.ProtobufKafkaSerializer;
 import io.axual.ksml.data.exception.DataException;
@@ -54,14 +55,18 @@ public class ProtobufNotation extends BaseNotation {
     private final SerdeType serdeType;
     private final NativeDataObjectMapper nativeMapper;
     private final Map<String, ?> serdeConfigs;
-    private Serde<Object> keySerde;
-    private Serde<Object> valueSerde;
+    private final RegistryClient client;
 
     public ProtobufNotation(String name, SerdeType type, NativeDataObjectMapper nativeMapper, Map<String, ?> configs) {
+        this(name, type, nativeMapper, configs, null);
+    }
+
+    public ProtobufNotation(String name, SerdeType type, NativeDataObjectMapper nativeMapper, Map<String, ?> configs, RegistryClient client) {
         super(name, ".proto", DEFAULT_TYPE, null, new ProtobufSchemaParser());
         this.serdeType = type;
         this.nativeMapper = nativeMapper;
         this.serdeConfigs = ImmutableMap.copyOf(configs);
+        this.client = client;
     }
 
     @Override
@@ -69,15 +74,9 @@ public class ProtobufNotation extends BaseNotation {
         if (!(type instanceof MapType)) throw new DataException("PROTOBUF serde can not be applied to type " + type);
 
         // Create the serdes only upon request to prevent error messages on missing SR url configs if Protobuf is not used
-        if (keySerde == null) {
-            keySerde = new ProtobufSerde(serdeType);
-            keySerde.configure(serdeConfigs, true);
-        }
-        if (valueSerde == null) {
-            valueSerde = new ProtobufSerde(serdeType);
-            valueSerde.configure(serdeConfigs, false);
-        }
-        return isKey ? keySerde : valueSerde;
+        final var serde = new ProtobufSerde(serdeType, client);
+        serde.configure(serdeConfigs, isKey);
+        return serde;
     }
 
     private class ProtobufSerde implements Serde<Object> {
@@ -88,12 +87,14 @@ public class ProtobufNotation extends BaseNotation {
         @Getter
         private final Deserializer<Object> deserializer;
 
-        public ProtobufSerde(SerdeType type) {
+        public ProtobufSerde(SerdeType type, RegistryClient client) {
             backingSerializer = switch (type) {
-                case APICURIO -> new ProtobufKafkaSerializer<>();
+                case APICURIO ->
+                        client != null ? new ProtobufKafkaSerializer<>(client) : new ProtobufKafkaSerializer<>();
             };
             backingDeserializer = switch (type) {
-                case APICURIO -> new ProtobufKafkaDeserializer<>();
+                case APICURIO ->
+                        client != null ? new ProtobufKafkaDeserializer<>(client) : new ProtobufKafkaDeserializer<>();
             };
 
             var wrappedSerde = new WrappedSerde(backingSerializer, backingDeserializer, nativeMapper);

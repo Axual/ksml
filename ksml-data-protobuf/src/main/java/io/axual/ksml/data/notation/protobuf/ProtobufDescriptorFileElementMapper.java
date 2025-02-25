@@ -156,6 +156,12 @@ public class ProtobufDescriptorFileElementMapper {
                     Collections.emptyList());
         }
 
+        private static String defaultValue(Descriptors.FieldDescriptor field) {
+            if (field.getType() == Descriptors.FieldDescriptor.Type.MESSAGE) return null;
+            final var defaultValue = field.getDefaultValue();
+            return defaultValue != null ? defaultValue.toString() : null;
+        }
+
         private MessageElement convertToMessageElement(Descriptors.Descriptor messageDescriptor) {
             // Convert the oneOfs to OneOfElements
             final var oneOfs = new ArrayList<OneOfElement>();
@@ -164,8 +170,7 @@ public class ProtobufDescriptorFileElementMapper {
                 for (final var oneOfField : oneOf.getFields()) {
                     final var label = oneOfField.isRequired() ? Field.Label.REQUIRED : oneOfField.isRepeated() ? Field.Label.REPEATED : Field.Label.OPTIONAL;
                     final var type = convertType(oneOfField);
-                    final var defaultValue = oneOfField.getDefaultValue() != null ? oneOfField.getDefaultValue().toString() : null;
-                    oneOfFields.add(new FieldElement(DEFAULT_LOCATION, label, type, oneOfField.getName(), defaultValue, null, oneOfField.getIndex(), NO_DOCUMENTATION, Collections.emptyList()));
+                    oneOfFields.add(new FieldElement(DEFAULT_LOCATION, label, type, oneOfField.getName(), defaultValue(oneOfField), null, oneOfField.getNumber(), NO_DOCUMENTATION, Collections.emptyList()));
                 }
                 oneOfs.add(new OneOfElement(oneOf.getName(), NO_DOCUMENTATION, oneOfFields, Collections.emptyList(), Collections.emptyList(), DEFAULT_LOCATION));
             }
@@ -184,8 +189,10 @@ public class ProtobufDescriptorFileElementMapper {
             // Convert the message fields
             final var fields = new ArrayList<FieldElement>();
             for (final var field : messageDescriptor.getFields()) {
-                final var type = convertType(field);
-                if (type != null) fields.add(convertToFieldElement(field, type));
+                if (field.getContainingOneof() == null) {
+                    final var type = convertType(field);
+                    if (type != null) fields.add(convertToFieldElement(field, type));
+                }
             }
 
             return new MessageElement(
@@ -205,13 +212,12 @@ public class ProtobufDescriptorFileElementMapper {
         private static FieldElement convertToFieldElement(Descriptors.FieldDescriptor field, String type) {
             final var required = field.isRequired();
             final var list = field.isRepeated();
-            final var defaultValue = field.getDefaultValue() != null ? field.getDefaultValue().toString() : null;
             return new FieldElement(
                     DEFAULT_LOCATION,
                     required ? null : list ? Field.Label.REPEATED : Field.Label.OPTIONAL,
                     type,
                     field.getName(),
-                    defaultValue,
+                    defaultValue(field),
                     null,
                     field.getNumber(),
                     NO_DOCUMENTATION,

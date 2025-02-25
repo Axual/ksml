@@ -26,6 +26,8 @@ import io.axual.ksml.data.util.ValuePrinter;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import java.util.Objects;
+
 /**
  * Represents a wrapper for a primitive value as part of the {@link DataObject} framework.
  *
@@ -75,5 +77,19 @@ public class DataPrimitive<T> implements DataObject {
         return value != null
                 ? ValuePrinter.print(value, printer != Printer.INTERNAL)
                 : printer.forceSchemaString(this) + ValuePrinter.print(null, printer != Printer.INTERNAL);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) return true;
+        if (other == null || getClass() != other.getClass()) return false;
+        DataPrimitive<?> that = (DataPrimitive<?>) other;
+        if (value == null) return that.value == null;
+        return value.equals(that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(value);
     }
 }

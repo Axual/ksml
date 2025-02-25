@@ -29,7 +29,7 @@ import io.axual.ksml.util.Pair;
 
 import java.util.Arrays;
 
-import static io.axual.ksml.data.schema.DataField.NO_INDEX;
+import static io.axual.ksml.data.schema.DataField.NO_TAG;
 
 /**
  * The {@code DataFieldParser} class is responsible for parsing a {@link ParseNode}
@@ -58,12 +58,12 @@ public class DataFieldParser extends BaseParser<DataField> {
         final var required = parseBoolean(node, DataSchemaDSL.DATA_FIELD_REQUIRED_FIELD);
         final var property = deduceSchemaAndRequired(schema, required);
         final var constant = parseBoolean(node, DataSchemaDSL.DATA_FIELD_CONSTANT_FIELD);
-        final var index = parseInteger(node, DataSchemaDSL.DATA_FIELD_INDEX_FIELD);
+        final var index = parseInteger(node, DataSchemaDSL.DATA_FIELD_TAG_FIELD);
         return new DataField(
                 parseString(node, DataSchemaDSL.DATA_FIELD_NAME_FIELD),
                 property.left(),
                 parseString(node, DataSchemaDSL.DATA_FIELD_DOC_FIELD),
-                index != null ? index : NO_INDEX,
+                index != null ? index : NO_TAG,
                 property.right(),
                 constant != null && constant,
                 new DataValueParser().parse(node.get(DataSchemaDSL.DATA_FIELD_DEFAULT_VALUE_FIELD)),

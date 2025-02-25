@@ -25,14 +25,17 @@ import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.Message;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.exception.SchemaException;
+import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.data.type.DataType;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
+    private static final DataTypeDataSchemaMapper DATA_TYPE_MAPPER = new DataTypeDataSchemaMapper();
     private static final ProtobufDescriptorFileElementMapper DESCRIPTOR_ELEMENT_MAPPER = new ProtobufDescriptorFileElementMapper();
     private static final ProtobufFileElementSchemaMapper ELEMENT_SCHEMA_MAPPER = new ProtobufFileElementSchemaMapper();
 
@@ -52,7 +55,10 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
         for (final var field : message.getAllFields().entrySet()) {
             var val = field.getValue();
             if (val instanceof Descriptors.EnumValueDescriptor enumValue) val = enumValue.getName();
-            result.put(field.getKey().getName(), toDataObject(val));
+            final var parentOneOf = field.getKey().getContainingOneof();
+            final var fieldName = parentOneOf != null ? parentOneOf.getName() : field.getKey().getName();
+            final var expectedType = DATA_TYPE_MAPPER.fromDataSchema(schema.field(fieldName).schema());
+            result.put(fieldName, toDataObject(expectedType, val));
         }
         return result;
     }
@@ -74,26 +80,58 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
         final var descriptor = DESCRIPTOR_ELEMENT_MAPPER.toDescriptor(dataSchema.namespace(), dataSchema.name(), fileElement);
         final var msgDescriptor = descriptor.findMessageTypeByName(dataSchema.name());
         final var msg = DynamicMessage.newBuilder(msgDescriptor);
+
+        // Copy all regular field values (ie. not part of a oneOf)
         for (final var field : msgDescriptor.getFields()) {
-            final var fieldValue = struct.get(field.getName());
-            if (fieldValue != null) {
-                final var nativeValue = fromDataObject(struct.get(field.getName()));
-                if (field.getType() == Descriptors.FieldDescriptor.Type.ENUM) {
-                    final var evd = field.getEnumType().findValueByName(nativeValue.toString());
-                    if (evd == null) {
-                        throw new SchemaException("Value '" + nativeValue + "' not found in enum type '" + field.getEnumType().getName() + "'");
-                    }
-                    msg.setField(field, evd);
+            final var parentOneOf = field.getContainingOneof();
+            if (parentOneOf == null) {
+                final var fieldValue = struct.get(field.getName());
+                if (fieldValue != null) {
+                    setFieldValue(msg, field, fromDataObject(fieldValue));
                 } else {
-                    msg.setField(field, nativeValue);
-                }
-            } else {
-                if (field.isRequired()) {
-                    throw new DataException("PROTOBUF message of type '" + dataSchema.name() + "' is missing required field '" + field.getName() + "'");
+                    if (field.isRequired()) {
+                        throw new DataException("PROTOBUF message of type '" + dataSchema.name() + "' is missing required field '" + field.getName() + "'");
+                    }
                 }
             }
         }
+
+        // Copy all oneOf fields by assigning it explicitly to the field with right type
+        for (final var oneOf : msgDescriptor.getOneofs()) {
+            final var fieldName = oneOf.getName();
+            final var fieldValue = struct.get(fieldName);
+            if (fieldValue != null) {
+                final var fieldSchema = dataSchema.field(fieldName).schema();
+                if (fieldSchema instanceof UnionSchema unionSchema) {
+                    var assigned = false;
+                    var index = 0;
+                    while (!assigned && index < unionSchema.memberSchemas().length) {
+                        final var memberSchema = unionSchema.memberSchemas()[index];
+                        final var memberType = new DataTypeDataSchemaMapper().fromDataSchema(memberSchema.schema());
+                        if (memberType.isAssignableFrom(fieldValue)) {
+                            setFieldValue(msg, msgDescriptor.findFieldByName(memberSchema.name()), fromDataObject(fieldValue));
+                            assigned = true;
+                        }
+                        index++;
+                    }
+                } else {
+                    throw new SchemaException("PROTOBUF oneOf does not match data field: schema=" + (fieldSchema != null ? fieldSchema.type() : "null"));
+                }
+            }
+        }
+
         return msg.build();
     }
-}
 
+    private void setFieldValue(DynamicMessage.Builder msg, Descriptors.FieldDescriptor field, Object value) {
+        if (field.getType() == Descriptors.FieldDescriptor.Type.ENUM) {
+            final var evd = field.getEnumType().findValueByName(value.toString());
+            if (evd == null) {
+                throw new SchemaException("Value '" + value + "' not found in enum type '" + field.getEnumType().getName() + "'");
+            }
+            msg.setField(field, evd);
+        } else {
+            msg.setField(field, value);
+        }
+    }
+}

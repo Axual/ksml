@@ -66,7 +66,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
         for (final var schema : parser.schemas()) {
             if (!schema.fields().isEmpty()) {
                 final var newFields = schema.fields().stream()
-                        .map(field -> field.required() ? new DataField(field.name(), field.schema(), "*(optional)* " + field.doc(), field.index(), false, field.constant(), field.defaultValue()) : field)
+                        .map(field -> field.required() ? new DataField(field.name(), field.schema(), "*(optional)* " + field.doc(), field.tag(), false, field.constant(), field.defaultValue()) : field)
                         .toList();
                 newSchemas.add(new StructSchema(schema.namespace(), schema.name(), schema.doc(), newFields));
             } else {
@@ -100,7 +100,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
             final var fieldSchema = parsedSchemas.size() == 1
                     ? parsedSchemas.getFirst()
                     : new UnionSchema(parsedSchemas.stream().map(s -> new DataField(null, s)).toArray(DataField[]::new));
-            field = new DataField(childName, fieldSchema, doc, DataField.NO_INDEX, true, constant, defaultValue);
+            field = new DataField(childName, fieldSchema, doc, DataField.NO_TAG, true, constant, defaultValue);
             schemas = List.of(structSchema((String) null, null, List.of(field)));
             this.valueParser = valueParser;
         }
@@ -200,7 +200,7 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
 
     protected StructsParser<UserType> userTypeField(String childName, String doc) {
         final var stringParser = stringField(childName, null, doc);
-        final var field = new DataField(childName, DataSchema.STRING_SCHEMA, doc, DataField.NO_INDEX, true, false, null);
+        final var field = new DataField(childName, DataSchema.STRING_SCHEMA, doc, DataField.NO_TAG, true, false, null);
         final var schemas = structSchema((String) null, null, List.of(field));
         return StructsParser.of(node -> {
                     final var type = UserTypeParser.parse(stringParser.parse(node));

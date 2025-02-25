@@ -122,7 +122,8 @@ public class UnionSchema extends DataSchema {
             // This schema is assignable from the other union fields when all of its value types can be assigned to
             // this union.
             for (final var otherUnionMemberSchema : otherUnionSchema.memberSchemas) {
-                if (!isAssignableFrom(otherUnionMemberSchema)) return false;
+                if (!isAssignableFrom(otherUnionMemberSchema))
+                    return false;
             }
             return true;
         }
@@ -147,12 +148,12 @@ public class UnionSchema extends DataSchema {
     }
 
     private boolean allowAssignment(DataField thisField, DataField otherField) {
-        // Allow assignments from an anonymous union type, having name or index unset
+        // Allow assignments from an anonymous union type, having name or tag unset
         if (thisField.name() == null || otherField.name() == null) return true;
-        if (thisField.index() == DataField.NO_INDEX || otherField.index() == DataField.NO_INDEX) return true;
-        // This code is specifically made for PROTOBUF oneOf types, containing a field name and index. We allow
+        if (thisField.tag() == DataField.NO_TAG || otherField.tag() == DataField.NO_TAG) return true;
+        // This code is specifically made for PROTOBUF oneOf types, containing a field name and tag. We allow
         // assignment only if both fields match.
         if (!Objects.equals(thisField.name(), otherField.name())) return false;
-        return Objects.equals(thisField.index(), otherField.index());
+        return Objects.equals(thisField.tag(), otherField.tag());
     }
 }

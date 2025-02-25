@@ -60,9 +60,9 @@ public class EnumSchema extends NamedSchema {
      * </p>
      *
      * @param namespace The namespace of the schema.
-     * @param name The name of the schema.
-     * @param doc The documentation or description associated with the schema.
-     * @param symbols The list of symbols (values) allowed in this enumeration schema.
+     * @param name      The name of the schema.
+     * @param doc       The documentation or description associated with the schema.
+     * @param symbols   The list of symbols (values) allowed in this enumeration schema.
      */
     public EnumSchema(String namespace, String name, String doc, List<Symbol> symbols) {
         this(namespace, name, doc, symbols, null);
@@ -71,10 +71,10 @@ public class EnumSchema extends NamedSchema {
     /**
      * Constructs a new {@code EnumSchema} with the given namespace, name, documentation, symbols, and default value.
      *
-     * @param namespace The namespace of the schema.
-     * @param name The name of the schema.
-     * @param doc The documentation or description associated with the schema.
-     * @param symbols The list of symbols (values) allowed in this enumeration schema.
+     * @param namespace    The namespace of the schema.
+     * @param name         The name of the schema.
+     * @param doc          The documentation or description associated with the schema.
+     * @param symbols      The list of symbols (values) allowed in this enumeration schema.
      * @param defaultValue The optional default value for this schema.
      */
     public EnumSchema(String namespace, String name, String doc, List<Symbol> symbols, String defaultValue) {
@@ -107,7 +107,8 @@ public class EnumSchema extends NamedSchema {
         // of the otherEnum's set of symbols.
         for (final var otherSymbol : otherEnum.symbols) {
             // Validate that the other symbol is present and equal in our own symbol list
-            if (ListUtil.find(symbols, s -> s.equals(otherSymbol)) == null) return false;
+            if (ListUtil.find(symbols, thisSymbol -> thisSymbol.isAssignableFrom(otherSymbol)) == null)
+                return false;
         }
 
         // When we reach this point, it means that we can be assigned any

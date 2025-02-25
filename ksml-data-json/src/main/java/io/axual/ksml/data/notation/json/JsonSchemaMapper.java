@@ -32,7 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static io.axual.ksml.data.schema.DataField.NO_INDEX;
+import static io.axual.ksml.data.schema.DataField.NO_TAG;
 
 public class JsonSchemaMapper implements DataSchemaMapper<String> {
     private static final String TITLE_NAME = "title";
@@ -97,7 +97,7 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
             var spec = entry.getValue();
             if (spec instanceof DataStruct specStruct) {
                 var doc = specStruct.getAsString(DESCRIPTION_NAME);
-                var field = new DataField(name, convertType(specStruct), doc != null ? doc.value() : null, NO_INDEX, requiredProperties.contains(name));
+                var field = new DataField(name, convertType(specStruct), doc != null ? doc.value() : null, NO_TAG, requiredProperties.contains(name));
                 result.add(field);
             }
         }

@@ -20,14 +20,20 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.DataField;
+import static io.axual.ksml.data.schema.DataField.NO_TAG;
 
-public record Symbol(String name, String doc, int index) {
+public record Symbol(String name, String doc, int tag) {
     public Symbol(String name) {
-        this(name, null, DataField.NO_INDEX);
+        this(name, null, NO_TAG);
     }
 
     public boolean hasDoc() {
         return doc != null && !doc.isEmpty();
+    }
+
+    public boolean isAssignableFrom(Symbol other) {
+        if (!name.equals(other.name)) return false;
+        if (tag == NO_TAG || other.tag == NO_TAG) return true;
+        return tag == other.tag;
     }
 }

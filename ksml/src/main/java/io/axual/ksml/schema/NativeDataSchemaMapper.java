@@ -112,7 +112,7 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
         final var result = new LinkedHashMap<String, Object>();
         result.put(DataSchemaDSL.ENUM_SYMBOL_NAME_FIELD, symbol.name());
         if (symbol.hasDoc()) result.put(DataSchemaDSL.ENUM_SYMBOL_DOC_FIELD, symbol.doc());
-        result.put(DataSchemaDSL.ENUM_SYMBOL_INDEX_FIELD, symbol.index());
+        result.put(DataSchemaDSL.ENUM_SYMBOL_TAG_FIELD, symbol.tag());
         return result;
     }
 
@@ -144,7 +144,7 @@ public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
         result.put(DataSchemaDSL.DATA_FIELD_DOC_FIELD, field.doc());
         result.put(DataSchemaDSL.DATA_FIELD_REQUIRED_FIELD, field.required());
         result.put(DataSchemaDSL.DATA_FIELD_CONSTANT_FIELD, field.constant());
-        result.put(DataSchemaDSL.DATA_FIELD_INDEX_FIELD, field.index());
+        result.put(DataSchemaDSL.DATA_FIELD_TAG_FIELD, field.tag());
         result.put(DataSchemaDSL.DATA_FIELD_SCHEMA_FIELD, convertSchema(field.schema()));
         if (field.defaultValue() != null) encodeDefaultValue(result, field.defaultValue());
         result.put(DataSchemaDSL.DATA_FIELD_ORDER_FIELD, field.order().toString());

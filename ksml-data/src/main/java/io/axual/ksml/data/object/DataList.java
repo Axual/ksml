@@ -28,6 +28,7 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Objects;
 
 /**
  * Represents a list of {@link DataObject} instances within the {@link DataObject} framework.
@@ -197,14 +198,20 @@ public class DataList implements DataObject, Iterable<DataObject> {
 
     @Override
     public boolean equals(Object other) {
-        if (!super.equals(other)) return false;
-        if (!(other instanceof DataList)) return false;
-        return type.equals(((DataList) other).type);
+        if (!(other instanceof DataList otherList)) return false;
+        if (!type.isAssignableFrom(otherList.type)) return false;
+        if (contents.size() != otherList.contents.size()) return false;
+        for (int index = 0; index < contents.size(); index++) {
+            final var element = contents.get(index);
+            final var otherElement = otherList.contents.get(index);
+            if (!element.equals(otherElement)) return false;
+        }
+        return true;
     }
 
     @Override
     public int hashCode() {
-        return type.hashCode() + super.hashCode() * 31;
+        return Objects.hash(type.hashCode(), contents);
     }
 
     @Override
