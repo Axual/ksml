@@ -89,6 +89,13 @@ public class DataTuple extends Tuple<DataObject> implements DataObject {
      */
     @Override
     public String toString(Printer printer) {
-        return printer.schemaString(this) + super.toString();
+        final var sb = new StringBuilder(printer.schemaString(this));
+        sb.append("(");
+        for (int index = 0; index < elements().size(); index++) {
+            if (index > 0) sb.append(", ");
+            sb.append(elements().get(index).toString(printer.childObjectPrinter()));
+        }
+        sb.append(")");
+        return sb.toString();
     }
 }

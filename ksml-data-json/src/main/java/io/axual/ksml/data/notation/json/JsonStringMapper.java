@@ -23,12 +23,12 @@ package io.axual.ksml.data.notation.json;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.notation.string.StringMapper;
+import io.axual.ksml.data.util.JsonNodeUtil;
 
 import java.io.IOException;
 import java.io.StringWriter;
 
 public class JsonStringMapper implements StringMapper<Object> {
-    private static final JsonNodeNativeMapper NATIVE_MAPPER = new JsonNodeNativeMapper();
     protected final ObjectMapper mapper = new ObjectMapper();
     private final boolean prettyPrint;
 
@@ -41,7 +41,7 @@ public class JsonStringMapper implements StringMapper<Object> {
         if (value == null) return null; // Allow null strings as input, returning null as native output
         try {
             var tree = mapper.readTree(value);
-            return NATIVE_MAPPER.toNative(tree);
+            return JsonNodeUtil.convertJsonNodeToNative(tree);
         } catch (Exception mapException) {
             throw new DataException("Could not parse string to object: " + value);
         }
@@ -55,7 +55,7 @@ public class JsonStringMapper implements StringMapper<Object> {
             final var generator = prettyPrint
                     ? mapper.writerWithDefaultPrettyPrinter().createGenerator(writer)
                     : mapper.createGenerator(writer);
-            mapper.writeTree(generator, NATIVE_MAPPER.fromNative(value));
+            mapper.writeTree(generator, JsonNodeUtil.convertNativeToJsonNode(value));
             return writer.toString();
         } catch (IOException e) {
             throw new DataException("Can not convert object to JSON string: " + value, e);

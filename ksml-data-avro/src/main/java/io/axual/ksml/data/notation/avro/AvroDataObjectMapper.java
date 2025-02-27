@@ -26,6 +26,7 @@ import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.util.ConvertUtil;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
@@ -38,7 +39,7 @@ public class AvroDataObjectMapper extends NativeDataObjectMapper {
     @Override
     public DataObject toDataObject(DataType expected, Object value) {
         if (value == null || value == JsonProperties.NULL_VALUE)
-            return NativeDataObjectMapper.convertFromNull(expected);
+            return ConvertUtil.convertNullToDataObject(expected);
         if (value instanceof Utf8 utf8) return new DataString(utf8.toString());
         if (value instanceof GenericData.EnumSymbol) {
             return new DataString(value.toString());
@@ -59,7 +60,7 @@ public class AvroDataObjectMapper extends NativeDataObjectMapper {
         if (value instanceof DataNull) return null;
         if (value instanceof DataStruct struct) {
             if (struct.isNull()) return null;
-            return new AvroObject(struct.type().schema(), fromDataStruct(struct));
+            return new AvroObject(struct.type().schema(), convertDataStructToNative(struct));
         }
         return super.fromDataObject(value);
     }

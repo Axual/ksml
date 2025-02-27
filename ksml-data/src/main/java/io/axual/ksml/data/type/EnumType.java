@@ -20,7 +20,9 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.schema.DataSchemaConstants;
+import io.axual.ksml.data.util.ListUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -34,5 +36,11 @@ public class EnumType extends SimpleType {
     public EnumType(List<Symbol> symbols) {
         super(String.class, DataSchemaConstants.ENUM_TYPE);
         this.symbols = symbols;
+    }
+
+    @Override
+    public boolean isAssignableFrom(DataObject value) {
+        if (!super.isAssignableFrom(value)) return false;
+        return ListUtil.find(symbols(), s -> s.name().equals(value.toString())) != null;
     }
 }

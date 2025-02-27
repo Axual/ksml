@@ -24,6 +24,7 @@ import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.type.*;
+import io.axual.ksml.data.util.ConvertUtil;
 import io.axual.ksml.data.util.MapUtil;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.execution.ExecutionContext;
@@ -67,7 +68,7 @@ public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
     }
 
     private Object valueToNative(DataType expected, Value object) {
-        if (object.isNull()) return convertFromNull(expected);
+        if (object.isNull()) return ConvertUtil.convertNullToDataObject(expected);
         if (object.isBoolean() && (expected == null || expected == DataBoolean.DATATYPE))
             return object.asBoolean();
 
@@ -134,11 +135,11 @@ public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
     private DataObject mapToNative(DataType expected, Value object) {
         Map<?, ?> map = ExecutionUtil.tryThis(() -> object.as(Map.class));
         if (map == null) return null;
-        return nativeToDataStruct(MapUtil.stringKeys(map), expected instanceof StructType structType ? structType.schema() : null);
+        return convertNativeToDataStruct(MapUtil.stringKeys(map), expected instanceof StructType structType ? structType.schema() : null);
     }
 
     @Override
-    protected DataSchema loadSchema(String schemaName) {
+    protected DataSchema loadSchemaByName(String schemaName) {
         return ExecutionContext.INSTANCE.schemaLibrary().getSchema(schemaName, false);
     }
 
@@ -160,8 +161,8 @@ public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
             return Value.asValue(bytes);
         }
         if (object instanceof DataString val) return Value.asValue(val.value());
-        if (object instanceof DataList val) return Value.asValue(fromDataList(val));
-        if (object instanceof DataStruct val) return Value.asValue(fromDataStruct(val));
+        if (object instanceof DataList val) return Value.asValue(convertDataListToNative(val));
+        if (object instanceof DataStruct val) return Value.asValue(convertDataStructToNative(val));
         if (object instanceof DataUnion val) return fromDataObject(val.value());
         throw new ExecutionException("Can not convert DataObject to Python dataType: " + object.getClass().getSimpleName());
     }

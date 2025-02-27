@@ -1,0 +1,109 @@
+{
+  "type": "record",
+  "name": "TestSchema",
+  "namespace": "io.axual.ksml.data.test",
+  "doc": "Schema used for testing",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "Name"
+    },
+    {
+      "name": "age",
+      "type": "int",
+      "doc": "Age"
+    },
+    {
+      "name": "address",
+      "type": {
+        "type": "record",
+        "name": "AddressSchema",
+        "doc": "Address schema used for testing",
+        "fields": [
+          {
+            "name": "street",
+            "type": "string",
+            "doc": "Street field"
+          },
+          {
+            "name": "postalCode",
+            "type": "string",
+            "doc": "Postal code field"
+          },
+          {
+            "name": "city",
+            "type": "string",
+            "doc": "City field"
+          },
+          {
+            "name": "country",
+            "type": "string",
+            "doc": "Country field"
+          }
+        ]
+      },
+      "doc": "Address"
+    },
+    {
+      "name": "shippingAddress",
+      "type": [
+        "null",
+        "AddressSchema"
+      ],
+      "doc": "Shipping address"
+    },
+    {
+      "name": "eyeColor",
+      "type": {
+        "type": "enum",
+        "name": "EyeColor",
+        "doc": "The color of one's eyes",
+        "symbols": [
+          "UNKNOWN",
+          "BLUE",
+          "GREEN",
+          "BROWN",
+          "GREY"
+        ]
+      },
+      "doc": "Eye color"
+    },
+    {
+      "name": "luckyNumbers",
+      "type": [
+        "null",
+        {
+          "type": "array",
+          "items": "long"
+        }
+      ],
+      "doc": "Lucky numbers"
+    },
+    {
+      "name": "accountNumber",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "BBANSchema",
+          "doc": "Bank account and BIC combination",
+          "fields": [
+            {
+              "name": "BBAN",
+              "type": "string",
+              "doc": "BBAN"
+            },
+            {
+              "name": "BIC",
+              "type": "string",
+              "doc": "BIC"
+            }
+          ]
+        },
+        "string"
+      ],
+      "doc": "Account number"
+    }
+  ]
+}

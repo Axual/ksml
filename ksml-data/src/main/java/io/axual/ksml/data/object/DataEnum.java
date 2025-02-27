@@ -61,4 +61,8 @@ public class DataEnum extends DataPrimitive<String> {
         final var symbols = ((EnumType) type()).symbols();
         return ListUtil.find(symbols, s -> s.name().equals(value)) != null;
     }
+
+    public boolean equals(Object other) {
+        return super.equals(other);
+    }
 }

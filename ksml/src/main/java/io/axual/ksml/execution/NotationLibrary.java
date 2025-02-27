@@ -38,8 +38,12 @@ public class NotationLibrary {
     }
 
     public Notation get(String notation) {
-        final var result = notations.get(notation != null ? notation.toUpperCase() : null);
+        final var result = getIfExists(notation);
         if (result != null) return result;
         throw new DataException("Unknown data notation: " + (notation != null ? notation : "null"));
+    }
+
+    public Notation getIfExists(String notation) {
+        return notations.get(notation != null ? notation.toUpperCase() : null);
     }
 }

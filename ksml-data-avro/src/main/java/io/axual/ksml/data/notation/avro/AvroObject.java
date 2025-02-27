@@ -38,28 +38,23 @@ public class AvroObject implements GenericRecord {
     private Schema avroSchema = null;
 
     public AvroObject(StructSchema schema, Map<?, ?> source) {
-        if (schema == null) {
-            throw new DataException("Can not create an AVRO object without schema");
-        }
+        if (schema == null) throw new DataException("Can not create an AVRO object without schema");
         this.schema = schema;
         schema.fields().forEach(field -> put(field.name(), source.get(field.name())));
     }
 
     @Override
     public void put(String key, Object value) {
-        var field = schema.field(key);
+        final var field = schema.field(key);
 
-        if (field.schema() instanceof StructSchema structSchema && value instanceof Map) {
+        if (field.schema() instanceof StructSchema structSchema && value instanceof Map)
             value = new AvroObject(structSchema, (Map<?, ?>) value);
-        }
-        if (field.schema() instanceof EnumSchema) {
+        if (field.schema() instanceof EnumSchema)
             value = new GenericData.EnumSymbol(schemaMapper.fromDataSchema(field.schema()), value != null ? value.toString() : null);
-        }
 
-        var fieldSchema = schemaMapper.fromDataSchema(field.schema());
-        if (fieldSchema != null && !validator.validate(fieldSchema, value)) {
+        final var fieldSchema = schemaMapper.fromDataSchema(field.schema());
+        if ((value != null || field.required()) && fieldSchema != null && !validator.validate(fieldSchema, value))
             throw DataException.validationFailed(key, value);
-        }
 
         data.put(key, value);
     }
@@ -81,9 +76,7 @@ public class AvroObject implements GenericRecord {
 
     @Override
     public Schema getSchema() {
-        if (avroSchema == null) {
-            avroSchema = schemaMapper.fromDataSchema(schema);
-        }
+        if (avroSchema == null) avroSchema = schemaMapper.fromDataSchema(schema);
         return avroSchema;
     }
 }

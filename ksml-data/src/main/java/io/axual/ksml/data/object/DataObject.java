@@ -32,7 +32,7 @@ public interface DataObject {
         EXTERNAL_ALL_SCHEMA;
 
         public Printer childObjectPrinter() {
-            if (this == INTERNAL) return INTERNAL;
+            if (this == INTERNAL) return EXTERNAL_NO_SCHEMA;
             return this == EXTERNAL_ALL_SCHEMA ? EXTERNAL_ALL_SCHEMA : EXTERNAL_NO_SCHEMA;
         }
 

@@ -1,4 +1,4 @@
-package io.axual.ksml.notation.protobuf;
+package io.axual.ksml.data.csv;
 
 /*-
  * ========================LICENSE_START=================================

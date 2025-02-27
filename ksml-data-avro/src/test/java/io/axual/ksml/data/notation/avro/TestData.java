@@ -1,4 +1,4 @@
-package io.axual.ksml.notation.protobuf;
+package io.axual.ksml.data.notation.avro;
 
 /*-
  * ========================LICENSE_START=================================

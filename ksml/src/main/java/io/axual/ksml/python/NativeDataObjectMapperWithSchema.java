@@ -45,14 +45,14 @@ public class NativeDataObjectMapperWithSchema extends NativeDataObjectMapper {
     }
 
     @Override
-    protected StructType inferStructType(Map<?, ?> map, DataSchema expected) {
-        final var schema = inferStructSchema(map);
+    protected StructType inferStructTypeFromNative(Map<?, ?> map, DataSchema expected) {
+        final var schema = inferStructSchemaFromNative(map);
         if (schema instanceof StructSchema structSchema) return new StructType(structSchema);
         if (schema != null) throw new DataException("Map can not be converted to " + schema);
-        return super.inferStructType(map, expected);
+        return super.inferStructTypeFromNative(map, expected);
     }
 
-    private DataSchema inferStructSchema(Map<?, ?> map) {
+    private DataSchema inferStructSchemaFromNative(Map<?, ?> map) {
         // Find out the schema of the struct by looking at the fields. If there are no meta fields
         // to override the expected schema, then return the expected schema.
 
@@ -68,7 +68,7 @@ public class NativeDataObjectMapperWithSchema extends NativeDataObjectMapper {
         // library. If this field is set, then look up the schema by name in the library.
         if (map.containsKey(STRUCT_TYPE_FIELD)) {
             final var schemaName = map.get(STRUCT_TYPE_FIELD).toString();
-            final var schema = loadSchema(schemaName);
+            final var schema = loadSchemaByName(schemaName);
             if (schema != null) return schema;
         }
 
@@ -77,16 +77,16 @@ public class NativeDataObjectMapperWithSchema extends NativeDataObjectMapper {
     }
 
     @Override
-    protected DataObject nativeToDataStruct(Map<String, Object> map, StructType type) {
+    protected DataObject convertNativeToDataStruct(Map<String, Object> map, StructType type) {
         map.remove(STRUCT_SCHEMA_FIELD);
         map.remove(STRUCT_TYPE_FIELD);
-        return super.nativeToDataStruct(map, type);
+        return super.convertNativeToDataStruct(map, type);
     }
 
     @Nullable
     @Override
-    public Map<String, Object> fromDataStruct(DataStruct struct) {
-        final var result = super.fromDataStruct(struct);
+    public Map<String, Object> convertDataStructToNative(DataStruct struct) {
+        final var result = super.convertDataStructToNative(struct);
         if (result == null) return null;
 
         // Convert schema to native format by encoding it in meta fields

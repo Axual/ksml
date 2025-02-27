@@ -25,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
-import io.axual.ksml.data.notation.json.JsonNodeNativeMapper;
+import io.axual.ksml.data.util.JsonNodeUtil;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.runner.exception.ConfigException;
 import lombok.Builder;
@@ -150,8 +150,7 @@ public class KSMLConfig {
                     }
                 }
                 if (definition.getValue() instanceof Map<?, ?> definitionMap) {
-                    final var mapper = new JsonNodeNativeMapper();
-                    final var root = mapper.fromNative(definitionMap);
+                    final var root = JsonNodeUtil.convertNativeToJsonNode(definitionMap);
                     result.put(definition.getKey(), root);
                 }
             }

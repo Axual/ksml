@@ -39,7 +39,6 @@ import java.util.Objects;
  * @see DataObject
  */
 @Getter
-@EqualsAndHashCode
 public class DataPrimitive<T> implements DataObject {
     private final DataType type;
     private final T value;

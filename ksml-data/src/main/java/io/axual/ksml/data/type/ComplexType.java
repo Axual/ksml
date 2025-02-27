@@ -25,11 +25,10 @@ import lombok.Getter;
 import java.util.Arrays;
 import java.util.Objects;
 
+@Getter
 public abstract class ComplexType implements DataType {
     private final Class<?> containerClass;
-    @Getter
     private final String name;
-    @Getter
     private final String spec;
     private final DataType[] subTypes;
 
@@ -38,10 +37,6 @@ public abstract class ComplexType implements DataType {
         this.name = name;
         this.spec = spec;
         this.subTypes = subTypes;
-    }
-
-    public Class<?> containerClass() {
-        return containerClass;
     }
 
     protected static String buildName(String baseName, DataType... subTypes) {

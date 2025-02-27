@@ -29,8 +29,10 @@ import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.object.DataUnion;
 import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.util.ConvertUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -38,14 +40,19 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
     private static final DataTypeDataSchemaMapper DATA_TYPE_MAPPER = new DataTypeDataSchemaMapper();
     private static final ProtobufDescriptorFileElementMapper DESCRIPTOR_ELEMENT_MAPPER = new ProtobufDescriptorFileElementMapper();
     private static final ProtobufFileElementSchemaMapper ELEMENT_SCHEMA_MAPPER = new ProtobufFileElementSchemaMapper();
+    private final ConvertUtil convertUtil;
+
+    public ProtobufDataObjectMapper() {
+        convertUtil = new ConvertUtil(this, DATA_TYPE_MAPPER);
+    }
 
     @Override
     public DataObject toDataObject(DataType expected, Object value) {
-        if (value instanceof Message message) return convertFromMessage(message);
+        if (value instanceof Message message) return convertMessageToDataObject(message);
         return super.toDataObject(expected, value);
     }
 
-    private DataObject convertFromMessage(Message message) {
+    private DataObject convertMessageToDataObject(Message message) {
         final var descriptor = message.getDescriptorForType();
         final var namespace = descriptor.getFile().getPackage();
         final var name = descriptor.getName();
@@ -58,7 +65,8 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
             final var parentOneOf = field.getKey().getContainingOneof();
             final var fieldName = parentOneOf != null ? parentOneOf.getName() : field.getKey().getName();
             final var expectedType = DATA_TYPE_MAPPER.fromDataSchema(schema.field(fieldName).schema());
-            result.put(fieldName, toDataObject(expectedType, val));
+            final var dataObject = convertUtil.convertDataObject(null, null, expectedType, toDataObject(val), false);
+            result.put(fieldName, dataObject);
         }
         return result;
     }
@@ -66,12 +74,12 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
     @Override
     public Object fromDataObject(DataObject value) {
         if (value instanceof DataStruct struct) {
-            return convertToMessage(struct);
+            return convertDataStructToMessage(struct);
         }
         return super.fromDataObject(value);
     }
 
-    private Message convertToMessage(DataStruct struct) {
+    private Message convertDataStructToMessage(DataStruct struct) {
         final var dataSchema = struct.type().schema();
         if (dataSchema == null) {
             throw new DataException("Can not convert schemaless STRUCT into a PROTOBUF message");
@@ -87,7 +95,7 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
             if (parentOneOf == null) {
                 final var fieldValue = struct.get(field.getName());
                 if (fieldValue != null) {
-                    setFieldValue(msg, field, fromDataObject(fieldValue));
+                    setMessageFieldValue(msg, field, fromDataObject(fieldValue));
                 } else {
                     if (field.isRequired()) {
                         throw new DataException("PROTOBUF message of type '" + dataSchema.name() + "' is missing required field '" + field.getName() + "'");
@@ -102,14 +110,14 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
             final var fieldValue = struct.get(fieldName);
             if (fieldValue != null) {
                 final var fieldSchema = dataSchema.field(fieldName).schema();
-                if (fieldSchema instanceof UnionSchema unionSchema) {
+                if (fieldValue instanceof DataUnion unionField && fieldSchema instanceof UnionSchema unionSchema) {
                     var assigned = false;
                     var index = 0;
                     while (!assigned && index < unionSchema.memberSchemas().length) {
                         final var memberSchema = unionSchema.memberSchemas()[index];
                         final var memberType = new DataTypeDataSchemaMapper().fromDataSchema(memberSchema.schema());
-                        if (memberType.isAssignableFrom(fieldValue)) {
-                            setFieldValue(msg, msgDescriptor.findFieldByName(memberSchema.name()), fromDataObject(fieldValue));
+                        if (memberType.isAssignableFrom(unionField.value())) {
+                            setMessageFieldValue(msg, msgDescriptor.findFieldByName(memberSchema.name()), fromDataObject(fieldValue));
                             assigned = true;
                         }
                         index++;
@@ -123,7 +131,7 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
         return msg.build();
     }
 
-    private void setFieldValue(DynamicMessage.Builder msg, Descriptors.FieldDescriptor field, Object value) {
+    private void setMessageFieldValue(DynamicMessage.Builder msg, Descriptors.FieldDescriptor field, Object value) {
         if (field.getType() == Descriptors.FieldDescriptor.Type.ENUM) {
             final var evd = field.getEnumType().findValueByName(value.toString());
             if (evd == null) {

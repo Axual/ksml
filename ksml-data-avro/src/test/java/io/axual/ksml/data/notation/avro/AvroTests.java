@@ -1,4 +1,4 @@
-package io.axual.ksml.notation.protobuf;
+package io.axual.ksml.data.notation.avro;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,40 +20,49 @@ package io.axual.ksml.notation.protobuf;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.csv.TestData;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.notation.protobuf.ProtobufDataObjectMapper;
-import io.axual.ksml.data.notation.protobuf.ProtobufNotation;
-import io.axual.ksml.data.notation.protobuf.ProtobufSchemaMapper;
+import io.axual.ksml.data.notation.csv.CsvDataObjectMapper;
+import io.axual.ksml.data.notation.csv.CsvNotation;
+import io.axual.ksml.data.notation.csv.CsvSchemaMapper;
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.StructSchema;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class ProtobufTests {
+class CsvTests {
+
     @Test
     void schemaTest() {
         final var inputSchema = TestData.testSchema();
-        final var schemaMapper = new ProtobufSchemaMapper();
-        final var protoSchema = schemaMapper.fromDataSchema(inputSchema);
-        System.out.println(protoSchema.getProtoFileElement().toSchema());
-        final var outputSchema = schemaMapper.toDataSchema(inputSchema.namespace(), inputSchema.name(), protoSchema);
-        assertEquals(inputSchema, outputSchema, "Input schema should match output schema");
+        final var schemaMapper = new CsvSchemaMapper();
+        final var csvSchema = schemaMapper.fromDataSchema(inputSchema);
+        System.out.println(csvSchema);
+        final var outputSchema = (StructSchema) schemaMapper.toDataSchema(inputSchema.namespace(), inputSchema.name(), csvSchema);
+
+        // Check the conversion
+        final var inputFieldNames = inputSchema.fields().stream().map(DataField::name).toArray(String[]::new);
+        final var outputFieldNames = outputSchema.fields().stream().map(DataField::name).toArray(String[]::new);
+        assertArrayEquals(inputFieldNames, outputFieldNames, "Input schema field names should match output schema field names");
     }
 
     @Test
     void dataTest() {
         final var inputData = TestData.testStruct();
-        final var objectMapper = new ProtobufDataObjectMapper();
-        final var protoData = objectMapper.fromDataObject(inputData);
-        System.out.println(protoData.toString());
-        final var outputData = objectMapper.toDataObject(inputData.type(), protoData);
+        System.out.println(inputData);
+        final var objectMapper = new CsvDataObjectMapper();
+        final var csvData = objectMapper.fromDataObject(inputData);
+        System.out.println(csvData);
+        final var outputData = objectMapper.toDataObject(inputData.type(), csvData);
+        System.out.println(outputData);
         assertEquals(inputData, outputData, "Input data should match output data");
     }
 
     @Test
     void serdeTest() {
-        final var notation = new ProtobufNotation("proto", ProtobufNotation.SerdeType.APICURIO, new NativeDataObjectMapper(), new HashMap<>(), new MockRegistryClient());
+        final var notation = new CsvNotation("csv", new NativeDataObjectMapper());
         final var inputData = TestData.testStruct();
         final var serde = notation.serde(inputData.type(), false);
         final var serialized = serde.serializer().serialize("topic", inputData);

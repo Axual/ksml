@@ -21,6 +21,7 @@ package io.axual.ksml.data.notation.avro;
  */
 
 import com.google.common.collect.ImmutableMap;
+import io.apicurio.registry.rest.client.RegistryClient;
 import io.apicurio.registry.serde.avro.AvroKafkaDeserializer;
 import io.apicurio.registry.serde.avro.AvroKafkaSerializer;
 import io.axual.ksml.data.exception.DataException;
@@ -54,30 +55,24 @@ public class AvroNotation extends BaseNotation {
     private final SerdeType serdeType;
     private final NativeDataObjectMapper nativeMapper;
     private final Map<String, ?> serdeConfigs;
-    private Serde<Object> keySerde;
-    private Serde<Object> valueSerde;
+    private RegistryClient client;
 
-    public AvroNotation(String name, SerdeType type, NativeDataObjectMapper nativeMapper, Map<String, ?> configs) {
+    public AvroNotation(String name, SerdeType type, NativeDataObjectMapper nativeMapper, Map<String, ?> configs, RegistryClient client) {
         super(name, ".avsc", DEFAULT_TYPE, null, new AvroSchemaParser());
         this.serdeType = type;
         this.nativeMapper = nativeMapper;
         this.serdeConfigs = ImmutableMap.copyOf(configs);
+        this.client = client;
     }
 
     @Override
     public Serde<Object> serde(DataType type, boolean isKey) {
         if (!(type instanceof MapType)) throw noSerdeFor(type);
 
-        // Create the serdes only upon request to prevent error messages on missing SR url configs if AVRO is not used
-        if (keySerde == null) {
-            keySerde = new AvroSerde(serdeType);
-            keySerde.configure(serdeConfigs, true);
-        }
-        if (valueSerde == null) {
-            valueSerde = new AvroSerde(serdeType);
-            valueSerde.configure(serdeConfigs, false);
-        }
-        return isKey ? keySerde : valueSerde;
+        // Create the serdes only upon request to prevent error messages on missing SR url configs if Protobuf is not used
+        final var serde = new AvroSerde(serdeType, client);
+        serde.configure(serdeConfigs, isKey);
+        return serde;
     }
 
     private class AvroSerde implements Serde<Object> {
@@ -88,13 +83,13 @@ public class AvroNotation extends BaseNotation {
         @Getter
         private final Deserializer<Object> deserializer;
 
-        public AvroSerde(SerdeType type) {
+        public AvroSerde(SerdeType type, RegistryClient client) {
             backingSerializer = switch (type) {
-                case APICURIO -> new AvroKafkaSerializer<>();
+                case APICURIO -> client != null ? new AvroKafkaSerializer<>(client) : new AvroKafkaSerializer<>();
                 case CONFLUENT -> new KafkaAvroSerializer();
             };
             backingDeserializer = switch (type) {
-                case APICURIO -> new AvroKafkaDeserializer<>();
+                case APICURIO -> client != null ? new AvroKafkaDeserializer<>(client) : new AvroKafkaDeserializer<>();
                 case CONFLUENT -> new KafkaAvroDeserializer();
             };
 

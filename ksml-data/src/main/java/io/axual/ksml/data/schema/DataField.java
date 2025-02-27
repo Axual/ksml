@@ -109,6 +109,7 @@ public class DataField {
         this.name = name;
         this.schema = schema;
         this.doc = doc;
+        // Tags are always set on members of unions, not on the unions themselves
         this.tag = schema instanceof UnionSchema ? NO_TAG : tag;
         this.required = required;
         this.constant = constant;

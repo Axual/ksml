@@ -21,9 +21,9 @@ package io.axual.ksml.schema;
  */
 
 import io.axual.ksml.data.mapper.DataSchemaMapper;
-import io.axual.ksml.data.notation.json.JsonNodeNativeMapper;
 import io.axual.ksml.data.schema.*;
 import io.axual.ksml.data.type.Symbol;
+import io.axual.ksml.data.util.JsonNodeUtil;
 import io.axual.ksml.data.util.ListUtil;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.parser.ParseNode;
@@ -37,11 +37,10 @@ import java.util.Map;
 
 public class NativeDataSchemaMapper implements DataSchemaMapper<Object> {
     private static final DataSchemaParser PARSER = new DataSchemaParser();
-    private static final JsonNodeNativeMapper JSON_NODE_MAPPER = new JsonNodeNativeMapper();
 
     @Override
     public DataSchema toDataSchema(String namespace, String name, Object value) {
-        final var json = JSON_NODE_MAPPER.fromNative(value);
+        final var json = JsonNodeUtil.convertNativeToJsonNode(value);
         return PARSER.parse(ParseNode.fromRoot(json, "Schema"));
     }
 
