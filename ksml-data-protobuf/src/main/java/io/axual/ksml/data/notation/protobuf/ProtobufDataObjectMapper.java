@@ -29,7 +29,6 @@ import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataStruct;
-import io.axual.ksml.data.object.DataUnion;
 import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.util.ConvertUtil;
@@ -110,13 +109,13 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
             final var fieldValue = struct.get(fieldName);
             if (fieldValue != null) {
                 final var fieldSchema = dataSchema.field(fieldName).schema();
-                if (fieldValue instanceof DataUnion unionField && fieldSchema instanceof UnionSchema unionSchema) {
+                if (fieldSchema instanceof UnionSchema unionSchema) {
                     var assigned = false;
                     var index = 0;
                     while (!assigned && index < unionSchema.memberSchemas().length) {
                         final var memberSchema = unionSchema.memberSchemas()[index];
                         final var memberType = new DataTypeDataSchemaMapper().fromDataSchema(memberSchema.schema());
-                        if (memberType.isAssignableFrom(unionField.value())) {
+                        if (memberType.isAssignableFrom(fieldValue)) {
                             setMessageFieldValue(msg, msgDescriptor.findFieldByName(memberSchema.name()), fromDataObject(fieldValue));
                             assigned = true;
                         }

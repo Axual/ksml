@@ -1,4 +1,4 @@
-package io.axual.ksml.notation.protobuf;
+package io.axual.ksml.data.notation;
 
 /*-
  * ========================LICENSE_START=================================
@@ -28,36 +28,20 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 class ProtobufTests {
     @Test
     void schemaTest() {
-        final var inputSchema = TestData.testSchema();
-        final var schemaMapper = new ProtobufSchemaMapper();
-        final var protoSchema = schemaMapper.fromDataSchema(inputSchema);
-        System.out.println(protoSchema.getProtoFileElement().toSchema());
-        final var outputSchema = schemaMapper.toDataSchema(inputSchema.namespace(), inputSchema.name(), protoSchema);
-        assertEquals(inputSchema, outputSchema, "Input schema should match output schema");
+        NotationTest.schemaTest("protobuf", new ProtobufSchemaMapper());
     }
 
     @Test
     void dataTest() {
-        final var inputData = TestData.testStruct();
-        final var objectMapper = new ProtobufDataObjectMapper();
-        final var protoData = objectMapper.fromDataObject(inputData);
-        System.out.println(protoData.toString());
-        final var outputData = objectMapper.toDataObject(inputData.type(), protoData);
-        assertEquals(inputData, outputData, "Input data should match output data");
+        NotationTest.dataTest("protobuf", new ProtobufDataObjectMapper());
     }
 
     @Test
     void serdeTest() {
         final var notation = new ProtobufNotation("proto", ProtobufNotation.SerdeType.APICURIO, new NativeDataObjectMapper(), new HashMap<>(), new MockRegistryClient());
-        final var inputData = TestData.testStruct();
-        final var serde = notation.serde(inputData.type(), false);
-        final var serialized = serde.serializer().serialize("topic", inputData);
-        final var outputData = serde.deserializer().deserialize("topic", serialized);
-        assertEquals(inputData, outputData, "Input data should match output data");
+        NotationTest.serdeTest("protobuf", notation);
     }
 }

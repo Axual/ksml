@@ -195,14 +195,11 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
 
         if (value instanceof DataString val) return val.value();
 
-        if (value instanceof DataEnum val) return val.value();
         if (value instanceof DataList val) return convertDataListToNative(val);
         if (value instanceof DataStruct val) return convertDataStructToNative(val);
         if (value instanceof DataTuple val) return convertDataTupleToNative(val);
 
-        if (value instanceof DataUnion val) return fromDataObject(val.value());
-
-        throw new DataException("Can not convert DataObject to native dataType: " + value.getClass().getSimpleName());
+        throw new DataException("Can not convert DataObject to native dataType: " + (value != null ? value.getClass().getSimpleName() : "null"));
     }
 
     @Nullable
@@ -218,7 +215,18 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         if (struct.isNull()) return null;
 
         final var result = new TreeMap<>(DataStruct.COMPARATOR);
-        struct.forEach((key, value) -> result.put(key, fromDataObject(value)));
+        if (struct.type().schema() instanceof StructSchema structSchema) {
+            for (final var field : structSchema.fields()) {
+                final var key = field.name();
+                final var value = struct.get(key) != null ? fromDataObject(struct.get(key)) : null;
+                // Copy the field when required, is explicitly contained in the struct
+                if (field.required() || struct.containsKey(key))
+                    result.put(key, value);
+            }
+        } else {
+            // Copy all fields to the map
+            struct.forEach((key, value) -> result.put(key, fromDataObject(value)));
+        }
 
         // Return the native representation as Map
         return result;

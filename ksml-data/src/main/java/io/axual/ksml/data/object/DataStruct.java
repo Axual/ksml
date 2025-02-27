@@ -312,7 +312,7 @@ public class DataStruct implements DataObject {
             final var value = entry.getValue();
             sb.append(ValuePrinter.print(key, true));
             sb.append(": ");
-            sb.append(value.toString(printer.childObjectPrinter()));
+            sb.append(value != null ? value.toString(printer.childObjectPrinter()) : "null");
             if (!iterator.hasNext())
                 return sb.append("}").toString();
             sb.append(", ");

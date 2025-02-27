@@ -55,7 +55,11 @@ public class AvroNotation extends BaseNotation {
     private final SerdeType serdeType;
     private final NativeDataObjectMapper nativeMapper;
     private final Map<String, ?> serdeConfigs;
-    private RegistryClient client;
+    private final RegistryClient client;
+
+    public AvroNotation(String name, SerdeType type, NativeDataObjectMapper nativeMapper, Map<String, ?> configs) {
+        this(name, type, nativeMapper, configs, null);
+    }
 
     public AvroNotation(String name, SerdeType type, NativeDataObjectMapper nativeMapper, Map<String, ?> configs, RegistryClient client) {
         super(name, ".avsc", DEFAULT_TYPE, null, new AvroSchemaParser());
@@ -118,7 +122,7 @@ public class AvroNotation extends BaseNotation {
             try {
                 return AVRO_MAPPER.toDataObject(deserializer.deserialize(topic, data));
             } catch (Exception e) {
-                throw new DataException(name + DESERIALIZATION_ERROR_MSG + topic, e);
+                throw new DataException(name.toUpperCase() + DESERIALIZATION_ERROR_MSG + topic, e);
             }
         }
 
@@ -127,7 +131,7 @@ public class AvroNotation extends BaseNotation {
             try {
                 return AVRO_MAPPER.toDataObject(deserializer.deserialize(topic, headers, data));
             } catch (Exception e) {
-                throw new DataException(name + DESERIALIZATION_ERROR_MSG + topic, e);
+                throw new DataException(name.toUpperCase() + DESERIALIZATION_ERROR_MSG + topic, e);
             }
         }
 
@@ -136,7 +140,7 @@ public class AvroNotation extends BaseNotation {
             try {
                 return AVRO_MAPPER.toDataObject(deserializer.deserialize(topic, headers, data));
             } catch (Exception e) {
-                throw new DataException(name + DESERIALIZATION_ERROR_MSG + topic, e);
+                throw new DataException(name.toUpperCase() + DESERIALIZATION_ERROR_MSG + topic, e);
             }
         }
 

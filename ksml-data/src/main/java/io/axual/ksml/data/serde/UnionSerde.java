@@ -23,7 +23,6 @@ package io.axual.ksml.data.serde;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataUnion;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.UnionType;
 import org.apache.kafka.common.serialization.Deserializer;
@@ -84,8 +83,7 @@ public class UnionSerde implements Serde<Object> {
         @Override
         public byte[] serialize(String topic, Object data) {
             // Always allow null values for unions, so check these first outside of the union's memberTypes
-            final var value = data instanceof DataUnion dataUnion ? dataUnion.value() : data;
-            if (value == null || value == DataNull.INSTANCE) return null;
+            if (data == null || data == DataNull.INSTANCE) return null;
 
             // Iterate over all value types and call a type-compatible serializer
             for (final var memberType : memberTypes) {
@@ -103,7 +101,7 @@ public class UnionSerde implements Serde<Object> {
             }
 
             // No type compatibility found, so raise an exception
-            throw new DataException("Can not serialize value as union alternative: value=" + value + ", valuesTypes=" + memberTypesToString());
+            throw new DataException("Can not serialize value as union alternative: data=" + data + ", valuesTypes=" + memberTypesToString());
         }
     }
 

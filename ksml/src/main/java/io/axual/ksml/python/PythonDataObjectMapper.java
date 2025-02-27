@@ -163,7 +163,6 @@ public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
         if (object instanceof DataString val) return Value.asValue(val.value());
         if (object instanceof DataList val) return Value.asValue(convertDataListToNative(val));
         if (object instanceof DataStruct val) return Value.asValue(convertDataStructToNative(val));
-        if (object instanceof DataUnion val) return fromDataObject(val.value());
         throw new ExecutionException("Can not convert DataObject to Python dataType: " + object.getClass().getSimpleName());
     }
 }

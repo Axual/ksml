@@ -1,4 +1,4 @@
-package io.axual.ksml.data.notation.avro;
+package io.axual.ksml.data.notation;
 
 /*-
  * ========================LICENSE_START=================================
@@ -23,9 +23,7 @@ package io.axual.ksml.data.notation.avro;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.schema.*;
-import io.axual.ksml.data.type.EnumType;
 import io.axual.ksml.data.type.Symbol;
-import io.axual.ksml.data.type.UnionType;
 
 import java.util.List;
 
@@ -75,7 +73,7 @@ public class TestData {
         final var fields = List.of(
                 new DataField(NAME, DataSchema.STRING_SCHEMA, "Name", 1),
                 new DataField(AGE, DataSchema.INTEGER_SCHEMA, "Age", 2),
-                new DataField(ADDRESS, addressSchema, "Address", 3),
+                new DataField(ADDRESS, addressSchema, "Address", 3, false),
                 new DataField(SHIPPING_ADDRESS, addressSchema, "Shipping address", 4, false),
                 new DataField(EYE_COLOR, eyeColorSchema, "Eye color", 5),
                 new DataField(LUCKY_NUMBERS, luckyNumbersSchema, "Lucky numbers", 6, false),
@@ -100,11 +98,9 @@ public class TestData {
         result.put(NAME, new DataString("Jim Kirk"));
         result.put(AGE, new DataInteger(74));
         result.put(ADDRESS, address);
-        final var eyeColorType = SCHEMA_TYPE_MAPPER.fromDataSchema(testSchema().field(EYE_COLOR).schema());
-        result.put(EYE_COLOR, new DataEnum("BLUE", (EnumType) eyeColorType));
+        result.put(EYE_COLOR, new DataString("BLUE"));
         result.put(LUCKY_NUMBERS, luckyNumbers);
-        final var accountNumberType = SCHEMA_TYPE_MAPPER.fromDataSchema(testSchema().field(ACCOUNT_NUMBER).schema());
-        result.put(ACCOUNT_NUMBER, new DataUnion((UnionType) accountNumberType, new DataString("NL99BANK123456789")));
+        result.put(ACCOUNT_NUMBER, new DataString("NL99BANK123456789"));
 
         return result;
     }

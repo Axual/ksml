@@ -39,18 +39,6 @@ public class ConvertUtil {
     }
 
     public DataObject convertDataObject(Notation sourceNotation, Notation targetNotation, DataType targetType, DataObject value, boolean allowFail) {
-        // If an enum is expected, then check its intended value
-        if (targetType instanceof EnumType targetEnumType && targetEnumType.isAssignableFrom(value))
-            return new DataEnum(value.toString(), targetEnumType);
-
-        // If a union type is expected, then recurse into it before checking compatibility below
-        if (targetType instanceof UnionType targetUnionType) {
-            for (int index = 0; index < targetUnionType.memberTypes().length; index++) {
-                var convertedValue = convertDataObject(sourceNotation, targetNotation, targetUnionType.memberTypes()[index].type(), value, true);
-                if (convertedValue != null) return new DataUnion(targetUnionType, convertedValue);
-            }
-        }
-
         // If no conversion is possible or necessary, or the value type is already compatible with
         // the expected type, then just return the value object
         if (targetType == null || value == null || targetType.isAssignableFrom(value.type()))
@@ -60,6 +48,14 @@ public class ConvertUtil {
         if (value == DataNull.INSTANCE) return convertNullToDataObject(targetType);
 
         // Perform type conversions recursively, going into complex types if necessary
+
+        // If a union type is expected, then recurse into it before checking compatibility below
+        if (targetType instanceof UnionType targetUnionType) {
+            for (int index = 0; index < targetUnionType.memberTypes().length; index++) {
+                var convertedValue = convertDataObject(sourceNotation, targetNotation, targetUnionType.memberTypes()[index].type(), value, true);
+                if (convertedValue != null) return convertedValue;
+            }
+        }
 
         // Recurse into lists
         if (targetType instanceof ListType targetListType && value instanceof DataList valueList) {
@@ -98,11 +94,6 @@ public class ConvertUtil {
     }
 
     private DataObject applyNotationConverters(Notation sourceNotation, Notation targetNotation, DataType targetType, DataObject value) {
-        // If the value is a union, then dig down to its real value
-        while (value instanceof DataUnion valueUnion) {
-            value = valueUnion.value();
-        }
-
         // First we see if the target notation is able to interpret the source value
         if (targetNotation != null && targetNotation.converter() != null) {
             final var target = targetNotation.converter().convert(value, targetType);
@@ -188,13 +179,12 @@ public class ConvertUtil {
         if (expected == DataDouble.DATATYPE) return new DataDouble(Double.parseDouble(value));
         if (expected == DataString.DATATYPE) return new DataString(value);
         return switch (expected) {
-            case EnumType enumType -> new DataEnum(value, enumType);
+            case EnumType ignored -> new DataString(value);
             case ListType listType -> convertStringToDataList(listType, value);
             case StructType structType -> convertStringToDataStruct(structType, value);
             case TupleType tupleType -> convertStringToDataTuple(tupleType, value);
-            case UnionType unionType -> convertStringToDataUnion(unionType, value);
-            default ->
-                    throw new DataException("Can not convert string to data type \"" + expected + "\": " + (value != null ? value : "null"));
+            case UnionType unionType -> convertStringToUnionMemberType(unionType, value);
+            default -> throw new DataException("Can not convert string to data type \"" + expected + "\": " + value);
         };
     }
 
@@ -246,12 +236,12 @@ public class ConvertUtil {
         return new DataTuple(tupleElements);
     }
 
-    public DataUnion convertStringToDataUnion(UnionType type, String value) {
+    public DataObject convertStringToUnionMemberType(UnionType type, String value) {
         final var valueString = new DataString(value);
         for (final var memberType : type.memberTypes()) {
             final var dataObject = convertDataObject(null, null, memberType.type(), valueString, true);
             if (dataObject != null && memberType.type().isAssignableFrom(dataObject))
-                return new DataUnion(type, dataObject);
+                return dataObject;
         }
         throw new DataException("Can not convert string to union: type=" + type + ", value=" + (value != null ? value : "null"));
     }
@@ -270,7 +260,7 @@ public class ConvertUtil {
         return switch (expected) {
             case ListType listType -> new DataList(listType.valueType(), true);
             case StructType structType -> new DataStruct(structType.schema(), true);
-            case UnionType unionType -> new DataUnion(unionType, DataNull.INSTANCE);
+            case UnionType ignored -> DataNull.INSTANCE;
             default -> throw new DataException("Can not convert NULL to " + expected);
         };
     }
