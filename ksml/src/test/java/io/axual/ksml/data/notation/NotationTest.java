@@ -75,7 +75,7 @@ class NotationTest {
             System.out.println("INPUT DATA: " + inputData);
             final var serde = notation.serde(inputData.type(), false);
             final var headers = new RecordHeaders();
-            final var serialized = serde.serializer().serialize("topic", inputData);
+            final var serialized = serde.serializer().serialize("topic", headers, inputData);
             System.out.println("SERIALIZED " + type.toUpperCase() + " BYTES: " + new NativeDataObjectMapper().toDataObject(serialized).toString());
             System.out.println("HEADERS: " + headers);
             final var outputData = serde.deserializer().deserialize("topic", headers, serialized);

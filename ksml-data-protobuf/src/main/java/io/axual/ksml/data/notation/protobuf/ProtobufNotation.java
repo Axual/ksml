@@ -23,6 +23,8 @@ package io.axual.ksml.data.notation.protobuf;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.Message;
 import io.apicurio.registry.rest.client.RegistryClient;
+import io.apicurio.registry.serde.SerdeConfig;
+import io.apicurio.registry.serde.SerdeHeaders;
 import io.apicurio.registry.serde.protobuf.ProtobufKafkaDeserializer;
 import io.apicurio.registry.serde.protobuf.ProtobufKafkaSerializer;
 import io.axual.ksml.data.exception.DataException;
@@ -35,6 +37,7 @@ import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
 import lombok.Getter;
 import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
@@ -80,14 +83,36 @@ public class ProtobufNotation extends BaseNotation {
     }
 
     private class ProtobufSerde implements Serde<Object> {
-        private final Serializer<Message> backingSerializer;
-        private final Deserializer<Message> backingDeserializer;
+        private Serializer<Message> backingSerializer;
+        private Deserializer<Message> backingDeserializer;
         @Getter
-        private final Serializer<Object> serializer;
+        private Serializer<Object> serializer;
         @Getter
-        private final Deserializer<Object> deserializer;
+        private Deserializer<Object> deserializer;
+        private SerdeType type;
+        private RegistryClient client;
 
         public ProtobufSerde(SerdeType type, RegistryClient client) {
+            this.type = type;
+            this.client = client;
+            initialize(null);
+        }
+
+        @Override
+        public void configure(Map<String, ?> configs, boolean isKey) {
+            // Remove the messageTypeHeaderName to force the Apicurio serde
+            final String messageTypeHeaderName;
+            if (isKey) {
+                messageTypeHeaderName = (String) ((Map<String, Object>) configs).getOrDefault(SerdeConfig.HEADER_KEY_MESSAGE_TYPE_OVERRIDE_NAME, SerdeHeaders.HEADER_KEY_MESSAGE_TYPE);
+            } else {
+                messageTypeHeaderName = (String) ((Map<String, Object>) configs).getOrDefault(SerdeConfig.HEADER_VALUE_MESSAGE_TYPE_OVERRIDE_NAME, SerdeHeaders.HEADER_VALUE_MESSAGE_TYPE);
+            }
+            initialize(messageTypeHeaderName);
+            backingSerializer.configure(configs, isKey);
+            backingDeserializer.configure(configs, isKey);
+        }
+
+        private void initialize(String messageTypeHeaderName) {
             backingSerializer = switch (type) {
                 case APICURIO ->
                         client != null ? new ProtobufKafkaSerializer<>(client) : new ProtobufKafkaSerializer<>();
@@ -97,20 +122,15 @@ public class ProtobufNotation extends BaseNotation {
                         client != null ? new ProtobufKafkaDeserializer<>(client) : new ProtobufKafkaDeserializer<>();
             };
 
-            var wrappedSerde = new WrappedSerde(backingSerializer, backingDeserializer, nativeMapper);
+            var wrappedSerde = new WrappedSerde(backingSerializer, backingDeserializer, nativeMapper, messageTypeHeaderName);
             serializer = wrappedSerde;
             deserializer = wrappedSerde;
-        }
-
-        @Override
-        public void configure(Map<String, ?> configs, boolean isKey) {
-            backingSerializer.configure(configs, isKey);
-            backingDeserializer.configure(configs, isKey);
         }
     }
 
     private record WrappedSerde(Serializer<Message> serializer, Deserializer<Message> deserializer,
-                                NativeDataObjectMapper nativeMapper) implements Serializer<Object>, Deserializer<Object> {
+                                NativeDataObjectMapper nativeMapper,
+                                String messageTypeHeader) implements Serializer<Object>, Deserializer<Object> {
         @Override
         public DataObject deserialize(final String topic, final byte[] data) {
             try {
@@ -123,6 +143,11 @@ public class ProtobufNotation extends BaseNotation {
         @Override
         public DataObject deserialize(final String topic, final Headers headers, final byte[] data) {
             try {
+                if (messageTypeHeader != null) {
+                    final var substituteHeaders = new RecordHeaders(headers);
+                    substituteHeaders.remove(messageTypeHeader);
+                    return MAPPER.toDataObject(deserializer.deserialize(topic, substituteHeaders, data));
+                }
                 return MAPPER.toDataObject(deserializer.deserialize(topic, headers, data));
             } catch (Exception e) {
                 throw new DataException(DESERIALIZATION_ERROR_MSG + topic, e);
@@ -132,6 +157,11 @@ public class ProtobufNotation extends BaseNotation {
         @Override
         public DataObject deserialize(final String topic, final Headers headers, final ByteBuffer data) {
             try {
+                if (messageTypeHeader != null) {
+                    final var substituteHeaders = new RecordHeaders(headers);
+                    substituteHeaders.remove(messageTypeHeader);
+                    return MAPPER.toDataObject(deserializer.deserialize(topic, substituteHeaders, data));
+                }
                 return MAPPER.toDataObject(deserializer.deserialize(topic, headers, data));
             } catch (Exception e) {
                 throw new DataException(DESERIALIZATION_ERROR_MSG + topic, e);
@@ -160,10 +190,18 @@ public class ProtobufNotation extends BaseNotation {
         @Override
         public byte[] serialize(final String topic, final Headers headers, final Object data) {
             try {
-                if (data == null) return serializer.serialize(topic, headers, null);
+                if (data == null) {
+                    final var result = serializer.serialize(topic, headers, null);
+                    headers.remove(messageTypeHeader);
+                    return result;
+                }
                 final var dataObject = nativeMapper.toDataObject(data);
                 final var message = MAPPER.fromDataObject(dataObject);
-                if (message instanceof Message msg) return serializer.serialize(topic, headers, msg);
+                if (message instanceof Message msg) {
+                    final var result = serializer.serialize(topic, headers, msg);
+                    headers.remove(messageTypeHeader);
+                    return result;
+                }
                 throw new DataException("Could not convert '" + dataObject.type() + "' to PROTOBUF message");
             } catch (Exception e) {
                 throw new DataException(SERIALIZATION_ERROR_MSG + topic, e);
