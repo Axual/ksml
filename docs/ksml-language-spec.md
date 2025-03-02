@@ -77,16 +77,19 @@
   - **`code`**: *(optional)* The (multiline) code of the aggregator.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the aggregator. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the aggregator. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the aggregator. If this field is not defined, then the name is derived from the context.
@@ -98,16 +101,19 @@
   - **`code`**: *(optional)* The (multiline) code of the aggregator.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the aggregator. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the aggregator. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the aggregator. If this field is not defined, then the name is derived from the context.
@@ -234,16 +240,19 @@
   - **`code`**: *(optional)* The (multiline) code of the foreach action.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the foreach action. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the foreach action. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the foreach action. If this field is not defined, then the name is derived from the context.
@@ -257,16 +266,19 @@
   - **`code`**: *(optional)* The (multiline) code of the foreach action.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the foreach action. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the foreach action. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the foreach action. If this field is not defined, then the name is derived from the context.
@@ -279,16 +291,19 @@
   - **`code`**: *(optional)* The (multiline) code of the foreign key extractor.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the foreign key extractor. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the foreign key extractor. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the foreign key extractor. If this field is not defined, then the name is derived from the context.
@@ -300,16 +315,19 @@
   - **`code`**: *(optional)* The (multiline) code of the foreign key extractor.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the foreign key extractor. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the foreign key extractor. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the foreign key extractor. If this field is not defined, then the name is derived from the context.
@@ -320,16 +338,19 @@
   - **`code`**: *(optional)* The (multiline) code of the message generator.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the message generator. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the message generator. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the message generator. If this field is not defined, then the name is derived from the context.
@@ -341,16 +362,19 @@
   - **`code`**: *(optional)* The (multiline) code of the message generator.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the message generator. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the message generator. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the message generator. If this field is not defined, then the name is derived from the context.
@@ -361,16 +385,19 @@
   - **`code`**: *(optional)* The (multiline) code of the generic function.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the generic function. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the generic function. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the generic function. If this field is not defined, then the name is derived from the context.
@@ -421,16 +448,19 @@
   - **`code`**: *(optional)* The (multiline) code of the initializer.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the initializer. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the initializer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the initializer. If this field is not defined, then the name is derived from the context.
@@ -442,16 +472,19 @@
   - **`code`**: *(optional)* The (multiline) code of the initializer.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the initializer. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the initializer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the initializer. If this field is not defined, then the name is derived from the context.
@@ -476,7 +509,7 @@
 - <a id="definitions/JoinOperationWithStream"></a>**`JoinOperationWithStream`** *(object)*: Operation to join with a stream. Cannot contain additional properties.
   - **`grace`**: *(optional)* The window grace period (the time to admit out-of-order events after the end of the window).
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`store`**: *(optional)* Materialized view of the joined streams.
@@ -491,7 +524,7 @@
       - *object*: Refer to *[#/definitions/StreamDefinitionAsJoinTarget](#definitions/StreamDefinitionAsJoinTarget)*.
   - **`timeDifference`**: The maximum time difference for a join over two streams on the same key.
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`type`**: The type of the operation. Must be one of: `["join"]`.
   - **`valueJoiner`**: A function that joins two values.
@@ -505,7 +538,7 @@
       - *object*: Refer to *[#/definitions/ForeignKeyExtractorDefinitionWithImplicitStoreType](#definitions/ForeignKeyExtractorDefinitionWithImplicitStoreType)*.
   - **`grace`**: *(optional)* The window grace period (the time to admit out-of-order events after the end of the window).
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`otherPartitioner`**: *(optional)* A function that partitions the records on the join table.
@@ -535,16 +568,19 @@
   - **`code`**: *(optional)* The (multiline) code of the key transformer.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the key transformer. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the key transformer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the key transformer. If this field is not defined, then the name is derived from the context.
@@ -558,16 +594,19 @@
   - **`code`**: *(optional)* The (multiline) code of the key transformer.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the key transformer. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the key transformer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the key transformer. If this field is not defined, then the name is derived from the context.
@@ -580,16 +619,19 @@
   - **`code`**: *(optional)* The (multiline) code of the keyvalue mapper.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the keyvalue mapper. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the keyvalue mapper. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the keyvalue mapper. If this field is not defined, then the name is derived from the context.
@@ -601,16 +643,19 @@
   - **`code`**: *(optional)* The (multiline) code of the keyvalue mapper.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the keyvalue mapper. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the keyvalue mapper. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the keyvalue mapper. If this field is not defined, then the name is derived from the context.
@@ -621,16 +666,19 @@
   - **`code`**: *(optional)* The (multiline) code of the keyvalue printer.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the keyvalue printer. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the keyvalue printer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the keyvalue printer. If this field is not defined, then the name is derived from the context.
@@ -642,16 +690,19 @@
   - **`code`**: *(optional)* The (multiline) code of the keyvalue printer.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the keyvalue printer. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the keyvalue printer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the keyvalue printer. If this field is not defined, then the name is derived from the context.
@@ -662,7 +713,7 @@
   - **`caching`** *(boolean)*: *(optional)* "true" if changed to the keyValue store need to be buffered and periodically released, "false" to emit all changes directly.
   - **`historyRetention`**: *(optional)* (Versioned only) The duration for which old record versions are available for query (cannot be negative).
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`keyType`** *(string)*: *(optional)* The key type of the keyValue store.
   - **`logging`** *(boolean)*: *(optional)* "true" if a changelog topic should be set up on Kafka for this keyValue store, "false" otherwise.
@@ -670,7 +721,7 @@
   - **`persistent`** *(boolean)*: *(optional)* "true" if this keyValue store needs to be stored on disk, "false" otherwise.
   - **`segmentInterval`**: *(optional)* Size of segments for storing old record versions (must be positive). Old record versions for the same key in a single segment are stored (updated and accessed) together. The only impact of this parameter is performance. If segments are large and a workload results in many record versions for the same key being collected in a single segment, performance may degrade as a result. On the other hand, historical reads (which access older segments) and out-of-order writes may slow down if there are too many segments.
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`timestamped`** *(boolean)*: *(optional)* "true" if elements in the store are timestamped, "false" otherwise.
   - **`type`**: The type of the state store. Must be one of: `["keyValue"]`.
@@ -680,7 +731,7 @@
   - **`caching`** *(boolean)*: *(optional)* "true" if changed to the keyValue store need to be buffered and periodically released, "false" to emit all changes directly.
   - **`historyRetention`**: *(optional)* (Versioned only) The duration for which old record versions are available for query (cannot be negative).
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`keyType`** *(string)*: *(optional)* The key type of the keyValue store.
   - **`logging`** *(boolean)*: *(optional)* "true" if a changelog topic should be set up on Kafka for this keyValue store, "false" otherwise.
@@ -688,7 +739,7 @@
   - **`persistent`** *(boolean)*: *(optional)* "true" if this keyValue store needs to be stored on disk, "false" otherwise.
   - **`segmentInterval`**: *(optional)* Size of segments for storing old record versions (must be positive). Old record versions for the same key in a single segment are stored (updated and accessed) together. The only impact of this parameter is performance. If segments are large and a workload results in many record versions for the same key being collected in a single segment, performance may degrade as a result. On the other hand, historical reads (which access older segments) and out-of-order writes may slow down if there are too many segments.
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`timestamped`** *(boolean)*: *(optional)* "true" if elements in the store are timestamped, "false" otherwise.
   - **`type`**: The type of the state store. Must be one of: `["keyValue"]`.
@@ -698,13 +749,13 @@
   - **`caching`** *(boolean)*: *(optional)* "true" if changed to the keyValue store need to be buffered and periodically released, "false" to emit all changes directly.
   - **`historyRetention`**: *(optional)* (Versioned only) The duration for which old record versions are available for query (cannot be negative).
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`logging`** *(boolean)*: *(optional)* "true" if a changelog topic should be set up on Kafka for this keyValue store, "false" otherwise.
   - **`persistent`** *(boolean)*: *(optional)* "true" if this keyValue store needs to be stored on disk, "false" otherwise.
   - **`segmentInterval`**: *(optional)* Size of segments for storing old record versions (must be positive). Old record versions for the same key in a single segment are stored (updated and accessed) together. The only impact of this parameter is performance. If segments are large and a workload results in many record versions for the same key being collected in a single segment, performance may degrade as a result. On the other hand, historical reads (which access older segments) and out-of-order writes may slow down if there are too many segments.
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`timestamped`** *(boolean)*: *(optional)* "true" if elements in the store are timestamped, "false" otherwise.
   - **`type`**: The type of the state store. Must be one of: `["keyValue"]`.
@@ -713,16 +764,19 @@
   - **`code`**: *(optional)* The (multiline) code of the keyvalue-to-keyvaluelist transformer.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the keyvalue-to-keyvaluelist transformer. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the keyvalue-to-keyvaluelist transformer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the keyvalue-to-keyvaluelist transformer. If this field is not defined, then the name is derived from the context.
@@ -736,16 +790,19 @@
   - **`code`**: *(optional)* The (multiline) code of the keyvalue-to-keyvaluelist transformer.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the keyvalue-to-keyvaluelist transformer. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the keyvalue-to-keyvaluelist transformer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the keyvalue-to-keyvaluelist transformer. If this field is not defined, then the name is derived from the context.
@@ -758,16 +815,19 @@
   - **`code`**: *(optional)* The (multiline) code of the keyvalue-to-valuelist transformer.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the keyvalue-to-valuelist transformer. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the keyvalue-to-valuelist transformer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the keyvalue-to-valuelist transformer. If this field is not defined, then the name is derived from the context.
@@ -781,16 +841,19 @@
   - **`code`**: *(optional)* The (multiline) code of the keyvalue-to-valuelist transformer.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the keyvalue-to-valuelist transformer. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the keyvalue-to-valuelist transformer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the keyvalue-to-valuelist transformer. If this field is not defined, then the name is derived from the context.
@@ -803,16 +866,19 @@
   - **`code`**: *(optional)* The (multiline) code of the keyvalue transformer.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the keyvalue transformer. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the keyvalue transformer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the keyvalue transformer. If this field is not defined, then the name is derived from the context.
@@ -826,16 +892,19 @@
   - **`code`**: *(optional)* The (multiline) code of the keyvalue transformer.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the keyvalue transformer. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the keyvalue transformer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the keyvalue transformer. If this field is not defined, then the name is derived from the context.
@@ -862,7 +931,7 @@
 - <a id="definitions/LeftJoinOperationWithStream"></a>**`LeftJoinOperationWithStream`** *(object)*: Operation to leftJoin with a stream. Cannot contain additional properties.
   - **`grace`**: *(optional)* The window grace period (the time to admit out-of-order events after the end of the window).
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`store`**: *(optional)* Materialized view of the joined streams.
@@ -877,7 +946,7 @@
       - *object*: Refer to *[#/definitions/StreamDefinitionAsJoinTarget](#definitions/StreamDefinitionAsJoinTarget)*.
   - **`timeDifference`**: The maximum time difference for a leftJoin over two streams on the same key.
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`type`**: The type of the operation. Must be one of: `["leftJoin"]`.
   - **`valueJoiner`**: A function that joins two values.
@@ -891,7 +960,7 @@
       - *object*: Refer to *[#/definitions/ForeignKeyExtractorDefinitionWithImplicitStoreType](#definitions/ForeignKeyExtractorDefinitionWithImplicitStoreType)*.
   - **`grace`**: *(optional)* The window grace period (the time to admit out-of-order events after the end of the window).
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`otherPartitioner`**: *(optional)* A function that partitions the records on the join table.
@@ -928,16 +997,19 @@
   - **`code`**: *(optional)* The (multiline) code of the merger.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the merger. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the merger. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the merger. If this field is not defined, then the name is derived from the context.
@@ -949,16 +1021,19 @@
   - **`code`**: *(optional)* The (multiline) code of the merger.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the merger. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the merger. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the merger. If this field is not defined, then the name is derived from the context.
@@ -969,16 +1044,19 @@
   - **`code`**: *(optional)* The (multiline) code of the metadata transformer.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the metadata transformer. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the metadata transformer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the metadata transformer. If this field is not defined, then the name is derived from the context.
@@ -992,16 +1070,19 @@
   - **`code`**: *(optional)* The (multiline) code of the metadata transformer.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the metadata transformer. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the metadata transformer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the metadata transformer. If this field is not defined, then the name is derived from the context.
@@ -1013,7 +1094,7 @@
 - <a id="definitions/OuterJoinOperationWithStream"></a>**`OuterJoinOperationWithStream`** *(object)*: Operation to outerJoin with a stream. Cannot contain additional properties.
   - **`grace`**: *(optional)* The window grace period (the time to admit out-of-order events after the end of the window).
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`store`**: *(optional)* Materialized view of the outerJoined streams.
@@ -1028,7 +1109,7 @@
       - *object*: Refer to *[#/definitions/StreamDefinitionAsJoinTarget](#definitions/StreamDefinitionAsJoinTarget)*.
   - **`timeDifference`**: The maximum time difference for an outerJoin over two streams on the same key.
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`type`**: The type of the operation. Must be one of: `["outerJoin"]`.
   - **`valueJoiner`**: A function that joins two values.
@@ -1129,16 +1210,19 @@
   - **`code`**: *(optional)* The (multiline) code of the predicate.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the predicate. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the predicate. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the predicate. If this field is not defined, then the name is derived from the context.
@@ -1152,16 +1236,19 @@
   - **`code`**: *(optional)* The (multiline) code of the predicate.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the predicate. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the predicate. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the predicate. If this field is not defined, then the name is derived from the context.
@@ -1179,19 +1266,19 @@
       - *object*: Refer to *[#/definitions/KeyValuePrinterDefinitionWithImplicitStoreType](#definitions/KeyValuePrinterDefinitionWithImplicitStoreType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
 - <a id="definitions/ProducerDefinition"></a>**`ProducerDefinition`** *(object)*: Definition of a Producer that regularly generates messages for a topic. Cannot contain additional properties.
-  - **`batchSize`** *(number)*: *(optional)* The size of batches.
+  - **`batchSize`** *(integer)*: *(optional)* The size of batches.
   - **`condition`**: *(optional)* A function that validates the generator's result message. Returns "true" when the message may be produced on the topic, "false" otherwise.
     - **Any of**
       - *string*
       - *object*: Refer to *[#/definitions/PredicateDefinitionWithImplicitStoreType](#definitions/PredicateDefinitionWithImplicitStoreType)*.
-  - **`count`** *(number)*: *(optional)* The number of messages to produce.
+  - **`count`** *(integer)*: *(optional)* The number of messages to produce.
   - **`generator`**: The function that generates records.
     - **Any of**
       - *string*
       - *object*: Refer to *[#/definitions/GeneratorDefinitionWithImplicitStoreType](#definitions/GeneratorDefinitionWithImplicitStoreType)*.
   - **`interval`**: *(optional)* The interval with which the generator is called.
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`to`**: The topic to produce to.
     - **Any of**
@@ -1231,16 +1318,19 @@
   - **`code`**: *(optional)* The (multiline) code of the reducer.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the reducer. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the reducer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the reducer. If this field is not defined, then the name is derived from the context.
@@ -1252,16 +1342,19 @@
   - **`code`**: *(optional)* The (multiline) code of the reducer.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the reducer. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the reducer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the reducer. If this field is not defined, then the name is derived from the context.
@@ -1270,7 +1363,7 @@
   - **`resultType`** *(string)*: *(optional)* The data type returned by the reducer. Only required for function types, which are not pre-defined.
 - <a id="definitions/RepartitionOperation"></a>**`RepartitionOperation`** *(object)*: Operation to (re)partition a stream. Cannot contain additional properties.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
-  - **`numberOfPartitions`**: *(optional)* The target number of partitions.
+  - **`numberOfPartitions`** *(integer)*: *(optional)* The target number of partitions.
   - **`partitioner`**: *(optional)* A function that partitions stream records.
     - **Any of**
       - *string*
@@ -1284,7 +1377,7 @@
   - **`persistent`** *(boolean)*: *(optional)* "true" if this session store needs to be stored on disk, "false" otherwise.
   - **`retention`**: *(optional)* The duration for which elements in the session store are retained.
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`timestamped`** *(boolean)*: *(optional)* "true" if elements in the store are timestamped, "false" otherwise.
   - **`type`**: The type of the state store. Must be one of: `["session"]`.
@@ -1306,16 +1399,19 @@
   - **`code`**: *(optional)* The (multiline) code of the stream partitioner.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the stream partitioner. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the stream partitioner. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the stream partitioner. If this field is not defined, then the name is derived from the context.
@@ -1327,16 +1423,19 @@
   - **`code`**: *(optional)* The (multiline) code of the stream partitioner.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the stream partitioner. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the stream partitioner. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the stream partitioner. If this field is not defined, then the name is derived from the context.
@@ -1352,7 +1451,7 @@
   - **`bufferFullStrategy`**: *(optional)* What to do when the buffer is full. Must be one of: `["emitEarlyWhenFull", "shutdownWhenFull"]`.
   - **`duration`**: The duration for which messages are suppressed.
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`maxBytes`** *(string)*: *(optional)* The maximum number of bytes in the buffer.
   - **`maxRecords`** *(string)*: *(optional)* The maximum number of records in the buffer.
@@ -1391,16 +1490,19 @@
   - **`code`**: *(optional)* The (multiline) code of the timestamp extractor.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the timestamp extractor. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the timestamp extractor. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the timestamp extractor. If this field is not defined, then the name is derived from the context.
@@ -1412,16 +1514,19 @@
   - **`code`**: *(optional)* The (multiline) code of the timestamp extractor.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the timestamp extractor. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the timestamp extractor. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the timestamp extractor. If this field is not defined, then the name is derived from the context.
@@ -1476,16 +1581,19 @@
   - **`code`**: *(optional)* The (multiline) code of the topic name extractor.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the topic name extractor. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the topic name extractor. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the topic name extractor. If this field is not defined, then the name is derived from the context.
@@ -1497,16 +1605,19 @@
   - **`code`**: *(optional)* The (multiline) code of the topic name extractor.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the topic name extractor. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the topic name extractor. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the topic name extractor. If this field is not defined, then the name is derived from the context.
@@ -1563,16 +1674,19 @@
   - **`code`**: *(optional)* The (multiline) code of the value joiner.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the value joiner. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the value joiner. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the value joiner. If this field is not defined, then the name is derived from the context.
@@ -1584,16 +1698,19 @@
   - **`code`**: *(optional)* The (multiline) code of the value joiner.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the value joiner. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the value joiner. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the value joiner. If this field is not defined, then the name is derived from the context.
@@ -1604,16 +1721,19 @@
   - **`code`**: *(optional)* The (multiline) code of the value transformer.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the value transformer. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the value transformer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the value transformer. If this field is not defined, then the name is derived from the context.
@@ -1627,16 +1747,19 @@
   - **`code`**: *(optional)* The (multiline) code of the value transformer.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`expression`**: *(optional)* The expression returned by the value transformer. Only required for functions that return values.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`globalCode`**: *(optional)* Global (multiline) code that gets loaded into the Python context outside of the value transformer. Can be used for defining eg. global variables.
     - **Any of**
       - *boolean*
+      - *integer*
       - *number*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the value transformer. If this field is not defined, then the name is derived from the context.
@@ -1648,26 +1771,26 @@
 - <a id="definitions/WindowBySessionOperation"></a>**`WindowBySessionOperation`** *(object)*: Operation to window messages by session, configured by an inactivity gap. Cannot contain additional properties.
   - **`grace`**: *(optional)* (Tumbling, Hopping) The grace period, during which out-of-order records can still be processed.
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`inactivityGap`**: The inactivity gap, below which two messages are considered to be of the same session.
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`type`**: The type of the operation. Must be one of: `["windowBySession"]`.
 - <a id="definitions/WindowByTimeOperationWithHoppingWindow"></a>**`WindowByTimeOperationWithHoppingWindow`** *(object)*: Operation to window records based on time criteria. Cannot contain additional properties.
   - **`advanceBy`**: The amount of time to increase time windows by.
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`duration`**: The duration of time windows.
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`grace`**: *(optional)* The grace period, during which out-of-order records can still be processed.
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`type`**: The type of the operation. Must be one of: `["windowByTime"]`.
@@ -1675,23 +1798,23 @@
 - <a id="definitions/WindowByTimeOperationWithSlidingWindow"></a>**`WindowByTimeOperationWithSlidingWindow`** *(object)*: Operation to window records based on time criteria. Cannot contain additional properties.
   - **`grace`**: *(optional)* The grace period, during which out-of-order records can still be processed.
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`timeDifference`**: The maximum amount of time difference between two records.
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`type`**: The type of the operation. Must be one of: `["windowByTime"]`.
   - **`windowType`**: The windowType of the time window. Must be one of: `["sliding"]`.
 - <a id="definitions/WindowByTimeOperationWithTumblingWindow"></a>**`WindowByTimeOperationWithTumblingWindow`** *(object)*: Operation to window records based on time criteria. Cannot contain additional properties.
   - **`duration`**: The duration of time windows.
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`grace`**: *(optional)* The grace period, during which out-of-order records can still be processed.
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`type`**: The type of the operation. Must be one of: `["windowByTime"]`.
@@ -1705,14 +1828,14 @@
   - **`retainDuplicates`** *(boolean)*: *(optional)* Whether or not to retain duplicates.
   - **`retention`**: *(optional)* The duration for which elements in the window store are retained.
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`timestamped`** *(boolean)*: *(optional)* "true" if elements in the store are timestamped, "false" otherwise.
   - **`type`**: The type of the state store. Must be one of: `["window"]`.
   - **`valueType`** *(string)*: *(optional)* The value type of the window store.
   - **`windowSize`**: *(optional)* Size of the windows (cannot be negative).
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
 - <a id="definitions/WindowStateStoreDefinitionWithImplicitStoreType"></a>**`WindowStateStoreDefinitionWithImplicitStoreType`** *(object)*: Definition of a window state store. Cannot contain additional properties.
   - **`caching`** *(boolean)*: *(optional)* "true" if changed to the window store need to be buffered and periodically released, "false" to emit all changes directly.
@@ -1723,12 +1846,12 @@
   - **`retainDuplicates`** *(boolean)*: *(optional)* Whether or not to retain duplicates.
   - **`retention`**: *(optional)* The duration for which elements in the window store are retained.
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
   - **`timestamped`** *(boolean)*: *(optional)* "true" if elements in the store are timestamped, "false" otherwise.
   - **`type`**: The type of the state store. Must be one of: `["window"]`.
   - **`valueType`** *(string)*: *(optional)* The value type of the window store.
   - **`windowSize`**: *(optional)* Size of the windows (cannot be negative).
     - **Any of**
-      - *number*
+      - *integer*
       - *string*
