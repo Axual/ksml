@@ -30,7 +30,7 @@ RUN set -eux \
 # Step 2: Download Graal and Maven into the base image
 FROM base AS graal-builder
 ARG TARGETARCH
-ARG GRAALVM_JDK_VERSION=21.0.2
+ARG GRAALVM_JDK_VERSION=23.0.2
 ARG MAVEN_VERSION=3.9.6
 
 RUN set -eux \

@@ -37,6 +37,7 @@ functions:
     resultType: (string, json)                    # Indicate the type of key and value
 
 producers:
+  # Produce an Protobuf SensorData message every 3 seconds
   sensordata_protobuf_producer:
     generator: generate_sensordata_message
     interval: 3s

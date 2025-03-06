@@ -93,13 +93,13 @@ ksml:
         # Register schema if it does not exist
         apicurio.registry.auto-register: "true"
         # Apicurio Avro serialisation settings
-        apicurio.rest.request.ssl.truststore.location: /Users/dizzl/dev/axual/ksml/workspace/axual/dizzl/demo1.app.dizzl.com.sr.truststore.jks
-        apicurio.rest.request.ssl.truststore.password: notsecret
-        apicurio.rest.request.ssl.truststore.type: JKS
-        apicurio.rest.request.ssl.keystore.location: /Users/dizzl/dev/axual/ksml/workspace/axual/dizzl/demo1.app.dizzl.com.sr.keystore.jks
-        apicurio.rest.request.ssl.keystore.password: notsecret
-        apicurio.rest.request.ssl.keystore.type: JKS
-        apicurio.rest.request.ssl.key.password: notsecret
+        # apicurio.registry.request.ssl.keystore.location: /path/to/keystore.jks
+        # apicurio.registry.request.ssl.keystore.type: JKS
+        # apicurio.registry.request.ssl.keystore.password: password
+        # apicurio.registry.request.ssl.key.password: password
+        # apicurio.registry.request.ssl.truststore.location: /path/to/truststore.jks
+        # apicurio.registry.request.ssl.truststore.type: JKS
+        # apicurio.registry.request.ssl.truststore.password: password
 
   # Section where you specify which KSML definitions to load, parse and execute.
   definitions:
