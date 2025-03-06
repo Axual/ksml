@@ -32,10 +32,10 @@ import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.type.UserType;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.ThreadUtils;
 import org.apache.kafka.clients.producer.MockProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.awaitility.Awaitility;
 import org.graalvm.home.Version;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -73,9 +73,11 @@ class KafkaProducerRunnerTest {
         var testConfig = new KafkaProducerRunner.Config(topologyDefinitionMap, new HashMap<>());
         producerRunner = runnerUnderTest(testConfig);
 
-        // when the runner starts in a separate thread and runs for some time
         new Thread(producerRunner).start();
-        ThreadUtils.sleep(Duration.ofSeconds(60));
+        // when the runner starts in a separate thread and runs for some time
+        Awaitility.await("Wait for the producer to finish")
+                .atMost(Duration.ofSeconds(60))
+                .until(()-> !mockProducer.history().isEmpty());
 
         // then when the runner has executed, only one record is produced.
         producerRunner.stop();
@@ -93,7 +95,9 @@ class KafkaProducerRunnerTest {
 
         // when the runner starts in a separate thread and runs for some time
         new Thread(producerRunner).start();
-        Thread.sleep(Duration.ofSeconds(60));
+        Awaitility.await("Wait for the producer to finish")
+                .atMost(Duration.ofSeconds(60))
+                .until(()->mockProducer.history().size() >= 3);
 
         // then when the runner has executed, only one record is produced.
         producerRunner.stop();
@@ -111,7 +115,9 @@ class KafkaProducerRunnerTest {
 
         // when the runner starts in a separate thread and runs for some time
         new Thread(producerRunner).start();
-        ThreadUtils.sleep(Duration.ofSeconds(60));
+        Awaitility.await("Wait for the producer to finish")
+                .atMost(Duration.ofSeconds(60))
+                .until(()->mockProducer.history().size() >= 2);
 
         // then when the runner has executed, only 'one' and 'two' were produced.
         producerRunner.stop();
