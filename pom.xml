@@ -91,6 +91,7 @@
         <mockito-core.version>5.16.0</mockito-core.version>
         <mockito-junit-jupiter.version>5.16.0</mockito-junit-jupiter.version>
         <junit-pioneer.version>2.3.0</junit-pioneer.version>
+        <awaitility.version>4.3.0</awaitility.version>
 
         <!-- project and java version settings -->
         <java.source.version>21</java.source.version>
@@ -413,6 +414,14 @@
                 <version>${hamcrest.version}</version>
                 <scope>test</scope>
             </dependency>
+
+            <dependency>
+                <groupId>org.awaitility</groupId>
+                <artifactId>awaitility</artifactId>
+                <version>${awaitility.version}</version>
+                <scope>test</scope>
+            </dependency>
+
 
             <dependency>
                 <groupId>org.apache.kafka</groupId>
