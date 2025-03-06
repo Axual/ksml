@@ -29,9 +29,8 @@ import io.axual.ksml.data.schema.DataValue;
 import io.axual.ksml.data.schema.StructSchema;
 
 import java.util.ArrayList;
-import java.util.List;
 
-import static io.axual.ksml.data.schema.DataField.NO_INDEX;
+import static io.axual.ksml.data.schema.DataField.NO_TAG;
 
 public class CsvSchemaMapper implements DataSchemaMapper<String> {
     private static final CsvDataObjectMapper MAPPER = new CsvDataObjectMapper();
@@ -39,7 +38,7 @@ public class CsvSchemaMapper implements DataSchemaMapper<String> {
     @Override
     public DataSchema toDataSchema(String namespace, String name, String value) {
         // Convert CSV to internal DataObject format
-        var line = MAPPER.toDataObject(value);
+        final var line = MAPPER.toDataObject(value);
         if (line instanceof DataList fieldNames) {
             return toDataSchema(namespace, name, fieldNames);
         }
@@ -47,13 +46,13 @@ public class CsvSchemaMapper implements DataSchemaMapper<String> {
     }
 
     private DataSchema toDataSchema(String namespace, String name, DataList fieldNames) {
-        List<DataField> fields = new ArrayList<>();
-        for (var fieldName : fieldNames) {
+        final var fields = new ArrayList<DataField>();
+        for (final var fieldName : fieldNames) {
             fields.add(new DataField(
                     fieldName.toString(DataObject.Printer.INTERNAL),
-                    DataSchema.create(DataSchema.Type.STRING),
+                    DataSchema.STRING_SCHEMA,
                     fieldName.toString(DataObject.Printer.INTERNAL),
-                    NO_INDEX,
+                    NO_TAG,
                     true,
                     false,
                     new DataValue("")));
@@ -64,9 +63,9 @@ public class CsvSchemaMapper implements DataSchemaMapper<String> {
     @Override
     public String fromDataSchema(DataSchema schema) {
         if (!(schema instanceof StructSchema structSchema)) return null;
-        var result = new StringBuilder();
+        final var result = new StringBuilder();
         var first = true;
-        for (var field : structSchema.fields()) {
+        for (final var field : structSchema.fields()) {
             if (!first) result.append(",");
             result.append(field.name());
             first = false;

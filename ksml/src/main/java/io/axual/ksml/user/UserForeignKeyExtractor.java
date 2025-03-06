@@ -23,16 +23,16 @@ package io.axual.ksml.user;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.Invoker;
 
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
-public class UserForeignKeyExtractor extends Invoker implements Function<Object, Object> {
+public class UserForeignKeyExtractor extends Invoker implements UnaryOperator<Object> {
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
-    public UserForeignKeyExtractor(UserFunction function, ContextTags tags) {
+    public UserForeignKeyExtractor(UserFunction function, MetricTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_FOREIGN_KEY_EXTRACTOR);
         verifyParameterCount(1);
     }

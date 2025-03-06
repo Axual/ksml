@@ -25,16 +25,16 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class DataIntegerTest {
+class DataIntegerTest {
 
     @Test
-    public void testDefaultValueConstructor() {
+    void testDefaultValueConstructor() {
         DataInteger dataInteger = new DataInteger();
         assertNull(dataInteger.value());
     }
 
     @Test
-    public void testValueConstructor() {
+    void testValueConstructor() {
         DataInteger dataInteger = new DataInteger(5);
         assertEquals(5, dataInteger.value());
     }

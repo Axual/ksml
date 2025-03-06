@@ -50,7 +50,7 @@ public class PeekOperation extends BaseOperation {
         final var supplier = new FixedKeyOperationProcessorSupplier<>(
                 name,
                 PeekProcessor::new,
-                (stores, record) -> userAction.apply(stores, flattenValue(record.key()), flattenValue(record.value())),
+                (stores, rec) -> userAction.apply(stores, flattenValue(rec.key()), flattenValue(rec.value())),
                 storeNames);
         final var output = name != null
                 ? input.stream.processValues(supplier, Named.as(name), storeNames)

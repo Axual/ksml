@@ -22,16 +22,15 @@ package io.axual.ksml;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.notation.NotationLibrary;
-import io.axual.ksml.data.notation.avro.AvroSchemaLoader;
+import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.notation.avro.MockAvroNotation;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.notation.json.JsonNotation;
-import io.axual.ksml.data.notation.json.JsonSchemaLoader;
-import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
+import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.YAMLObjectMapper;
+import io.axual.ksml.parser.ParseNode;
+import io.axual.ksml.type.UserType;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -41,10 +40,11 @@ import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TopologyDescription;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.graalvm.home.Version;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
 
-import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -56,17 +56,28 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * See {@link io.axual.ksml.testutil.KSMLTestExtension} for a solution that abstracts away the boilerplate code.
  */
 @EnabledIf(value = "onGraalVM", disabledReason = "This test needs GraalVM to run")
-public class BasicStreamRunTest {
-
+class BasicStreamRunTest {
     private final StreamsBuilder streamsBuilder = new StreamsBuilder();
 
-    @Test
-    void parseAndCheckOuput() throws Exception {
-        final var mapper = new NativeDataObjectMapper();
-        final var jsonNotation = new JsonNotation(mapper, new JsonSchemaLoader("."));
-        NotationLibrary.register(BinaryNotation.NAME, new BinaryNotation(mapper, jsonNotation::serde));
-        NotationLibrary.register(JsonNotation.NAME, jsonNotation);
+    @BeforeAll
+    static void setup() {
+        final var mapper = new DataObjectFlattener();
+        final var jsonNotation = new JsonNotation("json", mapper);
+        ExecutionContext.INSTANCE.notationLibrary().register(new BinaryNotation(UserType.DEFAULT_NOTATION, mapper, jsonNotation::serde));
+        ExecutionContext.INSTANCE.notationLibrary().register(jsonNotation);
 
+        try {
+            final var schemaDirectoryURI = ClassLoader.getSystemResource("pipelines").toURI();
+            final var schemaDirectory = schemaDirectoryURI.getPath();
+            System.out.println("schemaDirectory = " + schemaDirectory);
+            ExecutionContext.INSTANCE.schemaLibrary().schemaDirectory(schemaDirectory);
+        } catch (URISyntaxException e) {
+            // Ignore
+        }
+    }
+
+    @Test
+    void parseAndCheckOutput() throws Exception {
         final var uri = ClassLoader.getSystemResource("pipelines/test-copying.yaml").toURI();
         final var path = Paths.get(uri);
         final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(path), JsonNode.class);
@@ -89,16 +100,8 @@ public class BasicStreamRunTest {
 
     @Test
     void testFilterAvroRecords() throws Exception {
-        final var mapper = new NativeDataObjectMapper();
-        final var jsonNotation = new JsonNotation(mapper, new JsonSchemaLoader("."));
-        NotationLibrary.register(BinaryNotation.NAME, new BinaryNotation(mapper, jsonNotation::serde));
-        NotationLibrary.register(JsonNotation.NAME, jsonNotation);
-
-        URI testDirectory = ClassLoader.getSystemResource("pipelines").toURI();
-        String schemaPath = testDirectory.getPath();
-        System.out.println("schemaPath = " + schemaPath);
-        final var avroNotation = new MockAvroNotation(new HashMap<>(), new AvroSchemaLoader(schemaPath));
-        NotationLibrary.register(MockAvroNotation.NAME, avroNotation);
+        final var avroNotation = new MockAvroNotation(new HashMap<>());
+        ExecutionContext.INSTANCE.notationLibrary().register(avroNotation);
 
         final var uri = ClassLoader.getSystemResource("pipelines/test-filtering.yaml").toURI();
         final var path = Paths.get(uri);
@@ -126,7 +129,7 @@ public class BasicStreamRunTest {
             if (!outputTopic.isEmpty()) {
                 var keyValue = outputTopic.readKeyValue();
                 assertEquals("key1", keyValue.key);
-                System.out.printf("Output topic key=%s, value=%s\n", keyValue.key, keyValue.value);
+                System.out.printf("Output topic key=%s, value=%s%n", keyValue.key, keyValue.value);
             }
         }
     }

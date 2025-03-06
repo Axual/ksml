@@ -23,14 +23,16 @@ package io.axual.ksml.runner.backend;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.notation.json.JsonNotation;
-import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
+import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.generator.YAMLObjectMapper;
+import io.axual.ksml.parser.ParseNode;
+import io.axual.ksml.type.UserType;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.ThreadUtils;
 import org.apache.kafka.clients.producer.MockProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
@@ -73,7 +75,7 @@ class KafkaProducerRunnerTest {
 
         // when the runner starts in a separate thread and runs for some time
         new Thread(producerRunner).start();
-        Thread.sleep(Duration.ofSeconds(60));
+        ThreadUtils.sleep(Duration.ofSeconds(60));
 
         // then when the runner has executed, only one record is produced.
         producerRunner.stop();
@@ -109,7 +111,7 @@ class KafkaProducerRunnerTest {
 
         // when the runner starts in a separate thread and runs for some time
         new Thread(producerRunner).start();
-        Thread.sleep(Duration.ofSeconds(60));
+        ThreadUtils.sleep(Duration.ofSeconds(60));
 
         // then when the runner has executed, only 'one' and 'two' were produced.
         producerRunner.stop();
@@ -127,9 +129,10 @@ class KafkaProducerRunnerTest {
      */
     private Map<String, TopologyDefinition> loadDefinitions(String filename) throws IOException, URISyntaxException {
         final var mapper = new NativeDataObjectMapper();
-        final var jsonNotation = new JsonNotation(mapper, null);
-        NotationLibrary.register(BinaryNotation.NAME, new BinaryNotation(mapper, jsonNotation::serde));
-        NotationLibrary.register(JsonNotation.NAME, jsonNotation);
+        final var jsonNotation = new JsonNotation("json", mapper);
+        ExecutionContext.INSTANCE.notationLibrary().register(jsonNotation);
+        final var binaryNotation = new BinaryNotation(UserType.DEFAULT_NOTATION, mapper, jsonNotation::serde);
+        ExecutionContext.INSTANCE.notationLibrary().register(binaryNotation);
 
         final var uri = ClassLoader.getSystemResource(filename).toURI();
         final var path = Paths.get(uri);

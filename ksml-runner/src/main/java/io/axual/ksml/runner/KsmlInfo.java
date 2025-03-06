@@ -41,7 +41,9 @@ public class KsmlInfo {
     public static final KsmlInfoMBean BEAN_CONTENT = new KsmlInfoMBean();
 
     static {
-        String appName, appVersion, buildTime;
+        String appName;
+        String appVersion;
+        String buildTime;
         try {
             ClassLoader cl = KSMLRunner.class.getClassLoader();
 

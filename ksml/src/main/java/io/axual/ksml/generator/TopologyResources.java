@@ -21,10 +21,10 @@ package io.axual.ksml.generator;
  */
 
 import com.google.common.collect.ImmutableMap;
-import io.axual.ksml.data.tag.ContextTag;
-import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.metric.MetricTag;
+import io.axual.ksml.metric.MetricTags;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -56,8 +56,8 @@ public class TopologyResources extends TopologyBaseResources {
         return ImmutableMap.copyOf(topics);
     }
 
-    public String getUniqueOperationName(ContextTags tags) {
-        final var basename = String.join("_", tags.stream().map(ContextTag::value).toArray(String[]::new));
+    public String getUniqueOperationName(MetricTags tags) {
+        final var basename = String.join("_", tags.stream().map(MetricTag::value).toArray(String[]::new));
         return getUniqueOperationNameInternal(basename);
     }
 

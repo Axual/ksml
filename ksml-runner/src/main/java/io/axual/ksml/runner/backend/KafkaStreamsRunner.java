@@ -21,7 +21,18 @@ package io.axual.ksml.runner.backend;
  */
 
 
+import io.axual.ksml.TopologyGenerator;
+import io.axual.ksml.client.generic.ResolvingClientConfig;
+import io.axual.ksml.client.producer.ResolvingProducerConfig;
+import io.axual.ksml.execution.ExecutionContext;
+import io.axual.ksml.execution.ExecutionErrorHandler;
+import io.axual.ksml.generator.TopologyDefinition;
+import io.axual.ksml.runner.config.ApplicationServerConfig;
+import io.axual.ksml.runner.exception.RunnerException;
 import io.axual.ksml.runner.streams.KSMLClientSupplier;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.utils.Utils;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -32,18 +43,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import io.axual.ksml.TopologyGenerator;
-import io.axual.ksml.client.generic.ResolvingClientConfig;
-import io.axual.ksml.client.producer.ResolvingProducerConfig;
-import io.axual.ksml.execution.ExecutionContext;
-import io.axual.ksml.execution.ExecutionErrorHandler;
-import io.axual.ksml.generator.TopologyDefinition;
-import io.axual.ksml.runner.config.ApplicationServerConfig;
-import io.axual.ksml.runner.exception.RunnerException;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class KafkaStreamsRunner implements Runner {
@@ -76,7 +75,7 @@ public class KafkaStreamsRunner implements Runner {
         final var topology = topologyGenerator.create(streamsBuilder, config.definitions);
         kafkaStreams = new KafkaStreams(topology, mapToProperties(streamsProps));
         kafkaStreams.setStateListener(this::logStreamsStateChange);
-        kafkaStreams.setUncaughtExceptionHandler(ExecutionContext.INSTANCE::uncaughtException);
+        kafkaStreams.setUncaughtExceptionHandler(ExecutionContext.INSTANCE.errorHandling()::uncaughtException);
     }
 
     private void logStreamsStateChange(KafkaStreams.State newState, KafkaStreams.State oldState) {

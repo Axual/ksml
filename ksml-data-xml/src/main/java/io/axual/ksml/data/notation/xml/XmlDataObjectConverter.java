@@ -20,25 +20,25 @@ package io.axual.ksml.data.notation.xml;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.NotationConverter;
-import io.axual.ksml.data.notation.UserType;
+import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.StructType;
 
-public class XmlDataObjectConverter implements NotationConverter {
+public class XmlDataObjectConverter implements Notation.Converter {
     private static final XmlDataObjectMapper DATA_OBJECT_MAPPER = new XmlDataObjectMapper();
 
     @Override
-    public DataObject convert(DataObject value, UserType targetType) {
+    public DataObject convert(DataObject value, DataType targetType) {
         // Convert from Struct to String
-        if (value instanceof DataStruct && targetType.dataType() == DataString.DATATYPE) {
+        if (value instanceof DataStruct && targetType == DataString.DATATYPE) {
             return new DataString(DATA_OBJECT_MAPPER.fromDataObject(value));
         }
 
         // Convert from String to Struct
-        if (value instanceof DataString str && targetType.dataType() instanceof StructType) {
+        if (value instanceof DataString str && targetType instanceof StructType) {
             return DATA_OBJECT_MAPPER.toDataObject(str.value());
         }
 

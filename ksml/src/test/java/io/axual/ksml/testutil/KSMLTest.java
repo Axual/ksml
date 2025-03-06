@@ -39,7 +39,7 @@ public @interface KSMLTest {
 
     String topology();
 
-    String schemapath() default NO_SCHEMAS;
+    String schemaDirectory() default NO_SCHEMAS;
 
     KSMLTopic[] inputTopics();
 

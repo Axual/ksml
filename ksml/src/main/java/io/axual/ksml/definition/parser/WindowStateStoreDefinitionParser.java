@@ -20,16 +20,15 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.parser.NamedObjectParser;
 import io.axual.ksml.definition.WindowStateStoreDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.DefinitionParser;
+import io.axual.ksml.parser.NamedObjectParser;
 import io.axual.ksml.parser.StructsParser;
 
 public class WindowStateStoreDefinitionParser extends DefinitionParser<WindowStateStoreDefinition> implements NamedObjectParser {
     private final boolean requireType;
     private String defaultShortName;
-    private String defaultLongName;
 
     public WindowStateStoreDefinitionParser(boolean requireType) {
         this.requireType = requireType;
@@ -39,7 +38,7 @@ public class WindowStateStoreDefinitionParser extends DefinitionParser<WindowSta
     protected StructsParser<WindowStateStoreDefinition> parser() {
         return structsParser(
                 WindowStateStoreDefinition.class,
-                requireType ? "" : KSMLDSL.Types.WITH_IMPLICIT_TYPE_POSTFIX,
+                requireType ? "" : KSMLDSL.Types.WITH_IMPLICIT_STORE_TYPE_POSTFIX,
                 "Definition of a window state store",
                 optional(stringField(KSMLDSL.Stores.NAME, false, null, "The name of the window store. If this field is not defined, then the name is derived from the context.")),
                 optional(booleanField(KSMLDSL.Stores.PERSISTENT, "\"true\" if this window store needs to be stored on disk, \"false\" otherwise")),
@@ -60,10 +59,5 @@ public class WindowStateStoreDefinitionParser extends DefinitionParser<WindowSta
     @Override
     public void defaultShortName(String name) {
         defaultShortName = name;
-    }
-
-    @Override
-    public void defaultLongName(String name) {
-        defaultLongName = name;
     }
 }

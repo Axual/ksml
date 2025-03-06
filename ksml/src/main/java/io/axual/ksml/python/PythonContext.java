@@ -20,8 +20,8 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataObjectConverter;
+import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.metric.Metrics;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

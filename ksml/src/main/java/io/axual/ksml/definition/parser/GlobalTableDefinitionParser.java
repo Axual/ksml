@@ -21,64 +21,60 @@ package io.axual.ksml.definition.parser;
  */
 
 
-import io.axual.ksml.data.notation.UserType;
-import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.GlobalTableDefinition;
 import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyBaseResources;
+import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyBaseResourceAwareParser;
 import io.axual.ksml.parser.TopologyResourceParser;
 import io.axual.ksml.store.StoreType;
+import io.axual.ksml.type.UserType;
 
 import java.util.List;
 
 public class GlobalTableDefinitionParser extends TopologyBaseResourceAwareParser<GlobalTableDefinition> {
-    private static final String DOC = "Contains a definition of a GlobalTable, which can be referenced by producers and pipelines";
     private static final String TOPIC_DOC = "The name of the Kafka topic for this global table";
 
-    private final boolean isSource;
+    private final boolean isJoinTarget;
 
-    public GlobalTableDefinitionParser(TopologyBaseResources resources, boolean isSource) {
+    public GlobalTableDefinitionParser(TopologyBaseResources resources, boolean isJoinTarget) {
         super(resources);
-        this.isSource = isSource;
+        this.isJoinTarget = isJoinTarget;
     }
 
     @Override
     public StructsParser<GlobalTableDefinition> parser() {
         final var keyField = userTypeField(KSMLDSL.Streams.KEY_TYPE, "The key type of the global table");
         final var valueField = userTypeField(KSMLDSL.Streams.VALUE_TYPE, "The value type of the global table");
-        if (isSource) return structsParser(
+
+        final var timestampExtractorField = optional(functionField(KSMLDSL.Streams.TIMESTAMP_EXTRACTOR, "A function extracts the event time from a consumed record", new TimestampExtractorDefinitionParser(false)));
+        final var offsetResetPolicyField = optional(stringField(KSMLDSL.Streams.OFFSET_RESET_POLICY, "Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted)"));
+
+
+        if (!isJoinTarget) return structsParser(
                 GlobalTableDefinition.class,
-                "Source",
-                DOC,
+                "",
+                "Contains a definition of a GlobalTable, which can be referenced by producers and pipelines",
                 stringField(KSMLDSL.Streams.TOPIC, TOPIC_DOC),
                 keyField,
                 valueField,
-                optional(functionField(KSMLDSL.Streams.TIMESTAMP_EXTRACTOR, "A function extracts the event time from a consumed record", new TimestampExtractorDefinitionParser(false))),
-                optional(stringField(KSMLDSL.Streams.OFFSET_RESET_POLICY, "Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted)")),
+                timestampExtractorField,
+                offsetResetPolicyField,
                 storeField(),
                 (topic, keyType, valueType, tsExtractor, resetPolicy, store, tags) -> {
                     keyType = keyType != null ? keyType : UserType.UNKNOWN;
                     valueType = valueType != null ? valueType : UserType.UNKNOWN;
                     final var policy = OffsetResetPolicyParser.parseResetPolicy(resetPolicy);
-                    if (store != null) {
-                        if (!store.keyType().dataType().isAssignableFrom(keyType.dataType())) {
-                            throw new TopologyException("Incompatible key types between globalTable '" + topic + "' and its corresponding state store: " + keyType.dataType() + " and " + store.keyType().dataType());
-                        }
-                        if (!store.valueType().dataType().isAssignableFrom(valueType.dataType())) {
-                            throw new TopologyException("Incompatible value types between globalTable '" + topic + "' and its corresponding state store: " + valueType.dataType() + " and " + store.valueType().dataType());
-                        }
-                    }
-                    return new GlobalTableDefinition(topic, keyType, valueType, tsExtractor, policy, store);
+                    return new GlobalTableDefinition(topic, keyType, valueType, tsExtractor, policy, store != null ? store.with(topic, keyType, valueType) : null);
                 });
+
         return structsParser(
                 GlobalTableDefinition.class,
-                "",
-                DOC,
+                "AsJoinTarget",
+                "Reference to a GlobalTable in a join operation",
                 stringField(KSMLDSL.Streams.TOPIC, TOPIC_DOC),
                 optional(keyField),
                 optional(valueField),
@@ -86,20 +82,12 @@ public class GlobalTableDefinitionParser extends TopologyBaseResourceAwareParser
                 (topic, keyType, valueType, store, tags) -> {
                     keyType = keyType != null ? keyType : UserType.UNKNOWN;
                     valueType = valueType != null ? valueType : UserType.UNKNOWN;
-                    if (store != null) {
-                        if (!store.keyType().dataType().isAssignableFrom(keyType.dataType())) {
-                            throw new TopologyException("Incompatible key types between globalTable '" + topic + "' and its corresponding state store: " + keyType.dataType() + " and " + store.keyType().dataType());
-                        }
-                        if (!store.valueType().dataType().isAssignableFrom(valueType.dataType())) {
-                            throw new TopologyException("Incompatible value types between globalTable '" + topic + "' and its corresponding state store: " + valueType.dataType() + " and " + store.valueType().dataType());
-                        }
-                    }
-                    return new GlobalTableDefinition(topic, keyType, valueType, null, null, store);
+                    return new GlobalTableDefinition(topic, keyType, valueType, null, null, store != null ? store.with(topic, keyType, valueType) : null);
                 });
     }
 
     private StructsParser<KeyValueStateStoreDefinition> storeField() {
-        final var storeParser = new StateStoreDefinitionParser(StoreType.KEYVALUE_STORE);
+        final var storeParser = new StateStoreDefinitionParser(StoreType.KEYVALUE_STORE, true);
         final var resourceParser = new TopologyResourceParser<>("state store", KSMLDSL.Streams.STORE, "KeyValue state store definition", null, storeParser);
         final var schemas = optional(resourceParser).schemas();
         return new StructsParser<>() {

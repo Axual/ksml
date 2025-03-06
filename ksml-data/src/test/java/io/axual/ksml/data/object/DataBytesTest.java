@@ -24,16 +24,16 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
-public class DataBytesTest {
+class DataBytesTest {
 
     @Test
-    public void testDefaultValueConstructor() {
+    void testDefaultValueConstructor() {
         DataBytes dataBytes = new DataBytes();
         assertArrayEquals(null, dataBytes.value());
     }
 
     @Test
-    public void testValueConstructor() {
+    void testValueConstructor() {
         DataBytes dataBytes = new DataBytes(new byte[]{1, 2, 3});
         assertArrayEquals(new byte[]{1, 2, 3}, dataBytes.value());
     }

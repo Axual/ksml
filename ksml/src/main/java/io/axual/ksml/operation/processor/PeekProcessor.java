@@ -25,7 +25,7 @@ import org.apache.kafka.streams.processor.api.FixedKeyRecord;
 
 public class PeekProcessor extends FixedKeyOperationProcessor {
     public interface PeekAction {
-        void apply(StateStores stores, FixedKeyRecord<Object, Object> record);
+        void apply(StateStores stores, FixedKeyRecord<Object, Object> rec);
     }
 
     private final PeekAction action;
@@ -36,8 +36,8 @@ public class PeekProcessor extends FixedKeyOperationProcessor {
     }
 
     @Override
-    public void process(FixedKeyRecord<Object, Object> record) {
-        action.apply(stores, record);
-        context.forward(record);
+    public void process(FixedKeyRecord<Object, Object> rec) {
+        action.apply(stores, rec);
+        context.forward(rec);
     }
 }

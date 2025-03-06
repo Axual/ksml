@@ -20,14 +20,25 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.util.ValuePrinter;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import java.util.Objects;
+
+/**
+ * Represents a wrapper for a primitive value as part of the {@link DataObject} framework.
+ *
+ * <p>The {@code DataPrimitive} class encapsulates a primitive value to integrate seamlessly
+ * into the structured data model used in schema-compliant or stream-processed data.
+ * It enables primitive values to be used as {@link DataObject} types, making them compatible
+ * with the framework and allowing for standardized processing.</p>
+ *
+ * @see DataObject
+ */
 @Getter
-@EqualsAndHashCode
 public class DataPrimitive<T> implements DataObject {
     private final DataType type;
     private final T value;
@@ -39,21 +50,45 @@ public class DataPrimitive<T> implements DataObject {
     }
 
     private void checkValue() {
-        boolean valid = value instanceof DataObject dataObject
+        final var valid = value instanceof DataObject dataObject
                 ? type.isAssignableFrom(dataObject)
                 : type.isAssignableFrom(value);
-        if (!valid) throw new ExecutionException("Value assigned to " + type + " can not be \"" + this + "\"");
+        if (!valid) throw new DataException("Value assigned to " + type + " can not be \"" + this + "\"");
     }
 
+    /**
+     * Retrieves a string representation of this {@code DataPrimitive}.
+     *
+     * @return The string representation of this {@code DataPrimitive}.
+     */
     @Override
     public String toString() {
         return toString(Printer.INTERNAL);
     }
 
+    /**
+     * Retrieves a string representation of this {@code DataPrimitive} using the given Printer.
+     *
+     * @return The string representation of this {@code DataPrimitive}.
+     */
     @Override
     public String toString(Printer printer) {
         return value != null
                 ? ValuePrinter.print(value, printer != Printer.INTERNAL)
-                : printer.forceSchemaString(this) + ValuePrinter.print(value, printer != Printer.INTERNAL);
+                : printer.forceSchemaString(this) + ValuePrinter.print(null, printer != Printer.INTERNAL);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) return true;
+        if (other == null || getClass() != other.getClass()) return false;
+        DataPrimitive<?> that = (DataPrimitive<?>) other;
+        if (value == null) return that.value == null;
+        return value.equals(that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(value);
     }
 }

@@ -22,17 +22,56 @@ package io.axual.ksml.data.schema;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NonNull;
 
+/**
+ * A schema representation for lists in the KSML framework.
+ * <p>
+ * The {@code ListSchema} class extends {@link DataSchema} and is used to define
+ * the structure of lists within the schema system. Each list is composed of
+ * elements that share the same schema, defined by the {@code valueSchema}.
+ * </p>
+ * <p>
+ * This schema is particularly useful for modeling collections or arrays of
+ * homogeneous data types.
+ * </p>
+ */
 @Getter
 @EqualsAndHashCode
 public class ListSchema extends DataSchema {
+    /**
+     * The schema of the elements contained in the list.
+     * <p>
+     * All elements in the list must adhere to this schema, ensuring type
+     * consistency within the collection.
+     * </p>
+     */
     private final DataSchema valueSchema;
 
-    public ListSchema(DataSchema valueSchema) {
-        super(Type.LIST);
+    /**
+     * Constructs a {@code ListSchema} with a given element schema.
+     *
+     * @param valueSchema The {@link DataSchema} that defines the structure of each element in the list.
+     *                    It must not be {@code null}.
+     */
+    public ListSchema(@NonNull DataSchema valueSchema) {
+        super(DataSchemaConstants.LIST_TYPE);
         this.valueSchema = valueSchema;
     }
 
+    /**
+     * Determines if this schema can be assigned from another schema.
+     * <p>
+     * This method checks whether the provided {@code otherSchema} is compatible
+     * with this {@code ListSchema}. Compatibility for a {@code ListSchema} means that
+     * the other schema is also a list and its value schema is compatible
+     * with this schema's {@code valueSchema}.
+     * </p>
+     *
+     * @param otherSchema The other {@link DataSchema} to be checked for compatibility.
+     * @return {@code true} if the other schema is assignable from this schema;
+     *         {@code false} otherwise.
+     */
     @Override
     public boolean isAssignableFrom(DataSchema otherSchema) {
         if (!super.isAssignableFrom(otherSchema)) return false;
@@ -42,5 +81,15 @@ public class ListSchema extends DataSchema {
         // This schema is assignable from the other schema when the value schema is assignable from
         // the otherSchema's value schema.
         return valueSchema.isAssignableFrom(otherListSchema.valueSchema);
+    }
+
+    /**
+     * Returns a string representation of this schema, providing the type name as a string.
+     *
+     * @return A string representing the schema type.
+     */
+    @Override
+    public String toString() {
+        return super.toString() + " of " + valueSchema;
     }
 }

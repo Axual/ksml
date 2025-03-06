@@ -20,7 +20,7 @@ package io.axual.ksml.data.serde;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.mapper.StringDataObjectMapper;
@@ -51,7 +51,7 @@ public class StringSerde implements Serde<Object> {
         return (topic, data) -> {
             final var dataObject = nativeMapper.toDataObject(data);
             if (!expectedType.isAssignableFrom(dataObject)) {
-                throw new ExecutionException("Incorrect type passed in: expected=" + expectedType + ", got " + dataObject.type());
+                throw new DataException("Incorrect type passed in: expected=" + expectedType + ", got " + dataObject.type());
             }
             var str = stringMapper.fromDataObject(dataObject);
             return serializer.serialize(topic, str);
@@ -64,7 +64,7 @@ public class StringSerde implements Serde<Object> {
             final var str = deserializer.deserialize(topic, data);
             final var dataObject = stringMapper.toDataObject(expectedType, str);
             if (dataObject != null && !expectedType.isAssignableFrom(dataObject)) {
-                throw new ExecutionException("Wrong type retrieved from state store: expected " + expectedType + ", got " + dataObject.type());
+                throw new DataException("Wrong type retrieved from state store: expected " + expectedType + ", got " + dataObject.type());
             }
             return dataObject;
         };

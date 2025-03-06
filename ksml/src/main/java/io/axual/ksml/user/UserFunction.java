@@ -20,24 +20,23 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.streams.KeyValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Arrays;
-import java.util.List;
-
 import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.exception.ExecutionException;
-import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.definition.ParameterDefinition;
+import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.store.StateStores;
+import io.axual.ksml.type.UserType;
+import org.apache.kafka.streams.KeyValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class UserFunction {
     private static final Logger LOG = LoggerFactory.getLogger(UserFunction.class);
@@ -147,10 +146,10 @@ public class UserFunction {
         }
 
         if (result instanceof DataTuple tuple &&
-                tuple.size() == 2 &&
-                keyType.isAssignableFrom(tuple.get(0).type()) &&
-                valueType.isAssignableFrom(tuple.get(1).type())) {
-            return new KeyValue<>(tuple.get(0), tuple.get(1));
+                tuple.elements().size() == 2 &&
+                keyType.isAssignableFrom(tuple.elements().get(0).type()) &&
+                valueType.isAssignableFrom(tuple.elements().get(1).type())) {
+            return new KeyValue<>(tuple.elements().get(0), tuple.elements().get(1));
         }
 
         throw new TopologyException("Function %s.%s - Expected (key, value) from function {} but got: %s".formatted(namespace, name, (result != null ? result : "null")));

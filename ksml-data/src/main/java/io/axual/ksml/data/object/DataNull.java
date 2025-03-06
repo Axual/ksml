@@ -20,13 +20,29 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.parser.schema.DataSchemaDSL;
+import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.SimpleType;
 import io.axual.ksml.data.value.Null;
 
+/**
+ * Represents a wrapper for a null value as part of the {@link DataObject} framework.
+ *
+ * <p>The {@code DataNull} class encapsulates a null value to integrate seamlessly
+ * into the structured data model used in schema-compliant or stream-processed data.
+ * It enables null values to be used as {@link DataObject} types, making them compatible
+ * with the framework and allowing for standardized processing.</p>
+ *
+ * @see DataObject
+ */
 public class DataNull extends DataPrimitive<Object> {
-    public static final SimpleType DATATYPE = new SimpleType(Null.class, DataSchemaDSL.NULL_TYPE) {
+    /**
+     * Represents the data type of this {@code DataNull}, which is {@code Null},
+     * mapped to the schema definition in {@link DataSchemaConstants#NULL_TYPE}.
+     * <p>This constant ensures that the type metadata for a {@code DataNull} is
+     * consistent across all usages in the framework.</p>
+     */
+    public static final SimpleType DATATYPE = new SimpleType(Null.class, DataSchemaConstants.NULL_TYPE) {
         @Override
         public boolean isAssignableFrom(DataType type) {
             return this == type;

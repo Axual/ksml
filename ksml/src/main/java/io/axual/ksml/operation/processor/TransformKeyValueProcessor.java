@@ -26,7 +26,7 @@ import org.apache.kafka.streams.processor.api.Record;
 
 public class TransformKeyValueProcessor extends OperationProcessor {
     public interface TransformKeyValueAction {
-        KeyValue<Object, Object> apply(StateStores stores, Record<Object, Object> record);
+        KeyValue<Object, Object> apply(StateStores stores, Record<Object, Object> rec);
     }
 
     private final TransformKeyValueAction action;
@@ -37,10 +37,8 @@ public class TransformKeyValueProcessor extends OperationProcessor {
     }
 
     @Override
-    public void process(Record<Object, Object> record) {
-        var kv = action.apply(stores, record);
-        if (kv != null) {
-            context.forward(record.withKey(kv.key).withValue(kv.value));
-        }
+    public void process(Record<Object, Object> rec) {
+        var kv = action.apply(stores, rec);
+        if (kv != null) context.forward(rec.withKey(kv.key).withValue(kv.value));
     }
 }

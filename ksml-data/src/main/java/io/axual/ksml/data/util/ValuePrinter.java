@@ -27,4 +27,8 @@ public class ValuePrinter {
         var quote = quoted && value instanceof String ? QUOTE : "";
         return value != null ? quote + value + quote : "null";
     }
+
+    private ValuePrinter() {
+        // Prevent instantiation.
+    }
 }

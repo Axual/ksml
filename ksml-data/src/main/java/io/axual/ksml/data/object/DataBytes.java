@@ -20,13 +20,13 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.parser.schema.DataSchemaDSL;
+import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.type.SimpleType;
 
 import java.util.Arrays;
 
 public class DataBytes extends DataPrimitive<byte[]> {
-    public static final SimpleType DATATYPE = new SimpleType(byte[].class, DataSchemaDSL.BYTES_TYPE);
+    public static final SimpleType DATATYPE = new SimpleType(byte[].class, DataSchemaConstants.BYTES_TYPE);
 
     public DataBytes() {
         this(null);
@@ -43,7 +43,7 @@ public class DataBytes extends DataPrimitive<byte[]> {
         sb.append("[");
         for (int index = 0; index < value().length; index++) {
             if (index > 0) sb.append(", ");
-            sb.append(String.format("%02X ", value()[index]));
+            sb.append(String.format("%02X", value()[index]));
         }
         sb.append("]");
         return sb.toString();

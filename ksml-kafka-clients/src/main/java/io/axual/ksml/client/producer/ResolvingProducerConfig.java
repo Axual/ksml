@@ -22,7 +22,6 @@ package io.axual.ksml.client.producer;
 
 import io.axual.ksml.client.generic.ResolvingClientConfig;
 import io.axual.ksml.client.resolving.TransactionalIdPatternResolver;
-import io.axual.ksml.client.resolving.TransactionalIdResolver;
 import io.axual.ksml.client.util.MapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,8 +34,6 @@ public class ResolvingProducerConfig extends ResolvingClientConfig {
 
     private static final Logger log = LoggerFactory.getLogger(ResolvingProducerConfig.class);
 
-    private TransactionalIdResolver transactionalIdResolver;
-
     public ResolvingProducerConfig(Map<String, Object> configs) {
         super(configs);
         downstreamConfigs.remove(TRANSACTIONAL_ID_PATTERN_CONFIG);
@@ -44,9 +41,9 @@ public class ResolvingProducerConfig extends ResolvingClientConfig {
         // Apply resolved transactional id to downstream producer
         final Object configuredTransactionalId = configs.get(TRANSACTIONAL_ID);
         if (configuredTransactionalId instanceof String transactionalId) {
-            var transactionalIdPattern = configs.get(TRANSACTIONAL_ID_PATTERN_CONFIG);
+            final var transactionalIdPattern = configs.get(TRANSACTIONAL_ID_PATTERN_CONFIG);
             if (transactionalIdPattern != null) {
-                var transactionalIdResolver = new TransactionalIdPatternResolver(transactionalIdPattern.toString(), MapUtil.toStringValues(configs));
+                final var transactionalIdResolver = new TransactionalIdPatternResolver(transactionalIdPattern.toString(), MapUtil.toStringValues(configs));
                 downstreamConfigs.put(TRANSACTIONAL_ID, transactionalIdResolver.resolve(transactionalId));
             } else {
                 log.warn("No transactional id pattern configured, leaving as is: transactional.id={}", transactionalId);

@@ -20,12 +20,9 @@ package io.axual.ksml.generator;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.definition.StateStoreDefinition;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyDescription;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;

@@ -20,16 +20,45 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.parser.schema.DataSchemaDSL;
+import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.type.SimpleType;
 
+/**
+ * Represents a wrapper for a double value as part of the {@link DataObject} framework.
+ *
+ * <p>The {@code DataDouble} class encapsulates a double value to integrate seamlessly
+ * into the structured data model used in schema-compliant or stream-processed data.
+ * It enables double values to be used as {@link DataObject} types, making them compatible
+ * with the framework and allowing for standardized processing.</p>
+ *
+ * @see DataObject
+ */
 public class DataDouble extends DataPrimitive<Double> {
-    public static final SimpleType DATATYPE = new SimpleType(Double.class, DataSchemaDSL.DOUBLE_TYPE);
+    /**
+     * Represents the data type of this {@code DataDouble}, which is {@code Double},
+     * mapped to the schema definition in {@link DataSchemaConstants#DOUBLE_TYPE}.
+     * <p>This constant ensures that the type metadata for a {@code DataDouble} is
+     * consistent across all usages in the framework.</p>
+     */
+    public static final SimpleType DATATYPE = new SimpleType(Double.class, DataSchemaConstants.DOUBLE_TYPE);
 
+    /**
+     * Constructs a {@code DataDouble} instance with a null value.
+     * <p>This constructor creates a {@code DataDouble} that does not hold any actual
+     * {@code Double} value, effectively representing a "null" double in the framework.</p>
+     */
     public DataDouble() {
         this(null);
     }
 
+    /**
+     * Constructs a {@code DataDouble} instance with the specified {@code Double} value.
+     *
+     * <p>If the input value is {@code null}, the {@code DataDouble} will represent
+     * the absence of a value (a null double).</p>
+     *
+     * @param value The {@code Double} value to encapsulate, or {@code null} to represent a null value.
+     */
     public DataDouble(Double value) {
         super(DATATYPE, value);
     }

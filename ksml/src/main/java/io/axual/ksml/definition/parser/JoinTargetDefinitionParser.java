@@ -21,12 +21,12 @@ package io.axual.ksml.definition.parser;
  */
 
 
-import io.axual.ksml.data.exception.ParseException;
-import io.axual.ksml.data.parser.BaseParser;
-import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.definition.TopologyResource;
+import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.parser.BaseParser;
+import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.parser.TopologyResourceParser;
 
 import static io.axual.ksml.dsl.KSMLDSL.Operations;
@@ -42,13 +42,13 @@ public class JoinTargetDefinitionParser extends BaseParser<TopologyResource<Topi
     public TopologyResource<TopicDefinition> parse(ParseNode node) {
         if (node == null) return null;
         if (node.get(Operations.Join.WITH_STREAM) != null) {
-            return new TopologyResourceParser<>("stream", Operations.Join.WITH_STREAM, null, (name, tags) -> resources.topic(name), new StreamDefinitionParser(resources, false)).parse(node);
+            return new TopologyResourceParser<>("stream", Operations.Join.WITH_STREAM, null, (name, tags) -> resources.topic(name), new StreamDefinitionParser(resources, true)).parse(node);
         }
         if (parseString(node, Operations.Join.WITH_TABLE) != null) {
-            return new TopologyResourceParser<>("table", Operations.Join.WITH_TABLE, null, (name, tags) -> resources.topic(name), new TableDefinitionParser(resources, false)).parse(node);
+            return new TopologyResourceParser<>("table", Operations.Join.WITH_TABLE, null, (name, tags) -> resources.topic(name), new TableDefinitionParser(resources, true)).parse(node);
         }
         if (parseString(node, Operations.Join.WITH_GLOBAL_TABLE) != null) {
-            return new TopologyResourceParser<>("globalTable", Operations.Join.WITH_GLOBAL_TABLE, null, (name, tags) -> resources.topic(name), new GlobalTableDefinitionParser(resources, false)).parse(node);
+            return new TopologyResourceParser<>("globalTable", Operations.Join.WITH_GLOBAL_TABLE, null, (name, tags) -> resources.topic(name), new GlobalTableDefinitionParser(resources, true)).parse(node);
         }
         throw new ParseException(node, "Stream definition missing");
     }

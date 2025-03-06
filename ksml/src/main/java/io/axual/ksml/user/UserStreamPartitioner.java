@@ -20,14 +20,14 @@ package io.axual.ksml.user;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.exception.ExecutionException;
+import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.Invoker;
 import org.apache.kafka.streams.processor.StreamPartitioner;
 
@@ -35,7 +35,7 @@ public class UserStreamPartitioner extends Invoker implements StreamPartitioner<
     private static final DataType EXPECTED_RESULT_TYPE = DataInteger.DATATYPE;
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
-    public UserStreamPartitioner(UserFunction function, ContextTags tags) {
+    public UserStreamPartitioner(UserFunction function, MetricTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_STREAMPARTITIONER);
         verifyParameterCount(4);
         verifyResultType(EXPECTED_RESULT_TYPE);

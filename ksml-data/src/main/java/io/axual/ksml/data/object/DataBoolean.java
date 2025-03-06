@@ -20,16 +20,45 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.parser.schema.DataSchemaDSL;
+import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.type.SimpleType;
 
+/**
+ * Represents a wrapper for a boolean value as part of the {@link DataObject} framework.
+ *
+ * <p>The {@code DataBoolean} class encapsulates a boolean value to integrate seamlessly
+ * into the structured data model used in schema-compliant or stream-processed data.
+ * It enables boolean values to be used as {@link DataObject} types, making them compatible
+ * with the framework and allowing for standardized processing.</p>
+ *
+ * @see DataObject
+ */
 public class DataBoolean extends DataPrimitive<Boolean> {
-    public static final SimpleType DATATYPE = new SimpleType(Boolean.class, DataSchemaDSL.BOOLEAN_TYPE);
+    /**
+     * Represents the data type of this {@code DataBoolean}, which is {@code Boolean},
+     * mapped to the schema definition in {@link DataSchemaConstants#BOOLEAN_TYPE}.
+     * <p>This constant ensures that the type metadata for a {@code DataBoolean} is
+     * consistent across all usages in the framework.</p>
+     */
+    public static final SimpleType DATATYPE = new SimpleType(Boolean.class, DataSchemaConstants.BOOLEAN_TYPE);
 
+    /**
+     * Constructs a {@code DataBoolean} instance with a null value.
+     * <p>This constructor creates a {@code DataBoolean} that does not hold any actual
+     * {@code Boolean} value, effectively representing a "null" boolean in the framework.</p>
+     */
     public DataBoolean() {
         this(null);
     }
 
+    /**
+     * Constructs a {@code DataBoolean} instance with the specified {@code Boolean} value.
+     *
+     * <p>If the input value is {@code null}, the {@code DataBoolean} will represent
+     * the absence of a value (a null boolean).</p>
+     *
+     * @param value The {@code Boolean} value to encapsulate, or {@code null} to represent a null value.
+     */
     public DataBoolean(Boolean value) {
         super(DATATYPE, value);
     }

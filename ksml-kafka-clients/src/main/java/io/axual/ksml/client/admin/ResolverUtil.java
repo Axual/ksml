@@ -26,6 +26,7 @@ import org.apache.kafka.common.acl.AclBinding;
 import org.apache.kafka.common.acl.AclBindingFilter;
 import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.ResourcePatternFilter;
+import org.apache.kafka.common.resource.ResourceType;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,43 +39,31 @@ public class ResolverUtil {
 
     public static AclBindingFilter resolve(AclBindingFilter filter, TopicResolver topicResolver, GroupResolver groupResolver) {
         var name = filter.patternFilter().name();
-
-        switch (filter.patternFilter().resourceType()) {
-            case TOPIC -> name = topicResolver.resolve(name);
-            case GROUP -> name = groupResolver.resolve(name);
-        }
+        if (filter.patternFilter().resourceType() == ResourceType.GROUP) name = groupResolver.resolve(name);
+        if (filter.patternFilter().resourceType() == ResourceType.TOPIC) name = topicResolver.resolve(name);
 
         return new AclBindingFilter(
-                new ResourcePatternFilter(
-                        filter.patternFilter().resourceType(),
-                        name,
-                        filter.patternFilter().patternType()),
+                new ResourcePatternFilter(filter.patternFilter().resourceType(), name, filter.patternFilter().patternType()),
                 filter.entryFilter());
     }
 
     public static Collection<AclBinding> unresolveKeys(Collection<AclBinding> bindings, final TopicResolver topicResolver, final GroupResolver groupResolver) {
         Collection<AclBinding> result = new ArrayList<>(bindings.size());
         for (AclBinding binding : bindings) {
-            String name = binding.pattern().name();
+            var name = binding.pattern().name();
+            if (binding.pattern().resourceType() == ResourceType.GROUP) name = groupResolver.unresolve(name);
+            if (binding.pattern().resourceType() == ResourceType.TOPIC) name = topicResolver.unresolve(name);
 
-            switch (binding.pattern().resourceType()) {
-                case TOPIC -> name = topicResolver.unresolve(name);
-                case GROUP -> name = groupResolver.unresolve(name);
-            }
-
-            result.add(
-                    new AclBinding(
-                            new ResourcePattern(binding.pattern().resourceType(),
-                                    name,
-                                    binding.pattern().patternType()),
-                            binding.entry()));
+            result.add(new AclBinding(
+                    new ResourcePattern(binding.pattern().resourceType(), name, binding.pattern().patternType()),
+                    binding.entry()));
         }
 
         return result;
     }
 
     public static <T> Map<String, T> unresolveKeys(Map<String, T> map, TopicResolver resolver) {
-        Map<String, T> result = new HashMap<>();
+        final var result = new HashMap<String, T>();
         map.forEach((key, value) -> result.put(resolver.unresolve(key), value));
         return result;
     }

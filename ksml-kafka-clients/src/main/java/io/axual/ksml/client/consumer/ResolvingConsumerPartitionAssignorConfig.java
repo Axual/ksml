@@ -22,30 +22,24 @@ package io.axual.ksml.client.consumer;
 
 import io.axual.ksml.client.generic.ResolvingClientConfig;
 import io.axual.ksml.client.resolving.TopicResolver;
+import lombok.Getter;
 import org.apache.kafka.clients.consumer.ConsumerPartitionAssignor;
 
 import java.util.Map;
 
+@Getter
 public class ResolvingConsumerPartitionAssignorConfig extends ResolvingClientConfig {
     private static final String CONFIG_PREFIX = "resolvingconsumerpartitionassignor.";
     public static final String BACKING_ASSIGNOR_CONFIG = CONFIG_PREFIX + "backing.assignor";
-    public static final String TOPIC_RESOLVER_CONFIG = CONFIG_PREFIX + "topic.resolver";
+    public static final String ASSIGNOR_TOPIC_RESOLVER_CONFIG = CONFIG_PREFIX + "assignor.topic.resolver";
     private final ConsumerPartitionAssignor backingAssignor;
-    private final TopicResolver topicResolver;
+    private final TopicResolver assignorTopicResolver;
 
     public ResolvingConsumerPartitionAssignorConfig(Map<String, Object> configs) {
         super(configs);
         downstreamConfigs.remove(BACKING_ASSIGNOR_CONFIG);
-        downstreamConfigs.remove(TOPIC_RESOLVER_CONFIG);
+        downstreamConfigs.remove(ASSIGNOR_TOPIC_RESOLVER_CONFIG);
         this.backingAssignor = this.getConfiguredInstance(BACKING_ASSIGNOR_CONFIG, ConsumerPartitionAssignor.class);
-        this.topicResolver = this.getConfiguredInstance(TOPIC_RESOLVER_CONFIG, TopicResolver.class);
-    }
-
-    public ConsumerPartitionAssignor getBackingAssignor() {
-        return backingAssignor;
-    }
-
-    public TopicResolver getTopicResolver() {
-        return topicResolver;
+        this.assignorTopicResolver = this.getConfiguredInstance(ASSIGNOR_TOPIC_RESOLVER_CONFIG, TopicResolver.class);
     }
 }

@@ -21,18 +21,18 @@ package io.axual.ksml.operation;
  */
 
 
-import io.axual.ksml.data.exception.ExecutionException;
-import io.axual.ksml.data.notation.UserTupleType;
-import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.processor.OperationProcessorSupplier;
 import io.axual.ksml.operation.processor.TransformKeyValueToKeyValueListProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
+import io.axual.ksml.type.UserTupleType;
+import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserKeyValueToKeyValueListTransformer;
 
 public class TransformKeyValueToKeyValueListOperation extends BaseOperation {
@@ -68,7 +68,7 @@ public class TransformKeyValueToKeyValueListOperation extends BaseOperation {
             final var supplier = new OperationProcessorSupplier<>(
                     name,
                     TransformKeyValueToKeyValueListProcessor::new,
-                    (stores, record) -> userMap.apply(stores, record.key(), record.value()),
+                    (stores, rec) -> userMap.apply(stores, rec.key(), rec.value()),
                     storeNames);
             final var named = namedOf();
             final var output = name != null

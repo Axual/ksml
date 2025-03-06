@@ -23,7 +23,7 @@ package io.axual.ksml.exception;
 import io.axual.ksml.data.exception.BaseException;
 
 public class TopologyException extends BaseException {
-    private static final String ACTIVITY = "Topology generation";
+    private static final String ACTIVITY = "topology";
 
     public TopologyException(String message) {
         super(ACTIVITY, message);

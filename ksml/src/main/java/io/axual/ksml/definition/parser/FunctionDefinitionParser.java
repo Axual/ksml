@@ -21,16 +21,12 @@ package io.axual.ksml.definition.parser;
  */
 
 
-import io.axual.ksml.data.notation.UserType;
-import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.parser.DefinitionParser;
-import io.axual.ksml.parser.IgnoreParser;
-import io.axual.ksml.parser.StringValueParser;
-import io.axual.ksml.parser.StructsParser;
+import io.axual.ksml.parser.*;
+import io.axual.ksml.type.UserType;
 
 import java.util.List;
 
@@ -39,7 +35,7 @@ import static io.axual.ksml.dsl.KSMLDSL.Functions;
 public abstract class FunctionDefinitionParser<T extends FunctionDefinition> extends DefinitionParser<T> {
     private final boolean requireType;
 
-    public FunctionDefinitionParser(boolean requireType) {
+    protected FunctionDefinitionParser(boolean requireType) {
         this.requireType = requireType;
     }
 
@@ -64,7 +60,7 @@ public abstract class FunctionDefinitionParser<T extends FunctionDefinition> ext
                 ? optional(listField(Functions.STORES, "store-name", "store", "A list of store names that the " + description + " uses. Only required if the function wants to use a state store.", new StringValueParser()))
                 : new IgnoreParser<List<String>>();
         // We assume that the resultClass is always either using stores, or not using stores, but not a combination of both. Hence, we do not provide a definitionVariant extension to distinguish between the two.
-        final var parser = structsParser(resultClass, parseType || requireType ? "" : KSMLDSL.Types.WITH_IMPLICIT_TYPE_POSTFIX, doc, name, params, globalCode, code, expression, resultType, stores, innerConstructor);
+        final var parser = structsParser(resultClass, parseType || requireType ? "" : KSMLDSL.Types.WITH_IMPLICIT_STORE_TYPE_POSTFIX, doc, name, params, globalCode, code, expression, resultType, stores, innerConstructor);
         return new StructsParser<>() {
             @Override
             public T parse(ParseNode node) {

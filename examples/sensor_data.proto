@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package io.axual.ksml.example;
+
+message sensor_data {
+  string name = 1;                    // The name of the sensor
+  int64 timestamp = 2;                // The timestamp of the sensor reading
+  string value = 3;                   // The value of the sensor, represented as string
+  SensorType type = 4;                // The type of the sensor
+  string unit = 5;                    // The unit of the sensor
+  optional string color = 6;          // The color of the sensor
+  optional string city = 7;           // The city of the sensor
+  optional string owner = 8;          // The owner of the sensor
+
+  enum SensorType {
+    UNSPECIFIED = 0;
+    AREA = 1;
+    HUMIDITY = 2;
+    LENGTH = 3;
+    STATE = 4;
+    TEMPERATURE = 5;
+  }
+}

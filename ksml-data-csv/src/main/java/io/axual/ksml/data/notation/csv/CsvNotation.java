@@ -20,9 +20,7 @@ package io.axual.ksml.data.notation.csv;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.loader.SchemaLoader;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.notation.NotationConverter;
 import io.axual.ksml.data.notation.string.StringNotation;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
@@ -31,21 +29,14 @@ import io.axual.ksml.data.type.UnionType;
 import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
 
+@Getter
 public class CsvNotation extends StringNotation {
-    public static final DataType DEFAULT_TYPE = new UnionType(new StructType(), new ListType());
-    @Getter
-    private final NotationConverter converter = new CsvDataObjectConverter();
-    @Getter
-    private final SchemaLoader loader;
+    public static final DataType DEFAULT_TYPE = new UnionType(
+            new UnionType.MemberType(new StructType()),
+            new UnionType.MemberType(new ListType()));
 
-    public CsvNotation(NativeDataObjectMapper nativeMapper, SchemaLoader loader) {
-        super(nativeMapper, new CsvDataObjectMapper());
-        this.loader = loader;
-    }
-
-    @Override
-    public DataType defaultType() {
-        return DEFAULT_TYPE;
+    public CsvNotation(String name, NativeDataObjectMapper nativeMapper) {
+        super(name, ".csv", DEFAULT_TYPE, new CsvDataObjectConverter(), new CsvSchemaParser(), nativeMapper, new CsvDataObjectMapper());
     }
 
     @Override
@@ -54,6 +45,6 @@ public class CsvNotation extends StringNotation {
         if (type instanceof ListType || type instanceof StructType || DEFAULT_TYPE.equals(type))
             return super.serde(type, isKey);
         // Other types can not be serialized as XML
-        throw noSerdeFor("CSV", type);
+        throw noSerdeFor(type);
     }
 }

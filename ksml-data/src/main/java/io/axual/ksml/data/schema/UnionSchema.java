@@ -25,36 +25,89 @@ import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 
+/**
+ * Represents a union schema that allows for multiple possible types in the KSML framework.
+ * <p>
+ * The {@code UnionSchema} class extends {@link DataSchema} and is used to define a schema
+ * that can represent multiple different data types. A union schema is often used in cases where
+ * the data can belong to one of several types, enabling flexible and dynamic data structures.
+ * </p>
+ * <p>
+ * This class maintains an ordered collection of possible schemas (types) that the union can represent.
+ * Each schema is unique within the union and is also mapped for fast access.
+ * </p>
+ */
 @Getter
 @EqualsAndHashCode
 public class UnionSchema extends DataSchema {
-    private final DataSchema[] possibleSchemas;
+    /**
+     * The list of possible schemas (types) that this union schema can represent. The
+     * types are stored as DataFields to accommodate for schema types like Protobuf,
+     * where we need to keep track of field indices.
+     * <p>
+     * The schemas are stored in the order they are specified, and each schema represents
+     * one possible type for the data.
+     * </p>
+     */
+    private final DataField[] memberSchemas;
 
-    public UnionSchema(DataSchema... possibleSchemas) {
-        this(true, possibleSchemas);
+    /**
+     * Constructs a {@code UnionSchema} with the given member schemas.
+     *
+     * @param memberSchemas A list of {@link DataSchema} representing the types that this union schema can adopt.
+     *                      It must not be null or empty, and each schema must have a unique type.
+     * @throws IllegalArgumentException if {@code memberSchemas} is null, empty, or contains duplicate or null schemas.
+     */
+    public UnionSchema(DataField... memberSchemas) {
+        this(true, memberSchemas);
     }
 
-    public UnionSchema(boolean optimize, DataSchema... possibleSchemas) {
-        super(Type.UNION);
-        this.possibleSchemas = optimize ? getPossibleSchemas(possibleSchemas) : possibleSchemas;
+    // Optimize
+    // Make this public when the need arises to manually control optimization
+    private UnionSchema(boolean flatten, DataField... memberSchemas) {
+        super(DataSchemaConstants.UNION_TYPE);
+        this.memberSchemas = flatten ? recursivelyGetMemberSchemas(memberSchemas) : memberSchemas;
     }
 
-    public DataSchema[] getPossibleSchemas(DataSchema[] possibleSchemas) {
-        // Here we flatten the list of possible schemas by recursively walking through all possible types. Any sub-unions
-        // are exploded and taken up in this union's list of possible types.
-        final var result = new ArrayList<DataSchema>();
-        for (final var possibleSchema : possibleSchemas) {
-            if (possibleSchema instanceof UnionSchema unionSchema) {
-                final var subSchemas = getPossibleSchemas(unionSchema.possibleSchemas);
-                result.addAll(Arrays.stream(subSchemas).toList());
+    private DataField[] recursivelyGetMemberSchemas(DataField[] memberSchemas) {
+        // Here we flatten the list of value types by recursively walking through all value types. Any sub-unions
+        // are exploded and taken up in this union's list of value types.
+        final var result = new ArrayList<DataField>();
+        for (final var memberSchema : memberSchemas) {
+            if (memberSchema.schema() instanceof UnionSchema unionSchema) {
+                final var subFields = recursivelyGetMemberSchemas(unionSchema.memberSchemas);
+                result.addAll(Arrays.stream(subFields).toList());
             } else {
-                result.add(possibleSchema);
+                result.add(memberSchema);
             }
         }
-        return result.toArray(new DataSchema[]{});
+        return result.toArray(new DataField[]{});
     }
 
+    /**
+     * Determines if this union holds a specific member schema.
+     *
+     * @param schema The {@link DataSchema} to check for.
+     * @return {@code true} if the schema is member of this union schema, {@code false} otherwise.
+     */
+    public boolean contains(DataSchema schema) {
+        for (final var memberSchema : memberSchemas) {
+            if (memberSchema.schema().equals(schema)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Determines if this schema can be assigned from another schema.
+     * <p>
+     * A schema is assignable to this union schema if it matches any of the member schemas in this union.
+     * </p>
+     *
+     * @param otherSchema The {@link DataSchema} to check for compatibility.
+     * @return {@code true} if the other schema is assignable to this union schema, {@code false} otherwise.
+     */
     @Override
     public boolean isAssignableFrom(DataSchema otherSchema) {
         // Don't call the super method here, since that gives wrong semantics. As a union we are
@@ -64,21 +117,43 @@ public class UnionSchema extends DataSchema {
         // By convention, we are not assignable if the other schema is null.
         if (otherSchema == null) return false;
 
-        // If the other schema is a union, then we compare all possible types of that union.
+        // If the other schema is a union, then we compare all value types of that union.
         if (otherSchema instanceof UnionSchema otherUnionSchema) {
-            // This schema is assignable from the other union schema when all of its possible
-            // schema can be assigned to this union schema.
-            for (DataSchema otherUnionsPossibleSchema : otherUnionSchema.possibleSchemas) {
-                if (!isAssignableFrom(otherUnionsPossibleSchema)) return false;
+            // This schema is assignable from the other union fields when all of its value types can be assigned to
+            // this union.
+            for (final var otherUnionMemberSchema : otherUnionSchema.memberSchemas) {
+                if (!isAssignableFrom(otherUnionMemberSchema))
+                    return false;
             }
             return true;
         }
 
         // The other schema is not a union --> we are assignable from the other schema if at least
-        // one of our possible schema is assignable from the other schema.
-        for (DataSchema possibleSchema : possibleSchemas) {
-            if (possibleSchema.isAssignableFrom(otherSchema)) return true;
+        // one of our value schema is assignable from the other schema.
+        for (final var memberSchema : memberSchemas) {
+            if (memberSchema.schema().isAssignableFrom(otherSchema)) return true;
         }
         return false;
+    }
+
+    private boolean isAssignableFrom(DataField otherField) {
+        for (final var memberSchema : memberSchemas) {
+            // First check if the schema of this field and the other field are compatible
+            if (memberSchema.schema().isAssignableFrom(otherField.schema())) {
+                // If they are, then manually check if we allow assignment from the other field to this field
+                if (allowAssignment(memberSchema, otherField)) return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean allowAssignment(DataField thisField, DataField otherField) {
+        // Allow assignments from an anonymous union type, having name or tag unset
+        if (thisField.name() == null || otherField.name() == null) return true;
+        if (thisField.tag() == DataField.NO_TAG || otherField.tag() == DataField.NO_TAG) return true;
+        // This code is specifically made for PROTOBUF oneOf types, containing a field name and tag. We allow
+        // assignment only if both fields match.
+        if (!Objects.equals(thisField.name(), otherField.name())) return false;
+        return Objects.equals(thisField.tag(), otherField.tag());
     }
 }

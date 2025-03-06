@@ -26,7 +26,7 @@ import org.apache.kafka.streams.processor.api.Record;
 
 public class TransformKeyValueToKeyValueListProcessor extends OperationProcessor {
     public interface TransformKeyValueToKeyValueListAction {
-        Iterable<KeyValue<Object, Object>> apply(StateStores stores, Record<Object, Object> record);
+        Iterable<KeyValue<Object, Object>> apply(StateStores stores, Record<Object, Object> rec);
     }
 
     private final TransformKeyValueToKeyValueListAction action;
@@ -37,12 +37,9 @@ public class TransformKeyValueToKeyValueListProcessor extends OperationProcessor
     }
 
     @Override
-    public void process(Record<Object, Object> record) {
-        var kvList = action.apply(stores, record);
-        if (kvList != null) {
-            for (var kv : kvList) {
-                context.forward(record.withKey(kv.key).withValue(kv.value));
-            }
-        }
+    public void process(Record<Object, Object> rec) {
+        var keyValues = action.apply(stores, rec);
+        if (keyValues != null)
+            for (var kv : keyValues) context.forward(rec.withKey(kv.key).withValue(kv.value));
     }
 }

@@ -24,11 +24,10 @@ import io.axual.ksml.data.value.Tuple;
 
 public class TupleType extends ComplexType {
     public TupleType(DataType... subTypes) {
-        super(Tuple.class, subTypes);
+        this("Tuple", subTypes);
     }
 
-    @Override
-    public String schemaName() {
-        return schemaName("Tuple");
+    protected TupleType(String baseName, DataType... subTypes) {
+        super(Tuple.class, buildName(baseName, subTypes), "(" + buildSpec(subTypes) + ")", subTypes);
     }
 }

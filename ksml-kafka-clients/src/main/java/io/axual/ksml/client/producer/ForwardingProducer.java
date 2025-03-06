@@ -79,13 +79,13 @@ public class ForwardingProducer<K, V> implements Producer<K, V> {
     }
 
     @Override
-    public Future<RecordMetadata> send(ProducerRecord<K, V> record) {
-        return delegate.send(record);
+    public Future<RecordMetadata> send(ProducerRecord<K, V> rec) {
+        return delegate.send(rec);
     }
 
     @Override
-    public Future<RecordMetadata> send(ProducerRecord<K, V> record, Callback callback) {
-        return delegate.send(record, callback);
+    public Future<RecordMetadata> send(ProducerRecord<K, V> rec, Callback callback) {
+        return delegate.send(rec, callback);
     }
 
     @Override

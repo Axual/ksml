@@ -24,9 +24,9 @@ package io.axual.ksml.user;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.Invoker;
 import org.apache.kafka.streams.kstream.ValueJoiner;
 import org.apache.kafka.streams.kstream.ValueJoinerWithKey;
@@ -35,7 +35,7 @@ public class UserValueJoiner extends Invoker implements ValueJoiner<Object, Obje
     private static final DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
-    public UserValueJoiner(UserFunction function, ContextTags tags) {
+    public UserValueJoiner(UserFunction function, MetricTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_VALUEJOINER);
         verifyParameterCount(3);
         verifyResultType(EXPECTED_RESULT_TYPE);

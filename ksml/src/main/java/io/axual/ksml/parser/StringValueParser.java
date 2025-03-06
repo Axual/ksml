@@ -20,8 +20,6 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.parser.ParseNode;
-import io.axual.ksml.data.parser.ParserWithSchemas;
 import io.axual.ksml.data.schema.DataSchema;
 
 import java.util.List;
@@ -61,6 +59,6 @@ public class StringValueParser implements ParserWithSchemas<String> {
 
     @Override
     public List<DataSchema> schemas() {
-        return List.of(DataSchema.stringSchema());
+        return List.of(DataSchema.STRING_SCHEMA);
     }
 }

@@ -20,17 +20,14 @@ package io.axual.ksml.rest.server;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Set;
-
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 
-import static io.axual.ksml.rest.server.ComponentState.NOT_APPLICABLE;
-import static io.axual.ksml.rest.server.ComponentState.STARTED;
-import static io.axual.ksml.rest.server.ComponentState.STOPPED;
-import static io.axual.ksml.rest.server.ComponentState.STOPPING;
+import java.util.Set;
+
+import static io.axual.ksml.rest.server.ComponentState.*;
 
 @Slf4j(topic = "ksml.rest.service.ready")
 @Path("ready")

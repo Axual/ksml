@@ -22,19 +22,18 @@ package io.axual.ksml.runner.producer;
 
 import io.axual.ksml.client.serde.ResolvingSerializer;
 import io.axual.ksml.data.mapper.DataObjectConverter;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.notation.NotationLibrary;
-import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataTuple;
-import io.axual.ksml.data.tag.ContextTags;
-import io.axual.ksml.data.value.Pair;
 import io.axual.ksml.definition.ProducerDefinition;
 import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.execution.ExecutionContext;
+import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonFunction;
+import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserGenerator;
+import io.axual.ksml.util.Pair;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.Producer;
@@ -49,11 +48,10 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import static io.axual.ksml.data.notation.UserType.DEFAULT_NOTATION;
+import static io.axual.ksml.type.UserType.DEFAULT_NOTATION;
 
 @Slf4j
 public class ExecutableProducer {
-    private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
     private static final DataObjectConverter DATA_OBJECT_CONVERTER = new DataObjectConverter();
 
     @Getter
@@ -70,7 +68,7 @@ public class ExecutableProducer {
 
     private ExecutableProducer(UserFunction generator,
                                ProducerStrategy producerStrategy,
-                               ContextTags tags,
+                               MetricTags tags,
                                String topic,
                                UserType keyType,
                                UserType valueType,
@@ -98,7 +96,7 @@ public class ExecutableProducer {
      */
     public static ExecutableProducer forProducer(PythonContext context, String namespace, String name, ProducerDefinition producerDefinition, Map<String, String> kafkaConfig) {
         final var target = producerDefinition.target();
-        final var tags = new ContextTags().append("namespace", namespace);
+        final var tags = new MetricTags().append("namespace", namespace);
 
         // Initialize the message generator
         final var gen = producerDefinition.generator();
@@ -113,9 +111,11 @@ public class ExecutableProducer {
         final var producerStrategy = new ProducerStrategy(context, namespace, name, tags, producerDefinition);
 
         // Initialize serializers
-        final var keySerde = NotationLibrary.get(target.keyType().notation()).serde(target.keyType().dataType(), true);
+        final var keyNotation = ExecutionContext.INSTANCE.notationLibrary().get(target.keyType().notation());
+        final var keySerde = keyNotation.serde(target.keyType().dataType(), true);
         final var keySerializer = new ResolvingSerializer<>(keySerde.serializer(), kafkaConfig);
-        final var valueSerde = NotationLibrary.get(target.valueType().notation()).serde(target.valueType().dataType(), false);
+        final var valueNotation = ExecutionContext.INSTANCE.notationLibrary().get(target.valueType().notation());
+        final var valueSerde = valueNotation.serde(target.valueType().dataType(), false);
         final var valueSerializer = new ResolvingSerializer<>(valueSerde.serializer(), kafkaConfig);
 
         // Set up the producer
@@ -126,19 +126,15 @@ public class ExecutableProducer {
         final var messages = generateBatch();
         final var futures = new ArrayList<Future<RecordMetadata>>();
         try {
-            for (var message : messages) {
-                ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(
-                        topic,
-                        message.left(),
-                        message.right()
-                );
-                futures.add(producer.send(record));
+            for (final var message : messages) {
+                ProducerRecord<byte[], byte[]> rec = new ProducerRecord<>(topic, message.left(), message.right());
+                futures.add(producer.send(rec));
             }
 
             batchCount++;
 
             for (var future : futures) {
-                var metadata = future.get();
+                final var metadata = future.get();
                 if (metadata != null && metadata.hasOffset()) {
                     producerStrategy.successfullyProducedOneMessage();
                     log.info("Produced message: producer={}, batch #{}, message #{}, topic={}, partition={}, offset={}", name, batchCount, producerStrategy.messagesProduced(), metadata.topic(), metadata.partition(), metadata.offset());
@@ -147,7 +143,7 @@ public class ExecutableProducer {
                 }
             }
         } catch (InterruptedException | ExecutionException e) {
-            throw new io.axual.ksml.data.exception.ExecutionException("Could not produce to topic " + topic, e);
+            throw new io.axual.ksml.exception.ExecutionException("Could not produce to topic " + topic, e);
         }
     }
 
@@ -170,8 +166,8 @@ public class ExecutableProducer {
                 log.info("Message: key={}, value={}", keyStr, valueStr);
 
                 // Serialize the message
-                var serializedKey = keySerializer.serialize(topic, NATIVE_MAPPER.fromDataObject(key));
-                var serializedValue = valueSerializer.serialize(topic, NATIVE_MAPPER.fromDataObject(value));
+                var serializedKey = keySerializer.serialize(topic, key);
+                var serializedValue = valueSerializer.serialize(topic, value);
 
                 // Add the serialized message to the batch
                 result.add(new Pair<>(serializedKey, serializedValue));
@@ -191,10 +187,10 @@ public class ExecutableProducer {
     }
 
     private Pair<DataObject, DataObject> generateMessage() {
-        DataObject result = generator.apply();
-        if (result instanceof DataTuple tuple && tuple.size() == 2) {
-            var key = tuple.get(0);
-            var value = tuple.get(1);
+        final var result = generator.apply();
+        if (result instanceof DataTuple tuple && tuple.elements().size() == 2) {
+            var key = tuple.elements().get(0);
+            var value = tuple.elements().get(1);
 
             if (producerStrategy.validateMessage(key, value)) {
                 // keep produced key and value to determine rescheduling later

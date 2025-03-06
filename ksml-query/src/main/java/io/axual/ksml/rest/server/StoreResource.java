@@ -20,6 +20,15 @@ package io.axual.ksml.rest.server;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.mapper.DataObjectFlattener;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.rest.data.KeyValueBean;
+import io.axual.ksml.rest.data.KeyValueBeans;
+import io.axual.ksml.rest.data.WindowedKeyValueBean;
+import io.axual.ksml.rest.data.WindowedKeyValueBeans;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.ServiceUnavailableException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StoreQueryParameters;
 import org.apache.kafka.streams.errors.UnknownStateStoreException;
@@ -31,16 +40,6 @@ import org.apache.kafka.streams.state.QueryableStoreType;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-
-import io.axual.ksml.data.mapper.DataObjectFlattener;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.rest.data.KeyValueBean;
-import io.axual.ksml.rest.data.KeyValueBeans;
-import io.axual.ksml.rest.data.WindowedKeyValueBean;
-import io.axual.ksml.rest.data.WindowedKeyValueBeans;
-import jakarta.ws.rs.NotFoundException;
-import jakarta.ws.rs.ServiceUnavailableException;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class StoreResource implements AutoCloseable {

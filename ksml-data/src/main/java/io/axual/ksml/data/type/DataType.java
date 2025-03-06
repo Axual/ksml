@@ -27,7 +27,9 @@ import io.axual.ksml.data.object.DataObject;
 public interface DataType {
     Class<?> containerClass();
 
-    String schemaName();
+    String name();
+
+    String spec();
 
     boolean isAssignableFrom(DataType type);
 
@@ -43,17 +45,16 @@ public interface DataType {
 
     DataType UNKNOWN = new DataType() {
         @Override
-        public String toString() {
-            return "?";
-        }
-
-        @Override
         public Class<?> containerClass() {
             return Object.class;
         }
 
-        public String schemaName() {
+        public String name() {
             return "Unknown";
+        }
+
+        public String spec() {
+            return "?";
         }
 
         @Override
@@ -69,6 +70,11 @@ public interface DataType {
         @Override
         public boolean isAssignableFrom(Object value) {
             return true;
+        }
+
+        @Override
+        public String toString() {
+            return spec();
         }
     };
 }

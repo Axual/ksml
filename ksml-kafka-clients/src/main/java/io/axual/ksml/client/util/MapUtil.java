@@ -35,4 +35,8 @@ public class MapUtil {
         if (map2 != null) result.putAll(map2);
         return result;
     }
+
+    private MapUtil() {
+        // Prevent instantiation.
+    }
 }

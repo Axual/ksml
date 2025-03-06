@@ -4,7 +4,7 @@ package io.axual.ksml.parser;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,22 +21,22 @@ package io.axual.ksml.parser;
  */
 
 import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.exception.ParseException;
-import io.axual.ksml.data.mapper.DataTypeSchemaMapper;
-import io.axual.ksml.data.notation.NotationLibrary;
-import io.axual.ksml.data.notation.UserTupleType;
-import io.axual.ksml.data.notation.UserType;
+import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.object.*;
-import io.axual.ksml.data.parser.schema.DataSchemaDSL;
 import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.EnumSchema;
-import io.axual.ksml.data.schema.SchemaLibrary;
 import io.axual.ksml.data.type.*;
+import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.execution.ExecutionContext;
+import io.axual.ksml.schema.parser.DataSchemaDSL;
+import io.axual.ksml.type.UserTupleType;
+import io.axual.ksml.type.UserType;
 
 import java.util.ArrayList;
-
-import static io.axual.ksml.data.notation.UserType.UNKNOWN;
+import java.util.Arrays;
+import java.util.List;
 
 public class UserTypeParser {
     private static final String NOTATION_SEPARATOR = ":";
@@ -46,8 +46,8 @@ public class UserTypeParser {
     private static final String ROUND_BRACKET_CLOSE = ")";
     private static final String SQUARE_BRACKET_OPEN = "[";
     private static final String SQUARE_BRACKET_CLOSE = "]";
-    private static final String ENUM_TYPE = DataSchemaDSL.ENUM_TYPE;
-    private static final String UNION_TYPE = DataSchemaDSL.UNION_TYPE;
+    private static final String ENUM_TYPE = DataSchemaConstants.ENUM_TYPE;
+    private static final String UNION_TYPE = DataSchemaConstants.UNION_TYPE;
     private static final String WINDOWED_TYPE = DataSchemaDSL.WINDOWED_TYPE;
     private static final String ALLOWED_LITERAL_CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
     private static final String ALLOWED_TYPE_CHARACTERS = ALLOWED_LITERAL_CHARACTERS + NOTATION_SEPARATOR + DataSchemaDSL.UNKNOWN_TYPE;
@@ -67,7 +67,7 @@ public class UserTypeParser {
     // list only contains one dataType.
     private static UserType[] parseListOfTypesAndNotation(String type, String defaultNotation) {
         if (type == null || type.isEmpty()) {
-            return new UserType[]{UNKNOWN};
+            return new UserType[]{UserType.UNKNOWN};
         }
         type = type.trim();
 
@@ -87,83 +87,80 @@ public class UserTypeParser {
         return result;
     }
 
-    private record DecomposedType(String notation, String datatype) {
+    private record DecomposedType(String notation, String dataType) {
     }
 
     private static UserType parseTypeAndNotation(String composedType, String defaultNotation) {
         final var decomposedType = decompose(composedType, defaultNotation);
         final var notation = decomposedType.notation();
-        final var datatype = decomposedType.datatype();
+        final var dataType = decomposedType.dataType();
 
         // Internal types
-        final var internalType = parseType(datatype);
+        final var internalType = parseType(dataType);
         if (internalType != null) {
-            final var n = NotationLibrary.get(notation);
+            final var n = ExecutionContext.INSTANCE.notationLibrary().get(notation);
             if (n.defaultType() != null && !n.defaultType().isAssignableFrom(internalType)) {
-                throw new DataException("Notation " + notation + " does not allow for data type " + datatype);
+                throw new DataException("Notation " + n.name() + " does not allow for data type " + dataType);
             }
             return new UserType(notation, internalType);
         }
 
         // List type
-        if (datatype.startsWith(SQUARE_BRACKET_OPEN)) {
-            if (!datatype.endsWith(SQUARE_BRACKET_CLOSE)) {
-                throw new ParseException("List type not properly closed: " + datatype);
+        if (dataType.startsWith(SQUARE_BRACKET_OPEN)) {
+            if (!dataType.endsWith(SQUARE_BRACKET_CLOSE)) {
+                throw new ParseException("List type not properly closed: " + dataType);
             }
             // Parse the type in brackets separately as the type of list elements. Notation overrides are not allowed
             // for list elements. If specified (eg. "[avro:SomeSchema]") then the notation is ignored.
-            var valueType = parseTypeAndNotation(datatype.substring(1, datatype.length() - 1), notation);
+            var valueType = parseTypeAndNotation(dataType.substring(1, dataType.length() - 1), notation);
             // Return as list of parsed value type using notation specified by the above parsed parent list type
             return new UserType(notation, new ListType(valueType.dataType()));
         }
 
         // Tuple type
-        if (datatype.startsWith(ROUND_BRACKET_OPEN)) {
-            if (!datatype.endsWith(ROUND_BRACKET_CLOSE)) {
-                throw new ParseException("Tuple type not properly closed: " + datatype);
+        if (dataType.startsWith(ROUND_BRACKET_OPEN)) {
+            if (!dataType.endsWith(ROUND_BRACKET_CLOSE)) {
+                throw new ParseException("Tuple type not properly closed: " + dataType);
             }
-            var valueTypes = parseListOfTypesAndNotation(datatype.substring(1, datatype.length() - 1), notation);
+            var valueTypes = parseListOfTypesAndNotation(dataType.substring(1, dataType.length() - 1), notation);
             return new UserType(notation, new UserTupleType(valueTypes));
         }
 
         // enum(literal1,literal2,...)
-        if (datatype.startsWith(ENUM_TYPE + ROUND_BRACKET_OPEN) && datatype.endsWith(ROUND_BRACKET_CLOSE)) {
-            var literals = datatype.substring(ENUM_TYPE.length() + 1, datatype.length() - 1);
-            return new UserType(notation, new EnumType(parseListOfLiterals(literals)));
+        if (dataType.startsWith(ENUM_TYPE + ROUND_BRACKET_OPEN) && dataType.endsWith(ROUND_BRACKET_CLOSE)) {
+            var literals = dataType.substring(ENUM_TYPE.length() + 1, dataType.length() - 1);
+            return new UserType(notation, new EnumType(parseListOfLiterals(literals).stream().map(Symbol::new).toList()));
         }
 
         // union(type1,type2,...)
-        if (datatype.startsWith(UNION_TYPE + ROUND_BRACKET_OPEN) && datatype.endsWith(ROUND_BRACKET_CLOSE)) {
-            var unionSubtypes = datatype.substring(UNION_TYPE.length() + 1, datatype.length() - 1);
-            return new UserType(notation, new UnionType(UserType.userTypesToDataTypes(parseListOfTypesAndNotation(unionSubtypes, notation))));
+        if (dataType.startsWith(UNION_TYPE + ROUND_BRACKET_OPEN) && dataType.endsWith(ROUND_BRACKET_CLOSE)) {
+            var unionSubtypes = dataType.substring(UNION_TYPE.length() + 1, dataType.length() - 1);
+            return new UserType(notation, new UnionType(Arrays.stream(UserType.userTypesToDataTypes(parseListOfTypesAndNotation(unionSubtypes, notation))).map(UnionType.MemberType::new).toArray(UnionType.MemberType[]::new)));
         }
 
         // windowed(type)
-        if (datatype.startsWith(WINDOWED_TYPE + ROUND_BRACKET_OPEN) && datatype.endsWith(ROUND_BRACKET_CLOSE)) {
-            var windowedType = datatype.substring(WINDOWED_TYPE.length() + 1, datatype.length() - 1);
+        if (dataType.startsWith(WINDOWED_TYPE + ROUND_BRACKET_OPEN) && dataType.endsWith(ROUND_BRACKET_CLOSE)) {
+            var windowedType = dataType.substring(WINDOWED_TYPE.length() + 1, dataType.length() - 1);
             return new UserType(notation, new WindowedType(parseType(windowedType)));
         }
 
-        // Notation type with specific schema
-        if (NotationLibrary.exists(notation)) {
-            final var loader = NotationLibrary.get(notation).loader();
-            if (loader != null) {
-                // If we reach this point, then we assume that the datatype refers to a schema to load
-                final var schema = SchemaLibrary.getSchema(notation, datatype, false);
-                final var schemaType = new DataTypeSchemaMapper().fromDataSchema(schema);
-                if (!(NotationLibrary.get(notation).defaultType().isAssignableFrom(schemaType))) {
-                    throw new DataException("Notation " + notation + " does not allow for data type " + datatype);
+        // Notation type with or without specific schema
+        if (ExecutionContext.INSTANCE.notationLibrary().exists(notation)) {
+            final var not = ExecutionContext.INSTANCE.notationLibrary().get(notation);
+            if (not != null) {
+                // If the dataType (ie. schema) is empty, then return the notation with default type
+                if (dataType.isEmpty()) return new UserType(notation, not.defaultType());
+                // Load the schema
+                final var schema = ExecutionContext.INSTANCE.schemaLibrary().getSchema(not, dataType, false);
+                final var schemaType = new DataTypeDataSchemaMapper().fromDataSchema(schema);
+                if (!not.defaultType().isAssignableFrom(schemaType)) {
+                    throw new DataException("Notation does not allow for type: notation=" + not.name() + ", type=" + dataType);
                 }
                 return new UserType(notation, schemaType);
             }
         }
 
-        // Notation without specific schema
-        if (NotationLibrary.exists(datatype)) {
-            return new UserType(datatype, NotationLibrary.get(datatype).defaultType());
-        }
-
-        throw new TopologyException("Unknown type: " + notation + ":" + datatype);
+        throw new TopologyException("Unknown user type: notation=" + (notation != null ? notation : "null") + ", type=" + dataType);
     }
 
     // This method decomposes a user type into its components. User types are always of the form "notation:datatype".
@@ -183,38 +180,43 @@ public class UserTypeParser {
             return new DecomposedType(parsedNotation, parsedType);
         }
 
+        // Check if the composedType is a schemaless reference to a notation
+        if (ExecutionContext.INSTANCE.notationLibrary().exists(composedType)) {
+            final var not = ExecutionContext.INSTANCE.notationLibrary().get(composedType);
+            return new DecomposedType(not.name(), "");
+        }
         // Return the whole type string to be processed further, along with default notation
         return new DecomposedType(defaultNotation, composedType);
     }
 
-    private static String[] parseListOfLiterals(String literals) {
+    private static List<String> parseListOfLiterals(String literals) {
         // Literals are optionally double-quoted
-        var splitLiterals = literals.split(TYPE_SEPARATOR);
-        var result = new String[splitLiterals.length];
-        for (int index = 0; index < splitLiterals.length; index++) {
-            var literal = splitLiterals[index];
+        final var splitLiterals = literals.split(TYPE_SEPARATOR);
+        final var result = new ArrayList<String>();
+        for (final var literal : splitLiterals) {
             if (literal.length() > 2 && literal.startsWith(DOUBLE_QUOTE) && literal.endsWith(DOUBLE_QUOTE)) {
-                literal = literal.substring(1, literal.length() - 2);
+                result.add(literal.substring(1, literal.length() - 2));
+            } else {
+                result.add(literal);
             }
-            result[index] = literal;
         }
         return result;
     }
 
     private static DataType parseType(String type) {
         return switch (type) {
-            case DataSchemaDSL.NULL_TYPE, DataSchemaDSL.NONE_TYPE -> DataNull.DATATYPE;
-            case DataSchemaDSL.BOOLEAN_TYPE -> DataBoolean.DATATYPE;
-            case DataSchemaDSL.BYTE_TYPE -> DataByte.DATATYPE;
-            case DataSchemaDSL.SHORT_TYPE -> DataShort.DATATYPE;
-            case DataSchemaDSL.DOUBLE_TYPE -> DataDouble.DATATYPE;
-            case DataSchemaDSL.FLOAT_TYPE -> DataFloat.DATATYPE;
-            case DataSchemaDSL.INTEGER_TYPE, DataSchemaDSL.INTEGER_TYPE_ALTERNATIVE -> DataInteger.DATATYPE;
-            case DataSchemaDSL.LONG_TYPE -> DataLong.DATATYPE;
-            case DataSchemaDSL.BYTES_TYPE -> DataBytes.DATATYPE;
-            case DataSchemaDSL.STRING_TYPE, DataSchemaDSL.STRING_TYPE_ALTERNATIVE -> DataString.DATATYPE;
-            case DataSchemaDSL.STRUCT_TYPE -> new StructType();
-            case DataSchemaDSL.ANY_TYPE, DataSchemaDSL.UNKNOWN_TYPE -> DataType.UNKNOWN;
+            case DataSchemaConstants.ANY_TYPE, DataSchemaDSL.UNKNOWN_TYPE -> DataType.UNKNOWN;
+            case DataSchemaConstants.NULL_TYPE, DataSchemaDSL.NONE_TYPE -> DataNull.DATATYPE;
+            case DataSchemaConstants.BOOLEAN_TYPE -> DataBoolean.DATATYPE;
+            case DataSchemaConstants.BYTE_TYPE -> DataByte.DATATYPE;
+            case DataSchemaConstants.SHORT_TYPE -> DataShort.DATATYPE;
+            case DataSchemaConstants.INTEGER_TYPE, DataSchemaDSL.INTEGER_TYPE_ALTERNATIVE -> DataInteger.DATATYPE;
+            case DataSchemaConstants.LONG_TYPE -> DataLong.DATATYPE;
+            case DataSchemaConstants.FLOAT_TYPE -> DataFloat.DATATYPE;
+            case DataSchemaConstants.DOUBLE_TYPE -> DataDouble.DATATYPE;
+            case DataSchemaConstants.BYTES_TYPE -> DataBytes.DATATYPE;
+            case DataSchemaConstants.STRING_TYPE, DataSchemaDSL.STRING_TYPE_ALTERNATIVE -> DataString.DATATYPE;
+            case DataSchemaConstants.STRUCT_TYPE -> new StructType();
             default -> null;
         };
     }
@@ -276,6 +278,10 @@ public class UserTypeParser {
         types.add("any");
         types.add("?");
         types.add("notation:schema");
-        return new EnumSchema(DefinitionParser.SCHEMA_NAMESPACE, "UserType", "UserTypes are the basic types used in streams and pipelines", types);
+        return new EnumSchema(
+                DefinitionParser.SCHEMA_NAMESPACE,
+                "UserType",
+                "UserTypes are the basic types used in streams and pipelines",
+                types.stream().map(Symbol::new).toList());
     }
 }

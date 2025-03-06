@@ -20,16 +20,45 @@ package io.axual.ksml.data.object;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.parser.schema.DataSchemaDSL;
+import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.type.SimpleType;
 
+/**
+ * Represents a wrapper for a short value as part of the {@link DataObject} framework.
+ *
+ * <p>The {@code DataShort} class encapsulates a short value to integrate seamlessly
+ * into the structured data model used in schema-compliant or stream-processed data.
+ * It enables short values to be used as {@link DataObject} types, making them compatible
+ * with the framework and allowing for standardized processing.</p>
+ *
+ * @see DataObject
+ */
 public class DataShort extends DataPrimitive<Short> {
-    public static final SimpleType DATATYPE = new SimpleType(Short.class, DataSchemaDSL.SHORT_TYPE);
+    /**
+     * Represents the data type of this {@code DataShort}, which is {@code Short},
+     * mapped to the schema definition in {@link DataSchemaConstants#SHORT_TYPE}.
+     * <p>This constant ensures that the type metadata for a {@code DataShort} is
+     * consistent across all usages in the framework.</p>
+     */
+    public static final SimpleType DATATYPE = new SimpleType(Short.class, DataSchemaConstants.SHORT_TYPE);
 
+    /**
+     * Constructs a {@code DataDouble} instance with a null value.
+     * <p>This constructor creates a {@code DataDouble} that does not hold any actual
+     * {@code Double} value, effectively representing a "null" double in the framework.</p>
+     */
     public DataShort() {
         this(null);
     }
 
+    /**
+     * Constructs a {@code DataDouble} instance with the specified {@code Double} value.
+     *
+     * <p>If the input value is {@code null}, the {@code DataDouble} will represent
+     * the absence of a value (a null double).</p>
+     *
+     * @param value The {@code Double} value to encapsulate, or {@code null} to represent a null value.
+     */
     public DataShort(Short value) {
         super(DATATYPE, value);
     }

@@ -34,7 +34,19 @@
         </dependency>
         <dependency>
             <groupId>io.axual.ksml</groupId>
+            <artifactId>ksml-data-binary</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.axual.ksml</groupId>
             <artifactId>ksml-data-csv</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.axual.ksml</groupId>
+            <artifactId>ksml-data-json</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.axual.ksml</groupId>
+            <artifactId>ksml-data-protobuf</artifactId>
         </dependency>
         <dependency>
             <groupId>io.axual.ksml</groupId>

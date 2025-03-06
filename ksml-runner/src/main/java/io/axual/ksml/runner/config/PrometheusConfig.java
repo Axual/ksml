@@ -41,7 +41,7 @@ public class PrometheusConfig {
     private static final String DEFAULT_HOSTNAME = "0.0.0.0";
     private static final String DEFAULT_PORT = "9999";
     private static final String DEFAULT_CONFIG_RESOURCE = "prometheus/default_config.yaml";
-    private static File DEFAULT_CONFIG_FILE;
+    private static File defaultConfigFile;
 
     private boolean enabled;
     private String host;
@@ -59,11 +59,11 @@ public class PrometheusConfig {
     }
 
     private static synchronized File getDefaultConfigFile() {
-        if (DEFAULT_CONFIG_FILE == null || !DEFAULT_CONFIG_FILE.exists()) {
+        if (defaultConfigFile == null || !defaultConfigFile.exists()) {
             File tmpFile = null;
             try {
-                log.info("Loading default config file: {}", DEFAULT_CONFIG_FILE);
-                var resourceUrl = PrometheusConfig.class.getClassLoader().getResource(DEFAULT_CONFIG_RESOURCE);
+                log.info("Loading default config file: {}", defaultConfigFile);
+                final var resourceUrl = PrometheusConfig.class.getClassLoader().getResource(DEFAULT_CONFIG_RESOURCE);
                 if (resourceUrl != null) {
                     tmpFile = File.createTempFile("KSML-Prometheus-Default-Config", ".yaml");
                     tmpFile.deleteOnExit();
@@ -74,9 +74,9 @@ public class PrometheusConfig {
             } catch (IOException e) {
                 log.info("Could not create temporary prometheus config file");
             }
-            DEFAULT_CONFIG_FILE = tmpFile;
+            defaultConfigFile = tmpFile;
         }
-        return DEFAULT_CONFIG_FILE;
+        return defaultConfigFile;
     }
 
     public File getConfigFile() {

@@ -26,7 +26,7 @@ import io.axual.ksml.data.exception.BaseException;
  * Exception used during metric creation, update and deletion activities
  */
 public class MetricRegistrationException extends BaseException {
-    private static final String ACTIVITY = "Metric registration";
+    private static final String ACTIVITY = "metric registration";
 
     public MetricRegistrationException(String message) {
         super(ACTIVITY, message);

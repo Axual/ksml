@@ -22,7 +22,6 @@ package io.axual.ksml.operation;
 
 
 import io.axual.ksml.definition.FunctionDefinition;
-import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.*;
 import io.axual.ksml.user.UserReducer;

@@ -20,8 +20,8 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.metric.MetricName;
+import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.metric.MetricsRegistry;
 
 import java.util.HashMap;
@@ -135,7 +135,7 @@ public class MetricsBridge {
     }
 
     private MetricName createMetricName(String type, String name, Map<?, ?> tagMap) {
-        var tags = new ContextTags().append("custom-name", name);
+        var tags = new MetricTags().append("custom-name", name);
         if (tagMap != null) {
             for (Map.Entry<?, ?> entry : tagMap.entrySet()) {
                 tags = tags.append(entry.getKey().toString(), entry.getValue().toString());

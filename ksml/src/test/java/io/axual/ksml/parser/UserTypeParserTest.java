@@ -20,10 +20,14 @@ package io.axual.ksml.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.UserType;
+import io.axual.ksml.data.mapper.DataObjectFlattener;
+import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.SimpleType;
+import io.axual.ksml.execution.ExecutionContext;
+import io.axual.ksml.type.UserType;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -35,6 +39,11 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 
 class UserTypeParserTest {
+    @BeforeAll
+    static void setup() {
+        final var binaryNotation = new BinaryNotation(UserType.DEFAULT_NOTATION, new DataObjectFlattener(), null);
+        ExecutionContext.INSTANCE.notationLibrary().register(binaryNotation);
+    }
 
     @ParameterizedTest
     @DisplayName("Test all known types")

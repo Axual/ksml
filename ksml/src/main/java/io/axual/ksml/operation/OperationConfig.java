@@ -20,7 +20,7 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.tag.ContextTags;
+import io.axual.ksml.metric.MetricTags;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,9 +28,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class OperationConfig {
     private final String name;
-    private final ContextTags tags;
+    private final MetricTags tags;
 
-    public OperationConfig(String name, ContextTags tags) {
+    public OperationConfig(String name, MetricTags tags) {
         this.name = name;
         this.tags = tags;
         log.debug("Generated operation name: {}", this.name);

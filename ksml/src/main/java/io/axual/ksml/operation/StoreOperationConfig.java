@@ -20,13 +20,13 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.definition.StateStoreDefinition;
+import io.axual.ksml.metric.MetricTags;
 
 public class StoreOperationConfig extends OperationConfig {
     public final StateStoreDefinition store;
 
-    public StoreOperationConfig(String name, ContextTags context, StateStoreDefinition store) {
+    public StoreOperationConfig(String name, MetricTags context, StateStoreDefinition store) {
         super(name, context);
         this.store = store;
     }

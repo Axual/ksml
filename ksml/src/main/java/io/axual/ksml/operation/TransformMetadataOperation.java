@@ -20,7 +20,6 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.type.RecordMetadata;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
@@ -28,6 +27,7 @@ import io.axual.ksml.operation.processor.FixedKeyOperationProcessorSupplier;
 import io.axual.ksml.operation.processor.TransformMetadataProcessor;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
+import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserMetadataTransformer;
 import org.apache.kafka.streams.kstream.KStream;
 
@@ -58,7 +58,7 @@ public class TransformMetadataOperation extends BaseOperation {
         final var supplier = new FixedKeyOperationProcessorSupplier<>(
                 name,
                 TransformMetadataProcessor::new,
-                (stores, record) -> userMap.apply(stores, flattenValue(record.key()), flattenValue(record.value()), new RecordMetadata(record.timestamp(), record.headers())),
+                (stores, rec) -> userMap.apply(stores, flattenValue(rec.key()), flattenValue(rec.value()), new RecordMetadata(rec.timestamp(), rec.headers())),
                 storeNames);
         final var named = namedOf();
         final KStream<Object, Object> output = named != null

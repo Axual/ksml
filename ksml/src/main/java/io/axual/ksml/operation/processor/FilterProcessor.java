@@ -25,7 +25,7 @@ import org.apache.kafka.streams.processor.api.FixedKeyRecord;
 
 public class FilterProcessor extends FixedKeyOperationProcessor {
     public interface Predicate {
-        boolean test(StateStores stores, FixedKeyRecord<Object, Object> record);
+        boolean test(StateStores stores, FixedKeyRecord<Object, Object> rec);
     }
 
     private final Predicate action;
@@ -36,9 +36,9 @@ public class FilterProcessor extends FixedKeyOperationProcessor {
     }
 
     @Override
-    public void process(FixedKeyRecord<Object, Object> record) {
-        if (action.test(stores, record)) {
-            context.forward(record);
+    public void process(FixedKeyRecord<Object, Object> rec) {
+        if (action.test(stores, rec)) {
+            context.forward(rec);
         }
     }
 }

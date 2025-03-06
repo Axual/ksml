@@ -28,8 +28,8 @@ import jakarta.ws.rs.ext.ExceptionMapper;
 public class RestServerExceptionMapper implements ExceptionMapper<Throwable> {
     @Override
     public Response toResponse(Throwable throwable) {
-        if (throwable instanceof WebApplicationException) {
-            return ((WebApplicationException) throwable).getResponse();
+        if (throwable instanceof WebApplicationException wae) {
+            return wae.getResponse();
         }
 
         var message = throwable.getMessage();

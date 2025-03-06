@@ -20,5 +20,15 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+/**
+ * Represents a container for a single value.
+ * <p>
+ * The {@code DataValue} class is designed as a record to hold a single data value
+ * of any type. It acts as a lightweight wrapper for objects, primarily used in the
+ * context of schema-related operations within the KSML framework.
+ * </p>
+ *
+ * @param value The encapsulated value. This is a generic object and can represent any type of data.
+ */
 public record DataValue(Object value) {
 }

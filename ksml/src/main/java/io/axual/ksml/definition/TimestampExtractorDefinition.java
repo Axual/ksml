@@ -21,8 +21,8 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.type.UserType;
 
 import static io.axual.ksml.definition.DefinitionConstants.TIMESTAMP_EXTRACTOR_PARAMETERS;
 

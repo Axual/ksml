@@ -22,13 +22,13 @@ package io.axual.ksml.python;
 
 
 import com.codahale.metrics.Timer;
-import io.axual.ksml.data.notation.UserType;
 import io.axual.ksml.data.object.DataNull;
-import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.metric.MetricName;
+import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.metric.Metrics;
+import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +40,7 @@ public abstract class Invoker {
     protected final UserFunction function;
     private final Timer timer;
 
-    protected Invoker(UserFunction function, ContextTags tags, String functionType) {
+    protected Invoker(UserFunction function, MetricTags tags, String functionType) {
         if (function == null) {
             throw new TopologyException("Invoker: function can not be null");
         }
@@ -76,7 +76,7 @@ public abstract class Invoker {
 
     private void verifyNoResultInternal(UserType type) {
         if (type != null && type.dataType() != DataNull.DATATYPE) {
-            LOG.warn("Function {} used as {}: Function return value of type " + type + " will be ignored", function.name, getClass().getSimpleName());
+            LOG.warn("Function {} used as {}: Function return value of type {} will be ignored", function.name, getClass().getSimpleName(), type);
         }
     }
 

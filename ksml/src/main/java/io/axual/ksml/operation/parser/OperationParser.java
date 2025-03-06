@@ -20,17 +20,15 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.parser.NamedObjectParser;
-import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.operation.BaseOperation;
 import io.axual.ksml.operation.OperationConfig;
+import io.axual.ksml.parser.NamedObjectParser;
 import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyResourceAwareParser;
 import lombok.Getter;
-
-import java.util.List;
 
 @Getter
 public abstract class OperationParser<T extends BaseOperation> extends TopologyResourceAwareParser<T> implements NamedObjectParser {
@@ -38,7 +36,7 @@ public abstract class OperationParser<T extends BaseOperation> extends TopologyR
     private String defaultLongName;
     protected final String type;
 
-    public OperationParser(String type, TopologyResources resources) {
+    protected OperationParser(String type, TopologyResources resources) {
         super(resources);
         this.type = type;
     }
@@ -47,11 +45,7 @@ public abstract class OperationParser<T extends BaseOperation> extends TopologyR
         return optional(stringField(KSMLDSL.Operations.NAME_ATTRIBUTE, false, type, "The name of the operation processor"));
     }
 
-    protected OperationConfig operationConfig(String name, ContextTags tags) {
-        return operationConfig(name, tags, null);
-    }
-
-    protected OperationConfig operationConfig(String name, ContextTags tags, List<String> storeNames) {
+    protected OperationConfig operationConfig(String name, MetricTags tags) {
         name = validateName("Operation", name, defaultLongName != null ? defaultLongName + "_" + type : type);
         return new OperationConfig(
                 name != null ? resources().getUniqueOperationName(name) : resources().getUniqueOperationName(tags),

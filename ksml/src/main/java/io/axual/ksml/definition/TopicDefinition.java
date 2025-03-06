@@ -21,7 +21,7 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.data.notation.UserType;
+import io.axual.ksml.type.UserType;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -37,6 +37,7 @@ public class TopicDefinition extends AbstractDefinition {
     private final FunctionDefinition tsExtractor;
     private final Topology.AutoOffsetReset resetPolicy;
 
+    @Override
     public String toString() {
         final var kt = keyType != null ? ", " + keyType : "";
         final var vt = valueType != null ? ", " + valueType : "";

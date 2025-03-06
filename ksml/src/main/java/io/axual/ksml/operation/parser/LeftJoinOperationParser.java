@@ -21,17 +21,17 @@ package io.axual.ksml.operation.parser;
  */
 
 
-import io.axual.ksml.data.exception.ParseException;
-import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.GlobalTableDefinition;
 import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.definition.parser.*;
 import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.LeftJoinOperation;
+import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.parser.StructsParser;
 
 import java.util.ArrayList;
@@ -47,13 +47,15 @@ public class LeftJoinOperationParser extends StoreOperationParser<LeftJoinOperat
 
     public LeftJoinOperationParser(TopologyResources resources) {
         super(KSMLDSL.Operations.LEFT_JOIN, resources);
+        final var valueJoinerField = functionField(Operations.Join.VALUE_JOINER, "A function that joins two values", new ValueJoinerDefinitionParser(false));
+
         joinStreamParser = structsParser(
                 LeftJoinOperation.class,
                 KSMLDSL.Types.WITH_STREAM,
                 "Operation to leftJoin with a stream",
                 operationNameField(),
-                topicField(Operations.Join.WITH_STREAM, "A reference to the stream, or an inline definition of the stream to leftJoin with", new StreamDefinitionParser(resources(), false)),
-                functionField(Operations.Join.VALUE_JOINER, "A function that joins two values", new ValueJoinerDefinitionParser(false)),
+                topicField(Operations.Join.WITH_STREAM, "A reference to the stream, or an inline definition of the stream to leftJoin with", new StreamDefinitionParser(resources(), true)),
+                valueJoinerField,
                 durationField(Operations.Join.TIME_DIFFERENCE, "The maximum time difference for a leftJoin over two streams on the same key"),
                 optional(durationField(Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
                 storeField(false, "Materialized view of the joined streams", null),
@@ -69,9 +71,9 @@ public class LeftJoinOperationParser extends StoreOperationParser<LeftJoinOperat
                 KSMLDSL.Types.WITH_TABLE,
                 "Operation to leftJoin with a table",
                 operationNameField(),
-                topicField(Operations.Join.WITH_TABLE, "A reference to the Table, or an inline definition of the Table to join with", new TableDefinitionParser(resources(), false)),
+                topicField(Operations.Join.WITH_TABLE, "A reference to the Table, or an inline definition of the Table to join with", new TableDefinitionParser(resources(), true)),
                 optional(functionField(Operations.Join.FOREIGN_KEY_EXTRACTOR, "A function that can translate the join table value to a primary key", new ForeignKeyExtractorDefinitionParser(false))),
-                functionField(Operations.Join.VALUE_JOINER, "A function that joins two values", new ValueJoinerDefinitionParser(false)),
+                valueJoinerField,
                 optional(durationField(Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
                 optional(functionField(Operations.Join.PARTITIONER, "A function that partitions the records on the primary table", new StreamPartitionerDefinitionParser(false))),
                 optional(functionField(Operations.Join.OTHER_PARTITIONER, "A function that partitions the records on the join table", new StreamPartitionerDefinitionParser(false))),
@@ -88,9 +90,9 @@ public class LeftJoinOperationParser extends StoreOperationParser<LeftJoinOperat
                 KSMLDSL.Types.WITH_GLOBAL_TABLE,
                 "Operation to leftJoin with a globalTable",
                 operationNameField(),
-                topicField(Operations.Join.WITH_GLOBAL_TABLE, "A reference to the globalTable, or an inline definition of the globalTable to join with", new GlobalTableDefinitionParser(resources(), false)),
+                topicField(Operations.Join.WITH_GLOBAL_TABLE, "A reference to the globalTable, or an inline definition of the globalTable to join with", new GlobalTableDefinitionParser(resources(), true)),
                 functionField(Operations.Join.MAPPER, "A function that maps the key value from the stream with the primary key of the globalTable", new KeyValueMapperDefinitionParser(false)),
-                functionField(Operations.Join.VALUE_JOINER, "A function that joins two values", new ValueJoinerDefinitionParser(false)),
+                valueJoinerField,
                 // GlobalTable joins do not use/require a state store
                 (name, globalTable, mapper, valueJoiner, tags) -> {
                     if (globalTable instanceof GlobalTableDefinition globalTableDef) {

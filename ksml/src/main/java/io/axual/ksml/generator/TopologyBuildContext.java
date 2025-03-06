@@ -21,9 +21,9 @@ package io.axual.ksml.generator;
  */
 
 import io.axual.ksml.data.mapper.DataObjectConverter;
-import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.definition.*;
 import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonFunction;
 import io.axual.ksml.store.StoreUtil;
@@ -72,22 +72,17 @@ public class TopologyBuildContext {
 
     public <V> Materialized<Object, V, KeyValueStore<Bytes, byte[]>> materialize(KeyValueStateStoreDefinition store) {
         resources.register(store.name(), store);
-        return StoreUtil.<V>materialize(store, getTopicName(store)).materialized();
+        return StoreUtil.<V>materialize(store).materialized();
     }
 
     public <V> Materialized<Object, V, SessionStore<Bytes, byte[]>> materialize(SessionStateStoreDefinition store) {
         resources.register(store.name(), store);
-        return StoreUtil.<V>materialize(store, getTopicName(store)).materialized();
+        return StoreUtil.<V>materialize(store).materialized();
     }
 
     public <V> Materialized<Object, V, WindowStore<Bytes, byte[]>> materialize(WindowStateStoreDefinition store) {
         resources.register(store.name(), store);
-        return StoreUtil.<V>materialize(store, getTopicName(store)).materialized();
-    }
-
-    private static String getTopicName(StateStoreDefinition store) {
-        if (store.logging()) return store.name();
-        return null;
+        return StoreUtil.<V>materialize(store).materialized();
     }
 
     public void createUserStateStore(StateStoreDefinition store) {
@@ -194,7 +189,7 @@ public class TopologyBuildContext {
         if (keySerde != null) result = result.withKeySerde(keySerde);
         if (valueSerde != null) result = result.withValueSerde(valueSerde);
         if (tsExtractor != null) {
-            final var tags = defaultContextTags();
+            final var tags = defaultMetricTags();
             result = result.withTimestampExtractor(new UserTimestampExtractor(createUserFunction(tsExtractor), tags.append("topic", name)));
         }
         if (resetPolicy != null) result = result.withOffsetResetPolicy(resetPolicy);
@@ -216,7 +211,7 @@ public class TopologyBuildContext {
                     ? tableDefinition.store()
                     // Set up dummy store for tables, mapping to the topic itself, so we don't require an extra state store topic
                     : new KeyValueStateStoreDefinition(tableDefinition.topic(), false, false, false, Duration.ofSeconds(900), Duration.ofSeconds(60), streamKey.userType(), streamValue.userType(), false, false);
-            final var mat = StoreUtil.materialize(store, tableDefinition.topic());
+            final var mat = StoreUtil.materialize(store);
             final var consumed = consumedOf(name, mat.keySerde(), mat.valueSerde(), def.tsExtractor(), def.resetPolicy());
             return new KTableWrapper(builder.table(tableDefinition.topic(), consumed, mat.materialized()), streamKey, streamValue);
         }
@@ -228,7 +223,7 @@ public class TopologyBuildContext {
                     ? globalTableDefinition.store()
                     // Set up dummy store for globalTables, mapping to the topic itself, so we don't require an extra state store topic
                     : new KeyValueStateStoreDefinition(globalTableDefinition.topic(), false, false, false, Duration.ofSeconds(900), Duration.ofSeconds(60), streamKey.userType(), streamValue.userType(), false, false);
-            final var mat = StoreUtil.materialize(store, globalTableDefinition.topic());
+            final var mat = StoreUtil.materialize(store);
             final var consumed = consumedOf(name, mat.keySerde(), mat.valueSerde(), def.tsExtractor(), def.resetPolicy());
             return new GlobalKTableWrapper(builder.globalTable(globalTableDefinition.topic(), consumed, mat.materialized()), streamKey, streamValue);
         }
@@ -270,8 +265,8 @@ public class TopologyBuildContext {
         streamWrappersByName.put(name, wrapper);
     }
 
-    public ContextTags defaultContextTags() {
-        return new ContextTags().append("namespace", namespace());
+    public MetricTags defaultMetricTags() {
+        return new MetricTags().append("namespace", namespace());
     }
 
     // Create a new function in the Python context, using the definition in the parameter

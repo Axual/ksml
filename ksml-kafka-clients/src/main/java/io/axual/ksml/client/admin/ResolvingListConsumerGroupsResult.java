@@ -27,7 +27,6 @@ import org.apache.kafka.clients.admin.ListConsumerGroupsResult;
 import org.apache.kafka.common.KafkaFuture;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 public class ResolvingListConsumerGroupsResult extends ExtendableListConsumerGroupsResult {
 
@@ -44,7 +43,7 @@ public class ResolvingListConsumerGroupsResult extends ExtendableListConsumerGro
 
     private Collection<ConsumerGroupListing> unresolveConsumerGroupListings(
             Collection<ConsumerGroupListing> consumerGroupListings) {
-        return consumerGroupListings.stream().map(this::unresolveConsumerGroupListings).collect(Collectors.toList());
+        return consumerGroupListings.stream().map(this::unresolveConsumerGroupListings).toList();
     }
 
     private ConsumerGroupListing unresolveConsumerGroupListings(ConsumerGroupListing consumerGroupListing) {

@@ -21,9 +21,9 @@ package io.axual.ksml.runner.producer;
  */
 
 import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.tag.ContextTags;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ProducerDefinition;
+import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonFunction;
 import io.axual.ksml.user.UserPredicate;
@@ -47,7 +47,7 @@ public class ProducerStrategy {
     private long messagesProduced = 0;
     private boolean untilTriggered = false;
 
-    public ProducerStrategy(PythonContext context, String namespace, String name, ContextTags tags, ProducerDefinition definition) {
+    public ProducerStrategy(PythonContext context, String namespace, String name, MetricTags tags, ProducerDefinition definition) {
         // If interval, messageCount and until are not defined, then only produce one message
         once = (definition.interval() == null && definition.messageCount() == null && definition.until() == null);
         if (once) {
@@ -88,7 +88,7 @@ public class ProducerStrategy {
         until = userPredicateFrom(definition.until(), context, namespace, name, tags);
     }
 
-    private UserPredicate userPredicateFrom(FunctionDefinition function, PythonContext context, String namespace, String name, ContextTags tags) {
+    private UserPredicate userPredicateFrom(FunctionDefinition function, PythonContext context, String namespace, String name, MetricTags tags) {
         return function != null
                 ? function.name() != null
                 ? new UserPredicate(PythonFunction.forPredicate(context, namespace, function.name(), function), tags)
@@ -106,11 +106,9 @@ public class ProducerStrategy {
     }
 
     public boolean continueAfterMessage(DataObject key, DataObject value) {
-        if (until != null) {
-            if (until.test(key, value)) {
-                untilTriggered = true;
-                return false;
-            }
+        if (until != null && until.test(key, value)) {
+            untilTriggered = true;
+            return false;
         }
         return true;
     }

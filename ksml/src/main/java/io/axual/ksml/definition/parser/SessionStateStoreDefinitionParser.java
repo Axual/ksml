@@ -20,16 +20,15 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.parser.NamedObjectParser;
 import io.axual.ksml.definition.SessionStateStoreDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.DefinitionParser;
+import io.axual.ksml.parser.NamedObjectParser;
 import io.axual.ksml.parser.StructsParser;
 
 public class SessionStateStoreDefinitionParser extends DefinitionParser<SessionStateStoreDefinition> implements NamedObjectParser {
     private final boolean requireType;
     private String defaultShortName;
-    private String defaultLongName;
 
     public SessionStateStoreDefinitionParser(boolean requireType) {
         this.requireType = requireType;
@@ -39,7 +38,7 @@ public class SessionStateStoreDefinitionParser extends DefinitionParser<SessionS
     protected StructsParser<SessionStateStoreDefinition> parser() {
         return structsParser(
                 SessionStateStoreDefinition.class,
-                requireType ? "" : KSMLDSL.Types.WITH_IMPLICIT_TYPE_POSTFIX,
+                requireType ? "" : KSMLDSL.Types.WITH_IMPLICIT_STORE_TYPE_POSTFIX,
                 "Definition of a session state store",
                 optional(stringField(KSMLDSL.Stores.NAME, false, null, "The name of the session store. If this field is not defined, then the name is derived from the context.")),
                 optional(booleanField(KSMLDSL.Stores.PERSISTENT, "\"true\" if this session store needs to be stored on disk, \"false\" otherwise")),
@@ -58,10 +57,5 @@ public class SessionStateStoreDefinitionParser extends DefinitionParser<SessionS
     @Override
     public void defaultShortName(String name) {
         defaultShortName = name;
-    }
-
-    @Override
-    public void defaultLongName(String name) {
-        defaultLongName = name;
     }
 }

@@ -20,12 +20,12 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.UserTupleType;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.ConvertKeyValueOperation;
 import io.axual.ksml.parser.StructsParser;
+import io.axual.ksml.type.UserTupleType;
 
 public class ConvertKeyValueOperationParser extends OperationParser<ConvertKeyValueOperation> {
     public ConvertKeyValueOperationParser(TopologyResources resources) {

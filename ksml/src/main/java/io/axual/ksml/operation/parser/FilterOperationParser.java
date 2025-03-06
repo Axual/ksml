@@ -21,9 +21,9 @@ package io.axual.ksml.operation.parser;
  */
 
 
-import io.axual.ksml.data.exception.ExecutionException;
 import io.axual.ksml.definition.parser.PredicateDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.FilterOperation;
 import io.axual.ksml.parser.StructsParser;

@@ -20,114 +20,107 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.ExecutionException;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-// Generic internal schema class
+/**
+ * Represents a generic internal schema definition, capable of handling various schema types.
+ * Instances of this class are used to define and interact with supported data schemas.
+ */
 @Getter
 @EqualsAndHashCode
 public class DataSchema {
-    public enum Type {
-        ANY,
+    /**
+     * The type of this schema.
+     */
+    private final String type;
 
-        NULL,
-
-        BOOLEAN,
-
-        BYTE,
-        SHORT,
-        INTEGER,
-        LONG,
-
-        DOUBLE,
-        FLOAT,
-
-        BYTES,
-        FIXED,
-
-        STRING,
-
-        ENUM,
-        LIST,
-        MAP,
-        STRUCT,
-
-        UNION,
-    }
-
-    private final Type type;
-
-    public static DataSchema create(Type type) {
-        return switch (type) {
-            case NULL, BOOLEAN, BYTE, SHORT, INTEGER, LONG, DOUBLE, FLOAT, BYTES, STRING -> new DataSchema(type);
-            default -> throw new ExecutionException("Can not use 'create' to create a schema for dataType " + type);
-        };
-    }
-
-    public static DataSchema nullSchema() {
-        return create(Type.NULL);
-    }
-
-    public static DataSchema booleanSchema() {
-        return create(Type.BOOLEAN);
-    }
-
-    public static DataSchema byteSchema() {
-        return create(Type.BYTE);
-    }
-
-    public static DataSchema shortSchema() {
-        return create(Type.SHORT);
-    }
-
-    public static DataSchema integerSchema() {
-        return create(Type.INTEGER);
-    }
-
-    public static DataSchema longSchema() {
-        return create(Type.LONG);
-    }
-
-    public static DataSchema doubleSchema() {
-        return create(Type.DOUBLE);
-    }
-
-    public static DataSchema floatSchema() {
-        return create(Type.FLOAT);
-    }
-
-    public static DataSchema bytesSchema() {
-        return create(Type.BYTES);
-    }
-
-    public static DataSchema stringSchema() {
-        return create(Type.STRING);
-    }
-
-    protected DataSchema(Type type) {
+    /**
+     * Protected constructor for initializing the schema with a specific type.
+     *
+     * @param type The type of the schema. Cannot be null.
+     */
+    protected DataSchema(String type) {
         this.type = type;
     }
 
-    @Override
-    public String toString() {
-        return type.toString();
-    }
+    /**
+     * The {@link DataSchema} instance representing ANY schema.
+     */
+    public static final DataSchema ANY_SCHEMA = new DataSchema(DataSchemaConstants.ANY_TYPE) {
+        @Override
+        public boolean isAssignableFrom(DataSchema otherSchema) {
+            // This schema is assumed to be assignable from any other schema.
+            return otherSchema != null;
+        }
+    };
+    /**
+     * The {@link DataSchema} instance representing a NULL schema.
+     */
+    public static final DataSchema NULL_SCHEMA = new DataSchema(DataSchemaConstants.NULL_TYPE);
+    /**
+     * The {@link DataSchema} instance representing a BOOLEAN schema.
+     */
+    public static final DataSchema BOOLEAN_SCHEMA = new DataSchema(DataSchemaConstants.BOOLEAN_TYPE);
+    /**
+     * The {@link DataSchema} instance representing a BYTE schema.
+     */
+    public static final DataSchema BYTE_SCHEMA = new DataSchema(DataSchemaConstants.BYTE_TYPE);
+    /**
+     * The {@link DataSchema} instance representing a SHORT schema.
+     */
+    public static final DataSchema SHORT_SCHEMA = new DataSchema(DataSchemaConstants.SHORT_TYPE);
+    /**
+     * The {@link DataSchema} instance representing a INTEGER schema.
+     */
+    public static final DataSchema INTEGER_SCHEMA = new DataSchema(DataSchemaConstants.INTEGER_TYPE);
+    /**
+     * The {@link DataSchema} instance representing a LONG schema.
+     */
+    public static final DataSchema LONG_SCHEMA = new DataSchema(DataSchemaConstants.LONG_TYPE);
+    /**
+     * The {@link DataSchema} instance representing a DOUBLE schema.
+     */
+    public static final DataSchema DOUBLE_SCHEMA = new DataSchema(DataSchemaConstants.DOUBLE_TYPE);
+    /**
+     * The {@link DataSchema} instance representing a FLOAT schema.
+     */
+    public static final DataSchema FLOAT_SCHEMA = new DataSchema(DataSchemaConstants.FLOAT_TYPE);
+    /**
+     * The {@link DataSchema} instance representing a BYTES schema.
+     */
+    public static final DataSchema BYTES_SCHEMA = new DataSchema(DataSchemaConstants.BYTES_TYPE);
+    /**
+     * The {@link DataSchema} instance representing a STRING schema.
+     */
+    public static final DataSchema STRING_SCHEMA = new DataSchema(DataSchemaConstants.STRING_TYPE) {
+        @Override
+        public boolean isAssignableFrom(DataSchema otherSchema) {
+            if (otherSchema == NULL_SCHEMA) return true; // Allow assigning from NULL values
+            if (otherSchema.type.equals(DataSchemaConstants.ENUM_TYPE)) return true; // Allow assigning from ENUM values
+            return super.isAssignableFrom(otherSchema);
+        }
+    };
 
+    /**
+     * Checks if this schema type is assignable from another schema type.
+     * This means the other schema's type can be safely used in place of this schema's type.
+     *
+     * @param otherSchema The other schema to compare.
+     * @return {@code true} if this schema type can be assigned from the other schema, {@code false} otherwise.
+     */
     public boolean isAssignableFrom(DataSchema otherSchema) {
         if (otherSchema == null) return false;
+        return type.equals(otherSchema.type); // Base scenario: compare types and return true if similar
+    }
 
-        // Assignable if non of the union's possible types conflict
-        if (otherSchema instanceof UnionSchema otherUnion) {
-            for (var possibleSchema : otherUnion.possibleSchemas()) {
-                if (!this.isAssignableFrom(possibleSchema)) return false;
-            }
-            return true;
-        }
-
-        if (type == otherSchema.type) return true;
-        if (type == Type.STRING && otherSchema.type == Type.NULL) return true; // Allow assigning from NULL values
-        if (type == Type.STRING && otherSchema.type == Type.ENUM) return true; // ENUMs are convertable to String
-        return type == Type.ENUM && otherSchema.type == Type.STRING; // Strings are convertable to ENUM
+    /**
+     * Returns a string representation of this schema, providing the type name as a string.
+     *
+     * @return A string representing the schema type.
+     */
+    @Override
+    public String toString() {
+        return type;
     }
 }

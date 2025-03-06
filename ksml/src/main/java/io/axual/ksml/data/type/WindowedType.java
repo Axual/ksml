@@ -21,19 +21,15 @@ package io.axual.ksml.data.type;
  */
 
 
+import io.axual.ksml.schema.parser.DataSchemaDSL;
 import org.apache.kafka.streams.kstream.Window;
 
 public class WindowedType extends ComplexType {
     public WindowedType(DataType keyType) {
-        super(Window.class, keyType);
+        super(Window.class, buildName("Windowed", "", keyType), DataSchemaDSL.WINDOWED_TYPE + "(" + buildSpec(keyType) + ")", keyType);
     }
 
     public DataType keyType() {
         return subType(0);
-    }
-
-    @Override
-    public String schemaName() {
-        return "windowed(" + schemaName("", "") + ")";
     }
 }

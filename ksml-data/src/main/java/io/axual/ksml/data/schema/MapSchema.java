@@ -20,20 +20,60 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NonNull;
 
+/**
+ * A schema representation for maps in the KSML framework.
+ * <p>
+ * The {@code MapSchema} class extends {@link DataSchema} and is designed to define
+ * the structure of maps (key-value pairs) within the schema system. Each map is composed of
+ * keys and values, where the key must always be a string, and the {@code valueSchema}
+ * defines the structure of the map's values.
+ * </p>
+ * <p>
+ * This schema is commonly used in scenarios where a key-value collection needs
+ * to be represented with specific constraints on the value types.
+ * </p>
+ */
+@Getter
+@EqualsAndHashCode
 public class MapSchema extends DataSchema {
+    /**
+     * The schema of the values contained in the map.
+     * <p>
+     * All values in the map must adhere to this schema, ensuring type consistency across
+     * the map's contents.
+     * </p>
+     */
     private final DataSchema valueSchema;
 
-    public MapSchema(DataSchema valueSchema) {
-        super(Type.MAP);
+    /**
+     * Constructs a {@code MapSchema} with a given value schema.
+     *
+     * @param valueSchema The {@link DataSchema} that defines the structure of the map's values.
+     *                    It must not be {@code null}.
+     * @throws IllegalArgumentException if the {@code valueSchema} is {@code null}.
+     */
+    public MapSchema(@NonNull DataSchema valueSchema) {
+        super(DataSchemaConstants.MAP_TYPE);
         this.valueSchema = valueSchema;
     }
 
-    public DataSchema valueSchema() {
-        return valueSchema;
-    }
-
+    /**
+     * Determines if this schema can be assigned from another schema.
+     * <p>
+     * This method checks whether the provided {@code otherSchema} is compatible
+     * with this {@code MapSchema}. Compatibility for a {@code MapSchema} means that
+     * the other schema is also a map, and its value schema is compatible with this
+     * schema's {@code valueSchema}.
+     * </p>
+     *
+     * @param otherSchema The other {@link DataSchema} to be checked for compatibility.
+     * @return {@code true} if the other schema is assignable from this schema;
+     * {@code false} otherwise.
+     */
     @Override
     public boolean isAssignableFrom(DataSchema otherSchema) {
         if (!super.isAssignableFrom(otherSchema)) return false;
@@ -41,20 +81,5 @@ public class MapSchema extends DataSchema {
         // This schema is assignable from the other schema when the value schema is assignable from
         // the otherSchema's value schema.
         return valueSchema.isAssignableFrom(otherMapSchema.valueSchema);
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (!super.equals(other)) return false;
-        if (this == other) return true;
-        if (other.getClass() != getClass()) return false;
-
-        // Compare all schema relevant fields, note: explicitly do not compare the doc field
-        return (Objects.equals(valueSchema, ((MapSchema) other).valueSchema()));
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), valueSchema);
     }
 }

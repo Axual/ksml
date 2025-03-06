@@ -26,17 +26,19 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvGenerator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvParser;
-import io.axual.ksml.data.exception.ExecutionException;
+import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.DataObjectMapper;
-import io.axual.ksml.data.mapper.DataTypeSchemaMapper;
+import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.util.ConvertUtil;
 
 import java.io.IOException;
 
@@ -50,9 +52,15 @@ public class CsvDataObjectMapper implements DataObjectMapper<String> {
             .writerFor(String[].class)
             .with(CsvGenerator.Feature.ESCAPE_CONTROL_CHARS_WITH_ESCAPE_CHAR)
             .with(CsvGenerator.Feature.ESCAPE_QUOTE_CHAR_WITH_ESCAPE_CHAR)
-            .with(CsvGenerator.Feature.ALWAYS_QUOTE_STRINGS);
+            .with(CsvGenerator.Feature.ALWAYS_QUOTE_STRINGS)
+            .without(CsvGenerator.Feature.WRITE_LINEFEED_AFTER_LAST_ROW);
     private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
-    private static final DataTypeSchemaMapper SCHEMA_MAPPER = new DataTypeSchemaMapper();
+    private static final DataTypeDataSchemaMapper SCHEMA_TO_TYPE_MAPPER = new DataTypeDataSchemaMapper();
+    private final ConvertUtil convertUtil;
+
+    public CsvDataObjectMapper() {
+        convertUtil = new ConvertUtil(NATIVE_MAPPER, SCHEMA_TO_TYPE_MAPPER);
+    }
 
     @Override
     public DataObject toDataObject(DataType expected, String value) {
@@ -61,75 +69,85 @@ public class CsvDataObjectMapper implements DataObjectMapper<String> {
                 final var line = iterator.nextValue();
                 if (line instanceof String[] values) {
                     if (expected instanceof StructType structType && structType.schema() != null)
-                        return convertToStruct(values, structType.schema());
-                    return convertToList(values);
+                        return convertLineToDataStruct(values, structType.schema());
+                    return convertLineToDataList(values);
                 }
             }
         } catch (IOException e) {
-            throw new ExecutionException("Could not parse CSV", e);
+            throw new DataException("Could not parse CSV", e);
         }
         return new DataList(DataString.DATATYPE);
     }
 
-    private DataStruct convertToStruct(String[] line, StructSchema schema) {
-        // Convert the line with its elements to a Struct with given schema
-        var result = new DataStruct(schema);
+    private DataStruct convertLineToDataStruct(String[] line, StructSchema schema) {
+        // Convert the line to a DataStruct with given schema
+        final var result = new DataStruct(schema);
         for (int index = 0; index < schema.fields().size(); index++) {
-            var field = schema.field(index);
-            var value = index < line.length ? line[index] : (field.defaultValue() != null ? field.defaultValue().value() : null);
-            result.put(field.name(), NATIVE_MAPPER.toDataObject(SCHEMA_MAPPER.fromDataSchema(field.schema()), value));
+            final var field = schema.field(index);
+            final var lineValue = index < line.length ? line[index] : null;
+            final var value = lineValue != null && !lineValue.isEmpty()
+                    ? lineValue
+                    : field.required()
+                    ? ""
+                    : null;
+            if (value != null) result.putIfNotNull(field.name(), convertStringToDataObject(field.schema(), value));
         }
         return result;
     }
 
-    private DataList convertToList(String[] elements) {
-        // Convert the line to a list of Strings
-        var result = new DataList(DataString.DATATYPE);
-        for (String element : elements) {
-            result.add(DataString.from(element));
-        }
+    private DataList convertLineToDataList(String[] line) {
+        // Convert the line to a DataList of DataStrings
+        final var result = new DataList(DataString.DATATYPE);
+        for (final var element : line) result.add(DataString.from(element));
         return result;
+    }
+
+    private DataObject convertStringToDataObject(DataSchema schema, String value) {
+        return convertUtil.convertStringToDataObject(SCHEMA_TO_TYPE_MAPPER.fromDataSchema(schema), value);
     }
 
     @Override
     public String fromDataObject(DataObject value) {
         if (value instanceof DataStruct valueStruct)
-            return convertFromStruct(valueStruct);
+            return convertDataStructToLine(valueStruct);
         if (value instanceof DataList valueList)
-            return convertFromList(valueList);
+            return convertDataListToLine(valueList);
         return null;
     }
 
-    private String convertFromStruct(DataStruct value) {
+    private String convertDataStructToLine(DataStruct value) {
         if (value.type().schema() != null) {
             // Convert from a Struct with a schema --> compose fields by order in the schema
-            var schema = value.type().schema();
-            var line = new String[schema.fields().size()];
-            for (var index = 0; index < schema.fields().size(); index++)
-                line[index] = value.get(schema.field(index).name()).toString();
-            return convertToCsv(line);
+            final var schema = value.type().schema();
+            final var line = new String[schema.fields().size()];
+            for (var index = 0; index < schema.fields().size(); index++) {
+                final var fieldName = schema.field(index).name();
+                final var fieldValue = value.get(fieldName);
+                line[index] = fieldValue != null ? fieldValue.toString() : "";
+            }
+            return convertStringsToLine(line);
         } else {
             // Convert from a Struct without a schema --> compose fields alphabetically
-            var line = new String[value.size()];
+            final var line = new String[value.size()];
             var index = 0;
             for (var entry : value.entrySet())
                 line[index++] = entry.getValue().toString();
-            return convertToCsv(line);
+            return convertStringsToLine(line);
         }
     }
 
-    private String convertFromList(DataList value) {
-        var line = new String[value.size()];
+    private String convertDataListToLine(DataList value) {
+        final var line = new String[value.size()];
         for (var index = 0; index < value.size(); index++)
             line[index] = value.get(index).toString();
-        return convertToCsv(line);
+        return convertStringsToLine(line);
     }
 
-    private String convertToCsv(String[] line) {
+    private String convertStringsToLine(String[] line) {
         try {
             return CSV_WRITER.writeValueAsString(line);
         } catch (JsonProcessingException e) {
-            throw new ExecutionException("Could not write CSV", e);
+            throw new DataException("Could not write CSV", e);
         }
     }
 }

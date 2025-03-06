@@ -25,44 +25,113 @@ import lombok.Getter;
 
 import java.util.Objects;
 
+/**
+ * An abstract base class for schemas with a name and namespace in the KSML framework.
+ * <p>
+ * The {@code NamedSchema} class extends {@link DataSchema} and provides a foundation for schemas
+ * that require identification through a name and an optional namespace. This class also supports
+ * optional documentation for detailed descriptions of the schema.
+ * </p>
+ */
 @Getter
 @EqualsAndHashCode
 public abstract class NamedSchema extends DataSchema {
+    /**
+     * The namespace associated with this schema.
+     * <p>
+     * The namespace is used to group related schemas and avoid naming collisions.
+     * This value is optional and may be null if no namespace is used.
+     * </p>
+     */
     private final String namespace;
+    /**
+     * The name of this schema.
+     * <p>
+     * The name serves as a unique identifier for the schema within its namespace.
+     * It is required and cannot be null or empty.
+     * </p>
+     */
     private final String name;
+    /**
+     * Optional documentation or description for this schema.
+     * <p>
+     * This value may provide additional context or metadata about the schema's purpose.
+     * </p>
+     */
     private final String doc;
 
-    protected NamedSchema(Type type, String namespace, String name, String doc) {
+    /**
+     * Constructs a {@code NamedSchema} with the specified type, namespace, name, and documentation.
+     *
+     * @param type      The type of the schema.
+     * @param namespace The namespace associated with this schema. It may be {@code null} if
+     *                  no namespace is needed.
+     * @param name      The name of this schema. If {@code null} a name will be generated.
+     * @param doc       Optional documentation or description for the schema. May be {@code null}.
+     * @throws IllegalArgumentException if the {@code name} is null or empty.
+     */
+    protected NamedSchema(String type, String namespace, String name, String doc) {
         super(type);
         this.namespace = namespace;
         if (name == null || name.isEmpty()) {
-            name = "Unnamed" + getClass().getSimpleName();
+            name = "Anonymous" + getClass().getSimpleName();
         }
         this.name = name;
         this.doc = doc;
     }
 
-    public String toString() {
+    /**
+     * Checks whether this schema has documentation.
+     *
+     * @return {@code true} if the {@code doc} field is not {@code null} and not empty;
+     * {@code false} otherwise.
+     */
+    public boolean hasDoc() {
+        return doc != null && !doc.isEmpty();
+    }
+
+    /**
+     * Returns the full name of the schema, combining the namespace and name.
+     * <p>
+     * If a namespace is defined, the full name is formatted as {@code namespace.name}.
+     * If no namespace is defined, the name is returned as is.
+     * </p>
+     *
+     * @return A string representing the fully qualified name of the schema.
+     */
+    public String fullName() {
         return (namespace != null && !namespace.isEmpty() ? namespace + "." : "") + name;
     }
 
-    public String namespace() {
-        return namespace;
-    }
-
-    public String name() {
-        return name;
-    }
-
-    public String doc() {
-        return doc;
-    }
-
+    /**
+     * Determines whether this schema can be assigned from another schema.
+     * <p>
+     * This method should be implemented by subclasses to define assignability rules
+     * specific to their schema implementation.
+     * </p>
+     *
+     * @param otherSchema The other {@link DataSchema} to check for assignability.
+     * @return {@code true} if the other schema is assignable to this schema, {@code false} otherwise.
+     */
+    @Override
     public boolean isAssignableFrom(DataSchema otherSchema) {
         if (!super.isAssignableFrom(otherSchema)) return false;
         if (!(otherSchema instanceof NamedSchema otherNamedSchema)) return false;
         // Return true if the other named schema has the same name. We purposefully ignore namespace and doc fields to
         // make XML, JSON etc comparable schema.
         return Objects.equals(name, otherNamedSchema.name);
+    }
+
+    /**
+     * Returns the string representation of the schema.
+     * <p>
+     * By default, this is the schema's fully qualified name.
+     * </p>
+     *
+     * @return A string representation of the schema.
+     */
+    @Override
+    public String toString() {
+        return fullName();
     }
 }

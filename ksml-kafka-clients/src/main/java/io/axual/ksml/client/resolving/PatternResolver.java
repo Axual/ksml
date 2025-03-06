@@ -27,6 +27,7 @@ import org.apache.commons.text.StringSubstitutor;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 @Slf4j
 public class PatternResolver implements Resolver {
     protected static final String FIELD_NAME_PREFIX = "{";
@@ -165,10 +166,6 @@ public class PatternResolver implements Resolver {
         return result.toString();
     }
 
-    private static String characterRegex(String characters) {
-        return characterRegex(characters, false);
-    }
-
     private static String characterRegex(String characters, boolean oneOrMore) {
         return "[" + escape(characters) + "]" + (oneOrMore ? "+" : "");
     }
@@ -185,7 +182,7 @@ public class PatternResolver implements Resolver {
         while (matcher.find()) {
             count++;
             if (matcher.start() != pos) {
-                throw new IllegalArgumentException(String.format("Pattern contains faulty characters at position " + pos + ": %s", pattern));
+                throw new IllegalArgumentException(String.format("Pattern contains faulty characters at position %d: %s", pos, pattern));
             }
             var element = matcher.group();
             pos += element.length();

@@ -24,15 +24,13 @@ import io.axual.ksml.client.util.MapUtil;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.avro.AvroNotation;
-import io.axual.ksml.data.notation.avro.AvroSchemaLoader;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.notation.csv.CsvNotation;
-import io.axual.ksml.data.notation.csv.CsvSchemaLoader;
 import io.axual.ksml.data.notation.json.JsonNotation;
-import io.axual.ksml.data.notation.json.JsonSchemaLoader;
-import io.axual.ksml.data.notation.soap.SOAPNotation;
+import io.axual.ksml.data.notation.protobuf.ProtobufNotation;
+import io.axual.ksml.data.notation.soap.SoapNotation;
 import io.axual.ksml.data.notation.xml.XmlNotation;
-import io.axual.ksml.data.notation.xml.XmlSchemaLoader;
+import io.axual.ksml.type.UserType;
 import lombok.Getter;
 
 import java.util.HashMap;
@@ -41,22 +39,25 @@ import java.util.Map;
 @Getter
 public class NotationFactories {
     public interface NotationFactory {
-        Notation create(Map<String, String> notationConfig);
+        Notation create(String name, Map<String, String> notationConfig);
     }
 
     // Notation constants
     public static final String AVRO = "avro";
     public static final String APICURIO_AVRO = "apicurio_avro";
+    public static final String APICURIO_PROTOBUF = "apicurio_protobuf";
     public static final String CONFLUENT_AVRO = "confluent_avro";
-    public static final String BINARY = "binary";
-    public static final String CSV = "csv";
-    public static final String JSON = "json";
-    public static final String SOAP = "soap";
-    public static final String XML = "xml";
+    public static final String BINARY_NOTATION = "binary";
+    public static final String CSV_NOTATION = "csv";
+    public static final String DEFAULT_NOTATION = UserType.DEFAULT_NOTATION;
+    public static final String JSON_NOTATION = "json";
+    public static final String SOAP_NOTATION = "soap";
+    public static final String XML_NOTATION = "xml";
 
     // Notation variables
     private final NotationFactory apicurioAvro;
     private final NotationFactory confluentAvro;
+    private final NotationFactory apicurioProtobuf;
     private final NotationFactory binary;
     private final NotationFactory csv;
     private final NotationFactory json;
@@ -65,33 +66,38 @@ public class NotationFactories {
 
     private final Map<String, NotationFactory> notations = new HashMap<>();
 
-    public NotationFactories(Map<String, String> kafkaConfig, String schemaDirectory) {
+    public NotationFactories(Map<String, String> kafkaConfig) {
+        final var nativeMapper = new DataObjectFlattener();
+
         // AVRO
-        final var avroLoader = new AvroSchemaLoader(schemaDirectory);
-        final var nativeMapper = new DataObjectFlattener(true);
-        apicurioAvro = (notationConfig) -> new AvroNotation(AvroNotation.SerdeType.APICURIO, nativeMapper, MapUtil.merge(kafkaConfig, notationConfig), avroLoader);
+        apicurioAvro = (name, notationConfig) -> new AvroNotation(name, AvroNotation.SerdeType.APICURIO, nativeMapper, MapUtil.merge(kafkaConfig, notationConfig));
         notations.put(APICURIO_AVRO, apicurioAvro);
-        confluentAvro = (notationConfig) -> new AvroNotation(AvroNotation.SerdeType.CONFLUENT, nativeMapper, MapUtil.merge(kafkaConfig, notationConfig), avroLoader);
+        confluentAvro = (name, notationConfig) -> new AvroNotation(name, AvroNotation.SerdeType.CONFLUENT, nativeMapper, MapUtil.merge(kafkaConfig, notationConfig));
         notations.put(CONFLUENT_AVRO, confluentAvro);
 
         // CSV
-        csv = (config) -> new CsvNotation(nativeMapper, new CsvSchemaLoader(schemaDirectory));
-        notations.put(CSV, csv);
+        csv = (name, config) -> new CsvNotation(name, nativeMapper);
+        notations.put(CSV_NOTATION, csv);
 
         // JSON
-        json = (config) -> new JsonNotation(nativeMapper, new JsonSchemaLoader(schemaDirectory));
-        notations.put(JSON, json);
+        json = (name, config) -> new JsonNotation(name, nativeMapper);
+        notations.put(JSON_NOTATION, json);
+
+        // Protobuf
+        apicurioProtobuf = (name, notationConfig) -> new ProtobufNotation(name, ProtobufNotation.SerdeType.APICURIO, nativeMapper, MapUtil.merge(kafkaConfig, notationConfig));
+        notations.put(APICURIO_PROTOBUF, apicurioProtobuf);
 
         // SOAP
-        soap = (config) -> new SOAPNotation(nativeMapper);
-        notations.put(SOAP, soap);
+        soap = (name, config) -> new SoapNotation(name, nativeMapper);
+        notations.put(SOAP_NOTATION, soap);
 
         // XML
-        xml = (config) -> new XmlNotation(nativeMapper, new XmlSchemaLoader(schemaDirectory));
-        notations.put(XML, xml);
+        xml = (name, config) -> new XmlNotation(name, nativeMapper);
+        notations.put(XML_NOTATION, xml);
 
-        // Binary
-        binary = (config) -> new BinaryNotation(nativeMapper, json.create(null)::serde);
-        notations.put(BINARY, binary);
+        // Binary for simple types, complex types are serialized in JSON format
+        binary = (name, config) -> new BinaryNotation(name, nativeMapper, json.create(name, null)::serde);
+        notations.put(BINARY_NOTATION, binary);
+        notations.put(DEFAULT_NOTATION, binary);
     }
 }

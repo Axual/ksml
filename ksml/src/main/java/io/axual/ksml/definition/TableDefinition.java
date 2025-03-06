@@ -21,8 +21,7 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.data.notation.UserType;
-import io.axual.ksml.parser.UserTypeParser;
+import io.axual.ksml.type.UserType;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.apache.kafka.streams.Topology;
@@ -31,10 +30,6 @@ import org.apache.kafka.streams.Topology;
 @EqualsAndHashCode
 public class TableDefinition extends TopicDefinition {
     private final KeyValueStateStoreDefinition store;
-
-    public TableDefinition(String topic, String keyType, String valueType, FunctionDefinition tsExtractor, Topology.AutoOffsetReset resetPolicy, KeyValueStateStoreDefinition store) {
-        this(topic, UserTypeParser.parse(keyType), UserTypeParser.parse(valueType), tsExtractor, resetPolicy, store);
-    }
 
     public TableDefinition(String topic, UserType keyType, UserType valueType, FunctionDefinition tsExtractor, Topology.AutoOffsetReset resetPolicy, KeyValueStateStoreDefinition store) {
         super(topic, keyType, valueType, tsExtractor, resetPolicy);

@@ -22,11 +22,9 @@ package io.axual.ksml.data.type;
 
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.schema.StructSchema;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
-@EqualsAndHashCode
 public class StructType extends MapType {
     private static final String DEFAULT_NAME = "Struct";
     private final String name;
@@ -56,16 +54,25 @@ public class StructType extends MapType {
     }
 
     @Override
-    public String schemaName() {
+    public String name() {
         return schema != null ? schema.name() : name;
     }
 
     @Override
     public boolean isAssignableFrom(DataType type) {
-        if (type== DataNull.DATATYPE) return true; // Always allow Structs to be NULL (Kafka tombstones)
+        if (type == DataNull.DATATYPE) return true; // Always allow Structs to be NULL (Kafka tombstones)
         if (!super.isAssignableFrom(type)) return false;
         if (!(type instanceof StructType structType)) return false;
         if (schema == null) return true;
         return schema.isAssignableFrom(structType.schema);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) return true;
+        if (other == null || getClass() != other.getClass()) return false;
+        if (!super.equals(other)) return false;
+        StructType that = (StructType) other;
+        return this.isAssignableFrom(that) && that.isAssignableFrom(this);
     }
 }

@@ -21,13 +21,13 @@ package io.axual.ksml.dsl;
  */
 
 import io.axual.ksml.data.notation.Notation;
-import io.axual.ksml.data.notation.NotationLibrary;
-import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.definition.StreamDefinition;
+import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.stream.KStreamWrapper;
+import io.axual.ksml.type.UserType;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.junit.jupiter.api.Test;
@@ -40,6 +40,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class StreamDefinitionTest {
@@ -52,18 +53,20 @@ class StreamDefinitionTest {
 
     @Test
     void testStreamDefinition() {
-        NotationLibrary.register(BinaryNotation.NAME, mockNotation);
+        when(mockNotation.name()).thenReturn(UserType.DEFAULT_NOTATION);
+        ExecutionContext.INSTANCE.notationLibrary().register(mockNotation);
+
+        final var stringType = UserTypeParser.parse("string");
 
         // given a StreamDefinition
-        var streamDefinition = new StreamDefinition("topic", "string", "string", null, null);
-        var resources = new TopologyResources("test");
+        final var streamDefinition = new StreamDefinition("topic", stringType, stringType, null, null);
+        final var resources = new TopologyResources("test");
 
-        var context = new TopologyBuildContext(builder, resources);
+        final var context = new TopologyBuildContext(builder, resources);
         // when it adds itself to Builder
-        var streamWrapper = context.getStreamWrapper(streamDefinition);
+        final var streamWrapper = context.getStreamWrapper(streamDefinition);
 
         // it adds a ktable to the builder with key and value dataType, and returns a KTableWrapper instance
-        final var stringType = UserTypeParser.parse("string");
         verify(mockNotation).serde(stringType.dataType(), true);
         verify(mockNotation).serde(stringType.dataType(), false);
 

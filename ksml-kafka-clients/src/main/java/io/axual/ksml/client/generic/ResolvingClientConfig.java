@@ -85,9 +85,9 @@ public class ResolvingClientConfig {
         }
 
         // Check if the value is a string
-        if (value instanceof String) {
+        if (value instanceof String stringValue) {
             // Assume the value represents the object's class name, so return new instance
-            T result = FactoryUtil.create((String) value, expectedClass);
+            T result = FactoryUtil.create(stringValue, expectedClass);
             if (result instanceof Configurable configurableResult) {
                 configurableResult.configure(downstreamConfigs);
             }

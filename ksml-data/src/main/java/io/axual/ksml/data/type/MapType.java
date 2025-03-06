@@ -22,12 +22,17 @@ package io.axual.ksml.data.type;
 
 
 import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.schema.DataSchemaConstants;
 
 import java.util.Map;
 
 public class MapType extends ComplexType {
     public MapType(DataType valueType) {
-        super(Map.class, DataString.DATATYPE, valueType);
+        super(Map.class,
+                buildName("Map", valueType),
+                DataSchemaConstants.MAP_TYPE + "(" + buildSpec(valueType) + ")",
+                DataString.DATATYPE,
+                valueType);
     }
 
     public DataType keyType() {
@@ -36,10 +41,5 @@ public class MapType extends ComplexType {
 
     public DataType valueType() {
         return subType(1);
-    }
-
-    @Override
-    public String schemaName() {
-        return schemaName("Map", "To");
     }
 }

@@ -20,8 +20,8 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.UserTupleType;
 import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.type.UserTupleType;
 
 import static io.axual.ksml.definition.DefinitionConstants.NO_PARAMETERS;
 
