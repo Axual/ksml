@@ -37,7 +37,7 @@ functions:
     resultType: (string, json)                    # Indicate the type of key and value
 
 producers:
-  # Produce 1000 messages in batches of 100 messages with a 1ms interval
+  # Produce 1000 AVRO SensorData messages in batches of 100 messages with a 1ms interval
   sensordata_avro_producer:
     generator: generate_sensordata_message
     interval: 1

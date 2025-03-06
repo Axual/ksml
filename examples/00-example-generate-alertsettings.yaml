@@ -73,6 +73,7 @@ functions:
     resultType: (string,json)
 
 producers:
+  # Produce an AVRO SensorAlertSettings message every 5 seconds
   sensordata_alertsetting_producer:
     generator: generate_sensor_alertsetting_message
     interval: 5s

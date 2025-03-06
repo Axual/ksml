@@ -21,12 +21,11 @@ functions:
     resultType: (string, bytes)                   # Indicate the type of key and value
 
 producers:
-  # This example uses the otherAvro notation, using the Apicurio Registry API and serializers.
-  # See the ksml-data-generator.yaml for the notation definition
-  sensordata_avro_producer_binary:
+  # Produce a random binary message (with first byte of zero) every 3 seconds
+  sensordata_producer_binary:
     generator: generate_sensordata_message
     interval: 3s
     to:
-      topic: ksml_sensordata_avro_binary
+      topic: ksml_sensordata_binary
       keyType: string
       valueType: bytes

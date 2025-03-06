@@ -25,17 +25,20 @@ on the use case.
 
 The submodules are as follows:
 
-| Module                                                    | Description                                                                                                        |
-|-----------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
-| [`ksml-data`](ksml-data/)                                 | contains core data type logic, including BINARY and JSON types, used in Kafka Streams topologies and by Producers. |
-| [`ksml-data-avro`](ksml-data-avro/)                       | extension to the data library for AVRO support.                                                                    |
-| [`ksml-data-csv`](ksml-data-csv/)                         | extension to the data library for CSV support.                                                                     |
-| [`ksml-data-soap`](ksml-data-soap/)                       | extension to the data library for SOAP support.                                                                    |
-| [`ksml-data-xml`](ksml-data-xml/)                         | extension to the data library for XML support.                                                                     |
-| [`ksml`](ksml/)                                           | the core component that parses KSML definitions and converts them to a Kafka Streams topology.                     |
-| [`ksml-kafka-clients`](ksml-kafka-clients/)               | the set of Kafka clients for KSML, injected into Kafka Streams, allowing for namespaced Kafka installations.       |
-| [`ksml-query`](ksml-query/)                               | allows an active KSML application to be queries via REST for its internal state stores.                            |
-| [`ksml-runner`](ksml-runner/)                             | standalone Java application for running KSML definitions.                                                          |
+| Module                                      | Description                                                                                                  |
+|---------------------------------------------|--------------------------------------------------------------------------------------------------------------|
+| [`ksml-data`](ksml-data/)                   | contains core data type and schema logic.                                                                    |
+| [`ksml-data-avro`](ksml-data-avro/)         | extension to the data library for AVRO support.                                                              |
+| [`ksml-data-binary`](ksml-data-avro/)       | extension to the data library for BINARY support.                                                            |
+| [`ksml-data-csv`](ksml-data-csv/)           | extension to the data library for CSV support.                                                               |
+| [`ksml-data-json`](ksml-data-avro/)         | extension to the data library for JSON support.                                                              |
+| [`ksml-data-protobuf`](ksml-data-protobuf/) | extension to the data library for PROTOBUF support.                                                          |
+| [`ksml-data-soap`](ksml-data-soap/)         | extension to the data library for SOAP support.                                                              |
+| [`ksml-data-xml`](ksml-data-xml/)           | extension to the data library for XML support.                                                               |
+| [`ksml`](ksml/)                             | the core component that parses KSML definitions and converts them to a Kafka Streams topology.               |
+| [`ksml-kafka-clients`](ksml-kafka-clients/) | the set of Kafka clients for KSML, injected into Kafka Streams, allowing for namespaced Kafka installations. |
+| [`ksml-query`](ksml-query/)                 | allows an active KSML application to be queries via REST for its internal state stores.                      |
+| [`ksml-runner`](ksml-runner/)               | standalone Java application for running KSML definitions.                                                    |
 
 ## Building KSML
 
