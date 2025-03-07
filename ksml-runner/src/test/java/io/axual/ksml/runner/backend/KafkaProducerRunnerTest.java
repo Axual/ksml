@@ -22,16 +22,7 @@ package io.axual.ksml.runner.backend;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.notation.binary.BinaryNotation;
-import io.axual.ksml.data.notation.json.JsonNotation;
-import io.axual.ksml.definition.parser.TopologyDefinitionParser;
-import io.axual.ksml.execution.ExecutionContext;
-import io.axual.ksml.generator.TopologyDefinition;
-import io.axual.ksml.generator.YAMLObjectMapper;
-import io.axual.ksml.parser.ParseNode;
-import io.axual.ksml.type.UserType;
-import lombok.extern.slf4j.Slf4j;
+
 import org.apache.kafka.clients.producer.MockProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
@@ -50,11 +41,24 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.notation.binary.BinaryNotation;
+import io.axual.ksml.data.notation.json.JsonNotation;
+import io.axual.ksml.definition.parser.TopologyDefinitionParser;
+import io.axual.ksml.execution.ExecutionContext;
+import io.axual.ksml.generator.TopologyDefinition;
+import io.axual.ksml.generator.YAMLObjectMapper;
+import io.axual.ksml.metric.Metrics;
+import io.axual.ksml.parser.ParseNode;
+import io.axual.ksml.type.UserType;
+import lombok.extern.slf4j.Slf4j;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
 @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
 class KafkaProducerRunnerTest {
+    public static final int MAXIMUM_WAIT_TIME = 90; // Number of seconds to wait for the producer to finish
 
     MockProducer<byte[], byte[]> mockProducer;
 
@@ -62,6 +66,9 @@ class KafkaProducerRunnerTest {
 
     @BeforeEach
     void cleanProducer() {
+        // Clean all metrics
+        Metrics.registry().removeAll();
+        // Create a new mockProducer for testing
         mockProducer = new MockProducer<>(true, new ByteArraySerializer(), new ByteArraySerializer());
     }
 
@@ -73,14 +80,16 @@ class KafkaProducerRunnerTest {
         var testConfig = new KafkaProducerRunner.Config(topologyDefinitionMap, new HashMap<>());
         producerRunner = runnerUnderTest(testConfig);
 
-        new Thread(producerRunner).start();
+        final var thread = new Thread(producerRunner);
+        thread.start();
         // when the runner starts in a separate thread and runs for some time
         Awaitility.await("Wait for the producer to finish")
-                .atMost(Duration.ofSeconds(60))
-                .until(()-> !mockProducer.history().isEmpty());
+                .atMost(Duration.ofSeconds(MAXIMUM_WAIT_TIME))
+                .until(() -> !thread.isAlive() || !mockProducer.history().isEmpty());
 
         // then when the runner has executed, only one record is produced.
         producerRunner.stop();
+
         log.info("history size={}", mockProducer.history().size());
         assertEquals(1, mockProducer.history().size(), "only 1 record should be produced");
     }
@@ -94,10 +103,12 @@ class KafkaProducerRunnerTest {
         producerRunner = runnerUnderTest(testConfig);
 
         // when the runner starts in a separate thread and runs for some time
-        new Thread(producerRunner).start();
+        final var thread = new Thread(producerRunner);
+        thread.start();
+        // when the runner starts in a separate thread and runs for some time
         Awaitility.await("Wait for the producer to finish")
-                .atMost(Duration.ofSeconds(60))
-                .until(()->mockProducer.history().size() >= 3);
+                .atMost(Duration.ofSeconds(MAXIMUM_WAIT_TIME))
+                .until(() -> !thread.isAlive() || mockProducer.history().size() >= 3);
 
         // then when the runner has executed, only one record is produced.
         producerRunner.stop();
@@ -114,10 +125,12 @@ class KafkaProducerRunnerTest {
         producerRunner = runnerUnderTest(testConfig);
 
         // when the runner starts in a separate thread and runs for some time
-        new Thread(producerRunner).start();
+        final var thread = new Thread(producerRunner);
+        thread.start();
+        // when the runner starts in a separate thread and runs for some time
         Awaitility.await("Wait for the producer to finish")
-                .atMost(Duration.ofSeconds(60))
-                .until(()->mockProducer.history().size() >= 2);
+                .atMost(Duration.ofSeconds(MAXIMUM_WAIT_TIME))
+                .until(() -> !thread.isAlive() || mockProducer.history().size() >= 2);
 
         // then when the runner has executed, only 'one' and 'two' were produced.
         producerRunner.stop();
