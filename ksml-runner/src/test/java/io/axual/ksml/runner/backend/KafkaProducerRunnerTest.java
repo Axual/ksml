@@ -85,11 +85,12 @@ class KafkaProducerRunnerTest {
         // when the runner starts in a separate thread and runs for some time
         Awaitility.await("Wait for the producer to finish")
                 .atMost(Duration.ofSeconds(MAXIMUM_WAIT_TIME))
-                .until(() -> !thread.isAlive() || !mockProducer.history().isEmpty());
+                .until(() -> !thread.isAlive());
 
-        // then when the runner has executed, only one record is produced.
+        // Stop producer runner explicitly
         producerRunner.stop();
 
+        // then when the runner has executed, only one record is produced.
         log.info("history size={}", mockProducer.history().size());
         assertEquals(1, mockProducer.history().size(), "only 1 record should be produced");
     }
@@ -108,10 +109,12 @@ class KafkaProducerRunnerTest {
         // when the runner starts in a separate thread and runs for some time
         Awaitility.await("Wait for the producer to finish")
                 .atMost(Duration.ofSeconds(MAXIMUM_WAIT_TIME))
-                .until(() -> !thread.isAlive() || mockProducer.history().size() >= 3);
+                .until(() -> !thread.isAlive());
 
-        // then when the runner has executed, only one record is produced.
+        // Stop producer runner explicitly
         producerRunner.stop();
+
+        // then when the runner has executed, only three record is produced.
         log.info("history size={}", mockProducer.history().size());
         assertEquals(3, mockProducer.history().size(), "should produce 3 records");
     }
@@ -130,10 +133,12 @@ class KafkaProducerRunnerTest {
         // when the runner starts in a separate thread and runs for some time
         Awaitility.await("Wait for the producer to finish")
                 .atMost(Duration.ofSeconds(MAXIMUM_WAIT_TIME))
-                .until(() -> !thread.isAlive() || mockProducer.history().size() >= 2);
+                .until(() -> !thread.isAlive());
+
+        // Stop producer runner explicitly
+        producerRunner.stop();
 
         // then when the runner has executed, only 'one' and 'two' were produced.
-        producerRunner.stop();
         log.info("history size={}", mockProducer.history().size());
         assertEquals(2, mockProducer.history().size(), "should stop after producing second record");
     }

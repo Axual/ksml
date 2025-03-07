@@ -54,9 +54,10 @@ RUN set -eux \
     && mkdir -p /opt/graal \
     && curl --fail --silent --location --retry 3 ${GRAALVM_PKG} | gunzip | tar x -C /opt/graal --strip-components=1
 
-# Step 3: Build the KSML Project, cache the M2 repository location
-FROM graal-builder AS builder
+# Step 3: Build the KSML Project only using the native platform of the build engine, for speed, cache the M2 repository location
+FROM --platform=$BUILDPLATFORM graal-builder AS builder
 ARG TARGETARCH
+ARG BUILDPLATFORM
 ADD . /project_dir
 WORKDIR /project_dir
 RUN \
