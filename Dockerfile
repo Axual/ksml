@@ -85,4 +85,4 @@ COPY --chown=ksml:0 --from=builder /project_dir/LICENSE.txt /licenses/LICENSE.tx
 COPY --chown=ksml:0 --from=builder /project_dir/ksml-runner/target/libs/ /opt/ksml/libs/
 COPY --chown=ksml:0 --from=builder /project_dir/ksml-runner/target/ksml-runner*.jar /opt/ksml/ksml.jar
 
-ENTRYPOINT ["java", "-jar", "/opt/ksml/ksml.jar"]
+ENTRYPOINT ["java", "-Djava.security.manager=allow", "-jar", "/opt/ksml/ksml.jar"]
