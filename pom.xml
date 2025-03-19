@@ -67,10 +67,10 @@
         <apache.avro.version>1.12.0</apache.avro.version>
         <apache.commons.text.version>1.13.0</apache.commons.text.version>
         <apache.commons.compress.version>1.27.1</apache.commons.compress.version>
-        <apache.kafka.version>3.9.0</apache.kafka.version>
+        <apache.kafka.version>7.9.0-ce</apache.kafka.version>
         <apicurio.version>2.6.8.Final</apicurio.version>
         <confluent.version>7.9.0</confluent.version>
-        <graalvm.version>24.1.2</graalvm.version>
+        <graalvm.version>24.2.0</graalvm.version>
         <graalvm.polyglot.version>23.1.2</graalvm.polyglot.version>
         <graalvm.python.version>23.1.2</graalvm.python.version>
         <guava.version>33.4.0-jre</guava.version>
@@ -78,18 +78,18 @@
         <jakarta.soap.version>3.0.2</jakarta.soap.version>
         <janino.version>3.1.12</janino.version>
         <jersey.version>3.1.10</jersey.version>
-        <logback.version>1.5.17</logback.version>
+        <logback.version>1.5.18</logback.version>
         <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
         <lombok.version>1.18.36</lombok.version>
-        <protobuf.version>3.25.6</protobuf.version>
+        <protobuf.version>4.30.1</protobuf.version>
         <saaj.version>3.0.4</saaj.version>
         <slf4j.version>2.1.0-alpha1</slf4j.version>
 
         <!-- test dependency versions -->
-        <junit.version>5.12.0</junit.version>
+        <junit.version>5.12.1</junit.version>
         <hamcrest.version>3.0</hamcrest.version>
-        <mockito-core.version>5.16.0</mockito-core.version>
-        <mockito-junit-jupiter.version>5.16.0</mockito-junit-jupiter.version>
+        <mockito-core.version>5.16.1</mockito-core.version>
+        <mockito-junit-jupiter.version>5.16.1</mockito-junit-jupiter.version>
         <junit-pioneer.version>2.3.0</junit-pioneer.version>
         <awaitility.version>4.3.0</awaitility.version>
 
