@@ -25,6 +25,11 @@ ksmlRunnerConfig:
   definitionDirectory: '/ksml'
   # -- Directory containing the Schema files. This should only be changed if an external volume mount is used.
   schemaDirectory: '/ksml'
+  # -- Directory containing the stateful data . This should only be changed if an external volume mount is used.
+  storageDirectory: '/ksml-store/data'
+  # -- Create the storageDirectory if it does not exist
+  createStorageDirectory: true
+
 
   # -- KSML Error handling settings. Error Handling can be defined for consume, produce and processing errors.
   errorHandling:
@@ -67,7 +72,7 @@ ksmlRunnerConfig:
   # -- Map of the namespace and the KSML definition file executed in that namespace.
   definitions: {}
   # -- Map of Kafka connection properties and application id
-  kafka:
+  kafka: {}
   # kafka:
   #   application.id: my-streaming-app
   #   bootstrap.servers: "localhost:9092"
@@ -217,6 +222,9 @@ volumeMounts: []
 #   mountPath: "/etc/foo"
 #   readOnly: true
 
+# Additional volumeClaimTemplates for the app
+volumeClaimTemplates: []
+
 # -- Selector which must match a node's labels for the pod to be scheduled on that node.
 nodeSelector: {}
 
@@ -260,13 +268,14 @@ logging:
     org.apache.kafka.streams.StreamsConfig: WARN
     io.confluent: WARN
 
-# -- Configure the storage specification for the volumeClaimTemplates
+# -- Configure the storage specification for the KSML State Store volumeClaimTemplate
 store:
-  spec:
-    accessModes: [ "ReadWriteOnce" ]
-    resources:
-      requests:
-        storage: 1Gi
+  # -- Specifications of the volymeClaimTemplate
+  spec: {}
+#    accessModes: [ "ReadWriteOnce" ]
+#    resources:
+#      requests:
+#        storage: 1Gi
 
 # -- KSML prometheus server port defined in the statefulset. Note that this must match the port defined in ksmlRunnerConfig.
 prometheus:
