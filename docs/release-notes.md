@@ -5,6 +5,7 @@
 * [Release Notes](#release-notes)
     * [Releases](#releases)
         * [1.0.5 (2025-01-14)](#105-2025-01-14)
+        * [1.0.5 (2025-01-14)](#105-2025-01-14)
         * [1.0.4 (2024-11-11)](#104-2024-11-22)
         * [1.0.3 (2024-10-18)](#103-2024-10-18)
         * [1.0.2 (2024-09-20)](#102-2024-09-20)
@@ -21,6 +22,15 @@
         * [0.0.3 (2021-07-30)](#003-2021-07-30)
         * [0.0.2 (2021-06-28)](#002-2021-06-28)
         * [0.0.1 (2021-04-30)](#001-2021-04-30)
+
+### 1.0.6 (2025-02-24)
+* KSML
+  * Add create storage directory configuration option
+* Helm charts
+  * No more default Persistent Volume usage creation for storage directory
+    * Default a 10 MiB empty directory is used as storage mount for ksml-store
+  * Allow storage directory and automatic directory creation to be configured
+  * Allow defining extra volumeClaimTemplates
 
 ### 1.0.5 (2025-01-14)
 * KSML
