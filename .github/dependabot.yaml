@@ -14,6 +14,11 @@ updates:
         dependency-type: "development"
       prod-deps:
         dependency-type: "production"      
+    ignore:
+    - dependency-name: "com.google.protobuf:protobuf-java"
+      versions: [ ">=4.0.0" ]
+    - dependency-name: "org.apache.kafka:*"
+      versions: [ ">=4.0.0" ]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

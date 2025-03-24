@@ -67,9 +67,10 @@
         <apache.avro.version>1.12.0</apache.avro.version>
         <apache.commons.text.version>1.13.0</apache.commons.text.version>
         <apache.commons.compress.version>1.27.1</apache.commons.compress.version>
-        <apache.kafka.version>7.9.0-ce</apache.kafka.version>
+        <apache.kafka.version>3.9.0</apache.kafka.version>
         <apicurio.version>2.6.8.Final</apicurio.version>
         <confluent.version>7.9.0</confluent.version>
+        <findbugs.jsr305.version>3.0.2</findbugs.jsr305.version>
         <graalvm.version>24.2.0</graalvm.version>
         <graalvm.polyglot.version>23.1.2</graalvm.polyglot.version>
         <graalvm.python.version>23.1.2</graalvm.python.version>
@@ -81,7 +82,7 @@
         <logback.version>1.5.18</logback.version>
         <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
         <lombok.version>1.18.36</lombok.version>
-        <protobuf.version>4.30.1</protobuf.version>
+        <protobuf.version>3.25.6</protobuf.version>
         <saaj.version>3.0.4</saaj.version>
         <slf4j.version>2.1.0-alpha1</slf4j.version>
 
@@ -379,6 +380,11 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>jsr305</artifactId>
+                <version>${findbugs.jsr305.version}</version>
             </dependency>
 
             <dependency>
