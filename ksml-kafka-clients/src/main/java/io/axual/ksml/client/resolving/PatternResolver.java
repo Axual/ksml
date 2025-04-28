@@ -20,15 +20,21 @@ package io.axual.ksml.client.resolving;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.commons.text.StringSubstitutor;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.text.StringSubstitutor;
-
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Slf4j
 public class PatternResolver implements Resolver {
@@ -100,6 +106,20 @@ public class PatternResolver implements Resolver {
         this.resolvePattern = parseResult.resolvePattern;
         this.unresolvePattern = parseResult.unresolvePattern;
         this.fields = Collections.unmodifiableList(parseResult.fields);
+
+        // Validate that the defaultFieldName is used in the pattern
+        if (!this.fields.contains(defaultFieldName)) {
+            throw new IllegalArgumentException("defaultFieldName must be used in the pattern: " + defaultFieldName);
+        }
+        final var validFieldNames = new HashSet<>(defaultFieldValues.keySet());
+        // Add defaultFieldName to the list of valid names
+        validFieldNames.add(defaultFieldName);
+
+        for (String fieldName : parseResult.fields) {
+            if (!validFieldNames.contains(fieldName)) {
+                throw new IllegalArgumentException("Unknown fieldName '" + fieldName + "' used in pattern: " + pattern);
+            }
+        }
 
         this.defaultFieldName = defaultFieldName;
         this.defaultFieldValues = Collections.unmodifiableMap(new HashMap<>(defaultFieldValues));
@@ -176,7 +196,26 @@ public class PatternResolver implements Resolver {
         return "[" + escape(characters) + "]" + (oneOrMore ? "+" : "");
     }
 
-    private static PatternParseResult parsePattern(final String pattern, final String defaultField) {
+    private static PatternParseResult parsePattern(final String pattern, final String defaultFieldName) {
+        if (pattern == null || pattern.trim().isEmpty()) {
+            throw new IllegalArgumentException(String.format("Invalid pattern: %s", pattern));
+        }
+
+        // Check for unbalanced braces
+        int openBraces = 0;
+        for (char c : pattern.toCharArray()) {
+            if (c == '{') openBraces++;
+            else if (c == '}') openBraces--;
+
+            if (openBraces < 0) {
+                throw new IllegalArgumentException(String.format("Invalid pattern: %s", pattern));
+            }
+        }
+
+        if (openBraces != 0) {
+            throw new IllegalArgumentException(String.format("Invalid pattern: %s", pattern));
+        }
+
         var matcher = FIELD_NAME_OR_LITERAL_PATTERN.matcher(pattern);
 
         var fields = new ArrayList<String>();
@@ -199,7 +238,7 @@ public class PatternResolver implements Resolver {
                 }
                 var field = element.substring(1, element.length() - 1);
                 fields.add(field);
-                pat.append("(").append(field.equals(defaultField) ? DEFAULT_FIELD_VALUE_REGEX : FIELD_VALUE_REGEX).append(")");
+                pat.append("(").append(field.equals(defaultFieldName) ? DEFAULT_FIELD_VALUE_REGEX : FIELD_VALUE_REGEX).append(")");
                 lastElementWasPlaceholder = true;
             } else {
                 // Treat the element as a string literal

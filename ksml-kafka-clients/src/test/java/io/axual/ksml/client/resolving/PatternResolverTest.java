@@ -20,7 +20,6 @@ package io.axual.ksml.client.resolving;
  * =========================LICENSE_END==================================
  */
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -103,12 +102,11 @@ class PatternResolverTest {
                 .isEqualTo(testSet.testFieldValue());
     }
 
-    @Disabled("The second field patterns aren't verified properly, disabled while completing story")
     @ParameterizedTest
     @DisplayName("Invalid patterns throws exceptions")
     @NullSource
     @EmptySource
-    @ValueSource(strings = {"   ", "{a", "a}", "a", "{a}-{b", "{a}-b}"})
+    @ValueSource(strings = {"   ", "{c", "c}", "c", "{c}-{b", "{c}-b}", "{c}-{b}-{a", "{c}-{b}-a}", "{c}-{d}"})
     void invalidPattern(String pattern) {
         assertThatCode(() -> new PatternResolver(pattern, TEST_FIELD_C, UNRESOLVED_CONTEXT))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -116,16 +114,15 @@ class PatternResolverTest {
         ;
     }
 
-    @Disabled("A field name not used in the pattern is still accepted, disabled while completing story")
     @ParameterizedTest
     @DisplayName("Invalid defaultField throws exceptions")
     @NullSource
     @EmptySource
-    @ValueSource(strings = {"   ", "{a", "a}", "a"})
+    @ValueSource(strings = {"   ", "{a", "a}", "d"})
     void invalidDefaultField(String defaultFieldName) {
         assertThatCode(() -> new PatternResolver(TEST_PATTERN_1, defaultFieldName, UNRESOLVED_CONTEXT))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("defaultField")
+                .hasMessageContaining("defaultFieldName")
         ;
     }
 }
