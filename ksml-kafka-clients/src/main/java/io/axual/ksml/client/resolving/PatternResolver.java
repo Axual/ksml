@@ -20,7 +20,9 @@ package io.axual.ksml.client.resolving;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.StringSubstitutor;
 
@@ -50,6 +52,9 @@ public class PatternResolver implements Resolver {
     private final List<String> fields;
     private final String resolvePattern;
     private final Pattern unresolvePattern;
+
+    @Getter(value = AccessLevel.PACKAGE)
+    private final String pattern;
 
     @Builder
     private record PatternParseResult(String resolvePattern, Pattern unresolvePattern, List<String> fields) {
@@ -83,12 +88,13 @@ public class PatternResolver implements Resolver {
         }
 
         if (defaultFieldName == null || defaultFieldName.trim().isEmpty()) {
-            throw new IllegalArgumentException("defaultField cannot be null, an empty string or only containing whitespace characters");
+            throw new IllegalArgumentException("defaultFieldName cannot be null, an empty string or only containing whitespace characters");
         }
 
         if (defaultFieldName.contains(FIELD_NAME_PREFIX) || defaultFieldName.contains(FIELD_NAME_SUFFIX)) {
-            throw new IllegalArgumentException("defaultField cannot contain opening or closing braces");
+            throw new IllegalArgumentException("defaultFieldName cannot contain opening or closing braces");
         }
+        this.pattern = pattern;
 
         PatternParseResult parseResult = parsePattern(pattern, defaultFieldName);
         this.resolvePattern = parseResult.resolvePattern;

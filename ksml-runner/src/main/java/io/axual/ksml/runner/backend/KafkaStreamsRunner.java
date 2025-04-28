@@ -21,18 +21,6 @@ package io.axual.ksml.runner.backend;
  */
 
 
-import io.axual.ksml.TopologyGenerator;
-import io.axual.ksml.client.generic.ResolvingClientConfig;
-import io.axual.ksml.client.producer.ResolvingProducerConfig;
-import io.axual.ksml.execution.ExecutionContext;
-import io.axual.ksml.execution.ExecutionErrorHandler;
-import io.axual.ksml.generator.TopologyDefinition;
-import io.axual.ksml.runner.config.ApplicationServerConfig;
-import io.axual.ksml.runner.exception.RunnerException;
-import io.axual.ksml.runner.streams.KSMLClientSupplier;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.utils.Utils;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -43,6 +31,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import io.axual.ksml.TopologyGenerator;
+import io.axual.ksml.client.resolving.ResolvingClientConfig;
+import io.axual.ksml.execution.ExecutionContext;
+import io.axual.ksml.execution.ExecutionErrorHandler;
+import io.axual.ksml.generator.TopologyDefinition;
+import io.axual.ksml.runner.config.ApplicationServerConfig;
+import io.axual.ksml.runner.exception.RunnerException;
+import io.axual.ksml.runner.streams.KSMLClientSupplier;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class KafkaStreamsRunner implements Runner {
@@ -90,10 +90,14 @@ public class KafkaStreamsRunner implements Runner {
         // Explicit configs can overwrite those from the map
         result.put(StreamsConfig.DEFAULT_PRODUCTION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class);
         result.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class);
-        if (result.containsKey(ResolvingClientConfig.GROUP_ID_PATTERN_CONFIG)
-                || result.containsKey(ResolvingClientConfig.TOPIC_PATTERN_CONFIG)
-                || result.containsKey(ResolvingProducerConfig.TRANSACTIONAL_ID_PATTERN_CONFIG)) {
-            log.info("Using resolving clients for Kafka");
+
+        // Check if resolving is required
+        if(ResolvingClientConfig.configRequiresResolving(result)){
+            log.info("Using resolving clients for pipeline processing");
+            // Replace the deprecated configuration keys with the current ones
+            ResolvingClientConfig.replaceDeprecatedConfigKeys(result);
+
+            // Use the KSMLClientSupplier to provide resolving
             result.put(StreamsConfig.DEFAULT_CLIENT_SUPPLIER_CONFIG, KSMLClientSupplier.class.getCanonicalName());
         }
 

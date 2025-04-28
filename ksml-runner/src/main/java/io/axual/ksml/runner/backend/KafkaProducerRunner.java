@@ -20,14 +20,6 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.client.producer.ResolvingProducer;
-import io.axual.ksml.generator.TopologyDefinition;
-import io.axual.ksml.python.PythonContext;
-import io.axual.ksml.python.PythonFunction;
-import io.axual.ksml.runner.exception.RunnerException;
-import io.axual.ksml.runner.producer.ExecutableProducer;
-import io.axual.ksml.runner.producer.IntervalSchedule;
-import lombok.Builder;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.slf4j.Logger;
@@ -36,6 +28,16 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import io.axual.ksml.client.producer.ResolvingProducer;
+import io.axual.ksml.client.resolving.ResolvingClientConfig;
+import io.axual.ksml.generator.TopologyDefinition;
+import io.axual.ksml.python.PythonContext;
+import io.axual.ksml.python.PythonFunction;
+import io.axual.ksml.runner.exception.RunnerException;
+import io.axual.ksml.runner.producer.ExecutableProducer;
+import io.axual.ksml.runner.producer.IntervalSchedule;
+import lombok.Builder;
 
 import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
@@ -51,6 +53,16 @@ public class KafkaProducerRunner implements Runner {
 
     @Builder
     public record Config(Map<String, TopologyDefinition> definitions, Map<String, String> kafkaConfig) {
+        public Config(final Map<String, TopologyDefinition> definitions, final Map<String, String> kafkaConfig) {
+            this.definitions = definitions;
+            // Check if a resolving client is required
+            if (ResolvingClientConfig.configRequiresResolving(kafkaConfig)) {
+                log.info("Using resolving clients for producer processing");
+                // Replace the deprecated configuration keys with the current ones
+                ResolvingClientConfig.replaceDeprecatedConfigKeys(kafkaConfig);
+            }
+            this.kafkaConfig = kafkaConfig;
+        }
     }
 
     public KafkaProducerRunner(Config config) {

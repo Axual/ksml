@@ -89,6 +89,7 @@
         <!-- test dependency versions -->
         <junit.version>5.12.1</junit.version>
         <hamcrest.version>3.0</hamcrest.version>
+        <assertj.version>3.27.3</assertj.version>
         <mockito-core.version>5.16.1</mockito-core.version>
         <mockito-junit-jupiter.version>5.16.1</mockito-junit-jupiter.version>
         <junit-pioneer.version>2.3.0</junit-pioneer.version>
@@ -419,6 +420,13 @@
                 <artifactId>hamcrest-library</artifactId>
                 <version>${hamcrest.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-bom</artifactId>
+                <version>${assertj.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
             <dependency>

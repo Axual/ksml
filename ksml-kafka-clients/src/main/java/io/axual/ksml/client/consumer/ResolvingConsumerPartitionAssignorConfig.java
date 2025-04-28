@@ -20,7 +20,7 @@ package io.axual.ksml.client.consumer;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.client.generic.ResolvingClientConfig;
+import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.client.resolving.TopicResolver;
 import lombok.Getter;
 import org.apache.kafka.clients.consumer.ConsumerPartitionAssignor;
