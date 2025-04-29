@@ -20,14 +20,6 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.client.producer.ResolvingProducer;
-import io.axual.ksml.generator.TopologyDefinition;
-import io.axual.ksml.python.PythonContext;
-import io.axual.ksml.python.PythonFunction;
-import io.axual.ksml.runner.exception.RunnerException;
-import io.axual.ksml.runner.producer.ExecutableProducer;
-import io.axual.ksml.runner.producer.IntervalSchedule;
-import lombok.Builder;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.slf4j.Logger;
@@ -36,6 +28,17 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
+
+import io.axual.ksml.client.producer.ResolvingProducer;
+import io.axual.ksml.client.resolving.ResolvingClientConfig;
+import io.axual.ksml.generator.TopologyDefinition;
+import io.axual.ksml.python.PythonContext;
+import io.axual.ksml.python.PythonFunction;
+import io.axual.ksml.runner.exception.RunnerException;
+import io.axual.ksml.runner.producer.ExecutableProducer;
+import io.axual.ksml.runner.producer.IntervalSchedule;
+import lombok.Builder;
 
 import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
@@ -47,19 +50,38 @@ public class KafkaProducerRunner implements Runner {
     private final AtomicBoolean hasFailed = new AtomicBoolean(false);
     private final AtomicBoolean stopRunning = new AtomicBoolean(false);
     private final Config config;
+    private final Function<Map<String,Object>, Producer<byte[], byte[]>> producerFactory;
     private State currentState;
 
     @Builder
     public record Config(Map<String, TopologyDefinition> definitions, Map<String, String> kafkaConfig) {
+        public Config(final Map<String, TopologyDefinition> definitions, final Map<String, String> kafkaConfig) {
+            var processedKafkaConfig = new HashMap<>(kafkaConfig);
+            this.definitions = definitions;
+            // Check if a resolving client is required
+            if (ResolvingClientConfig.configRequiresResolving(processedKafkaConfig)) {
+                log.info("Using resolving clients for producer processing");
+                // Replace the deprecated configuration keys with the current ones
+                ResolvingClientConfig.replaceDeprecatedConfigKeys(processedKafkaConfig);
+            }
+            this.kafkaConfig = processedKafkaConfig;
+        }
     }
 
     public KafkaProducerRunner(Config config) {
         this.config = config;
         currentState = State.CREATED;
+        this.producerFactory = ResolvingProducer::new;
     }
 
+    // Package private to allow tests to inject configs
+    KafkaProducerRunner(Config config, Function<Map<String,Object>, Producer<byte[], byte[]>> producerFactory ) {
+        this.config = config;
+        currentState = State.CREATED;
+        this.producerFactory = producerFactory;
+    }
 
-    public synchronized void setState(State newState) {
+    private synchronized void setState(State newState) {
         if (currentState.isValidNextState(newState)) {
             currentState = newState;
         } else {
@@ -90,7 +112,7 @@ public class KafkaProducerRunner implements Runner {
             throw new RunnerException("Error while registering functions and producers", e);
         }
 
-        try (final Producer<byte[], byte[]> producer = createProducer(getProducerConfigs())) {
+        try (final Producer<byte[], byte[]> producer = producerFactory.apply(getProducerConfigs())) {
             setState(State.STARTED);
             log.info("Starting Kafka producer(s)");
             while (!stopRunning.get() && !hasFailed.get() && scheduler.hasScheduledItems()) {
@@ -113,17 +135,6 @@ public class KafkaProducerRunner implements Runner {
         setState(State.STOPPED);
         isRunning.set(false);
         log.info("Producer(s) stopped");
-    }
-
-    /**
-     * Creates a Kafka producer based on the provided config.
-     * This method is package protected so we can override it for testing
-     *
-     * @param producerConfig the producer configs.
-     * @return a Kafka producer.
-     */
-    protected Producer<byte[], byte[]> createProducer(Map<String, Object> producerConfig) {
-        return new ResolvingProducer<>(producerConfig);
     }
 
     private Map<String, Object> getProducerConfigs() {

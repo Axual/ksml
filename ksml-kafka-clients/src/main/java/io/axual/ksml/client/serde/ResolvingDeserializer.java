@@ -20,7 +20,7 @@ package io.axual.ksml.client.serde;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.client.generic.ResolvingClientConfig;
+import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.client.resolving.TopicResolver;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.serialization.Deserializer;

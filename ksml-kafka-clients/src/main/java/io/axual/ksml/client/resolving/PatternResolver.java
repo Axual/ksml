@@ -20,13 +20,22 @@ package io.axual.ksml.client.resolving;
  * =========================LICENSE_END==================================
  */
 
-import lombok.Builder;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.StringSubstitutor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import io.axual.ksml.client.exception.InvalidPatternException;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class PatternResolver implements Resolver {
@@ -50,6 +59,9 @@ public class PatternResolver implements Resolver {
     private final List<String> fields;
     private final String resolvePattern;
     private final Pattern unresolvePattern;
+
+    @Getter(value = AccessLevel.PACKAGE)
+    private final String pattern;
 
     @Builder
     private record PatternParseResult(String resolvePattern, Pattern unresolvePattern, List<String> fields) {
@@ -75,25 +87,43 @@ public class PatternResolver implements Resolver {
      *
      * @param pattern          the pattern to use
      * @param defaultFieldName the resource type that the pattern should end with
-     * @throws IllegalArgumentException thrown when a parameter is null, if pattern is invalid or if the defaultPlaceholderValue is empty
+     * @throws InvalidPatternException thrown when the pattern is null or malformed
+     * @throws IllegalArgumentException thrown the defaultFieldName is null or malformed
      */
     public PatternResolver(final String pattern, final String defaultFieldName, Map<String, String> defaultFieldValues) {
-        if (pattern == null) {
-            throw new IllegalArgumentException("pattern cannot be null");
+        if (pattern == null || pattern.trim().isEmpty()) {
+            throw new InvalidPatternException(pattern, "pattern cannot be null or empty");
         }
 
         if (defaultFieldName == null || defaultFieldName.trim().isEmpty()) {
-            throw new IllegalArgumentException("defaultField cannot be null, an empty string or only containing whitespace characters");
+            throw new IllegalArgumentException("defaultFieldName cannot be null, an empty string or only containing whitespace characters");
         }
 
         if (defaultFieldName.contains(FIELD_NAME_PREFIX) || defaultFieldName.contains(FIELD_NAME_SUFFIX)) {
-            throw new IllegalArgumentException("defaultField cannot contain opening or closing braces");
+            throw new IllegalArgumentException("defaultFieldName cannot contain opening or closing braces");
         }
+        this.pattern = pattern;
 
-        PatternParseResult parseResult = parsePattern(pattern, defaultFieldName);
+        final PatternParseResult parseResult = parsePattern(pattern, defaultFieldName);
+
         this.resolvePattern = parseResult.resolvePattern;
         this.unresolvePattern = parseResult.unresolvePattern;
         this.fields = Collections.unmodifiableList(parseResult.fields);
+
+        // Validate that the defaultFieldName is used in the pattern
+        if (!this.fields.contains(defaultFieldName)) {
+            throw new InvalidPatternException(pattern, "The defaultFieldName %s is not used in the pattern".formatted(defaultFieldName));
+        }
+        final var validFieldNames = new HashSet<>(defaultFieldValues.keySet());
+        // Add defaultFieldName to the list of valid names
+        validFieldNames.add(defaultFieldName);
+
+        // Check for unknown field names in the pattern,
+        var unknownFieldNames = new ArrayList<>(parseResult.fields);
+        unknownFieldNames.removeIf(validFieldNames::contains);
+        if (!unknownFieldNames.isEmpty()) {
+            throw new InvalidPatternException(pattern, "Unknown field names used in the pattern: %s".formatted(unknownFieldNames));
+        }
 
         this.defaultFieldName = defaultFieldName;
         this.defaultFieldValues = Collections.unmodifiableMap(new HashMap<>(defaultFieldValues));
@@ -170,7 +200,29 @@ public class PatternResolver implements Resolver {
         return "[" + escape(characters) + "]" + (oneOrMore ? "+" : "");
     }
 
-    private static PatternParseResult parsePattern(final String pattern, final String defaultField) {
+    private static PatternParseResult parsePattern(final String pattern, final String defaultFieldName) {
+        // Check for unbalanced braces
+        var openPosition = Integer.MIN_VALUE;
+        for (int position = 0; position < pattern.length(); position++) {
+            final var character = pattern.charAt(position);
+            if (character == '{') {
+                if (openPosition >= 0) {
+                    throw new InvalidPatternException(pattern, "Found open brace at position %d without closing previous open brace at position %d".formatted(position, openPosition));
+                }
+                openPosition = position;
+            } else if (character == '}') {
+                if (openPosition < 0) {
+                    throw new InvalidPatternException(pattern, "Found close brace at position %d with no corresponding open brace".formatted(position));
+                }
+                // Found corresponding brace
+                openPosition = Integer.MIN_VALUE;
+            }
+        }
+
+        if (openPosition >= 0) {
+            throw new InvalidPatternException(pattern, "Found open brace at position %d with no corresponding close brace".formatted(openPosition));
+        }
+
         var matcher = FIELD_NAME_OR_LITERAL_PATTERN.matcher(pattern);
 
         var fields = new ArrayList<String>();
@@ -182,23 +234,23 @@ public class PatternResolver implements Resolver {
         while (matcher.find()) {
             count++;
             if (matcher.start() != pos) {
-                throw new IllegalArgumentException(String.format("Pattern contains faulty characters at position %d: %s", pos, pattern));
+                throw new InvalidPatternException(pattern, "Faulty characters detected at position %d".formatted(pos));
             }
             var element = matcher.group();
             pos += element.length();
             if (element.startsWith(FIELD_NAME_PREFIX) && element.endsWith(FIELD_NAME_SUFFIX)) {
                 // Treat the element as a placeholder
                 if (count > 0 && lastElementWasPlaceholder) {
-                    throw new IllegalArgumentException(String.format("Two consecutive placeholders found in pattern: %s", pattern));
+                    throw new InvalidPatternException(pattern, "Two consecutive placeholders found");
                 }
                 var field = element.substring(1, element.length() - 1);
                 fields.add(field);
-                pat.append("(").append(field.equals(defaultField) ? DEFAULT_FIELD_VALUE_REGEX : FIELD_VALUE_REGEX).append(")");
+                pat.append("(").append(field.equals(defaultFieldName) ? DEFAULT_FIELD_VALUE_REGEX : FIELD_VALUE_REGEX).append(")");
                 lastElementWasPlaceholder = true;
             } else {
                 // Treat the element as a string literal
                 if (count > 0 && !lastElementWasPlaceholder) {
-                    throw new IllegalArgumentException(String.format("Two consecutive literals found in pattern: %s", pattern));
+                    throw new InvalidPatternException(pattern, "Two consecutive placeholders found");
                 }
                 pat.append(escape(element));
                 lastElementWasPlaceholder = false;
@@ -207,7 +259,7 @@ public class PatternResolver implements Resolver {
         pat.append("$");
 
         if (count == 0) {
-            throw new IllegalArgumentException(String.format("Illegal pattern provided: %s", pattern));
+            throw new InvalidPatternException(pattern, "No fields found");
         }
 
         return PatternParseResult.builder()

@@ -22,7 +22,8 @@ package io.axual.ksml.client.resolving;
 
 import java.util.Map;
 public class TransactionalIdPatternResolver extends CachedPatternResolver implements TransactionalIdResolver {
-    private static final String DEFAULT_PLACEHOLDER_VALUE = "transactional.id";
+    public static final String DEFAULT_PLACEHOLDER_VALUE = "transactional.id";
+    public static final String DEFAULT_PLACEHOLDER_PATTERN = FIELD_NAME_PREFIX + DEFAULT_PLACEHOLDER_VALUE + FIELD_NAME_SUFFIX;
 
     public TransactionalIdPatternResolver(String pattern, Map<String, String> defaultValues) {
         super(pattern, DEFAULT_PLACEHOLDER_VALUE, defaultValues);

@@ -1,4 +1,4 @@
-package io.axual.ksml.client.generic;
+package io.axual.ksml.client.resolving;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,15 +20,6 @@ package io.axual.ksml.client.generic;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.client.exception.ClientException;
-import io.axual.ksml.client.exception.ConfigException;
-import io.axual.ksml.client.resolving.GroupPatternResolver;
-import io.axual.ksml.client.resolving.GroupResolver;
-import io.axual.ksml.client.resolving.TopicPatternResolver;
-import io.axual.ksml.client.resolving.TopicResolver;
-import io.axual.ksml.client.util.FactoryUtil;
-import io.axual.ksml.client.util.MapUtil;
-import lombok.Getter;
 import org.apache.kafka.common.Configurable;
 import org.apache.kafka.common.utils.Utils;
 
@@ -36,9 +27,22 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.axual.ksml.client.exception.ClientException;
+import io.axual.ksml.client.exception.ConfigException;
+import io.axual.ksml.client.util.FactoryUtil;
+import io.axual.ksml.client.util.MapUtil;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class ResolvingClientConfig {
-    public static final String GROUP_ID_PATTERN_CONFIG = "group.id.pattern";
-    public static final String TOPIC_PATTERN_CONFIG = "topic.pattern";
+    public static final String GROUP_ID_PATTERN_CONFIG = "axual.group.id.pattern";
+    public static final String TOPIC_PATTERN_CONFIG = "axual.topic.pattern";
+    public static final String TRANSACTIONAL_ID_PATTERN_CONFIG = "axual.transactional.id.pattern";
+
+    public static final String COMPAT_GROUP_ID_PATTERN_CONFIG = "group.id.pattern";
+    public static final String COMPAT_TOPIC_PATTERN_CONFIG = "topic.pattern";
+    public static final String COMPAT_TRANSACTIONAL_ID_PATTERN_CONFIG = "transactional.id.pattern";
 
     protected final Map<String, Object> configs;
     @Getter
@@ -47,21 +51,31 @@ public class ResolvingClientConfig {
     public final GroupResolver groupResolver;
     @Getter
     public final TopicResolver topicResolver;
+    @Getter
+    public final TransactionalIdResolver transactionalIdResolver;
 
     public ResolvingClientConfig(Map<String, ?> configs) {
         this.configs = Collections.unmodifiableMap(configs);
         downstreamConfigs = new HashMap<>(configs);
         var defaultContext = MapUtil.toStringValues(configs);
 
-        var groupPattern = configs.get(GROUP_ID_PATTERN_CONFIG);
-        groupResolver = groupPattern != null
-                ? new GroupPatternResolver(groupPattern.toString(), defaultContext)
-                : new GroupPatternResolver(GroupPatternResolver.DEFAULT_PLACEHOLDER_PATTERN, defaultContext);
+        if (configs.get(GROUP_ID_PATTERN_CONFIG) instanceof String groupPattern) {
+            groupResolver = new GroupPatternResolver(groupPattern, defaultContext);
+        } else {
+            groupResolver = new GroupPatternResolver(GroupPatternResolver.DEFAULT_PLACEHOLDER_PATTERN, defaultContext);
+        }
 
-        var topicPattern = configs.get(TOPIC_PATTERN_CONFIG);
-        topicResolver = topicPattern != null
-                ? new TopicPatternResolver(topicPattern.toString(), defaultContext)
-                : new TopicPatternResolver(TopicPatternResolver.DEFAULT_PLACEHOLDER_PATTERN, defaultContext);
+        if (configs.get(TOPIC_PATTERN_CONFIG) instanceof String topicPattern) {
+            topicResolver = new TopicPatternResolver(topicPattern, defaultContext);
+        } else {
+            topicResolver = new TopicPatternResolver(TopicPatternResolver.DEFAULT_PLACEHOLDER_PATTERN, defaultContext);
+        }
+
+        if (configs.get(TRANSACTIONAL_ID_PATTERN_CONFIG) instanceof String transactionalIdPattern) {
+            transactionalIdResolver = new TransactionalIdPatternResolver(transactionalIdPattern, defaultContext);
+        } else {
+            transactionalIdResolver = new TransactionalIdPatternResolver(TransactionalIdPatternResolver.DEFAULT_PLACEHOLDER_PATTERN, defaultContext);
+        }
     }
 
     public <T> T getConfiguredInstance(String key, Class<T> expectedClass) {
@@ -113,4 +127,29 @@ public class ResolvingClientConfig {
 
         throw new ClientException("Can not instantiate object of type " + expectedClass.getSimpleName() + " from value " + (value != null ? value.toString() : "null"));
     }
+
+    public static boolean configRequiresResolving(Map<String, ?> config) {
+        return config.containsKey(GROUP_ID_PATTERN_CONFIG)
+                || config.containsKey(TOPIC_PATTERN_CONFIG)
+                || config.containsKey(TRANSACTIONAL_ID_PATTERN_CONFIG)
+                || config.containsKey(COMPAT_GROUP_ID_PATTERN_CONFIG)
+                || config.containsKey(COMPAT_TOPIC_PATTERN_CONFIG)
+                || config.containsKey(COMPAT_TRANSACTIONAL_ID_PATTERN_CONFIG);
+
+    }
+
+    public static <T> void replaceDeprecatedConfigKeys(Map<String, T> config) {
+        replaceDeprecatedConfigKeys(config, COMPAT_TOPIC_PATTERN_CONFIG, TOPIC_PATTERN_CONFIG);
+        replaceDeprecatedConfigKeys(config, COMPAT_GROUP_ID_PATTERN_CONFIG, GROUP_ID_PATTERN_CONFIG);
+        replaceDeprecatedConfigKeys(config, COMPAT_TRANSACTIONAL_ID_PATTERN_CONFIG, TRANSACTIONAL_ID_PATTERN_CONFIG);
+    }
+
+    private static <T> void replaceDeprecatedConfigKeys(final Map<String, T> config, String deprecatedKey, String currentKey) {
+        if (config.containsKey(deprecatedKey)) {
+            log.warn("The configuration key '{}' is deprecated. Use the configuration key '{}' instead.", deprecatedKey, currentKey);
+            T value = config.remove(deprecatedKey);
+            config.put(currentKey, value);
+        }
+    }
+
 }
