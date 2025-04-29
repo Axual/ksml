@@ -63,7 +63,7 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
 
     @Override
     public void subscribe(Pattern pattern, ConsumerRebalanceListener listener) {
-        Pattern resolvedPattern = topicResolver.resolve(pattern);
+        final var resolvedPattern = topicResolver.resolve(pattern);
         super.subscribe(resolvedPattern, convertListener(listener));
     }
 
@@ -76,6 +76,7 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
     public void assign(Collection<TopicPartition> partitions) {
         super.assign(topicResolver.resolveTopicPartitions(partitions));
     }
+
     @Deprecated
     @Override
     public ConsumerRecords<K, V> poll(long timeout) {
@@ -140,8 +141,7 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
         if (callback == null) {
             super.commitAsync(topicResolver.resolve(offsets), null);
         } else {
-            super.commitAsync(topicResolver.resolve(offsets),
-                    new ProxyOffsetCommitCallback(callback));
+            super.commitAsync(topicResolver.resolve(offsets), new ProxyOffsetCommitCallback(callback));
         }
     }
 
@@ -152,8 +152,7 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
 
     @Override
     public void seek(TopicPartition topicPartition, OffsetAndMetadata offsetAndMetadata) {
-        Set<TopicPartition> resolvedTopicPartition = topicResolver
-                .resolveTopicPartitions(Collections.singleton(topicPartition));
+        final var resolvedTopicPartition = topicResolver.resolveTopicPartitions(Collections.singleton(topicPartition));
         super.seek(resolvedTopicPartition.toArray(new TopicPartition[1])[0], offsetAndMetadata);
     }
 
@@ -208,7 +207,7 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
 
     @Override
     public ConsumerGroupMetadata groupMetadata() {
-        ConsumerGroupMetadata groupMetadata = super.groupMetadata();
+        final var groupMetadata = super.groupMetadata();
         return groupMetadata == null ? null : new ConsumerGroupMetadata(
                 groupResolver.unresolve(groupMetadata.groupId()),
                 groupMetadata.generationId(), groupMetadata.memberId(), groupMetadata.groupInstanceId());
@@ -216,14 +215,12 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
 
     @Override
     public List<PartitionInfo> partitionsFor(String topic) {
-        return convertPartitionInfo(super.partitionsFor(topicResolver.resolve(topic)),
-                topic);
+        return convertPartitionInfo(super.partitionsFor(topicResolver.resolve(topic)), topic);
     }
 
     @Override
     public List<PartitionInfo> partitionsFor(String topic, Duration timeout) {
-        return convertPartitionInfo(
-                super.partitionsFor(topicResolver.resolve(topic), timeout), topic);
+        return convertPartitionInfo(super.partitionsFor(topicResolver.resolve(topic), timeout), topic);
     }
 
     @Override
@@ -252,52 +249,33 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
     }
 
     @Override
-    public Map<TopicPartition, OffsetAndTimestamp> offsetsForTimes(
-            Map<TopicPartition, Long> timestampsToSearch) {
-        return topicResolver.unresolve(
-                super.offsetsForTimes(
-                        topicResolver.resolve(timestampsToSearch)));
+    public Map<TopicPartition, OffsetAndTimestamp> offsetsForTimes(Map<TopicPartition, Long> timestampsToSearch) {
+        return topicResolver.unresolve(super.offsetsForTimes(topicResolver.resolve(timestampsToSearch)));
     }
 
     @Override
-    public Map<TopicPartition, OffsetAndTimestamp> offsetsForTimes(
-            Map<TopicPartition, Long> timestampsToSearch, Duration timeout) {
-        return topicResolver.unresolve(
-                super.offsetsForTimes(
-                        topicResolver.resolve(timestampsToSearch),
-                        timeout));
+    public Map<TopicPartition, OffsetAndTimestamp> offsetsForTimes(Map<TopicPartition, Long> timestampsToSearch, Duration timeout) {
+        return topicResolver.unresolve(super.offsetsForTimes(topicResolver.resolve(timestampsToSearch), timeout));
     }
 
     @Override
     public Map<TopicPartition, Long> beginningOffsets(Collection<TopicPartition> partitions) {
-        return topicResolver.unresolve(
-                super.beginningOffsets(
-                        topicResolver.resolveTopicPartitions(partitions)));
+        return topicResolver.unresolve(super.beginningOffsets(topicResolver.resolveTopicPartitions(partitions)));
     }
 
     @Override
-    public Map<TopicPartition, Long> beginningOffsets(Collection<TopicPartition> partitions,
-                                                      Duration timeout) {
-        return topicResolver.unresolve(
-                super.beginningOffsets(
-                        topicResolver.resolveTopicPartitions(partitions),
-                        timeout));
+    public Map<TopicPartition, Long> beginningOffsets(Collection<TopicPartition> partitions, Duration timeout) {
+        return topicResolver.unresolve(super.beginningOffsets(topicResolver.resolveTopicPartitions(partitions), timeout));
     }
 
     @Override
     public Map<TopicPartition, Long> endOffsets(Collection<TopicPartition> partitions) {
-        return topicResolver.unresolve(
-                super.endOffsets(
-                        topicResolver.resolveTopicPartitions(partitions)));
+        return topicResolver.unresolve(super.endOffsets(topicResolver.resolveTopicPartitions(partitions)));
     }
 
     @Override
-    public Map<TopicPartition, Long> endOffsets(Collection<TopicPartition> partitions,
-                                                Duration timeout) {
-        return topicResolver.unresolve(
-                super.endOffsets(
-                        topicResolver.resolveTopicPartitions(partitions),
-                        timeout));
+    public Map<TopicPartition, Long> endOffsets(Collection<TopicPartition> partitions, Duration timeout) {
+        return topicResolver.unresolve(super.endOffsets(topicResolver.resolveTopicPartitions(partitions), timeout));
     }
 
     @Override
@@ -307,19 +285,19 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // End of public interface of KafkaConsumer
-    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    /// ////////////////////////////////////////////////////////////////////////////////////////////
 
     private ConsumerRebalanceListener convertListener(ConsumerRebalanceListener listener) {
         return listener != null ? new ProxyConsumerRebalanceListener(listener) : null;
     }
 
     private ConsumerRecords<K, V> convertRecords(ConsumerRecords<K, V> records) {
-        final Map<TopicPartition, List<ConsumerRecord<K, V>>> recordsByPartition = new HashMap<>();
+        final var recordsByPartition = new HashMap<TopicPartition, List<ConsumerRecord<K, V>>>();
         if (!records.isEmpty()) {
             for (TopicPartition topicPartition : records.partitions()) {
-                List<ConsumerRecord<K, V>> partitionRecords = new ArrayList<>();
-
-                for (ConsumerRecord<K, V> consumerRecord : records.records(topicPartition)) {
+                final var partitionRecords = new ArrayList<ConsumerRecord<K, V>>();
+                for (final var consumerRecord : records.records(topicPartition)) {
                     partitionRecords.add(new ConsumerRecord<>(
                             topicResolver.unresolve(consumerRecord.topic()),
                             consumerRecord.partition(),
@@ -333,8 +311,7 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
                             consumerRecord.headers(),
                             Optional.empty()));
                 }
-                recordsByPartition
-                        .put(topicResolver.unresolve(topicPartition), partitionRecords);
+                recordsByPartition.put(topicResolver.unresolve(topicPartition), partitionRecords);
             }
         }
 
@@ -343,34 +320,25 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
 
     private Map<String, List<PartitionInfo>> convertTopicList(
             Map<String, List<PartitionInfo>> topicList) {
-        Map<String, List<PartitionInfo>> result = new HashMap<>(topicList.size());
-
-        for (Map.Entry<String, List<PartitionInfo>> entry : topicList.entrySet()) {
-            String topic = entry.getKey();
-
-            List<PartitionInfo> infos = topicList.get(topic);
-            List<PartitionInfo> resultInfos = new ArrayList<>(infos.size());
-            for (PartitionInfo info : infos) {
-                resultInfos.add(
-                        new ResolvingPartitionInfo(topicResolver.unresolve(info.topic()),
-                                info.partition()));
+        final var result = HashMap.<String, List<PartitionInfo>>newHashMap(topicList.size());
+        for (final var entry : topicList.entrySet()) {
+            final var topic = entry.getKey();
+            final var infos = topicList.get(topic);
+            final var resultInfos = new ArrayList<PartitionInfo>(infos.size());
+            for (final var info : infos) {
+                resultInfos.add(new ResolvingPartitionInfo(topicResolver.unresolve(info.topic()), info.partition()));
             }
             result.put(topicResolver.unresolve(topic), resultInfos);
         }
         return result;
     }
 
-    private List<PartitionInfo> convertPartitionInfo(List<PartitionInfo> partitionInfoList,
-                                                     String unresolvedTopic) {
-        if (partitionInfoList == null) {
-            return null;
-        }
-
-        List<PartitionInfo> result = new ArrayList<>(partitionInfoList.size());
-        for (PartitionInfo partitionInfo : partitionInfoList) {
+    private List<PartitionInfo> convertPartitionInfo(List<PartitionInfo> partitionInfoList, String unresolvedTopic) {
+        if (partitionInfoList == null) return null;
+        final var result = new ArrayList<PartitionInfo>(partitionInfoList.size());
+        for (final var partitionInfo : partitionInfoList) {
             result.add(new ResolvingPartitionInfo(unresolvedTopic, partitionInfo.partition()));
         }
-
         return result;
     }
 

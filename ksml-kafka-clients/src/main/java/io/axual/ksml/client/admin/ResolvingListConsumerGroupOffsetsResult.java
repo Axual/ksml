@@ -33,21 +33,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ResolvingListConsumerGroupOffsetsResult extends ExtendableListConsumerGroupOffsetsResult {
-    private final Map<CoordinatorKey, KafkaFuture<Map<TopicPartition, OffsetAndMetadata>>> futures = new HashMap<>();
-
     public ResolvingListConsumerGroupOffsetsResult(final Map<CoordinatorKey, KafkaFuture<Map<TopicPartition, OffsetAndMetadata>>> futures, TopicResolver topicResolver, GroupResolver groupResolver) {
         super(convertResult(futures, topicResolver, groupResolver));
     }
 
     private static Map<CoordinatorKey, KafkaFuture<Map<TopicPartition, OffsetAndMetadata>>> convertResult(final Map<CoordinatorKey, KafkaFuture<Map<TopicPartition, OffsetAndMetadata>>> futures, TopicResolver topicResolver, GroupResolver groupResolver) {
-        var result = new HashMap<CoordinatorKey, KafkaFuture<Map<TopicPartition, OffsetAndMetadata>>>(futures.size());
+        final var result = HashMap.<CoordinatorKey, KafkaFuture<Map<TopicPartition, OffsetAndMetadata>>>newHashMap(futures.size());
         futures.forEach((coordinatorKey, future) -> {
             final var newKey = CoordinatorKey.byGroupId(groupResolver.unresolve(coordinatorKey.idValue));
 
             final KafkaFutureImpl<Map<TopicPartition, OffsetAndMetadata>> wrappingFuture = new KafkaFutureImpl<>();
             future.whenComplete((offsets, throwable) -> {
                 if (offsets != null) {
-                    var newOffsets = new HashMap<TopicPartition, OffsetAndMetadata>(offsets.size());
+                    final var newOffsets = HashMap.<TopicPartition, OffsetAndMetadata>newHashMap(offsets.size());
                     offsets.forEach(((topicPartition, offsetAndMetadata) -> newOffsets.put(topicResolver.unresolve(topicPartition), offsetAndMetadata)));
                     wrappingFuture.complete(newOffsets);
                 } else {

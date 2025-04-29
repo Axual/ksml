@@ -25,16 +25,17 @@ import org.apache.kafka.common.utils.Utils;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyConfig;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiFunction;
 
 import io.axual.ksml.TopologyGenerator;
-import io.axual.ksml.client.generic.ResolvingClientConfig;
-import io.axual.ksml.client.producer.ResolvingProducerConfig;
+import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.execution.ExecutionErrorHandler;
 import io.axual.ksml.generator.TopologyDefinition;
@@ -56,9 +57,30 @@ public class KafkaStreamsRunner implements Runner {
                          String storageDirectory,
                          ApplicationServerConfig appServer,
                          Map<String, String> kafkaConfig) {
+        public Config(final Map<String, TopologyDefinition> definitions, final String storageDirectory, final ApplicationServerConfig appServer, final Map<String, String> kafkaConfig) {
+            this.definitions = definitions;
+            this.storageDirectory = storageDirectory;
+            this.appServer = appServer;
+
+            var processedKafkaConfig = new HashMap<>(kafkaConfig);
+            // Check if a resolving client is required
+            if (ResolvingClientConfig.configRequiresResolving(processedKafkaConfig)) {
+                log.info("Using resolving clients for producer processing");
+                // Replace the deprecated configuration keys with the current ones
+                ResolvingClientConfig.replaceDeprecatedConfigKeys(processedKafkaConfig);
+                processedKafkaConfig.put(StreamsConfig.DEFAULT_CLIENT_SUPPLIER_CONFIG, KSMLClientSupplier.class.getCanonicalName());
+            }
+            this.kafkaConfig = processedKafkaConfig;
+
+        }
     }
 
     public KafkaStreamsRunner(Config config) {
+        this(config, KafkaStreams::new);
+    }
+
+    // Package private so tests can inject a factory
+    KafkaStreamsRunner(Config config, BiFunction<Topology, Properties, KafkaStreams> kafkaStreamsFactory) {
         log.info("Constructing Kafka Backend");
 
         final var streamsProps = getStreamsConfig(config.kafkaConfig, config.storageDirectory, config.appServer);
@@ -74,7 +96,7 @@ public class KafkaStreamsRunner implements Runner {
         var optimize = streamsProps.getOrDefault(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE);
         final var topologyGenerator = new TopologyGenerator(applicationId, (String) optimize);
         final var topology = topologyGenerator.create(streamsBuilder, config.definitions);
-        kafkaStreams = new KafkaStreams(topology, mapToProperties(streamsProps));
+        kafkaStreams = kafkaStreamsFactory.apply(topology, mapToProperties(streamsProps));
         kafkaStreams.setStateListener(this::logStreamsStateChange);
         kafkaStreams.setUncaughtExceptionHandler(ExecutionContext.INSTANCE::uncaughtException);
     }
@@ -91,12 +113,6 @@ public class KafkaStreamsRunner implements Runner {
         // Explicit configs can overwrite those from the map
         result.put(StreamsConfig.DEFAULT_PRODUCTION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class);
         result.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class);
-        if (result.containsKey(ResolvingClientConfig.GROUP_ID_PATTERN_CONFIG)
-                || result.containsKey(ResolvingClientConfig.TOPIC_PATTERN_CONFIG)
-                || result.containsKey(ResolvingProducerConfig.TRANSACTIONAL_ID_PATTERN_CONFIG)) {
-            log.info("Using resolving clients for Kafka");
-            result.put(StreamsConfig.DEFAULT_CLIENT_SUPPLIER_CONFIG, KSMLClientSupplier.class.getCanonicalName());
-        }
 
         result.put(StreamsConfig.STATE_DIR_CONFIG, storageDirectory);
         if (appServer != null && appServer.isEnabled()) {

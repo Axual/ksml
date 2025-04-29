@@ -175,6 +175,15 @@ public class MetricsRegistry {
         log.warn("Removed metric: {}", metricName);
     }
 
+    /**
+     * Remove all the metrics from this registry
+     */
+    public synchronized void removeAll() {
+        log.warn("Removing all metrics");
+        metricRegistry.removeMatching(MetricFilter.ALL);
+        registeredMetrics.clear();
+    }
+
     private String encodeName(MetricName metricName) {
         return MetricObjectNaming.stringFromMetricName(metricName);
     }

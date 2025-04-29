@@ -24,7 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 
-public class GroupPatternResolver extends PatternResolver implements GroupResolver {
+public class GroupPatternResolver extends CachedPatternResolver implements GroupResolver {
     public static final String DEFAULT_PLACEHOLDER_VALUE = "group.id";
     public static final String DEFAULT_PLACEHOLDER_PATTERN = FIELD_NAME_PREFIX + DEFAULT_PLACEHOLDER_VALUE + FIELD_NAME_SUFFIX;
     private static final String PLACEHOLDER_ALIAS = "group";
