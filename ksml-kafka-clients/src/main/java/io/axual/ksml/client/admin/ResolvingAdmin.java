@@ -21,7 +21,7 @@ package io.axual.ksml.client.admin;
  */
 
 import io.axual.ksml.client.exception.NotSupportedException;
-import io.axual.ksml.client.generic.ResolvingClientConfig;
+import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.client.resolving.GroupResolver;
 import io.axual.ksml.client.resolving.TopicResolver;
 import org.apache.kafka.clients.admin.*;
@@ -141,8 +141,7 @@ public class ResolvingAdmin extends ForwardingAdmin {
     }
 
     @Override
-    public DescribeConsumerGroupsResult describeConsumerGroups(Collection<String> groupIds,
-                                                               DescribeConsumerGroupsOptions options) {
+    public DescribeConsumerGroupsResult describeConsumerGroups(Collection<String> groupIds, DescribeConsumerGroupsOptions options) {
         return new ResolvingDescribeConsumerGroupsResult(
                 super.describeConsumerGroups(groupResolver.resolve(groupIds), options).describedGroups(),
                 groupResolver);

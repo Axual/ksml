@@ -38,8 +38,8 @@ public class ResolvingDeleteTopicsResult extends ExtendableDeleteTopicsResult {
 
     @Override
     public Map<String, KafkaFuture<Void>> topicNameValues() {
-        var superResult = super.topicNameValues();
-        var result = new HashMap<String, KafkaFuture<Void>>(superResult.size());
+        final var superResult = super.topicNameValues();
+        final var result = HashMap.<String, KafkaFuture<Void>>newHashMap(superResult.size());
         superResult.forEach((topicName, future) -> result.put(topicResolver.unresolve(topicName), future));
         return result;
     }

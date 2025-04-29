@@ -38,13 +38,13 @@ import java.util.*;
 @Slf4j
 public class ResolvingConsumerPartitionAssignor implements ConsumerPartitionAssignor, Configurable {
     private ConsumerPartitionAssignor backingAssignor = null;
-    private TopicResolver resolver = null;
+    private TopicResolver topicResolver = null;
 
     @Override
     public void configure(Map<String, ?> configs) {
         ResolvingConsumerPartitionAssignorConfig config = new ResolvingConsumerPartitionAssignorConfig(new HashMap<>(configs));
-        backingAssignor = config.getBackingAssignor();
-        resolver = config.getTopicResolver();
+        backingAssignor = config.backingAssignor();
+        topicResolver = config.assignorTopicResolver();
     }
 
     @Override
@@ -59,7 +59,7 @@ public class ResolvingConsumerPartitionAssignor implements ConsumerPartitionAssi
                 cluster.clusterResource().clusterId(),
                 cluster.nodes(),
                 unresolveClusterPartitions(cluster),
-                resolver.unresolve(cluster.unauthorizedTopics()),
+                topicResolver.unresolve(cluster.unauthorizedTopics()),
                 cluster.internalTopics(),
                 cluster.controller());
 
@@ -116,7 +116,7 @@ public class ResolvingConsumerPartitionAssignor implements ConsumerPartitionAssi
         for (String topic : proxiedCluster.topics()) {
             List<PartitionInfo> partitions = proxiedCluster.availablePartitionsForTopic(topic);
             for (PartitionInfo partition : partitions) {
-                result.add(new PartitionInfo(resolver.unresolve(partition.topic()),
+                result.add(new PartitionInfo(topicResolver.unresolve(partition.topic()),
                         partition.partition(),
                         partition.leader(),
                         partition.replicas(),
@@ -129,7 +129,7 @@ public class ResolvingConsumerPartitionAssignor implements ConsumerPartitionAssi
 
     private Assignment resolveAssignment(Assignment assignment) {
         return new Assignment(
-                new ArrayList<>(resolver.resolveTopicPartitions(assignment.partitions())),
+                new ArrayList<>(topicResolver.resolveTopicPartitions(assignment.partitions())),
                 assignment.userData()
         );
     }
@@ -145,15 +145,15 @@ public class ResolvingConsumerPartitionAssignor implements ConsumerPartitionAssi
 
             // Convert standby tasks
             var newStandbyTasks = new HashMap<TaskId, Set<TopicPartition>>();
-            info.standbyTasks().forEach((id, topicPartitions) -> newStandbyTasks.put(new TaskId(id.subtopology(), id.partition(), id.topologyName()), resolver.unresolveTopicPartitions(topicPartitions)));
+            info.standbyTasks().forEach((id, topicPartitions) -> newStandbyTasks.put(new TaskId(id.subtopology(), id.partition(), id.topologyName()), topicResolver.unresolveTopicPartitions(topicPartitions)));
 
             // Convert partitions by host
             var newPartitionsByHost = new HashMap<HostInfo, Set<TopicPartition>>();
-            info.partitionsByHost().forEach((hostInfo, topicPartitions) -> newPartitionsByHost.put(hostInfo, resolver.unresolveTopicPartitions(topicPartitions)));
+            info.partitionsByHost().forEach((hostInfo, topicPartitions) -> newPartitionsByHost.put(hostInfo, topicResolver.unresolveTopicPartitions(topicPartitions)));
 
             // Convert standby partitions by host
             var newStandbyPartitionsByHost = new HashMap<HostInfo, Set<TopicPartition>>();
-            info.standbyPartitionByHost().forEach(((hostInfo, topicPartitions) -> newStandbyPartitionsByHost.put(hostInfo, resolver.unresolveTopicPartitions(topicPartitions))));
+            info.standbyPartitionByHost().forEach(((hostInfo, topicPartitions) -> newStandbyPartitionsByHost.put(hostInfo, topicResolver.unresolveTopicPartitions(topicPartitions))));
 
             userData = new AssignmentInfo(
                     info.version(),
@@ -167,14 +167,14 @@ public class ResolvingConsumerPartitionAssignor implements ConsumerPartitionAssi
             // Ignore decoding exceptions
         }
 
-        return new Assignment(new ArrayList<>(resolver.unresolveTopicPartitions(assignment.partitions())), userData);
+        return new Assignment(new ArrayList<>(topicResolver.unresolveTopicPartitions(assignment.partitions())), userData);
     }
 
     private Subscription unresolveSubscription(Subscription subscription) {
         return new Subscription(
-                new ArrayList<>(resolver.unresolve(subscription.topics())),
+                new ArrayList<>(topicResolver.unresolve(subscription.topics())),
                 subscription.userData(),
-                new ArrayList<>(resolver.unresolveTopicPartitions(subscription.ownedPartitions()))
+                new ArrayList<>(topicResolver.unresolveTopicPartitions(subscription.ownedPartitions()))
         );
     }
 }

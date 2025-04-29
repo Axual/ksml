@@ -63,11 +63,9 @@ public class ResolvingProducer<K, V> extends ForwardingProducer<K, V> {
     public void sendOffsetsToTransaction(Map<TopicPartition, OffsetAndMetadata> offsets, String consumerGroupId) throws ProducerFencedException {
         Map<TopicPartition, OffsetAndMetadata> newOffsets = new HashMap<>();
         for (Map.Entry<TopicPartition, OffsetAndMetadata> entry : offsets.entrySet()) {
-            newOffsets
-                    .put(config.topicResolver().resolve(entry.getKey()), entry.getValue());
+            newOffsets.put(config.topicResolver().resolve(entry.getKey()), entry.getValue());
         }
-        super.sendOffsetsToTransaction(newOffsets,
-                config.groupResolver().resolve(consumerGroupId));
+        super.sendOffsetsToTransaction(newOffsets, config.groupResolver().resolve(consumerGroupId));
     }
 
     @Override
@@ -75,14 +73,14 @@ public class ResolvingProducer<K, V> extends ForwardingProducer<K, V> {
                                          ConsumerGroupMetadata groupMetadata) throws ProducerFencedException {
         Map<TopicPartition, OffsetAndMetadata> newOffsets = new HashMap<>();
         for (Map.Entry<TopicPartition, OffsetAndMetadata> entry : offsets.entrySet()) {
-            newOffsets
-                    .put(config.topicResolver().resolve(entry.getKey()), entry.getValue());
+            newOffsets.put(config.topicResolver().resolve(entry.getKey()), entry.getValue());
         }
 
-        super.sendOffsetsToTransaction(newOffsets, new ConsumerGroupMetadata(
+        final var metadata = new ConsumerGroupMetadata(
                 config.groupResolver().resolve(groupMetadata.groupId()),
                 groupMetadata.generationId(), groupMetadata.memberId(),
-                groupMetadata.groupInstanceId()));
+                groupMetadata.groupInstanceId());
+        super.sendOffsetsToTransaction(newOffsets, metadata);
     }
 
     @Override
@@ -120,7 +118,8 @@ public class ResolvingProducer<K, V> extends ForwardingProducer<K, V> {
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // End of public interface of KafkaProducer
-    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    /// ////////////////////////////////////////////////////////////////////////////////////////////
 
     private ProducerRecord<K, V> convertProducerRecord(ProducerRecord<K, V> producerRecord) {
         final TopicResolver resolver = config.topicResolver();

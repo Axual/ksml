@@ -29,4 +29,14 @@ public class MapUtil {
         map.forEach((key, value) -> result.put(key, value != null ? value.toString() : null));
         return result;
     }
+
+    public static <K, V> Map<K, V> merge(Map<K, V> map1, Map<K, V> map2) {
+        final var result = new HashMap<>(map1);
+        if (map2 != null) result.putAll(map2);
+        return result;
+    }
+
+    private MapUtil() {
+        // Prevent instantiation.
+    }
 }

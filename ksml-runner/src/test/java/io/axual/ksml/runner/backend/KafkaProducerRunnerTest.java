@@ -27,21 +27,29 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.kafka.clients.producer.MockProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.assertj.core.api.SoftAssertions;
 import org.awaitility.Awaitility;
 import org.graalvm.home.Version;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
+import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.NotationLibrary;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
@@ -51,9 +59,10 @@ import io.axual.ksml.data.parser.ParseNode;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.generator.YAMLObjectMapper;
+import io.axual.ksml.metric.Metrics;
 import lombok.extern.slf4j.Slf4j;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Named.named;
 
 @Slf4j
 @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
@@ -62,77 +71,94 @@ class KafkaProducerRunnerTest {
 
     MockProducer<byte[], byte[]> mockProducer;
 
-    private KafkaProducerRunner producerRunner;
-
     @BeforeEach
     void cleanProducer() {
+        // Clean all metrics
+        Metrics.registry().removeAll();
+        // Create a new mockProducer for testing
         mockProducer = new MockProducer<>(true, new ByteArraySerializer(), new ByteArraySerializer());
     }
 
-    @Test
-    @DisplayName("when `interval` is omitted only 1 record is produced")
-    void verifySingleShot() throws Exception {
+    @ParameterizedTest
+    @DisplayName("Verify producer stop conditions and pattern support")
+    @MethodSource
+    void verifyProducer(String topologyDefinition, Map<String, String> config, Map<String, String> expectedProducerConfig, int expectedRecordsProduced) throws Exception {
         // given a topology with a single shot produce and a runner for it
-        var topologyDefinitionMap = loadDefinitions("produce-test-single.yaml");
-        var testConfig = new KafkaProducerRunner.Config(topologyDefinitionMap, new HashMap<>());
-        producerRunner = runnerUnderTest(testConfig);
+        var topologyDefinitionMap = loadDefinitions(topologyDefinition);
+        var testConfig = new KafkaProducerRunner.Config(topologyDefinitionMap, config);
+        var mockProducerSupplier = new MockProducerSupplier(mockProducer);
+        var producerRunner = new KafkaProducerRunner(testConfig, mockProducerSupplier);
 
         final var thread = new Thread(producerRunner);
         thread.start();
         // when the runner starts in a separate thread and runs for some time
         Awaitility.await("Wait for the producer to finish")
                 .atMost(Duration.ofSeconds(MAXIMUM_WAIT_TIME))
-                .until(() -> !thread.isAlive() || !mockProducer.history().isEmpty());
+                .until(() -> !thread.isAlive());
+
+        // Stop producer runner explicitly
+        producerRunner.stop();
+
 
         // then when the runner has executed, only one record is produced.
-        producerRunner.stop();
-
         log.info("history size={}", mockProducer.history().size());
-        assertEquals(1, mockProducer.history().size(), "only 1 record should be produced");
+        final var softly = new SoftAssertions();
+        softly.assertThat(mockProducer.history())
+                .as("Check the number of produced records")
+                .isNotNull()
+                .size().isEqualTo(expectedRecordsProduced);
+
+        softly.assertThat(mockProducerSupplier.capturedCreateProducerArguments)
+                .as("Check the captured producer configuration is invoked only once with the expected configuration")
+                .size().isOne()
+                .returnToIterable()
+                .first()
+                .isEqualTo(expectedProducerConfig);
+
+        softly.assertAll();
     }
 
-    @Test
-    @DisplayName("A fixed count of records can be produced")
-    void verifyCountThreeTimes() throws Exception {
-        // given a topology with a counting produce and a runner for it
-        var topologyDefinitionMap = loadDefinitions("produce-test-count-3.yaml");
-        var testConfig = new KafkaProducerRunner.Config(topologyDefinitionMap, new HashMap<>());
-        producerRunner = runnerUnderTest(testConfig);
+    static Stream<Arguments> verifyProducer() {
+        final var inputConfigWithoutPatterns = Map.of(
+                "AnotherKey", "value"
+        );
+        final var expectedConfigWithoutPatterns = Map.of(
+                "AnotherKey", "value",
+                "key.serializer", ByteArraySerializer.class,
+                "value.serializer", ByteArraySerializer.class
+        );
+        final var inputConfigWithCompatPatterns = Map.of(
+                ResolvingClientConfig.COMPAT_TOPIC_PATTERN_CONFIG, "{AnotherKey}-{topic}",
+                ResolvingClientConfig.COMPAT_GROUP_ID_PATTERN_CONFIG, "{AnotherKey}-{group.id}",
+                ResolvingClientConfig.COMPAT_TRANSACTIONAL_ID_PATTERN_CONFIG, "{AnotherKey}-{transactional.id}",
+                "AnotherKey", "value"
+        );
+        final var inputConfigWithCurrentPatterns = Map.of(
+                ResolvingClientConfig.TOPIC_PATTERN_CONFIG, "{AnotherKey}-{topic}",
+                ResolvingClientConfig.GROUP_ID_PATTERN_CONFIG, "{AnotherKey}-{group.id}",
+                ResolvingClientConfig.TRANSACTIONAL_ID_PATTERN_CONFIG, "{AnotherKey}-{transactional.id}",
+                "AnotherKey", "value"
+        );
+        final var expectedConfigWithCurrentPattern = Map.of(
+                ResolvingClientConfig.TOPIC_PATTERN_CONFIG, "{AnotherKey}-{topic}",
+                ResolvingClientConfig.GROUP_ID_PATTERN_CONFIG, "{AnotherKey}-{group.id}",
+                ResolvingClientConfig.TRANSACTIONAL_ID_PATTERN_CONFIG, "{AnotherKey}-{transactional.id}",
+                "AnotherKey", "value",
+                "key.serializer", ByteArraySerializer.class,
+                "value.serializer", ByteArraySerializer.class
+        );
 
-        // when the runner starts in a separate thread and runs for some time
-        final var thread = new Thread(producerRunner);
-        thread.start();
-        // when the runner starts in a separate thread and runs for some time
-        Awaitility.await("Wait for the producer to finish")
-                .atMost(Duration.ofSeconds(MAXIMUM_WAIT_TIME))
-                .until(() -> !thread.isAlive() || mockProducer.history().size() >= 3);
-
-        // then when the runner has executed, only one record is produced.
-        producerRunner.stop();
-        log.info("history size={}", mockProducer.history().size());
-        assertEquals(3, mockProducer.history().size(), "should produce 3 records");
-    }
-
-    @Test
-    @DisplayName("Producing can stop based on a condition")
-    void verifyCondition() throws Exception {
-        // given a topology with a counting produce and a runner for it
-        var topologyDefinitionMap = loadDefinitions("produce-test-condition.yaml");
-        var testConfig = new KafkaProducerRunner.Config(topologyDefinitionMap, new HashMap<>());
-        producerRunner = runnerUnderTest(testConfig);
-
-        // when the runner starts in a separate thread and runs for some time
-        final var thread = new Thread(producerRunner);
-        thread.start();
-        // when the runner starts in a separate thread and runs for some time
-        Awaitility.await("Wait for the producer to finish")
-                .atMost(Duration.ofSeconds(MAXIMUM_WAIT_TIME))
-                .until(() -> !thread.isAlive() || mockProducer.history().size() >= 2);
-
-        // then when the runner has executed, only 'one' and 'two' were produced.
-        producerRunner.stop();
-        log.info("history size={}", mockProducer.history().size());
-        assertEquals(2, mockProducer.history().size(), "should stop after producing second record");
+        return Stream.of(
+                Arguments.of(named("NO PATTERN - Producing can stop based on a condition", "produce-test-condition.yaml"), inputConfigWithoutPatterns, expectedConfigWithoutPatterns, 2),
+                Arguments.of(named("COMPAT PATTERN - Producing can stop based on a condition", "produce-test-condition.yaml"), inputConfigWithCompatPatterns, expectedConfigWithCurrentPattern, 2),
+                Arguments.of(named("CURRENT PATTERN - Producing can stop based on a condition", "produce-test-condition.yaml"), inputConfigWithCurrentPatterns, expectedConfigWithCurrentPattern, 2),
+                Arguments.of(named("NO PATTERN - A fixed count of records can be produced", "produce-test-count-3.yaml"), inputConfigWithoutPatterns, expectedConfigWithoutPatterns, 3),
+                Arguments.of(named("COMPAT PATTERN - A fixed count of records can be produced", "produce-test-count-3.yaml"), inputConfigWithCompatPatterns, expectedConfigWithCurrentPattern, 3),
+                Arguments.of(named("CURRENT PATTERN - A fixed count of records can be produced", "produce-test-count-3.yaml"), inputConfigWithCurrentPatterns, expectedConfigWithCurrentPattern, 3),
+                Arguments.of(named("NO PATTERN - when `interval` is omitted only 1 record is produced", "produce-test-single.yaml"), inputConfigWithoutPatterns, expectedConfigWithoutPatterns, 1),
+                Arguments.of(named("COMPAT PATTERN - when `interval` is omitted only 1 record is produced", "produce-test-single.yaml"), inputConfigWithCompatPatterns, expectedConfigWithCurrentPattern, 1),
+                Arguments.of(named("CURRENT PATTERN - when `interval` is omitted only 1 record is produced", "produce-test-single.yaml"), inputConfigWithCurrentPatterns, expectedConfigWithCurrentPattern, 1)
+        );
     }
 
     /**
@@ -157,18 +183,26 @@ class KafkaProducerRunnerTest {
     }
 
     /**
-     * Create a KafkaProducerRunner from the given config, but with a mock Kafka producer.
-     *
-     * @param config a {@link io.axual.ksml.runner.backend.KafkaProducerRunner.Config}.
-     * @return a {@link KafkaProducerRunner} with a mocked producer.
+     * Supplier for mock producer
      */
-    private KafkaProducerRunner runnerUnderTest(KafkaProducerRunner.Config config) {
-        return new KafkaProducerRunner(config) {
-            @Override
-            protected Producer<byte[], byte[]> createProducer(Map<String, Object> config) {
-                return mockProducer;
-            }
-        };
+    static class MockProducerSupplier implements Function<Map<String, Object>, Producer<byte[], byte[]>> {
+        final Producer<byte[], byte[]> mockProducer;
+        final List<Map<String, Object>> capturedCreateProducerArguments = new ArrayList<>();
+
+        /**
+         * Instantiate the A with the given configuration and the mockProducer to return
+         *
+         * @param mockProducer the mocked producer to return
+         */
+        public MockProducerSupplier(Producer<byte[], byte[]> mockProducer) {
+            this.mockProducer = mockProducer;
+        }
+
+        @Override
+        public Producer<byte[], byte[]> apply(final Map<String, Object> producerConfig) {
+            capturedCreateProducerArguments.add(Collections.unmodifiableMap(producerConfig));
+            return mockProducer;
+        }
     }
 
     static boolean isRunningOnGraalVM() {

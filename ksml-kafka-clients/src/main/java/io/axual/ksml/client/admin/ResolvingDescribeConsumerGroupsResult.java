@@ -20,7 +20,9 @@ package io.axual.ksml.client.admin;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.client.exception.ClientException;
 import io.axual.ksml.client.resolving.GroupResolver;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.ConsumerGroupDescription;
 import org.apache.kafka.clients.admin.ExtendableDescribeConsumerGroupsResult;
 import org.apache.kafka.common.KafkaFuture;
@@ -30,6 +32,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 
+@Slf4j
 public class ResolvingDescribeConsumerGroupsResult extends ExtendableDescribeConsumerGroupsResult {
     protected final GroupResolver groupResolver;
     final Map<String, KafkaFuture<ConsumerGroupDescription>> describedGroups;
@@ -68,14 +71,13 @@ public class ResolvingDescribeConsumerGroupsResult extends ExtendableDescribeCon
                 .thenApply(unused -> {
                     try {
                         Map<String, ConsumerGroupDescription> allDescriptions = new HashMap<>();
-                        for (Entry<String, KafkaFuture<ConsumerGroupDescription>> entry : describedGroups
-                                .entrySet()) {
+                        for (Entry<String, KafkaFuture<ConsumerGroupDescription>> entry : describedGroups.entrySet()) {
                             allDescriptions.put(entry.getKey(), entry.getValue().get());
                         }
                         return allDescriptions;
                     } catch (InterruptedException | ExecutionException e) {
                         // Should be unreachable because of allOf statement
-                        throw new RuntimeException(e);
+                        throw new ClientException("Interrupted while waiting for DescribeConsumerGroups", e);
                     }
                 });
     }

@@ -20,34 +20,30 @@ package io.axual.ksml.client.producer;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.client.generic.ResolvingClientConfig;
-import io.axual.ksml.client.resolving.TransactionalIdPatternResolver;
-import io.axual.ksml.client.resolving.TransactionalIdResolver;
-import io.axual.ksml.client.util.MapUtil;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
+import io.axual.ksml.client.resolving.ResolvingClientConfig;
+import io.axual.ksml.client.resolving.TransactionalIdPatternResolver;
+import io.axual.ksml.client.util.MapUtil;
+
 public class ResolvingProducerConfig extends ResolvingClientConfig {
-    public static final String TRANSACTIONAL_ID_PATTERN_CONFIG = "transactional.id.pattern";
-    public static final String TRANSACTIONAL_ID = "transactional.id";
 
     private static final Logger log = LoggerFactory.getLogger(ResolvingProducerConfig.class);
-
-    private TransactionalIdResolver transactionalIdResolver;
 
     public ResolvingProducerConfig(Map<String, Object> configs) {
         super(configs);
         downstreamConfigs.remove(TRANSACTIONAL_ID_PATTERN_CONFIG);
 
-        // Apply resolved transactional id to downstream producer
-        final Object configuredTransactionalId = configs.get(TRANSACTIONAL_ID);
-        if (configuredTransactionalId instanceof String transactionalId) {
-            var transactionalIdPattern = configs.get(TRANSACTIONAL_ID_PATTERN_CONFIG);
+        // Apply resolved transactional id to downstream producer, if a transactional id was set
+        if (configs.get(ProducerConfig.TRANSACTIONAL_ID_CONFIG) instanceof String transactionalId) {
+            final var transactionalIdPattern = configs.get(TRANSACTIONAL_ID_PATTERN_CONFIG);
             if (transactionalIdPattern != null) {
-                var transactionalIdResolver = new TransactionalIdPatternResolver(transactionalIdPattern.toString(), MapUtil.toStringValues(configs));
-                downstreamConfigs.put(TRANSACTIONAL_ID, transactionalIdResolver.resolve(transactionalId));
+                final var transactionalIdResolver = new TransactionalIdPatternResolver(transactionalIdPattern.toString(), MapUtil.toStringValues(configs));
+                downstreamConfigs.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, transactionalIdResolver.resolve(transactionalId));
             } else {
                 log.warn("No transactional id pattern configured, leaving as is: transactional.id={}", transactionalId);
             }

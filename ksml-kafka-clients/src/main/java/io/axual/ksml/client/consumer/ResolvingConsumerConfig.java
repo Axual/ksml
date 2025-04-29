@@ -20,7 +20,7 @@ package io.axual.ksml.client.consumer;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.client.generic.ResolvingClientConfig;
+import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 
 import java.util.Map;
@@ -38,7 +38,7 @@ public class ResolvingConsumerConfig extends ResolvingClientConfig {
         // Apply resolving partition assignment strategy to downstream consumer
         if (configs.containsKey(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG)) {
             downstreamConfigs.put(ResolvingConsumerPartitionAssignorConfig.BACKING_ASSIGNOR_CONFIG, configs.get(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG));
-            downstreamConfigs.put(ResolvingConsumerPartitionAssignorConfig.TOPIC_RESOLVER_CONFIG, topicResolver);
+            downstreamConfigs.put(ResolvingConsumerPartitionAssignorConfig.ASSIGNOR_TOPIC_RESOLVER_CONFIG, topicResolver);
             downstreamConfigs.put(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, ResolvingConsumerPartitionAssignor.class.getName());
         }
     }
