@@ -28,12 +28,10 @@ import org.apache.kafka.clients.producer.MockProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.assertj.core.api.SoftAssertions;
-import org.assertj.core.util.Maps;
 import org.awaitility.Awaitility;
 import org.graalvm.home.Version;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -46,9 +44,9 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import io.axual.ksml.client.resolving.ResolvingClientConfig;
@@ -64,7 +62,6 @@ import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.type.UserType;
 import lombok.extern.slf4j.Slf4j;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Named.named;
 
 @Slf4j
@@ -89,7 +86,8 @@ class KafkaProducerRunnerTest {
         // given a topology with a single shot produce and a runner for it
         var topologyDefinitionMap = loadDefinitions(topologyDefinition);
         var testConfig = new KafkaProducerRunner.Config(topologyDefinitionMap, config);
-        var producerRunner = new RunnerUnderTest(testConfig, mockProducer);
+        var mockProducerSupplier = new MockProducerSupplier(mockProducer);
+        var producerRunner = new KafkaProducerRunner(testConfig, mockProducerSupplier);
 
         final var thread = new Thread(producerRunner);
         thread.start();
@@ -110,7 +108,7 @@ class KafkaProducerRunnerTest {
                 .isNotNull()
                 .size().isEqualTo(expectedRecordsProduced);
 
-        softly.assertThat(producerRunner.capturedCreateProducerArguments)
+        softly.assertThat(mockProducerSupplier.capturedCreateProducerArguments)
                 .as("Check the captured producer configuration is invoked only once with the expected configuration")
                 .size().isOne()
                 .returnToIterable()
@@ -186,25 +184,23 @@ class KafkaProducerRunnerTest {
     }
 
     /**
-     * Extend the KafkaProducerRunner to override the createProducer and capture the arguments
+     * Supplier for mock producer
      */
-    static class RunnerUnderTest extends KafkaProducerRunner {
+    static class MockProducerSupplier implements Function<Map<String, Object>, Producer<byte[], byte[]>> {
         final Producer<byte[], byte[]> mockProducer;
         final List<Map<String, Object>> capturedCreateProducerArguments = new ArrayList<>();
 
         /**
-         * Instantiate the RunnerUnderTest with the given configuration and the mockProducer to return
+         * Instantiate the A with the given configuration and the mockProducer to return
          *
-         * @param config       a {@link KafkaProducerRunner.Config}, propagated to the super class
-         * @param mockProducer the mocked producer to return on constryction
+         * @param mockProducer the mocked producer to return
          */
-        public RunnerUnderTest(final Config config, Producer<byte[], byte[]> mockProducer) {
-            super(config);
+        public MockProducerSupplier(Producer<byte[], byte[]> mockProducer) {
             this.mockProducer = mockProducer;
         }
 
         @Override
-        protected Producer<byte[], byte[]> createProducer(final Map<String, Object> producerConfig) {
+        public Producer<byte[], byte[]> apply(final Map<String, Object> producerConfig) {
             capturedCreateProducerArguments.add(Collections.unmodifiableMap(producerConfig));
             return mockProducer;
         }
