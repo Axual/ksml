@@ -29,9 +29,13 @@ import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.parser.ParseNode;
+import io.axual.ksml.type.UserType;
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TopologyDescription;
 import org.graalvm.home.Version;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
@@ -46,8 +50,18 @@ import java.nio.file.Paths;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
+@Slf4j
 class TopologyGeneratorBasicTest {
     private final StreamsBuilder streamsBuilder = new StreamsBuilder();
+
+    @BeforeAll
+    static void beforeAll() {
+        log.debug("Registering test notations");
+        final var mapper = new NativeDataObjectMapper();
+        final var jsonNotation = new JsonNotation("json", mapper);
+        ExecutionContext.INSTANCE.notationLibrary().register(new BinaryNotation(UserType.DEFAULT_NOTATION, mapper, jsonNotation::serde));
+        ExecutionContext.INSTANCE.notationLibrary().register(jsonNotation);
+    }
 
     @ParameterizedTest
     @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")

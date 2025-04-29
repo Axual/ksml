@@ -72,8 +72,6 @@
         <confluent.version>7.9.0</confluent.version>
         <findbugs.jsr305.version>3.0.2</findbugs.jsr305.version>
         <graalvm.version>24.2.0</graalvm.version>
-        <graalvm.polyglot.version>23.1.2</graalvm.polyglot.version>
-        <graalvm.python.version>23.1.2</graalvm.python.version>
         <guava.version>33.4.5-jre</guava.version>
         <jackson.version>2.18.3</jackson.version>
         <jakarta.soap.version>3.0.2</jakarta.soap.version>
