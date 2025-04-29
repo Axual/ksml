@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.axual.ksml.client.exception.InvalidPatternException;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -86,11 +87,12 @@ public class PatternResolver implements Resolver {
      *
      * @param pattern          the pattern to use
      * @param defaultFieldName the resource type that the pattern should end with
-     * @throws IllegalArgumentException thrown when a parameter is null, if pattern is invalid or if the defaultPlaceholderValue is empty
+     * @throws InvalidPatternException thrown when the pattern is null or malformed
+     * @throws IllegalArgumentException thrown the defaultFieldName is null or malformed
      */
     public PatternResolver(final String pattern, final String defaultFieldName, Map<String, String> defaultFieldValues) {
-        if (pattern == null) {
-            throw new IllegalArgumentException("pattern cannot be null");
+        if (pattern == null || pattern.trim().isEmpty()) {
+            throw new InvalidPatternException(pattern, "pattern cannot be null or empty");
         }
 
         if (defaultFieldName == null || defaultFieldName.trim().isEmpty()) {
@@ -102,23 +104,25 @@ public class PatternResolver implements Resolver {
         }
         this.pattern = pattern;
 
-        PatternParseResult parseResult = parsePattern(pattern, defaultFieldName);
+        final PatternParseResult parseResult = parsePattern(pattern, defaultFieldName);
+
         this.resolvePattern = parseResult.resolvePattern;
         this.unresolvePattern = parseResult.unresolvePattern;
         this.fields = Collections.unmodifiableList(parseResult.fields);
 
         // Validate that the defaultFieldName is used in the pattern
         if (!this.fields.contains(defaultFieldName)) {
-            throw new IllegalArgumentException("defaultFieldName must be used in the pattern: " + defaultFieldName);
+            throw new InvalidPatternException(pattern, "The defaultFieldName %s is not used in the pattern".formatted(defaultFieldName));
         }
         final var validFieldNames = new HashSet<>(defaultFieldValues.keySet());
         // Add defaultFieldName to the list of valid names
         validFieldNames.add(defaultFieldName);
 
-        for (String fieldName : parseResult.fields) {
-            if (!validFieldNames.contains(fieldName)) {
-                throw new IllegalArgumentException("Unknown fieldName '" + fieldName + "' used in pattern: " + pattern);
-            }
+        // Check for unknown field names in the pattern,
+        var unknownFieldNames = new ArrayList<>(parseResult.fields);
+        unknownFieldNames.removeIf(validFieldNames::contains);
+        if (!unknownFieldNames.isEmpty()) {
+            throw new InvalidPatternException(pattern, "Unknown field names used in the pattern: %s".formatted(unknownFieldNames));
         }
 
         this.defaultFieldName = defaultFieldName;
@@ -197,23 +201,26 @@ public class PatternResolver implements Resolver {
     }
 
     private static PatternParseResult parsePattern(final String pattern, final String defaultFieldName) {
-        if (pattern == null || pattern.trim().isEmpty()) {
-            throw new IllegalArgumentException(String.format("Invalid pattern: %s", pattern));
-        }
-
         // Check for unbalanced braces
-        int openBraces = 0;
-        for (char c : pattern.toCharArray()) {
-            if (c == '{') openBraces++;
-            else if (c == '}') openBraces--;
-
-            if (openBraces < 0) {
-                throw new IllegalArgumentException(String.format("Invalid pattern: %s", pattern));
+        var openPosition = Integer.MIN_VALUE;
+        for (int position = 0; position < pattern.length(); position++) {
+            final var character = pattern.charAt(position);
+            if (character == '{') {
+                if (openPosition >= 0) {
+                    throw new InvalidPatternException(pattern, "Found open brace at position %d without closing previous open brace at position %d".formatted(position, openPosition));
+                }
+                openPosition = position;
+            } else if (character == '}') {
+                if (openPosition < 0) {
+                    throw new InvalidPatternException(pattern, "Found close brace at position %d with no corresponding open brace".formatted(position));
+                }
+                // Found corresponding brace
+                openPosition = Integer.MIN_VALUE;
             }
         }
 
-        if (openBraces != 0) {
-            throw new IllegalArgumentException(String.format("Invalid pattern: %s", pattern));
+        if (openPosition >= 0) {
+            throw new InvalidPatternException(pattern, "Found open brace at position %d with no corresponding close brace".formatted(openPosition));
         }
 
         var matcher = FIELD_NAME_OR_LITERAL_PATTERN.matcher(pattern);
@@ -227,14 +234,14 @@ public class PatternResolver implements Resolver {
         while (matcher.find()) {
             count++;
             if (matcher.start() != pos) {
-                throw new IllegalArgumentException(String.format("Pattern contains faulty characters at position %d: %s", pos, pattern));
+                throw new InvalidPatternException(pattern, "Faulty characters detected at position %d".formatted(pos));
             }
             var element = matcher.group();
             pos += element.length();
             if (element.startsWith(FIELD_NAME_PREFIX) && element.endsWith(FIELD_NAME_SUFFIX)) {
                 // Treat the element as a placeholder
                 if (count > 0 && lastElementWasPlaceholder) {
-                    throw new IllegalArgumentException(String.format("Two consecutive placeholders found in pattern: %s", pattern));
+                    throw new InvalidPatternException(pattern, "Two consecutive placeholders found");
                 }
                 var field = element.substring(1, element.length() - 1);
                 fields.add(field);
@@ -243,7 +250,7 @@ public class PatternResolver implements Resolver {
             } else {
                 // Treat the element as a string literal
                 if (count > 0 && !lastElementWasPlaceholder) {
-                    throw new IllegalArgumentException(String.format("Two consecutive literals found in pattern: %s", pattern));
+                    throw new InvalidPatternException(pattern, "Two consecutive placeholders found");
                 }
                 pat.append(escape(element));
                 lastElementWasPlaceholder = false;
@@ -252,7 +259,7 @@ public class PatternResolver implements Resolver {
         pat.append("$");
 
         if (count == 0) {
-            throw new IllegalArgumentException(String.format("Illegal pattern provided: %s", pattern));
+            throw new InvalidPatternException(pattern, "No fields found");
         }
 
         return PatternParseResult.builder()

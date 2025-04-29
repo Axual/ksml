@@ -29,6 +29,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Map;
 
+import io.axual.ksml.client.exception.InvalidPatternException;
+
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 class GroupPatternResolverTest {
@@ -72,7 +74,7 @@ class GroupPatternResolverTest {
     void nullPatternException(String pattern) {
         assertThatCode(() -> new GroupPatternResolver(pattern, BASE_CONFIG))
                 .as("Instantiation should cause exception")
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(InvalidPatternException.class);
     }
 
 }

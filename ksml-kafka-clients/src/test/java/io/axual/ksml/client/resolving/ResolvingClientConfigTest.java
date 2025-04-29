@@ -14,6 +14,7 @@ class ResolvingClientConfigTest {
     private static final String GROUP_ID_PATTERN_CONFIG = "axual.group.id.pattern";
     private static final String TRANSACTIONAL_ID_PATTERN_CONFIG = "axual.transactional.id.pattern";
 
+    private static final String EXTRA_PATTERN_FIELD = "instance";
     private static final String TOPIC_PATTERN = "{instance}-{topic}";
     private static final String GROUP_ID_PATTERN = "{instance}-{group.id}";
     private static final String TRANSACTIONAL_ID_PATTERN = "{instance}-{transactional.id}";
@@ -28,7 +29,8 @@ class ResolvingClientConfigTest {
         var configAll = Map.of(
                 TOPIC_PATTERN_CONFIG, TOPIC_PATTERN,
                 GROUP_ID_PATTERN_CONFIG, GROUP_ID_PATTERN,
-                TRANSACTIONAL_ID_PATTERN_CONFIG, TRANSACTIONAL_ID_PATTERN
+                TRANSACTIONAL_ID_PATTERN_CONFIG, TRANSACTIONAL_ID_PATTERN,
+                EXTRA_PATTERN_FIELD, ""
         );
 
         final var clientConfig = new ResolvingClientConfig(configAll);

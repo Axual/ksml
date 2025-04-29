@@ -20,6 +20,7 @@ package io.axual.ksml.client.resolving;
  * =========================LICENSE_END==================================
  */
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -32,6 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import io.axual.ksml.client.exception.InvalidPatternException;
 import lombok.extern.slf4j.Slf4j;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -106,11 +108,12 @@ class PatternResolverTest {
     @DisplayName("Invalid patterns throws exceptions")
     @NullSource
     @EmptySource
-    @ValueSource(strings = {"   ", "{c", "c}", "c", "{c}-{b", "{c}-b}", "{c}-{b}-{a", "{c}-{b}-a}", "{c}-{d}"})
+    @ValueSource(strings = {"   ", "{c", "c}", "c", "{c}-{b", "{c}-b}", "{c}-{b}-{a", "{c}-{b}-a}", "{c}-{d}", "{d}"})
     void invalidPattern(String pattern) {
         assertThatCode(() -> new PatternResolver(pattern, TEST_FIELD_C, UNRESOLVED_CONTEXT))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("pattern")
+                .isInstanceOf(InvalidPatternException.class)
+                .asInstanceOf(InstanceOfAssertFactories.type(InvalidPatternException.class))
+                .returns(pattern, InvalidPatternException::pattern)
         ;
     }
 
@@ -118,7 +121,7 @@ class PatternResolverTest {
     @DisplayName("Invalid defaultField throws exceptions")
     @NullSource
     @EmptySource
-    @ValueSource(strings = {"   ", "{a", "a}", "d"})
+    @ValueSource(strings = {"   ", "{a", "a}"})
     void invalidDefaultField(String defaultFieldName) {
         assertThatCode(() -> new PatternResolver(TEST_PATTERN_1, defaultFieldName, UNRESOLVED_CONTEXT))
                 .isInstanceOf(IllegalArgumentException.class)
