@@ -54,14 +54,15 @@ public class KafkaProducerRunner implements Runner {
     @Builder
     public record Config(Map<String, TopologyDefinition> definitions, Map<String, String> kafkaConfig) {
         public Config(final Map<String, TopologyDefinition> definitions, final Map<String, String> kafkaConfig) {
+            var processedKafkaConfig = new HashMap<>(kafkaConfig);
             this.definitions = definitions;
             // Check if a resolving client is required
-            if (ResolvingClientConfig.configRequiresResolving(kafkaConfig)) {
+            if (ResolvingClientConfig.configRequiresResolving(processedKafkaConfig)) {
                 log.info("Using resolving clients for producer processing");
                 // Replace the deprecated configuration keys with the current ones
-                ResolvingClientConfig.replaceDeprecatedConfigKeys(kafkaConfig);
+                ResolvingClientConfig.replaceDeprecatedConfigKeys(processedKafkaConfig);
             }
-            this.kafkaConfig = kafkaConfig;
+            this.kafkaConfig = processedKafkaConfig;
         }
     }
 
