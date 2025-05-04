@@ -28,11 +28,14 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class KSMLRunnerConfigTest {
 
     private ObjectMapper objectMapper;
+    private final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 
     @BeforeEach
     void setup() {
@@ -47,5 +50,55 @@ class KSMLRunnerConfigTest {
 
         assertNotNull(ksmlRunnerConfig.ksmlConfig());
         assertNotNull(ksmlRunnerConfig.kafkaConfig());
+    }
+
+    @Test
+    @DisplayName("Missing pythonContext yields default PythonContextConfig")
+    void missingPythonContextDefaults() throws Exception {
+        var yaml = """
+            configDirectory: /tmp/config
+            schemaDirectory: /tmp/schema
+            storageDirectory: /tmp/storage
+            definitions:
+              foo: {}
+            """;
+        var cfg = mapper.readValue(yaml, KSMLConfig.class);
+
+        var pyCfg = cfg.pythonContextConfig();
+        // all flags should be default false
+        assertFalse(pyCfg.allowHostFileAccess());
+        assertFalse(pyCfg.allowHostSocketAccess());
+        assertFalse(pyCfg.allowNativeAccess());
+        assertFalse(pyCfg.allowCreateProcess());
+        assertFalse(pyCfg.allowCreateThread());
+        assertFalse(pyCfg.inheritEnvironmentVariables());
+    }
+
+    @Test
+    @DisplayName("Explicit pythonContext in YAML is picked up")
+    void explicitPythonContext() throws Exception {
+        var yaml = """
+            configDirectory: /tmp/config
+            schemaDirectory: /tmp/schema
+            storageDirectory: /tmp/storage
+            definitions:
+              foo: {}
+            pythonContext:
+              allowHostFileAccess: true
+              allowHostSocketAccess: false
+              allowNativeAccess: true
+              allowCreateProcess: false
+              allowCreateThread: true
+              inheritEnvironmentVariables: true
+            """;
+        var cfg = mapper.readValue(yaml, KSMLConfig.class);
+
+        var pyCfg = cfg.pythonContextConfig();
+        assertTrue(pyCfg.allowHostFileAccess(),     "should pick up allowHostFileAccess=true");
+        assertFalse(pyCfg.allowHostSocketAccess(),  "should pick up allowHostSocketAccess=false");
+        assertTrue(pyCfg.allowNativeAccess(),       "should pick up allowNativeAccess=true");
+        assertFalse(pyCfg.allowCreateProcess(),     "should pick up allowCreateProcess=false");
+        assertTrue(pyCfg.allowCreateThread(),       "should pick up allowCreateThread=true");
+        assertTrue(pyCfg.inheritEnvironmentVariables(), "should pick up inheritEnvironmentVariables=true");
     }
 }
