@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.data.util.JsonNodeUtil;
 import io.axual.ksml.generator.YAMLObjectMapper;
+import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.runner.exception.ConfigException;
 import lombok.Builder;
 import lombok.Getter;
@@ -81,6 +82,14 @@ public class KSMLConfig {
     private Map<String, Object> definitions;
     @JsonProperty("schemas")
     private Map<String, Object> schemas;
+    @JsonProperty("pythonContext")
+    private PythonContextConfig pythonContextConfig;
+
+    public PythonContextConfig pythonContextConfig() {
+        return pythonContextConfig != null
+                ? pythonContextConfig
+                : PythonContextConfig.builder().build();
+    }
 
     private String getDirectory(String configVariable, String directory) {
         return getDirectory(configVariable, directory, false);

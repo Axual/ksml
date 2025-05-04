@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 class PythonFunctionTest {
-    final PythonContext context = new PythonContext();
+    final PythonContext context = new PythonContext(PythonContextConfig.builder().build());
     final ParameterDefinition one = new ParameterDefinition("one", DataInteger.DATATYPE);
     final ParameterDefinition two = new ParameterDefinition("two", DataInteger.DATATYPE);
     final ParameterDefinition[] params = new ParameterDefinition[]{one, two};
@@ -99,8 +99,8 @@ class PythonFunctionTest {
     }
 
     @Test
-    /**
-     * Test that Null Key/Values are accepted as parameters
+    /*
+      Test that Null Key/Values are accepted as parameters
      */
     void testNullKeyValue() {
         final var stringResultType = new UserType(UserType.DEFAULT_NOTATION, DataString.DATATYPE);
