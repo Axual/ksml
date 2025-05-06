@@ -15,6 +15,9 @@
                     "type": "string"
                 }
             }
+        },     "deploymentMode": {
+            "type": "string",
+            "pattern": "^(?i)(StatefulSet|Job)$"
         },
         "fullnameOverride": {
             "type": "string"

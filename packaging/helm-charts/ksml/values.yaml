@@ -2,6 +2,8 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+deploymentMode: StatefulSet
+
 replicaCount: 1
 
 image:
@@ -319,7 +321,7 @@ prometheus:
         type: GAUGE
         attrNameSnakeCase: true
 
-    
+
 
 serviceMonitor:
   # -- Enables creation of Prometheus Operator [ServiceMonitor](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.ServiceMonitor).

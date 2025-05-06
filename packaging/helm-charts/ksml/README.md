@@ -6,10 +6,14 @@
 * [Prerequisites](#prerequisites)
 * [Installing the Chart](#installing-the-chart)
 * [Uninstalling the Chart](#uninstalling-the-chart)
+* [Deployment modes](#deployment-modes)
+  * [StatefulSet deployments for pipelines](#statefulset-deployment-for-pipeline-processing)
+  * [Job deployments for data generators](#job-deployment-for-data-generators)
 * [Configuration](#configuration)
 * [Examples](#examples)
   * [Plain Kafka SASL Connection](#plain-kafka-sasl-connection)
   * [Axual Kafka SASL Connection](#axual-kafka-sasl-connection)
+  * [Run as a Kubernetes Job](#run-ksml-as-a-kubernetes-job)
 
 ## Introduction
 
@@ -44,13 +48,39 @@ $ helm uninstall ksml -n streaming
 
 The command removes all the Kubernetes components associated with the chart and deletes the release.
 
+## Deployment Modes
+
+KSML offers both data generation as pipeline processing logic. To better match these use cases
+Deployment modes have been introduced, controlled by the `deploymentMode` configuration value
+
+### StatefulSet deployment for pipeline processing
+
+By default a KSML application deployed with this chart will run as a Kubernetes `StatefulSet`. 
+This enables predictable horizontal scaling and identities for the replicas.
+
+A `StatefulSet` deployment will always try to meet the number of running replicas, and will restart if the 
+KSML application completed successfully.
+
+### Job deployment for data generators
+
+The `Job` deployment mode will start the KSML application as a Kubernetes `Job`.
+
+The created KSML job will run once, and won't restart on failure or successful completion. This is very
+useful for data generators which are defined with an end clause. This allows application owners to
+check the deployment data and logs even after completion.
+
+> **Warning**: the replicas and volume claim templates configuration options are ignored for Job deployments 
+
+> **Warning**: Job deployments can not be updated, but must be removed and recreated 
+
+
 ## Configuration
 
 The following table lists the configurable parameters of the `ksml` chart and their default values.
 
 | Parameter                                          | Description                                                                                                                                                                                                                         | Default                                                                                        |
 |----------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|
-| replicaCount                                       |                                                                                                                                                                                                                                     | <code>1</code>                                                                                 |
+| replicaCount                                       |                                                                                                                                                                                                                                     | <code>1</code>  _                                                                              | deploymentMode                                       |     Determing if the KSML Application runs as a StatefulSet or a Job. Valid values are <code>StatefulSet</code> and <code>Job</code>                      | <code>StatefulSet</code>_                                                                                 |
 | image.repository                                   | Registry to pull the image from and the name of the image.                                                                                                                                                                          | <code>docker.io/axual/ksml</code>                                                              |
 | image.pullPolicy                                   | One of `Always`, `IfNotPresent`, or `Never`.                                                                                                                                                                                        | <code>IfNotPresent</code>                                                                      |
 | image.tag                                          | Override the image tag whose default is the chart `appVersion`.                                                                                                                                                                     | <code>""</code>                                                                                |
@@ -284,6 +314,116 @@ ksmlRunnerConfig:
     group.id.pattern: '{tenant}-{instance}-{environment}-{group.id}'
     topic.pattern: '{tenant}-{instance}-{environment}-{topic}'
     transactional.id.pattern: '{tenant}-{instance}-{environment}-{transactional.id}'
+
+ksmlDefinitions:
+  generator.yaml: |
+    # This example shows how to generate data and have it sent to a target topic in a given format.
+
+    functions:
+      generate_sensordata_message:
+        type: generator
+        globalCode: |
+          import time
+          import random
+          sensorCounter = 0
+        code: |
+          global sensorCounter
+
+          key = "sensor"+str(sensorCounter)           # Set the key to return ("sensor0" to "sensor9")
+          sensorCounter = (sensorCounter+1) % 10      # Increase the counter for next iteration
+
+          # Generate some random sensor measurement data
+          types = { 0: { "type": "AREA", "unit": random.choice([ "m2", "ft2" ]), "value": str(random.randrange(1000)) },
+                    1: { "type": "HUMIDITY", "unit": random.choice([ "g/m3", "%" ]), "value": str(random.randrange(100)) },
+                    2: { "type": "LENGTH", "unit": random.choice([ "m", "ft" ]), "value": str(random.randrange(1000)) },
+                    3: { "type": "STATE", "unit": "state", "value": random.choice([ "off", "on" ]) },
+                    4: { "type": "TEMPERATURE", "unit": random.choice([ "C", "F" ]), "value": str(random.randrange(-100, 100)) }
+                  }
+
+          # Build the result value using any of the above measurement types
+          value = { "name": key, "timestamp": str(round(time.time()*1000)), **random.choice(types) }
+          value["color"] = random.choice([ "black", "blue", "red", "yellow", "white" ])
+          value["owner"] = random.choice([ "Alice", "Bob", "Charlie", "Dave", "Evan" ])
+          value["city"] = random.choice([ "Amsterdam", "Xanten", "Utrecht", "Alkmaar", "Leiden" ])
+
+          if random.randrange(10) == 0:
+            value = None
+        expression: (key, value)                      # Return a message tuple with the key and value
+        resultType: (string, json)                    # Indicate the type of key and value
+
+    producers:
+      sensordata_json_producer:
+        generator: generate_sensordata_message
+        interval: 444
+        to:
+          topic: ksml_sensordata_json
+          keyType: string
+          valueType: json
+    
+applicationServer:
+  enabled: true
+  port: "8080"
+
+prometheus:
+  enabled: true
+  port: "9993"
+  config:
+    lowercaseOutputName: true
+    lowercaseOutputLabelNames: true
+    rules:
+      - pattern: 'ksml<type=app-info, app-id=(.+), app-name=(.+), app-version=(.+), build-time=(.+)>Value:'
+        name: ksml_app_info
+        labels:
+          app_id: "$1"
+          name: "$2"
+          version: "$3"
+          build_time: "$4"
+        type: GAUGE
+        value: 1
+        cached: true
+      - pattern: .*
+
+logging:
+  configFile: '/ksml-logging/logback.xml'
+  jsonEnabled: false
+  patterns:
+    stdout: '%date{"yyyy-MM-dd''T''HH:mm:ss,SSSXXX", UTC} %-5level %logger{36} - %msg%n'
+    stderr: '%date{"yyyy-MM-dd''T''HH:mm:ss,SSSXXX", UTC} %-5level %logger{36} - %msg%n'
+  loggers:
+    org.apache.kafka: INFO
+    org.apache.kafka.streams.StreamsConfig: INFO
+    org.apache.kafka.clients.consumer.ConsumerConfig: INFO
+```
+</details>
+
+
+### Run KSML as a Kubernetes Job
+<details>
+  <summary>Example configuration to deploy the KSML application as a Job</summary>
+By deploying as a job the pod running the KSML code will not restart on completion of the pods.
+
+```YAML
+image:
+  tag: "snapshot"
+
+deploymentMode: "Job"
+
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "250m"
+  limits:
+    memory: "768Mi"
+    cpu: "500m"
+
+ksmlRunnerConfig:
+  definitions:
+    generate: "generator.yaml"
+  kafka:
+    application.id: "example.datagen"
+    bootstrap.servers: "broker:9092"
+    security.protocol: PLAINTEXT
+
 
 ksmlDefinitions:
   generator.yaml: |

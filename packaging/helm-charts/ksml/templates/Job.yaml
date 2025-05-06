@@ -1,17 +1,11 @@
-{{- if eq "statefulset" (lower .Values.deploymentMode) }}
-apiVersion: apps/v1
-kind: StatefulSet
+{{- if eq "job" (lower .Values.deploymentMode) }}
+apiVersion: batch/v1
+kind: Job
 metadata:
   name: {{ include "ksml.fullname" . }}
   labels:
     {{- include "ksml.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
-  selector:
-    matchLabels:
-      {{- include "ksml.selectorLabels" . | nindent 6 }}
-  serviceName: {{ include "ksml.fullname" . }}-headless
-  podManagementPolicy: Parallel
   template:
     metadata:
       annotations:
@@ -32,6 +26,7 @@ spec:
       serviceAccountName: {{ include "ksml.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      restartPolicy: Never
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -48,18 +43,6 @@ spec:
               containerPort: {{ .Values.prometheus.port }}
               protocol: TCP
             {{- end }}
-          {{- if .Values.startupProbe }}
-          startupProbe:
-            {{- toYaml .Values.startupProbe | nindent 12 }}
-          {{- end }}
-          {{- if .Values.readinessProbe }}
-          readinessProbe:
-            {{- toYaml .Values.readinessProbe | nindent 12 }}
-          {{- end }}
-          {{- if .Values.livenessProbe }}
-          livenessProbe:
-            {{- toYaml .Values.livenessProbe | nindent 12 }}
-          {{- end }}
           env:
             - name: "KSML_K8S_POD_NAME"
               valueFrom:
@@ -88,11 +71,9 @@ spec:
         - name: ksml-logging
           configMap:
             name: {{ include "ksml.fullname" . }}-logging
-        {{- if not .Values.store.spec }}
         - name: ksml-store
           emptyDir:
             sizeLimit: 10Mi
-        {{- end }}
       {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -117,15 +98,4 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- end }}
-
-  {{- if .Values.store.spec }}
-  volumeClaimTemplates:
-    - metadata:
-        name: ksml-store
-      spec:
-        {{- toYaml .Values.store.spec | nindent 8 }}
-  {{- end }}
-  {{- with .Values.volumeClaimTemplates }}
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
 {{- end }}
