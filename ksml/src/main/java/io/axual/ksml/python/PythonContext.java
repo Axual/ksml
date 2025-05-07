@@ -46,11 +46,7 @@ public class PythonContext {
     public PythonContext(PythonContextConfig config) {
         this.converter = new DataObjectConverter();
 
-        log.debug("Setting up new Python context (fileAccess={}, socketAccess={}, nativeAccess={}, " +
-                        "createProcess={}, createThread={}, inheritEnv={})",
-                config.allowHostFileAccess(), config.allowHostSocketAccess(),
-                config.allowNativeAccess(), config.allowCreateProcess(),
-                config.allowCreateThread(), config.inheritEnvironmentVariables());
+        log.debug("Setting up new Python context: {}", config);
         try {
             context = Context.newBuilder(PYTHON)
                     .allowIO(IOAccess.newBuilder()

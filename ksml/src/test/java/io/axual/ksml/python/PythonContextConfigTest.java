@@ -2,10 +2,9 @@ package io.axual.ksml.python;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class PythonContextConfigTest {
 
@@ -15,12 +14,27 @@ class PythonContextConfigTest {
     @DisplayName("Builder defaults all flags to false")
     void defaultBuilderFlags() {
         var cfg = PythonContextConfig.builder().build();
-        assertFalse(cfg.allowHostFileAccess(),     "allowHostFileAccess should default to false");
-        assertFalse(cfg.allowHostSocketAccess(),   "allowHostSocketAccess should default to false");
-        assertFalse(cfg.allowNativeAccess(),       "allowNativeAccess should default to false");
-        assertFalse(cfg.allowCreateProcess(),      "allowCreateProcess should default to false");
-        assertFalse(cfg.allowCreateThread(),       "allowCreateThread should default to false");
-        assertFalse(cfg.inheritEnvironmentVariables(), "inheritEnvironmentVariables should default to false");
+
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(cfg.allowHostFileAccess())
+                    .as("allowHostFileAccess should default to false")
+                    .isFalse();
+            softly.assertThat(cfg.allowHostSocketAccess())
+                    .as("allowHostSocketAccess should default to false")
+                    .isFalse();
+            softly.assertThat(cfg.allowNativeAccess())
+                    .as("allowNativeAccess should default to false")
+                    .isFalse();
+            softly.assertThat(cfg.allowCreateProcess())
+                    .as("allowCreateProcess should default to false")
+                    .isFalse();
+            softly.assertThat(cfg.allowCreateThread())
+                    .as("allowCreateThread should default to false")
+                    .isFalse();
+            softly.assertThat(cfg.inheritEnvironmentVariables())
+                    .as("inheritEnvironmentVariables should default to false")
+                    .isFalse();
+        });
     }
 
     @Test
@@ -36,11 +50,25 @@ class PythonContextConfigTest {
             """;
         var cfg = mapper.readValue(yaml, PythonContextConfig.class);
 
-        assertTrue(cfg.allowHostFileAccess(),     "allowHostFileAccess should be true");
-        assertTrue(cfg.allowHostSocketAccess(),   "allowHostSocketAccess should be true");
-        assertTrue(cfg.allowNativeAccess(),       "allowNativeAccess should be true");
-        assertTrue(cfg.allowCreateProcess(),      "allowCreateProcess should be true");
-        assertTrue(cfg.allowCreateThread(),       "allowCreateThread should be true");
-        assertTrue(cfg.inheritEnvironmentVariables(), "inheritEnvironmentVariables should be true");
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(cfg.allowHostFileAccess())
+                    .as("allowHostFileAccess should be true")
+                    .isTrue();
+            softly.assertThat(cfg.allowHostSocketAccess())
+                    .as("allowHostSocketAccess should be true")
+                    .isTrue();
+            softly.assertThat(cfg.allowNativeAccess())
+                    .as("allowNativeAccess should be true")
+                    .isTrue();
+            softly.assertThat(cfg.allowCreateProcess())
+                    .as("allowCreateProcess should be true")
+                    .isTrue();
+            softly.assertThat(cfg.allowCreateThread())
+                    .as("allowCreateThread should be true")
+                    .isTrue();
+            softly.assertThat(cfg.inheritEnvironmentVariables())
+                    .as("inheritEnvironmentVariables should be true")
+                    .isTrue();
+        });
     }
 }

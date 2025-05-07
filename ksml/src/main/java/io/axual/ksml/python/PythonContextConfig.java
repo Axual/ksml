@@ -23,11 +23,13 @@ package io.axual.ksml.python;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 import lombok.extern.jackson.Jacksonized;
 
 @Getter
 @Builder
 @Jacksonized
+@ToString
 public class PythonContextConfig {
     @JsonProperty("allowHostFileAccess")
     @Builder.Default
