@@ -25,6 +25,7 @@ import io.axual.ksml.definition.*;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.PythonContext;
+import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.python.PythonFunction;
 import io.axual.ksml.store.StoreUtil;
 import io.axual.ksml.stream.*;
@@ -61,9 +62,15 @@ public class TopologyBuildContext {
     private final Map<String, StreamWrapper> streamWrappersByTopic = new HashMap<>();
 
     public TopologyBuildContext(StreamsBuilder builder, TopologyResources resources) {
+        this(builder, resources, PythonContextConfig.builder().build());
+    }
+
+    public TopologyBuildContext(StreamsBuilder builder,
+                                TopologyResources resources,
+                                PythonContextConfig pcConfig) {
         this.builder = builder;
         this.resources = resources;
-        this.pythonContext = new PythonContext();
+        this.pythonContext = new PythonContext(pcConfig);
     }
 
     public String namespace() {

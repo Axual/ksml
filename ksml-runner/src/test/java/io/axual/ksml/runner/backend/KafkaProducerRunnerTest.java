@@ -59,6 +59,7 @@ import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.metric.Metrics;
 import io.axual.ksml.parser.ParseNode;
+import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.type.UserType;
 import lombok.extern.slf4j.Slf4j;
 
@@ -85,7 +86,11 @@ class KafkaProducerRunnerTest {
     void verifyProducer(String topologyDefinition, Map<String, String> config, Map<String, String> expectedProducerConfig, int expectedRecordsProduced) throws Exception {
         // given a topology with a single shot produce and a runner for it
         var topologyDefinitionMap = loadDefinitions(topologyDefinition);
-        var testConfig = new KafkaProducerRunner.Config(topologyDefinitionMap, config);
+        var testConfig = KafkaProducerRunner.Config.builder()
+                .definitions(topologyDefinitionMap)
+                .kafkaConfig(config)
+                .pythonContextConfig(PythonContextConfig.builder().build())
+                .build();
         var mockProducerSupplier = new MockProducerSupplier(mockProducer);
         var producerRunner = new KafkaProducerRunner(testConfig, mockProducerSupplier);
 

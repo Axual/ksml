@@ -29,6 +29,7 @@ import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.operation.StoreOperation;
 import io.axual.ksml.operation.StreamOperation;
+import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.stream.StreamWrapper;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
@@ -42,18 +43,22 @@ public class TopologyGenerator {
     private static final Logger LOG = LoggerFactory.getLogger(TopologyGenerator.class);
     private final String applicationId;
     private final Properties optimization;
+    private final PythonContextConfig pythonContextConfig;
 
     public TopologyGenerator(String applicationId) {
-        this(applicationId, null);
+        this(applicationId, null, PythonContextConfig.builder().build());
     }
 
-    public TopologyGenerator(String applicationId, String optimization) {
+    public TopologyGenerator(String applicationId, String optimization, PythonContextConfig pythonContextConfig) {
         // Parse configuration
         this.applicationId = applicationId;
         this.optimization = new Properties();
         if (optimization != null) {
             this.optimization.put(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, optimization);
         }
+            this.pythonContextConfig = pythonContextConfig != null
+                    ? pythonContextConfig
+                    : PythonContextConfig.builder().build();
     }
 
     public Topology create(StreamsBuilder streamsBuilder, Map<String, TopologyDefinition> definitions) {
@@ -62,7 +67,7 @@ public class TopologyGenerator {
         final var stores = new TreeMap<String, StateStoreDefinition>();
 
         definitions.forEach((name, definition) -> {
-            final var context = new TopologyBuildContext(streamsBuilder, definition);
+            final var context = new TopologyBuildContext(streamsBuilder, definition, pythonContextConfig);
             generate(definition, context);
             stores.putAll(definition.stateStores());
         });

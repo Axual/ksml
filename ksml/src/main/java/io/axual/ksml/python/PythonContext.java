@@ -43,19 +43,24 @@ public class PythonContext {
     @Getter
     private final DataObjectConverter converter;
 
-    public PythonContext() {
+    public PythonContext(PythonContextConfig config) {
         this.converter = new DataObjectConverter();
 
-        log.debug("Setting up new Python context");
+        log.debug("Setting up new Python context: {}", config);
         try {
             context = Context.newBuilder(PYTHON)
                     .allowIO(IOAccess.newBuilder()
-                            .allowHostFileAccess(true)
-                            .allowHostSocketAccess(false)
+                            .allowHostFileAccess(config.allowHostFileAccess())
+                            .allowHostSocketAccess(config.allowHostSocketAccess())
                             .build())
 //                    .allowIO(IOAccess.ALL)
-//                    .allowNativeAccess(false)
-                    .allowNativeAccess(true)
+                    .allowNativeAccess(config.allowNativeAccess())
+                    .allowCreateProcess(config.allowCreateProcess())
+                    .allowCreateThread(config.allowCreateThread())
+                    .allowEnvironmentAccess(
+                            config.inheritEnvironmentVariables()
+                                    ? EnvironmentAccess.INHERIT
+                                    : EnvironmentAccess.NONE)
                     .allowPolyglotAccess(
                             PolyglotAccess.newBuilder()
                                     .allowBindingsAccess(PYTHON)

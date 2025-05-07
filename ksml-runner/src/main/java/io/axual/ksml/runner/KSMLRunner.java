@@ -167,15 +167,19 @@ public class KSMLRunner {
                 pipelineSpecs.clear();
             }
 
-            final var producer = producerSpecs.isEmpty() ? null : new KafkaProducerRunner(KafkaProducerRunner.Config.builder()
-                    .definitions(producerSpecs)
-                    .kafkaConfig(config.kafkaConfig())
-                    .build());
+            final var producer = producerSpecs.isEmpty() ? null : new KafkaProducerRunner(
+                    KafkaProducerRunner.Config.builder()
+                            .definitions(producerSpecs)
+                            .kafkaConfig(config.kafkaConfig())
+                            .pythonContextConfig(ksmlConfig.pythonContextConfig())
+                            .build()
+            );
             final var streams = pipelineSpecs.isEmpty() ? null : new KafkaStreamsRunner(KafkaStreamsRunner.Config.builder()
                     .storageDirectory(ksmlConfig.storageDirectory())
                     .appServer(ksmlConfig.applicationServerConfig())
                     .definitions(pipelineSpecs)
                     .kafkaConfig(config.kafkaConfig())
+                    .pythonContextConfig(ksmlConfig.pythonContextConfig())
                     .build());
 
             if (producer != null || streams != null) {

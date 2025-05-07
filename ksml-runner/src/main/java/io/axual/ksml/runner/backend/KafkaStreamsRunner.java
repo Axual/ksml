@@ -39,6 +39,7 @@ import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.execution.ExecutionErrorHandler;
 import io.axual.ksml.generator.TopologyDefinition;
+import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.runner.config.ApplicationServerConfig;
 import io.axual.ksml.runner.exception.RunnerException;
 import io.axual.ksml.runner.streams.KSMLClientSupplier;
@@ -56,8 +57,14 @@ public class KafkaStreamsRunner implements Runner {
     public record Config(Map<String, TopologyDefinition> definitions,
                          String storageDirectory,
                          ApplicationServerConfig appServer,
-                         Map<String, String> kafkaConfig) {
-        public Config(final Map<String, TopologyDefinition> definitions, final String storageDirectory, final ApplicationServerConfig appServer, final Map<String, String> kafkaConfig) {
+                         Map<String, String> kafkaConfig,
+                         PythonContextConfig pythonContextConfig) {
+        public Config(
+                final Map<String, TopologyDefinition> definitions,
+                final String storageDirectory,
+                final ApplicationServerConfig appServer,
+                final Map<String, String> kafkaConfig,
+                final PythonContextConfig pythonContextConfig) {
             this.definitions = definitions;
             this.storageDirectory = storageDirectory;
             this.appServer = appServer;
@@ -71,7 +78,7 @@ public class KafkaStreamsRunner implements Runner {
                 processedKafkaConfig.put(StreamsConfig.DEFAULT_CLIENT_SUPPLIER_CONFIG, KSMLClientSupplier.class.getCanonicalName());
             }
             this.kafkaConfig = processedKafkaConfig;
-
+            this.pythonContextConfig = pythonContextConfig;
         }
     }
 
@@ -94,7 +101,7 @@ public class KafkaStreamsRunner implements Runner {
         final var topologyConfig = new TopologyConfig(streamsConfig);
         final var streamsBuilder = new StreamsBuilder(topologyConfig);
         var optimize = streamsProps.getOrDefault(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE);
-        final var topologyGenerator = new TopologyGenerator(applicationId, (String) optimize);
+        final var topologyGenerator = new TopologyGenerator(applicationId, (String) optimize, config.pythonContextConfig());
         final var topology = topologyGenerator.create(streamsBuilder, config.definitions);
         kafkaStreams = kafkaStreamsFactory.apply(topology, mapToProperties(streamsProps));
         kafkaStreams.setStateListener(this::logStreamsStateChange);

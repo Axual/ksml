@@ -34,6 +34,7 @@ import io.axual.ksml.client.producer.ResolvingProducer;
 import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.python.PythonContext;
+import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.python.PythonFunction;
 import io.axual.ksml.runner.exception.RunnerException;
 import io.axual.ksml.runner.producer.ExecutableProducer;
@@ -54,8 +55,13 @@ public class KafkaProducerRunner implements Runner {
     private State currentState;
 
     @Builder
-    public record Config(Map<String, TopologyDefinition> definitions, Map<String, String> kafkaConfig) {
-        public Config(final Map<String, TopologyDefinition> definitions, final Map<String, String> kafkaConfig) {
+    public record Config(
+            Map<String, TopologyDefinition> definitions,
+            Map<String, String> kafkaConfig,
+            PythonContextConfig pythonContextConfig) {
+        public Config(final Map<String, TopologyDefinition> definitions,
+                      final Map<String, String> kafkaConfig,
+                      final PythonContextConfig pythonContextConfig) {
             var processedKafkaConfig = new HashMap<>(kafkaConfig);
             this.definitions = definitions;
             // Check if a resolving client is required
@@ -65,6 +71,7 @@ public class KafkaProducerRunner implements Runner {
                 ResolvingClientConfig.replaceDeprecatedConfigKeys(processedKafkaConfig);
             }
             this.kafkaConfig = processedKafkaConfig;
+            this.pythonContextConfig = pythonContextConfig;
         }
     }
 
@@ -97,7 +104,7 @@ public class KafkaProducerRunner implements Runner {
         try {
             config.definitions.forEach((defName, definition) -> {
                 // Set up the Python context for this definition
-                final var context = new PythonContext();
+                final var context = new PythonContext(config.pythonContextConfig());
                 // Pre-register all functions in the Python context
                 definition.functions().forEach((name, function) -> PythonFunction.forFunction(context, definition.namespace(), name, function));
                 // Schedule all defined producers
