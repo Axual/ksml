@@ -26,16 +26,15 @@ import lombok.Getter;
 import java.util.Arrays;
 import java.util.Objects;
 
-import static io.axual.ksml.data.schema.DataField.NO_TAG;
 
 @Getter
 public class UnionType extends ComplexType {
     private final MemberType[] memberTypes;
 
     // A field type
-    public record MemberType(String name, DataType type, int index) {
+    public record MemberType(String name, DataType type) {
         public MemberType(DataType type) {
-            this(null, type, NO_TAG);
+            this(null, type);
         }
     }
 

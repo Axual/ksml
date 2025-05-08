@@ -55,8 +55,7 @@ public class DataTypeDataSchemaMapper implements DataSchemaMapper<DataType> {
                 fields[index] = new DataField(
                         memberType.name(),
                         toDataSchema(memberType.type()),
-                        null,
-                        memberType.index());
+                        null);
             }
             return new UnionSchema(fields);
         }
@@ -85,8 +84,7 @@ public class DataTypeDataSchemaMapper implements DataSchemaMapper<DataType> {
                 final var memberSchema = unionSchema.memberSchemas()[index];
                 types[index] = new UnionType.MemberType(
                         memberSchema.name(),
-                        fromDataSchema(memberSchema.schema()),
-                        memberSchema.tag());
+                        fromDataSchema(memberSchema.schema()));
             }
             return new UnionType(types);
         }
