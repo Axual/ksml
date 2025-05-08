@@ -19,6 +19,32 @@
             "type": "string",
             "pattern": "^(?i)(StatefulSet|Job)$"
         },
+        "job": {
+            "type": "object",
+            "properties": {
+                "ttlSecondsAfterFinished": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "finalizers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "pod": {
+                    "type": "object",
+                    "properties": {
+                        "finalizers": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "fullnameOverride": {
             "type": "string"
         },

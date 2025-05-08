@@ -6,6 +6,17 @@ deploymentMode: StatefulSet
 
 replicaCount: 1
 
+# -- Job deployment specific settings
+job:
+  # -- Clean up a completed or failed job after 3 days. This allows for KSML inspection after completion
+  ttlSecondsAfterFinished: 259200
+  ## -- Allows custom finalizers be set on the job resource
+  finalizers: []
+  ## -- pod specific configurations
+  pod:
+    ## -- Allows custom finalizers be set on the pod created by the job
+    finalizers: []
+
 image:
   # -- Registry to pull the image from and the name of the image.
   repository: registry.axual.io/opensource/images/axual/ksml

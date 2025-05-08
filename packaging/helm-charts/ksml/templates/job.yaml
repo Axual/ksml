@@ -5,7 +5,14 @@ metadata:
   name: {{ include "ksml.fullname" . }}
   labels:
     {{- include "ksml.labels" . | nindent 4 }}
+  {{- with .Values.job.finalizers }}
+  finalizers:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
 spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished : {{ .Values.job.ttlSecondsAfterFinished }}
   template:
     metadata:
       annotations:
@@ -18,6 +25,10 @@ spec:
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
+      {{- with .Values.job.pod.finalizers }}
+      finalizers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
