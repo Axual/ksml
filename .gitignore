@@ -14,3 +14,4 @@ examples/io.ksml*
 
 workspace/*
 /packaging/helm-charts/**/*.tgz
+/packaging/helm-charts/workspace/*

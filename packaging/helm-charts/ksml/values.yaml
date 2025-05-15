@@ -2,7 +2,20 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+deploymentMode: StatefulSet
+
 replicaCount: 1
+
+# -- Job deployment specific settings
+job:
+  # -- Clean up a completed or failed job after 3 days. This allows for KSML inspection after completion
+  ttlSecondsAfterFinished: 259200
+  ## -- Allows custom finalizers be set on the job resource
+  finalizers: []
+  ## -- pod specific configurations
+  pod:
+    ## -- Allows custom finalizers be set on the pod created by the job
+    finalizers: []
 
 image:
   # -- Registry to pull the image from and the name of the image.
@@ -72,7 +85,7 @@ ksmlRunnerConfig:
   # -- Map of the namespace and the KSML definition file executed in that namespace.
   definitions: {}
   # -- Map of Kafka connection properties and application id
-  kafka:
+  kafka: {}
   # kafka:
   #   application.id: my-streaming-app
   #   bootstrap.servers: "localhost:9092"
@@ -319,7 +332,7 @@ prometheus:
         type: GAUGE
         attrNameSnakeCase: true
 
-    
+
 
 serviceMonitor:
   # -- Enables creation of Prometheus Operator [ServiceMonitor](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.ServiceMonitor).
