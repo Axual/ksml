@@ -36,13 +36,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @ExtendWith(KSMLTestExtension.class)
 public class KSMLReduceTest {
 
+    @KSMLTopic(topic = "inMessages")
     TestInputTopic inMessages;
 
+    @KSMLTopic(topic = "outMessages")
     TestOutputTopic outMessages;
 
-    @KSMLTest(topology = "pipelines/test-reduce.yaml",
-            inputTopics = {@KSMLTopic(topic = "inMessages", variable = "inMessages")},
-            outputTopics = {@KSMLTopic(topic = "outMessages", variable = "outMessages")})
+    @KSMLTest(topology = "pipelines/test-reduce.yaml")
     void testReduce() {
 
         // Given that we receive 5 messages grouped by 2 keys

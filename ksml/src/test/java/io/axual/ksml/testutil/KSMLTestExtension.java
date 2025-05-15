@@ -40,6 +40,7 @@ import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TopologyDescription;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.graalvm.home.Version;
@@ -48,10 +49,7 @@ import org.junit.jupiter.api.extension.*;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback, BeforeEachCallback, AfterEachCallback {
@@ -59,6 +57,15 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
     private final Set<Field> modifiedFields = new HashSet<>();
 
     private TopologyTestDriver topologyTestDriver;
+
+    /** Map of annotated {@link TestInputTopic} field names to their annotatopn. */
+    private final Map<String, KSMLTopic> inputTopics = new HashMap<>();
+
+    /** Map of annotated {@link org.apache.kafka.streams.TestOutputTopic} to their annotations. */
+    private final Map<String, KSMLTopic> outputTopics = new HashMap<>();
+
+    /** If present, name of a field of type {@link TopologyTestDriver} which should be linked by the extension.*/
+    private String testDriverRef;
 
     /**
      * Check if the test(s) are running on GraalVM.
@@ -91,6 +98,25 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
         final var jsonNotation = new JsonNotation("json", mapper);
         ExecutionContext.INSTANCE.notationLibrary().register(new BinaryNotation(UserType.DEFAULT_NOTATION, mapper, jsonNotation::serde));
         ExecutionContext.INSTANCE.notationLibrary().register(jsonNotation);
+
+        log.debug("Registering annotated TestInputTopic, TestOutputTopic and TopologyTestDriver fields");
+        Class<?> requiredTestClass = extensionContext.getRequiredTestClass();
+        Field[] declaredFields = requiredTestClass.getDeclaredFields();
+        Arrays.stream(declaredFields).forEach(field -> {
+            Class<?> type = field.getType();
+            if (type.equals(TestInputTopic.class) && field.isAnnotationPresent(KSMLTopic.class)) {
+                KSMLTopic ksmlTopic = field.getAnnotation(KSMLTopic.class);
+                log.debug("Found annotated input topic field {}:{}", field.getName(), ksmlTopic);
+                inputTopics.put(field.getName(), ksmlTopic);
+            } else if (type.equals(org.apache.kafka.streams.TestOutputTopic.class) && field.isAnnotationPresent(KSMLTopic.class)) {
+                KSMLTopic ksmlTopic = field.getAnnotation(KSMLTopic.class);
+                log.debug("Found annotated output topic field {}:{}", field.getName(), ksmlTopic);
+                outputTopics.put(field.getName(), ksmlTopic);
+            } else if (type.equals(TopologyTestDriver.class) && !field.isAnnotationPresent(KSMLDriver.class)) {
+                log.debug("Found annotated test driver field {}", field.getName());
+                testDriverRef = field.getName();
+            }
+        });
     }
 
     @Override
@@ -136,26 +162,31 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
         // create in- and output topics and assign them to variables in the test
         Class<?> testClass = extensionContext.getRequiredTestClass();
         Object testInstance = extensionContext.getRequiredTestInstance();
-        for (KSMLTopic ksmlTopic : ksmlTest.inputTopics()) {
-            log.debug("Set variable {} to topic {}", ksmlTopic.variable(), ksmlTopic.topic());
-            Field inputTopicField = testClass.getDeclaredField(ksmlTopic.variable());
+
+        log.debug("Registering annotated fields");
+        for (Map.Entry<String, KSMLTopic> entry : inputTopics.entrySet()) {
+            String fieldName = entry.getKey();
+            KSMLTopic ksmlTopic = entry.getValue();
+            log.debug("Set variable {} to topic {}", fieldName, ksmlTopic.topic());
+            Field inputTopicField = testClass.getDeclaredField(fieldName);
             inputTopicField.setAccessible(true);
             inputTopicField.set(testInstance, topologyTestDriver.createInputTopic(ksmlTopic.topic(), getKeySerializer(ksmlTopic), getValueSerializer(ksmlTopic)));
             modifiedFields.add(inputTopicField);
         }
-        for (KSMLTopic ksmlTopic : ksmlTest.outputTopics()) {
-            log.debug("Set variable {} to topic {}", ksmlTopic.variable(), ksmlTopic.topic());
-            Field outputTopicField = testClass.getDeclaredField(ksmlTopic.variable());
+        for (Map.Entry<String, KSMLTopic> entry : outputTopics.entrySet()) {
+            String fieldName = entry.getKey();
+            KSMLTopic ksmlTopic = entry.getValue();
+            log.debug("Set variable {} to topic {}", fieldName, ksmlTopic.topic());
+            Field outputTopicField = testClass.getDeclaredField(fieldName);
             outputTopicField.setAccessible(true);
             outputTopicField.set(testInstance, topologyTestDriver.createOutputTopic(ksmlTopic.topic(), getKeyDeserializer(ksmlTopic), getValueDeserializer(ksmlTopic)));
             modifiedFields.add(outputTopicField);
         }
 
-        // if a variable is configured for the test driver reference, set it
-        if (!Objects.equals("", ksmlTest.testDriverRef())) {
-            String varName = ksmlTest.testDriverRef();
-            log.debug("Assigning topologyTestDriver to {}", varName);
-            Field testDriverField = testClass.getDeclaredField(varName);
+        // if a variable is configured for the test driver reference, set the reference
+        if (testDriverRef != null) {
+            log.debug("Set variable {} to test driver", testDriverRef);
+            Field testDriverField = testClass.getDeclaredField(testDriverRef);
             testDriverField.setAccessible(true);
             testDriverField.set(testInstance, topologyTestDriver);
             modifiedFields.add(testDriverField);
@@ -170,14 +201,17 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
         if (annotation == null) return;         // method was not annotated, nothing to do
 
         // clean up
+        log.debug("Clean up topology test driver");
         if (topologyTestDriver != null) {
             topologyTestDriver.close();
             topologyTestDriver = null;
         }
 
         // clear any set fields
+        log.debug("clean up test instance variables");
         final var testInstance = context.getRequiredTestInstance();
         for (Field field : modifiedFields) {
+            log.debug("Clearing {}", field.getName());
             field.setAccessible(true);
             field.set(testInstance, null);
         }
