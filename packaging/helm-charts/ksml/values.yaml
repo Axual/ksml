@@ -85,7 +85,7 @@ ksmlRunnerConfig:
   # -- Map of the namespace and the KSML definition file executed in that namespace.
   definitions: {}
   # -- Map of Kafka connection properties and application id
-  kafka:
+  kafka: {}
   # kafka:
   #   application.id: my-streaming-app
   #   bootstrap.servers: "localhost:9092"
