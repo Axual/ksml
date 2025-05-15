@@ -112,7 +112,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
                 KSMLTopic ksmlTopic = field.getAnnotation(KSMLTopic.class);
                 log.debug("Found annotated output topic field {}:{}", field.getName(), ksmlTopic);
                 outputTopics.put(field.getName(), ksmlTopic);
-            } else if (type.equals(TopologyTestDriver.class) && !field.isAnnotationPresent(KSMLDriver.class)) {
+            } else if (type.equals(TopologyTestDriver.class) && field.isAnnotationPresent(KSMLDriver.class)) {
                 log.debug("Found annotated test driver field {}", field.getName());
                 testDriverRef = field.getName();
             }
