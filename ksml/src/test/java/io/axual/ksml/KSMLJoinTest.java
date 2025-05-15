@@ -35,16 +35,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @ExtendWith(KSMLTestExtension.class)
 public class KSMLJoinTest {
 
+    @KSMLTopic(topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)
     TestInputTopic sensorIn;
 
+    @KSMLTopic(topic = "ksml_sensoralert_settings", valueSerde = KSMLTopic.SerdeType.AVRO)
     TestInputTopic alertSettings;
 
+    @KSMLTopic(topic = "ksml_sensoralert")
     TestOutputTopic sensorAlerts;
 
-    @KSMLTest(topology = "pipelines/test-joining.yaml", schemaDirectory = "pipelines",
-            inputTopics = {@KSMLTopic(topic = "ksml_sensordata_avro", variable = "sensorIn", valueSerde = KSMLTopic.SerdeType.AVRO),
-                    @KSMLTopic(topic = "ksml_sensoralert_settings", variable = "alertSettings", valueSerde = KSMLTopic.SerdeType.AVRO)},
-            outputTopics = {@KSMLTopic(topic = "ksml_sensoralert", variable = "sensorAlerts")})
+    @KSMLTest(topology = "pipelines/test-joining.yaml", schemaDirectory = "pipelines")
     void testJoin() throws Exception {
 
         // given that we trigger on humidity > 50 in Amsterdam and temp > 25 in Utrecht

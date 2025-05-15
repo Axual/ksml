@@ -37,27 +37,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
 @ExtendWith({KSMLTestExtension.class})
-class KSMLCopyAndFilterTest {
+class KSMLFilterTest {
 
+    @KSMLTopic(topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)
     protected TestInputTopic inputTopic;
 
+    @KSMLTopic(topic = "ksml_sensordata_filtered", valueSerde = KSMLTopic.SerdeType.AVRO)
     protected TestOutputTopic outputTopic;
 
-    @KSMLTest(topology = "pipelines/test-copying.yaml",
-            inputTopics = {@KSMLTopic(variable = "inputTopic", topic = "ksml_sensordata_avro")},
-            outputTopics = {@KSMLTopic(variable = "outputTopic", topic = "ksml_sensordata_copy")})
-    void testCopying() {
-        log.debug("testCopying()");
-
-        inputTopic.pipeInput("key1", "value1");
-        assertFalse(outputTopic.isEmpty(), "record should be copied");
-        var keyValue = outputTopic.readKeyValue();
-        System.out.printf("Output topic key=%s, value=%s%n", keyValue.key, keyValue.value);
-    }
-
-    @KSMLTest(topology = "pipelines/test-filtering.yaml", schemaDirectory = "pipelines",
-            inputTopics = {@KSMLTopic(variable = "inputTopic", topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)},
-            outputTopics = {@KSMLTopic(variable = "outputTopic", topic = "ksml_sensordata_filtered", valueSerde = KSMLTopic.SerdeType.AVRO)})
+    @KSMLTest(topology = "pipelines/test-filtering.yaml", schemaDirectory = "pipelines")
     @DisplayName("Records can be filtered by KSML")
     void testFilterAvroRecords() {
         log.debug("testFilterAvroRecords()");

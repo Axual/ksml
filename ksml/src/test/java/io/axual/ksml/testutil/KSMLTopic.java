@@ -26,19 +26,22 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation used to pass on information used to match a topic in the topology to a variable in the test code.
+ * Annotation which marks fields of type {@link org.apache.kafka.streams.TestInputTopic} and {@link org.apache.kafka.streams.TestOutputTopic}
+ * which should be bound to a topic in the KSML topology under test.
  */
-@Target(ElementType.PARAMETER)
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface KSMLTopic {
 
-    String variable();
-
+    /** topic name as found in the pipeline definition. */
     String topic();
 
+    /** optional key serde, defaults to STRING. */
     SerdeType keySerde() default SerdeType.STRING;
 
+    /** optional value serde, defaults to STRING. */
     SerdeType valueSerde() default SerdeType.STRING;
 
+    /** Serde types the annotation supports. */
     enum SerdeType {STRING, AVRO}
 }
