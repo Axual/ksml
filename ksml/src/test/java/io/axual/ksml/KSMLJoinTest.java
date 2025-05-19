@@ -44,7 +44,7 @@ public class KSMLJoinTest {
     @KSMLTopic(topic = "ksml_sensoralert")
     TestOutputTopic sensorAlerts;
 
-    @KSMLTest(topology = "pipelines/test-joining.yaml", schemaDirectory = "pipelines")
+    @KSMLTest(topology = "pipelines/test-joining.yaml", schemaDirectory = "schemas")
     void testJoin() throws Exception {
 
         // given that we trigger on humidity > 50 in Amsterdam and temp > 25 in Utrecht
