@@ -41,7 +41,7 @@ class SensorData {
 
     static Schema SENSOR_TYPE_SCHEMA;
 
-    public static final String SCHEMA_LOCATION = "pipelines/SensorData.avsc";
+    public static final String SCHEMA_LOCATION = "schemas/SensorData.avsc";
 
     static {
         try {

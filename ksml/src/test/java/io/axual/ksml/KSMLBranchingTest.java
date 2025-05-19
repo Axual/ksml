@@ -47,7 +47,7 @@ public class KSMLBranchingTest {
     @KSMLTopic(topic = "ksml_sensordata_red", valueSerde = KSMLTopic.SerdeType.AVRO)
     TestOutputTopic outputRed;
 
-    @KSMLTest(topology = "pipelines/test-branching.yaml", schemaDirectory = "pipelines")
+    @KSMLTest(topology = "pipelines/test-branching.yaml", schemaDirectory = "schemas")
     void testBranching() {
         // the pipeline routes readings based on color: generate some records
         List<SensorData> sensorDatas = new ArrayList<>();
