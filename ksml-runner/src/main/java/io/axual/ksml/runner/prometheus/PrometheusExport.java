@@ -36,7 +36,7 @@ import java.net.InetAddress;
 import java.util.Optional;
 
 /**
- * Exposes the JMX metrics, based on the Prometheys JMX exporter agent
+ * Exposes the JMX metrics, based on the Prometheus JMX exporter agent
  */
 @Slf4j
 public class PrometheusExport implements Closeable {
