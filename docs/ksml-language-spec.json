@@ -1072,7 +1072,7 @@
           "type" : "string"
         }
       },
-      "required" : [ "topic", "keyType", "valueType" ],
+      "required" : [ "keyType", "topic", "valueType" ],
       "title" : "GlobalTableDefinition",
       "type" : "object"
     },
@@ -1332,7 +1332,7 @@
           "description" : "A function that joins two values"
         }
       },
-      "required" : [ "globalTable", "mapper", "valueJoiner", "type" ],
+      "required" : [ "globalTable", "mapper", "type", "valueJoiner" ],
       "title" : "JoinOperationWithGlobalTable",
       "type" : "object"
     },
@@ -1398,7 +1398,7 @@
           "description" : "A function that joins two values"
         }
       },
-      "required" : [ "stream", "valueJoiner", "timeDifference", "type" ],
+      "required" : [ "stream", "timeDifference", "type", "valueJoiner" ],
       "title" : "JoinOperationWithStream",
       "type" : "object"
     },
@@ -1483,7 +1483,7 @@
           "description" : "A function that joins two values"
         }
       },
-      "required" : [ "table", "valueJoiner", "type" ],
+      "required" : [ "table", "type", "valueJoiner" ],
       "title" : "JoinOperationWithTable",
       "type" : "object"
     },
@@ -2502,7 +2502,7 @@
           "description" : "A function that joins two values"
         }
       },
-      "required" : [ "globalTable", "mapper", "valueJoiner", "type" ],
+      "required" : [ "globalTable", "mapper", "type", "valueJoiner" ],
       "title" : "LeftJoinOperationWithGlobalTable",
       "type" : "object"
     },
@@ -2568,7 +2568,7 @@
           "description" : "A function that joins two values"
         }
       },
-      "required" : [ "stream", "valueJoiner", "timeDifference", "type" ],
+      "required" : [ "stream", "timeDifference", "type", "valueJoiner" ],
       "title" : "LeftJoinOperationWithStream",
       "type" : "object"
     },
@@ -2653,7 +2653,7 @@
           "description" : "A function that joins two values"
         }
       },
-      "required" : [ "table", "valueJoiner", "type" ],
+      "required" : [ "table", "type", "valueJoiner" ],
       "title" : "LeftJoinOperationWithTable",
       "type" : "object"
     },
@@ -3009,7 +3009,7 @@
           "description" : "A function that joins two values"
         }
       },
-      "required" : [ "stream", "valueJoiner", "timeDifference", "type" ],
+      "required" : [ "stream", "timeDifference", "type", "valueJoiner" ],
       "title" : "OuterJoinOperationWithStream",
       "type" : "object"
     },
@@ -3059,7 +3059,7 @@
           "description" : "A function that joins two values"
         }
       },
-      "required" : [ "table", "valueJoiner", "type" ],
+      "required" : [ "table", "type", "valueJoiner" ],
       "title" : "OuterJoinOperationWithTable",
       "type" : "object"
     },
@@ -3836,7 +3836,7 @@
           "type" : "string"
         }
       },
-      "required" : [ "topic", "keyType", "valueType" ],
+      "required" : [ "keyType", "topic", "valueType" ],
       "title" : "StreamDefinition",
       "type" : "object"
     },
@@ -4040,7 +4040,7 @@
           "enum" : [ "timeLimit" ]
         }
       },
-      "required" : [ "duration", "until", "type" ],
+      "required" : [ "duration", "type", "until" ],
       "title" : "SuppressOperationUntilTimeLimit",
       "type" : "object"
     },
@@ -4073,7 +4073,7 @@
           "enum" : [ "windowCloses" ]
         }
       },
-      "required" : [ "until", "type" ],
+      "required" : [ "type", "until" ],
       "title" : "SuppressOperationUntilWindowCloses",
       "type" : "object"
     },
@@ -4116,7 +4116,7 @@
           "type" : "string"
         }
       },
-      "required" : [ "topic", "keyType", "valueType" ],
+      "required" : [ "keyType", "topic", "valueType" ],
       "title" : "TableDefinition",
       "type" : "object"
     },
@@ -4435,7 +4435,7 @@
           "type" : "string"
         }
       },
-      "required" : [ "topic", "keyType", "valueType" ],
+      "required" : [ "keyType", "topic", "valueType" ],
       "title" : "TopicDefinitionSource",
       "type" : "object"
     },
@@ -5067,7 +5067,7 @@
           "enum" : [ "hopping" ]
         }
       },
-      "required" : [ "duration", "advanceBy", "windowType", "type" ],
+      "required" : [ "advanceBy", "duration", "type", "windowType" ],
       "title" : "WindowByTimeOperationWithHoppingWindow",
       "type" : "object"
     },
@@ -5104,7 +5104,7 @@
           "enum" : [ "sliding" ]
         }
       },
-      "required" : [ "timeDifference", "windowType", "type" ],
+      "required" : [ "timeDifference", "type", "windowType" ],
       "title" : "WindowByTimeOperationWithSlidingWindow",
       "type" : "object"
     },
@@ -5141,7 +5141,7 @@
           "enum" : [ "tumbling" ]
         }
       },
-      "required" : [ "duration", "windowType", "type" ],
+      "required" : [ "duration", "type", "windowType" ],
       "title" : "WindowByTimeOperationWithTumblingWindow",
       "type" : "object"
     },

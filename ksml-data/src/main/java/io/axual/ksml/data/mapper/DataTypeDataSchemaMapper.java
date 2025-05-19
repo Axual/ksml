@@ -56,7 +56,7 @@ public class DataTypeDataSchemaMapper implements DataSchemaMapper<DataType> {
                         memberType.name(),
                         toDataSchema(memberType.type()),
                         null,
-                        memberType.index());
+                        memberType.tag());
             }
             return new UnionSchema(fields);
         }

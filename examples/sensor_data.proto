@@ -12,6 +12,10 @@ message sensor_data {
   optional string city = 7;           // The city of the sensor
   optional string owner = 8;          // The owner of the sensor
 
+  oneof somename {
+    string myfield = 23;
+    string myfield2 = 40;
+  }
   enum SensorType {
     UNSPECIFIED = 0;
     AREA = 1;

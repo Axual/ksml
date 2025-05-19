@@ -26,6 +26,7 @@ import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.notation.SchemaResolver;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.schema.NativeDataSchemaMapper;
@@ -38,21 +39,24 @@ public class NativeDataObjectMapperWithSchema extends NativeDataObjectMapper {
     public static final String STRUCT_TYPE_FIELD = DataStruct.META_ATTRIBUTE_CHAR + "type";
 
     private static final DataSchemaMapper<Object> NATIVE_DATA_SCHEMA_MAPPER = new NativeDataSchemaMapper();
+    private final NativeDataObjectMapper recursiveDataObjectMapper;
     private final boolean includeSchemaInfo;
 
-    public NativeDataObjectMapperWithSchema(boolean includeSchemaInfo) {
+    public NativeDataObjectMapperWithSchema(SchemaResolver<DataSchema> schemaResolver, boolean includeSchemaInfo) {
+        super(schemaResolver);
+        this.recursiveDataObjectMapper = new NativeDataObjectMapper(schemaResolver);
         this.includeSchemaInfo = includeSchemaInfo;
     }
 
     @Override
-    protected StructType inferStructTypeFromNative(Map<?, ?> map, DataSchema expected) {
-        final var schema = inferStructSchemaFromNative(map);
+    protected StructType inferStructTypeFromNativeMap(Map<?, ?> map, DataSchema expected) {
+        final var schema = inferStructSchemaFromNativeMap(map);
         if (schema instanceof StructSchema structSchema) return new StructType(structSchema);
         if (schema != null) throw new DataException("Map can not be converted to " + schema);
-        return super.inferStructTypeFromNative(map, expected);
+        return super.inferStructTypeFromNativeMap(map, expected);
     }
 
-    private DataSchema inferStructSchemaFromNative(Map<?, ?> map) {
+    private DataSchema inferStructSchemaFromNativeMap(Map<?, ?> map) {
         // Find out the schema of the struct by looking at the fields. If there are no meta fields
         // to override the expected schema, then return the expected schema.
 
@@ -77,16 +81,18 @@ public class NativeDataObjectMapperWithSchema extends NativeDataObjectMapper {
     }
 
     @Override
-    protected DataObject convertNativeToDataStruct(Map<String, Object> map, StructType type) {
+    protected DataObject convertMapToDataStruct(Map<String, Object> map, StructType type) {
         map.remove(STRUCT_SCHEMA_FIELD);
         map.remove(STRUCT_TYPE_FIELD);
-        return super.convertNativeToDataStruct(map, type);
+        return super.convertMapToDataStruct(map, type);
     }
 
     @Nullable
     @Override
-    public Map<String, Object> convertDataStructToNative(DataStruct struct) {
-        final var result = super.convertDataStructToNative(struct);
+    public Map<String, Object> convertDataStructToMap(DataStruct struct) {
+        // Don't call the super, but divert all recursion into nested structures to a separate mapper to prevent
+        // recursive inclusion of schema info
+        final var result = recursiveDataObjectMapper.convertDataStructToMap(struct);
         if (result == null) return null;
 
         // Convert schema to native format by encoding it in meta fields

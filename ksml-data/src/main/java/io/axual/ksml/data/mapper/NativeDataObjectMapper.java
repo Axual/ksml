@@ -22,6 +22,7 @@ package io.axual.ksml.data.mapper;
 
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.exception.SchemaException;
+import io.axual.ksml.data.notation.SchemaResolver;
 import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
@@ -38,9 +39,27 @@ import java.util.TreeMap;
 
 // Maps DataObjects to/from native Java structures
 public class NativeDataObjectMapper implements DataObjectMapper<Object> {
-    private static final DataSchemaMapper<DataType> DATA_TYPE_DATA_SCHEMA_MAPPER = new DataTypeDataSchemaMapper();
+    private static final DataTypeDataSchemaMapper DATA_TYPE_DATA_SCHEMA_MAPPER = new DataTypeDataSchemaMapper();
+    private final SchemaResolver<DataSchema> schemaResolver;
+    private final ConvertUtil converter;
+
+    public NativeDataObjectMapper() {
+        this(null);
+    }
+
+    public NativeDataObjectMapper(SchemaResolver<DataSchema> schemaResolver) {
+        this.schemaResolver = schemaResolver;
+        this.converter = new ConvertUtil(this, DATA_TYPE_DATA_SCHEMA_MAPPER);
+    }
 
     public DataObject toDataObject(DataType expected, Object value) {
+        var result = convertObjectToDataObject(expected, value);
+        if (expected != null && !expected.isAssignableFrom(result))
+            result = converter.convert(null, null, expected, result, false);
+        return result;
+    }
+
+    private DataObject convertObjectToDataObject(DataType expected, Object value) {
         if (value == null) return ConvertUtil.convertNullToDataObject(expected);
         if (value instanceof DataObject val) return val;
         if (value instanceof Boolean val) return new DataBoolean(val);
@@ -85,14 +104,14 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         if (value instanceof byte[] val) return new DataBytes(val);
         if (value instanceof CharSequence val) return new DataString(val.toString());
         if (value instanceof List<?> val)
-            return convertNativeToDataList(val, expected instanceof ListType expectedList ? expectedList.valueType() : DataType.UNKNOWN);
+            return convertListToDataList(val, expected instanceof ListType expectedList ? expectedList.valueType() : DataType.UNKNOWN);
         if (value instanceof Map<?, ?> val)
-            return convertNativeToDataStruct(MapUtil.stringKeys(val), expected instanceof StructType expectedStruct ? expectedStruct.schema() : null);
-        if (value instanceof Tuple<?> val) return toDataTuple(val);
+            return convertMapToDataStruct(MapUtil.stringKeys(val), expected instanceof StructType expectedStruct ? expectedStruct.schema() : null);
+        if (value instanceof Tuple<?> val) return convertTupleToDataTuple(val);
         throw new DataException("Can not convert value to DataObject: " + value.getClass().getSimpleName());
     }
 
-    private DataType inferDataTypeFromNative(Object value) {
+    private DataType inferDataTypeFromObject(Object value) {
         if (value == null) return DataNull.DATATYPE;
         if (value instanceof Boolean) return DataBoolean.DATATYPE;
         if (value instanceof Byte) return DataByte.DATATYPE;
@@ -103,14 +122,14 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         if (value instanceof Float) return DataFloat.DATATYPE;
         if (value instanceof byte[]) return DataBytes.DATATYPE;
         if (value instanceof String) return DataString.DATATYPE;
-        if (value instanceof Enum<?> val) return inferEnumTypeFromNative(val);
-        if (value instanceof List<?> val) return inferListTypeFromNative(val);
-        if (value instanceof Map<?, ?> val) return inferStructTypeFromNative(val, null);
-        if (value instanceof Tuple<?> val) return inferTupleTypeFromNative(val);
+        if (value instanceof Enum<?> val) return inferEnumTypeFromEnum(val);
+        if (value instanceof List<?> val) return inferListTypeFromList(val);
+        if (value instanceof Map<?, ?> val) return inferStructTypeFromNativeMap(val, null);
+        if (value instanceof Tuple<?> val) return inferTupleTypeFromTuple(val);
         return DataType.UNKNOWN;
     }
 
-    private EnumType inferEnumTypeFromNative(Enum<?> value) {
+    private EnumType inferEnumTypeFromEnum(Enum<?> value) {
         final var enumConstants = value.getClass().getEnumConstants();
         final var symbols = new ArrayList<Symbol>();
         for (final var enumConstant : enumConstants) {
@@ -119,15 +138,15 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         return new EnumType(symbols);
     }
 
-    private ListType inferListTypeFromNative(List<?> list) {
+    private ListType inferListTypeFromList(List<?> list) {
         // Assume the list contains all elements of the same dataType. If not validation will fail
         // later. We infer the valueType by looking at the first element of the list. If the list
         // is empty, then use dataType UNKNOWN.
         if (list.isEmpty()) return new ListType(DataType.UNKNOWN);
-        return new ListType(inferDataTypeFromNative(list.getFirst()));
+        return new ListType(inferDataTypeFromObject(list.getFirst()));
     }
 
-    protected StructType inferStructTypeFromNative(Map<?, ?> map, DataSchema expected) {
+    protected StructType inferStructTypeFromNativeMap(Map<?, ?> map, DataSchema expected) {
         // If the expected schema is a struct schema, then return that as inferred type
         if (expected instanceof StructSchema structSchema) return new StructType(structSchema);
         // By default, return a schemaless struct type. This behaviour can be overridden in subclasses.
@@ -135,30 +154,39 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     }
 
     protected DataSchema loadSchemaByName(String schemaName) {
+        if (schemaResolver != null) {
+            final var result = schemaResolver.get(schemaName);
+            if (result != null) return result;
+        }
         throw new SchemaException("Can not load schema: " + schemaName);
     }
 
-    private DataType inferTupleTypeFromNative(Tuple<?> tuple) {
+    private DataType inferTupleTypeFromTuple(Tuple<?> tuple) {
         // Infer all subtypes
         final var subTypes = new DataType[tuple.elements().size()];
         for (int index = 0; index < tuple.elements().size(); index++) {
-            subTypes[index] = inferDataTypeFromNative(tuple.elements().get(index));
+            subTypes[index] = inferDataTypeFromObject(tuple.elements().get(index));
         }
         return new TupleType(subTypes);
     }
 
-    protected DataList convertNativeToDataList(List<?> list, DataType valueType) {
+    protected DataList convertListToDataList(List<?> list, DataType valueType) {
         final var result = new DataList(valueType);
-        list.forEach(element -> result.add(toDataObject(valueType, element)));
+        list.forEach(element -> {
+            var dataObject = toDataObject(valueType, element);
+            if (!valueType.isAssignableFrom(dataObject))
+                dataObject = converter.convert(null, null, valueType, dataObject, false);
+            result.add(toDataObject(valueType, dataObject));
+        });
         return result;
     }
 
-    protected DataObject convertNativeToDataStruct(Map<String, Object> map, DataSchema schema) {
-        final var type = inferStructTypeFromNative(map, schema);
-        return convertNativeToDataStruct(map, type);
+    protected DataObject convertMapToDataStruct(Map<String, Object> map, DataSchema schema) {
+        final var type = inferStructTypeFromNativeMap(map, schema);
+        return convertMapToDataStruct(map, type);
     }
 
-    protected DataObject convertNativeToDataStruct(Map<String, Object> map, StructType type) {
+    protected DataObject convertMapToDataStruct(Map<String, Object> map, StructType type) {
         final var result = new DataStruct(type.schema());
         map.forEach((key, value) -> {
             final var field = type.schema() != null ? type.schema().field(key) : null;
@@ -169,7 +197,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         return result;
     }
 
-    protected DataTuple toDataTuple(Tuple<?> tuple) {
+    protected DataTuple convertTupleToDataTuple(Tuple<?> tuple) {
         final var elements = new DataObject[tuple.elements().size()];
         for (var index = 0; index < tuple.elements().size(); index++) {
             elements[index] = toDataObject(tuple.elements().get(index));
@@ -195,15 +223,15 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
 
         if (value instanceof DataString val) return val.value();
 
-        if (value instanceof DataList val) return convertDataListToNative(val);
-        if (value instanceof DataStruct val) return convertDataStructToNative(val);
-        if (value instanceof DataTuple val) return convertDataTupleToNative(val);
+        if (value instanceof DataList val) return convertDataListToList(val);
+        if (value instanceof DataStruct val) return convertDataStructToMap(val);
+        if (value instanceof DataTuple val) return convertDataTupleToTuple(val);
 
         throw new DataException("Can not convert DataObject to native dataType: " + (value != null ? value.getClass().getSimpleName() : "null"));
     }
 
     @Nullable
-    public List<Object> convertDataListToNative(DataList list) {
+    public List<Object> convertDataListToList(DataList list) {
         if (list.isNull()) return null;
         final var result = new ArrayList<>();
         list.forEach(element -> result.add(fromDataObject(element)));
@@ -211,7 +239,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     }
 
     @Nullable
-    public Map<String, Object> convertDataStructToNative(DataStruct struct) {
+    public Map<String, Object> convertDataStructToMap(DataStruct struct) {
         if (struct.isNull()) return null;
 
         final var result = new TreeMap<>(DataStruct.COMPARATOR);
@@ -232,7 +260,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         return result;
     }
 
-    public Tuple<Object> convertDataTupleToNative(DataTuple value) {
+    public Tuple<Object> convertDataTupleToTuple(DataTuple value) {
         final var elements = new Object[value.elements().size()];
         for (int index = 0; index < value.elements().size(); index++) {
             elements[index] = fromDataObject(value.elements().get(index));

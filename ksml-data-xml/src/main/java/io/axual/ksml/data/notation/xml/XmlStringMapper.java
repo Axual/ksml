@@ -1,4 +1,4 @@
-package io.axual.ksml.data.notation.json;
+package io.axual.ksml.data.notation.xml;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,7 +20,9 @@ package io.axual.ksml.data.notation.json;
  * =========================LICENSE_END==================================
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.notation.string.StringMapper;
 import io.axual.ksml.data.util.JsonNodeUtil;
@@ -28,11 +30,13 @@ import io.axual.ksml.data.util.JsonNodeUtil;
 import java.io.IOException;
 import java.io.StringWriter;
 
-public class JsonStringMapper implements StringMapper<Object> {
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+public class XmlStringMapper implements StringMapper<Object> {
+    private final XmlMapper mapper = new XmlMapper();
     private final boolean prettyPrint;
 
-    public JsonStringMapper(boolean prettyPrint) {
+    public XmlStringMapper(boolean prettyPrint) {
+        if (prettyPrint) mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+        mapper.configure(ToXmlGenerator.Feature.WRITE_XML_1_1, true);
         this.prettyPrint = prettyPrint;
     }
 
@@ -40,7 +44,7 @@ public class JsonStringMapper implements StringMapper<Object> {
     public Object fromString(String value) {
         if (value == null) return null; // Allow null strings as input, returning null as native output
         try {
-            var tree = MAPPER.readTree(value);
+            var tree = mapper.readTree(value);
             return JsonNodeUtil.convertJsonNodeToNative(tree);
         } catch (Exception mapException) {
             throw new DataException("Could not parse string to object: " + value);
@@ -53,9 +57,9 @@ public class JsonStringMapper implements StringMapper<Object> {
         try {
             final var writer = new StringWriter();
             final var generator = prettyPrint
-                    ? MAPPER.writerWithDefaultPrettyPrinter().createGenerator(writer)
-                    : MAPPER.createGenerator(writer);
-            MAPPER.writeTree(generator, JsonNodeUtil.convertNativeToJsonNode(value));
+                    ? mapper.writerWithDefaultPrettyPrinter().createGenerator(writer)
+                    : mapper.createGenerator(writer);
+            mapper.writeTree(generator, JsonNodeUtil.convertNativeToJsonNode(value));
             return writer.toString();
         } catch (IOException e) {
             throw new DataException("Can not convert object to JSON string: " + value, e);

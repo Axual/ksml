@@ -56,9 +56,9 @@ public class TopologyGenerator {
         if (optimization != null) {
             this.optimization.put(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, optimization);
         }
-            this.pythonContextConfig = pythonContextConfig != null
-                    ? pythonContextConfig
-                    : PythonContextConfig.builder().build();
+        this.pythonContextConfig = pythonContextConfig != null
+                ? pythonContextConfig
+                : PythonContextConfig.builder().build();
     }
 
     public Topology create(StreamsBuilder streamsBuilder, Map<String, TopologyDefinition> definitions) {
@@ -72,8 +72,8 @@ public class TopologyGenerator {
             stores.putAll(definition.stateStores());
         });
 
-        var topology = streamsBuilder.build(optimization);
-        var analysis = TopologyAnalyzer.analyze(topology, applicationId);
+        final var topology = streamsBuilder.build(optimization);
+        final var analysis = TopologyAnalyzer.analyze(topology, applicationId);
 
         StringBuilder summary = new StringBuilder("\n\n");
         summary.append(topology != null ? topology.describe() : "null");

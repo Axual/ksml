@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.kafka.clients.producer.MockProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.kafka.streams.processor.internals.DefaultStreamPartitioner;
 import org.assertj.core.api.SoftAssertions;
 import org.awaitility.Awaitility;
 import org.graalvm.home.Version;
@@ -77,7 +78,7 @@ class KafkaProducerRunnerTest {
         // Clean all metrics
         Metrics.registry().removeAll();
         // Create a new mockProducer for testing
-        mockProducer = new MockProducer<>(true, new ByteArraySerializer(), new ByteArraySerializer());
+        mockProducer = new MockProducer<>(true, null, new ByteArraySerializer(), new ByteArraySerializer());
     }
 
     @ParameterizedTest

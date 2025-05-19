@@ -23,8 +23,6 @@ package io.axual.ksml.data.schema;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import java.util.Objects;
-
 /**
  * An abstract base class for schemas with a name and namespace in the KSML framework.
  * <p>
@@ -116,10 +114,9 @@ public abstract class NamedSchema extends DataSchema {
     @Override
     public boolean isAssignableFrom(DataSchema otherSchema) {
         if (!super.isAssignableFrom(otherSchema)) return false;
-        if (!(otherSchema instanceof NamedSchema otherNamedSchema)) return false;
-        // Return true if the other named schema has the same name. We purposefully ignore namespace and doc fields to
-        // make XML, JSON etc comparable schema.
-        return Objects.equals(name, otherNamedSchema.name);
+        // Return true if the other schema is also a named schema. We purposefully ignore namespace, name and doc
+        // fields to make JSON, Protobuf, XML etc comparable schema.
+        return otherSchema instanceof NamedSchema;
     }
 
     /**

@@ -32,7 +32,7 @@ import io.axual.ksml.type.UserType;
 // source or target notation's converter to respectively export or import the data type to
 // the desired type.
 public class DataObjectConverter {
-    private static final NativeDataObjectMapper OBJECT_MAPPER = new NativeDataObjectMapper();
+    private static final NativeDataObjectMapper OBJECT_MAPPER = new DataObjectFlattener();
     private static final DataTypeDataSchemaMapper SCHEMA_MAPPER = new DataTypeFlattener();
     private final ConvertUtil convertUtil;
 
@@ -41,7 +41,7 @@ public class DataObjectConverter {
     }
 
     public DataObject convert(String sourceNotation, DataObject value, UserType targetType) {
-        return convertUtil.convertDataObject(
+        return convertUtil.convert(
                 ExecutionContext.INSTANCE.notationLibrary().getIfExists(sourceNotation),
                 ExecutionContext.INSTANCE.notationLibrary().getIfExists(targetType.notation()),
                 targetType.dataType(),

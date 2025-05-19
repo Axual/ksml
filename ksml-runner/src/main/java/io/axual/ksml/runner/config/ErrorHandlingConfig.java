@@ -84,7 +84,8 @@ public class ErrorHandlingConfig {
 
         public enum Handler {
             STOP,
-            CONTINUE;
+            CONTINUE,
+            RETRY;
 
             @JsonCreator
             public static Handler forValues(String value) {
@@ -95,6 +96,7 @@ public class ErrorHandlingConfig {
                 return switch (value) {
                     case "continue", "continueOnFail" -> CONTINUE;
                     case "stop", "stopOnFail" -> STOP;
+                    case "retry", "retryOnFail" -> RETRY;
                     default -> null;
                 };
             }

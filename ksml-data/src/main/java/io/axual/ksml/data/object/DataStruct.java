@@ -258,6 +258,19 @@ public class DataStruct implements DataObject {
     }
 
     /**
+     * Inserts the specified key-value pair into the {@code DataStruct} if the key does not exist already.
+     *
+     * @param key   The key to insert.
+     * @param value The value to associate with the key.
+     * @throws DataException If the struct is null or the key-value pair cannot be added.
+     */
+    public void putIfAbsent(String key, DataObject value) {
+        if (contents == null)
+            throw new DataException("Can not add item to a NULL Struct: (" + (key != null ? key : "null") + ", " + (value != null ? value : "null") + ")");
+        contents.putIfAbsent(key, value);
+    }
+
+    /**
      * Inserts the specified key-value pair into the {@code DataStruct} if value is not null.
      *
      * @param key   The key to insert.

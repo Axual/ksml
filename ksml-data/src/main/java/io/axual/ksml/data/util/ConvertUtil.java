@@ -38,11 +38,17 @@ public class ConvertUtil {
         this.dataSchemaMapper = dataSchemaMapper;
     }
 
-    public DataObject convertDataObject(Notation sourceNotation, Notation targetNotation, DataType targetType, DataObject value, boolean allowFail) {
-        // If no conversion is possible or necessary, or the value type is already compatible with
-        // the expected type, then just return the value object
-        if (targetType == null || value == null || targetType.isAssignableFrom(value.type()))
-            return value;
+    public DataObject convert(DataType targetType, DataObject value) {
+        return convert(targetType, value, false);
+    }
+
+    public DataObject convert(DataType targetType, DataObject value, boolean allowFail) {
+        return convert(null, null, targetType, value, allowFail);
+    }
+
+    public DataObject convert(Notation sourceNotation, Notation targetNotation, DataType targetType, DataObject value, boolean allowFail) {
+        // If no conversion is possible or necessary, then just return the value object
+        if (targetType == null || value == null) return value;
 
         // If the value represents a NULL, then convert it directly
         if (value == DataNull.INSTANCE) return convertNullToDataObject(targetType);
@@ -52,7 +58,7 @@ public class ConvertUtil {
         // If a union type is expected, then recurse into it before checking compatibility below
         if (targetType instanceof UnionType targetUnionType) {
             for (int index = 0; index < targetUnionType.memberTypes().length; index++) {
-                var convertedValue = convertDataObject(sourceNotation, targetNotation, targetUnionType.memberTypes()[index].type(), value, true);
+                var convertedValue = convert(sourceNotation, targetNotation, targetUnionType.memberTypes()[index].type(), value, true);
                 if (convertedValue != null) return convertedValue;
             }
         }
@@ -239,7 +245,7 @@ public class ConvertUtil {
     public DataObject convertStringToUnionMemberType(UnionType type, String value) {
         final var valueString = new DataString(value);
         for (final var memberType : type.memberTypes()) {
-            final var dataObject = convertDataObject(null, null, memberType.type(), valueString, true);
+            final var dataObject = convert(memberType.type(), valueString, true);
             if (dataObject != null && memberType.type().isAssignableFrom(dataObject))
                 return dataObject;
         }
@@ -313,6 +319,4 @@ public class ConvertUtil {
         }
         return new DataTuple(convertedDataObjects);
     }
-
-
 }

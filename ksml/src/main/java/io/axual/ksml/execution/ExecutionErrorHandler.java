@@ -23,21 +23,27 @@ package io.axual.ksml.execution;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.streams.errors.DeserializationExceptionHandler;
+import org.apache.kafka.streams.errors.ErrorHandlerContext;
+import org.apache.kafka.streams.errors.ProcessingExceptionHandler;
 import org.apache.kafka.streams.errors.ProductionExceptionHandler;
-import org.apache.kafka.streams.processor.ProcessorContext;
+import org.apache.kafka.streams.processor.api.Record;
 
 import java.util.Map;
 
-public class ExecutionErrorHandler implements DeserializationExceptionHandler, ProductionExceptionHandler {
-
+public class ExecutionErrorHandler implements DeserializationExceptionHandler, ProcessingExceptionHandler, ProductionExceptionHandler {
     @Override
-    public DeserializationHandlerResponse handle(ProcessorContext context, ConsumerRecord<byte[], byte[]> rec, Exception exception) {
-        return ExecutionContext.INSTANCE.errorHandling().handle(rec, exception);
+    public DeserializationHandlerResponse handle(final ErrorHandlerContext context, ConsumerRecord<byte[], byte[]> rec, Exception exception) {
+        return ExecutionContext.INSTANCE.errorHandling().handle(context, rec, exception);
     }
 
     @Override
-    public ProductionExceptionHandlerResponse handle(ProducerRecord<byte[], byte[]> record, Exception exception) {
-        return ExecutionContext.INSTANCE.errorHandling().handle(record, exception);
+    public ProcessingHandlerResponse handle(ErrorHandlerContext context, Record<?, ?> rec, Exception exception) {
+        return ExecutionContext.INSTANCE.errorHandling().handle(context, rec, exception);
+    }
+
+    @Override
+    public ProductionExceptionHandlerResponse handle(final ErrorHandlerContext context, ProducerRecord<byte[], byte[]> rec, Exception exception) {
+        return ExecutionContext.INSTANCE.errorHandling().handle(context, rec, exception);
     }
 
     @Override

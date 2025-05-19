@@ -33,8 +33,14 @@ import java.util.List;
 import java.util.Map;
 
 public class MockRegistryClient implements RegistryClient {
-    private long counter = 0;
-    private final Map<Long, byte[]> content = new HashMap<>();
+    private long lastGlobalId = 0;
+
+    private record RegistryEntry(long globalId, long contentId, String artifactId, byte[] schema) {
+    }
+
+    private final Map<String, RegistryEntry> entryByArtifactId = new HashMap<>();
+    private final Map<Long, RegistryEntry> entryByGlobalId = new HashMap<>();
+    private final Map<Long, List<ArtifactReference>> references = new HashMap<>();
 
     private RuntimeException error() {
         return new RuntimeException("Not implemented");
@@ -82,16 +88,13 @@ public class MockRegistryClient implements RegistryClient {
 
     @Override
     public VersionMetaData getArtifactVersionMetaDataByContent(String groupId, String artifactId, Boolean canonical, String contentType, InputStream data) {
-        try {
-            content.put(++counter, data.readAllBytes());
-            return VersionMetaData.builder()
-                    .globalId(counter)
-                    .contentId(counter)
-                    .build();
-        } catch (IOException e) {
-            // Ignore
-            return null;
-        }
+        final var metadata = createArtifact(groupId, artifactId, contentType, IfExists.RETURN_OR_UPDATE, data);
+        if (metadata == null) return null;
+        return VersionMetaData.builder()
+                .globalId(metadata.getGlobalId())
+                .contentId(metadata.getContentId())
+                .groupId(metadata.getGroupId())
+                .build();
     }
 
     @Override
@@ -161,7 +164,8 @@ public class MockRegistryClient implements RegistryClient {
 
     @Override
     public InputStream getArtifactVersion(String groupId, String artifactId, String version) {
-        throw error();
+        final var result = entryByGlobalId.get(Long.parseLong(artifactId));
+        return result != null ? new ByteArrayInputStream(result.schema) : null;
     }
 
     @Override
@@ -201,7 +205,24 @@ public class MockRegistryClient implements RegistryClient {
 
     @Override
     public ArtifactMetaData createArtifact(String groupId, String artifactId, String version, String artifactType, IfExists ifExists, Boolean canonical, String artifactName, String artifactDescription, String contentType, String fromURL, String artifactSHA, InputStream data) {
-        throw error();
+        try {
+            if (!entryByArtifactId.containsKey(artifactId)) {
+                final var globalId = ++lastGlobalId;
+                final var contentId = globalId + 10000;
+                final var entry = new RegistryEntry(globalId, contentId, artifactId, data.readAllBytes());
+                entryByArtifactId.put(artifactId, entry);
+                entryByGlobalId.put(lastGlobalId, entry);
+            }
+            final var entry = entryByArtifactId.get(artifactId);
+            return ArtifactMetaData.builder()
+                    .globalId(entry.globalId)
+                    .contentId(entry.contentId)
+                    .id(artifactId)
+                    .build();
+        } catch (IOException e) {
+            // Ignore
+            return null;
+        }
     }
 
     @Override
@@ -246,8 +267,8 @@ public class MockRegistryClient implements RegistryClient {
 
     @Override
     public InputStream getContentByGlobalId(long globalId, Boolean canonical, Boolean dereference) {
-        final var schema = content.get(globalId);
-        return (schema != null) ? new ByteArrayInputStream(schema) : null;
+        final var schema = entryByGlobalId.get(globalId);
+        return (schema != null) ? new ByteArrayInputStream(schema.schema) : null;
     }
 
     @Override
@@ -392,7 +413,8 @@ public class MockRegistryClient implements RegistryClient {
 
     @Override
     public List<ArtifactReference> getArtifactReferencesByGlobalId(long globalId) {
-        return List.of();
+        final var result = references.get(globalId);
+        return result != null ? result : List.of();
     }
 
     @Override
@@ -407,11 +429,15 @@ public class MockRegistryClient implements RegistryClient {
 
     @Override
     public List<ArtifactReference> getArtifactReferencesByCoordinates(String groupId, String artifactId, String version) {
-        throw error();
+        return List.of();
     }
 
     @Override
     public void close() throws IOException {
         throw error();
+    }
+
+    public void setReferences(long globalId, List<ArtifactReference> refs) {
+        references.put(globalId, refs);
     }
 }

@@ -28,7 +28,7 @@ import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.StructType;
 
 public class XmlDataObjectConverter implements Notation.Converter {
-    private static final XmlDataObjectMapper DATA_OBJECT_MAPPER = new XmlDataObjectMapper();
+    private static final XmlDataObjectMapper DATA_OBJECT_MAPPER = new XmlDataObjectMapper(true);
 
     @Override
     public DataObject convert(DataObject value, DataType targetType) {

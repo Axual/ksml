@@ -22,89 +22,34 @@ package io.axual.ksml.data.notation.xml;
 
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataSchemaMapper;
+import io.axual.ksml.data.notation.ReferenceResolver;
+import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.DataSchemaConstants;
+import io.axual.ksml.data.schema.DataValue;
 import io.axual.ksml.data.schema.StructSchema;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static io.axual.ksml.data.notation.xml.XmlDataObjectMapper.ATTRIBUTES_ELEMENT_NAME;
-import static io.axual.ksml.data.notation.xml.XmlDataObjectMapper.COUNT_SYMBOL;
 
 // This class maps an XSD schema to the internal DataSchema format. It does this
 // in two steps, where the first step reads in the schema as plain XML. The second
 // step parses the DataObject structure and translates the schema contents to the
 // internal format. The fromDataSchema method does the reverse.
 //
-// Note: this is a first rough implementation of parsing an XSD. Not all field types
+// Note: this is a rough implementation of parsing an XSD. Not all field types
 // and complex data structures are supported yet. Feel free to complement.
 //
 // Improvement suggestions:
 // - namespace handling
 // - completing primitive and structured types
 // - code polishing and documenting
-//
-// An example schema:
-// <?xml version="1.0" encoding="UTF-8"?>
-// <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-//     <xs:element name="note">
-//         <xs:complexType>
-//             <xs:sequence>
-//                 <xs:element name="to" type="xs:string"/>
-//                 <xs:element name="from" type="xs:string"/>
-//                 <xs:element name="heading" type="xs:string"/>
-//                 <xs:element name="body" type="xs:string"/>
-//             </xs:sequence>
-//         </xs:complexType>
-//     </xs:element>
-// </xs:schema>
-//
-// Translates into the following intermediate structure during translation:
-// {
-//  ".attributes": {
-//    "xmlns:xs": "http://www.w3.org/2001/XMLSchema"
-//  },
-//  "element#1": {
-//    ".attributes": {
-//      "name": "note"
-//    },
-//    "complexType": {
-//      "sequence": {
-//        "element#1": {
-//          ".attributes": {
-//            "name": "to",
-//            "type": "xs:string"
-//          }
-//        },
-//        "element#2": {
-//          ".attributes": {
-//            "name": "from",
-//            "type": "xs:string"
-//          }
-//        },
-//        "element#3": {
-//          ".attributes": {
-//            "name": "heading",
-//            "type": "xs:string"
-//          }
-//        },
-//        "element#4": {
-//          ".attributes": {
-//            "name": "body",
-//            "type": "xs:string"
-//          }
-//        }
-//      }
-//    }
-//  }
-//}
+
 public class XmlSchemaMapper implements DataSchemaMapper<String> {
-    private static final XmlDataObjectMapper MAPPER = new XmlDataObjectMapper();
+    private static final XmlDataObjectMapper OBJECT_MAPPER = new XmlDataObjectMapper(true);
     private static final String ELEMENT_NAME = "element";
     private static final String NAME_NAME = "name";
     private static final String TYPE_NAME = "type";
@@ -112,152 +57,149 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
     private static final String SEQUENCE_NAME = "sequence";
     private static final String ANY_NAME = "any";
     private static final String BOOLEAN_NAME = "boolean";
+    private static final String DECIMAL_NAME = "decimal";
     private static final String INTEGER_NAME = "integer";
     private static final String LONG_NAME = "long";
     private static final String STRING_NAME = "string";
+    private static final String NAMESPACE_NAME = "xs";
+    private static final String NAMESPACE_PREFIX = NAMESPACE_NAME + ":";
+    private static final String TARGET_NAMESPACE_NAME = "targetNamespace";
+    private static final String DEFAULT_NAME = "default";
+    private static final String FIXED_NAME = "fixed";
+    private static final String USE_NAME = "use";
+
+    private record XsdParseContext(String namespace, String name, DataStruct context,
+                                   ReferenceResolver<DataStruct> referenceResolver) {
+    }
 
     @Override
-    public StructSchema toDataSchema(String namespace, String name, String schema) {
-        var parsedSchema = MAPPER.toDataObject(schema);
-        if (parsedSchema instanceof DataStruct schemaStruct) {
-            var containedSchema = findSchema(schemaStruct, name);
-            if (containedSchema instanceof DataStruct containedSchemaStruct) {
-                var field = parseField(containedSchemaStruct);
-                if (field != null && field.schema() instanceof StructSchema fieldStructSchema) return fieldStructSchema;
-            }
+    public DataSchema toDataSchema(String namespace, String name, String schemaString) {
+        final var xsd = OBJECT_MAPPER.toDataObject(schemaString);
+        if (!(xsd instanceof DataStruct schemaStruct)) {
+            throw new SchemaException("Can not parse XML Schema: " + name);
         }
-        throw new SchemaException("Can not parse XML Schema: " + name);
-    }
 
-    private DataObject findSchema(DataStruct container, String name) {
-        var firstAttempt = findSchemaByChild(container.get(ELEMENT_NAME), name);
-        if (firstAttempt != null) return firstAttempt;
-        var index = 1;
-        while (container.containsKey(ELEMENT_NAME + COUNT_SYMBOL + index)) {
-            var attempt = findSchemaByChild(container.get(ELEMENT_NAME + COUNT_SYMBOL + index), name);
-            if (attempt != null) return attempt;
+        final var targetNamespace = schemaStruct.getAsString(TARGET_NAMESPACE_NAME);
+        final ReferenceResolver<DataStruct> referenceResolver = referenceName -> {
+            final var result = schemaStruct.get(referenceName);
+            if (result instanceof DataStruct resultStruct) return resultStruct;
+            return null;
+        };
+        final var context = new XsdParseContext(targetNamespace != null ? targetNamespace.value() : namespace, name, schemaStruct, referenceResolver);
+        for (final var item : schemaStruct.entrySet()) {
+            final var result = parseType(context, item.getKey(), item.getValue());
+            if (result != null && result.name().equals(name)) return result;
         }
         return null;
     }
 
-    private DataObject findSchemaByChild(DataObject child, String name) {
-        if (child instanceof DataStruct childStruct) {
-            var attributes = childStruct.get(ATTRIBUTES_ELEMENT_NAME);
-            if (attributes instanceof DataStruct attrributeStruct) {
-                var childName = attrributeStruct.get(NAME_NAME);
-                if (childName instanceof DataString childNameStr && childNameStr.value().equals(name)) return child;
-            }
+    private StructSchema parseType(XsdParseContext context, String name, DataObject value) {
+        if (name.equals(ELEMENT_NAME) && value instanceof DataStruct elementStruct) {
+            return parseElement(context, elementStruct);
+        }
+        if (name.equals(COMPLEX_TYPE_NAME) && value instanceof DataStruct elementStruct) {
+            return parseComplexType(context, null, elementStruct);
         }
         return null;
     }
 
-    private List<DataField> parseFields(DataStruct object) {
-        var result = new ArrayList<DataField>();
-        var fieldChild = object.get(ELEMENT_NAME);
-        if (fieldChild instanceof DataStruct fieldStruct) {
-            var field = parseField(fieldStruct);
-            if (field != null) result.add(field);
+    private StructSchema parseElement(XsdParseContext context, DataStruct elementStruct) {
+        final var complexTypeChild = elementStruct.get(COMPLEX_TYPE_NAME);
+
+        if (!(complexTypeChild instanceof DataStruct complexTypeStruct))
+            throw schemaError(context, "Can not parse element");
+
+        final var elementName = elementStruct.get(NAME_NAME);
+        return parseComplexType(context, elementName instanceof DataString elementStr ? elementStr.value() : null, complexTypeStruct);
+    }
+
+    private StructSchema parseComplexType(XsdParseContext context, String name, DataStruct complexTypeStruct) {
+        if (name == null) {
+            final var complexTypeName = complexTypeStruct.get(NAME_NAME);
+            if (complexTypeName instanceof DataString complexTypeNameStr)
+                name = complexTypeNameStr.value();
         }
-        var index = 1;
-        while (object.containsKey(ELEMENT_NAME + COUNT_SYMBOL + index)) {
-            fieldChild = object.get(ELEMENT_NAME + COUNT_SYMBOL + index);
-            if (fieldChild instanceof DataStruct fieldStruct) {
-                var field = parseField(fieldStruct);
-                if (field != null) result.add(field);
-            }
-            index++;
+
+        final var sequence = complexTypeStruct.get(SEQUENCE_NAME);
+        if (sequence instanceof DataStruct sequenceStruct) {
+            final var element = sequenceStruct.get(ELEMENT_NAME);
+            if (element instanceof DataStruct fieldStruct)
+                return new StructSchema(context.namespace(), name, "Converted from XSD", List.of(parseField(context, fieldStruct)));
+            if (element instanceof DataList fieldList)
+                return new StructSchema(context.namespace(), name, "Converted from XSD", parseFields(context, fieldList));
+        }
+
+        throw schemaError(context, "Can not parse complexType");
+    }
+
+    private List<DataField> parseFields(XsdParseContext context, DataList fields) {
+        final var result = new ArrayList<DataField>();
+        for (final var field : fields) {
+            if (!(field instanceof DataStruct fieldStruct))
+                throw schemaError(context, "Field incorrectly specified");
+            result.add(parseField(context, fieldStruct));
         }
         return result;
     }
 
-    private DataField parseField(DataStruct fieldStruct) {
-        var fieldName = fieldStruct.get(ATTRIBUTES_ELEMENT_NAME) instanceof DataStruct attributeStruct ? attributeStruct.get(NAME_NAME) : null;
-        if (fieldName != null) {
-            var fieldType = fieldStruct.get(ATTRIBUTES_ELEMENT_NAME) instanceof DataStruct attributeStruct ? attributeStruct.get(TYPE_NAME) : null;
-            if (fieldType instanceof DataString fieldTypeString) {
-                var type = fieldTypeString.value().contains(":") ? fieldTypeString.value().substring(fieldTypeString.value().indexOf(":") + 1) : fieldTypeString.value();
-                return simpleField(fieldName.toString(DataObject.Printer.INTERNAL), type);
-            } else {
-                // Field type is not specified, so dig down into the elements below to find out the type
-                var complexTypeElement = fieldStruct.get(COMPLEX_TYPE_NAME);
-                if (complexTypeElement instanceof DataStruct complexTypeStruct) {
-                    var sequenceElement = complexTypeStruct.get(SEQUENCE_NAME);
-                    if (sequenceElement instanceof DataStruct sequenceStruct) {
-                        var fields = parseFields(sequenceStruct);
-                        return new DataField(
-                                fieldName.toString(DataObject.Printer.INTERNAL),
-                                new StructSchema(
-                                        null,
-                                        fieldName.toString(DataObject.Printer.INTERNAL),
-                                        "Converted from XSD",
-                                        fields));
-                    }
-                }
-            }
+    private DataField parseField(XsdParseContext context, DataStruct fieldStruct) {
+        final var fieldName = fieldStruct.get(NAME_NAME);
+        if (!(fieldName instanceof DataString fieldNameStr) || fieldNameStr.isEmpty())
+            throw schemaError(context, "Field name missing in complexType element");
+
+        // Parse inline complex type
+        final var complexType = fieldStruct.get(COMPLEX_TYPE_NAME);
+        if (complexType instanceof DataStruct complexTypeStruct) {
+            final var schema = parseComplexType(context, null, complexTypeStruct);
+            return new DataField(fieldNameStr.value(), schema);
         }
-        return null;
+
+        // If not a complex type, then expect a type attribute
+        final var fieldType = fieldStruct.get(TYPE_NAME);
+        final String type;
+        if (!(fieldType instanceof DataString fieldTypeStr) || fieldTypeStr.isEmpty()) {
+            type = ANY_NAME;
+        } else {
+            type = fieldTypeStr.value().startsWith(NAMESPACE_PREFIX) ? fieldTypeStr.value().substring(NAMESPACE_PREFIX.length()) : fieldTypeStr.value();
+        }
+        final var fixedValue = fieldStruct.getAsString(FIXED_NAME);
+        final var defaultValue = fixedValue != null ? fixedValue : fieldStruct.getAsString(DEFAULT_NAME);
+        final var required = fieldStruct.getAsString(USE_NAME);
+        return createDataFieldFrom(
+                context,
+                fieldNameStr.value(),
+                type,
+                required != null && "required".equals(required.value()),
+                fixedValue != null,
+                defaultValue != null ? defaultValue.value() : null);
     }
 
-    private DataField simpleField(String name, String type) {
+    private DataField createDataFieldFrom(XsdParseContext context, String name, String type, boolean required, boolean constant, String defaultValue) throws SchemaException {
         var schema = switch (type) {
             case ANY_NAME -> DataSchema.ANY_SCHEMA;
             case BOOLEAN_NAME -> DataSchema.BOOLEAN_SCHEMA;
+            case DECIMAL_NAME -> DataSchema.DOUBLE_SCHEMA;
             case INTEGER_NAME -> DataSchema.INTEGER_SCHEMA;
             case LONG_NAME -> DataSchema.LONG_SCHEMA;
             case STRING_NAME -> DataSchema.STRING_SCHEMA;
             default -> null;
         };
-        if (schema == null) return null;
-        return new DataField(name, schema);
+
+        if (schema == null) {
+            final var refType = context.referenceResolver().get(type);
+            if (refType != null) schema = parseType(context, type, refType);
+        }
+
+        final var dv = defaultValue != null ? new DataValue(defaultValue) : null;
+        return new DataField(name, schema, null, DataField.NO_TAG, required, constant, dv);
+    }
+
+    private SchemaException schemaError(XsdParseContext context, String message) {
+        return new SchemaException("Can not parse XML Schema " + context.namespace() + "/" + context.name() + ": " + message);
     }
 
     @Override
     public String fromDataSchema(DataSchema schema) {
-        if (schema instanceof StructSchema structSchema) {
-            var codedSchema = encodeSchema(structSchema);
-            return MAPPER.fromDataObject(codedSchema);
-        }
         return null;
-    }
-
-    private DataStruct encodeSchema(StructSchema schema) {
-        var prefix = "xs:";
-        var result = new DataStruct(new StructSchema(null, prefix + schema.name(), null, null));
-        var attributes = new DataStruct();
-        attributes.put("xmlns:xs", new DataString("http://www.w3.org/2001/XMLSchema"));
-        result.put(ATTRIBUTES_ELEMENT_NAME, attributes);
-        var elementCount = 0;
-        for (var field : schema.fields()) {
-            DataStruct fieldStruct = new DataStruct();
-            result.put(prefix + ELEMENT_NAME + COUNT_SYMBOL + (++elementCount), fieldStruct);
-            attributes = new DataStruct();
-            fieldStruct.put(ATTRIBUTES_ELEMENT_NAME, attributes);
-            attributes.put(NAME_NAME, new DataString(field.name()));
-            var fieldSchema = field.schema();
-            var fieldType = simpleType(fieldSchema.type());
-            if (fieldType != null) {
-                attributes.put(TYPE_NAME, new DataString(prefix + fieldType));
-            } else {
-                if (fieldSchema instanceof StructSchema fieldStructSchema) {
-                    var complexTypeStruct = new DataStruct();
-                    fieldStruct.put(prefix + COMPLEX_TYPE_NAME, complexTypeStruct);
-                    var sequenceStruct = encodeSchema(fieldStructSchema);
-                    complexTypeStruct.put(prefix + SEQUENCE_NAME, sequenceStruct);
-                }
-            }
-        }
-
-        return result;
-    }
-
-    public String simpleType(String type) {
-        return switch (type) {
-            case DataSchemaConstants.ANY_TYPE -> ANY_NAME;
-            case DataSchemaConstants.BOOLEAN_TYPE -> BOOLEAN_NAME;
-            case DataSchemaConstants.INTEGER_TYPE -> INTEGER_NAME;
-            case DataSchemaConstants.LONG_TYPE -> LONG_NAME;
-            case DataSchemaConstants.STRING_TYPE -> STRING_NAME;
-            default -> null;
-        };
     }
 }

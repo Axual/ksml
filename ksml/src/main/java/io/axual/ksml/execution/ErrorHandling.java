@@ -24,10 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.errors.TopicAuthorizationException;
-import org.apache.kafka.streams.errors.DeserializationExceptionHandler;
-import org.apache.kafka.streams.errors.ProductionExceptionHandler;
-import org.apache.kafka.streams.errors.StreamsException;
-import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
+import org.apache.kafka.streams.errors.*;
+import org.apache.kafka.streams.processor.api.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,14 +77,37 @@ public class ErrorHandling {
         return data == null ? DATA_NULL : "(base64)" + Base64.getEncoder().encodeToString(data);
     }
 
-    public DeserializationExceptionHandler.DeserializationHandlerResponse handle(ConsumerRecord<byte[], byte[]> record, Exception exception) {
+    public String objectToString(Object data) {
+        return data == null ? DATA_NULL : "(string)" + data;
+    }
+
+    private void logError(Logger logger, String errorType, ErrorHandlerContext context, String key, String value, Exception exception) {
+        logger.error("{} error:\n  topic={}\n  partition={}\n  offset={}\n  processorNodeId={}\n  taskId={}\n  timestamp={}\n  key={}\n  value={}\n",
+                errorType,
+                context.topic() != null ? context.topic() : "<null>",
+                context.partition(),
+                context.offset(),
+                context.processorNodeId() != null ? context.processorNodeId() : "<null>",
+                context.taskId(),
+                context.timestamp(),
+                key,
+                value,
+                exception);
+    }
+
+    public DeserializationExceptionHandler.DeserializationHandlerResponse handle(ErrorHandlerContext context, ConsumerRecord<byte[], byte[]> rec, Exception exception) {
         if (consumeHandler.log()) {
             // log record
-            String key = consumeHandler.logPayload() ? bytesToString(record.key()) : DATA_MASK;
-            String value = consumeHandler.logPayload() ? bytesToString(record.value()) : DATA_MASK;
-            consumeExceptionLogger.error("Exception occurred while consuming a record from topic: {}, partition: {}, offset: {}, key: {}, value: {}", record.topic(), record.partition(), record.offset(), key, value, exception);
+            String key = consumeHandler.logPayload() ? bytesToString(rec.key()) : DATA_MASK;
+            String value = consumeHandler.logPayload() ? bytesToString(rec.value()) : DATA_MASK;
+            logError(consumeExceptionLogger, "Deserialization", context, key, value, exception);
         }
-        return consumeHandler.handlerType() == ErrorHandler.HandlerType.CONTINUE_ON_FAIL ? DeserializationExceptionHandler.DeserializationHandlerResponse.CONTINUE : DeserializationExceptionHandler.DeserializationHandlerResponse.FAIL;
+        return switch (consumeHandler.handlerType()) {
+            case CONTINUE_ON_FAIL -> DeserializationExceptionHandler.DeserializationHandlerResponse.CONTINUE;
+            case STOP_ON_FAIL -> DeserializationExceptionHandler.DeserializationHandlerResponse.FAIL;
+            default ->
+                    throw new UnsupportedOperationException("Deserialization errors can can only be ignored or made to stop the process");
+        };
     }
 
     public String maskData(Object data) {
@@ -94,13 +115,32 @@ public class ErrorHandling {
         return data.toString();
     }
 
-    public ProductionExceptionHandler.ProductionExceptionHandlerResponse handle(ProducerRecord<byte[], byte[]> record, Exception exception) {
+    public ProcessingExceptionHandler.ProcessingHandlerResponse handle(ErrorHandlerContext context, Record<?, ?> rec, Exception exception) {
+        if (processHandler.log()) {
+            // log record
+            String key = processHandler.logPayload() ? objectToString(rec.key()) : DATA_MASK;
+            String value = processHandler.logPayload() ? objectToString(rec.value()) : DATA_MASK;
+            logError(processExceptionLogger, "Processing", context, key, value, exception);
+        }
+        return switch (processHandler.handlerType()) {
+            case CONTINUE_ON_FAIL -> ProcessingExceptionHandler.ProcessingHandlerResponse.CONTINUE;
+            case STOP_ON_FAIL -> ProcessingExceptionHandler.ProcessingHandlerResponse.FAIL;
+            default ->
+                    throw new UnsupportedOperationException("Processing errors can only be ignored or made to stop the process");
+        };
+    }
+
+    public ProductionExceptionHandler.ProductionExceptionHandlerResponse handle(ErrorHandlerContext context, ProducerRecord<byte[], byte[]> rec, Exception exception) {
         if (produceHandler.log()) {
             // log record
-            String key = produceHandler.logPayload() ? bytesToString(record.key()) : DATA_MASK;
-            String value = produceHandler.logPayload() ? bytesToString(record.value()) : DATA_MASK;
-            produceExceptionLogger.error("Exception occurred while producing a record with key: {}, value: {}", key, value, exception);
+            String key = produceHandler.logPayload() ? bytesToString(rec.key()) : DATA_MASK;
+            String value = produceHandler.logPayload() ? bytesToString(rec.value()) : DATA_MASK;
+            logError(produceExceptionLogger, "Produce", context, key, value, exception);
         }
-        return produceHandler.handlerType() == ErrorHandler.HandlerType.CONTINUE_ON_FAIL ? ProductionExceptionHandler.ProductionExceptionHandlerResponse.CONTINUE : ProductionExceptionHandler.ProductionExceptionHandlerResponse.FAIL;
+        return switch (produceHandler.handlerType()) {
+            case CONTINUE_ON_FAIL -> ProductionExceptionHandler.ProductionExceptionHandlerResponse.CONTINUE;
+            case STOP_ON_FAIL -> ProductionExceptionHandler.ProductionExceptionHandlerResponse.FAIL;
+            case RETRY_ON_FAIL -> ProductionExceptionHandler.ProductionExceptionHandlerResponse.RETRY;
+        };
     }
 }

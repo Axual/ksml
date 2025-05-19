@@ -75,7 +75,7 @@ public class TestData {
                 new DataField(AGE, DataSchema.INTEGER_SCHEMA, "Age", 2),
                 new DataField(ADDRESS, addressSchema, "Address", 3, false),
                 new DataField(SHIPPING_ADDRESS, addressSchema, "Shipping address", 4, false),
-                new DataField(EYE_COLOR, eyeColorSchema, "Eye color", 5),
+                new DataField(EYE_COLOR, eyeColorSchema, "Eye color", 5, true, false, new DataValue("BLUE")),
                 new DataField(LUCKY_NUMBERS, luckyNumbersSchema, "Lucky numbers", 6, false),
                 new DataField(ACCOUNT_NUMBER, accountNumberSchema, "Account number", DataField.NO_TAG, false));
         return new StructSchema(NAMESPACE, "TestSchema", "Schema used for testing", fields);

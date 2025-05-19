@@ -42,6 +42,8 @@ import org.apache.kafka.streams.state.SessionStore;
 import org.apache.kafka.streams.state.WindowStore;
 
 import java.util.Arrays;
+import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 public abstract class BaseOperation implements StreamOperation {
@@ -368,8 +370,8 @@ public abstract class BaseOperation implements StreamOperation {
     private record WrapPartitioner(
             StreamPartitioner<Object, Object> partitioner) implements StreamPartitioner<Object, Void> {
         @Override
-        public Integer partition(String topic, Object key, Void value, int numPartitions) {
-            return partitioner.partition(topic, key, value, numPartitions);
+        public Optional<Set<Integer>> partitions(String topic, Object key, Void value, int numPartitions) {
+            return partitioner.partitions(topic, key, value, numPartitions);
         }
     }
 

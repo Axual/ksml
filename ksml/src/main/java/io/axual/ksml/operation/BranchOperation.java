@@ -27,7 +27,8 @@ import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserPredicate;
-import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.Branched;
+import org.apache.kafka.streams.kstream.BranchedKStream;
 import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.Predicate;
 
@@ -60,13 +61,17 @@ public class BranchOperation extends BaseOperation {
         }
 
         // Pass the predicates to KStream and get resulting KStream branches back
-        @SuppressWarnings("unchecked") final KStream<Object, Object>[] output = name != null
-                ? input.stream.branch(Named.as(name), predicates)
-                : input.stream.branch(predicates);
+        final BranchedKStream<Object, Object> splitStream = name != null
+                ? input.stream.split(Named.as(name))
+                : input.stream.split();
+        for (var index = 0; index < predicates.length; index++) {
+            splitStream.branch((Predicate<Object, Object>) predicates[index], Branched.as("" + index));
+        }
+        final var output = splitStream.noDefaultBranch();
 
         // For every branch, generate a separate pipeline
-        for (var index = 0; index < output.length; index++) {
-            StreamWrapper branchCursor = new KStreamWrapper(output[index], k, v);
+        for (var index = 0; index < predicates.length; index++) {
+            StreamWrapper branchCursor = new KStreamWrapper(output.get(name + index), k, v);
             for (StreamOperation operation : branches.get(index).pipeline().chain()) {
                 branchCursor = branchCursor.apply(operation, context);
             }

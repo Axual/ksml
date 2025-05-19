@@ -25,6 +25,7 @@ import com.squareup.wire.schema.internal.parser.*;
 import io.apicurio.registry.utils.protobuf.schema.FileDescriptorUtils;
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataSchemaMapper;
+import io.axual.ksml.data.notation.ReferenceResolver;
 import io.axual.ksml.data.schema.*;
 import io.axual.ksml.data.type.Symbol;
 import io.axual.ksml.data.util.ListUtil;
@@ -124,18 +125,18 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
 
         // Look up the non-standard type
         if (!field.getType().isEmpty()) {
-            final var findResult = context.findElement(field.getType());
-            if (findResult != null && findResult.type() instanceof EnumElement enumElement) {
+            final var reference = context.get(field.getType());
+            if (reference != null && reference.type() instanceof EnumElement enumElement) {
                 final var symbols = enumElement.getConstants().stream().map(constant -> new Symbol(constant.getName(), constant.getDocumentation(), constant.getTag())).toList();
                 if (symbols.isEmpty()) {
                     throw new SchemaException("Protobuf enum type '" + enumElement.getName() + "' has no constants defined");
                 }
                 final var defaultValue = ListUtil.find(symbols, symbol -> symbol.tag() == PROTOBUF_ENUM_DEFAULT_VALUE_INDEX);
-                return new EnumSchema(findResult.namespace(), enumElement.getName(), findResult.type().getDocumentation(), symbols, defaultValue != null ? defaultValue.name() : null);
+                return new EnumSchema(reference.namespace(), enumElement.getName(), reference.type().getDocumentation(), symbols, defaultValue != null ? defaultValue.name() : null);
             }
-            if (findResult != null && findResult.type() instanceof MessageElement msgElement) {
+            if (reference != null && reference.type() instanceof MessageElement msgElement) {
                 final var fields = convertMessageFieldsToDataFields(context, msgElement);
-                return new StructSchema(findResult.namespace(), msgElement.getName(), "", fields);
+                return new StructSchema(reference.namespace(), msgElement.getName(), "", fields);
             }
         }
 
@@ -270,7 +271,10 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
     /**
      * This is a helper class to convert from ProtoFileElements to DataSchema with type lookups
      */
-    private static class ProtobufReadContext {
+    private record ReadContextReference(String namespace, TypeElement type) {
+    }
+
+    private static class ProtobufReadContext implements ReferenceResolver<ReadContextReference> {
         private final ProtoFileElement fileElement;
         private final String namespace;
 
@@ -279,21 +283,18 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
             this.namespace = fileElement.getPackageName();
         }
 
-        public record FindResult(String namespace, TypeElement type) {
-        }
-
-        public FindResult findElement(String name) {
-            final var descriptor = findElementIn(fileElement.getPackageName(), fileElement.getTypes(), name);
+        public ReadContextReference get(String name) {
+            final var descriptor = getFrom(fileElement.getPackageName(), fileElement.getTypes(), name);
             if (descriptor != null) return descriptor;
             final var enm = ListUtil.find(fileElement.getTypes(), type -> type.getName().equals(namespace + "." + name));
-            if (enm != null) return new FindResult(namespace, enm);
+            if (enm != null) return new ReadContextReference(namespace, enm);
             return null;
         }
 
-        private FindResult findElementIn(String namespace, List<TypeElement> types, String name) {
+        private ReadContextReference getFrom(String namespace, List<TypeElement> types, String name) {
             for (final var type : types) {
-                if (type.getName().equals(name)) return new FindResult(namespace, type);
-                final var subMsg = findElementIn(namespace + "." + type.getName(), type.getNestedTypes(), name);
+                if (type.getName().equals(name)) return new ReadContextReference(namespace, type);
+                final var subMsg = getFrom(namespace + "." + type.getName(), type.getNestedTypes(), name);
                 if (subMsg != null) return subMsg;
             }
             return null;

@@ -1,10 +1,10 @@
-package io.axual.ksml.data.notation.xml;
+package io.axual.ksml.data.notation;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Data Library
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,6 @@ package io.axual.ksml.data.notation.xml;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.Notation;
-import io.axual.ksml.data.schema.DataSchema;
-
-public class XmlSchemaParser implements Notation.SchemaParser {
-    private static final XmlSchemaMapper SCHEMA_MAPPER = new XmlSchemaMapper();
-
-    @Override
-    public DataSchema parse(String contextName, String schemaName, String schemaString) {
-        return SCHEMA_MAPPER.toDataSchema(null, schemaName, schemaString);
-    }
+public interface ReferenceResolver<T> {
+    T get(String referenceName);
 }
