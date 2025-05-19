@@ -42,7 +42,7 @@ public class KSMLStateStoreTest {
     @KSMLDriver
     TopologyTestDriver topologyTestDriver;
 
-    @KSMLTest(topology = "pipelines/test-state-store.yaml", schemaDirectory = "pipelines")
+    @KSMLTest(topology = "pipelines/test-state-store.yaml", schemaDirectory = "schemas")
     void testJoin() {
 
         // given that we get events with a higher reading in matching cities

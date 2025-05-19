@@ -45,7 +45,7 @@ class KSMLFilterTest {
     @KSMLTopic(topic = "ksml_sensordata_filtered", valueSerde = KSMLTopic.SerdeType.AVRO)
     protected TestOutputTopic outputTopic;
 
-    @KSMLTest(topology = "pipelines/test-filtering.yaml", schemaDirectory = "pipelines")
+    @KSMLTest(topology = "pipelines/test-filtering.yaml", schemaDirectory = "schemas")
     @DisplayName("Records can be filtered by KSML")
     void testFilterAvroRecords() {
         log.debug("testFilterAvroRecords()");

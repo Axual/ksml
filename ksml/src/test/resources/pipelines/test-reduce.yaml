@@ -19,12 +19,7 @@ pipelines:
     via:
       - type: peek
         forEach: print_message
-      - type: groupBy
-        mapper:
-          code: |
-            log.info("key={}, value={}", key, value)
-          expression: key
-          resultType: string
+      - type: groupByKey
       - type: reduce
         reducer:
           expression: value1 + value2
