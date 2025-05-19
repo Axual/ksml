@@ -4,7 +4,7 @@ package io.axual.ksml.testutil;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2024 Axual B.V.
+ * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,27 +20,16 @@ package io.axual.ksml.testutil;
  * =========================LICENSE_END==================================
  */
 
-import org.junit.jupiter.api.Test;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation used to mark a test method as a KSML topology test.
+ * Annotation to mark a field of type {@link org.apache.kafka.streams.TopologyTestDriver}.
+ * The annotated field will be set to the driver created by {@link KSMLTestExtension}.
  */
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-@Test
-public @interface KSMLTest {
-
-    String NO_SCHEMAS = "";
-
-    /** Classpath relative reference to the pipeline definition under test. */
-    String topology();
-
-    /** Optional classpath relative reference to a directory with AVRO schema definitions. */
-    String schemaDirectory() default NO_SCHEMAS;
-
+public @interface KSMLDriver {
 }
