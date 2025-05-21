@@ -266,8 +266,10 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
 
     private ConsumerRecords<K, V> convertRecords(ConsumerRecords<K, V> records) {
         final var recordsByPartition = new HashMap<TopicPartition, List<ConsumerRecord<K, V>>>();
+        final var offsetAndMetadataByPartition = new HashMap<TopicPartition, OffsetAndMetadata>();
         if (!records.isEmpty()) {
-            for (TopicPartition topicPartition : records.partitions()) {
+            // Unresolve the records for all topic partitions
+            for (final var topicPartition : records.partitions()) {
                 final var partitionRecords = new ArrayList<ConsumerRecord<K, V>>();
                 for (final var consumerRecord : records.records(topicPartition)) {
                     partitionRecords.add(new ConsumerRecord<>(
@@ -285,9 +287,13 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
                 }
                 recordsByPartition.put(topicResolver.unresolve(topicPartition), partitionRecords);
             }
+            // Unresolve the offsets and metadata for all topic partitions
+            for (final var nextOffset : records.nextOffsets().entrySet()) {
+                offsetAndMetadataByPartition.put(topicResolver.unresolve(nextOffset.getKey()), nextOffset.getValue());
+            }
         }
 
-        return new ConsumerRecords<>(recordsByPartition);
+        return new ConsumerRecords<>(recordsByPartition, offsetAndMetadataByPartition);
     }
 
     private Map<String, List<PartitionInfo>> convertTopicList(
