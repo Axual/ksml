@@ -32,7 +32,7 @@ To run the project locally:
   - Java 21.0.7 with GraalVM runtime
 
 3. **Prepare the environment**:
-  - Ensure port `8081` is open.
+  - Ensure ports `8080`,`8081`,`9999` are open.
   - Comment out the `example-producer` container in `docker-compose.yml`.
 
 4. **Start services**:
@@ -55,7 +55,7 @@ To run the project locally:
     java io.axual.ksml.runner.KSMLRunner workspace/local/ksml-data-generator-local.yaml
     ```
 
-    IntelliJ run configuration: `ksml/.run/KSML example producer LOCAL.run.xml`
+    IntelliJ IDEA run configuration: `ksml/.run/KSML example producer LOCAL.run.xml`
 
   - For the processor:
 
@@ -63,7 +63,7 @@ To run the project locally:
     java io.axual.ksml.runner.KSMLRunner workspace/local/ksml-runner-local.yaml
     ```
 
-    IntelliJ run configuration: `ksml/.run/KSML example processor LOCAL.run.xml`
+    IntelliJ IDEA run configuration: `ksml/.run/KSML example processor LOCAL.run.xml`
 
 ### Metrics
 
@@ -75,19 +75,11 @@ KSML exposes runtime metrics in Prometheus format.
 - Metrics that start with `kafka_` are native to Kafka and originate from its internal `kafka.producer`, `kafka.consumer`, and `kafka.streams` domains.
   -  These cannot be modified at the source level, but they can be transformed or filtered during post-processing
 
-## Installing Dependencies
-
-To compile the project:
-
-```bash
-mvn clean compile
-```
-
 ## Running Tests
 
 To run tests and validate code coverage:
 
-```bash
+```shell
 mvn clean test
 ```
 

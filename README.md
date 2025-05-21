@@ -1,15 +1,25 @@
 [![Build and test](https://github.com/axual/ksml/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/axual/ksml/actions/workflows/build-and-test.yml)
 
-# Axual KSML
+# Axual KSML – Low-Code Stream Processing on Kafka Streams
 
-KSML is a wrapper around Kafka Streams that allows for development of low code stream processing applications. It was
-developed by Axual early 2021 and released as open source in May 2021.
+KSML lets you describe Kafka Streams topologies with concise YAML and embedded Python instead of large Java projects. 
+
+KSML is a wrapper around Kafka Streams that allows the development of low-code stream processing applications. It was
+developed by Axual in early 2021 and open-sourced in May 2021.
+
+## Why KSML?
+
+Kafka Streams is powerful but **Java-centric**. KSML removes the boiler-plate:
+
+* **Declarative YAML** for topology wiring
+* **Python snippets** for lightweight transformation logic
+* **One command** to package & run (native image or JVM)
 
 ## Introduction
 
 Kafka Streams has captured the hearts and minds of many developers that want to develop streaming applications on top of
 Kafka. But as powerful as the framework is, Kafka Streams has had a hard time getting around the requirement of writing
-Java code and setting up build pipelines. There were some attempts to rebuild Kafka Streams, but up until now popular
+Java code and setting up complex build pipelines. There were some attempts to rebuild Kafka Streams, but up until now popular
 languages like Python did not receive equally powerful (and maintained) stream processing frameworks. KSML provides a
 new declarative approach to unlock Kafka Streams to a wider audience. Using only a few simple basic rules and Python
 snippets, you will be able to write streaming applications in very little time.
@@ -29,9 +39,9 @@ The submodules are as follows:
 |---------------------------------------------|--------------------------------------------------------------------------------------------------------------|
 | [`ksml-data`](ksml-data/)                   | contains core data type and schema logic.                                                                    |
 | [`ksml-data-avro`](ksml-data-avro/)         | extension to the data library for AVRO support.                                                              |
-| [`ksml-data-binary`](ksml-data-avro/)       | extension to the data library for BINARY support.                                                            |
+| [`ksml-data-binary`](ksml-data-binary/)     | extension to the data library for BINARY support.                                                            |
 | [`ksml-data-csv`](ksml-data-csv/)           | extension to the data library for CSV support.                                                               |
-| [`ksml-data-json`](ksml-data-avro/)         | extension to the data library for JSON support.                                                              |
+| [`ksml-data-json`](ksml-data-json/)         | extension to the data library for JSON support.                                                              |
 | [`ksml-data-protobuf`](ksml-data-protobuf/) | extension to the data library for PROTOBUF support.                                                          |
 | [`ksml-data-soap`](ksml-data-soap/)         | extension to the data library for SOAP support.                                                              |
 | [`ksml-data-xml`](ksml-data-xml/)           | extension to the data library for XML support.                                                               |
@@ -42,58 +52,57 @@ The submodules are as follows:
 
 ## Building KSML
 
-Building and running KSML requires an installation of GraalVM and the corresponding Python module.
-There are two ways to do this:
+KSML depends on GraalVM for compilation and runtime. There are two ways to build the KSML runner:
+1. Using the provided multistage Dockerfile, which includes GraalVM and builds the project in a containerized environment.
+2. Installing GraalVM locally and building the project with Maven.
 
-1. Use the supplied multistage Docker build file
-2. Install GraalVM locally
+Details for each method are outlined below.
 
-See the paragraphs below for details.
+#### Option 1: Using the multistage Docker build
 
-#### Using the multistage Docker build
+You can build the KSML runner using Docker Buildx:
 
-You can build either the standard KSML runner, or the runner for the Axual platform using one of the following commands:
-
-    # Create the BuildX builder for KSML 
+```shell
+    # Create a Buildx builder named 'ksml'
     docker buildx create --name ksml
-    # Build KSML Runner
-    docker buildx --builder ksml build --load --platform linux/amd64,linux/arm64 -t axual/ksml:local --target ksml -f Dockerfile .
-    # Remove the BuildX builder for KSML
+
+    # Build and load the KSML runner image
+    docker buildx --builder ksml build --load \
+    -t axual/ksml:local --target ksml -f Dockerfile .
+
+    # Remove the builder when done
     docker buildx rm ksml
+```
+>💡 To build for multiple platforms (e.g. amd64 and arm64), add the --platform flag: \
+> `--platform linux/amd64,linux/arm64`
+> 
+> This is useful for creating images that run on both Intel/AMD and ARM systems (e.g., servers and Raspberry Pi devices).
+> Make sure your Docker setup supports this. You may need QEMU and additional configuration.
 
-If you get the following error it means that your setup cannot build for multiple platforms yet.
+#### Option 2: Build locally with GraalVM
 
-    ERROR: docker exporter does not currently support exporting manifest lists
+Download GraalVM for Java 21 or later from [the official downloads page](https://www.graalvm.org/downloads/) and follow the installation instructions for your platform.
 
-You can perform a build for just your platform by removing the `--platform linux/amd64,linux/arm64` arguments from the
-commands above
-
-    # Create the BuildX builder for KSML 
-    docker buildx create --name ksml
-    # Build KSML Runner
-    docker buildx --builder ksml build --load -t axual/ksml:local --target ksml -f Dockerfile .
-    # Remove the BuildX builder for KSML
-    docker buildx rm ksml
-
-#### Install GraalVM locally
-
-Download GraalVM for Java 21 or later from [this page](https://www.graalvm.org/downloads/) and install it for your
-platform as explained.
-
-Once installed, select GraalVM as your default Java JVM. Then you can build KSML using the normal
-Maven commands:
+Once installed, configure GraalVM as your default JVM, then build the project using Maven:
 
 ```mvn clean package```
 
 ## Running KSML
 
-To run the KSML demo, we provide a Docker compose file which will start Kafka, create the demo topics, and start a
-container
-with a demo producer. You can then start the runner you generated in the previous step, passing in a KSML configuration
-of your choice.
-See [Runners](docs/runners.md) for details.
+Requirements:
+- Docker Engine v20.10.x
+- Docker Compose Plugin v2.17.x
 
-To run the demo, Docker Engine 20.10.x and Docker Compose Plugin v2.17.x is required.
+To run the KSML demo locally, a [Docker Compose file](./docker-compose.yml) is provided. It sets up all required
+components, including Kafka, the demo topics, and a demo producer container. To launch the demo:
+```shell
+docker compose up -d
+```
+
+Once the environment is up, you can run your KSML topology using the KSML runner and a KSML
+configuration file of your choice:
+1. For full details about the KSML configuration file, see the [KSML Runner documentation](docs/runners.md).
+2. For a locally running demo with an example KSML configuration file, please follow [Setting Up the Project for Local Development](https://github.com/Axual/ksml/blob/main/CONTRIBUTING.md). 
 
 ### Contributing ###
 

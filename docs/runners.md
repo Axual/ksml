@@ -1,4 +1,4 @@
-# Runners
+# KSML Runner
 
 ### Table of Contents
 
@@ -9,13 +9,17 @@
 
 ## Introduction
 
-The core of KSML is a library that allows KSML definition files to be parsed and translated into Kafka Streams
-topologies. Because we wanted to keep KSML low-overhead, KSML does not run these topologies itself. A runner application
-is provided separately to execute the generated topologies.
-The runner supports plain Kafka connections, which can be configured using normal Kafka properties, and contains an
-advanced configurations that helps running against Kafka clusters using namespacing.
+KSML is built around the `ksml` module, which provides the core functionality for parsing KSML
+definition files and converting them into Kafka Streams topologies. To keep KSML lightweight and
+flexible, it does not execute these topologies directly.
 
-Examples of runner configurations are shown below.
+Instead, execution is handled by the `ksml-runner` module — a standalone Java application that
+loads KSML configurations and runs the corresponding Kafka Streams applications.
+
+The `ksml-runner` supports standard Kafka configurations and includes advanced features for working
+with Kafka clusters that use namespacing (e.g., tenant-aware deployments).
+
+Example runner configurations are provided below.
 
 ## Configuration
 
