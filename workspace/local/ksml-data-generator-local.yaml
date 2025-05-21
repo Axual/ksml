@@ -1,0 +1,82 @@
+ksml:
+  # The examples directory is mounted to /ksml in the Docker container
+  configDirectory: examples       # When not set defaults to the working directory
+  schemaDirectory: examples       # When not set defaults to the config directory
+  storageDirectory: workspace/local    # When not set defaults to the default JVM temp directory
+
+  # This section defines if a REST endpoint is opened on the KSML runner, through which
+  # state stores and/or readiness / liveness probes can be accessed.
+  applicationServer:
+    enabled: false                # Set to true to enable, or false to disable
+    host: 0.0.0.0                 # IP address to bind the REST server to
+    port: 8080                    # Port number to listen on
+
+  pythonContext:
+    allowHostFileAccess: false           # host file access
+    allowHostSocketAccess: false         # host socket access
+    allowNativeAccess: true             # allow Graal native access / JNI
+    allowCreateProcess: true            # allows guest language to execute external processes
+    allowCreateThread: true             # permit new Java threads from guest code
+    inheritEnvironmentVariables: true   # inherit the JVM process environment in the Python context
+
+  # This section defines whether a Prometheus endpoint is opened to allow metric scraping.
+  prometheus:
+    enabled: false                # Set to true to enable, or false to disable
+    host: 0.0.0.0                 # IP address to bind the Prometheus agent server to
+    port: 9999                    # Port number to listen on
+
+  # This section enables error handling or error ignoring for certain types of errors.
+  errorHandling:
+    consume:                      # Error handling definitions for consume errors
+      log: true                   # Log errors true/false
+      logPayload: true            # Upon error, should the payload of the message be dumped to the log file.
+      loggerName: ConsumeError    # Definition of the error logger name.
+      handler: stopOnFail         # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
+    process:
+      log: true                   # Log errors true/false
+      logPayload: true            # Upon error, should the payload of the message be dumped to the log file.
+      loggerName: ProcessError    # Definition of the error logger name.
+      handler: continueOnFail     # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
+    produce:
+      log: true                   # Log errors true/false
+      logPayload: true            # Upon error, should the payload of the message be dumped to the log file.
+      loggerName: ProduceError    # Definition of the error logger name.
+      handler: continueOnFail     # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
+
+  enableProducers: true           # Set to true to allow producer definitions to be parsed in the KSML definitions and be executed.
+  enablePipelines: false          # Set to true to allow pipeline definitions to be parsed in the KSML definitions and be executed.
+
+  # This section tells KSML with which serializers / deserializers to handle certain notation types.
+  notations:
+    avro:                          # Definition for "avro" notation
+      type: confluent_avro         # For AVRO there are two implementations: apicurio_avro and confluent_avro
+      ## Below this line, specify properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
+      config:
+        schema.registry.url: http://localhost:8082/apis/ccompat/v7
+
+    protobuf:                      # Definition for "protobuf" notation
+      type: apicurio_protobuf      # For Protobuf there is only one implementation: apicurio_protobuf
+      ## Below this line, specify properties to be passed into Apicurio's ProtobufKafkaSerializer and ProtobufKafkaDeserializer
+      config:
+        apicurio.registry.url: http://localhost:8082/apis/registry/v2
+        apicurio.registry.auto-register: "true"
+
+  # Section where you specify which KSML definitions to load, parse and execute.
+  definitions:
+    # Format is <namespace>: <ksml_definition_filename>
+    generate_alert_setting: 00-example-generate-alertsettings.yaml
+    generate_sensor_data_avro: 00-example-generate-sensordata-avro.yaml
+#    generate_sensor_data_avro_batch: 00-example-generate-sensordata-avro-batch.yaml
+#    generate_sensor_data_binary: 00-example-generate-sensordata-binary.yaml
+#    generate_sensor_data_protobuf: 00-example-generate-sensordata-protobuf.yaml
+
+kafka:
+  bootstrap.servers: localhost:9092
+  application.id: io.ksml.example.datagenerator
+  client.id: io.ksml.example.producer
+  acks: all
+  reset: earliest
+  security.protocol: PLAINTEXT
+  tenant: "local"
+  instance: "sandbox"
+  environment: "dev"
