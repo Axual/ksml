@@ -69,7 +69,7 @@
         <apache.commons.compress.version>1.27.1</apache.commons.compress.version>
         <apache.kafka.version>3.9.0</apache.kafka.version>
         <apicurio.version>2.6.8.Final</apicurio.version>
-        <confluent.version>7.9.0</confluent.version>
+        <confluent.version>7.9.1</confluent.version>
         <findbugs.jsr305.version>3.0.2</findbugs.jsr305.version>
         <graalvm.version>24.2.1</graalvm.version>
         <guava.version>33.4.8-jre</guava.version>
@@ -88,8 +88,8 @@
         <junit.version>5.12.2</junit.version>
         <hamcrest.version>3.0</hamcrest.version>
         <assertj.version>3.27.3</assertj.version>
-        <mockito-core.version>5.17.0</mockito-core.version>
-        <mockito-junit-jupiter.version>5.17.0</mockito-junit-jupiter.version>
+        <mockito-core.version>5.18.0</mockito-core.version>
+        <mockito-junit-jupiter.version>5.18.0</mockito-junit-jupiter.version>
         <junit-pioneer.version>2.3.0</junit-pioneer.version>
         <awaitility.version>4.3.0</awaitility.version>
 
