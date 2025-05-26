@@ -4,7 +4,7 @@ package io.axual.ksml.operation.parser;
  * ========================LICENSE_START=================================
  * KSML
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
-
 import io.axual.ksml.definition.parser.AggregatorDefinitionParser;
 import io.axual.ksml.definition.parser.InitializerDefinitionParser;
 import io.axual.ksml.definition.parser.MergerDefinitionParser;
@@ -28,7 +27,6 @@ import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.AggregateOperation;
 import io.axual.ksml.parser.StructsParser;
-import io.axual.ksml.store.StoreType;
 
 public class AggregateOperationParser extends StoreOperationParser<AggregateOperation> {
     public AggregateOperationParser(TopologyResources resources) {
