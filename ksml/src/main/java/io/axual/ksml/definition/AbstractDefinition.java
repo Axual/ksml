@@ -20,6 +20,9 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
+import lombok.EqualsAndHashCode;
+
+@EqualsAndHashCode
 public abstract class AbstractDefinition implements Definition {
     @Override
     public String toString() {
