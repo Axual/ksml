@@ -1,41 +1,20 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
 
 # This example shows how to filter messages from a simple stream. Here we
-# only let "blue sensors" pass and discard other messages after logging.
-
-streams:
-  sensor_source:
-    topic: ksml_sensordata_avro
-    keyType: string
-    valueType: avro:SensorData
-    offsetResetPolicy: latest
-  sensor_filtered:
-    topic: ksml_sensordata_filtered
-    keyType: string
-    valueType: avro:SensorData
-
-functions:
-  sensor_is_blue:
-    type: predicate
-    code: |
-      if value is None:
-        if key is None:
-          log.warn("Skipping message without key and value")
-        else:
-          log.warn("No value in message with key={}", key)
-        return False
-      if value["color"] != "blue":
-        log.warn("Unknown color: {}", value["color"] if "color" in value else "None")
-        return False
-    expression: True
+# only let "blue sensors" pass and discard other messages.
 
 pipelines:
   filter_pipeline:
-    from: sensor_source
+    from:
+      topic: ksml_sensordata_avro
+      keyType: string
+      valueType: avro:SensorData
+      offsetResetPolicy: latest
     via:
       - type: filter
-        if: sensor_is_blue
-      - type: peek
-        forEach:
-          code: log.info("MESSAGE ACCEPTED - key={}, value={}", key, value)
-    to: sensor_filtered
+        if:
+          expression: value is not None and value["color"] != "blue"
+    to:
+      topic: ksml_sensordata_filtered
+      keyType: string
+      valueType: avro:SensorData

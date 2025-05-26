@@ -47,7 +47,7 @@ public class AggregateOperationParser extends StoreOperationParser<AggregateOper
                 optional(functionField(KSMLDSL.Operations.Aggregate.MERGER, "(SessionWindowedStream, SessionWindowedCogroupedStream) A function that combines two aggregation results", new MergerDefinitionParser(false))),
                 optional(functionField(KSMLDSL.Operations.Aggregate.ADDER, "(GroupedTable) A function that adds a record to the aggregation result", new AggregatorDefinitionParser(false))),
                 optional(functionField(KSMLDSL.Operations.Aggregate.SUBTRACTOR, "(GroupedTable) A function that removes a record from the aggregation result", new AggregatorDefinitionParser(false))),
-                storeField(false, "Materialized view of the result aggregation", StoreType.WINDOW_STORE),
+                storeField(false, "Materialized view of the result aggregation", null),
                 (name, init, aggr, merg, add, sub, store, tags) -> new AggregateOperation(storeOperationConfig(name, tags, store), init, aggr, merg, add, sub));
     }
 }

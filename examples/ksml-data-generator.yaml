@@ -1,7 +1,7 @@
 ksml:
-  # The examples directory is mounted to /ksml in the docker compose definition
-  configDirectory: .          # When not set defaults to the working directory
-  schemaDirectory: .          # When not set defaults to the config directory
+  # The examples directory is mounted to /ksml in the Docker container
+  configDirectory: .              # When not set defaults to the working directory
+  schemaDirectory: .              # When not set defaults to the config directory
   storageDirectory: /tmp          # When not set defaults to the default JVM temp directory
 
   # This section defines if a REST endpoint is opened on the KSML runner, through which
@@ -57,7 +57,7 @@ ksml:
         # schema.registry.ssl.truststore.type: JKS
         # schema.registry.ssl.truststore.password: password
 
-    # Definition for "other_avro" notation. With this config, you can use a type like otherAvro:SchenaName in your
+    # Definition for "otherAvro" notation. With this config, you can use a type like otherAvro:SchemaName in your
     # KSML definition, which then uses the Apicurio implementation for AVRO.
     otherAvro:
       type: apicurio_avro         # For AVRO there are two implementations: apicurio_avro and confluent_avro

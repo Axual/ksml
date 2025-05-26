@@ -49,7 +49,13 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreType",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinition",
+            "type" : "object"
+          }, {
+            "$ref" : "#/definitions/SessionStateStoreDefinition",
+            "type" : "object"
+          }, {
+            "$ref" : "#/definitions/WindowStateStoreDefinition",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the result aggregation"
@@ -396,15 +402,6 @@
         "name" : {
           "description" : "*(optional)* The name of the operation processor",
           "type" : "string"
-        },
-        "store" : {
-          "anyOf" : [ {
-            "type" : "string"
-          }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreType",
-            "type" : "object"
-          } ],
-          "description" : "*(optional)* Materialized view of the co-grouped stream"
         },
         "type" : {
           "description" : "The type of the operation",
@@ -1356,13 +1353,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/SessionStateStoreDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinition",
+            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the joined streams"
@@ -1449,16 +1440,10 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/SessionStateStoreDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinition",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
-          "description" : "*(optional)* Materialized view of the joined streams"
+          "description" : "*(optional)* Materialized view of the joined tables (only used for Table-Table joins)"
         },
         "table" : {
           "anyOf" : [ {
@@ -2526,16 +2511,10 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/SessionStateStoreDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinition",
+            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
-          "description" : "*(optional)* Materialized view of the joined streams"
+          "description" : "*(optional)* Materialized view of the leftJoined streams"
         },
         "stream" : {
           "anyOf" : [ {
@@ -2619,16 +2598,10 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/SessionStateStoreDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinition",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
-          "description" : "*(optional)* Materialized view of the joined streams"
+          "description" : "*(optional)* Materialized view of the leftJoined tables (only used for Table-Table joins)"
         },
         "table" : {
           "anyOf" : [ {
@@ -2967,13 +2940,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/SessionStateStoreDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinition",
+            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the outerJoined streams"
@@ -3025,13 +2992,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/KeyValueStateStoreDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/SessionStateStoreDefinition",
-            "type" : "object"
-          }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinition",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the outerJoined streams"
@@ -3544,7 +3505,7 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreType",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the aggregation"
@@ -3588,7 +3549,13 @@
           "anyOf" : [ {
             "type" : "string"
           }, {
-            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreType",
+            "$ref" : "#/definitions/KeyValueStateStoreDefinition",
+            "type" : "object"
+          }, {
+            "$ref" : "#/definitions/SessionStateStoreDefinition",
+            "type" : "object"
+          }, {
+            "$ref" : "#/definitions/WindowStateStoreDefinition",
             "type" : "object"
           } ],
           "description" : "*(optional)* Materialized view of the aggregation"

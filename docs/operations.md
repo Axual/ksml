@@ -277,11 +277,12 @@ to: output_stream
 Filter all incoming messages according to some predicate. The predicate function is called for every message. Only when
 the predicate returns `true`, then the message will be sent to the output stream.
 
-| Stream Type      | Returns          | Parameter | Value Type | Required            | Description                                                                                         |
-|:-----------------|:-----------------|:----------|:-----------|:--------------------|:----------------------------------------------------------------------------------------------------|
-| [KStream]`<K,V>` | [KStream]`<K,V>` | `if`      | Yes        | Inline or reference | A [Predicate] function, which returns `True` if the message can pass the filter, `False` otherwise. |
-|                  |                  |           |            |                     |                                                                                                     |
-| [KTable]`<K,V>`  | [KTable]`<K,V>`  | `if`      | Yes        | Inline or reference | A [Predicate] function, which returns `True` if the message can pass the filter, `False` otherwise. |
+| Stream Type      | Returns          | Parameter | Value Type          | Required            | Description                                                                                         |
+|:-----------------|:-----------------|:----------|:--------------------|:--------------------|:----------------------------------------------------------------------------------------------------|
+| [KStream]`<K,V>` | [KStream]`<K,V>` | `if`      | Yes                 | Inline or reference | A [Predicate] function, which returns `True` if the message can pass the filter, `False` otherwise. |
+|                  |                  |           |                     |                     |                                                                                                     |
+| [KTable]`<K,V>`  | [KTable]`<K,V>`  | `store`   | Store configuration | No                  | An optional [Store] configuration, should be of type `keyValue`.                                    |
+|                  |                  | `if`      | Yes                 | Inline or reference | A [Predicate] function, which returns `True` if the message can pass the filter, `False` otherwise. |
 
 Example:
 
@@ -359,8 +360,8 @@ from: input_stream
 via:
   - type: groupBy
     mapper:
-       expression: value["some_field"]
-       resultType: string
+      expression: value["some_field"]
+      resultType: string
   - type: aggregate
     initializer:
       expression: 0
@@ -406,14 +407,13 @@ their timestamps need to be close enough as defined by timeDifference.
 |                  |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `key` of type `K`, and two values `value1` and `value2` of type `V`. The return value is the joined value of type `VR`.                        |
 |                  |                   | `timeDifference`      | `duration`          | Yes      | The maximum allowed between two joined records.                                                                                                                                        |
 |                  |                   | `grace`               | `duration`          | No       | A grace period during with out-of-order to-be-joined records may still arrive.                                                                                                         |
-| [KStream]`<K,V>` | [KStream]`<K,VR>` | `store`               | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`.                                                                                                                       |
-|                  |                   | `table`               | `string`            | Yes      | The name of the table to join with. The table should be of key type `K` and value type `VO`.                                                                                           |                                                                    |
+| [KStream]`<K,V>` | [KStream]`<K,VR>` | `table`               | `string`            | Yes      | The name of the table to join with. The table should be of key type `K` and value type `VO`.                                                                                           |                                                                    |
 |                  |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `value1` of type `V` from the source table and a `value2` of type `VO` from the join table. The return value is the joined value of type `VR`. |
 |                  |                   | `grace`               | `duration`          | No       | A grace period during with out-of-order to-be-joined records may still arrive.                                                                                                         |
 | [KStream]`<K,V>` | [KStream]`<K,VR>` | `globalTable`         | `string`            | Yes      | The name of the global table to join with. The global table should be of key type `GK` and value type `GV`.                                                                            |
 |                  |                   | `mapper`              | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return value is the key of type `GK` of the records from the GlobalTable to join with.     |
 |                  |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `key` of type `K`, and two values `value1` and `value2` of type `V`. The return value is the joined value of type `VR`.                        |
-| [KTable]`<K,V>`  | [KTable]`<K,VR>`  | `store`               | Store configuration | No       | The [Store] configuration.                                                                                                                                                             |
+| [KTable]`<K,V>`  | [KTable]`<K,VR>`  | `store`               | Store configuration | No       | The [Store] configuration, should be of type `keyValue`.                                                                                                                               |
 |                  |                   | `table`               | `string`            | Yes      | The name of the table to join with. The table should be of key type `K` and value type `VO`.                                                                                           |                                                                    |
 |                  |                   | `foreignKeyExtractor` | Inline or reference | No       | A [ForeignKeyExtractor] function, which takes a `value` of type `V`, which needs to be converted into the key type `KO` of the table to join with.                                     |                                                  
 |                  |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `value1` of type `V` from the source table and a `value2` of type `VO` from the join table. The return value is the joined value of type `VR`. |
@@ -445,14 +445,13 @@ their timestamps need to be close enough as defined by timeDifference.
 |                  |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `key` of type `K`, and two values `value1` and `value2` of type `V`. The return value is the joined value of type `VR`.                        |
 |                  |                   | `timeDifference`      | `duration`          | Yes      | The maximum allowed between two joined records.                                                                                                                                        |
 |                  |                   | `grace`               | `duration`          | No       | A grace period during with out-of-order to-be-joined records may still arrive.                                                                                                         |
-| [KStream]`<K,V>` | [KStream]`<K,VR>` | `store`               | Store configuration | No       | An optional [Store] configuration, should be of type `keyValue`.                                                                                                                       |
-|                  |                   | `table`               | `string`            | Yes      | The name of the table to join with. The table should be of key type `K` and value type `VO`.                                                                                           |                                                                    |
+| [KStream]`<K,V>` | [KStream]`<K,VR>` | `table`               | `string`            | Yes      | The name of the table to join with. The table should be of key type `K` and value type `VO`.                                                                                           |                                                                    |
 |                  |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `value1` of type `V` from the source table and a `value2` of type `VO` from the join table. The return value is the joined value of type `VR`. |
 |                  |                   | `grace`               | `duration`          | No       | A grace period during with out-of-order to-be-joined records may still arrive.                                                                                                         |
 | [KStream]`<K,V>` | [KStream]`<K,VR>` | `globalTable`         | `string`            | Yes      | The name of the global table to join with. The global table should be of key type `GK` and value type `GV`.                                                                            |
 |                  |                   | `mapper`              | Inline or reference | Yes      | A [KeyValueMapper] function, which takes a `key` of type `K` and a `value` of type `V`. The return value is the key of type `GK` of the records from the GlobalTable to join with.     |
 |                  |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `key` of type `K`, and two values `value1` and `value2` of type `V`. The return value is the joined value of type `VR`.                        |
-| [KTable]`<K,V>`  | [KTable]`<K,VR>`  | `store`               | Store configuration | No       | The [Store] configuration.                                                                                                                                                             |
+| [KTable]`<K,V>`  | [KTable]`<K,VR>`  | `store`               | Store configuration | No       | The [Store] configuration, should be of type `keyValue`.                                                                                                                               |
 |                  |                   | `table`               | `string`            | Yes      | The name of the table to join with. The table should be of key type `K` and value type `VO`.                                                                                           |                                                                    |
 |                  |                   | `foreignKeyExtractor` | Inline or reference | No       | A [ForeignKeyExtractor] function, which takes a `value` of type `V`, which needs to be converted into the key type `KO` of the table to join with.                                     |                                                  
 |                  |                   | `valueJoiner`         | Inline or reference | Yes      | A [ValueJoiner] function, which takes a `value1` of type `V` from the source table and a `value2` of type `VO` from the join table. The return value is the joined value of type `VR`. |

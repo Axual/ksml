@@ -30,7 +30,7 @@ import io.axual.ksml.store.StoreType;
 
 import static io.axual.ksml.dsl.KSMLDSL.Operations;
 
-public class CogroupOperationParser extends StoreOperationParser<CogroupOperation> {
+public class CogroupOperationParser extends OperationParser<CogroupOperation> {
     public CogroupOperationParser(TopologyResources resources) {
         super(KSMLDSL.Operations.COGROUP, resources);
     }
@@ -43,7 +43,6 @@ public class CogroupOperationParser extends StoreOperationParser<CogroupOperatio
                 "A cogroup operation",
                 operationNameField(),
                 functionField(Operations.Aggregate.AGGREGATOR, "(GroupedStream, SessionWindowedStream, TimeWindowedStream) The aggregator function, which combines a value with the previous aggregation result and outputs a new aggregation result", new AggregatorDefinitionParser(false)),
-                storeField(false, "Materialized view of the co-grouped stream", StoreType.WINDOW_STORE),
-                (name, aggr, store, tags) -> new CogroupOperation(storeOperationConfig(name, tags, store), aggr));
+                (name, aggr, tags) -> new CogroupOperation(operationConfig(name, tags), aggr));
     }
 }
