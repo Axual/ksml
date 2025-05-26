@@ -38,18 +38,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @ExtendWith(KSMLTestExtension.class)
 public class KSMLBranchingTest {
 
+    @KSMLTopic(topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)
     TestInputTopic inputTopic;
 
+    @KSMLTopic(topic = "ksml_sensordata_blue", valueSerde = KSMLTopic.SerdeType.AVRO)
     TestOutputTopic outputBlue;
 
+    @KSMLTopic(topic = "ksml_sensordata_red", valueSerde = KSMLTopic.SerdeType.AVRO)
     TestOutputTopic outputRed;
 
-    @KSMLTest(topology = "pipelines/test-branching.yaml", schemaDirectory = "pipelines",
-            inputTopics = {@KSMLTopic(variable = "inputTopic", topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)},
-            outputTopics = {@KSMLTopic(variable = "outputBlue", topic = "ksml_sensordata_blue", valueSerde = KSMLTopic.SerdeType.AVRO),
-                    @KSMLTopic(variable = "outputRed", topic = "ksml_sensordata_red", valueSerde = KSMLTopic.SerdeType.AVRO)
-            }
-    )
+    @KSMLTest(topology = "pipelines/test-branching.yaml", schemaDirectory = "pipelines")
     void testBranching() {
         // the pipeline routes readings based on color: generate some records
         List<SensorData> sensorDatas = new ArrayList<>();

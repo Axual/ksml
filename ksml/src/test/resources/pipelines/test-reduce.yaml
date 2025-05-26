@@ -1,0 +1,34 @@
+streams:
+  messageIn:
+    topic: inMessages
+    keyType: string
+    valueType: string
+  messagesOut:
+    topic: outMessages
+    keyType: string
+    valueType: string
+
+functions:
+  print_message:
+    type: forEach
+    code: log.info("key={}, value={}", key, value)
+
+pipelines:
+  main:
+    from: messageIn
+    via:
+      - type: peek
+        forEach: print_message
+      - type: groupBy
+        mapper:
+          code: |
+            log.info("key={}, value={}", key, value)
+          expression: key
+          resultType: string
+      - type: reduce
+        reducer:
+          expression: value1 + value2
+      - type: toStream
+      - type: peek
+        forEach: print_message
+    to: messagesOut

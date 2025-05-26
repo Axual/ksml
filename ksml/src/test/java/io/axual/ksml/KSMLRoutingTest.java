@@ -37,21 +37,19 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 @ExtendWith(KSMLTestExtension.class)
 public class KSMLRoutingTest {
 
+    @KSMLTopic(topic = "ksml_sensordata_avro")
     TestInputTopic inputTopic;
 
+    @KSMLTopic(topic = "ksml_sensordata_sensor0")
     TestOutputTopic outputSensor0;
 
+    @KSMLTopic(topic = "ksml_sensordata_sensor1")
     TestOutputTopic outputSensor1;
 
+    @KSMLTopic(topic = "ksml_sensordata_sensor2")
     TestOutputTopic outputSensor2;
 
-    @KSMLTest(topology = "pipelines/test-routing.yaml",
-            inputTopics = {@KSMLTopic(variable = "inputTopic", topic = "ksml_sensordata_avro")},
-            outputTopics = {@KSMLTopic(variable = "outputSensor0", topic = "ksml_sensordata_sensor0"),
-                    @KSMLTopic(variable = "outputSensor1", topic = "ksml_sensordata_sensor1"),
-                    @KSMLTopic(variable = "outputSensor2", topic = "ksml_sensordata_sensor2")
-            }
-    )
+    @KSMLTest(topology = "pipelines/test-routing.yaml")
     void testRouting() {
         // the pipeline routes readings based on key: generate some records
         inputTopic.pipeInput("sensor1", "some_value");

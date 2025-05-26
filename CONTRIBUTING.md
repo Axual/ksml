@@ -1,95 +1,94 @@
 # Contributing
 
-When contributing to this repository, please first discuss the change you wish to make via 
-[an issue](https://github.com/Axual/ksml/issues).
+Thank you for considering contributing to this project! Before making any changes, please open an [issue](https://github.com/Axual/ksml/issues) to discuss the proposed modifications.
 
-Please note we have a code of conduct, please follow it in all your interactions with the project.
+Please also make sure to read and follow our [Code of Conduct](CODE_OF_CONDUCT.md) in all interactions with the project.
 
 ## Merge Request Process
 
-1. Make sure your code adheres to formatting conventions, for that we use 
-[Google Java Style Guide](https://google.github.io/styleguide/javaguide.html).
-2. Document your code appropriately.
-3. Code coverage should meet the expected 70%.
-4. Bugfixes should include a unit test or integration test reproducing the issue.
-5. Try to keep merge request short and submit separate ones for unrelated features, but feel 
-free to combine simple bugfixes/tests into one merge request.
-6. Update the [`README.md`](README.md) if necessary with details of changes to the interface, 
-this includes new environment variables, useful file locations etc.
-7. You may merge the merge request in once you have the sign-off of two other developers, or 
-if you do not have permission to do that, you may request the second reviewer to merge it for you.
+1. Fork the repository and create a feature or bugfix branch.
+2. Ensure your code follows the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html).
+2. Document your code clearly and thoroughly.
+3. Maintain at least 70% test coverage. Include a unit or integration test that reproduces any bug you're fixing.
+4. Keep changes focused and concise. Submit separate pull requests for unrelated changes, but you may combine minor bug fixes and tests.
+6. Update the [`README.md`](README.md) when you introduce interface changes (e.g., new environment variables, file paths, etc.).
+7. Submit a pull request from your fork to the main repository.
+8. A pull request may be merged after approval from two developers. If you do not have merge permissions, ask the second reviewer to merge it for you.
 
-## Code of Conduct
+## Setting Up the Project for Local Development
 
-### Our Pledge
+To run the project locally:
 
-In the interest of fostering an open and welcoming environment, we as
-contributors and maintainers pledge to making participation in our project and
-our community a harassment-free experience for everyone, regardless of age, body
-size, disability, ethnicity, gender identity and expression, level of experience,
-nationality, personal appearance, race, religion, or sexual identity and
-orientation.
+1. **Clone the repository**:
 
-### Our Standards
+   ```bash
+   git clone https://github.com/Axual/ksml.git
+   cd ksml
+   ```
 
-Examples of behavior that contributes to creating a positive environment
-include:
+2. **Minimum requirements**:
+  - Docker Engine 20.10.13+
+  - Docker Compose v2 plugin: 2.17.0+
+  - Java 21.0.7 with GraalVM runtime
 
-* Using welcoming and inclusive language
-* Being respectful of differing viewpoints and experiences
-* Gracefully accepting constructive criticism
-* Focusing on what is best for the community
-* Showing empathy towards other community members
+3. **Prepare the environment**:
+  - Ensure ports `8080`,`8081`,`9999` are open.
+  - Comment out the `example-producer` container in `docker-compose.yml`.
 
-Examples of unacceptable behavior by participants include:
+4. **Start services**:
 
-* The use of sexualized language or imagery and unwelcome sexual attention or
-advances
-* Trolling, insulting/derogatory comments, and personal or political attacks
-* Public or private harassment
-* Publishing others' private information, such as a physical or electronic
-  address, without explicit permission
-* Other conduct which could reasonably be considered inappropriate in a
-  professional setting
+   ```bash
+   docker compose up -d
+   ```
 
-### Our Responsibilities
+5. **Set up the workspace**:
+  - Create the folder: `ksml/workspace/local`
+  - Add the following files:
+    - `ksml-data-generator-local.yaml`
+    - `ksml-runner-local.yaml`
+  - To experiment with different examples, uncomment definitions in `ksml.definitions`.
 
-Project maintainers are responsible for clarifying the standards of acceptable
-behavior and are expected to take appropriate and fair corrective action in
-response to any instances of unacceptable behavior.
+6. **Run the KSML Runner**:
+  - For the data generator:
 
-Project maintainers have the right and responsibility to remove, edit, or
-reject comments, commits, code, wiki edits, issues, and other contributions
-that are not aligned to this Code of Conduct, or to ban temporarily or
-permanently any contributor for other behaviors that they deem inappropriate,
-threatening, offensive, or harmful.
+    ```bash
+    java io.axual.ksml.runner.KSMLRunner workspace/local/ksml-data-generator-local.yaml
+    ```
 
-### Scope
+    IntelliJ IDEA run configuration: `ksml/.run/KSML example producer LOCAL.run.xml`
 
-This Code of Conduct applies both within project spaces and in public spaces
-when an individual is representing the project or its community. Examples of
-representing a project or community include using an official project e-mail
-address, posting via an official social media account, or acting as an appointed
-representative at an online or offline event. Representation of a project may be
-further defined and clarified by project maintainers.
+  - For the processor:
 
-### Enforcement
+    ```bash
+    java io.axual.ksml.runner.KSMLRunner workspace/local/ksml-runner-local.yaml
+    ```
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by contacting the project maintainers [opensource@axual.com](mailto:opensource@axual.com).
-All complaints will be reviewed and investigated and will result in a response that
-is deemed necessary and appropriate to the circumstances. The project team is
-obligated to maintain confidentiality with regard to the reporter of an incident.
-Further details of specific enforcement policies may be posted separately.
+    IntelliJ IDEA run configuration: `ksml/.run/KSML example processor LOCAL.run.xml`
 
-Project maintainers who do not follow or enforce the Code of Conduct in good
-faith may face temporary or permanent repercussions as determined by other
-members of the project's leadership.
+### Metrics
 
-### Attribution
+KSML exposes runtime metrics in Prometheus format.
+- Metrics are available at [http://localhost:9999/metrics](http://localhost:9999/metrics) by default.
+- The metrics endpoint and other Prometheus settings can be configured by changing `ksml.prometheus` values.
+- All custom KSML metrics start with `ksml_`
+  - Metric labels (e.g., namespace, pipeline name) are defined within the KSML source code and can be modified
+- Metrics that start with `kafka_` are native to Kafka and originate from its internal `kafka.producer`, `kafka.consumer`, and `kafka.streams` domains.
+  -  These cannot be modified at the source level, but they can be transformed or filtered during post-processing
 
-This Code of Conduct is adapted from the [Contributor Covenant][homepage], version 1.4,
-available at [http://contributor-covenant.org/version/1/4][version]
+## Running Tests
 
-[homepage]: http://contributor-covenant.org
-[version]: http://contributor-covenant.org/version/1/4/
+To run tests and validate code coverage:
+
+```shell
+mvn clean test
+```
+
+- Ensure at least 70% code coverage.
+- Use the following custom annotations when writing tests for definitions:
+  - `@ExtendWith(KSMLTestExtension.class)`
+  - `@KSMLTopic(topic = "xxx")`
+  - `@KSMLTest(topology = "pipelines/xxx.yaml")`
+
+## Next Steps
+
+Explore examples and advanced use cases in [`ksml-blog.md`](ksml-blog.md).

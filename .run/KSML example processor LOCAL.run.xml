@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="KSML example processor LOCAL" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="io.axual.ksml.runner.KSMLRunner" />
+    <module name="ksml-runner" />
+    <option name="PROGRAM_PARAMETERS" value="workspace/local/ksml-runner-local.yaml" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="io.axual.ksml.runner.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
