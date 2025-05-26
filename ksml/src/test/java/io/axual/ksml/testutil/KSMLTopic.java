@@ -39,9 +39,9 @@ public @interface KSMLTopic {
     /** optional key serde, defaults to STRING. */
     SerdeType keySerde() default SerdeType.STRING;
 
-    /** optional value serde, defaults to STRING. */
+    /** optional key serde, defaults to STRING. */
     SerdeType valueSerde() default SerdeType.STRING;
 
     /** Serde types the annotation supports. */
-    enum SerdeType {STRING, AVRO}
+    enum SerdeType {STRING, AVRO, LONG, INTEGER}
 }
