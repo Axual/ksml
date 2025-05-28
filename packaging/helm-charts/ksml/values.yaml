@@ -334,7 +334,27 @@ prometheus:
         type: GAUGE
         attrNameSnakeCase: true
 
-
+prometheusRule:
+  # -- Enables creation of Prometheus Operator [PrometheusRule](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.PrometheusRule).
+  # Ignored if API `monitoring.coreos.com/v1` is not available or if prometheus is disabled.
+  enabled: false
+  # -- Determines how often rules in the group are evaluated.
+  interval: ""
+  # -- Additional labels for the PrometheusRule
+  labels: {}
+  defaultRule:
+    # -- Customize the labels to the default prometheusRule
+    labels: {}
+  # -- A list alerting or recording rules to include on top of the defaults. These fields are templated.
+  extraRules:
+#    - alert: MyAlertName
+#      annotations:
+#        summary: Summary of my alert
+#        description: Longer description of my alert that goes into a bit more detail
+#      expr: Expression that could use the helpers functions
+#      for: Time for which this rule is evaluated before been fired
+#      labels:
+#        your-label-key: your-label-value
 
 serviceMonitor:
   # -- Enables creation of Prometheus Operator [ServiceMonitor](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.ServiceMonitor).
