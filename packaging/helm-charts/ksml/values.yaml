@@ -38,7 +38,7 @@ ksmlRunnerConfig:
   definitionDirectory: '/ksml'
   # -- Directory containing the Schema files. This should only be changed if an external volume mount is used.
   schemaDirectory: '/ksml'
-  # -- Directory containing the stateful data . This should only be changed if an external volume mount is used.
+  # -- Directory containing the stateful data. This should only be changed if an external volume mount is used.
   storageDirectory: '/ksml-store/data'
   # -- Create the storageDirectory if it does not exist
   createStorageDirectory: true
@@ -63,7 +63,7 @@ ksmlRunnerConfig:
       # -- Add the record payload to the log message
       logPayload: false
       # -- Specify the name of the logger to use
-      loggerName: ProduceErrpr
+      loggerName: ProduceError
       # -- Should the KSML application stop when a consume error occurs
       stopOnError: true
     # -- Error handling settings for processing related errors
@@ -344,3 +344,15 @@ serviceMonitor:
   scrapeTimeout: 10s
   # -- Additional labels for the ServiceMonitor
   labels: {}
+
+# -- Network policies to declare for the ksml pod.
+# See the Kubernetes documentation on [NetworkPolicy](https://kubernetes.io/docs/tasks/administer-cluster/declare-network-policy/).
+networkPolicy:
+  ingress:
+    # -- Network Policy Ingress's Configuration
+    # This [allows all ingress traffic](https://kubernetes.io/docs/concepts/services-networking/network-policies/#allow-all-ingress-traffic)
+    from: {}
+  egress:
+    # -- Network Policy Egress's Configuration
+    # This [allows all egress traffic](https://kubernetes.io/docs/concepts/services-networking/network-policies/#allow-all-egress-traffic)
+    to: {}
