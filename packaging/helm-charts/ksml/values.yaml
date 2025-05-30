@@ -345,14 +345,11 @@ serviceMonitor:
   # -- Additional labels for the ServiceMonitor
   labels: {}
 
-# -- Network policies to declare for the ksml pod.
-# See the Kubernetes documentation on [NetworkPolicy](https://kubernetes.io/docs/tasks/administer-cluster/declare-network-policy/).
 networkPolicy:
-  ingress:
-    # -- Network Policy Ingress's Configuration
-    # This [allows all ingress traffic](https://kubernetes.io/docs/concepts/services-networking/network-policies/#allow-all-ingress-traffic)
-    from: {}
-  egress:
-    # -- Network Policy Egress's Configuration
-    # This [allows all egress traffic](https://kubernetes.io/docs/concepts/services-networking/network-policies/#allow-all-egress-traffic)
-    to: {}
+  # -- Enables creation of Network policies to declare for the ksml pod.
+  # See the Kubernetes documentation on [NetworkPolicy](https://kubernetes.io/docs/tasks/administer-cluster/declare-network-policy/).
+  enabled: false
+  # -- Network Policy Ingress's Configuration
+  ingress: {}
+  # -- Network Policy Egress's Configuration
+  egress: {}
