@@ -349,7 +349,7 @@ networkPolicy:
   # -- Enables creation of Network policies to declare for the ksml pod.
   # See the Kubernetes documentation on [NetworkPolicy](https://kubernetes.io/docs/tasks/administer-cluster/declare-network-policy/).
   enabled: false
-  # -- Network Policy Ingress's Configuration
+  # -- Network Policy Ingress's Configuration.
   ingress: {}
-  # -- Network Policy Egress's Configuration
+  # -- Network Policy Egress's Configuration.
   egress: {}

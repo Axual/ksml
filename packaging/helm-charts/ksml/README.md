@@ -55,7 +55,7 @@ Deployment modes have been introduced, controlled by the `deploymentMode` config
 
 ### StatefulSet deployment for pipeline processing
 
-By default a KSML application deployed with this chart will run as a Kubernetes `StatefulSet`. 
+By default, a KSML application deployed with this chart will run as a Kubernetes `StatefulSet`.
 This enables predictable horizontal scaling and identities for the replicas.
 
 A `StatefulSet` deployment will always try to meet the number of running replicas, and will restart if the 
@@ -65,15 +65,14 @@ KSML application completed successfully.
 
 The `Job` deployment mode will start the KSML application as a Kubernetes `Job`.
 
-The created KSML job will run once, and won't restart on failure or successful completion. This is very
-useful for data generators which are defined with an end clause. This allows application owners to
-check the deployment data and logs even after completion. 
+The created KSML job will run once and won't restart on failure or successful completion. 
+This is invaluable for data generators which are defined with an end clause.
+This allows application owners to check the deployment data and logs even after completion.
 
 > **Warning**: The `replicas` and `volumeClaimTemplates` configuration options are ignored for Job
 > deployments.
 
 > **Warning**: Job deployments cannot be updated and must be removed and recreated.
-
 
 ## Configuration
 
@@ -82,7 +81,7 @@ The following table lists the configurable parameters of the `ksml` chart and th
 | Parameter                                          | Description                                                                                                                                                                                                                         | Default                                                                                        |
 |----------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|
 | replicaCount                                       |                                                                                                                                                                                                                                     | <code>1</code>                                                                                 |
-| deploymentMode                                     | Determing if the KSML Application runs as a StatefulSet or a Job. Valid values are <code>StatefulSet</code> and <code>Job</code>                                                                                                    | <code>StatefulSet</code>                                                                       |
+| deploymentMode                                     | Determine if the KSML Application runs as a StatefulSet or a Job. Valid values are <code>StatefulSet</code> and <code>Job</code>                                                                                                    | <code>StatefulSet</code>                                                                       |
 | image.repository                                   | Registry to pull the image from and the name of the image.                                                                                                                                                                          | <code>docker.io/axual/ksml</code>                                                              |
 | image.pullPolicy                                   | One of `Always`, `IfNotPresent`, or `Never`.                                                                                                                                                                                        | <code>IfNotPresent</code>                                                                      |
 | image.tag                                          | Override the image tag whose default is the chart `appVersion`.                                                                                                                                                                     | <code>""</code>                                                                                |
@@ -141,6 +140,9 @@ The following table lists the configurable parameters of the `ksml` chart and th
 | serviceMonitor.interval                            | Interval at which metrics should be scraped.                                                                                                                                                                                        | <code>30s</code>                                                                               |
 | serviceMonitor.scrapeTimeout                       | Timeout after which the scrape is ended.                                                                                                                                                                                            | <code>10s</code>                                                                               |
 | serviceMonitor.labels                              | A dictionary with additional labels for the service monitor                                                                                                                                                                         |                                                                                                |
+| networkPolicy.enabled                              | Enables creation of Network policies to declare for the ksml pod. See the Kubernetes documentation on [NetworkPolicy](https://kubernetes.io/docs/tasks/administer-cluster/declare-network-policy/).                                 | <code>false</code>                                                                             |
+| networkPolicy.ingress                              | Network Policy Ingress's Configuration.                                                                                                                                                                                             | <code>{}</code>                                                                                |
+| networkPolicy.egress                               | Network Policy Egress's Configuration.                                                                                                                                                                                              | <code>{}</code>                                                                                |
 | affinity                                           | The pod's scheduling constraints. See the Kubernetes documentation on [Affinity and Anti-affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity)                             |                                                                                                |
 | topologySpreadConstraints                          | Describes how a group of pods ought to spread across topology domains. See the Kubernetes documentation on [Pod Topology Spread Constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/). | <code>[]</code>                                                                                |
 | tolerations                                        | The tolerations on this pod. See the Kubernetes documentation on [Taints and Tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/).                                                           | <code>[]</code>                                                                                |
@@ -166,9 +168,11 @@ installing the chart. For example:
 ```bash
 $ helm upgrade -i ksml oci://registry.axual.io/opensource/charts/ksml -n streaming --create-namespace --version=| 0.0.0-snapshot --values values.yaml
 ```
+
 ## Examples
 
 ### Plain Kafka SASL Connection
+
 <details>
   <summary>Example configuration plain Kafka SASL </summary>
 
@@ -277,9 +281,11 @@ logging:
     org.apache.kafka.clients.consumer.ConsumerConfig: INFO
 
 ```
+
 </details>
 
 ### Axual Kafka SASL Connection
+
 <details>
   <summary>Example configuration to connect to an Axual Kafka cluster</summary>
 See the ksmlRunnerConfig.kafka section for the special additions to automatically resolve resource names to the Axual namespaces
@@ -312,7 +318,7 @@ ksmlRunnerConfig:
     # Use these configuration properties when connecting to a cluster using the Axual naming patterns.
     # These patterns are resolved into the actual name used on Kafka using the values in this configuration map
     # and the topic names specified in the definition YAML files
-    
+
     tenant: 'custom'
     instance: 'dta'
     environment: 'test'
@@ -364,7 +370,7 @@ ksmlDefinitions:
           topic: ksml_sensordata_json
           keyType: string
           valueType: json
-    
+
 applicationServer:
   enabled: true
   port: "8080"
@@ -399,9 +405,11 @@ logging:
     org.apache.kafka.streams.StreamsConfig: INFO
     org.apache.kafka.clients.consumer.ConsumerConfig: INFO
 ```
+
 </details>
 
 ### Example: Run KSML as a Kubernetes Job
+
 <details>
   <summary>Example configuration to deploy the KSML application as a Job</summary>
 By deploying as a job the pod running the KSML code will not restart on completion of the pods.
@@ -473,7 +481,7 @@ ksmlDefinitions:
           topic: ksml_sensordata_json
           keyType: string
           valueType: json
-    
+
 applicationServer:
   enabled: true
   port: "8080"
@@ -508,5 +516,6 @@ logging:
     org.apache.kafka.streams.StreamsConfig: INFO
     org.apache.kafka.clients.consumer.ConsumerConfig: INFO
 ```
+
 </details>
 
