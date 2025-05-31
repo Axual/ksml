@@ -37,6 +37,13 @@ public class MetricTags extends ArrayList<MetricTag> {
         return append(new MetricTag(key, value));
     }
 
+    public MetricTags appendIfPresent(String key, String value) {
+        if (value != null && !value.isBlank()) {
+            return append(key, value);
+        }
+        return this;
+    }
+
     @Override
     public String toString() {
         final var result = new StringBuilder();
