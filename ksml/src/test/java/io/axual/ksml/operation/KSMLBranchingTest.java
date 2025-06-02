@@ -1,4 +1,4 @@
-package io.axual.ksml;
+package io.axual.ksml.operation;
 
 /*-
  * ========================LICENSE_START=================================
@@ -27,47 +27,47 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
-@ExtendWith({KSMLTestExtension.class})
-class KSMLFilterTest {
+@ExtendWith(KSMLTestExtension.class)
+public class KSMLBranchingTest {
 
     @KSMLTopic(topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)
-    protected TestInputTopic inputTopic;
+    TestInputTopic inputTopic;
 
-    @KSMLTopic(topic = "ksml_sensordata_filtered", valueSerde = KSMLTopic.SerdeType.AVRO)
-    protected TestOutputTopic outputTopic;
+    @KSMLTopic(topic = "ksml_sensordata_blue", valueSerde = KSMLTopic.SerdeType.AVRO)
+    TestOutputTopic outputBlue;
 
-    @KSMLTest(topology = "pipelines/test-filtering.yaml", schemaDirectory = "schemas")
-    @DisplayName("Records can be filtered by KSML")
-    void testFilterAvroRecords() {
-        log.debug("testFilterAvroRecords()");
+    @KSMLTopic(topic = "ksml_sensordata_red", valueSerde = KSMLTopic.SerdeType.AVRO)
+    TestOutputTopic outputRed;
 
-        // the KSML pipeline filters on color "blue": generate some records with varying colors
+    @KSMLTest(topology = "pipelines/test-branching.yaml", schemaDirectory = "schemas")
+    void testBranching() {
+        // the pipeline routes readings based on color: generate some records
         List<SensorData> sensorDatas = new ArrayList<>();
         sensorDatas.add(SensorData.builder().color("blue").build());
         sensorDatas.add(SensorData.builder().color("red").build());
+        sensorDatas.add(SensorData.builder().color("blue").build());
         sensorDatas.add(SensorData.builder().color("green").build());
         sensorDatas.add(SensorData.builder().color("blue").build());
         sensorDatas.add(SensorData.builder().color("red").build());
+        sensorDatas.add(SensorData.builder().color("green").build());
 
         for (SensorData sensorData : sensorDatas) {
             inputTopic.pipeInput("key", sensorData.toRecord());
         }
 
-        // only the two records with "blue" should be kept
-        assertFalse(outputTopic.isEmpty());
-        List<GenericRecord> outputValues = outputTopic.readValuesToList();
-        assertEquals(2, outputValues.size());
-        assertTrue(outputValues.stream()
-                .map(rec -> rec.get("color").toString())
-                .allMatch(color -> color.equals("blue")));
+        // three "blue" records routed to outputBlue, two "red" to outputRed
+        List<GenericRecord> blueRecords = outputBlue.readValuesToList();
+        List<GenericRecord> redRecords = outputRed.readValuesToList();
+
+        assertEquals(3, blueRecords.size(), "3 blue records should be routed to outputBlue");
+        assertEquals(2, redRecords.size(), "red 2 records should be routed to ouputRed");
     }
 }
