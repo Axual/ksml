@@ -1,4 +1,4 @@
-package io.axual.ksml;
+package io.axual.ksml.operation;
 
 /*-
  * ========================LICENSE_START=================================
@@ -29,10 +29,11 @@ import org.apache.kafka.streams.TestOutputTopic;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @Slf4j
 @ExtendWith({KSMLTestExtension.class})
-class KSMLCopyTest {
+class KSMLTransformToNoneTest {
 
     @KSMLTopic(topic = "ksml_sensordata_avro")
     protected TestInputTopic inputTopic;
@@ -40,13 +41,14 @@ class KSMLCopyTest {
     @KSMLTopic(topic = "ksml_sensordata_copy")
     protected TestOutputTopic outputTopic;
 
-    @KSMLTest(topology = "pipelines/test-copying.yaml")
-    void testCopying() {
-        log.debug("testCopying()");
+    @KSMLTest(topology = "pipelines/test-transform-to-none.yaml")
+    void testSetNoneValueData() {
+        log.debug("testSetNoneValueData()");
 
-        inputTopic.pipeInput("key1", "value1");
+        inputTopic.pipeInput("key1", (Object)null);
         assertFalse(outputTopic.isEmpty(), "record should be copied");
         var keyValue = outputTopic.readKeyValue();
+        assertNull(keyValue.value);
         System.out.printf("Output topic key=%s, value=%s%n", keyValue.key, keyValue.value);
     }
 }

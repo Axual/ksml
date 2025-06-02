@@ -1,4 +1,4 @@
-package io.axual.ksml;
+package io.axual.ksml.operation;
 
 /*-
  * ========================LICENSE_START=================================
