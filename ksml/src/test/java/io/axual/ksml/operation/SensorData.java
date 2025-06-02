@@ -1,4 +1,4 @@
-package io.axual.ksml;
+package io.axual.ksml.operation;
 
 /*-
  * ========================LICENSE_START=================================
@@ -28,14 +28,14 @@ import org.apache.avro.generic.GenericRecord;
 
 import java.io.IOException;
 
-import static io.axual.ksml.SensorData.SensorType.AREA;
+import static io.axual.ksml.operation.SensorData.SensorType.AREA;
 
 /**
  * Test utility class to create GenericRecords matching the SensorData.avsc schema.
  */
 @Builder
 @Slf4j
-class SensorData {
+public class SensorData {
 
     static Schema SENSOR_DATA_SCHEMA;
 
@@ -60,7 +60,7 @@ class SensorData {
     String color;
     String city;
 
-    enum SensorType {
+    public enum SensorType {
         AREA, HUMIDITY, LENGTH, STATE, TEMPERATURE
     }
 
