@@ -24,43 +24,37 @@ import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.util.Map;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @Slf4j
 @ExtendWith({KSMLTestExtension.class})
-class KSMLCountTest {
+class KSMLMFlatMapTest {
 
     @KSMLTopic(topic = "input_topic")
     protected TestInputTopic<String, String> inputTopic;
 
-    @KSMLTopic(topic = "output_topic", valueSerde = KSMLTopic.SerdeType.LONG)
-    protected TestOutputTopic<String, Long> outputTopic;
+    @KSMLTopic(topic = "output_topic")
+    protected TestOutputTopic<String, String> outputTopic;
 
-    @KSMLTest(topology = "pipelines/test-count.yaml")
-    void testCount() {
-        log.debug("testCount()");
+    @KSMLTest(topology = "pipelines/test-flatmap.yaml")
+    void testFlatMap() {
+        log.debug("testFlatMap()");
 
-        // given that we have some keys occurring multiple times
+        // given that we pipe a message into the stream
         inputTopic.pipeInput("keyFirst", "value1");
-        inputTopic.pipeInput("keySecond", "value1");
-        inputTopic.pipeInput("keyThird", "value1");
-        inputTopic.pipeInput("keyFirst", "value2");
-        inputTopic.pipeInput("keySecond", "value2");
-        inputTopic.pipeInput("keyFirst", "value3");
 
-        // the pipeline should count the records for each key
-        assertFalse(outputTopic.isEmpty(), "records should be counted");
-        Map<String, Long> keyValueMap = outputTopic.readKeyValuesToMap();
+        // we expect the output to contain this record, duplicated
+        assertEquals(2, outputTopic.getQueueSize(), "output should contain 2 records");
 
-        assertEquals(3, keyValueMap.get("keyFirst"), "keyFirst should have counted 3 records");
-        assertEquals(2, keyValueMap.get("keySecond"), "keySecond should have counted 2 records");
-        assertEquals(1, keyValueMap.get("keyThird"), "keyThird should have counted 1 records");
+        List<KeyValue<String, String>> keyValues = outputTopic.readKeyValuesToList();
+        assertEquals("keyFirst", keyValues.get(1).key, "key should be copied");
+        assertEquals("value1", keyValues.get(1).value, "value should be copied");
     }
 }

@@ -37,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
 @ExtendWith({KSMLTestExtension.class})
-class KSMLFilterTest {
+class KSMLFilterNotTest {
 
     @KSMLTopic(topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)
     protected TestInputTopic inputTopic;
@@ -45,12 +45,12 @@ class KSMLFilterTest {
     @KSMLTopic(topic = "ksml_sensordata_filtered", valueSerde = KSMLTopic.SerdeType.AVRO)
     protected TestOutputTopic outputTopic;
 
-    @KSMLTest(topology = "pipelines/test-filter.yaml", schemaDirectory = "schemas")
-    @DisplayName("Records can be filtered by KSML")
-    void testFilterAvroRecords() {
-        log.debug("testFilterAvroRecords()");
+    @KSMLTest(topology = "pipelines/test-filternot.yaml", schemaDirectory = "schemas")
+    @DisplayName("Records can be filtered with filterNot by KSML")
+    void testFilterNotAvroRecords() {
+        log.debug("testFilterNotAvroRecords()");
 
-        // the KSML pipeline filters on color "blue": generate some records with varying colors
+        // the KSML pipeline filters on color other than "blue": generate some records with varying colors
         List<SensorData> sensorDatas = new ArrayList<>();
         sensorDatas.add(SensorData.builder().color("blue").build());
         sensorDatas.add(SensorData.builder().color("red").build());
@@ -58,16 +58,17 @@ class KSMLFilterTest {
         sensorDatas.add(SensorData.builder().color("blue").build());
         sensorDatas.add(SensorData.builder().color("red").build());
 
+        // given that we pipe these records into KSML
         for (SensorData sensorData : sensorDatas) {
             inputTopic.pipeInput("key", sensorData.toRecord());
         }
 
-        // only the two records with "blue" should be kept
+        // only the records with color other than "blue" should be kept
         assertFalse(outputTopic.isEmpty());
         List<GenericRecord> outputValues = outputTopic.readValuesToList();
-        assertEquals(2, outputValues.size());
+        assertEquals(3, outputValues.size());
         assertTrue(outputValues.stream()
                 .map(rec -> rec.get("color").toString())
-                .allMatch(color -> color.equals("blue")));
+                .noneMatch(color -> color.equals("blue")));
     }
 }
