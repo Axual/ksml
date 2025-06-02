@@ -104,7 +104,7 @@ class BasicStreamRunTest {
         final var avroNotation = new MockAvroNotation(new HashMap<>());
         ExecutionContext.INSTANCE.notationLibrary().register(avroNotation);
 
-        final var uri = ClassLoader.getSystemResource("pipelines/test-filtering.yaml").toURI();
+        final var uri = ClassLoader.getSystemResource("pipelines/test-filter.yaml").toURI();
         final var path = Paths.get(uri);
         final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(path), JsonNode.class);
         final var definitions = ImmutableMap.of("definition",
