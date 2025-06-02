@@ -60,7 +60,7 @@ class KSMLCountTest {
         Map<String, Long> keyValueMap = outputTopic.readKeyValuesToMap();
 
         assertEquals(3, keyValueMap.get("keyFirst"), "keyFirst should have counted 3 records");
-        assertEquals(2, keyValueMap.get("keySecond"), "keySecond should have counted 3 records");
-        assertEquals(1, keyValueMap.get("keyThird"), "keyThird should have counted 3 records");
+        assertEquals(2, keyValueMap.get("keySecond"), "keySecond should have counted 2 records");
+        assertEquals(1, keyValueMap.get("keyThird"), "keyThird should have counted 1 records");
     }
 }
