@@ -53,10 +53,10 @@ public final class KsmlTagEnricher {
     //   - "my_ns_pipelines_flow2_sink"
     //     → namespace=my_ns, pipeline=flow2, step=null, operation=sink
     static final Pattern NODE_PATTERN = Pattern.compile(
-            "^(?<ns>(?:(?!_pipelines_).)+)_pipelines_"                   // namespace (possessive with negative lookahead)
-                    + "(?<pipeline>(?:(?!(?:_via_step\\d|_[^_]+$)).)+)"  // pipeline (possessive, stops before *via*step or final _op)
-                    + "(?:_via_step(?<step>\\d+))?"                      // optional step
-                    + "_(?<op>[^_]+)$"                                   // operation (no underscores)
+            "^(?<ns>(?:(?!_pipelines_).)+)_pipelines_"                     // namespace (possessive with negative lookahead)
+                    + "(?<pipeline>(?:(?!(?:(?:_via_step\\d)|(?:_[^_]+$))).)+)"  // pipeline (possessive, stops before *via*step or final _op)
+                    + "(?:_via_step(?<step>\\d+))?"                        // optional step
+                    + "_(?<op>[^_]+)$"                                     // operation (no underscores)
     );
 
     private final Map<String, OperationMeta> nodeToOperation;
