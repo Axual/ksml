@@ -12,10 +12,10 @@ spec:
     - Egress
   ingress:
     {{- with .Values.networkPolicy.ingress }}
-      {{- toYaml . | nindent 6 }}
+      {{- toYaml . | nindent 2 }}
     {{- end }}
   egress:
     {{- with .Values.networkPolicy.egress }}
-      {{- toYaml . | nindent 6 }}
+      {{- toYaml . | nindent 2 }}
     {{- end }}
 {{- end -}}

@@ -84,11 +84,13 @@ ksmlRunnerConfig:
 
   # -- Map of the namespace and the KSML definition file executed in that namespace.
   definitions: {}
+#  definitions:
+#    ksml: ksml-definition.yaml
   # -- Map of Kafka connection properties and application id
   kafka: {}
-  # kafka:
-  #   application.id: my-streaming-app
-  #   bootstrap.servers: "localhost:9092"
+#  kafka:
+#    application.id: my-streaming-app
+#    bootstrap.servers: "localhost:9092"
 
 # KSML Pipeline or Producer definition files. See https://axual.github.io/ksml/introduction.html
 ksmlDefinitions: {}
@@ -350,6 +352,8 @@ networkPolicy:
   # See the Kubernetes documentation on [NetworkPolicy](https://kubernetes.io/docs/tasks/administer-cluster/declare-network-policy/).
   enabled: false
   # -- Network Policy Ingress's Configuration.
-  ingress: {}
+  ingress:
+    - {}
   # -- Network Policy Egress's Configuration.
-  egress: {}
+  egress:
+    - {}
