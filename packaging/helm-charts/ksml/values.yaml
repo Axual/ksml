@@ -79,7 +79,7 @@ ksmlRunnerConfig:
 
   # -- Data generation can be disabled for deployments to prevent accidental test data in non-test environments
   producersEnabled: true
-  # -- Pipelines can be disabled allow for data-generation-only deployments.
+  # -- Pipelines can be disabled to allow for data-generation-only deployments.
   pipelinesEnabled: true
 
   # -- Map of the namespace and the KSML definition file executed in that namespace.
@@ -335,15 +335,17 @@ prometheus:
         attrNameSnakeCase: true
 
 prometheusRule:
-  # -- Enables creation of Prometheus Operator [PrometheusRule](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.PrometheusRule).
+  # -- Enables creation of Prometheus Operator [PrometheusRule](https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.PrometheusRule).
   # Ignored if API `monitoring.coreos.com/v1` is not available or if prometheus is disabled.
   enabled: false
   # -- Determines how often rules in the group are evaluated.
   interval: ""
-  # -- Additional labels for the PrometheusRule
+  # -- Additional labels for the PrometheusRules
   labels: {}
-  defaultRule:
-    # -- Customize the labels to the default prometheusRule
+  defaultRules:
+    # -- Enables the default prometheusRules
+    enabled: true
+    # -- Customize the labels to the default prometheusRules
     labels: {}
   # -- A list alerting or recording rules to include on top of the defaults. These fields are templated.
   extraRules:
@@ -357,7 +359,7 @@ prometheusRule:
 #        your-label-key: your-label-value
 
 serviceMonitor:
-  # -- Enables creation of Prometheus Operator [ServiceMonitor](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.ServiceMonitor).
+  # -- Enables creation of Prometheus Operator [ServiceMonitor](https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.ServiceMonitor).
   # Ignored if API `monitoring.coreos.com/v1` is not available or if prometheus is disabled.
   enabled: false
   # -- Interval at which metrics should be scraped.

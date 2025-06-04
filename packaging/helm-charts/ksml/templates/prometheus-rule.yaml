@@ -15,14 +15,15 @@ spec:
       interval: {{ .Values.prometheusRule.interval }}
       {{- end }}
       rules:
+        {{- if .Values.prometheusRule.defaultRules }}
         - alert: {{ include "ksml.fullname" . | camelcase }}Down
           annotations:
             summary: {{ include "ksml.fullname" . }} is down
             description: Component {{ include "ksml.fullname" . }} has been unavailable for the past 2 minutes.
-          expr: up{service="{{ include "ksml.fullname" . }}"} == 0
+          expr: up{service="{{ include "ksml.fullname" . }}", namespace="{{ .Release.Namespace }}"} == 0
           for: 2m
           labels:
-            {{- toYaml .Values.prometheusRule.defaultRule.labels | nindent 12 }}
+            {{- toYaml .Values.prometheusRule.defaultRules.labels | nindent 12 }}
         - alert: {{ include "ksml.fullname" . | camelcase }}RestartingTooMuch
           annotations:
             summary: {{ include "ksml.fullname" . }} is restarting too much
@@ -30,7 +31,7 @@ spec:
           expr: kube_pod_container_status_restarts_total{pod=~"{{ include "ksml.fullname" . }}.*"} > 5
           for: 2m
           labels:
-            {{- toYaml .Values.prometheusRule.defaultRule.labels | nindent 12 }}
+            {{- toYaml .Values.prometheusRule.defaultRules.labels | nindent 12 }}
         - alert: {{ include "ksml.fullname" . | camelcase }}OutOfMemory
           annotations:
             summary: {{ include "ksml.fullname" . }} is failing due to OutOfMemory error
@@ -38,7 +39,8 @@ spec:
           expr: kube_pod_container_status_last_terminated_reason{pod=~"{{ include "ksml.fullname" . }}.*",reason="OOMKilled"} == 1
           for: 5m
           labels:
-            {{- toYaml .Values.prometheusRule.defaultRule.labels | nindent 12 }}
+            {{- toYaml .Values.prometheusRule.defaultRules.labels | nindent 12 }}
+        {{- end }}
     {{- if .Values.prometheusRule.extraRules }}
     - name: {{ include "ksml.fullname" . }}-extras
       {{- if .Values.prometheusRule.interval }}
