@@ -77,9 +77,9 @@ ksmlRunnerConfig:
       # -- Should the KSML application stop when a consume error occurs
       stopOnError: true
 
-  # -- Data generation can be disabled for deployments to prevent accidental test data in non test environments
+  # -- Data generation can be disabled for deployments to prevent accidental test data in non-test environments
   producersEnabled: true
-  # -- Pipelines can be disabled allow for data generation only deployments.
+  # -- Pipelines can be disabled allow for data-generation-only deployments.
   pipelinesEnabled: true
 
   # -- Map of the namespace and the KSML definition file executed in that namespace.
@@ -110,7 +110,7 @@ startupProbe:
   # -- Minimum consecutive failures for the probe to be considered failed.
   # A failed startupProbe will mark the container as unhealthy and triggers a restart for that specific container.
   failureThreshold: 30
-  # -- Number of seconds after the container has started before startyp probes are initiated.
+  # -- Number of seconds after the container has started before startup probes are initiated.
   initialDelaySeconds: 2
   # -- How often (in seconds) to perform the probe.
   periodSeconds: 1
@@ -253,7 +253,7 @@ affinity: {}
 # -- Describes how a group of pods ought to spread across topology domains. See the Kubernetes documentation on [Pod Topology Spread Constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/).
 topologySpreadConstraints: []
 
-# -- KSML application server port defined in the statefulset.
+# -- KSML application server port defined in the statefulset/job.
 applicationServer:
   # -- Start an application server for the component
   enabled: true
@@ -286,14 +286,14 @@ logging:
 
 # -- Configure the storage specification for the volumeClaimTemplates
 store:
-  # -- Specifications of the volymeClaimTemplate
+  # -- Specifications of the volumeClaimTemplate
   spec: {}
 #    accessModes: [ "ReadWriteOnce" ]
 #    resources:
 #      requests:
 #        storage: 1Gi
 
-# -- KSML prometheus server port defined in the statefulset. Note that this must match the port defined in ksmlRunnerConfig.
+# -- KSML prometheus server port defined in the statefulset/job. Note that this must match the port defined in ksmlRunnerConfig.
 prometheus:
   enabled: false
   # -- Port on which Prometheus metrics endpoint should be initialized

@@ -22,7 +22,23 @@ spec:
           expr: up{service="{{ include "ksml.fullname" . }}"} == 0
           for: 2m
           labels:
-          {{- toYaml .Values.prometheusRule.defaultRule.labels | nindent 12 }}
+            {{- toYaml .Values.prometheusRule.defaultRule.labels | nindent 12 }}
+        - alert: {{ include "ksml.fullname" . | camelcase }}RestartingTooMuch
+          annotations:
+            summary: {{ include "ksml.fullname" . }} is restarting too much
+            description: Component {{ include "ksml.fullname" . }} has been restarting more than 5 times for the past 2 minutes.
+          expr: kube_pod_container_status_restarts_total{pod=~"{{ include "ksml.fullname" . }}.*"} > 5
+          for: 2m
+          labels:
+            {{- toYaml .Values.prometheusRule.defaultRule.labels | nindent 12 }}
+        - alert: {{ include "ksml.fullname" . | camelcase }}OutOfMemory
+          annotations:
+            summary: {{ include "ksml.fullname" . }} is failing due to OutOfMemory error
+            description: Component {{ include "ksml.fullname" . }} has been failing due to the OutOfMemory error for the past 5 minutes.
+          expr: kube_pod_container_status_last_terminated_reason{pod=~"{{ include "ksml.fullname" . }}.*",reason="OOMKilled"} == 1
+          for: 5m
+          labels:
+            {{- toYaml .Values.prometheusRule.defaultRule.labels | nindent 12 }}
     {{- if .Values.prometheusRule.extraRules }}
     - name: {{ include "ksml.fullname" . }}-extras
       {{- if .Values.prometheusRule.interval }}
