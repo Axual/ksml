@@ -54,7 +54,7 @@ public final class KsmlTagEnricher {
     //     → namespace=my_ns, pipeline=flow2, step=null, operation=sink
     static final Pattern NODE_PATTERN = Pattern.compile(
             "^(?<ns>(?:(?!_pipelines_).)+)_pipelines_"                   // namespace (possessive with negative lookahead)
-                    + "(?<pipeline>(?:(?!_via_step\\d|_[^_]+$).)+)"      // pipeline (possessive, stops before _via_step or final _op)
+                    + "(?<pipeline>(?:(?!(?:_via_step\\d|_[^_]+$)).)+)"  // pipeline (possessive, stops before *via*step or final _op)
                     + "(?:_via_step(?<step>\\d+))?"                      // optional step
                     + "_(?<op>[^_]+)$"                                   // operation (no underscores)
     );
@@ -76,34 +76,63 @@ public final class KsmlTagEnricher {
         Map<String, OperationMeta> node2Operation = new HashMap<>();
 
         for (TopologyDescription.Subtopology st : desc.subtopologies()) {
-            for (TopologyDescription.Node node : st.nodes()) {
-                String nodeName = node.name();
-                if (nodeName == null || nodeName.length() > 500) { // Prevent ReDoS
-                    log.warn("Skipping invalid node name: {}", nodeName);
-                    continue;
-                }
-
-                try {
-                    Matcher m = NODE_PATTERN.matcher(nodeName);
-                    if (m.matches()) {
-                        String namespace = m.group("ns");
-                        String pipeline = m.group("pipeline");
-                        String operation = m.group("op");
-                        String step = m.group("step");
-
-                        // Validate extracted groups
-                        if (namespace != null && pipeline != null && operation != null) {
-                            node2Operation.put(nodeName, new OperationMeta(namespace, pipeline, operation, step));
-                        } else {
-                            log.debug("Incomplete pattern match for node: {}", nodeName);
-                        }
-                    }
-                } catch (Exception e) {
-                    log.warn("Failed to process node name: {}", nodeName, e);
-                }
-            }
+            processSubtopology(st, node2Operation);
         }
+
         return new KsmlTagEnricher(node2Operation);
+    }
+
+    private static void processSubtopology(TopologyDescription.Subtopology subtopology,
+                                           Map<String, OperationMeta> node2Operation) {
+        for (TopologyDescription.Node node : subtopology.nodes()) {
+            processNode(node, node2Operation);
+        }
+    }
+
+    private static void processNode(TopologyDescription.Node node,
+                                    Map<String, OperationMeta> node2Operation) {
+        String nodeName = node.name();
+
+        if (!isValidNodeName(nodeName)) {
+            log.warn("Skipping invalid node name: {}", nodeName);
+            return;
+        }
+
+        extractAndStoreOperationMeta(nodeName, node2Operation);
+    }
+
+    private static boolean isValidNodeName(String nodeName) {
+        return nodeName != null && nodeName.length() <= 500;
+    }
+
+    private static void extractAndStoreOperationMeta(String nodeName,
+                                                     Map<String, OperationMeta> node2Operation) {
+        try {
+            Optional<OperationMeta> operationMeta = parseNodeName(nodeName);
+            operationMeta.ifPresent(meta -> node2Operation.put(nodeName, meta));
+        } catch (Exception e) {
+            log.warn("Failed to process node name: {}", nodeName, e);
+        }
+    }
+
+    private static Optional<OperationMeta> parseNodeName(String nodeName) {
+        Matcher m = NODE_PATTERN.matcher(nodeName);
+
+        if (!m.matches()) {
+            return Optional.empty();
+        }
+
+        String namespace = m.group("ns");
+        String pipeline = m.group("pipeline");
+        String operation = m.group("op");
+        String step = m.group("step");
+
+        if (namespace == null || pipeline == null || operation == null) {
+            log.debug("Incomplete pattern match for node: {}", nodeName);
+            return Optional.empty();
+        }
+
+        return Optional.of(new OperationMeta(namespace, pipeline, operation, step));
     }
 
     /**

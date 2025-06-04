@@ -293,7 +293,7 @@ class KsmlMetricsReporterIntegrationTest {
                         }
 
                         @Override
-                        public void process(org.apache.kafka.streams.processor.api.Record<Object, Object> record) {
+                        public void process(org.apache.kafka.streams.processor.api.Record<Object, Object> kafkaRecord) {
                             // No-op for test purposes
                         }
 
