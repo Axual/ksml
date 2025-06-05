@@ -213,11 +213,6 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
             field.set(testInstance, null);
         }
         modifiedFields.clear();
-
-        // clear internal state
-        inputTopics.clear();
-        outputTopics.clear();
-        testDriverRef = null;
     }
 
     private Serializer<?> getKeySerializer(KSMLTopic ksmlTopic) {

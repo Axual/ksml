@@ -1,0 +1,20 @@
+streams:
+  test_input:
+    topic: input_topic
+    keyType: string
+    valueType: string
+  test_output:
+    topic: output_topic
+    keyType: string
+    valueType: string
+
+pipelines:
+  main:
+    from: test_input
+    via:
+      - type: flatMapValues
+        mapper:
+          resultType: "[string]"  # indicate the result type is a list of strings
+          code: |
+            return [ value+"a", value+"b", value+"c" ]
+    to: test_output
