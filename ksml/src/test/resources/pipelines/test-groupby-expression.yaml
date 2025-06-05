@@ -1,0 +1,34 @@
+streams:
+  test_input:
+    topic: input_topic
+    keyType: string
+    valueType: avro:SensorData
+  test_output:
+    topic: output_topic
+    keyType: string
+    valueType: long
+
+stores:
+  aggregate_store:
+    type: keyValue
+    keyType: string
+    valueType: long
+
+pipelines:
+  main:
+    from: test_input
+    via:
+      - type: groupBy
+        name: group_by_city
+        mapper:
+          expression: "value['city']"
+      - type: aggregate
+        store: aggregate_store
+        initializer:
+          expression: 0
+          resultType: long
+        aggregator:
+          expression: aggregatedValue + 1
+          resultType: long
+      - type: toStream
+    to: test_output
