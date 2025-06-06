@@ -31,7 +31,6 @@ import lombok.Getter;
  * optional documentation for detailed descriptions of the schema.
  * </p>
  */
-@Getter
 @EqualsAndHashCode
 public abstract class NamedSchema extends DataSchema {
     /**
@@ -41,6 +40,7 @@ public abstract class NamedSchema extends DataSchema {
      * This value is optional and may be null if no namespace is used.
      * </p>
      */
+    @Getter
     private final String namespace;
     /**
      * The name of this schema.
@@ -56,6 +56,7 @@ public abstract class NamedSchema extends DataSchema {
      * This value may provide additional context or metadata about the schema's purpose.
      * </p>
      */
+    @Getter
     private final String doc;
 
     /**
@@ -71,11 +72,28 @@ public abstract class NamedSchema extends DataSchema {
     protected NamedSchema(String type, String namespace, String name, String doc) {
         super(type);
         this.namespace = namespace;
-        if (name == null || name.isEmpty()) {
-            name = "Anonymous" + getClass().getSimpleName();
-        }
         this.name = name;
         this.doc = doc;
+    }
+
+    /**
+     * Checks whether this schema has a name.
+     *
+     * @return {@code true} if the {@code name} field is not {@code null} and not empty;
+     * {@code false} otherwise.
+     */
+    public boolean hasName() {
+        return name != null && !name.isEmpty();
+    }
+
+    /**
+     * Returns the name of this schema, or a default name if the name is not defined.
+     *
+     * @return {@code name} if it is defined, or a default name otherwise.
+     */
+    public String name() {
+        if (hasName()) return name;
+        return "Anonymous" + getClass().getSimpleName();
     }
 
     /**

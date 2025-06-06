@@ -20,21 +20,35 @@ package io.axual.ksml.data.notation.xml;
  * =========================LICENSE_END==================================
  */
 
+import com.ctc.wstx.stax.WstxInputFactory;
+import com.ctc.wstx.stax.WstxOutputFactory;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.xml.XmlFactory;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.notation.string.StringMapper;
 import io.axual.ksml.data.util.JsonNodeUtil;
 
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.Map;
 
 public class XmlStringMapper implements StringMapper<Object> {
-    private final XmlMapper mapper = new XmlMapper();
+    private final XmlMapper mapper;
+    private final String rootName;
     private final boolean prettyPrint;
 
-    public XmlStringMapper(boolean prettyPrint) {
+    public XmlStringMapper(String rootName, boolean prettyPrint) {
+        final var inputFactory = new WstxInputFactory();
+        inputFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
+        final var outputFactory = new WstxOutputFactory();
+        outputFactory.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, Boolean.TRUE);
+        mapper = new XmlMapper(new XmlFactory(new WstxInputFactory(), outputFactory));
+        this.rootName = rootName;
         if (prettyPrint) mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         mapper.configure(ToXmlGenerator.Feature.WRITE_XML_1_1, true);
         this.prettyPrint = prettyPrint;
@@ -55,12 +69,12 @@ public class XmlStringMapper implements StringMapper<Object> {
     public String toString(Object value) {
         if (value == null) return null; // Allow null as native input, return null string as output
         try {
-            final var writer = new StringWriter();
-            final var generator = prettyPrint
-                    ? mapper.writerWithDefaultPrettyPrinter().createGenerator(writer)
-                    : mapper.createGenerator(writer);
-            mapper.writeTree(generator, JsonNodeUtil.convertNativeToJsonNode(value));
-            return writer.toString();
+            final var stringWriter = new StringWriter();
+            final var objectWriter = prettyPrint
+                    ? mapper.writerWithDefaultPrettyPrinter().withRootName(rootName)
+                    : mapper.writer().withRootName(rootName);
+            objectWriter.writeValue(stringWriter, value);
+            return stringWriter.toString();
         } catch (IOException e) {
             throw new DataException("Can not convert object to JSON string: " + value, e);
         }

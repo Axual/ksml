@@ -41,8 +41,6 @@ public class TestData {
     private static final String LUCKY_NUMBERS = "luckyNumbers";
     private static final String ACCOUNT_NUMBER = "accountNumber";
 
-    private static final DataTypeDataSchemaMapper SCHEMA_TYPE_MAPPER = new DataTypeDataSchemaMapper();
-
     public static StructSchema testSchema() {
         final var addressFields = List.of(
                 new DataField(STREET, DataSchema.STRING_SCHEMA, "Street field", 11),
@@ -61,10 +59,7 @@ public class TestData {
 
         final var luckyNumbersSchema = new ListSchema(DataSchema.LONG_SCHEMA);
 
-        final var bbanFields = List.of(
-                new DataField("BBAN", DataSchema.STRING_SCHEMA, "BBAN", 21),
-                new DataField("BIC", DataSchema.STRING_SCHEMA, "BIC", 22));
-        final var bbanSchema = new StructSchema(NAMESPACE, "BBANSchema", "Bank account and BIC combination", bbanFields);
+        final var bbanSchema = DataSchema.LONG_SCHEMA;
         final var ibanSchema = DataSchema.STRING_SCHEMA;
         final var accountNumberSchema = new UnionSchema(
                 new DataField("bban", bbanSchema, "BBAN", 23),

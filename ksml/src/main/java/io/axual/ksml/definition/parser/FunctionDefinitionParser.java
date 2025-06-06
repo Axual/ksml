@@ -40,16 +40,17 @@ public abstract class FunctionDefinitionParser<T extends FunctionDefinition> ext
     }
 
     protected StructsParser<T> parserWithStores(Class<T> resultClass, String description, Constructor1<T, FunctionDefinition> constructor) {
-        return parser(resultClass, description, true, (name, params, globalCode, code, expression, resultType, stores, tags) -> FunctionDefinition.as(name, params, globalCode, code, expression, resultType, stores), constructor);
+        return parser(resultClass, description, true, (type, name, params, globalCode, code, expression, resultType, stores, tags) -> FunctionDefinition.as(type, name, params, globalCode, code, expression, resultType, stores), constructor);
     }
 
     protected StructsParser<T> parserWithoutStores(Class<T> resultClass, String description, Constructor1<T, FunctionDefinition> constructor) {
-        return parser(resultClass, description, false, (name, params, globalCode, code, expression, resultType, stores, tags) -> FunctionDefinition.as(name, params, globalCode, code, expression, resultType, null), constructor);
+        return parser(resultClass, description, false, (type, name, params, globalCode, code, expression, resultType, stores, tags) -> FunctionDefinition.as(type, name, params, globalCode, code, expression, resultType, null), constructor);
     }
 
-    private StructsParser<T> parser(Class<T> resultClass, String description, boolean includeStores, Constructor7<FunctionDefinition, String, List<ParameterDefinition>, String, String, String, UserType, List<String>> innerConstructor, Constructor1<T, FunctionDefinition> outerConstructor) {
+    private StructsParser<T> parser(Class<T> resultClass, String description, boolean includeStores, Constructor8<FunctionDefinition, String, String, List<ParameterDefinition>, String, String, String, UserType, List<String>> innerConstructor, Constructor1<T, FunctionDefinition> outerConstructor) {
         final var parseType = resultClass == FunctionDefinition.class;
         final var doc = "Defines a " + description + " function, that gets injected into the Kafka Streams topology";
+        final var type = optional(stringField(Functions.TYPE, "The type of the " + description + ". If this field is not defined, then the type is derived from the context."));
         final var name = optional(stringField(Functions.NAME, "The name of the " + description + ". If this field is not defined, then the name is derived from the context."));
         final var params = optional(listField(Functions.PARAMETERS, "parameter", "parameter", "A list of parameters to be passed into the " + description, new ParameterDefinitionParser()));
         final var globalCode = optional(codeField(Functions.GLOBAL_CODE, "Global (multiline) code that gets loaded into the Python context outside of the " + description + ". Can be used for defining eg. global variables."));
@@ -60,7 +61,7 @@ public abstract class FunctionDefinitionParser<T extends FunctionDefinition> ext
                 ? optional(listField(Functions.STORES, "store-name", "store", "A list of store names that the " + description + " uses. Only required if the function wants to use a state store.", new StringValueParser()))
                 : new IgnoreParser<List<String>>();
         // We assume that the resultClass is always either using stores, or not using stores, but not a combination of both. Hence, we do not provide a definitionVariant extension to distinguish between the two.
-        final var parser = structsParser(resultClass, parseType || requireType ? "" : KSMLDSL.Types.WITH_IMPLICIT_STORE_TYPE_POSTFIX, doc, name, params, globalCode, code, expression, resultType, stores, innerConstructor);
+        final var parser = structsParser(resultClass, parseType || requireType ? "" : KSMLDSL.Types.WITH_IMPLICIT_STORE_TYPE_POSTFIX, doc, type, name, params, globalCode, code, expression, resultType, stores, innerConstructor);
         return new StructsParser<>() {
             @Override
             public T parse(ParseNode node) {

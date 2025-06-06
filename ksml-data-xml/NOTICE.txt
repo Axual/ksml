@@ -1,5 +1,5 @@
 
-Lists of 26 third-party dependencies.
+Lists of 27 third-party dependencies.
      (The Apache Software License, Version 2.0) Jackson-annotations (com.fasterxml.jackson.core:jackson-annotations:2.19.0 - https://github.com/FasterXML/jackson)
      (The Apache Software License, Version 2.0) Jackson-core (com.fasterxml.jackson.core:jackson-core:2.19.0 - https://github.com/FasterXML/jackson-core)
      (The Apache Software License, Version 2.0) jackson-databind (com.fasterxml.jackson.core:jackson-databind:2.19.0 - https://github.com/FasterXML/jackson)
@@ -17,6 +17,7 @@ Lists of 26 third-party dependencies.
      (Apache 2.0) KSML Data Library (io.axual.ksml:ksml-data:1.1.0-SNAPSHOT - https://github.com/Axual/ksml/ksml-data)
      (Eclipse Distribution License - v 1.0) Jakarta SOAP with Attachments API (jakarta.xml.soap:jakarta.xml.soap-api:3.0.2 - https://github.com/jakartaee/saaj-api)
      (The Apache License, Version 2.0) Apache Kafka (org.apache.kafka:kafka-clients:4.0.0 - https://kafka.apache.org)
+     (Apache License, Version 2.0) XmlSchema Core (org.apache.ws.xmlschema:xmlschema-core:2.3.1 - https://ws.apache.org/commons/xmlschema20/xmlschema-core/)
      (The BSD 2-Clause License) Stax2 API (org.codehaus.woodstox:stax2-api:4.2.2 - http://github.com/FasterXML/stax2-api)
      (EDL 1.0) Angus Activation Registries (org.eclipse.angus:angus-activation:2.0.2 - https://github.com/eclipse-ee4j/angus-activation/angus-activation)
      (The Apache License, Version 2.0) JSpecify annotations (org.jspecify:jspecify:1.0.0 - http://jspecify.org/)

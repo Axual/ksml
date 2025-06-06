@@ -36,9 +36,13 @@ import lombok.NonNull;
  * homogeneous data types.
  * </p>
  */
-@Getter
 @EqualsAndHashCode
 public class ListSchema extends DataSchema {
+    /**
+     * The name of this list schema. Only sporadically necessary, eg. for XML schema where a field may
+     * refer to a list type by name.
+     */
+    private final String name;
     /**
      * The schema of the elements contained in the list.
      * <p>
@@ -46,6 +50,7 @@ public class ListSchema extends DataSchema {
      * consistency within the collection.
      * </p>
      */
+    @Getter
     private final DataSchema valueSchema;
 
     /**
@@ -56,7 +61,40 @@ public class ListSchema extends DataSchema {
      */
     public ListSchema(@NonNull DataSchema valueSchema) {
         super(DataSchemaConstants.LIST_TYPE);
+        this.name = null;
         this.valueSchema = valueSchema;
+    }
+
+    /**
+     * Constructs a {@code ListSchema} with a given element schema.
+     *
+     * @param valueSchema The {@link DataSchema} that defines the structure of each element in the list.
+     *                    It must not be {@code null}.
+     */
+    public ListSchema(String name, @NonNull DataSchema valueSchema) {
+        super(DataSchemaConstants.LIST_TYPE);
+        this.name = name;
+        this.valueSchema = valueSchema;
+    }
+
+    /**
+     * Checks whether this schema has a name.
+     *
+     * @return {@code true} if the {@code name} field is not {@code null} and not empty;
+     * {@code false} otherwise.
+     */
+    public boolean hasName() {
+        return name != null && !name.isEmpty();
+    }
+
+    /**
+     * Returns the name of this schema, or a default name if the name is not defined.
+     *
+     * @return {@code name} if it is defined, or a default name otherwise.
+     */
+    public String name() {
+        if (hasName()) return name;
+        return "Anonymous" + getClass().getSimpleName();
     }
 
     /**
@@ -70,7 +108,7 @@ public class ListSchema extends DataSchema {
      *
      * @param otherSchema The other {@link DataSchema} to be checked for compatibility.
      * @return {@code true} if the other schema is assignable from this schema;
-     *         {@code false} otherwise.
+     * {@code false} otherwise.
      */
     @Override
     public boolean isAssignableFrom(DataSchema otherSchema) {

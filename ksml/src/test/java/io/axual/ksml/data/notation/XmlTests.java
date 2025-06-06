@@ -21,86 +21,79 @@ package io.axual.ksml.data.notation;
  */
 
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.notation.avro.AvroDataObjectMapper;
 import io.axual.ksml.data.notation.xml.XmlDataObjectMapper;
 import io.axual.ksml.data.notation.xml.XmlNotation;
 import io.axual.ksml.data.notation.xml.XmlSchemaMapper;
-import io.axual.ksml.execution.SchemaLibrary;
 import org.junit.jupiter.api.Test;
 
 class XmlTests {
     @Test
     void schemaTest() {
-//        NotationTestRunner.schemaTest("xml", new XmlSchemaMapper());
+        final var testSchema = """
+<?xml version="1.0" encoding="UTF-8"?>
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="io.axual.ksml.data.test"
+                                       attributeFormDefault="unqualified" elementFormDefault="unqualified"
+                                       targetNamespace="io.axual.ksml.data.test">
+                                <xs:element name="TestSchema">
+                                    <xs:annotation>
+                                        <xs:documentation>Schema used for testing</xs:documentation>
+                                    </xs:annotation>
+                                    <xs:complexType>
+                                        <xs:sequence>
+                                            <xs:element name="name" type="xs:string"/>
+                                            <xs:element name="age" type="xs:integer"/>
+                                            <xs:element name="address" type="AddressSchema"/>
+                                            <xs:element name="shippingAddress" type="AddressSchema"/>
+                                            <xs:element default="BLUE" name="eyeColor" type="EyeColor"/>
+                                            <xs:element name="luckyNumbers">
+                                                <xs:simpleType>
+                                                    <xs:list itemType="xs:long"/>
+                                                </xs:simpleType>
+                                            </xs:element>
+                                            <xs:element name="accountNumber">
+                                                <xs:simpleType>
+                                                    <xs:union memberTypes="xs:long xs:string"/>
+                                                </xs:simpleType>
+                                            </xs:element>
+                                        </xs:sequence>
+                                    </xs:complexType>
+                                </xs:element>
+                                <xs:complexType name="AddressSchema">
+                                    <xs:annotation>
+                                        <xs:documentation>Bladiebla</xs:documentation>
+                                    </xs:annotation>
+                                    <xs:sequence>
+                                        <xs:element name="street" type="xs:string"/>
+                                        <xs:element name="postalCode" type="xs:string"/>
+                                        <xs:element name="city" type="xs:string"/>
+                                        <xs:element name="country" type="xs:string"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                                <xs:simpleType name="EyeColor">
+                                    <xs:annotation>
+                                        <xs:documentation>Test</xs:documentation>
+                                    </xs:annotation>
+                                    <xs:restriction base="xs:string">
+                                        <xs:enumeration value="UNKNOWN"/>
+                                        <xs:enumeration value="BLUE"/>
+                                        <xs:enumeration value="GREEN"/>
+                                        <xs:enumeration value="BROWN"/>
+                                        <xs:enumeration value="GREY"/>
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:schema>
+                """;
+        final var dataSchema = new XmlSchemaMapper().toDataSchema("dummy", "TestSchema", testSchema);
+        NotationTestRunner.schemaTest("xml", new XmlSchemaMapper());
     }
 
     @Test
     void dataTest() {
-        final var input = """
-<?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-           targetNamespace="http://namespace.io/address">
-    <xs:element name="TestSchema">
-        <xs:complexType>
-            <xs:sequence>
-                <xs:element name="name" type="xs:string"/>
-                <xs:element name="age" type="xs:integer"/>
-                <xs:element name="address2" type="AddressSchema" />
-                <xs:element name="address">
-                    <xs:complexType>
-                        <xs:sequence>
-                            <xs:element name="street" type="xs:string"/>
-                            <xs:element name="postalCode" type="xs:string"/>
-                            <xs:element name="city" type="xs:string"/>
-                            <xs:element name="country" type="xs:string"/>
-                        </xs:sequence>
-                    </xs:complexType>
-                </xs:element>
-                <xs:element name="shippingAddress">
-                    <xs:complexType>
-                        <xs:sequence>
-                            <xs:element name="street" type="xs:string"/>
-                            <xs:element name="postalCode" type="xs:string"/>
-                            <xs:element name="city" type="xs:string"/>
-                            <xs:element name="country" type="xs:string"/>
-                        </xs:sequence>
-                    </xs:complexType>
-                </xs:element>
-                <xs:element name="eyeColor"/>
-                <xs:element name="luckyNumbers"/>
-                <xs:element name="accountNumber"/>
-            </xs:sequence>
-        </xs:complexType>
-    </xs:element>
-    <xs:element name="TestSchema2">
-        <xs:complexType>
-            <xs:sequence>
-                <xs:element name="name" type="xs:string"/>
-            </xs:sequence>
-        </xs:complexType>
-    </xs:element>
-    <xs:complexType name="AddressSchema">
-        <xs:sequence>
-            <xs:element name="name" type="xs:string"/>
-        </xs:sequence>
-    </xs:complexType>
-    <xs:complexType name="AddressSchema2">
-        <xs:sequence>
-            <xs:element name="name" type="xs:string"/>
-        </xs:sequence>
-    </xs:complexType>
-</xs:schema>
-                """;
-        final var result = new XmlDataObjectMapper(true).toDataObject(input);
-        NotationTestRunner.dataTest("xml", new AvroDataObjectMapper());
+        NotationTestRunner.dataTest("xml", new XmlDataObjectMapper(true));
     }
 
     @Test
     void serdeTest() {
-        final var notation = new XmlNotation("xml", new NativeDataObjectMapper());
-        final var lib = new SchemaLibrary();
-        lib.schemaDirectory("/Users/dizzl/dev/axual/ksml/examples");
-//        final var schema = lib.getSchema(notation,"TestSchema", false);
-//        NotationTestRunner.serdeTest("xml", new XmlNotation("xml", new NativeDataObjectMapper()), false);
+        NotationTestRunner.serdeTest("xml", new XmlNotation("xml", new NativeDataObjectMapper()), false);
     }
 }

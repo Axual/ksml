@@ -21,6 +21,7 @@ package io.axual.ksml.definition;
  */
 
 
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.type.UserTupleType;
 
@@ -29,10 +30,9 @@ import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_PARAMETERS;
 public class KeyValueTransformerDefinition extends FunctionDefinition {
     public KeyValueTransformerDefinition(FunctionDefinition definition) {
         super(definition
+                .withType(KSMLDSL.Functions.TYPE_KEYVALUETRANSFORMER)
                 .withParameters(mergeParameters(KEY_VALUE_PARAMETERS, definition.parameters()))
-                .withDefaultExpression("(key,value)"));
-        if (resultType() == null || !(resultType().dataType() instanceof UserTupleType)) {
-            throw new TopologyException("ResultType of keyValueTransformer not correctly specified");
-        }
+                .withDefaultExpression("(key,value)")
+                .withTupleResult());
     }
 }

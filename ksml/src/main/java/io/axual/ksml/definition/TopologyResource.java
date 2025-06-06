@@ -21,8 +21,10 @@ package io.axual.ksml.definition;
  */
 
 import io.axual.ksml.metric.MetricTags;
+import org.jetbrains.annotations.NotNull;
 
 public record TopologyResource<T>(String name, T definition, MetricTags tags) implements Definition {
+    @NotNull
     @Override
     public String toString() {
         return definitionType();

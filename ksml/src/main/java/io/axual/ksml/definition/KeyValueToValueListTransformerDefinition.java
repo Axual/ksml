@@ -21,16 +21,16 @@ package io.axual.ksml.definition;
  */
 
 
-import io.axual.ksml.data.type.ListType;
-import io.axual.ksml.type.UserType;
+import io.axual.ksml.dsl.KSMLDSL;
 
 import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_PARAMETERS;
 
 public class KeyValueToValueListTransformerDefinition extends FunctionDefinition {
     public KeyValueToValueListTransformerDefinition(FunctionDefinition definition) {
         super(definition
+                .withType(KSMLDSL.Functions.TYPE_KEYVALUETOVALUELISTTRANSFORMER)
                 .withParameters(mergeParameters(KEY_VALUE_PARAMETERS, definition.parameters()))
                 .withDefaultExpression("[value]")
-                .withResult(new UserType(definition.resultType().notation(), ListType.createFrom(definition.resultType().dataType()))));
+                .withListResult());
     }
 }

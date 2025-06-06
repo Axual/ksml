@@ -22,27 +22,20 @@ package io.axual.ksml.data.notation.xml;
 
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.notation.string.StringMapper;
 import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
 
 public class XmlDataObjectMapper implements DataObjectMapper<String> {
-    private final StringMapper<Object> stringMapper;
-    private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper() {
-        @Override
-        public DataObject toDataObject(DataType expected, Object value) {
-            if (value instanceof CharSequence val) return new DataString(val.toString().trim());
-            return super.toDataObject(expected, value);
-        }
-    };
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
+    private final boolean prettyPrint;
 
     public XmlDataObjectMapper(boolean prettyPrint) {
-        stringMapper = new XmlStringMapper(prettyPrint);
+        this.prettyPrint = prettyPrint;
     }
 
     @Override
     public DataObject toDataObject(DataType expected, String value) {
+        final var stringMapper = new XmlStringMapper("dummy", prettyPrint);
         final var object = stringMapper.fromString(value);
         return NATIVE_MAPPER.toDataObject(expected, object);
     }
@@ -50,6 +43,7 @@ public class XmlDataObjectMapper implements DataObjectMapper<String> {
     @Override
     public String fromDataObject(DataObject value) {
         final var object = NATIVE_MAPPER.fromDataObject(value);
+        final var stringMapper = new XmlStringMapper(value.type().name(), prettyPrint);
         return stringMapper.toString(object);
     }
 }

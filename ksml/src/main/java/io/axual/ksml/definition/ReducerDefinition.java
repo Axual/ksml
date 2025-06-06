@@ -21,11 +21,14 @@ package io.axual.ksml.definition;
  */
 
 
+import io.axual.ksml.dsl.KSMLDSL;
+
 import static io.axual.ksml.definition.DefinitionConstants.TWO_VALUE_PARAMETERS;
 
 public class ReducerDefinition extends FunctionDefinition {
     public ReducerDefinition(FunctionDefinition definition) {
         super(definition
+                .withType(KSMLDSL.Functions.TYPE_REDUCER)
                 .withParameters(mergeParameters(TWO_VALUE_PARAMETERS, definition.parameters()))
                 .withAResult());
     }

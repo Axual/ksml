@@ -43,6 +43,6 @@ public class ListType extends ComplexType {
                 outerType.subTypeCount() == 1) {
             return new ListType(outerType.subType(0));
         }
-        throw new DataException("Could not convert type to List: " + type);
+        return null;
     }
 }

@@ -25,7 +25,7 @@ import io.axual.ksml.type.UserType;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.apache.kafka.streams.Topology;
+import org.apache.kafka.streams.AutoOffsetReset;
 
 @AllArgsConstructor
 @Getter
@@ -35,7 +35,7 @@ public class TopicDefinition extends AbstractDefinition {
     private final UserType keyType;
     private final UserType valueType;
     private final FunctionDefinition tsExtractor;
-    private final Topology.AutoOffsetReset resetPolicy;
+    private final AutoOffsetReset resetPolicy;
 
     @Override
     public String toString() {
