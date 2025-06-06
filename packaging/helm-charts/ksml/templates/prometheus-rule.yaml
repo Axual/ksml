@@ -1,0 +1,54 @@
+{{- if and ( .Capabilities.APIVersions.Has "monitoring.coreos.com/v1" )  .Values.prometheus.enabled .Values.prometheusRule.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "ksml.fullname" . }}
+  labels:
+    {{- include "ksml.labels" . | nindent 4 }}
+    {{- if (.Values.prometheusRule.labels)  }}
+      {{- toYaml .Values.prometheusRule.labels | nindent  4 }}
+    {{- end }}
+spec:
+  groups:
+    - name: {{ include "ksml.fullname" . }}
+      {{- if .Values.prometheusRule.interval }}
+      interval: {{ .Values.prometheusRule.interval }}
+      {{- end }}
+      rules:
+        {{- if .Values.prometheusRule.defaultRules }}
+        - alert: {{ include "ksml.fullname" . | camelcase }}Down
+          annotations:
+            summary: {{ include "ksml.fullname" . }} is down
+            description: Component {{ include "ksml.fullname" . }} has been unavailable for the past 2 minutes.
+          expr: up{service="{{ include "ksml.fullname" . }}", namespace="{{ .Release.Namespace }}"} == 0
+          for: 2m
+          labels:
+            {{- toYaml .Values.prometheusRule.defaultRules.labels | nindent 12 }}
+        - alert: {{ include "ksml.fullname" . | camelcase }}RestartingTooMuch
+          annotations:
+            summary: {{ include "ksml.fullname" . }} is restarting too much
+            description: Component {{ include "ksml.fullname" . }} has been restarting more than 5 times for the past 2 minutes.
+          expr: kube_pod_container_status_restarts_total{pod=~"{{ include "ksml.fullname" . }}.*"} > 5
+          for: 2m
+          labels:
+            {{- toYaml .Values.prometheusRule.defaultRules.labels | nindent 12 }}
+        - alert: {{ include "ksml.fullname" . | camelcase }}OutOfMemory
+          annotations:
+            summary: {{ include "ksml.fullname" . }} is failing due to OutOfMemory error
+            description: Component {{ include "ksml.fullname" . }} has been failing due to the OutOfMemory error for the past 5 minutes.
+          expr: kube_pod_container_status_last_terminated_reason{pod=~"{{ include "ksml.fullname" . }}.*",reason="OOMKilled"} == 1
+          for: 5m
+          labels:
+            {{- toYaml .Values.prometheusRule.defaultRules.labels | nindent 12 }}
+        {{- end }}
+    {{- if .Values.prometheusRule.extraRules }}
+    - name: {{ include "ksml.fullname" . }}-extras
+      {{- if .Values.prometheusRule.interval }}
+      interval: {{ .Values.prometheusRule.interval }}
+      {{- end }}
+      {{- with .Values.prometheusRule.extraRules }}
+      rules:
+      {{-  tpl (toYaml .) $ | nindent 8 }}
+      {{- end }}
+  {{- end }}
+{{- end }}
