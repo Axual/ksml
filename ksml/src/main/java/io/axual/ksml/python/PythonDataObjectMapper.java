@@ -21,8 +21,8 @@ package io.axual.ksml.python;
  */
 
 import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.notation.SchemaResolver;
+import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.type.*;
 import io.axual.ksml.data.util.ConvertUtil;

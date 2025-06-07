@@ -20,18 +20,13 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
-import io.apicurio.registry.rules.compatibility.protobuf.ProtobufCompatibilityCheckerLibrary;
-import io.apicurio.registry.utils.protobuf.schema.ProtobufFile;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.protobuf.ProtobufDataObjectMapper;
 import io.axual.ksml.data.notation.protobuf.ProtobufNotation;
 import io.axual.ksml.data.notation.protobuf.ProtobufSchemaMapper;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
 import java.util.HashMap;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ProtobufTests {
     @Test

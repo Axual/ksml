@@ -22,8 +22,6 @@ package io.axual.ksml.definition;
 
 
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.exception.TopologyException;
-import io.axual.ksml.type.UserTupleType;
 
 import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_PARAMETERS;
 

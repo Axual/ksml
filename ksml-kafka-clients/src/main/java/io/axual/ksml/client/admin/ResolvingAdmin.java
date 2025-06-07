@@ -21,8 +21,8 @@ package io.axual.ksml.client.admin;
  */
 
 import io.axual.ksml.client.exception.NotSupportedException;
-import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.client.resolving.GroupResolver;
+import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.client.resolving.TopicResolver;
 import org.apache.kafka.clients.admin.*;
 import org.apache.kafka.clients.admin.internals.CoordinatorKey;

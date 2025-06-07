@@ -20,19 +20,18 @@ package io.axual.ksml.client.resolving;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.common.Configurable;
-import org.apache.kafka.common.utils.Utils;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import io.axual.ksml.client.exception.ClientException;
 import io.axual.ksml.client.exception.ConfigException;
 import io.axual.ksml.client.util.FactoryUtil;
 import io.axual.ksml.client.util.MapUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.Configurable;
+import org.apache.kafka.common.utils.Utils;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 public class ResolvingClientConfig {

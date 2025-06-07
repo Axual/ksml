@@ -23,7 +23,6 @@ package io.axual.ksml.data.notation.soap;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.notation.xml.XmlDataObjectMapper;
-import io.axual.ksml.data.notation.xml.XmlStringMapper;
 import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.type.DataType;

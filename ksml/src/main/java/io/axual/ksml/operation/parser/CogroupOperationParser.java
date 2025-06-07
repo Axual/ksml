@@ -26,7 +26,6 @@ import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.CogroupOperation;
 import io.axual.ksml.parser.StructsParser;
-import io.axual.ksml.store.StoreType;
 
 import static io.axual.ksml.dsl.KSMLDSL.Operations;
 

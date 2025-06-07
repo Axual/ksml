@@ -21,19 +21,6 @@ package io.axual.ksml.runner.backend;
  */
 
 
-import org.apache.kafka.common.utils.Utils;
-import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.Topology;
-import org.apache.kafka.streams.TopologyConfig;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiFunction;
-
 import io.axual.ksml.TopologyGenerator;
 import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.execution.ExecutionContext;
@@ -46,6 +33,14 @@ import io.axual.ksml.runner.streams.KSMLClientSupplier;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.utils.Utils;
+import org.apache.kafka.streams.*;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiFunction;
 
 @Slf4j
 public class KafkaStreamsRunner implements Runner {

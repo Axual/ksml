@@ -24,7 +24,6 @@ import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.schema.*;
 import io.axual.ksml.data.type.Symbol;
-import lombok.NonNull;
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.w3c.dom.Document;

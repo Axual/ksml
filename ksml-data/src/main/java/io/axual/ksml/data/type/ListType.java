@@ -20,8 +20,6 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.DataException;
-
 import java.util.List;
 
 public class ListType extends ComplexType {

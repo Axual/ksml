@@ -20,14 +20,24 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
-import com.google.common.collect.ImmutableMap;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
+import com.google.common.collect.ImmutableMap;
+import io.axual.ksml.client.resolving.ResolvingClientConfig;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.notation.binary.BinaryNotation;
+import io.axual.ksml.data.notation.json.JsonNotation;
+import io.axual.ksml.definition.parser.TopologyDefinitionParser;
+import io.axual.ksml.execution.ExecutionContext;
+import io.axual.ksml.generator.TopologyDefinition;
+import io.axual.ksml.generator.YAMLObjectMapper;
+import io.axual.ksml.metric.Metrics;
+import io.axual.ksml.parser.ParseNode;
+import io.axual.ksml.python.PythonContextConfig;
+import io.axual.ksml.type.UserType;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.MockProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
-import org.apache.kafka.streams.processor.internals.DefaultStreamPartitioner;
 import org.assertj.core.api.SoftAssertions;
 import org.awaitility.Awaitility;
 import org.graalvm.home.Version;
@@ -49,20 +59,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
-
-import io.axual.ksml.client.resolving.ResolvingClientConfig;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.notation.binary.BinaryNotation;
-import io.axual.ksml.data.notation.json.JsonNotation;
-import io.axual.ksml.definition.parser.TopologyDefinitionParser;
-import io.axual.ksml.execution.ExecutionContext;
-import io.axual.ksml.generator.TopologyDefinition;
-import io.axual.ksml.generator.YAMLObjectMapper;
-import io.axual.ksml.metric.Metrics;
-import io.axual.ksml.parser.ParseNode;
-import io.axual.ksml.python.PythonContextConfig;
-import io.axual.ksml.type.UserType;
-import lombok.extern.slf4j.Slf4j;
 
 import static org.junit.jupiter.api.Named.named;
 

@@ -25,7 +25,6 @@ import io.axual.ksml.type.UserType;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.apache.kafka.streams.AutoOffsetReset;
-import org.apache.kafka.streams.Topology;
 
 @Getter
 @EqualsAndHashCode

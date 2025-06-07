@@ -22,7 +22,6 @@ package io.axual.ksml.data.notation.xml;
 
 import com.ctc.wstx.stax.WstxInputFactory;
 import com.ctc.wstx.stax.WstxOutputFactory;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlFactory;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -35,7 +34,6 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.Map;
 
 public class XmlStringMapper implements StringMapper<Object> {
     private final XmlMapper mapper;

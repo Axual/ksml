@@ -20,22 +20,16 @@ package io.axual.ksml.client.resolving;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.commons.text.StringSubstitutor;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import io.axual.ksml.client.exception.InvalidPatternException;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.text.StringSubstitutor;
+
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 public class PatternResolver implements Resolver {
