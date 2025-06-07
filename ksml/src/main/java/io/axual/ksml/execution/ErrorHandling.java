@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 public class ErrorHandling {
     private static final String DATA_MASK = "*****";
     private static final String DATA_NULL = "<NULL>";
+    private static final String STRING_PREFIX = "(string)";
 
     private ErrorHandler consumeHandler;
     private ErrorHandler processHandler;
@@ -78,7 +79,7 @@ public class ErrorHandling {
     }
 
     public String objectToString(Object data) {
-        return data == null ? DATA_NULL : "(string)" + data;
+        return data == null ? DATA_NULL : STRING_PREFIX + data;
     }
 
     private void logError(Logger logger, String errorType, ErrorHandlerContext context, String key, String value, Exception exception) {
@@ -106,13 +107,8 @@ public class ErrorHandling {
             case CONTINUE_ON_FAIL -> DeserializationExceptionHandler.DeserializationHandlerResponse.CONTINUE;
             case STOP_ON_FAIL -> DeserializationExceptionHandler.DeserializationHandlerResponse.FAIL;
             default ->
-                    throw new UnsupportedOperationException("Deserialization errors can can only be ignored or made to stop the process");
+                    throw new UnsupportedOperationException("Unsupported deserialization error handler type. Only CONTINUE_ON_FAIL or STOP_ON_FAIL are allowed.");
         };
-    }
-
-    public String maskData(Object data) {
-        if (!processHandler.logPayload()) return DATA_MASK;
-        return data.toString();
     }
 
     public ProcessingExceptionHandler.ProcessingHandlerResponse handle(ErrorHandlerContext context, Record<?, ?> rec, Exception exception) {
@@ -126,7 +122,7 @@ public class ErrorHandling {
             case CONTINUE_ON_FAIL -> ProcessingExceptionHandler.ProcessingHandlerResponse.CONTINUE;
             case STOP_ON_FAIL -> ProcessingExceptionHandler.ProcessingHandlerResponse.FAIL;
             default ->
-                    throw new UnsupportedOperationException("Processing errors can only be ignored or made to stop the process");
+                    throw new UnsupportedOperationException("Unsupported processing error handler type. Only CONTINUE_ON_FAIL or STOP_ON_FAIL are allowed.");
         };
     }
 

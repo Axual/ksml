@@ -67,22 +67,25 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     public DataSchema toDataSchema(String namespace, String name, String value) {
         // Convert JSON to internal DataObject format
         var schema = mapper.toDataObject(value);
-        if (schema instanceof DataStruct schemaStruct) {
-            final ReferenceResolver<DataStruct> referenceResolver = path -> {
-                final var parts = path.split("/");
-                if (parts.length <= 1 || !parts[0].equals("#")) return null;
-                var result = schemaStruct;
-                for (int i = 1; i < parts.length; i++) {
-                    final var sub = result.get(parts[i]);
-                    if (!(sub instanceof DataStruct subStruct)) return null;
-                    result = subStruct;
-                }
-                return result;
-            };
-
-            return toDataSchema(namespace, name, schemaStruct, referenceResolver);
+        if (!(schema instanceof DataStruct schemaStruct)) {
+            throw new IllegalArgumentException("Could not parse JSON Schema as a data object");
         }
-        return null;
+
+        // Set up a reference resolver to find referenced types during parsing
+        final ReferenceResolver<DataStruct> referenceResolver = path -> {
+            final var parts = path.split("/");
+            if (parts.length <= 1 || !parts[0].equals("#")) return null;
+            var result = schemaStruct;
+            for (int i = 1; i < parts.length; i++) {
+                final var sub = result.get(parts[i]);
+                if (!(sub instanceof DataStruct subStruct)) return null;
+                result = subStruct;
+            }
+            return result;
+        };
+
+        // Now interpret the DataStruct representation as a StructSchema
+        return toDataSchema(namespace, name, schemaStruct, referenceResolver);
     }
 
     private DataSchema toDataSchema(String namespace, String name, DataStruct schema, ReferenceResolver<DataStruct> referenceResolver) {
@@ -140,24 +143,24 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
         }
 
         final var type = specStruct.getAsString(TYPE_NAME);
-        if (type != null) {
-            if (type.value().equals(NULL_TYPE)) return DataSchema.NULL_SCHEMA;
-            if (type.value().equals(BOOLEAN_TYPE)) return DataSchema.BOOLEAN_SCHEMA;
-            if (type.value().equals(INTEGER_TYPE)) return DataSchema.LONG_SCHEMA;
-            if (type.value().equals(NUMBER_TYPE)) return DataSchema.DOUBLE_SCHEMA;
-            if (type.value().equals(ARRAY_TYPE)) return toListSchema(specStruct, referenceResolver);
-            if (type.value().equals(OBJECT_TYPE)) {
+        if (type == null || type.isEmpty()) return DataSchema.ANY_SCHEMA;
+        return switch (type.value()) {
+            case NULL_TYPE -> DataSchema.NULL_SCHEMA;
+            case BOOLEAN_TYPE -> DataSchema.BOOLEAN_SCHEMA;
+            case INTEGER_TYPE -> DataSchema.LONG_SCHEMA;
+            case NUMBER_TYPE -> DataSchema.DOUBLE_SCHEMA;
+            case STRING_TYPE -> DataSchema.STRING_SCHEMA;
+            case ARRAY_TYPE -> toListSchema(specStruct, referenceResolver);
+            case OBJECT_TYPE -> {
                 final var ref = specStruct.getAsString(REF_NAME);
                 if (ref instanceof DataString refString) {
                     final var refType = referenceResolver.get(refString.value());
-                    if (refType != null) return toDataSchema(null, null, refType, referenceResolver);
+                    if (refType != null) yield toDataSchema(null, null, refType, referenceResolver);
                 }
-                return toDataSchema(null, null, specStruct, referenceResolver);
+                yield toDataSchema(null, null, specStruct, referenceResolver);
             }
-            if (type.value().equals(STRING_TYPE)) return DataSchema.STRING_SCHEMA;
-        }
-
-        return DataSchema.ANY_SCHEMA;
+            default -> DataSchema.ANY_SCHEMA;
+        };
     }
 
     private ListSchema toListSchema(DataStruct spec, ReferenceResolver<DataStruct> referenceResolver) {

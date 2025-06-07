@@ -66,12 +66,12 @@ public class XmlStringMapper implements StringMapper<Object> {
     @Override
     public String toString(Object value) {
         if (value == null) return null; // Allow null as native input, return null string as output
-        try {
-            final var stringWriter = new StringWriter();
-            final var objectWriter = prettyPrint
-                    ? mapper.writerWithDefaultPrettyPrinter().withRootName(rootName)
-                    : mapper.writer().withRootName(rootName);
-            objectWriter.writeValue(stringWriter, value);
+        try (final var stringWriter = new StringWriter()) {
+            final var objectWriter = prettyPrint ? mapper.writerWithDefaultPrettyPrinter() : mapper.writer();
+            objectWriter
+                    .withRootName(rootName)
+                    .without(SerializationFeature.INDENT_OUTPUT)
+                    .writeValue(stringWriter, value);
             return stringWriter.toString();
         } catch (IOException e) {
             throw new DataException("Can not convert object to JSON string: " + value, e);

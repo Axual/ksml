@@ -32,6 +32,7 @@ import org.apache.kafka.streams.kstream.BranchedKStream;
 import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.Predicate;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class BranchOperation extends BaseOperation {
@@ -49,14 +50,13 @@ public class BranchOperation extends BaseOperation {
         final var v = input.valueType();
 
         // Prepare the branch predicates to pass into the KStream
-        final var predicates = new Predicate[branches.size()];
-        for (var index = 0; index < branches.size(); index++) {
-            final var branch = branches.get(index);
+        final var predicates = new ArrayList<Predicate<Object, Object>>(branches.size());
+        for (final BranchDefinition branch : branches) {
             if (branch.predicate() != null) {
                 final var pred = userFunctionOf(context, PREDICATE_NAME, branch.predicate(), equalTo(DataBoolean.DATATYPE), superOf(k), superOf(v));
-                predicates[index] = new UserPredicate(pred, tags);
+                predicates.add(new UserPredicate(pred, tags));
             } else {
-                predicates[index] = (key, value) -> true;
+                predicates.add((key, value) -> true);
             }
         }
 
@@ -64,13 +64,13 @@ public class BranchOperation extends BaseOperation {
         final BranchedKStream<Object, Object> splitStream = name != null
                 ? input.stream.split(Named.as(name))
                 : input.stream.split();
-        for (var index = 0; index < predicates.length; index++) {
-            splitStream.branch((Predicate<Object, Object>) predicates[index], Branched.as("" + index));
+        for (var index = 0; index < predicates.size(); index++) {
+            splitStream.branch(predicates.get(index), Branched.as("" + index));
         }
         final var output = splitStream.noDefaultBranch();
 
         // For every branch, generate a separate pipeline
-        for (var index = 0; index < predicates.length; index++) {
+        for (var index = 0; index < predicates.size(); index++) {
             StreamWrapper branchCursor = new KStreamWrapper(output.get(name + index), k, v);
             for (StreamOperation operation : branches.get(index).pipeline().chain()) {
                 branchCursor = branchCursor.apply(operation, context);
