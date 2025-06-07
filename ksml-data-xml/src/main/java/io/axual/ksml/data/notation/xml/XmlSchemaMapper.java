@@ -24,6 +24,7 @@ import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.schema.*;
 import io.axual.ksml.data.type.Symbol;
+import lombok.NonNull;
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.w3c.dom.Document;
@@ -105,10 +106,17 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
 
     private DataField convertSequenceMemberToDataField(XMLSchemaParseContext context, XmlSchemaSequenceMember member) {
         if (member instanceof XmlSchemaElement element) {
-            final var type = element.getSchemaType() != null ? element.getSchemaType() : context.findType(element.getSchemaTypeName());
-            final var schema = convertToSchema(context, type);
-            final var doc = element.getAnnotation() != null ? element.getAnnotation().toString() : null;
-            return new DataField(element.getName(), schema, doc);
+            DataSchema schema = null;
+            if (element.getSchemaTypeName() != null) {
+                schema = convertToSchema(element.getSchemaTypeName());
+            }
+            if (schema == null) {
+                final var type = element.getSchemaType() != null ? element.getSchemaType() : context.findType(element.getSchemaTypeName());
+                schema = convertToSchema(context, type);
+            }
+            final var doc = extractDoc(element.getAnnotation());
+            final var required = element.getMinOccurs() > 0;
+            return new DataField(element.getName(), schema, doc, DataField.NO_TAG, required);
         }
         return null;
     }
@@ -118,7 +126,7 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
             final var content = simpleType.getContent();
             if (content instanceof XmlSchemaSimpleTypeList list) {
                 if (list.getItemTypeName() != null) {
-                    final var itemType = convertToSchema(list.getItemTypeName());
+                    final var itemType = convertToSchemaForced(list.getItemTypeName());
                     return new ListSchema(itemType);
                 }
                 final var itemType = convertToSchema(context, list.getItemType());
@@ -137,8 +145,8 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
             if (content instanceof XmlSchemaSimpleTypeUnion union) {
                 final var memberTypes = new ArrayList<DataField>();
                 for (final var member : union.getMemberTypesQNames()) {
-                    final var schema = convertToSchema(member);
-                    if (schema != null) memberTypes.add(new DataField(null, schema, null));
+                    final var schema = convertToSchemaForced(member);
+                    memberTypes.add(new DataField(null, schema, null));
                 }
                 return new UnionSchema(memberTypes.toArray(DataField[]::new));
             }
@@ -152,6 +160,12 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
         throw new SchemaException("Could not convert XSD type to DataSchema: " + type);
     }
 
+    private DataSchema convertToSchemaForced(QName qname) {
+        final var result = convertToSchema(qname);
+        if (result != null) return result;
+        throw new SchemaException("Could not convert QName to DataSchema: " + qname);
+    }
+
     private DataSchema convertToSchema(QName qname) {
         if (XSD_ANY.getLocalPart().equals(qname.getLocalPart())) return DataSchema.ANY_SCHEMA;
         if (XSD_BOOLEAN.getLocalPart().equals(qname.getLocalPart())) return DataSchema.BOOLEAN_SCHEMA;
@@ -163,7 +177,7 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
         if (XSD_FLOAT.getLocalPart().equals(qname.getLocalPart())) return DataSchema.FLOAT_SCHEMA;
         if (XSD_BASE64.getLocalPart().equals(qname.getLocalPart())) return DataSchema.BYTES_SCHEMA;
         if (XSD_STRING.getLocalPart().equals(qname.getLocalPart())) return DataSchema.STRING_SCHEMA;
-        throw new SchemaException("Could not convert QName to DataSchema: " + qname);
+        return null;
     }
 
     @Override
@@ -195,6 +209,8 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
             final var map = new NamespaceMap();
             map.put(NAMESPACE_NAME, URI_2001_SCHEMA_XSD);
             schema.setNamespaceContext(map);
+            schema.setAttributeFormDefault(XmlSchemaForm.NONE);
+            schema.setElementFormDefault(XmlSchemaForm.NONE);
             schema.setSchemaNamespacePrefix("");
         }
 
@@ -263,6 +279,7 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
     private XmlSchemaElement convertToXml(XMLSchemaWriteContext context, DataField field) {
         final var result = new XmlSchemaElement(context.schema, false);
         result.setName(field.name());
+        setDocAnnotation(context, result, field.doc());
         final var qname = convertToQName(field.schema());
         if (qname != null) {
             result.setSchemaTypeName(qname);
@@ -278,6 +295,8 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
             final var defaultValue = field.defaultValue().value() != null ? field.defaultValue().value().toString() : "null";
             result.setDefaultValue(defaultValue);
         }
+        result.setMinOccurs(field.required() ? 1 : 0);
+        result.setMaxOccurs(1);
         return result;
     }
 

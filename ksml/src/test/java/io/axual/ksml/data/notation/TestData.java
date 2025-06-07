@@ -20,7 +20,6 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.schema.*;
 import io.axual.ksml.data.type.Symbol;
@@ -59,11 +58,9 @@ public class TestData {
 
         final var luckyNumbersSchema = new ListSchema(DataSchema.LONG_SCHEMA);
 
-        final var bbanSchema = DataSchema.LONG_SCHEMA;
-        final var ibanSchema = DataSchema.STRING_SCHEMA;
         final var accountNumberSchema = new UnionSchema(
-                new DataField("bban", bbanSchema, "BBAN", 23),
-                new DataField("iban", ibanSchema, "IBAN", 24));
+                new DataField("bban", DataSchema.LONG_SCHEMA, "BBAN", 23),
+                new DataField("iban", DataSchema.STRING_SCHEMA, "IBAN", 24));
 
         final var fields = List.of(
                 new DataField(NAME, DataSchema.STRING_SCHEMA, "Name", 1),
