@@ -31,16 +31,25 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AvroObject implements GenericRecord {
-    private static final AvroSchemaMapper schemaMapper = new AvroSchemaMapper();
+    private static final AvroSchemaMapper AVRO_SCHEMA_MAPPER = new AvroSchemaMapper();
+    private static final GenericData VALIDATOR = GenericData.get();
     private final StructSchema schema;
     private final Map<String, Object> data = new HashMap<>();
-    private final GenericData validator = GenericData.get();
     private Schema avroSchema = null;
 
     public AvroObject(StructSchema schema, Map<?, ?> source) {
         if (schema == null) throw new DataException("Can not create an AVRO object without schema");
         this.schema = schema;
-        schema.fields().forEach(field -> put(field.name(), source.get(field.name())));
+
+        // Copy all fields from the source object, or fill in defaults when absent
+        if (source != null) {
+            schema.fields().forEach(field -> {
+                final var fieldName = field.name();
+                final var defaultValue = field.defaultValue() != null ? field.defaultValue().value() : null;
+                final var fieldValue = source.containsKey(fieldName) ? source.get(fieldName) : defaultValue;
+                put(fieldName, fieldValue);
+            });
+        }
     }
 
     @Override
@@ -50,10 +59,10 @@ public class AvroObject implements GenericRecord {
         if (field.schema() instanceof StructSchema structSchema && value instanceof Map)
             value = new AvroObject(structSchema, (Map<?, ?>) value);
         if (field.schema() instanceof EnumSchema)
-            value = new GenericData.EnumSymbol(schemaMapper.fromDataSchema(field.schema()), value != null ? value.toString() : null);
+            value = new GenericData.EnumSymbol(AVRO_SCHEMA_MAPPER.fromDataSchema(field.schema()), value != null ? value.toString() : null);
 
-        final var fieldSchema = schemaMapper.fromDataSchema(field.schema());
-        if ((value != null || field.required()) && fieldSchema != null && !validator.validate(fieldSchema, value))
+        final var fieldSchema = AVRO_SCHEMA_MAPPER.fromDataSchema(field.schema());
+        if ((value != null || field.required()) && fieldSchema != null && !VALIDATOR.validate(fieldSchema, value))
             throw DataException.validationFailed(key, value);
 
         data.put(key, value);
@@ -76,7 +85,7 @@ public class AvroObject implements GenericRecord {
 
     @Override
     public Schema getSchema() {
-        if (avroSchema == null) avroSchema = schemaMapper.fromDataSchema(schema);
+        if (avroSchema == null) avroSchema = AVRO_SCHEMA_MAPPER.fromDataSchema(schema);
         return avroSchema;
     }
 }

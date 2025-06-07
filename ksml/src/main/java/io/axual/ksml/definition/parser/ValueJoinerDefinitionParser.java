@@ -22,6 +22,7 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.ValueJoinerDefinition;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.StructsParser;
 
 public class ValueJoinerDefinitionParser extends FunctionDefinitionParser<ValueJoinerDefinition> {
@@ -33,6 +34,7 @@ public class ValueJoinerDefinitionParser extends FunctionDefinitionParser<ValueJ
     public StructsParser<ValueJoinerDefinition> parser() {
         return parserWithoutStores(
                 ValueJoinerDefinition.class,
+                KSMLDSL.Functions.TYPE_VALUEJOINER,
                 "value joiner",
                 (function, tags) -> new ValueJoinerDefinition(function));
     }

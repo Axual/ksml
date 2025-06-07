@@ -23,6 +23,8 @@ package io.axual.ksml.data.schema;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import java.util.Set;
+
 /**
  * Represents a generic internal schema definition, capable of handling various schema types.
  * Instances of this class are used to define and interact with supported data schemas.
@@ -45,6 +47,20 @@ public class DataSchema {
     }
 
     /**
+     * The set of schema types that represent whole numbers.
+     */
+    private static final Set<String> INTEGER_TYPES = Set.of(
+            DataSchemaConstants.BYTE_TYPE,
+            DataSchemaConstants.SHORT_TYPE,
+            DataSchemaConstants.INTEGER_TYPE,
+            DataSchemaConstants.LONG_TYPE);
+    /**
+     * The set of schema types that represent floating point numbers.
+     */
+    private static final Set<String> FLOATING_POINT_TYPES = Set.of(
+            DataSchemaConstants.FLOAT_TYPE,
+            DataSchemaConstants.DOUBLE_TYPE);
+    /**
      * The {@link DataSchema} instance representing ANY schema.
      */
     public static final DataSchema ANY_SCHEMA = new DataSchema(DataSchemaConstants.ANY_TYPE) {
@@ -65,27 +81,57 @@ public class DataSchema {
     /**
      * The {@link DataSchema} instance representing a BYTE schema.
      */
-    public static final DataSchema BYTE_SCHEMA = new DataSchema(DataSchemaConstants.BYTE_TYPE);
+    public static final DataSchema BYTE_SCHEMA = new DataSchema(DataSchemaConstants.BYTE_TYPE) {
+        @Override
+        public boolean isAssignableFrom(DataSchema otherSchema) {
+            return otherSchema != null && INTEGER_TYPES.contains(otherSchema.type);
+        }
+    };
     /**
      * The {@link DataSchema} instance representing a SHORT schema.
      */
-    public static final DataSchema SHORT_SCHEMA = new DataSchema(DataSchemaConstants.SHORT_TYPE);
+    public static final DataSchema SHORT_SCHEMA = new DataSchema(DataSchemaConstants.SHORT_TYPE) {
+        @Override
+        public boolean isAssignableFrom(DataSchema otherSchema) {
+            return otherSchema != null && INTEGER_TYPES.contains(otherSchema.type);
+        }
+    };
     /**
      * The {@link DataSchema} instance representing a INTEGER schema.
      */
-    public static final DataSchema INTEGER_SCHEMA = new DataSchema(DataSchemaConstants.INTEGER_TYPE);
+    public static final DataSchema INTEGER_SCHEMA = new DataSchema(DataSchemaConstants.INTEGER_TYPE) {
+        @Override
+        public boolean isAssignableFrom(DataSchema otherSchema) {
+            return otherSchema != null && INTEGER_TYPES.contains(otherSchema.type);
+        }
+    };
     /**
      * The {@link DataSchema} instance representing a LONG schema.
      */
-    public static final DataSchema LONG_SCHEMA = new DataSchema(DataSchemaConstants.LONG_TYPE);
+    public static final DataSchema LONG_SCHEMA = new DataSchema(DataSchemaConstants.LONG_TYPE) {
+        @Override
+        public boolean isAssignableFrom(DataSchema otherSchema) {
+            return otherSchema != null && INTEGER_TYPES.contains(otherSchema.type);
+        }
+    };
     /**
      * The {@link DataSchema} instance representing a DOUBLE schema.
      */
-    public static final DataSchema DOUBLE_SCHEMA = new DataSchema(DataSchemaConstants.DOUBLE_TYPE);
+    public static final DataSchema DOUBLE_SCHEMA = new DataSchema(DataSchemaConstants.DOUBLE_TYPE) {
+        @Override
+        public boolean isAssignableFrom(DataSchema otherSchema) {
+            return otherSchema != null && FLOATING_POINT_TYPES.contains(otherSchema.type);
+        }
+    };
     /**
      * The {@link DataSchema} instance representing a FLOAT schema.
      */
-    public static final DataSchema FLOAT_SCHEMA = new DataSchema(DataSchemaConstants.FLOAT_TYPE);
+    public static final DataSchema FLOAT_SCHEMA = new DataSchema(DataSchemaConstants.FLOAT_TYPE) {
+        @Override
+        public boolean isAssignableFrom(DataSchema otherSchema) {
+            return otherSchema != null && FLOATING_POINT_TYPES.contains(otherSchema.type);
+        }
+    };
     /**
      * The {@link DataSchema} instance representing a BYTES schema.
      */

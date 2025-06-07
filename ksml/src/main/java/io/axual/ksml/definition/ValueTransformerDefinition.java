@@ -21,12 +21,15 @@ package io.axual.ksml.definition;
  */
 
 
+import io.axual.ksml.dsl.KSMLDSL;
+
 import static io.axual.ksml.definition.DefinitionConstants.KEY_VALUE_PARAMETERS;
 import static io.axual.ksml.definition.DefinitionConstants.PARAM_VALUE;
 
 public class ValueTransformerDefinition extends FunctionDefinition {
     public ValueTransformerDefinition(FunctionDefinition definition) {
         super(definition
+                .withType(KSMLDSL.Functions.TYPE_VALUETRANSFORMER)
                 .withParameters(mergeParameters(KEY_VALUE_PARAMETERS, definition.parameters()))
                 .withDefaultExpression(PARAM_VALUE)
                 .withAResult());

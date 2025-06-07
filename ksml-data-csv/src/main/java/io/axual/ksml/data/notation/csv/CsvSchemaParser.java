@@ -27,7 +27,7 @@ public class CsvSchemaParser implements Notation.SchemaParser {
     private static final CsvSchemaMapper MAPPER = new CsvSchemaMapper();
 
     @Override
-    public DataSchema parse(String schemaName, String schema) {
-        return MAPPER.toDataSchema(schemaName, schema);
+    public DataSchema parse(String contextName, String schemaName, String schemaString) {
+        return MAPPER.toDataSchema(schemaName, schemaString);
     }
 }

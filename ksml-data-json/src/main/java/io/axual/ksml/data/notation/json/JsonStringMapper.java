@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 
 public class JsonStringMapper implements StringMapper<Object> {
-    protected final ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
     private final boolean prettyPrint;
 
     public JsonStringMapper(boolean prettyPrint) {
@@ -40,7 +40,7 @@ public class JsonStringMapper implements StringMapper<Object> {
     public Object fromString(String value) {
         if (value == null) return null; // Allow null strings as input, returning null as native output
         try {
-            var tree = mapper.readTree(value);
+            var tree = MAPPER.readTree(value);
             return JsonNodeUtil.convertJsonNodeToNative(tree);
         } catch (Exception mapException) {
             throw new DataException("Could not parse string to object: " + value);
@@ -53,9 +53,9 @@ public class JsonStringMapper implements StringMapper<Object> {
         try {
             final var writer = new StringWriter();
             final var generator = prettyPrint
-                    ? mapper.writerWithDefaultPrettyPrinter().createGenerator(writer)
-                    : mapper.createGenerator(writer);
-            mapper.writeTree(generator, JsonNodeUtil.convertNativeToJsonNode(value));
+                    ? MAPPER.writerWithDefaultPrettyPrinter().createGenerator(writer)
+                    : MAPPER.createGenerator(writer);
+            MAPPER.writeTree(generator, JsonNodeUtil.convertNativeToJsonNode(value));
             return writer.toString();
         } catch (IOException e) {
             throw new DataException("Can not convert object to JSON string: " + value, e);

@@ -24,14 +24,14 @@ package io.axual.ksml.definition;
 import io.axual.ksml.type.UserType;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.apache.kafka.streams.Topology;
+import org.apache.kafka.streams.AutoOffsetReset;
 
 @Getter
 @EqualsAndHashCode
 public class TableDefinition extends TopicDefinition {
     private final KeyValueStateStoreDefinition store;
 
-    public TableDefinition(String topic, UserType keyType, UserType valueType, FunctionDefinition tsExtractor, Topology.AutoOffsetReset resetPolicy, KeyValueStateStoreDefinition store) {
+    public TableDefinition(String topic, UserType keyType, UserType valueType, FunctionDefinition tsExtractor, AutoOffsetReset resetPolicy, KeyValueStateStoreDefinition store) {
         super(topic, keyType, valueType, tsExtractor, resetPolicy);
         this.store = store;
     }

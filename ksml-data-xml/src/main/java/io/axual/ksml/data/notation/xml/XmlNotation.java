@@ -30,7 +30,7 @@ import org.apache.kafka.common.serialization.Serde;
 
 public class XmlNotation extends StringNotation {
     public static final DataType DEFAULT_TYPE = new StructType();
-    private static final DataObjectMapper<String> MAPPER = new XmlDataObjectMapper();
+    private static final DataObjectMapper<String> MAPPER = new XmlDataObjectMapper(true);
 
     public XmlNotation(String name, NativeDataObjectMapper nativeMapper) {
         super(name, ".xsd", DEFAULT_TYPE, new XmlDataObjectConverter(), new XmlSchemaParser(), nativeMapper, MAPPER);

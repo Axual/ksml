@@ -31,17 +31,30 @@ import java.util.HashMap;
 class ProtobufTests {
     @Test
     void schemaTest() {
-        NotationTest.schemaTest("protobuf", new ProtobufSchemaMapper());
+        NotationTestRunner.schemaTest("protobuf", new ProtobufSchemaMapper());
     }
 
     @Test
     void dataTest() {
-        NotationTest.dataTest("protobuf", new ProtobufDataObjectMapper());
+        NotationTestRunner.dataTest("protobuf", new ProtobufDataObjectMapper());
     }
 
     @Test
     void serdeTest() {
         final var notation = new ProtobufNotation("proto", ProtobufNotation.SerdeType.APICURIO, new NativeDataObjectMapper(), new HashMap<>(), new MockRegistryClient());
-        NotationTest.serdeTest("protobuf", notation);
+        NotationTestRunner.serdeTest("protobuf", notation, true);
+    }
+
+    void extraTest() {
+        // This method checks for code completeness of ProtobufSchemaMapper. It will warn if schema translation to
+        // DataSchema and back gives deltas between ProtobufSchemas.
+//        final var proto = new io.apicurio.registry.serde.protobuf.ProtobufSchemaParser<>().parseSchema(schemaIn.getBytes(), Collections.emptyMap());
+//        final var internalSchema = MAPPER.toDataSchema(name, proto);
+//        final var out = MAPPER.fromDataSchema(internalSchema);
+//        final var outFe = out.getProtoFileElement();
+//        final var schemaOut = outFe.toSchema();
+//        final var checker = new ProtobufCompatibilityCheckerLibrary(new ProtobufFile(schemaIn), new ProtobufFile(schemaOut));
+//        final var diffs = checker.findDifferences();
+//        assertTrue(diffs.isEmpty(), "PROTOBUF schema {} in/out is not compatible: " + name);
     }
 }

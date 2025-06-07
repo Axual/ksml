@@ -382,16 +382,16 @@ public class KSMLRunner {
         throw new ConfigException("No configuration found");
     }
 
-
     private static ErrorHandler getErrorHandler(ErrorHandlingConfig.ErrorTypeHandlingConfig config) {
         final var handlerType = switch (config.handler()) {
             case CONTINUE -> ErrorHandler.HandlerType.CONTINUE_ON_FAIL;
             case STOP -> ErrorHandler.HandlerType.STOP_ON_FAIL;
+            case RETRY -> ErrorHandler.HandlerType.RETRY_ON_FAIL;
         };
         return new ErrorHandler(
                 config.log(),
-                config.logPayload(),
                 config.loggerName(),
+                config.logPayload(),
                 handlerType);
     }
 }

@@ -20,17 +20,18 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
-import static org.assertj.core.api.Assertions.*;
-
-import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.PolyglotException;
+import org.graalvm.polyglot.Value;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class PythonContextTest {
 

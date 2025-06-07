@@ -22,6 +22,7 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.TimestampExtractorDefinition;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.StructsParser;
 
 public class TimestampExtractorDefinitionParser extends FunctionDefinitionParser<TimestampExtractorDefinition> {
@@ -33,6 +34,7 @@ public class TimestampExtractorDefinitionParser extends FunctionDefinitionParser
     public StructsParser<TimestampExtractorDefinition> parser() {
         return parserWithoutStores(
                 TimestampExtractorDefinition.class,
+                KSMLDSL.Functions.TYPE_TIMESTAMPEXTRACTOR,
                 "timestamp extractor",
                 (function, tags) -> new TimestampExtractorDefinition(function));
     }

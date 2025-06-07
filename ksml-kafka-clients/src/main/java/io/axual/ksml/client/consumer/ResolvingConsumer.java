@@ -73,28 +73,18 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
     }
 
     @Override
-    public void assign(Collection<TopicPartition> partitions) {
-        super.assign(topicResolver.resolveTopicPartitions(partitions));
+    public void subscribe(SubscriptionPattern pattern) {
+        throw new UnsupportedOperationException("Subscribing to (unresolved) patterns is not supported");
     }
 
-    @Deprecated
     @Override
-    public ConsumerRecords<K, V> poll(long timeout) {
-        try {
-            return convertRecords(super.poll(timeout));
-        } catch (NoOffsetForPartitionException e) {
-            throw new NoOffsetForPartitionException(
-                    topicResolver.unresolveTopicPartitions(e.partitions()));
-        } catch (LogTruncationException e) {
-            throw new LogTruncationException(
-                    e.getMessage(),
-                    topicResolver.unresolve(e.offsetOutOfRangePartitions()),
-                    topicResolver.unresolve(e.divergentOffsets()));
-        } catch (OffsetOutOfRangeException e) {
-            throw new OffsetOutOfRangeException(
-                    e.getMessage(),
-                    topicResolver.unresolve(e.offsetOutOfRangePartitions()));
-        }
+    public void subscribe(SubscriptionPattern pattern, ConsumerRebalanceListener callback) {
+        throw new UnsupportedOperationException("Subscribing to (unresolved) patterns is not supported");
+    }
+
+    @Override
+    public void assign(Collection<TopicPartition> partitions) {
+        super.assign(topicResolver.resolveTopicPartitions(partitions));
     }
 
     @Override
@@ -174,24 +164,6 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
     @Override
     public long position(TopicPartition topicPartition, Duration duration) {
         return super.position(topicResolver.resolve(topicPartition), duration);
-    }
-
-    /**
-     * @deprecated
-     */
-    @Deprecated
-    @Override
-    public OffsetAndMetadata committed(TopicPartition partition) {
-        return super.committed(topicResolver.resolve(partition));
-    }
-
-    /**
-     * @deprecated
-     */
-    @Deprecated
-    @Override
-    public OffsetAndMetadata committed(TopicPartition partition, Duration timeout) {
-        return super.committed(topicResolver.resolve(partition), timeout);
     }
 
     @Override
@@ -294,8 +266,10 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
 
     private ConsumerRecords<K, V> convertRecords(ConsumerRecords<K, V> records) {
         final var recordsByPartition = new HashMap<TopicPartition, List<ConsumerRecord<K, V>>>();
+        final var offsetAndMetadataByPartition = new HashMap<TopicPartition, OffsetAndMetadata>();
         if (!records.isEmpty()) {
-            for (TopicPartition topicPartition : records.partitions()) {
+            // Unresolve the records for all topic partitions
+            for (final var topicPartition : records.partitions()) {
                 final var partitionRecords = new ArrayList<ConsumerRecord<K, V>>();
                 for (final var consumerRecord : records.records(topicPartition)) {
                     partitionRecords.add(new ConsumerRecord<>(
@@ -313,9 +287,13 @@ public class ResolvingConsumer<K, V> extends ForwardingConsumer<K, V> {
                 }
                 recordsByPartition.put(topicResolver.unresolve(topicPartition), partitionRecords);
             }
+            // Unresolve the offsets and metadata for all topic partitions
+            for (final var nextOffset : records.nextOffsets().entrySet()) {
+                offsetAndMetadataByPartition.put(topicResolver.unresolve(nextOffset.getKey()), nextOffset.getValue());
+            }
         }
 
-        return new ConsumerRecords<>(recordsByPartition);
+        return new ConsumerRecords<>(recordsByPartition, offsetAndMetadataByPartition);
     }
 
     private Map<String, List<PartitionInfo>> convertTopicList(

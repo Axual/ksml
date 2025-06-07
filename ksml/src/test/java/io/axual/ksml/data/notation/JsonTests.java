@@ -2,7 +2,7 @@ package io.axual.ksml.data.notation;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Library - PROTOBUF
+ * KSML
  * %%
  * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
@@ -20,31 +20,31 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
-import io.apicurio.registry.serde.SerdeConfig;
-import io.axual.ksml.data.notation.avro.AvroDataObjectMapper;
-import io.axual.ksml.data.notation.avro.AvroNotation;
-import io.axual.ksml.data.notation.avro.AvroSchemaMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.notation.json.JsonDataObjectMapper;
+import io.axual.ksml.data.notation.json.JsonNotation;
+import io.axual.ksml.data.notation.json.JsonSchemaMapper;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class AvroTests {
+class JsonTests {
     @Test
     void schemaTest() {
-        NotationTestRunner.schemaTest("avro", new AvroSchemaMapper());
+        NotationTestRunner.schemaTest("json", new JsonSchemaMapper(false), (input, output) -> {
+            assertTrue(input.isAssignableFrom(output), "Input is not assignable from the output");
+            assertTrue(output.isAssignableFrom(input), "Output is not assignable from the input");
+        });
     }
 
     @Test
     void dataTest() {
-        NotationTestRunner.dataTest("avro", new AvroDataObjectMapper());
+        NotationTestRunner.dataTest("json", new JsonDataObjectMapper(false));
     }
 
     @Test
     void serdeTest() {
-        final var registryClient = new MockRegistryClient();
-        final var configs = new HashMap<String, Object>();
-        configs.putIfAbsent(SerdeConfig.AUTO_REGISTER_ARTIFACT, true);
-        final var notation = new AvroNotation("avro", AvroNotation.SerdeType.APICURIO, new AvroDataObjectMapper(), configs, registryClient);
-        NotationTestRunner.serdeTest("avro", notation, true);
+        final var notation = new JsonNotation("json", new NativeDataObjectMapper());
+        NotationTestRunner.serdeTest("json", notation, true);
     }
 }

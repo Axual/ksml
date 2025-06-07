@@ -25,6 +25,7 @@ import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.type.UserType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -43,7 +44,7 @@ class PythonFunctionTest {
     @ParameterizedTest
     @CsvSource({"1, 2, 3", "100,100,200", "100, -1, 99", "99, -100, -1"})
     void testAdditionExpression(Integer i1, Integer i2, Integer sum) {
-        final var adderDef = FunctionDefinition.as("adder", params, null, null, "one + two", resultType, null);
+        final var adderDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "adder", params, null, null, "one + two", resultType, null);
         final var adder = PythonFunction.forFunction(context, "test", "adder", adderDef);
 
         final var arg1 = new DataInteger(i1);
@@ -65,7 +66,7 @@ class PythonFunctionTest {
                   return one + two
                 
                 """;
-        final var adderDef = FunctionDefinition.as("adder", params, null, pythonCode.split("\n"), "myAddFunc(one, two)", resultType, null);
+        final var adderDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "adder", params, null, pythonCode.split("\n"), "myAddFunc(one, two)", resultType, null);
         final var adder = PythonFunction.forFunction(context, "test", "adder", adderDef);
 
         final var arg1 = new DataInteger(i1);
@@ -87,7 +88,7 @@ class PythonFunctionTest {
                   return one + two
                 
                 """;
-        final var adderDef = FunctionDefinition.as("adder", params, pythonCode.split("\n"), null, "myAddFunc(one, two)", resultType, null);
+        final var adderDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "adder", params, pythonCode.split("\n"), null, "myAddFunc(one, two)", resultType, null);
         final var adder = PythonFunction.forFunction(context, "test", "adder", adderDef);
 
         final var arg1 = new DataInteger(i1);
@@ -104,7 +105,7 @@ class PythonFunctionTest {
      */
     void testNullKeyValue() {
         final var stringResultType = new UserType(UserType.DEFAULT_NOTATION, DataString.DATATYPE);
-        final var concatDef = FunctionDefinition.as("concat", params, null, null, "str(one is None) + ' ' + str(two is None)", stringResultType, null);
+        final var concatDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "concat", params, null, null, "str(one is None) + ' ' + str(two is None)", stringResultType, null);
         final var concat = PythonFunction.forFunction(context, "test", "adder", concatDef);
 
         final var nullArg = DataNull.INSTANCE;

@@ -20,15 +20,14 @@ package io.axual.ksml.client.producer;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.client.resolving.ResolvingClientConfig;
+import io.axual.ksml.client.resolving.TransactionalIdPatternResolver;
+import io.axual.ksml.client.util.MapUtil;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-
-import io.axual.ksml.client.resolving.ResolvingClientConfig;
-import io.axual.ksml.client.resolving.TransactionalIdPatternResolver;
-import io.axual.ksml.client.util.MapUtil;
 
 public class ResolvingProducerConfig extends ResolvingClientConfig {
 

@@ -24,10 +24,10 @@ import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.schema.DataSchema;
 
 public class XmlSchemaParser implements Notation.SchemaParser {
-    private static final XmlSchemaMapper MAPPER = new XmlSchemaMapper();
+    private static final XmlSchemaMapper SCHEMA_MAPPER = new XmlSchemaMapper();
 
     @Override
-    public DataSchema parse(String schemaName, String schema) {
-        return MAPPER.toDataSchema(schemaName, schema);
+    public DataSchema parse(String contextName, String schemaName, String schemaString) {
+        return SCHEMA_MAPPER.toDataSchema(null, schemaName, schemaString);
     }
 }

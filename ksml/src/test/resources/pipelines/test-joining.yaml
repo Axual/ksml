@@ -35,8 +35,6 @@ functions:
         for setting in value2["alertSettings"]:
           if setting["type"] == sensordata["type"] and setting["unit"] == sensordata["unit"] and ( (setting["alertBelow"] != None and setting["alertBelow"] > sensordata["value"]) or (setting["alertAbove"]!=None and setting["alertAbove"] < sensordata["value"]) ):
             log.info('Triggered alert {}, type={}, unit={}, value={}, alertAbove={}, alertBelow={}', setting["name"], setting["type"], setting["unit"], sensordata["value"], setting["alertAbove"], setting["alertBelow"])
-            del setting["@type"]
-            del setting["@schema"]
             triggeredAlertSettings.append(setting)
 
       new_value={

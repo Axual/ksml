@@ -1,10 +1,10 @@
-package io.axual.ksml.data.type;
+package io.axual.ksml.data.notation;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Data Library
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,13 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.DataSchemaConstants;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import io.axual.ksml.data.exception.SchemaException;
+import io.axual.ksml.data.schema.DataSchema;
 
-@Getter
-@EqualsAndHashCode
-public class FixedType extends SimpleType {
-    private final int size;
-
-    public FixedType(int size) {
-        super(byte[].class, DataSchemaConstants.FIXED_TYPE);
-        this.size = size;
+public interface SchemaResolver<T extends DataSchema> extends ReferenceResolver<T> {
+    default T getOrThrow(String schemaName) {
+        final var result = get(schemaName);
+        if (result == null) throw new SchemaException("Unknown schema: " + schemaName);
+        return result;
     }
 }

@@ -20,6 +20,8 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
+import org.jetbrains.annotations.NotNull;
+
 import java.time.Duration;
 
 public record ProducerDefinition(FunctionDefinition generator,
@@ -29,6 +31,7 @@ public record ProducerDefinition(FunctionDefinition generator,
                                  Long messageCount,
                                  Long batchSize,
                                  Duration interval) implements Definition {
+    @NotNull
     @Override
     public String toString() {
         return definitionType();

@@ -22,6 +22,7 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.PredicateDefinition;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.StructsParser;
 
 public class PredicateDefinitionParser extends FunctionDefinitionParser<PredicateDefinition> {
@@ -33,6 +34,7 @@ public class PredicateDefinitionParser extends FunctionDefinitionParser<Predicat
     public StructsParser<PredicateDefinition> parser() {
         return parserWithStores(
                 PredicateDefinition.class,
+                KSMLDSL.Functions.TYPE_PREDICATE,
                 "predicate",
                 (function, tags) -> new PredicateDefinition(function));
     }

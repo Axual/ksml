@@ -22,6 +22,7 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.GenericFunctionDefinition;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.StructsParser;
 
 public class GenericFunctionDefinitionParser extends FunctionDefinitionParser<GenericFunctionDefinition> {
@@ -33,6 +34,7 @@ public class GenericFunctionDefinitionParser extends FunctionDefinitionParser<Ge
     public StructsParser<GenericFunctionDefinition> parser() {
         return parserWithoutStores(
                 GenericFunctionDefinition.class,
+                KSMLDSL.Functions.TYPE_GENERIC,
                 "generic function",
                 (function, tags) -> new GenericFunctionDefinition(function));
     }

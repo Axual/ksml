@@ -21,8 +21,6 @@ package io.axual.ksml.data.notation.protobuf;
  */
 
 
-import io.apicurio.registry.rules.compatibility.protobuf.ProtobufCompatibilityCheckerLibrary;
-import io.apicurio.registry.utils.protobuf.schema.ProtobufFile;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.schema.DataSchema;
 import lombok.extern.slf4j.Slf4j;
@@ -34,25 +32,8 @@ public class ProtobufSchemaParser implements Notation.SchemaParser {
     private static final ProtobufSchemaMapper MAPPER = new ProtobufSchemaMapper();
 
     @Override
-    public DataSchema parse(String name, String schema) {
-        runCompatibilityTest(name, schema);
-        final var proto = new io.apicurio.registry.serde.protobuf.ProtobufSchemaParser<>().parseSchema(schema.getBytes(), Collections.emptyMap());
-        return MAPPER.toDataSchema(name, proto);
-    }
-
-    private void runCompatibilityTest(String name, String schemaIn) {
-        // This method checks for code completeness of ProtobufSchemaMapper. It will warn if schema translation to
-        // DataSchema and back gives deltas between ProtobufSchemas.
-        final var proto = new io.apicurio.registry.serde.protobuf.ProtobufSchemaParser<>().parseSchema(schemaIn.getBytes(), Collections.emptyMap());
-        final var internalSchema = MAPPER.toDataSchema(name, proto);
-        final var out = MAPPER.fromDataSchema(internalSchema);
-        final var outFe = out.getProtoFileElement();
-        final var schemaOut = outFe.toSchema();
-        final var checker = new ProtobufCompatibilityCheckerLibrary(new ProtobufFile(schemaIn), new ProtobufFile(schemaOut));
-        final var diffs = checker.findDifferences();
-        final var compatible = diffs.isEmpty();
-        if (!compatible) {
-            log.warn("PROTOBUF schema {} in/out is not compatible: {}", name, diffs);
-        }
+    public DataSchema parse(String contextName, String schemaName, String schemaString) {
+        final var proto = new io.apicurio.registry.serde.protobuf.ProtobufSchemaParser<>().parseSchema(schemaString.getBytes(), Collections.emptyMap());
+        return MAPPER.toDataSchema(schemaName, proto);
     }
 }

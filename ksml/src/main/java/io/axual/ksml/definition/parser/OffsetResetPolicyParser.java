@@ -21,15 +21,21 @@ package io.axual.ksml.definition.parser;
  */
 
 import io.axual.ksml.exception.TopologyException;
-import org.apache.kafka.streams.Topology;
+import org.apache.kafka.clients.consumer.internals.AutoOffsetResetStrategy;
+import org.apache.kafka.streams.AutoOffsetReset;
 
 public class OffsetResetPolicyParser {
-    public static Topology.AutoOffsetReset parseResetPolicy(String resetPolicy) {
+    public static AutoOffsetReset parseResetPolicy(String resetPolicy) {
         if (resetPolicy == null || resetPolicy.isEmpty()) return null;
-        if (Topology.AutoOffsetReset.EARLIEST.name().equalsIgnoreCase(resetPolicy))
-            return Topology.AutoOffsetReset.EARLIEST;
-        if (Topology.AutoOffsetReset.LATEST.name().equalsIgnoreCase(resetPolicy))
-            return Topology.AutoOffsetReset.LATEST;
+        final var strategy = AutoOffsetResetStrategy.fromString(resetPolicy);
+        if (strategy.type() == AutoOffsetResetStrategy.StrategyType.EARLIEST)
+            return AutoOffsetReset.earliest();
+        if (strategy.type() == AutoOffsetResetStrategy.StrategyType.LATEST)
+            return AutoOffsetReset.latest();
+        if (strategy.type() == AutoOffsetResetStrategy.StrategyType.NONE)
+            return AutoOffsetReset.none();
+        if (strategy.type() == AutoOffsetResetStrategy.StrategyType.BY_DURATION && strategy.duration().isPresent())
+            return AutoOffsetReset.byDuration(strategy.duration().get());
         throw new TopologyException("Unknown offset reset policy: " + resetPolicy);
     }
 

@@ -26,10 +26,12 @@ import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.Invoker;
 import org.apache.kafka.streams.processor.StreamPartitioner;
+
+import java.util.Optional;
+import java.util.Set;
 
 public class UserStreamPartitioner extends Invoker implements StreamPartitioner<Object, Object> {
     private static final DataType EXPECTED_RESULT_TYPE = DataInteger.DATATYPE;
@@ -42,11 +44,11 @@ public class UserStreamPartitioner extends Invoker implements StreamPartitioner<
     }
 
     @Override
-    public Integer partition(String topic, Object key, Object value, int numPartitions) {
+    public Optional<Set<Integer>> partitions(String topic, Object key, Object value, int numPartitions) {
         final var result = timeExecutionOf(() -> function.call(new DataString(topic), NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value), new DataInteger(numPartitions)));
         if (result instanceof DataInteger dataInteger) {
-            return dataInteger.value();
+            return Optional.of(Set.of(dataInteger.value()));
         }
-        throw new ExecutionException("Expected integer result from partitioner function: " + function.name);
+        return Optional.empty();
     }
 }

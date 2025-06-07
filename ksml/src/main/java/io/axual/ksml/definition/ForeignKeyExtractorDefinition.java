@@ -21,11 +21,14 @@ package io.axual.ksml.definition;
  */
 
 
+import io.axual.ksml.dsl.KSMLDSL;
+
 import static io.axual.ksml.definition.DefinitionConstants.FOREIGN_KEY_EXTRACTOR_PARAMETERS;
 
 public class ForeignKeyExtractorDefinition extends FunctionDefinition {
     public ForeignKeyExtractorDefinition(FunctionDefinition definition) {
         super(definition
+                .withType(KSMLDSL.Functions.TYPE_FOREIGN_KEY_EXTRACTOR)
                 .withParameters(mergeParameters(FOREIGN_KEY_EXTRACTOR_PARAMETERS, definition.parameters()))
                 .withAResult());
     }

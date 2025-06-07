@@ -41,14 +41,13 @@ public class ReduceOperationParser extends StoreOperationParser<ReduceOperation>
 
     public ReduceOperationParser(TopologyResources resources) {
         super(KSMLDSL.Operations.REDUCE, resources);
-        final var storeField = storeField(false, "Materialized view of the aggregation", StoreType.WINDOW_STORE);
         reducerParser = structsParser(
                 ReduceOperation.class,
                 "WithReducer",
                 DOC,
                 operationNameField(),
                 functionField(KSMLDSL.Operations.Reduce.REDUCER, "A function that computes a new aggregate result", new ReducerDefinitionParser(false)),
-                storeField,
+                storeField(false, "Materialized view of the aggregation", null),
                 (name, reducer, store, tags) -> new ReduceOperation(storeOperationConfig(name, tags, store), reducer));
         addedSubtractorParser = structsParser(
                 ReduceOperation.class,
@@ -57,7 +56,7 @@ public class ReduceOperationParser extends StoreOperationParser<ReduceOperation>
                 operationNameField(),
                 functionField(KSMLDSL.Operations.Reduce.ADDER, "A function that adds a record to the aggregate result", new ReducerDefinitionParser(false)),
                 functionField(KSMLDSL.Operations.Reduce.SUBTRACTOR, "A function that removes a record from the aggregate result", new ReducerDefinitionParser(false)),
-                storeField,
+                storeField(false, "Materialized view of the aggregation", StoreType.KEYVALUE_STORE),
                 (name, add, sub, store, tags) -> new ReduceOperation(storeOperationConfig(name, tags, store), add, sub));
         schemas = new ArrayList<>();
         schemas.addAll(reducerParser.schemas());

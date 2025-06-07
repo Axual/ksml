@@ -22,6 +22,7 @@ package io.axual.ksml.client.consumer;
 
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.*;
+import org.apache.kafka.common.metrics.KafkaMetric;
 
 import java.time.Duration;
 import java.util.*;
@@ -76,14 +77,18 @@ public class ForwardingConsumer<K, V> implements Consumer<K, V> {
     }
 
     @Override
-    public void unsubscribe() {
-        delegate.unsubscribe();
+    public void subscribe(SubscriptionPattern pattern, ConsumerRebalanceListener callback) {
+        delegate.subscribe(pattern, callback);
     }
 
     @Override
-    @Deprecated
-    public ConsumerRecords<K, V> poll(long timeout) {
-        return delegate.poll(timeout);
+    public void subscribe(SubscriptionPattern pattern) {
+        delegate.subscribe(pattern);
+    }
+
+    @Override
+    public void unsubscribe() {
+        delegate.unsubscribe();
     }
 
     @Override
@@ -127,6 +132,16 @@ public class ForwardingConsumer<K, V> implements Consumer<K, V> {
     }
 
     @Override
+    public void registerMetricForSubscription(KafkaMetric metric) {
+        delegate.registerMetricForSubscription(metric);
+    }
+
+    @Override
+    public void unregisterMetricFromSubscription(KafkaMetric metric) {
+        delegate.unregisterMetricFromSubscription(metric);
+    }
+
+    @Override
     public void seek(TopicPartition partition, long offset) {
         delegate.seek(partition, offset);
     }
@@ -154,18 +169,6 @@ public class ForwardingConsumer<K, V> implements Consumer<K, V> {
     @Override
     public long position(TopicPartition partition, Duration timeout) {
         return delegate.position(partition, timeout);
-    }
-
-    @Override
-    @Deprecated
-    public OffsetAndMetadata committed(TopicPartition partition) {
-        return delegate.committed(partition);
-    }
-
-    @Override
-    @Deprecated
-    public OffsetAndMetadata committed(TopicPartition partition, Duration timeout) {
-        return delegate.committed(partition, timeout);
     }
 
     @Override

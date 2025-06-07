@@ -33,6 +33,7 @@ import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.LeftJoinOperation;
 import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.parser.StructsParser;
+import io.axual.ksml.store.StoreType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +59,7 @@ public class LeftJoinOperationParser extends StoreOperationParser<LeftJoinOperat
                 valueJoinerField,
                 durationField(Operations.Join.TIME_DIFFERENCE, "The maximum time difference for a leftJoin over two streams on the same key"),
                 optional(durationField(Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
-                storeField(false, "Materialized view of the joined streams", null),
+                storeField(false, "Materialized view of the leftJoined streams", StoreType.WINDOW_STORE),
                 (name, stream, valueJoiner, timeDifference, grace, store, tags) -> {
                     if (stream instanceof StreamDefinition streamDef) {
                         return new LeftJoinOperation(storeOperationConfig(name, tags, store), streamDef, valueJoiner, timeDifference, grace);
@@ -77,7 +78,7 @@ public class LeftJoinOperationParser extends StoreOperationParser<LeftJoinOperat
                 optional(durationField(Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
                 optional(functionField(Operations.Join.PARTITIONER, "A function that partitions the records on the primary table", new StreamPartitionerDefinitionParser(false))),
                 optional(functionField(Operations.Join.OTHER_PARTITIONER, "A function that partitions the records on the join table", new StreamPartitionerDefinitionParser(false))),
-                storeField(false, "Materialized view of the joined streams", null),
+                storeField(false, "Materialized view of the leftJoined tables (only used for Table-Table joins)", StoreType.KEYVALUE_STORE),
                 (name, table, foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner, store, tags) -> {
                     if (table instanceof TableDefinition tableDef) {
                         return new LeftJoinOperation(storeOperationConfig(name, tags, store), tableDef, foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner);

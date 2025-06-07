@@ -30,10 +30,10 @@ import org.apache.kafka.streams.kstream.Suppressed;
 import org.apache.kafka.streams.kstream.Windowed;
 
 public class SuppressOperation extends BaseOperation {
-    private final Suppressed<Windowed> suppressedWindowed;
+    private final Suppressed<Windowed<?>> suppressedWindowed;
     private final Suppressed<Object> suppressed;
 
-    private SuppressOperation(OperationConfig config, Suppressed<Object> suppressed, Suppressed<Windowed> suppressedWindowed) {
+    private SuppressOperation(OperationConfig config, Suppressed<Object> suppressed, Suppressed<Windowed<?>> suppressedWindowed) {
         super(config);
         this.suppressed = suppressed != null ? suppressed.withName(name) : null;
         this.suppressedWindowed = suppressedWindowed != null ? suppressedWindowed.withName(name) : null;
@@ -43,7 +43,7 @@ public class SuppressOperation extends BaseOperation {
         return new SuppressOperation(config, suppressed, null);
     }
 
-    public static SuppressOperation createWindowed(OperationConfig config, Suppressed<Windowed> suppressed) {
+    public static SuppressOperation createWindowed(OperationConfig config, Suppressed<Windowed<?>> suppressed) {
         return new SuppressOperation(config, null, suppressed);
     }
 

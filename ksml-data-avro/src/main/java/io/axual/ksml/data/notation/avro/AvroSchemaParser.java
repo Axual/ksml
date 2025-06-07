@@ -20,8 +20,10 @@ package io.axual.ksml.data.notation.avro;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.StructSchema;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 
@@ -30,8 +32,12 @@ public class AvroSchemaParser implements Notation.SchemaParser {
     private static final AvroSchemaMapper MAPPER = new AvroSchemaMapper();
 
     @Override
-    public DataSchema parse(String schemaName, String schema) {
-        var result = new Schema.Parser().parse(schema);
-        return MAPPER.toDataSchema(schema, result);
+    public DataSchema parse(String contextName, String schemaName, String schemaString) {
+        final var parsedSchema = new Schema.Parser().parse(schemaString);
+        final var result = MAPPER.toDataSchema(schemaName, parsedSchema);
+        if (!(result instanceof StructSchema)) {
+            throw new SchemaException("AVRO schema did not return a StructSchema");
+        }
+        return result;
     }
 }

@@ -41,7 +41,7 @@ public interface Notation {
     Converter converter();
 
     interface SchemaParser {
-        DataSchema parse(String schemaName, String schema);
+        DataSchema parse(String contextName, String schemaName, String schemaString);
     }
 
     SchemaParser schemaParser();

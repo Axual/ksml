@@ -22,6 +22,7 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.ForeignKeyExtractorDefinition;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.StructsParser;
 
 public class ForeignKeyExtractorDefinitionParser extends FunctionDefinitionParser<ForeignKeyExtractorDefinition> {
@@ -33,6 +34,7 @@ public class ForeignKeyExtractorDefinitionParser extends FunctionDefinitionParse
     public StructsParser<ForeignKeyExtractorDefinition> parser() {
         return parserWithoutStores(
                 ForeignKeyExtractorDefinition.class,
+                KSMLDSL.Functions.TYPE_FOREIGN_KEY_EXTRACTOR,
                 "foreign key extractor",
                 (function, tags) -> new ForeignKeyExtractorDefinition(function));
     }

@@ -43,28 +43,43 @@ public class DataString extends DataPrimitive<String> {
     public static final SimpleType DATATYPE = new SimpleType(String.class, DataSchemaConstants.STRING_TYPE);
 
     /**
-     * Constructs a {@code DataDouble} instance with a null value.
-     * <p>This constructor creates a {@code DataDouble} that does not hold any actual
-     * {@code Double} value, effectively representing a "null" double in the framework.</p>
+     * Constructs a {@code DataString} instance with a null value.
+     * <p>This constructor creates a {@code DataString} that does not hold any actual
+     * {@code String} value, effectively representing a "null" string in the framework.</p>
      */
     public DataString() {
         this(null);
     }
 
     /**
-     * Constructs a {@code DataDouble} instance with the specified {@code Double} value.
+     * Constructs a {@code DataString} instance with the specified {@code String} value.
      *
-     * <p>If the input value is {@code null}, the {@code DataDouble} will represent
-     * the absence of a value (a null double).</p>
+     * <p>If the input value is {@code null}, the {@code DataString} will represent
+     * the absence of a value (a null string).</p>
      *
-     * @param value The {@code Double} value to encapsulate, or {@code null} to represent a null value.
+     * @param value The {@code String} value to encapsulate, or {@code null} to represent a null value.
      */
     public DataString(String value) {
         super(DATATYPE, value);
     }
 
+    /**
+     * Checks whether the encapsulated {@code String} is empty.
+     *
+     * @return true if the value is empty, false otherwise.
+     */
+    public boolean isEmpty() {
+        return value() == null || value().isEmpty();
+    }
+
+    /**
+     * Generate a {@code DataString} instance with the specified {@code String} value.
+     *
+     * <p>If the input value is {@code null}, the function will return null.</p>
+     *
+     * @param value The {@code String} value to encapsulate, or {@code null}.
+     */
     public static DataString from(String value) {
-        if (value == null) return null;
-        return new DataString(value);
+        return value != null ? new DataString(value) : null;
     }
 }

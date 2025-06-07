@@ -20,21 +20,16 @@ package io.axual.ksml.client.resolving;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.client.exception.InvalidPatternException;
+import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.EmptySource;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.NullSource;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.*;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
-
-import io.axual.ksml.client.exception.InvalidPatternException;
-import lombok.extern.slf4j.Slf4j;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;

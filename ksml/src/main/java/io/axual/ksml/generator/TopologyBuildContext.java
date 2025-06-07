@@ -34,8 +34,8 @@ import io.axual.ksml.user.UserTimestampExtractor;
 import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.utils.Bytes;
+import org.apache.kafka.streams.AutoOffsetReset;
 import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.state.KeyValueStore;
@@ -191,7 +191,7 @@ public class TopologyBuildContext {
         return result;
     }
 
-    private <K, V> Consumed<K, V> consumedOf(String name, Serde<K> keySerde, Serde<V> valueSerde, FunctionDefinition tsExtractor, Topology.AutoOffsetReset resetPolicy) {
+    private <K, V> Consumed<K, V> consumedOf(String name, Serde<K> keySerde, Serde<V> valueSerde, FunctionDefinition tsExtractor, AutoOffsetReset resetPolicy) {
         var result = Consumed.<K, V>as(name);
         if (keySerde != null) result = result.withKeySerde(keySerde);
         if (valueSerde != null) result = result.withValueSerde(valueSerde);

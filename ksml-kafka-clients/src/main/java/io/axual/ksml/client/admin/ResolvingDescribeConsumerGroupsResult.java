@@ -40,7 +40,7 @@ public class ResolvingDescribeConsumerGroupsResult extends ExtendableDescribeCon
     public ResolvingDescribeConsumerGroupsResult(Map<String, KafkaFuture<ConsumerGroupDescription>> futures, GroupResolver groupResolver) {
         super(futures);
         this.groupResolver = groupResolver;
-        describedGroups = new HashMap<>(futures.size());
+        describedGroups = HashMap.newHashMap(futures.size());
 
         futures.forEach((groupId, future) ->
                 describedGroups.put(
@@ -75,7 +75,9 @@ public class ResolvingDescribeConsumerGroupsResult extends ExtendableDescribeCon
                             allDescriptions.put(entry.getKey(), entry.getValue().get());
                         }
                         return allDescriptions;
-                    } catch (InterruptedException | ExecutionException e) {
+                    } catch (InterruptedException e) {
+                        throw new ClientException("Interrupted while waiting for DescribeConsumerGroups", e.getCause());
+                    } catch (ExecutionException e) {
                         // Should be unreachable because of allOf statement
                         throw new ClientException("Interrupted while waiting for DescribeConsumerGroups", e);
                     }

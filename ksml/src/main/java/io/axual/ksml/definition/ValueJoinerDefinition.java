@@ -21,11 +21,14 @@ package io.axual.ksml.definition;
  */
 
 
+import io.axual.ksml.dsl.KSMLDSL;
+
 import static io.axual.ksml.definition.DefinitionConstants.KEY_AND_TWO_VALUE_PARAMETERS;
 
 public class ValueJoinerDefinition extends FunctionDefinition {
     public ValueJoinerDefinition(FunctionDefinition definition) {
         super(definition
+                .withType(KSMLDSL.Functions.TYPE_VALUEJOINER)
                 .withParameters(mergeParameters(KEY_AND_TWO_VALUE_PARAMETERS, definition.parameters()))
                 .withAResult());
     }

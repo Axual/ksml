@@ -160,8 +160,8 @@ kafka:
   #  environment: "dev"
 
   # Results in Kafka topic ksmldemo-dta-dev-<topic name from KSML definition YAML>
-#  topic.pattern: "{tenant}-{instance}-{environment}-{topic}"
+#  axual.topic.pattern: "{tenant}-{instance}-{environment}-{topic}"
   # Results in Kafka topic ksmldemo-dta-dev-<consumer group id>
-#  group.id.pattern: "{tenant}-{instance}-{environment}-{group.id}"
+#  axual.group.id.pattern: "{tenant}-{instance}-{environment}-{group.id}"
   # Results in Kafka topic ksmldemo-dta-dev-<transactional id>
-#  transactional.id.pattern: "{tenant}-{instance}-{environment}-{transactional.id}"
+#  axual.transactional.id.pattern: "{tenant}-{instance}-{environment}-{transactional.id}"

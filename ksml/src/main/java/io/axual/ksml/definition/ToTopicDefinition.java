@@ -20,7 +20,10 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
+import org.jetbrains.annotations.NotNull;
+
 public record ToTopicDefinition(TopicDefinition topic, FunctionDefinition partitioner) implements Definition {
+    @NotNull
     @Override
     public String toString() {
         return definitionType();
