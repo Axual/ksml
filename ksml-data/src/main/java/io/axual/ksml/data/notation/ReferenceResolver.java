@@ -1,10 +1,10 @@
-package io.axual.ksml.definition.parser;
+package io.axual.ksml.data.notation;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Data Library
  * %%
- * Copyright (C) 2021 - 2023 Axual B.V.
+ * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,22 +20,6 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
-
-import io.axual.ksml.definition.AggregatorDefinition;
-import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.parser.StructsParser;
-
-public class AggregatorDefinitionParser extends FunctionDefinitionParser<AggregatorDefinition> {
-    public AggregatorDefinitionParser(boolean requireType) {
-        super(requireType);
-    }
-
-    @Override
-    public StructsParser<AggregatorDefinition> parser() {
-        return parserWithoutStores(
-                AggregatorDefinition.class,
-                KSMLDSL.Functions.TYPE_AGGREGATOR,
-                "aggregator",
-                (function, tags) -> new AggregatorDefinition(function));
-    }
+public interface ReferenceResolver<T> {
+    T get(String referenceName);
 }

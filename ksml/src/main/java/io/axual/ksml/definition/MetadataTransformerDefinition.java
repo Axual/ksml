@@ -21,6 +21,7 @@ package io.axual.ksml.definition;
  */
 
 
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.type.UserType;
 
 import static io.axual.ksml.definition.DefinitionConstants.*;
@@ -28,6 +29,7 @@ import static io.axual.ksml.definition.DefinitionConstants.*;
 public class MetadataTransformerDefinition extends FunctionDefinition {
     public MetadataTransformerDefinition(FunctionDefinition definition) {
         super(definition
+                .withType(KSMLDSL.Functions.TYPE_METADATATRANSFORMER)
                 .withParameters(mergeParameters(KEY_VALUE_METADATA_PARAMETERS, definition.parameters()))
                 .withResult(new UserType(METADATA_TYPE))
                 .withDefaultExpression(PARAM_METADATA));

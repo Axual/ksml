@@ -22,11 +22,13 @@ package io.axual.ksml.definition;
 
 
 import io.axual.ksml.operation.StreamOperation;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 public record PipelineDefinition(String name, TopologyResource<TopicDefinition> source, List<StreamOperation> chain,
                                  StreamOperation sink) implements Definition {
+    @NotNull
     @Override
     public String toString() {
         return definitionType();

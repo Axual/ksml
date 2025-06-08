@@ -28,6 +28,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.*;
 import org.apache.kafka.common.errors.ProducerFencedException;
+import org.apache.kafka.common.metrics.KafkaMetric;
 
 import java.time.Duration;
 import java.util.List;
@@ -58,12 +59,6 @@ public class ForwardingProducer<K, V> implements Producer<K, V> {
     }
 
     @Override
-    @Deprecated
-    public void sendOffsetsToTransaction(Map<TopicPartition, OffsetAndMetadata> offsets, String consumerGroupId) throws ProducerFencedException {
-        delegate.sendOffsetsToTransaction(offsets, consumerGroupId);
-    }
-
-    @Override
     public void sendOffsetsToTransaction(Map<TopicPartition, OffsetAndMetadata> offsets, ConsumerGroupMetadata consumerGroupMetadata) throws ProducerFencedException {
         delegate.sendOffsetsToTransaction(offsets, consumerGroupMetadata);
     }
@@ -76,6 +71,16 @@ public class ForwardingProducer<K, V> implements Producer<K, V> {
     @Override
     public void abortTransaction() throws ProducerFencedException {
         delegate.abortTransaction();
+    }
+
+    @Override
+    public void registerMetricForSubscription(KafkaMetric metric) {
+        delegate.registerMetricForSubscription(metric);
+    }
+
+    @Override
+    public void unregisterMetricFromSubscription(KafkaMetric metric) {
+        delegate.unregisterMetricFromSubscription(metric);
     }
 
     @Override

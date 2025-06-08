@@ -58,16 +58,6 @@ public class ResolvingProducer<K, V> extends ForwardingProducer<K, V> {
                 input.serializedValueSize());
     }
 
-    @Deprecated
-    @Override
-    public void sendOffsetsToTransaction(Map<TopicPartition, OffsetAndMetadata> offsets, String consumerGroupId) throws ProducerFencedException {
-        Map<TopicPartition, OffsetAndMetadata> newOffsets = new HashMap<>();
-        for (Map.Entry<TopicPartition, OffsetAndMetadata> entry : offsets.entrySet()) {
-            newOffsets.put(config.topicResolver().resolve(entry.getKey()), entry.getValue());
-        }
-        super.sendOffsetsToTransaction(newOffsets, config.groupResolver().resolve(consumerGroupId));
-    }
-
     @Override
     public void sendOffsetsToTransaction(Map<TopicPartition, OffsetAndMetadata> offsets,
                                          ConsumerGroupMetadata groupMetadata) throws ProducerFencedException {

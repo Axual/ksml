@@ -64,7 +64,7 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
             final var parentOneOf = field.getKey().getContainingOneof();
             final var fieldName = parentOneOf != null ? parentOneOf.getName() : field.getKey().getName();
             final var expectedType = DATA_TYPE_MAPPER.fromDataSchema(schema.field(fieldName).schema());
-            final var dataObject = convertUtil.convertDataObject(null, null, expectedType, toDataObject(val), false);
+            final var dataObject = convertUtil.convert(null, null, expectedType, toDataObject(val), false);
             result.put(fieldName, dataObject);
         }
         return result;

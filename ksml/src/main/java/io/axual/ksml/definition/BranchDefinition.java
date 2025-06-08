@@ -21,7 +21,10 @@ package io.axual.ksml.definition;
  */
 
 
+import org.jetbrains.annotations.NotNull;
+
 public record BranchDefinition(FunctionDefinition predicate, PipelineDefinition pipeline) implements Definition {
+    @NotNull
     @Override
     public String toString() {
         return definitionType();

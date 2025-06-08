@@ -64,7 +64,7 @@ public class SchemaLibrary {
         final var schemaStr = loader.load(schemaName);
         if (schemaStr == null) return null;
 
-        final var schema = notation.schemaParser().parse(schemaName, schemaStr);
+        final var schema = notation.schemaParser().parse(schemaName + notation.filenameExtension(), schemaName, schemaStr);
         if (schema instanceof NamedSchema ns) {
             if (notationSchemas == null) {
                 notationSchemas = new TreeMap<>();

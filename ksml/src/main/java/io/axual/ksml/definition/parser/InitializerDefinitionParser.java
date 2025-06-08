@@ -22,6 +22,7 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.InitializerDefinition;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.StructsParser;
 
 public class InitializerDefinitionParser extends FunctionDefinitionParser<InitializerDefinition> {
@@ -33,6 +34,7 @@ public class InitializerDefinitionParser extends FunctionDefinitionParser<Initia
     public StructsParser<InitializerDefinition> parser() {
         return parserWithoutStores(
                 InitializerDefinition.class,
+                KSMLDSL.Functions.TYPE_INITIALIZER,
                 "initializer",
                 (function, tags) -> new InitializerDefinition(function));
     }

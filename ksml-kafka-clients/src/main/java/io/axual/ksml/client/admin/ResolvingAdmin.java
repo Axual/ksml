@@ -21,8 +21,8 @@ package io.axual.ksml.client.admin;
  */
 
 import io.axual.ksml.client.exception.NotSupportedException;
-import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.client.resolving.GroupResolver;
+import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.client.resolving.TopicResolver;
 import org.apache.kafka.clients.admin.*;
 import org.apache.kafka.clients.admin.internals.CoordinatorKey;
@@ -31,6 +31,7 @@ import org.apache.kafka.common.*;
 import org.apache.kafka.common.acl.AclBinding;
 import org.apache.kafka.common.acl.AclBindingFilter;
 import org.apache.kafka.common.config.ConfigResource;
+import org.apache.kafka.common.metrics.KafkaMetric;
 import org.apache.kafka.common.quota.ClientQuotaAlteration;
 import org.apache.kafka.common.quota.ClientQuotaFilter;
 
@@ -99,13 +100,6 @@ public class ResolvingAdmin extends ForwardingAdmin {
     }
 
     @Override
-    @Deprecated
-    public AlterConfigsResult alterConfigs(Map<ConfigResource, Config> configs, AlterConfigsOptions options) {
-        operationNotSupported("alterConfigs");
-        return null;
-    }
-
-    @Override
     public AlterConfigsResult incrementalAlterConfigs(Map<ConfigResource, Collection<AlterConfigOp>> configs, AlterConfigsOptions options) {
         operationNotSupported("incrementalAlterConfigs");
         return null;
@@ -157,18 +151,6 @@ public class ResolvingAdmin extends ForwardingAdmin {
         // Resolve the groupSpecs
         final var newGroupSpecs = new HashMap<String, ListConsumerGroupOffsetsSpec>();
         groupSpecs.forEach((groupId, spec) -> newGroupSpecs.put(groupResolver.resolve(groupId), new ListConsumerGroupOffsetsSpec().topicPartitions(topicResolver.resolveTopicPartitions(spec.topicPartitions()))));
-
-        // Resolve the options
-        if (options != null) {
-            final var newOptions = new ListConsumerGroupOffsetsOptions().requireStable(options.requireStable());
-            final var topicPartitions = options.topicPartitions();
-            if (topicPartitions != null) {
-                final var newTopicPartitions = new ArrayList<TopicPartition>(topicPartitions.size());
-                topicPartitions.forEach(tp -> newTopicPartitions.add(topicResolver.resolve(tp)));
-                newOptions.topicPartitions(newTopicPartitions);
-            }
-            options = newOptions;
-        }
 
         // Call the original API
         final var result = super.listConsumerGroupOffsets(newGroupSpecs, options);
@@ -258,9 +240,20 @@ public class ResolvingAdmin extends ForwardingAdmin {
         return null;
     }
 
+    @Override
+    public void registerMetricForSubscription(KafkaMetric metric) {
+        // Ignore superclass exception
+    }
+
+    @Override
+    public void unregisterMetricFromSubscription(KafkaMetric metric) {
+        // Ignore superclass exception
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // End of public interface of AdminClient
-    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    /// ////////////////////////////////////////////////////////////////////////////////////////////
 
     private Collection<NewTopic> resolveNewTopics(Collection<NewTopic> newTopics) {
         // Resolve all new topics into a new collection

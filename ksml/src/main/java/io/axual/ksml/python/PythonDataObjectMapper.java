@@ -21,6 +21,7 @@ package io.axual.ksml.python;
  */
 
 import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.notation.SchemaResolver;
 import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.type.*;
@@ -35,8 +36,10 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
+    private static final SchemaResolver<DataSchema> SCHEMA_RESOLVER = schemaName -> ExecutionContext.INSTANCE.schemaLibrary().getSchema(schemaName, false);
+
     public PythonDataObjectMapper(boolean includeSchemaInfo) {
-        super(includeSchemaInfo);
+        super(SCHEMA_RESOLVER, includeSchemaInfo);
     }
 
     @Override
@@ -77,13 +80,13 @@ public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
         if (object.isString()) return object.asString();
 
         if (object.hasArrayElements()) {
-            var result = arrayToNative(expected, object);
+            final var result = arrayToNative(expected, object);
             if (result != null) return result;
         }
 
         // By default, try to decode a dict as a struct
         if (object.hasHashEntries()) {
-            var result = mapToNative(expected, object);
+            final var result = mapToNative(expected, object);
             if (result != null) return result;
         }
 
@@ -107,14 +110,14 @@ public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
 
     private Object arrayToNative(DataType expected, Value object) {
         if (expected == DataBytes.DATATYPE) {
-            var bytes = new byte[(int) object.getArraySize()];
+            final var bytes = new byte[(int) object.getArraySize()];
             for (var index = 0; index < object.getArraySize(); index++) {
                 bytes[index] = (byte) object.getArrayElement(index).asInt();
             }
             return bytes;
         }
         if (expected instanceof TupleType expectedTuple) {
-            var elements = new DataObject[(int) object.getArraySize()];
+            final var elements = new DataObject[(int) object.getArraySize()];
             for (var index = 0; index < object.getArraySize(); index++) {
                 var subType = expectedTuple.subType(index);
                 elements[index] = toDataObject(subType, object.getArrayElement(index));
@@ -122,8 +125,8 @@ public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
             return new DataTuple(elements);
         }
         if (expected == null || expected instanceof ListType) {
-            var valueType = expected != null ? ((ListType) expected).valueType() : DataType.UNKNOWN;
-            var result = new DataList(valueType);
+            final var valueType = expected != null ? ((ListType) expected).valueType() : DataType.UNKNOWN;
+            final var result = new DataList(valueType);
             for (var index = 0; index < object.getArraySize(); index++) {
                 result.add(toDataObject(valueType, object.getArrayElement(index)));
             }
@@ -133,14 +136,9 @@ public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
     }
 
     private DataObject mapToNative(DataType expected, Value object) {
-        Map<?, ?> map = ExecutionUtil.tryThis(() -> object.as(Map.class));
+        final var map = ExecutionUtil.tryThis(() -> object.as(Map.class));
         if (map == null) return null;
-        return convertNativeToDataStruct(MapUtil.stringKeys(map), expected instanceof StructType structType ? structType.schema() : null);
-    }
-
-    @Override
-    protected DataSchema loadSchemaByName(String schemaName) {
-        return ExecutionContext.INSTANCE.schemaLibrary().getSchema(schemaName, false);
+        return convertMapToDataStruct(MapUtil.stringKeys(map), expected instanceof StructType structType ? structType.schema() : null);
     }
 
     @Override
@@ -161,8 +159,8 @@ public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
             return Value.asValue(bytes);
         }
         if (object instanceof DataString val) return Value.asValue(val.value());
-        if (object instanceof DataList val) return Value.asValue(convertDataListToNative(val));
-        if (object instanceof DataStruct val) return Value.asValue(convertDataStructToNative(val));
+        if (object instanceof DataList val) return Value.asValue(convertDataListToList(val));
+        if (object instanceof DataStruct val) return Value.asValue(convertDataStructToMap(val));
         throw new ExecutionException("Can not convert DataObject to Python dataType: " + object.getClass().getSimpleName());
     }
 }

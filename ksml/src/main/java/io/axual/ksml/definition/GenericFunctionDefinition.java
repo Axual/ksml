@@ -21,8 +21,10 @@ package io.axual.ksml.definition;
  */
 
 
+import io.axual.ksml.dsl.KSMLDSL;
+
 public class GenericFunctionDefinition extends FunctionDefinition {
     public GenericFunctionDefinition(FunctionDefinition definition) {
-        super(definition);
+        super(definition.withType(KSMLDSL.Functions.TYPE_GENERIC));
     }
 }

@@ -30,11 +30,11 @@ import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserAggregator;
 import org.apache.kafka.streams.kstream.CogroupedKStream;
 
-public class CogroupOperation extends StoreOperation {
+public class CogroupOperation extends BaseOperation {
     private static final String AGGREGATOR_NAME = "Aggregator";
     private final FunctionDefinition aggregator;
 
-    public CogroupOperation(StoreOperationConfig config, FunctionDefinition aggregator) {
+    public CogroupOperation(OperationConfig config, FunctionDefinition aggregator) {
         super(config);
         this.aggregator = aggregator;
     }

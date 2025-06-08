@@ -29,7 +29,7 @@ public class JsonSchemaLoader implements Notation.SchemaParser {
     private static final JsonSchemaMapper MAPPER = new JsonSchemaMapper(false);
 
     @Override
-    public DataSchema parse(String schemaName, String schema) {
-        return MAPPER.toDataSchema(schemaName, schema);
+    public DataSchema parse(String contextName, String schemaName, String schemaString) {
+        return MAPPER.toDataSchema(schemaName, schemaString);
     }
 }

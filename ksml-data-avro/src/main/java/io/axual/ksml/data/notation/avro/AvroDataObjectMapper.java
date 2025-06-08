@@ -65,7 +65,7 @@ public class AvroDataObjectMapper extends NativeDataObjectMapper {
         if (value instanceof DataNull) return null;
         if (value instanceof DataStruct struct) {
             if (struct.isNull()) return null;
-            return new AvroObject(struct.type().schema(), convertDataStructToNative(struct));
+            return new AvroObject(struct.type().schema(), convertDataStructToMap(struct));
         }
         return super.fromDataObject(value);
     }

@@ -21,8 +21,11 @@ package io.axual.ksml.definition;
  */
 
 
+import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.type.UserTupleType;
 import io.axual.ksml.type.UserType;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -31,10 +34,12 @@ import java.util.HashSet;
 import java.util.List;
 
 @Getter
+@EqualsAndHashCode
 public class FunctionDefinition extends AbstractDefinition {
     private static final String[] EMPTY_STRING_ARRAY = new String[]{};
     private static final ParameterDefinition[] EMPTY_PARAMETER_ARRAY = new ParameterDefinition[]{};
     private static final List<String> EMPTY_STRING_LIST = new ArrayList<>();
+    private final String type;
     private final String name;
     private final ParameterDefinition[] parameters;
     private final String[] globalCode;
@@ -43,54 +48,76 @@ public class FunctionDefinition extends AbstractDefinition {
     private final UserType resultType;
     private final List<String> storeNames;
 
-    public static FunctionDefinition as(String name, List<ParameterDefinition> parameters, String globalCode, String code, String expression, UserType resultType, List<String> storeNames) {
-        return new FunctionDefinition(name, parameters != null ? parameters.toArray(EMPTY_PARAMETER_ARRAY) : EMPTY_PARAMETER_ARRAY, multiline(globalCode), multiline(code), expression, resultType, storeNames);
+    public static FunctionDefinition as(String type, String name, List<ParameterDefinition> parameters, String globalCode, String code, String expression, UserType resultType, List<String> storeNames) {
+        return new FunctionDefinition(type, name, parameters != null ? parameters.toArray(EMPTY_PARAMETER_ARRAY) : EMPTY_PARAMETER_ARRAY, multiline(globalCode), multiline(code), expression, resultType, storeNames);
     }
 
-    public static FunctionDefinition as(String name, ParameterDefinition[] parameters, String[] globalCode, String[] code, String expression, UserType resultType, List<String> storeNames) {
-        return new FunctionDefinition(name, parameters, globalCode, code, expression, resultType, storeNames);
+    public static FunctionDefinition as(String type, String name, ParameterDefinition[] parameters, String[] globalCode, String[] code, String expression, UserType resultType, List<String> storeNames) {
+        return new FunctionDefinition(type, name, parameters, globalCode, code, expression, resultType, storeNames);
+    }
+
+    public FunctionDefinition withType(String type) {
+        return new FunctionDefinition(type, name, parameters, globalCode, code, expression, resultType, storeNames);
     }
 
     public FunctionDefinition withName(String name) {
-        return new FunctionDefinition(name, parameters, globalCode, code, expression, resultType, storeNames);
+        return new FunctionDefinition(type, name, parameters, globalCode, code, expression, resultType, storeNames);
     }
 
     public FunctionDefinition withParameters(ParameterDefinition[] parameters) {
-        return new FunctionDefinition(name, parameters, globalCode, code, expression, resultType, storeNames);
+        return new FunctionDefinition(type, name, parameters, globalCode, code, expression, resultType, storeNames);
     }
 
     public FunctionDefinition withCode(String[] globalCode, String[] code, String expression, List<String> storeNames) {
-        return new FunctionDefinition(name, parameters, globalCode, code, expression, resultType, storeNames);
+        return new FunctionDefinition(type, name, parameters, globalCode, code, expression, resultType, storeNames);
     }
 
     public FunctionDefinition withoutResult() {
         return withResult(null);
     }
 
-    public FunctionDefinition withResult(UserType type) {
-        return new FunctionDefinition(name, parameters, globalCode, code, type != null ? expression : null, type, storeNames);
+    public FunctionDefinition withResult(UserType resultType) {
+        return new FunctionDefinition(type, name, parameters, globalCode, code, resultType != null ? expression : null, resultType, storeNames);
     }
 
     public FunctionDefinition withDefaultExpression(String expression) {
         if (this.expression == null) {
-            return new FunctionDefinition(name, parameters, globalCode, code, expression, resultType, storeNames);
+            return new FunctionDefinition(type, name, parameters, globalCode, code, expression, resultType, storeNames);
         }
         return this;
     }
 
     public FunctionDefinition withAResult() {
         if (expression == null)
-            throw new TopologyException("Function type requires a result expression: " + definitionType());
+            throw functionResultError("Function type requires a result expression");
         if (resultType == null)
-            throw new TopologyException("Function type requires a result type: " + definitionType());
+            throw functionResultError("Function type requires a result type");
         return this;
     }
 
-    public FunctionDefinition withStoreNames(List<String> storeNames) {
-        return new FunctionDefinition(name, parameters, globalCode, code, expression, resultType, storeNames);
+    public FunctionDefinition withListResult() {
+        final var definition = withAResult();
+        final var result = ListType.createFrom(definition.resultType().dataType());
+        if (result != null) return withResult(new UserType(definition.resultType().notation(), result));
+        throw functionResultError("Function type requires a list \"[valueType]\" result type");
     }
 
-    private FunctionDefinition(String name, ParameterDefinition[] parameters, String[] globalCode, String[] code, String expression, UserType resultType, List<String> storeNames) {
+    public FunctionDefinition withTupleResult() {
+        final var definition = this.withAResult();
+        if (definition.resultType().dataType() instanceof UserTupleType) return definition;
+        throw functionResultError("Function type requires a tuple \"(keyType,valueType)\" result type");
+    }
+
+    protected TopologyException functionResultError(String message) {
+        throw new TopologyException(message + ": function=" + name() + ", type=" + type() + ", resultType=" + resultType());
+    }
+
+    public FunctionDefinition withStoreNames(List<String> storeNames) {
+        return new FunctionDefinition(type, name, parameters, globalCode, code, expression, resultType, storeNames);
+    }
+
+    private FunctionDefinition(String type, String name, ParameterDefinition[] parameters, String[] globalCode, String[] code, String expression, UserType resultType, List<String> storeNames) {
+        this.type = type;
         this.name = name;
         this.parameters = parameters;
         this.resultType = resultType;
@@ -101,6 +128,7 @@ public class FunctionDefinition extends AbstractDefinition {
     }
 
     protected FunctionDefinition(FunctionDefinition definition) {
+        this.type = definition.type;
         this.name = definition.name;
         this.parameters = definition.parameters;
         this.resultType = definition.resultType;

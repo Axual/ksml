@@ -20,6 +20,7 @@ package io.axual.ksml.client.resolving;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.client.exception.InvalidPatternException;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,8 +30,6 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Map;
-
-import io.axual.ksml.client.exception.InvalidPatternException;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 

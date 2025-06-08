@@ -33,6 +33,9 @@ public class ExecutionContext {
     private final NotationLibrary notationLibrary = new NotationLibrary();
     private final SchemaLibrary schemaLibrary = new SchemaLibrary();
 
+    private ExecutionContext() {
+    }
+
     @Getter
     @Setter
     private SerdeWrapper<Object> serdeWrapper = null;

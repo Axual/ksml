@@ -29,8 +29,4 @@ public class ExtendableDescribeTopicsResult extends DescribeTopicsResult {
     public ExtendableDescribeTopicsResult(Map<Uuid, KafkaFuture<TopicDescription>> topicIdFutures, Map<String, KafkaFuture<TopicDescription>> nameFutures) {
         super(topicIdFutures, nameFutures);
     }
-    @Deprecated
-    public ExtendableDescribeTopicsResult(Map<String, KafkaFuture<TopicDescription>> futures) {
-        super(futures);
-    }
 }

@@ -36,10 +36,6 @@ public class ResolvingDescribeTopicsResult extends ExtendableDescribeTopicsResul
         super(unresolveTopicDescriptions(topicIdFutures, resolver),
                 unresolveTopicDescriptions(ResolverUtil.unresolveKeys(nameFutures, resolver), resolver));
     }
-    @Deprecated
-    public ResolvingDescribeTopicsResult(Map<String, KafkaFuture<TopicDescription>> futures, TopicResolver resolver) {
-        super(unresolveTopicDescriptions(ResolverUtil.unresolveKeys(futures, resolver), resolver));
-    }
 
     private static <T> Map<T, KafkaFuture<TopicDescription>> unresolveTopicDescriptions(Map<T, KafkaFuture<TopicDescription>> values, TopicResolver resolver) {
         if (values == null) return null;

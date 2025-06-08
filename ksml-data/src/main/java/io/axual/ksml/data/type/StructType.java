@@ -20,6 +20,7 @@ package io.axual.ksml.data.type;
  * =========================LICENSE_END==================================
  */
 
+import com.google.common.base.Objects;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.schema.StructSchema;
 import lombok.Getter;
@@ -74,5 +75,10 @@ public class StructType extends MapType {
         if (!super.equals(other)) return false;
         StructType that = (StructType) other;
         return this.isAssignableFrom(that) && that.isAssignableFrom(this);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), name, schema);
     }
 }

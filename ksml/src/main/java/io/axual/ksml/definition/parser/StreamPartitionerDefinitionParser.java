@@ -22,6 +22,7 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.StreamPartitionerDefinition;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.StructsParser;
 
 public class StreamPartitionerDefinitionParser extends FunctionDefinitionParser<StreamPartitionerDefinition> {
@@ -33,6 +34,7 @@ public class StreamPartitionerDefinitionParser extends FunctionDefinitionParser<
     public StructsParser<StreamPartitionerDefinition> parser() {
         return parserWithoutStores(
                 StreamPartitionerDefinition.class,
+                KSMLDSL.Functions.TYPE_STREAMPARTITIONER,
                 "stream partitioner",
                 (partitioner, tags) -> partitioner != null ? new StreamPartitionerDefinition(partitioner) : null);
     }

@@ -13,7 +13,7 @@
 
 streams:
   sensor_binary_source:
-    topic: ksml_sensordata_avro_binary
+    topic: ksml_sensordata_binary
     keyType: string
     valueType: bytes
     offsetResetPolicy: latest

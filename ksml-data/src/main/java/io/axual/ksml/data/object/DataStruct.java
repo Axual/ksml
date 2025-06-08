@@ -249,12 +249,28 @@ public class DataStruct implements DataObject {
      *
      * @param key   The key to insert.
      * @param value The value to associate with the key.
+     * @return The value.
      * @throws DataException If the struct is null or the key-value pair cannot be added.
      */
-    public void put(String key, DataObject value) {
+    public DataObject put(String key, DataObject value) {
         if (contents == null)
             throw new DataException("Can not add item to a NULL Struct: (" + (key != null ? key : "null") + ", " + (value != null ? value : "null") + ")");
         contents.put(key, value);
+        return value;
+    }
+
+    /**
+     * Inserts the specified key-value pair into the {@code DataStruct} if the key does not exist already.
+     *
+     * @param key   The key to insert.
+     * @param value The value to associate with the key.
+     * @return The value associated with the key.
+     * @throws DataException If the struct is null or the key-value pair cannot be added.
+     */
+    public DataObject putIfAbsent(String key, DataObject value) {
+        if (contents == null)
+            throw new DataException("Can not add item to a NULL Struct: (" + (key != null ? key : "null") + ", " + (value != null ? value : "null") + ")");
+        return contents.computeIfAbsent(key, k -> value);
     }
 
     /**
@@ -262,9 +278,10 @@ public class DataStruct implements DataObject {
      *
      * @param key   The key to insert.
      * @param value The value to associate with the key.
+     * @return The value associated with the key.
      */
-    public void putIfNotNull(String key, DataObject value) {
-        if (value != null) put(key, value);
+    public DataObject putIfNotNull(String key, DataObject value) {
+        return value != null ? put(key, value) : get(key);
     }
 
     /**

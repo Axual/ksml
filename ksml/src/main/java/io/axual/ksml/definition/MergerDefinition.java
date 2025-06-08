@@ -20,11 +20,14 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.dsl.KSMLDSL;
+
 import static io.axual.ksml.definition.DefinitionConstants.KEY_AND_TWO_VALUE_PARAMETERS;
 
 public class MergerDefinition extends FunctionDefinition {
     public MergerDefinition(FunctionDefinition definition) {
         super(definition
+                .withType(KSMLDSL.Functions.TYPE_MERGER)
                 .withParameters(mergeParameters(KEY_AND_TWO_VALUE_PARAMETERS, definition.parameters()))
                 .withAResult());
     }

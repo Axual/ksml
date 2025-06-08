@@ -20,7 +20,6 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.schema.*;
 import io.axual.ksml.data.type.Symbol;
@@ -41,8 +40,6 @@ public class TestData {
     private static final String LUCKY_NUMBERS = "luckyNumbers";
     private static final String ACCOUNT_NUMBER = "accountNumber";
 
-    private static final DataTypeDataSchemaMapper SCHEMA_TYPE_MAPPER = new DataTypeDataSchemaMapper();
-
     public static StructSchema testSchema() {
         final var addressFields = List.of(
                 new DataField(STREET, DataSchema.STRING_SCHEMA, "Street field", 11),
@@ -61,21 +58,16 @@ public class TestData {
 
         final var luckyNumbersSchema = new ListSchema(DataSchema.LONG_SCHEMA);
 
-        final var bbanFields = List.of(
-                new DataField("BBAN", DataSchema.STRING_SCHEMA, "BBAN", 21),
-                new DataField("BIC", DataSchema.STRING_SCHEMA, "BIC", 22));
-        final var bbanSchema = new StructSchema(NAMESPACE, "BBANSchema", "Bank account and BIC combination", bbanFields);
-        final var ibanSchema = DataSchema.STRING_SCHEMA;
         final var accountNumberSchema = new UnionSchema(
-                new DataField("bban", bbanSchema, "BBAN", 23),
-                new DataField("iban", ibanSchema, "IBAN", 24));
+                new DataField("bban", DataSchema.LONG_SCHEMA, "BBAN", 23),
+                new DataField("iban", DataSchema.STRING_SCHEMA, "IBAN", 24));
 
         final var fields = List.of(
                 new DataField(NAME, DataSchema.STRING_SCHEMA, "Name", 1),
                 new DataField(AGE, DataSchema.INTEGER_SCHEMA, "Age", 2),
                 new DataField(ADDRESS, addressSchema, "Address", 3, false),
                 new DataField(SHIPPING_ADDRESS, addressSchema, "Shipping address", 4, false),
-                new DataField(EYE_COLOR, eyeColorSchema, "Eye color", 5),
+                new DataField(EYE_COLOR, eyeColorSchema, "Eye color", 5, true, false, new DataValue("BLUE")),
                 new DataField(LUCKY_NUMBERS, luckyNumbersSchema, "Lucky numbers", 6, false),
                 new DataField(ACCOUNT_NUMBER, accountNumberSchema, "Account number", DataField.NO_TAG, false));
         return new StructSchema(NAMESPACE, "TestSchema", "Schema used for testing", fields);

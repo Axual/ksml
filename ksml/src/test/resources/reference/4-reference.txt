@@ -6,21 +6,21 @@ Topologies:
       --> test_pipelines_main_branch
       <-- ksml_sensordata_avro
     Processor: test_pipelines_main_branch (stores: [])
-      --> test_pipelines_main_branch-predicate-2, test_pipelines_main_branch-predicate-0, test_pipelines_main_branch-predicate-1
+      --> test_pipelines_main_branch0, test_pipelines_main_branch1, test_pipelines_main_branch2
       <-- test_before-peek
-    Processor: test_pipelines_main_branch-predicate-0 (stores: [])
+    Processor: test_pipelines_main_branch0 (stores: [])
       --> test_pipelines_main_branch_branch1_to
       <-- test_pipelines_main_branch
-    Processor: test_pipelines_main_branch-predicate-1 (stores: [])
+    Processor: test_pipelines_main_branch1 (stores: [])
       --> test_pipelines_main_branch_branch2_to
       <-- test_pipelines_main_branch
-    Processor: test_pipelines_main_branch-predicate-2 (stores: [])
+    Processor: test_pipelines_main_branch2 (stores: [])
       --> test_pipelines_main_branch_branch3_forEach
       <-- test_pipelines_main_branch
     Sink: test_pipelines_main_branch_branch1_to (topic: ksml_sensordata_blue)
-      <-- test_pipelines_main_branch-predicate-0
+      <-- test_pipelines_main_branch0
     Sink: test_pipelines_main_branch_branch2_to (topic: ksml_sensordata_red)
-      <-- test_pipelines_main_branch-predicate-1
+      <-- test_pipelines_main_branch1
     Processor: test_pipelines_main_branch_branch3_forEach (stores: [])
       --> none
-      <-- test_pipelines_main_branch-predicate-2
+      <-- test_pipelines_main_branch2

@@ -28,6 +28,7 @@ import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.type.*;
 
 import javax.annotation.Nullable;
+import java.util.function.Supplier;
 
 public class ConvertUtil {
     private final NativeDataObjectMapper dataObjectMapper;
@@ -38,11 +39,17 @@ public class ConvertUtil {
         this.dataSchemaMapper = dataSchemaMapper;
     }
 
-    public DataObject convertDataObject(Notation sourceNotation, Notation targetNotation, DataType targetType, DataObject value, boolean allowFail) {
-        // If no conversion is possible or necessary, or the value type is already compatible with
-        // the expected type, then just return the value object
-        if (targetType == null || value == null || targetType.isAssignableFrom(value.type()))
-            return value;
+    public DataObject convert(DataType targetType, DataObject value) {
+        return convert(targetType, value, false);
+    }
+
+    public DataObject convert(DataType targetType, DataObject value, boolean allowFail) {
+        return convert(null, null, targetType, value, allowFail);
+    }
+
+    public DataObject convert(Notation sourceNotation, Notation targetNotation, DataType targetType, DataObject value, boolean allowFail) {
+        // If no conversion is possible or necessary, then just return the value object
+        if (targetType == null || value == null) return value;
 
         // If the value represents a NULL, then convert it directly
         if (value == DataNull.INSTANCE) return convertNullToDataObject(targetType);
@@ -52,7 +59,7 @@ public class ConvertUtil {
         // If a union type is expected, then recurse into it before checking compatibility below
         if (targetType instanceof UnionType targetUnionType) {
             for (int index = 0; index < targetUnionType.memberTypes().length; index++) {
-                var convertedValue = convertDataObject(sourceNotation, targetNotation, targetUnionType.memberTypes()[index].type(), value, true);
+                var convertedValue = convert(sourceNotation, targetNotation, targetUnionType.memberTypes()[index].type(), value, true);
                 if (convertedValue != null) return convertedValue;
             }
         }
@@ -154,7 +161,7 @@ public class ConvertUtil {
                 if (targetType == DataDouble.DATATYPE) yield new DataDouble(val.value().doubleValue());
                 yield val;
             }
-            // Convert from String to anything through recursion using same target type
+            // Convert from String to anything through recursion using the same target type
             case DataString stringValue -> convertStringToDataObject(targetType, stringValue.value());
             // Convert list without a value type to a list with a specific value type
             case DataList listValue when targetType instanceof ListType targetListType ->
@@ -171,12 +178,12 @@ public class ConvertUtil {
     public DataObject convertStringToDataObject(DataType expected, String value) {
         if (expected == null) return new DataString(value);
         if (expected == DataNull.DATATYPE || value == null) return DataNull.INSTANCE;
-        if (expected == DataByte.DATATYPE) return new DataByte(Byte.parseByte(value));
-        if (expected == DataShort.DATATYPE) return new DataShort(Short.parseShort(value));
-        if (expected == DataInteger.DATATYPE) return new DataInteger(Integer.parseInt(value));
-        if (expected == DataLong.DATATYPE) return new DataLong(Long.parseLong(value));
-        if (expected == DataFloat.DATATYPE) return new DataFloat(Float.parseFloat(value));
-        if (expected == DataDouble.DATATYPE) return new DataDouble(Double.parseDouble(value));
+        if (expected == DataByte.DATATYPE) return parseOrNull(() -> new DataByte(Byte.parseByte(value)));
+        if (expected == DataShort.DATATYPE) return parseOrNull(() -> new DataShort(Short.parseShort(value)));
+        if (expected == DataInteger.DATATYPE) return parseOrNull(() -> new DataInteger(Integer.parseInt(value)));
+        if (expected == DataLong.DATATYPE) return parseOrNull(() -> new DataLong(Long.parseLong(value)));
+        if (expected == DataFloat.DATATYPE) return parseOrNull(() -> new DataFloat(Float.parseFloat(value)));
+        if (expected == DataDouble.DATATYPE) return parseOrNull(() -> new DataDouble(Double.parseDouble(value)));
         if (expected == DataString.DATATYPE) return new DataString(value);
         return switch (expected) {
             case EnumType ignored -> new DataString(value);
@@ -186,6 +193,14 @@ public class ConvertUtil {
             case UnionType unionType -> convertStringToUnionMemberType(unionType, value);
             default -> throw new DataException("Can not convert string to data type \"" + expected + "\": " + value);
         };
+    }
+
+    private DataObject parseOrNull(Supplier<DataObject> supplier) {
+        try {
+            return supplier.get();
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private DataList convertStringToDataList(ListType type, String value) {
@@ -239,7 +254,7 @@ public class ConvertUtil {
     public DataObject convertStringToUnionMemberType(UnionType type, String value) {
         final var valueString = new DataString(value);
         for (final var memberType : type.memberTypes()) {
-            final var dataObject = convertDataObject(null, null, memberType.type(), valueString, true);
+            final var dataObject = convert(memberType.type(), valueString, true);
             if (dataObject != null && memberType.type().isAssignableFrom(dataObject))
                 return dataObject;
         }
@@ -313,6 +328,4 @@ public class ConvertUtil {
         }
         return new DataTuple(convertedDataObjects);
     }
-
-
 }

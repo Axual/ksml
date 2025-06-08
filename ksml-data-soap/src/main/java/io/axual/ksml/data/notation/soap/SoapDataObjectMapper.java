@@ -38,7 +38,7 @@ import static io.axual.ksml.data.notation.soap.SoapSchema.*;
 @Slf4j
 public class SoapDataObjectMapper implements DataObjectMapper<SOAPMessage> {
     private final MessageFactory messageFactory;
-    private final XmlDataObjectMapper xmlMapper = new XmlDataObjectMapper();
+    private final XmlDataObjectMapper xmlMapper = new XmlDataObjectMapper(true);
 
     public SoapDataObjectMapper() {
         try {
