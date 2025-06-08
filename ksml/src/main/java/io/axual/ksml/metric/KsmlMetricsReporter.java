@@ -156,9 +156,6 @@ public final class KsmlMetricsReporter implements MetricsReporter {
         return () -> {
             try {
                 Object v = m.metricValue();
-                if (v == null) {
-                    return Double.NaN;
-                }
                 return (v instanceof Number n) ? n.doubleValue() : Double.NaN;
             } catch (Exception e) {
                 log.debug("Failed to read metric value for {}: {}", m.metricName(), e.getMessage());
