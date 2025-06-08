@@ -49,7 +49,7 @@ RUN set -eux \
 
 # Step 3: Download and install on top of the Graal image from Step 2. Package KSML project
 FROM --platform=$BUILDPLATFORM graal AS maven
-ARG MAVEN_VERSION=3.9.6
+ARG MAVEN_VERSION=3.9.10
 ARG TARGETARCH
 ARG BUILDARCH
 RUN set -eux \
