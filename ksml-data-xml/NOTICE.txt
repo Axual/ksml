@@ -1,5 +1,5 @@
 
-Lists of 27 third-party dependencies.
+Lists of 23 third-party dependencies.
      (The Apache Software License, Version 2.0) Jackson-annotations (com.fasterxml.jackson.core:jackson-annotations:2.19.0 - https://github.com/FasterXML/jackson)
      (The Apache Software License, Version 2.0) Jackson-core (com.fasterxml.jackson.core:jackson-core:2.19.0 - https://github.com/FasterXML/jackson-core)
      (The Apache Software License, Version 2.0) jackson-databind (com.fasterxml.jackson.core:jackson-databind:2.19.0 - https://github.com/FasterXML/jackson)
@@ -13,15 +13,11 @@ Lists of 27 third-party dependencies.
      (Apache License, Version 2.0) Guava: Google Core Libraries for Java (com.google.guava:guava:33.4.8-jre - https://github.com/google/guava)
      (The Apache Software License, Version 2.0) Guava ListenableFuture only (com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava - https://github.com/google/guava/listenablefuture)
      (Apache License, Version 2.0) J2ObjC Annotations (com.google.j2objc:j2objc-annotations:3.0.0 - https://github.com/google/j2objc/)
-     (Eclipse Distribution License - v 1.0) Jakarta SOAP Implementation (com.sun.xml.messaging.saaj:saaj-impl:3.0.4 - https://projects.eclipse.org/projects/ee4j/metro-saaj/saaj-impl)
      (Apache 2.0) KSML Data Library (io.axual.ksml:ksml-data:1.1.0-SNAPSHOT - https://github.com/Axual/ksml/ksml-data)
-     (Eclipse Distribution License - v 1.0) Jakarta SOAP with Attachments API (jakarta.xml.soap:jakarta.xml.soap-api:3.0.2 - https://github.com/jakartaee/saaj-api)
      (The Apache License, Version 2.0) Apache Kafka (org.apache.kafka:kafka-clients:4.0.0 - https://kafka.apache.org)
      (Apache License, Version 2.0) XmlSchema Core (org.apache.ws.xmlschema:xmlschema-core:2.3.1 - https://ws.apache.org/commons/xmlschema20/xmlschema-core/)
      (The BSD 2-Clause License) Stax2 API (org.codehaus.woodstox:stax2-api:4.2.2 - http://github.com/FasterXML/stax2-api)
-     (EDL 1.0) Angus Activation Registries (org.eclipse.angus:angus-activation:2.0.2 - https://github.com/eclipse-ee4j/angus-activation/angus-activation)
      (The Apache License, Version 2.0) JSpecify annotations (org.jspecify:jspecify:1.0.0 - http://jspecify.org/)
-     (Eclipse Distribution License - v 1.0) Extended StAX API (org.jvnet.staxex:stax-ex:2.1.0 - https://projects.eclipse.org/projects/ee4j/stax-ex)
      (The Apache Software License, Version 2.0) LZ4 and xxHash (org.lz4:lz4-java:1.8.0 - https://github.com/lz4/lz4-java)
      (The MIT License) Project Lombok (org.projectlombok:lombok:1.18.38 - https://projectlombok.org)
      (MIT License) SLF4J API Module (org.slf4j:slf4j-api:2.1.0-alpha1 - http://www.slf4j.org)
