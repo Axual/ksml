@@ -26,6 +26,8 @@ import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.execution.ExecutionErrorHandler;
 import io.axual.ksml.generator.TopologyDefinition;
+import io.axual.ksml.metric.KsmlTagEnricher;
+import io.axual.ksml.metric.KsmlMetricsReporter;
 import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.runner.config.ApplicationServerConfig;
 import io.axual.ksml.runner.exception.RunnerException;
@@ -98,6 +100,14 @@ public class KafkaStreamsRunner implements Runner {
         var optimize = streamsProps.getOrDefault(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE);
         final var topologyGenerator = new TopologyGenerator(applicationId, (String) optimize, config.pythonContextConfig());
         final var topology = topologyGenerator.create(streamsBuilder, config.definitions);
+        final var topologyDesc = topology.describe();
+        final var ksmlTagEnricher = KsmlTagEnricher.from(topologyDesc);
+
+        streamsProps.put(StreamsConfig.METRIC_REPORTER_CLASSES_CONFIG,
+                "io.axual.ksml.metric.KsmlMetricsReporter," +
+                        "org.apache.kafka.common.metrics.JmxReporter");
+        streamsProps.put(KsmlMetricsReporter.ENRICHER_INSTANCE_CONFIG, ksmlTagEnricher);
+
         kafkaStreams = kafkaStreamsFactory.apply(topology, mapToProperties(streamsProps));
         kafkaStreams.setStateListener(this::logStreamsStateChange);
         kafkaStreams.setUncaughtExceptionHandler(ExecutionContext.INSTANCE.errorHandling()::uncaughtException);

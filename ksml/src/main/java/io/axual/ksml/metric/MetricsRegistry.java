@@ -25,9 +25,10 @@ import com.codahale.metrics.jmx.JmxReporter;
 import io.axual.ksml.exception.MetricRegistrationException;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 /**
@@ -44,7 +45,7 @@ public class MetricsRegistry {
     private final MetricRegistry metricRegistry;
     private JmxReporter jmxReporter;
 
-    private final Map<MetricName, Metric> registeredMetrics = new HashMap<>();
+    private final Map<MetricName, Metric> registeredMetrics = new ConcurrentHashMap<>();
 
     public MetricsRegistry() {
         this(new MetricRegistry());
@@ -101,12 +102,24 @@ public class MetricsRegistry {
      * Register or get a new gauge with the provided name.
      *
      * @param metricName    the name for the gauge
-     * @param valueSupplier the supplied to use to get the metric value
-     * @return the gauge registered to the provided name
+     * @param valueSupplier the supplier to use to get the metric value
      */
-    public <T> Gauge<T> registerGauge(MetricName metricName, Supplier<T> valueSupplier) {
+    public <T> void registerGauge(MetricName metricName, Supplier<T> valueSupplier) {
         final Gauge<T> metricSupplier = valueSupplier::get;
-        return register(metricName, () -> metricRegistry.gauge(encodeName(metricName), () -> metricSupplier));
+        register(metricName, () -> metricRegistry.gauge(encodeName(metricName), () -> metricSupplier));
+    }
+
+    /**
+     * Register or get a new gauge with the provided name.
+     *
+     * @param metricName    the name for the gauge
+     * @param valueSupplier the supplier to use to get the metric value as a double
+     */
+    public void registerGauge(MetricName metricName, DoubleSupplier valueSupplier) {
+        // box exactly once per read
+        Gauge<Double> metricSupplier = valueSupplier::getAsDouble;
+        register(metricName,
+                () -> metricRegistry.gauge(encodeName(metricName), () -> metricSupplier));
     }
 
     /**
