@@ -28,7 +28,7 @@ import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.AggregateOperation;
 import io.axual.ksml.parser.StructsParser;
 
-public class AggregateOperationParser extends StoreOperationParser<AggregateOperation> {
+public class AggregateOperationParser extends OperationParser<AggregateOperation> {
     public AggregateOperationParser(TopologyResources resources) {
         super(KSMLDSL.Operations.AGGREGATE, resources);
     }

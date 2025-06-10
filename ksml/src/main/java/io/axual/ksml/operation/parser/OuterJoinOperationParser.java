@@ -32,61 +32,35 @@ import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
-import io.axual.ksml.operation.OuterJoinOperation;
+import io.axual.ksml.operation.BaseOperation;
+import io.axual.ksml.operation.OuterJoinWithStreamOperation;
+import io.axual.ksml.operation.OuterJoinWithTableOperation;
 import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.parser.StructsParser;
+import io.axual.ksml.store.StoreParserUtil;
 import io.axual.ksml.store.StoreType;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class OuterJoinOperationParser extends StoreOperationParser<OuterJoinOperation> {
-    private final StructsParser<OuterJoinOperation> joinStreamParser;
-    private final StructsParser<OuterJoinOperation> joinTableParser;
+public class OuterJoinOperationParser extends OperationParser<BaseOperation> {
+    private final StructsParser<OuterJoinWithStreamOperation> joinStreamParser;
+    private final StructsParser<OuterJoinWithTableOperation> joinTableParser;
     private final List<StructSchema> schemas = new ArrayList<>();
 
     public OuterJoinOperationParser(TopologyResources resources) {
         super(KSMLDSL.Operations.OUTER_JOIN, resources);
-        joinStreamParser = structsParser(
-                OuterJoinOperation.class,
-                KSMLDSL.Types.WITH_STREAM,
-                "Operation to outerJoin with a stream",
-                operationNameField(),
-                topicField(KSMLDSL.Operations.Join.WITH_STREAM, "A reference to the stream, or an inline definition of the stream to outerJoin with", new StreamDefinitionParser(resources(), true)),
-                functionField(KSMLDSL.Operations.Join.VALUE_JOINER, "A function that joins two values", new ValueJoinerDefinitionParser(false)),
-                durationField(KSMLDSL.Operations.Join.TIME_DIFFERENCE, "The maximum time difference for an outerJoin over two streams on the same key"),
-                optional(durationField(KSMLDSL.Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
-                storeField(false, "Materialized view of the outerJoined streams", StoreType.WINDOW_STORE),
-                (name, stream, valueJoiner, timeDifference, grace, store, tags) -> {
-                    if (stream instanceof StreamDefinition streamDef) {
-                        return new OuterJoinOperation(storeOperationConfig(name, tags, store), streamDef, valueJoiner, timeDifference, grace);
-                    }
-                    throw new TopologyException("OuterJoin stream not correct, should be a defined stream");
-                });
-
-        joinTableParser = structsParser(
-                OuterJoinOperation.class,
-                KSMLDSL.Types.WITH_TABLE,
-                "Operation to outerJoin with a table",
-                operationNameField(),
-                topicField(KSMLDSL.Operations.Join.WITH_TABLE, "A reference to the table, or an inline definition of the table to outerJoin with", new TableDefinitionParser(resources(), true)),
-                functionField(KSMLDSL.Operations.Join.VALUE_JOINER, "A function that joins two values", new ValueJoinerDefinitionParser(false)),
-                storeField(false, "Materialized view of the outerJoined streams", StoreType.KEYVALUE_STORE),
-                (name, table, valueJoiner, store, tags) -> {
-                    if (table instanceof TableDefinition tableDef) {
-                        return new OuterJoinOperation(storeOperationConfig(name, tags, store), tableDef, valueJoiner);
-                    }
-                    throw new TopologyException("OuterJoin table not correct, should be a defined table");
-                });
+        joinStreamParser = createOuterJoinStreamParser();
+        joinTableParser = createOuterJoinTableParser();
 
         schemas.addAll(joinStreamParser.schemas());
         schemas.addAll(joinTableParser.schemas());
     }
 
-    public StructsParser<OuterJoinOperation> parser() {
+    public StructsParser<BaseOperation> parser() {
         return new StructsParser<>() {
             @Override
-            public OuterJoinOperation parse(ParseNode node) {
+            public BaseOperation parse(ParseNode node) {
                 if (node == null) return null;
                 final var joinTopic = new JoinTargetDefinitionParser(resources()).parse(node);
                 if (joinTopic.definition() instanceof StreamDefinition) return joinStreamParser.parse(node);
@@ -102,5 +76,42 @@ public class OuterJoinOperationParser extends StoreOperationParser<OuterJoinOper
                 return schemas;
             }
         };
+    }
+
+    private StructsParser<OuterJoinWithStreamOperation> createOuterJoinStreamParser() {
+        return structsParser(
+                OuterJoinWithStreamOperation.class,
+                "",
+                "Operation to outerJoin with a stream",
+                operationNameField(),
+                topicField(KSMLDSL.Operations.Join.WITH_STREAM, "A reference to the stream, or an inline definition of the stream to outerJoin with", new StreamDefinitionParser(resources(), true)),
+                functionField(KSMLDSL.Operations.Join.VALUE_JOINER, "A function that joins two values", new ValueJoinerDefinitionParser(false)),
+                durationField(KSMLDSL.Operations.Join.TIME_DIFFERENCE, "The maximum time difference for an outerJoin over two streams on the same key"),
+                optional(durationField(KSMLDSL.Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
+                StoreParserUtil.storeField(KSMLDSL.Operations.SOURCE_STORE_ATTRIBUTE, true, "Materialized view of the source stream", StoreType.WINDOW_STORE, resources()),
+                StoreParserUtil.storeField(KSMLDSL.Operations.OTHER_STORE_ATTRIBUTE, true, "Materialized view of the outerJoined stream", StoreType.WINDOW_STORE, resources()),
+                (name, stream, valueJoiner, timeDifference, grace, thisStore, otherStore, tags) -> {
+                    if (stream instanceof StreamDefinition streamDef) {
+                        return new OuterJoinWithStreamOperation(dualStoreOperationConfig(name, tags, thisStore, otherStore), streamDef, valueJoiner, timeDifference, grace);
+                    }
+                    throw new TopologyException("OuterJoin stream not correct, should be a defined stream");
+                });
+    }
+
+    private StructsParser<OuterJoinWithTableOperation> createOuterJoinTableParser() {
+        return structsParser(
+                OuterJoinWithTableOperation.class,
+                "",
+                "Operation to outerJoin with a table",
+                operationNameField(),
+                topicField(KSMLDSL.Operations.Join.WITH_TABLE, "A reference to the table, or an inline definition of the table to outerJoin with", new TableDefinitionParser(resources(), true)),
+                functionField(KSMLDSL.Operations.Join.VALUE_JOINER, "A function that joins two values", new ValueJoinerDefinitionParser(false)),
+                storeField(false, "Materialized view of the outerJoined table", StoreType.KEYVALUE_STORE),
+                (name, table, valueJoiner, store, tags) -> {
+                    if (table instanceof TableDefinition tableDef) {
+                        return new OuterJoinWithTableOperation(storeOperationConfig(name, tags, store), tableDef, valueJoiner);
+                    }
+                    throw new TopologyException("OuterJoin table not correct, should be a defined table");
+                });
     }
 }

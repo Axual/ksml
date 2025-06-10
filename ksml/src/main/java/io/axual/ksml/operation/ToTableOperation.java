@@ -21,6 +21,7 @@ package io.axual.ksml.operation;
  */
 
 import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.store.StoreUtil;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
@@ -41,7 +42,7 @@ public class ToTableOperation extends StoreOperation {
 
         final var k = input.keyType();
         final var v = input.valueType();
-        final var kvStore = validateKeyValueStore(store(), k, v);
+        final var kvStore = StoreUtil.validateKeyValueStore(this, store(), k, v);
         final var mat = materializedOf(context, kvStore);
         final var named = namedOf();
         final KTable<Object, Object> output = named != null

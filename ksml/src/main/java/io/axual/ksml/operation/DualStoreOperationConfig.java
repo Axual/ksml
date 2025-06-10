@@ -20,21 +20,16 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-
 import io.axual.ksml.definition.StateStoreDefinition;
-import lombok.Getter;
+import io.axual.ksml.metric.MetricTags;
 
-@Getter
-public class StoreOperation extends BaseOperation {
-    private final StateStoreDefinition store;
+public class DualStoreOperationConfig extends OperationConfig {
+    public final StateStoreDefinition store1;
+    public final StateStoreDefinition store2;
 
-    public StoreOperation(StoreOperationConfig config) {
-        super(config);
-        this.store = config.store;
-    }
-
-    @Override
-    public String toString() {
-        return super.toString() + (store != null && store.name() != null ? " [storeName=\"" + store.name() + "\"]" : "");
+    public DualStoreOperationConfig(String name, MetricTags context, StateStoreDefinition store1, StateStoreDefinition store2) {
+        super(name, context);
+        this.store1 = store1;
+        this.store2 = store2;
     }
 }

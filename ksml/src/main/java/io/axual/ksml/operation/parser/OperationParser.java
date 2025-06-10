@@ -20,14 +20,19 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.operation.BaseOperation;
+import io.axual.ksml.operation.DualStoreOperationConfig;
 import io.axual.ksml.operation.OperationConfig;
+import io.axual.ksml.operation.StoreOperationConfig;
 import io.axual.ksml.parser.NamedObjectParser;
 import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyResourceAwareParser;
+import io.axual.ksml.store.StoreParserUtil;
+import io.axual.ksml.store.StoreType;
 import lombok.Getter;
 
 @Getter
@@ -50,6 +55,20 @@ public abstract class OperationParser<T extends BaseOperation> extends TopologyR
         return new OperationConfig(
                 name != null ? resources().getUniqueOperationName(name) : resources().getUniqueOperationName(tags),
                 tags);
+    }
+
+    protected StoreOperationConfig storeOperationConfig(String name, MetricTags tags, StateStoreDefinition store) {
+        name = validateName("Store", name, defaultShortName(), true);
+        return new StoreOperationConfig(name != null ? resources().getUniqueOperationName(name) : resources().getUniqueOperationName(tags), tags, store);
+    }
+
+    protected StructsParser<StateStoreDefinition> storeField(boolean required, String doc, StoreType expectedStoreType) {
+        return StoreParserUtil.storeField(KSMLDSL.Operations.STORE_ATTRIBUTE, required, doc, expectedStoreType, resources());
+    }
+
+    protected DualStoreOperationConfig dualStoreOperationConfig(String name, MetricTags tags, StateStoreDefinition store1, StateStoreDefinition store2) {
+        name = validateName("Store", name, defaultShortName(), true);
+        return new DualStoreOperationConfig(name != null ? resources().getUniqueOperationName(name) : resources().getUniqueOperationName(tags), tags, store1, store2);
     }
 
     @Override

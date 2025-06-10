@@ -26,6 +26,7 @@ import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.processor.FilterProcessor;
 import io.axual.ksml.operation.processor.FixedKeyOperationProcessorSupplier;
+import io.axual.ksml.store.StoreUtil;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
@@ -78,7 +79,7 @@ public class FilterOperation extends StoreOperation {
         final var v = input.valueType();
         final var pred = userFunctionOf(context, PREDICATE_NAME, predicate, new UserType(DataBoolean.DATATYPE), superOf(k), superOf(v));
         final var userPred = new UserPredicate(pred, tags);
-        final var kvStore = validateKeyValueStore(store(), k, v);
+        final var kvStore = StoreUtil.validateKeyValueStore(this, store(), k, v);
         final var mat = materializedOf(context, kvStore);
         final var named = namedOf();
         final var output = named != null

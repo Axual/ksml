@@ -298,31 +298,31 @@
               "$ref" : "#/definitions/GroupByOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/JoinOperationWithGlobalTable",
+              "$ref" : "#/definitions/JoinWithGlobalTableOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/JoinOperationWithStream",
+              "$ref" : "#/definitions/JoinWithStreamOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/JoinOperationWithTable",
+              "$ref" : "#/definitions/JoinWithTableOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/LeftJoinOperationWithGlobalTable",
+              "$ref" : "#/definitions/LeftJoinWithGlobalTableOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/LeftJoinOperationWithStream",
+              "$ref" : "#/definitions/LeftJoinWithStreamOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/LeftJoinOperationWithTable",
+              "$ref" : "#/definitions/LeftJoinWithTableOperation",
               "type" : "object"
             }, {
               "$ref" : "#/definitions/MergeOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/OuterJoinOperationWithStream",
+              "$ref" : "#/definitions/OuterJoinWithStreamOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/OuterJoinOperationWithTable",
+              "$ref" : "#/definitions/OuterJoinWithTableOperation",
               "type" : "object"
             }, {
               "$ref" : "#/definitions/PeekOperation",
@@ -1289,7 +1289,7 @@
       "title" : "InitializerDefinitionWithImplicitStoreType",
       "type" : "object"
     },
-    "JoinOperationWithGlobalTable" : {
+    "JoinWithGlobalTableOperation" : {
       "additionalProperties" : false,
       "description" : "Operation to join with a table",
       "properties" : {
@@ -1330,10 +1330,10 @@
         }
       },
       "required" : [ "globalTable", "mapper", "type", "valueJoiner" ],
-      "title" : "JoinOperationWithGlobalTable",
+      "title" : "JoinWithGlobalTableOperation",
       "type" : "object"
     },
-    "JoinOperationWithStream" : {
+    "JoinWithStreamOperation" : {
       "additionalProperties" : false,
       "description" : "Operation to join with a stream",
       "properties" : {
@@ -1349,14 +1349,14 @@
           "description" : "*(optional)* The name of the operation processor",
           "type" : "string"
         },
-        "store" : {
+        "otherStore" : {
           "anyOf" : [ {
             "type" : "string"
           }, {
             "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
-          "description" : "*(optional)* Materialized view of the joined streams"
+          "description" : "Materialized view of the joined stream"
         },
         "stream" : {
           "anyOf" : [ {
@@ -1365,7 +1365,16 @@
             "$ref" : "#/definitions/StreamDefinitionAsJoinTarget",
             "type" : "object"
           } ],
-          "description" : "A reference to the Stream, or an inline definition of the stream to join with"
+          "description" : "A reference to the stream, or an inline definition of the stream to join with"
+        },
+        "thisStore" : {
+          "anyOf" : [ {
+            "type" : "string"
+          }, {
+            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreType",
+            "type" : "object"
+          } ],
+          "description" : "Materialized view of the source stream"
         },
         "timeDifference" : {
           "anyOf" : [ {
@@ -1389,11 +1398,11 @@
           "description" : "A function that joins two values"
         }
       },
-      "required" : [ "stream", "timeDifference", "type", "valueJoiner" ],
-      "title" : "JoinOperationWithStream",
+      "required" : [ "otherStore", "stream", "thisStore", "timeDifference", "type", "valueJoiner" ],
+      "title" : "JoinWithStreamOperation",
       "type" : "object"
     },
-    "JoinOperationWithTable" : {
+    "JoinWithTableOperation" : {
       "additionalProperties" : false,
       "description" : "Operation to join with a table",
       "properties" : {
@@ -1443,7 +1452,7 @@
             "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
-          "description" : "*(optional)* Materialized view of the joined tables (only used for Table-Table joins)"
+          "description" : "*(optional)* Materialized view of the joined table (only used for Table-Table joins)"
         },
         "table" : {
           "anyOf" : [ {
@@ -1469,7 +1478,7 @@
         }
       },
       "required" : [ "table", "type", "valueJoiner" ],
-      "title" : "JoinOperationWithTable",
+      "title" : "JoinWithTableOperation",
       "type" : "object"
     },
     "KeyTransformerDefinition" : {
@@ -2447,7 +2456,7 @@
       "title" : "KeyValueTransformerDefinitionWithImplicitStoreType",
       "type" : "object"
     },
-    "LeftJoinOperationWithGlobalTable" : {
+    "LeftJoinWithGlobalTableOperation" : {
       "additionalProperties" : false,
       "description" : "Operation to leftJoin with a globalTable",
       "properties" : {
@@ -2488,10 +2497,10 @@
         }
       },
       "required" : [ "globalTable", "mapper", "type", "valueJoiner" ],
-      "title" : "LeftJoinOperationWithGlobalTable",
+      "title" : "LeftJoinWithGlobalTableOperation",
       "type" : "object"
     },
-    "LeftJoinOperationWithStream" : {
+    "LeftJoinWithStreamOperation" : {
       "additionalProperties" : false,
       "description" : "Operation to leftJoin with a stream",
       "properties" : {
@@ -2507,14 +2516,14 @@
           "description" : "*(optional)* The name of the operation processor",
           "type" : "string"
         },
-        "store" : {
+        "otherStore" : {
           "anyOf" : [ {
             "type" : "string"
           }, {
             "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
-          "description" : "*(optional)* Materialized view of the leftJoined streams"
+          "description" : "Materialized view of the leftJoined stream"
         },
         "stream" : {
           "anyOf" : [ {
@@ -2524,6 +2533,15 @@
             "type" : "object"
           } ],
           "description" : "A reference to the stream, or an inline definition of the stream to leftJoin with"
+        },
+        "thisStore" : {
+          "anyOf" : [ {
+            "type" : "string"
+          }, {
+            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreType",
+            "type" : "object"
+          } ],
+          "description" : "Materialized view of the source stream"
         },
         "timeDifference" : {
           "anyOf" : [ {
@@ -2547,11 +2565,11 @@
           "description" : "A function that joins two values"
         }
       },
-      "required" : [ "stream", "timeDifference", "type", "valueJoiner" ],
-      "title" : "LeftJoinOperationWithStream",
+      "required" : [ "otherStore", "stream", "thisStore", "timeDifference", "type", "valueJoiner" ],
+      "title" : "LeftJoinWithStreamOperation",
       "type" : "object"
     },
-    "LeftJoinOperationWithTable" : {
+    "LeftJoinWithTableOperation" : {
       "additionalProperties" : false,
       "description" : "Operation to leftJoin with a table",
       "properties" : {
@@ -2601,7 +2619,7 @@
             "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
-          "description" : "*(optional)* Materialized view of the leftJoined tables (only used for Table-Table joins)"
+          "description" : "*(optional)* Materialized view of the leftJoined table (only used for Table-Table joins)"
         },
         "table" : {
           "anyOf" : [ {
@@ -2610,7 +2628,7 @@
             "$ref" : "#/definitions/TableDefinitionAsJoinTarget",
             "type" : "object"
           } ],
-          "description" : "A reference to the Table, or an inline definition of the Table to join with"
+          "description" : "A reference to the table, or an inline definition of the table to join with"
         },
         "type" : {
           "description" : "The type of the operation",
@@ -2627,7 +2645,7 @@
         }
       },
       "required" : [ "table", "type", "valueJoiner" ],
-      "title" : "LeftJoinOperationWithTable",
+      "title" : "LeftJoinWithTableOperation",
       "type" : "object"
     },
     "MergeOperation" : {
@@ -2920,7 +2938,7 @@
       "title" : "MetadataTransformerDefinitionWithImplicitStoreType",
       "type" : "object"
     },
-    "OuterJoinOperationWithStream" : {
+    "OuterJoinWithStreamOperation" : {
       "additionalProperties" : false,
       "description" : "Operation to outerJoin with a stream",
       "properties" : {
@@ -2936,14 +2954,14 @@
           "description" : "*(optional)* The name of the operation processor",
           "type" : "string"
         },
-        "store" : {
+        "otherStore" : {
           "anyOf" : [ {
             "type" : "string"
           }, {
             "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
-          "description" : "*(optional)* Materialized view of the outerJoined streams"
+          "description" : "Materialized view of the outerJoined stream"
         },
         "stream" : {
           "anyOf" : [ {
@@ -2953,6 +2971,15 @@
             "type" : "object"
           } ],
           "description" : "A reference to the stream, or an inline definition of the stream to outerJoin with"
+        },
+        "thisStore" : {
+          "anyOf" : [ {
+            "type" : "string"
+          }, {
+            "$ref" : "#/definitions/WindowStateStoreDefinitionWithImplicitStoreType",
+            "type" : "object"
+          } ],
+          "description" : "Materialized view of the source stream"
         },
         "timeDifference" : {
           "anyOf" : [ {
@@ -2976,11 +3003,11 @@
           "description" : "A function that joins two values"
         }
       },
-      "required" : [ "stream", "timeDifference", "type", "valueJoiner" ],
-      "title" : "OuterJoinOperationWithStream",
+      "required" : [ "otherStore", "stream", "thisStore", "timeDifference", "type", "valueJoiner" ],
+      "title" : "OuterJoinWithStreamOperation",
       "type" : "object"
     },
-    "OuterJoinOperationWithTable" : {
+    "OuterJoinWithTableOperation" : {
       "additionalProperties" : false,
       "description" : "Operation to outerJoin with a table",
       "properties" : {
@@ -2995,7 +3022,7 @@
             "$ref" : "#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
-          "description" : "*(optional)* Materialized view of the outerJoined streams"
+          "description" : "*(optional)* Materialized view of the outerJoined table"
         },
         "table" : {
           "anyOf" : [ {
@@ -3021,7 +3048,7 @@
         }
       },
       "required" : [ "table", "type", "valueJoiner" ],
-      "title" : "OuterJoinOperationWithTable",
+      "title" : "OuterJoinWithTableOperation",
       "type" : "object"
     },
     "ParameterDefinition" : {
@@ -3166,31 +3193,31 @@
               "$ref" : "#/definitions/GroupByOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/JoinOperationWithGlobalTable",
+              "$ref" : "#/definitions/JoinWithGlobalTableOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/JoinOperationWithStream",
+              "$ref" : "#/definitions/JoinWithStreamOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/JoinOperationWithTable",
+              "$ref" : "#/definitions/JoinWithTableOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/LeftJoinOperationWithGlobalTable",
+              "$ref" : "#/definitions/LeftJoinWithGlobalTableOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/LeftJoinOperationWithStream",
+              "$ref" : "#/definitions/LeftJoinWithStreamOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/LeftJoinOperationWithTable",
+              "$ref" : "#/definitions/LeftJoinWithTableOperation",
               "type" : "object"
             }, {
               "$ref" : "#/definitions/MergeOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/OuterJoinOperationWithStream",
+              "$ref" : "#/definitions/OuterJoinWithStreamOperation",
               "type" : "object"
             }, {
-              "$ref" : "#/definitions/OuterJoinOperationWithTable",
+              "$ref" : "#/definitions/OuterJoinWithTableOperation",
               "type" : "object"
             }, {
               "$ref" : "#/definitions/PeekOperation",

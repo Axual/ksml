@@ -366,18 +366,4 @@ public abstract class BaseOperation implements StreamOperation {
         if (name != null) printed = printed.withName(name);
         return printed;
     }
-
-    private record WrapPartitioner(
-            StreamPartitioner<Object, Object> partitioner) implements StreamPartitioner<Object, Void> {
-        @Override
-        public Optional<Set<Integer>> partitions(String topic, Object key, Void value, int numPartitions) {
-            return partitioner.partitions(topic, key, value, numPartitions);
-        }
-    }
-
-    protected TableJoined<Object, Object> tableJoinedOf(StreamPartitioner<Object, Object> partitioner, StreamPartitioner<Object, Object> otherPartitioner) {
-        final var part = partitioner != null ? new WrapPartitioner(partitioner) : null;
-        final var otherPart = otherPartitioner != null ? new WrapPartitioner(otherPartitioner) : null;
-        return TableJoined.with(part, otherPart).withName(name);
-    }
 }

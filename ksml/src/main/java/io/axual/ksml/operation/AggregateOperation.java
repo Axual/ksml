@@ -23,6 +23,7 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.store.StoreUtil;
 import io.axual.ksml.stream.*;
 import io.axual.ksml.user.UserAggregator;
 import io.axual.ksml.user.UserInitializer;
@@ -69,7 +70,7 @@ public class AggregateOperation extends StoreOperation {
         final var userInit = new UserInitializer(init, tags);
         final var aggr = userFunctionOf(context, AGGREGATOR_NAME, aggregator, vr, superOf(k), superOf(v), superOf(vr));
         final var userAggr = new UserAggregator(aggr, tags);
-        final var kvStore = validateKeyValueStore(store(), k, vr);
+        final var kvStore = StoreUtil.validateKeyValueStore(this, store(), k, vr);
         final var mat = materializedOf(context, kvStore);
         final var named = namedOf();
         final KTable<Object, Object> output = mat != null
@@ -101,7 +102,7 @@ public class AggregateOperation extends StoreOperation {
         final var userAdd = new UserAggregator(add, tags);
         final var sub = userFunctionOf(context, SUBTRACTOR_NAME, subtractor, vr, superOf(k), superOf(vr), superOf(vr));
         final var userSub = new UserAggregator(sub, tags);
-        final var kvStore = validateKeyValueStore(store(), k, vr);
+        final var kvStore = StoreUtil.validateKeyValueStore(this, store(), k, vr);
         final var mat = materializedOf(context, kvStore);
         final var named = namedOf();
         final KTable<Object, Object> output = named != null
@@ -135,7 +136,7 @@ public class AggregateOperation extends StoreOperation {
         final var userAggr = new UserAggregator(aggr, tags);
         final var merg = userFunctionOf(context, MERGER_NAME, merger, vr, superOf(k), equalTo(vr), superOf(vr));
         final var userMerg = new UserMerger(merg, tags);
-        final var sessionStore = validateSessionStore(store(), k, vr);
+        final var sessionStore = StoreUtil.validateSessionStore(this, store(), k, vr);
         final var mat = materializedOf(context, sessionStore);
         final var named = namedOf();
         final KTable<Windowed<Object>, Object> output = named != null
@@ -167,7 +168,7 @@ public class AggregateOperation extends StoreOperation {
         final var userInit = new UserInitializer(init, tags);
         final var aggr = userFunctionOf(context, AGGREGATOR_NAME, aggregator, vr, superOf(k), superOf(v), superOf(vr));
         final var userAggr = new UserAggregator(aggr, tags);
-        final var windowStore = validateWindowStore(store(), k, vr);
+        final var windowStore = StoreUtil.validateWindowStore(this, store(), k, vr);
         final var mat = materializedOf(context, windowStore);
         final var named = namedOf();
         final KTable<Windowed<Object>, Object> output = named != null
@@ -195,7 +196,7 @@ public class AggregateOperation extends StoreOperation {
         final var vout = input.valueType();
         final var init = userFunctionOf(context, INITIALIZER_NAME, initializer, vout);
         final var userInit = new UserInitializer(init, tags);
-        final var kvStore = validateKeyValueStore(store(), k, vout);
+        final var kvStore = StoreUtil.validateKeyValueStore(this, store(), k, vout);
         final var mat = materializedOf(context, kvStore);
         final var named = namedOf();
         final KTable<Object, Object> output = named != null
@@ -226,7 +227,7 @@ public class AggregateOperation extends StoreOperation {
         final var userInit = new UserInitializer(init, tags);
         final var merg = userFunctionOf(context, MERGER_NAME, merger, v);
         final var userMerg = new UserMerger(merg, tags);
-        final var sessionStore = validateSessionStore(store(), k, v);
+        final var sessionStore = StoreUtil.validateSessionStore(this, store(), k, v);
         final var mat = materializedOf(context, sessionStore);
         final var named = namedOf();
         final KTable<Windowed<Object>, Object> output = named != null
@@ -254,7 +255,7 @@ public class AggregateOperation extends StoreOperation {
         final var v = input.valueType();
         final var init = userFunctionOf(context, INITIALIZER_NAME, initializer, v);
         final var userInit = new UserInitializer(init, tags);
-        final var kvStore = validateWindowStore(store(), k, v);
+        final var kvStore = StoreUtil.validateWindowStore(this, store(), k, v);
         final var mat = materializedOf(context, kvStore);
         final var named = namedOf();
         final KTable<Windowed<Object>, Object> output = named != null

@@ -23,6 +23,7 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.store.StoreUtil;
 import io.axual.ksml.stream.*;
 import io.axual.ksml.type.UserType;
 import org.apache.kafka.common.utils.Bytes;
@@ -48,7 +49,7 @@ public class CountOperation extends StoreOperation {
 
         final var k = input.keyType();
         final var vr = streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
-        final var kvStore = validateKeyValueStore(store(), k, vr);
+        final var kvStore = StoreUtil.validateKeyValueStore(this, store(), k, vr);
         final Materialized<Object, Long, KeyValueStore<Bytes, byte[]>> mat = materializedOf(context, kvStore);
         final var named = namedOf();
         final KTable<Object, Long> output = named != null
@@ -71,7 +72,7 @@ public class CountOperation extends StoreOperation {
 
         final var k = input.keyType();
         final var vr = streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
-        final var kvStore = validateKeyValueStore(store(), k, vr);
+        final var kvStore = StoreUtil.validateKeyValueStore(this, store(), k, vr);
         final Materialized<Object, Long, KeyValueStore<Bytes, byte[]>> mat = materializedOf(context, kvStore);
         final var named = namedOf();
         final KTable<Object, Long> output = named != null
@@ -94,7 +95,7 @@ public class CountOperation extends StoreOperation {
 
         final var k = input.keyType();
         final var vr = streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
-        final var sessionStore = validateSessionStore(store(), k, vr);
+        final var sessionStore = StoreUtil.validateSessionStore(this, store(), k, vr);
         final Materialized<Object, Long, SessionStore<Bytes, byte[]>> mat = materializedOf(context, sessionStore);
         final var named = namedOf();
         final KTable<Windowed<Object>, Long> output = named != null
@@ -117,7 +118,7 @@ public class CountOperation extends StoreOperation {
 
         final var k = input.keyType();
         final var vr = streamDataTypeOf(new UserType(DataLong.DATATYPE), false);
-        final var windowStore = validateWindowStore(store(), k, vr);
+        final var windowStore = StoreUtil.validateWindowStore(this, store(), k, vr);
         final Materialized<Object, Long, WindowStore<Bytes, byte[]>> mat = materializedOf(context, windowStore);
         final var named = namedOf();
         final KTable<Windowed<Object>, Long> output = named != null

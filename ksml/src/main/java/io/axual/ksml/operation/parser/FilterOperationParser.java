@@ -29,7 +29,7 @@ import io.axual.ksml.operation.FilterOperation;
 import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.store.StoreType;
 
-public class FilterOperationParser extends StoreOperationParser<FilterOperation> {
+public class FilterOperationParser extends OperationParser<FilterOperation> {
     public FilterOperationParser(TopologyResources resources) {
         super(KSMLDSL.Operations.FILTER, resources);
     }

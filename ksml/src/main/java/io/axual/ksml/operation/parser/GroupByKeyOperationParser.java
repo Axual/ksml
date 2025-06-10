@@ -27,7 +27,7 @@ import io.axual.ksml.operation.GroupByKeyOperation;
 import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.store.StoreType;
 
-public class GroupByKeyOperationParser extends StoreOperationParser<GroupByKeyOperation> {
+public class GroupByKeyOperationParser extends OperationParser<GroupByKeyOperation> {
     public GroupByKeyOperationParser(TopologyResources resources) {
         super(KSMLDSL.Operations.GROUP_BY_KEY, resources);
     }

@@ -25,6 +25,7 @@ import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.store.StoreUtil;
 import io.axual.ksml.stream.*;
 import io.axual.ksml.type.UserTupleType;
 import io.axual.ksml.type.UserType;
@@ -55,7 +56,7 @@ public class GroupByOperation extends StoreOperation {
         final var v = input.valueType();
         final var kr = streamDataTypeOf(firstSpecificType(selector, k.userType()), true);
         final var sel = userFunctionOf(context, SELECTOR_NAME, selector, kr, superOf(k), superOf(v));
-        final var kvStore = validateKeyValueStore(store(), kr, v);
+        final var kvStore = StoreUtil.validateKeyValueStore(this, store(), kr, v);
         final var userSel = new UserKeyTransformer(sel, tags);
         final var grouped = groupedOf(kr, v, kvStore);
         final KGroupedStream<Object, Object> output = grouped != null
@@ -82,7 +83,7 @@ public class GroupByOperation extends StoreOperation {
             final var sel = userFunctionOf(context, SELECTOR_NAME, selector, krAndVr, superOf(k), superOf(v));
             final var kr = streamDataTypeOf(userTupleType.getUserType(0), true);
             final var vr = streamDataTypeOf(userTupleType.getUserType(1), false);
-            final var kvStore = validateKeyValueStore(store(), kr, vr);
+            final var kvStore = StoreUtil.validateKeyValueStore(this, store(), kr, vr);
             final var userSel = new UserKeyValueTransformer(sel, tags);
             final var grouped = groupedOf(kr, vr, kvStore);
             final KGroupedTable<Object, Object> output = grouped != null

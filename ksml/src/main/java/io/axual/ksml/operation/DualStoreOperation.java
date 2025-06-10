@@ -25,16 +25,20 @@ import io.axual.ksml.definition.StateStoreDefinition;
 import lombok.Getter;
 
 @Getter
-public class StoreOperation extends BaseOperation {
-    private final StateStoreDefinition store;
+public class DualStoreOperation extends BaseOperation {
+    private final StateStoreDefinition store1;
+    private final StateStoreDefinition store2;
 
-    public StoreOperation(StoreOperationConfig config) {
+    public DualStoreOperation(DualStoreOperationConfig config) {
         super(config);
-        this.store = config.store;
+        this.store1 = config.store1;
+        this.store2 = config.store2;
     }
 
     @Override
     public String toString() {
-        return super.toString() + (store != null && store.name() != null ? " [storeName=\"" + store.name() + "\"]" : "");
+        return super.toString()
+                + (store1 != null && store1.name() != null ? " [storeName1=\"" + store1.name() + "\"]" : "")
+                + (store2 != null && store2.name() != null ? " [storeName2=\"" + store2.name() + "\"]" : "");
     }
 }
