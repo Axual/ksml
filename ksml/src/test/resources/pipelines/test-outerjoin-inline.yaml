@@ -1,0 +1,41 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
+streams:
+  test_input1:
+    topic: input1
+    keyType: string
+    valueType: string
+  test_input2:
+    topic: input2
+    keyType: string
+    valueType: string
+  test_output:
+    topic: joined
+    keyType: string
+    valueType: string
+
+stores:
+  joined_store:
+    type: window
+    keyType: string
+    valueType: string
+
+pipelines:
+  main:
+    from: test_input1
+    via:
+      - type: outerJoin
+        stream: test_input2
+        valueJoiner:
+          resultType: string
+          code: |
+            if value1 == None:
+              joined = "? ," + value2
+            elif value2 == None:
+              joined = value1 + ",?"
+            else:
+              joined =  value1 + "," + value2
+          expression: joined
+        timeDifference: 1s
+        grace: 1s
+        store: joined_store
+    to: test_output
