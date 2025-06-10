@@ -294,8 +294,8 @@ store:
 #      requests:
 #        storage: 1Gi
 
-# -- KSML prometheus server port defined in the StatefulSet/Job. Note that this must match the port defined in ksmlRunnerConfig.
 prometheus:
+  # -- KSML prometheus server port defined in the StatefulSet/Job. Note that this must match the port defined in ksmlRunnerConfig.
   enabled: false
   # -- Port on which Prometheus metrics endpoint should be initialized.
   port: "9999"
