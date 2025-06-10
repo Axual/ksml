@@ -27,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -68,7 +67,6 @@ public class KSMLGroupByTest {
 
     @KSMLTest(topology = "pipelines/test-groupby-code.yaml", schemaDirectory = "schemas")
     @DisplayName("Records can be grouped with a code block")
-    @Disabled("grouping with a code block gives problems, pipeline wrong?")
     void testGroupBycodeStore() {
         inputs.forEach(rec -> inputTopic.pipeInput(rec));
 
