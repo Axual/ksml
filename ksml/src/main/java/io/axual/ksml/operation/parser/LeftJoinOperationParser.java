@@ -37,7 +37,6 @@ import io.axual.ksml.operation.LeftJoinWithStreamOperation;
 import io.axual.ksml.operation.LeftJoinWithTableOperation;
 import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.parser.StructsParser;
-import io.axual.ksml.store.StoreParserUtil;
 import io.axual.ksml.store.StoreType;
 
 import java.util.ArrayList;
@@ -98,8 +97,8 @@ public class LeftJoinOperationParser extends OperationParser<BaseOperation> {
                 valueJoinerField,
                 durationField(Operations.Join.TIME_DIFFERENCE, "The maximum time difference for a leftJoin over two streams on the same key"),
                 optional(durationField(Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
-                StoreParserUtil.storeField(Operations.SOURCE_STORE_ATTRIBUTE, true, "Materialized view of the source stream", StoreType.WINDOW_STORE, resources()),
-                StoreParserUtil.storeField(Operations.OTHER_STORE_ATTRIBUTE, true, "Materialized view of the leftJoined stream", StoreType.WINDOW_STORE, resources()),
+                storeField(Operations.SOURCE_STORE_ATTRIBUTE, true, "Materialized view of the source stream", StoreType.WINDOW_STORE),
+                storeField(Operations.OTHER_STORE_ATTRIBUTE, true, "Materialized view of the leftJoined stream", StoreType.WINDOW_STORE),
                 (name, stream, valueJoiner, timeDifference, grace, thisStore, otherStore, tags) -> {
                     if (stream instanceof StreamDefinition streamDef) {
                         return new LeftJoinWithStreamOperation(dualStoreOperationConfig(name, tags, thisStore, otherStore), streamDef, valueJoiner, timeDifference, grace);

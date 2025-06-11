@@ -37,7 +37,6 @@ import io.axual.ksml.operation.OuterJoinWithStreamOperation;
 import io.axual.ksml.operation.OuterJoinWithTableOperation;
 import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.parser.StructsParser;
-import io.axual.ksml.store.StoreParserUtil;
 import io.axual.ksml.store.StoreType;
 
 import java.util.ArrayList;
@@ -88,8 +87,8 @@ public class OuterJoinOperationParser extends OperationParser<BaseOperation> {
                 functionField(KSMLDSL.Operations.Join.VALUE_JOINER, "A function that joins two values", new ValueJoinerDefinitionParser(false)),
                 durationField(KSMLDSL.Operations.Join.TIME_DIFFERENCE, "The maximum time difference for an outerJoin over two streams on the same key"),
                 optional(durationField(KSMLDSL.Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
-                StoreParserUtil.storeField(KSMLDSL.Operations.SOURCE_STORE_ATTRIBUTE, true, "Materialized view of the source stream", StoreType.WINDOW_STORE, resources()),
-                StoreParserUtil.storeField(KSMLDSL.Operations.OTHER_STORE_ATTRIBUTE, true, "Materialized view of the outerJoined stream", StoreType.WINDOW_STORE, resources()),
+                storeField(KSMLDSL.Operations.SOURCE_STORE_ATTRIBUTE, true, "Materialized view of the source stream", StoreType.WINDOW_STORE),
+                storeField(KSMLDSL.Operations.OTHER_STORE_ATTRIBUTE, true, "Materialized view of the outerJoined stream", StoreType.WINDOW_STORE),
                 (name, stream, valueJoiner, timeDifference, grace, thisStore, otherStore, tags) -> {
                     if (stream instanceof StreamDefinition streamDef) {
                         return new OuterJoinWithStreamOperation(dualStoreOperationConfig(name, tags, thisStore, otherStore), streamDef, valueJoiner, timeDifference, grace);

@@ -26,7 +26,6 @@ import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.type.UserType;
-import io.axual.ksml.util.ParserUtil;
 import io.axual.ksml.util.SchemaUtil;
 import lombok.Getter;
 
@@ -63,7 +62,18 @@ public abstract class DefinitionParser<T> extends BaseParser<T> implements Struc
     }
 
     protected static <V> StructsParser<V> optional(StructsParser<V> parser) {
-        return ParserUtil.optional(parser);
+        final var newSchemas = new ArrayList<StructSchema>();
+        for (final var schema : parser.schemas()) {
+            if (!schema.fields().isEmpty()) {
+                final var newFields = schema.fields().stream()
+                        .map(field -> field.required() ? new DataField(field.name(), field.schema(), "*(optional)* " + field.doc(), field.tag(), false, field.constant(), field.defaultValue()) : field)
+                        .toList();
+                newSchemas.add(new StructSchema(schema.namespace(), schema.name(), schema.doc(), newFields));
+            } else {
+                newSchemas.add(schema);
+            }
+        }
+        return StructsParser.of(node -> node != null ? parser.parse(node) : null, newSchemas);
     }
 
     protected static StructSchema structSchema(Class<?> clazz, String doc, List<DataField> fields) {
