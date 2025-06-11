@@ -32,13 +32,19 @@ import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.runner.config.ApplicationServerConfig;
 import io.axual.ksml.runner.exception.RunnerException;
 import io.axual.ksml.runner.streams.KSMLClientSupplier;
+import io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.utils.Utils;
 import org.apache.kafka.streams.*;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -117,6 +123,35 @@ public class KafkaStreamsRunner implements Runner {
         log.info("Pipeline processing state change. Moving from old state '{}' to new state '{}'", oldState, newState);
     }
 
+    private static final String CLEANUP_INTERCEPTOR_CLASS_NAME = AxualHeaderCleaningInterceptor.class.getCanonicalName();
+
+    private static void addCleanupInterceptor(String configPrefix, Map<String, Object> configs, boolean addConfigIfMissing) {
+        final var configName = configPrefix + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG;
+        if (!configs.containsKey(configName) && !addConfigIfMissing) {
+            return;
+        }
+        final var configValue = ConfigDef.parseType(configName, configs.get(configName), ConfigDef.Type.LIST);
+
+        var interceptorClasses = new LinkedList<String>();
+        if(configValue instanceof List<?> rawInterceptors) {
+            // add list items
+            for(Object rawInterceptor : rawInterceptors) {
+                if(rawInterceptor instanceof String interceptorClassName) {
+                    interceptorClasses.add(interceptorClassName);
+                }else if(rawInterceptor instanceof Class<?> clazz) {
+                    interceptorClasses.add(clazz.getCanonicalName());
+                }
+            }
+
+            if(!interceptorClasses.contains(CLEANUP_INTERCEPTOR_CLASS_NAME)) {
+                // Add the cleanup interceptor as first interceptor
+                interceptorClasses.addFirst(CLEANUP_INTERCEPTOR_CLASS_NAME);
+            }
+        }
+
+        configs.put(configName, String.join(",", interceptorClasses));
+    }
+
     private Map<String, Object> getStreamsConfig(Map<String, String> initialConfigs, String storageDirectory, ApplicationServerConfig appServer) {
         final Map<String, Object> result = initialConfigs != null ? new HashMap<>(initialConfigs) : new HashMap<>();
         // Set default value if not explicitly configured
@@ -125,6 +160,18 @@ public class KafkaStreamsRunner implements Runner {
         // Explicit configs can overwrite those from the map
         result.put(StreamsConfig.DEFAULT_PRODUCTION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class);
         result.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class);
+
+        // Make sure that all consumers have an interceptor configuration
+        addCleanupInterceptor(StreamsConfig.CONSUMER_PREFIX, result, true);
+        addCleanupInterceptor(StreamsConfig.MAIN_CONSUMER_PREFIX, result, false);
+        addCleanupInterceptor(StreamsConfig.RESTORE_CONSUMER_PREFIX, result, false);
+        addCleanupInterceptor(StreamsConfig.GLOBAL_CONSUMER_PREFIX, result, false);
+
+        /*
+        Permutations
+        Global set, specific unset
+
+         */
 
         result.put(StreamsConfig.STATE_DIR_CONFIG, storageDirectory);
         if (appServer != null && appServer.enabled()) {
