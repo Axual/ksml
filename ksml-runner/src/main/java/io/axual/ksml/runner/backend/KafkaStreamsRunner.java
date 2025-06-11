@@ -21,26 +21,14 @@ package io.axual.ksml.runner.backend;
  */
 
 
-import io.axual.ksml.TopologyGenerator;
-import io.axual.ksml.client.resolving.ResolvingClientConfig;
-import io.axual.ksml.execution.ExecutionContext;
-import io.axual.ksml.execution.ExecutionErrorHandler;
-import io.axual.ksml.generator.TopologyDefinition;
-import io.axual.ksml.metric.KsmlTagEnricher;
-import io.axual.ksml.metric.KsmlMetricsReporter;
-import io.axual.ksml.python.PythonContextConfig;
-import io.axual.ksml.runner.config.ApplicationServerConfig;
-import io.axual.ksml.runner.exception.RunnerException;
-import io.axual.ksml.runner.streams.KSMLClientSupplier;
-import io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.utils.Utils;
-import org.apache.kafka.streams.*;
+import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.Topology;
+import org.apache.kafka.streams.TopologyConfig;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -50,11 +38,30 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 
+import io.axual.ksml.TopologyGenerator;
+import io.axual.ksml.client.resolving.ResolvingClientConfig;
+import io.axual.ksml.execution.ExecutionContext;
+import io.axual.ksml.execution.ExecutionErrorHandler;
+import io.axual.ksml.generator.TopologyDefinition;
+import io.axual.ksml.metric.KsmlMetricsReporter;
+import io.axual.ksml.metric.KsmlTagEnricher;
+import io.axual.ksml.python.PythonContextConfig;
+import io.axual.ksml.runner.config.ApplicationServerConfig;
+import io.axual.ksml.runner.exception.RunnerException;
+import io.axual.ksml.runner.streams.KSMLClientSupplier;
+import io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+
 @Slf4j
 public class KafkaStreamsRunner implements Runner {
     @Getter
     private final KafkaStreams kafkaStreams;
     private final AtomicBoolean stopRunning = new AtomicBoolean(false);
+    // Default sleep durations that can be overridden in tests
+    private long startupSleepMs = 1000;
+    private long pollingSleepMs = 200;
 
     @Builder
     public record Config(Map<String, TopologyDefinition> definitions,
@@ -125,53 +132,74 @@ public class KafkaStreamsRunner implements Runner {
 
     private static final String CLEANUP_INTERCEPTOR_CLASS_NAME = AxualHeaderCleaningInterceptor.class.getCanonicalName();
 
-    private static void addCleanupInterceptor(String configPrefix, Map<String, Object> configs, boolean addConfigIfMissing) {
+    // Made package-private for testability
+    void addCleanupInterceptor(String configPrefix, Map<String, Object> configs, boolean addConfigIfMissing) {
         final var configName = configPrefix + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG;
         if (!configs.containsKey(configName) && !addConfigIfMissing) {
             return;
         }
-        final var configValue = ConfigDef.parseType(configName, configs.get(configName), ConfigDef.Type.LIST);
 
         var interceptorClasses = new LinkedList<String>();
-        if(configValue instanceof List<?> rawInterceptors) {
-            // add list items
-            for(Object rawInterceptor : rawInterceptors) {
-                if(rawInterceptor instanceof String interceptorClassName) {
-                    interceptorClasses.add(interceptorClassName);
-                }else if(rawInterceptor instanceof Class<?> clazz) {
-                    interceptorClasses.add(clazz.getCanonicalName());
+
+        // Get existing interceptors if any
+        final var configValue = configs.get(configName);
+        if (configValue != null) {
+            var parsedValue = ConfigDef.parseType(configName, configValue, ConfigDef.Type.LIST);
+            if (parsedValue instanceof List<?> rawInterceptors) {
+                // add list items
+                for (Object rawInterceptor : rawInterceptors) {
+                    if (rawInterceptor instanceof String interceptorClassName) {
+                        interceptorClasses.add(interceptorClassName);
+                    } else if (rawInterceptor instanceof Class<?> clazz) {
+                        interceptorClasses.add(clazz.getCanonicalName());
+                    }
                 }
             }
+        }
 
-            if(!interceptorClasses.contains(CLEANUP_INTERCEPTOR_CLASS_NAME)) {
-                // Add the cleanup interceptor as first interceptor
-                interceptorClasses.addFirst(CLEANUP_INTERCEPTOR_CLASS_NAME);
-            }
+        // Add the cleanup interceptor if not already present
+        if (!interceptorClasses.contains(CLEANUP_INTERCEPTOR_CLASS_NAME)) {
+            // Add the cleanup interceptor as first interceptor
+            interceptorClasses.addFirst(CLEANUP_INTERCEPTOR_CLASS_NAME);
         }
 
         configs.put(configName, String.join(",", interceptorClasses));
     }
 
-    private Map<String, Object> getStreamsConfig(Map<String, String> initialConfigs, String storageDirectory, ApplicationServerConfig appServer) {
+    // Package-private constructor for testing
+    KafkaStreamsRunner(Config config, BiFunction<Topology, Properties, KafkaStreams> kafkaStreamsFactory, KsmlTagEnricher tagEnricher) {
+        log.info("Constructing Kafka Backend (test mode)");
+
+        final var streamsProps = getStreamsConfig(config.kafkaConfig, config.storageDirectory, config.appServer);
+
+        streamsProps.put(StreamsConfig.METRIC_REPORTER_CLASSES_CONFIG,
+                "io.axual.ksml.metric.KsmlMetricsReporter," +
+                        "org.apache.kafka.common.metrics.JmxReporter");
+        streamsProps.put(KsmlMetricsReporter.ENRICHER_INSTANCE_CONFIG, tagEnricher);
+
+        // Create a dummy topology for testing
+        Topology dummyTopology = new Topology();
+
+        kafkaStreams = kafkaStreamsFactory.apply(dummyTopology, mapToProperties(streamsProps));
+        kafkaStreams.setStateListener(this::logStreamsStateChange);
+        kafkaStreams.setUncaughtExceptionHandler(ExecutionContext.INSTANCE.errorHandling()::uncaughtException);
+    }
+
+    // Made package-private for testability
+    Map<String, Object> getStreamsConfig(Map<String, String> initialConfigs, String storageDirectory, ApplicationServerConfig appServer) {
         final Map<String, Object> result = initialConfigs != null ? new HashMap<>(initialConfigs) : new HashMap<>();
         // Set default value if not explicitly configured
         result.putIfAbsent(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE);
 
         // Explicit configs can overwrite those from the map
-        result.put(StreamsConfig.DEFAULT_PRODUCTION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class);
-        result.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class);
+        result.put(StreamsConfig.PRODUCTION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class);
+        result.put(StreamsConfig.DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class);
 
         // Make sure that all consumers have an interceptor configuration
         addCleanupInterceptor(StreamsConfig.CONSUMER_PREFIX, result, true);
         addCleanupInterceptor(StreamsConfig.MAIN_CONSUMER_PREFIX, result, false);
         addCleanupInterceptor(StreamsConfig.RESTORE_CONSUMER_PREFIX, result, false);
         addCleanupInterceptor(StreamsConfig.GLOBAL_CONSUMER_PREFIX, result, false);
-
-        /*
-        Permutations
-        Global set, specific unset
-
-         */
 
         result.put(StreamsConfig.STATE_DIR_CONFIG, storageDirectory);
         if (appServer != null && appServer.enabled()) {
@@ -205,11 +233,11 @@ public class KafkaStreamsRunner implements Runner {
         try {
             kafkaStreams.start();
             // Allow Kafka Streams to start up asynchronously
-            Utils.sleep(1000);
+            Utils.sleep(startupSleepMs);
 
             // While we need to keep running, wait and check for failure state
             while (isRunning() && !stopRunning.get()) {
-                Utils.sleep(200);
+                Utils.sleep(pollingSleepMs);
             }
         } finally {
             if (isRunning()) {
@@ -222,6 +250,12 @@ public class KafkaStreamsRunner implements Runner {
         if (getState() == State.FAILED) {
             throw new RunnerException("Kafka Streams is in a failed state");
         }
+    }
+
+    // Package-private setter for tests
+    void setSleepDurations(long startupSleepMs, long pollingSleepMs) {
+        this.startupSleepMs = startupSleepMs;
+        this.pollingSleepMs = pollingSleepMs;
     }
 
     @Override

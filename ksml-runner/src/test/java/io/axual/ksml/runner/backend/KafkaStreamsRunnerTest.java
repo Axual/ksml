@@ -20,15 +20,12 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.client.resolving.ResolvingClientConfig;
-import io.axual.ksml.runner.config.ApplicationServerConfig;
-import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.awaitility.Awaitility;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,12 +38,24 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
+
+import io.axual.ksml.client.resolving.ResolvingClientConfig;
+import io.axual.ksml.execution.ExecutionErrorHandler;
+import io.axual.ksml.metric.KsmlTagEnricher;
+import io.axual.ksml.runner.config.ApplicationServerConfig;
+import io.axual.ksml.runner.exception.RunnerException;
+import lombok.extern.slf4j.Slf4j;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Named.named;
@@ -121,7 +130,211 @@ class KafkaStreamsRunnerTest {
                 .doesNotContainKeys(RESTRICTED_CONFIGS);
     }
 
-    @Disabled("Somehow Kafka Streams mock gets stuck during these tests, needs further investigation")
+    @Test
+    @DisplayName("Test getStreamsConfig method")
+    void testGetStreamsConfig() {
+        // Create a runner to test the method
+        final var config = KafkaStreamsRunner.Config.builder()
+                .definitions(Map.of())
+                .kafkaConfig(INPUT_CONFIG_WITHOUT_PATTERNS)
+                .storageDirectory("tmp")
+                .build();
+
+        var runner = new KafkaStreamsRunner(config, (topology, properties) -> mock(KafkaStreams.class), mock(KsmlTagEnricher.class));
+
+        // Test case 1: Basic configuration
+        var result1 = runner.getStreamsConfig(INPUT_CONFIG_WITHOUT_PATTERNS, "test-dir", null);
+        assertThat(result1)
+                .containsEntry(StreamsConfig.APPLICATION_ID_CONFIG, "test-id")
+                .containsEntry(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "mock:9092")
+                .containsEntry("AnotherKey", "value")
+                .containsEntry(StreamsConfig.STATE_DIR_CONFIG, "test-dir")
+                .containsEntry(StreamsConfig.PRODUCTION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class)
+                .containsEntry(StreamsConfig.DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class)
+                .containsEntry(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE)
+                .containsKey(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG);
+
+        // Test case 2: With application server
+        var appServer = ApplicationServerConfig.builder()
+                .enabled(true)
+                .host("localhost")
+                .port("8080")
+                .build();
+
+        var result2 = runner.getStreamsConfig(INPUT_CONFIG_WITHOUT_PATTERNS, "test-dir", appServer);
+        assertThat(result2)
+                .containsEntry(StreamsConfig.APPLICATION_SERVER_CONFIG, "localhost:8080");
+
+        // Test case 3: With null initial configs
+        var result3 = runner.getStreamsConfig(null, "test-dir", null);
+        assertThat(result3)
+                .containsEntry(StreamsConfig.STATE_DIR_CONFIG, "test-dir")
+                .containsEntry(StreamsConfig.PRODUCTION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class)
+                .containsEntry(StreamsConfig.DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class)
+                .containsEntry(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE)
+                .containsKey(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG);
+    }
+
+    @Test
+    @DisplayName("Test addCleanupInterceptor method")
+    void testAddCleanupInterceptor() {
+        // Create a runner to test the method
+        final var config = KafkaStreamsRunner.Config.builder()
+                .definitions(Map.of())
+                .kafkaConfig(INPUT_CONFIG_WITHOUT_PATTERNS)
+                .storageDirectory("tmp")
+                .build();
+
+        var runner = new KafkaStreamsRunner(config, (topology, properties) -> mock(KafkaStreams.class), mock(KsmlTagEnricher.class));
+
+        // Test case 1: Empty config, add if missing = true
+        var configs1 = new HashMap<String, Object>();
+        runner.addCleanupInterceptor(StreamsConfig.CONSUMER_PREFIX, configs1, true);
+        assertThat(configs1)
+                .containsKey(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG)
+                .containsValue("io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor");
+
+        // Test case 2: Empty config, add if missing = false
+        var configs2 = new HashMap<String, Object>();
+        runner.addCleanupInterceptor(StreamsConfig.CONSUMER_PREFIX, configs2, false);
+        assertThat(configs2).isEmpty();
+
+        // Test case 3: Existing interceptor config as String
+        var configs3 = new HashMap<String, Object>();
+        configs3.put(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, "some.other.Interceptor");
+        runner.addCleanupInterceptor(StreamsConfig.CONSUMER_PREFIX, configs3, false);
+        assertThat(configs3)
+                .containsKey(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG)
+                .containsValue("io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor,some.other.Interceptor");
+
+        // Test case 4: Existing interceptor config as List
+        var configs4 = new HashMap<String, Object>();
+        configs4.put(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, List.of("some.other.Interceptor"));
+        runner.addCleanupInterceptor(StreamsConfig.CONSUMER_PREFIX, configs4, false);
+        assertThat(configs4)
+                .containsKey(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG)
+                .containsValue("io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor,some.other.Interceptor");
+
+        // Test case 5: Existing interceptor config already contains our interceptor
+        var configs5 = new HashMap<String, Object>();
+        configs5.put(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG,
+                "io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor,some.other.Interceptor");
+        runner.addCleanupInterceptor(StreamsConfig.CONSUMER_PREFIX, configs5, false);
+        assertThat(configs5)
+                .containsKey(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG)
+                .containsValue("io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor,some.other.Interceptor");
+    }
+
+    @Test
+    @DisplayName("Test error handling")
+    void testErrorHandling() throws Exception {
+        final var mockStreams = mock(KafkaStreams.class);
+        AtomicReference<KafkaStreams.State> streamState = new AtomicReference<>(KafkaStreams.State.CREATED);
+
+        // Mock the state method to return the current state from the AtomicReference
+        when(mockStreams.state()).thenAnswer(inv -> streamState.get());
+
+        // Create a runner with the mock
+        final var config = KafkaStreamsRunner.Config.builder()
+                .definitions(Map.of())
+                .kafkaConfig(INPUT_CONFIG_WITHOUT_PATTERNS)
+                .storageDirectory("tmp")
+                .build();
+
+        var runner = new KafkaStreamsRunner(config, (topology, properties) -> mockStreams, mock(KsmlTagEnricher.class));
+        runner.setSleepDurations(10, 10);
+
+        // Set up a thread to run the runner
+        final var thread = new Thread(runner);
+
+        try {
+            // Start in ERROR state
+            streamState.set(KafkaStreams.State.ERROR);
+
+            // Start the runner
+            thread.start();
+
+            // Wait for the thread to complete or timeout
+            thread.join(1000);
+
+            // Verify that the runner is not running
+            assertThat(runner.isRunning()).isFalse();
+            assertThat(runner.getState()).isEqualTo(Runner.State.FAILED);
+
+            // Verify that start was called
+            verify(mockStreams).start();
+
+            // We don't verify close() because the runner throws an exception before close() is called
+            // This is expected behavior when the streams are in ERROR state
+        } catch (Exception e) {
+            // If the thread throws an exception, make sure it's a RunnerException
+            assertThat(e).isInstanceOf(RunnerException.class)
+                    .hasMessage("Kafka Streams is in a failed state");
+        } finally {
+            // Make sure the thread is stopped
+            if (thread.isAlive()) {
+                runner.stop();
+                thread.join(1000);
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("Test state transitions")
+    void testStateTransitions() {
+        final var mockStreams = mock(KafkaStreams.class);
+
+        // Create a runner with the mock
+        final var config = KafkaStreamsRunner.Config.builder()
+                .definitions(Map.of())
+                .kafkaConfig(INPUT_CONFIG_WITHOUT_PATTERNS)
+                .storageDirectory("tmp")
+                .build();
+
+        var runner = new KafkaStreamsRunner(config, (topology, properties) -> mockStreams, mock(KsmlTagEnricher.class));
+
+        // Test all state mappings
+        when(mockStreams.state()).thenReturn(KafkaStreams.State.CREATED);
+        assertThat(runner.getState()).isEqualTo(Runner.State.CREATED);
+
+        when(mockStreams.state()).thenReturn(KafkaStreams.State.REBALANCING);
+        assertThat(runner.getState()).isEqualTo(Runner.State.STARTING);
+
+        when(mockStreams.state()).thenReturn(KafkaStreams.State.RUNNING);
+        assertThat(runner.getState()).isEqualTo(Runner.State.STARTED);
+
+        when(mockStreams.state()).thenReturn(KafkaStreams.State.PENDING_SHUTDOWN);
+        assertThat(runner.getState()).isEqualTo(Runner.State.STOPPING);
+
+        when(mockStreams.state()).thenReturn(KafkaStreams.State.NOT_RUNNING);
+        assertThat(runner.getState()).isEqualTo(Runner.State.STOPPED);
+
+        when(mockStreams.state()).thenReturn(KafkaStreams.State.PENDING_ERROR);
+        assertThat(runner.getState()).isEqualTo(Runner.State.FAILED);
+
+        when(mockStreams.state()).thenReturn(KafkaStreams.State.ERROR);
+        assertThat(runner.getState()).isEqualTo(Runner.State.FAILED);
+
+        // Test isRunning method
+        when(mockStreams.state()).thenReturn(KafkaStreams.State.CREATED);
+        assertThat(runner.isRunning()).isFalse();
+
+        when(mockStreams.state()).thenReturn(KafkaStreams.State.REBALANCING);
+        assertThat(runner.isRunning()).isTrue();
+
+        when(mockStreams.state()).thenReturn(KafkaStreams.State.RUNNING);
+        assertThat(runner.isRunning()).isTrue();
+
+        when(mockStreams.state()).thenReturn(KafkaStreams.State.PENDING_SHUTDOWN);
+        assertThat(runner.isRunning()).isTrue();
+
+        when(mockStreams.state()).thenReturn(KafkaStreams.State.NOT_RUNNING);
+        assertThat(runner.isRunning()).isFalse();
+
+        when(mockStreams.state()).thenReturn(KafkaStreams.State.ERROR);
+        assertThat(runner.isRunning()).isFalse();
+    }
+
     @Test
     @DisplayName("Check Kafka Streams lifecycle")
     void testStreamsRunner() throws Exception {
@@ -152,7 +365,9 @@ class KafkaStreamsRunnerTest {
                 .storageDirectory("tmp")
                 .build();
 
-        var runner = new KafkaStreamsRunner(config, mockStreamsSupplier);
+        var runner = new KafkaStreamsRunner(config, mockStreamsSupplier, mock(KsmlTagEnricher.class));
+        // Set small sleep durations for faster test execution
+        runner.setSleepDurations(10, 10);
 
         // Check initial runner state
         assertThat(runner)
@@ -179,7 +394,7 @@ class KafkaStreamsRunnerTest {
             // Start runner, is blocked so check with async
             var future = CompletableFuture.runAsync(runner, executor);
 
-            verify(mockStreams, Mockito.timeout(60000).times(1)).start();
+            verify(mockStreams, Mockito.timeout(1000).times(1)).start();
             assertThat(future)
                     .as("Future should not have finished yet")
                     .isNotDone();
@@ -190,9 +405,8 @@ class KafkaStreamsRunnerTest {
             // Stop the runner
             runner.stop();
 
-
             Awaitility.await("Wait for runner to stop")
-                    .atMost(Duration.ofSeconds(10))
+                    .atMost(Duration.ofSeconds(1))
                     .until(future::isDone);
         }
     }
