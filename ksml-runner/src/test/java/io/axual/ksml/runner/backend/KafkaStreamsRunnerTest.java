@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
@@ -130,54 +131,128 @@ class KafkaStreamsRunnerTest {
                 .doesNotContainKeys(RESTRICTED_CONFIGS);
     }
 
-    @Test
-    @DisplayName("Test getStreamsConfig method")
-    void testGetStreamsConfig() {
-        // Create a runner to test the method
-        final var config = KafkaStreamsRunner.Config.builder()
-                .definitions(Map.of())
-                .kafkaConfig(INPUT_CONFIG_WITHOUT_PATTERNS)
-                .storageDirectory("tmp")
-                .build();
-
-        var runner = new KafkaStreamsRunner(config, (topology, properties) -> mock(KafkaStreams.class), mock(KsmlTagEnricher.class));
-
-        // Test case 1: Basic configuration
-        var result1 = runner.getStreamsConfig(INPUT_CONFIG_WITHOUT_PATTERNS, "test-dir", null);
-        assertThat(result1)
-                .containsEntry(StreamsConfig.APPLICATION_ID_CONFIG, "test-id")
-                .containsEntry(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "mock:9092")
-                .containsEntry("AnotherKey", "value")
-                .containsEntry(StreamsConfig.STATE_DIR_CONFIG, "test-dir")
-                .containsEntry(StreamsConfig.PRODUCTION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class)
-                .containsEntry(StreamsConfig.DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class)
-                .containsEntry(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE)
-                .containsKey(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG);
-
-        // Test case 2: With application server
+    static Stream<Arguments> streamsConfigTestData() {
         var appServer = ApplicationServerConfig.builder()
                 .enabled(true)
                 .host("localhost")
                 .port("8080")
                 .build();
 
-        var result2 = runner.getStreamsConfig(INPUT_CONFIG_WITHOUT_PATTERNS, "test-dir", appServer);
-        assertThat(result2)
-                .containsEntry(StreamsConfig.APPLICATION_SERVER_CONFIG, "localhost:8080");
+        return Stream.of(
+                // Basic configuration
+                Arguments.of(
+                        named("Basic configuration with initial configs", 
+                                new StreamsConfigTestCase(
+                                        INPUT_CONFIG_WITHOUT_PATTERNS, 
+                                        "test-dir", 
+                                        null,
+                                        Map.of(
+                                                StreamsConfig.APPLICATION_ID_CONFIG, "test-id",
+                                                StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "mock:9092",
+                                                "AnotherKey", "value",
+                                                StreamsConfig.STATE_DIR_CONFIG, "test-dir",
+                                                StreamsConfig.PRODUCTION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class,
+                                                StreamsConfig.DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class,
+                                                StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE
+                                        ),
+                                        Set.of(
+                                                StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG
+                                        )
+                                ))),
 
-        // Test case 3: With null initial configs
-        var result3 = runner.getStreamsConfig(null, "test-dir", null);
-        assertThat(result3)
-                .containsEntry(StreamsConfig.STATE_DIR_CONFIG, "test-dir")
-                .containsEntry(StreamsConfig.PRODUCTION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class)
-                .containsEntry(StreamsConfig.DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class)
-                .containsEntry(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE)
-                .containsKey(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG);
+                // With application server
+                Arguments.of(
+                        named("Configuration with application server", 
+                                new StreamsConfigTestCase(
+                                        INPUT_CONFIG_WITHOUT_PATTERNS, 
+                                        "test-dir", 
+                                        appServer,
+                                        Map.of(
+                                                StreamsConfig.APPLICATION_ID_CONFIG, "test-id",
+                                                StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "mock:9092",
+                                                "AnotherKey", "value",
+                                                StreamsConfig.STATE_DIR_CONFIG, "test-dir",
+                                                StreamsConfig.PRODUCTION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class,
+                                                StreamsConfig.DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class,
+                                                StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE,
+                                                StreamsConfig.APPLICATION_SERVER_CONFIG, "localhost:8080"
+                                        ),
+                                        Set.of(
+                                                StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG
+                                        )
+                                ))),
+
+                // With null initial configs
+                Arguments.of(
+                        named("Configuration with null initial configs", 
+                                new StreamsConfigTestCase(
+                                        null, 
+                                        "test-dir", 
+                                        null,
+                                        Map.of(
+                                                StreamsConfig.STATE_DIR_CONFIG, "test-dir",
+                                                StreamsConfig.PRODUCTION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class,
+                                                StreamsConfig.DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class,
+                                                StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE
+                                        ),
+                                        Set.of(
+                                                StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG
+                                        )
+                                ))),
+
+                // With existing interceptor configs
+                Arguments.of(
+                        named("Configuration with existing interceptor configs", 
+                                new StreamsConfigTestCase(
+                                        Map.of(
+                                                StreamsConfig.APPLICATION_ID_CONFIG, "test-id",
+                                                StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "mock:9092",
+                                                StreamsConfig.MAIN_CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, "some.other.Interceptor",
+                                                StreamsConfig.RESTORE_CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, "some.other.Interceptor",
+                                                StreamsConfig.GLOBAL_CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, "some.other.Interceptor"
+                                        ), 
+                                        "test-dir", 
+                                        null,
+                                        Map.of(
+                                                StreamsConfig.APPLICATION_ID_CONFIG, "test-id",
+                                                StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "mock:9092",
+                                                StreamsConfig.STATE_DIR_CONFIG, "test-dir",
+                                                StreamsConfig.PRODUCTION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class,
+                                                StreamsConfig.DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, ExecutionErrorHandler.class,
+                                                StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE
+                                        ),
+                                        Set.of(
+                                                StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG,
+                                                StreamsConfig.MAIN_CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG,
+                                                StreamsConfig.RESTORE_CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG,
+                                                StreamsConfig.GLOBAL_CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG
+                                        )
+                                )))
+        );
     }
 
-    @Test
-    @DisplayName("Test addCleanupInterceptor method")
-    void testAddCleanupInterceptor() {
+    static class StreamsConfigTestCase {
+        final Map<String, String> initialConfigs;
+        final String storageDirectory;
+        final ApplicationServerConfig appServer;
+        final Map<String, Object> expectedEntries;
+        final Set<String> expectedKeys;
+
+        StreamsConfigTestCase(Map<String, String> initialConfigs, String storageDirectory, 
+                             ApplicationServerConfig appServer, Map<String, Object> expectedEntries,
+                             Set<String> expectedKeys) {
+            this.initialConfigs = initialConfigs;
+            this.storageDirectory = storageDirectory;
+            this.appServer = appServer;
+            this.expectedEntries = expectedEntries;
+            this.expectedKeys = expectedKeys;
+        }
+    }
+
+    @ParameterizedTest
+    @DisplayName("Test getStreamsConfig method with various scenarios")
+    @MethodSource("streamsConfigTestData")
+    void testGetStreamsConfig(StreamsConfigTestCase testCase) {
         // Create a runner to test the method
         final var config = KafkaStreamsRunner.Config.builder()
                 .definitions(Map.of())
@@ -187,42 +262,136 @@ class KafkaStreamsRunnerTest {
 
         var runner = new KafkaStreamsRunner(config, (topology, properties) -> mock(KafkaStreams.class), mock(KsmlTagEnricher.class));
 
-        // Test case 1: Empty config, add if missing = true
-        var configs1 = new HashMap<String, Object>();
-        runner.addCleanupInterceptor(StreamsConfig.CONSUMER_PREFIX, configs1, true);
-        assertThat(configs1)
-                .containsKey(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG)
-                .containsValue("io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor");
+        // Get the streams config
+        var result = runner.getStreamsConfig(testCase.initialConfigs, testCase.storageDirectory, testCase.appServer);
 
-        // Test case 2: Empty config, add if missing = false
-        var configs2 = new HashMap<String, Object>();
-        runner.addCleanupInterceptor(StreamsConfig.CONSUMER_PREFIX, configs2, false);
-        assertThat(configs2).isEmpty();
+        // Verify expected entries
+        assertThat(result).containsAllEntriesOf(testCase.expectedEntries);
 
-        // Test case 3: Existing interceptor config as String
-        var configs3 = new HashMap<String, Object>();
-        configs3.put(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, "some.other.Interceptor");
-        runner.addCleanupInterceptor(StreamsConfig.CONSUMER_PREFIX, configs3, false);
-        assertThat(configs3)
-                .containsKey(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG)
-                .containsValue("io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor,some.other.Interceptor");
+        // Verify expected keys
+        for (String key : testCase.expectedKeys) {
+            assertThat(result).containsKey(key);
+        }
 
-        // Test case 4: Existing interceptor config as List
-        var configs4 = new HashMap<String, Object>();
-        configs4.put(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, List.of("some.other.Interceptor"));
-        runner.addCleanupInterceptor(StreamsConfig.CONSUMER_PREFIX, configs4, false);
-        assertThat(configs4)
-                .containsKey(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG)
-                .containsValue("io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor,some.other.Interceptor");
+        // Verify interceptor configurations
+        if (result.containsKey(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG)) {
+            String interceptors = (String) result.get(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG);
+            assertThat(interceptors).contains("io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor");
+        }
+    }
 
-        // Test case 5: Existing interceptor config already contains our interceptor
-        var configs5 = new HashMap<String, Object>();
-        configs5.put(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG,
-                "io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor,some.other.Interceptor");
-        runner.addCleanupInterceptor(StreamsConfig.CONSUMER_PREFIX, configs5, false);
-        assertThat(configs5)
-                .containsKey(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG)
-                .containsValue("io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor,some.other.Interceptor");
+    static Stream<Arguments> interceptorTestData() {
+        return Stream.of(
+                // Plain consumer (CONSUMER_PREFIX) scenarios
+                Arguments.of(
+                        named("Plain consumer - Empty config, add if missing = true", 
+                                new InterceptorTestCase(StreamsConfig.CONSUMER_PREFIX, new HashMap<>(), true, 
+                                        Map.of(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, 
+                                                "io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor")))),
+                Arguments.of(
+                        named("Plain consumer - Empty config, add if missing = false", 
+                                new InterceptorTestCase(StreamsConfig.CONSUMER_PREFIX, new HashMap<>(), false, 
+                                        Map.of()))),
+                Arguments.of(
+                        named("Plain consumer - Existing interceptor config as String", 
+                                new InterceptorTestCase(StreamsConfig.CONSUMER_PREFIX, 
+                                        Map.of(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, "some.other.Interceptor"), 
+                                        false, 
+                                        Map.of(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, 
+                                                "io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor,some.other.Interceptor")))),
+                Arguments.of(
+                        named("Plain consumer - Existing interceptor config as List", 
+                                new InterceptorTestCase(StreamsConfig.CONSUMER_PREFIX, 
+                                        Map.of(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, List.of("some.other.Interceptor")), 
+                                        false, 
+                                        Map.of(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, 
+                                                "io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor,some.other.Interceptor")))),
+                Arguments.of(
+                        named("Plain consumer - Cleanup interceptor already present", 
+                                new InterceptorTestCase(StreamsConfig.CONSUMER_PREFIX, 
+                                        Map.of(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, 
+                                                "io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor,some.other.Interceptor"), 
+                                        false, 
+                                        Map.of(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, 
+                                                "io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor,some.other.Interceptor")))),
+
+                // Main consumer (MAIN_CONSUMER_PREFIX) scenarios
+                Arguments.of(
+                        named("Main consumer - Empty config, add if missing = false", 
+                                new InterceptorTestCase(StreamsConfig.MAIN_CONSUMER_PREFIX, new HashMap<>(), false, 
+                                        Map.of()))),
+                Arguments.of(
+                        named("Main consumer - Existing interceptor config", 
+                                new InterceptorTestCase(StreamsConfig.MAIN_CONSUMER_PREFIX, 
+                                        Map.of(StreamsConfig.MAIN_CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, "some.other.Interceptor"), 
+                                        false, 
+                                        Map.of(StreamsConfig.MAIN_CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, 
+                                                "io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor,some.other.Interceptor")))),
+
+                // Restore consumer (RESTORE_CONSUMER_PREFIX) scenarios
+                Arguments.of(
+                        named("Restore consumer - Empty config, add if missing = false", 
+                                new InterceptorTestCase(StreamsConfig.RESTORE_CONSUMER_PREFIX, new HashMap<>(), false, 
+                                        Map.of()))),
+                Arguments.of(
+                        named("Restore consumer - Existing interceptor config", 
+                                new InterceptorTestCase(StreamsConfig.RESTORE_CONSUMER_PREFIX, 
+                                        Map.of(StreamsConfig.RESTORE_CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, "some.other.Interceptor"), 
+                                        false, 
+                                        Map.of(StreamsConfig.RESTORE_CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, 
+                                                "io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor,some.other.Interceptor")))),
+
+                // Global consumer (GLOBAL_CONSUMER_PREFIX) scenarios
+                Arguments.of(
+                        named("Global consumer - Empty config, add if missing = false", 
+                                new InterceptorTestCase(StreamsConfig.GLOBAL_CONSUMER_PREFIX, new HashMap<>(), false, 
+                                        Map.of()))),
+                Arguments.of(
+                        named("Global consumer - Existing interceptor config", 
+                                new InterceptorTestCase(StreamsConfig.GLOBAL_CONSUMER_PREFIX, 
+                                        Map.of(StreamsConfig.GLOBAL_CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, "some.other.Interceptor"), 
+                                        false, 
+                                        Map.of(StreamsConfig.GLOBAL_CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, 
+                                                "io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor,some.other.Interceptor"))))
+        );
+    }
+
+    static class InterceptorTestCase {
+        final String configPrefix;
+        final Map<String, Object> inputConfig;
+        final boolean addConfigIfMissing;
+        final Map<String, Object> expectedConfig;
+
+        InterceptorTestCase(String configPrefix, Map<String, Object> inputConfig, boolean addConfigIfMissing, 
+                           Map<String, Object> expectedConfig) {
+            this.configPrefix = configPrefix;
+            this.inputConfig = new HashMap<>(inputConfig);
+            this.addConfigIfMissing = addConfigIfMissing;
+            this.expectedConfig = expectedConfig;
+        }
+    }
+
+    @ParameterizedTest
+    @DisplayName("Test addCleanupInterceptor method with various scenarios")
+    @MethodSource("interceptorTestData")
+    void testAddCleanupInterceptor(InterceptorTestCase testCase) {
+        // Create a runner to test the method
+        final var config = KafkaStreamsRunner.Config.builder()
+                .definitions(Map.of())
+                .kafkaConfig(INPUT_CONFIG_WITHOUT_PATTERNS)
+                .storageDirectory("tmp")
+                .build();
+
+        var runner = new KafkaStreamsRunner(config, (topology, properties) -> mock(KafkaStreams.class), mock(KsmlTagEnricher.class));
+
+        // Apply the interceptor logic
+        runner.addCleanupInterceptor(testCase.configPrefix, testCase.inputConfig, testCase.addConfigIfMissing);
+
+        // Verify the result
+        assertThat(testCase.inputConfig).containsAllEntriesOf(testCase.expectedConfig);
+        if (testCase.expectedConfig.isEmpty()) {
+            assertThat(testCase.inputConfig).isEmpty();
+        }
     }
 
     @Test
