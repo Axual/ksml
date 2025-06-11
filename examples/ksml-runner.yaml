@@ -8,15 +8,15 @@ ksml:
   enablePipelines: true
   definitions:
     # Format is <namespace>: <ksml_definition_filename>
-#    inspect: 01-example-inspect.yaml
-#    copy: 02-example-copy.yaml
+    inspect: 01-example-inspect.yaml
+    copy: 02-example-copy.yaml
 #    filter: 03-example-filter.yaml
 #    branch: 04-example-branch.yaml
 #    route: 05-example-route.yaml
 #    duplicate: 06-example-duplicate.yaml
 #    convert: 07-example-convert.yaml
 #    count: 08-example-count.yaml
-    aggregate: 09-example-aggregate.yaml
+#    aggregate: 09-example-aggregate.yaml
 #    queryable_table: 10-example-queryable-table.yaml
 #    field_modification: 11-example-field-modification.yaml
 #    byte_manipulation: 12-example-byte-manipulation.yaml

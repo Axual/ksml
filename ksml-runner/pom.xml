@@ -72,6 +72,10 @@
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.axual.utils</groupId>
+            <artifactId>axual-header-cleaning</artifactId>
+        </dependency>
 
         <!-- TEST dependencies -->
         <dependency>
