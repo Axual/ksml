@@ -25,14 +25,11 @@ import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
-import io.axual.ksml.store.StoreUtil;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserForeignKeyExtractor;
 import io.axual.ksml.user.UserStreamPartitioner;
-import io.axual.ksml.util.JoinUtil;
-import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
 
@@ -77,8 +74,8 @@ public class JoinWithTableOperation extends StoreOperation {
         final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vt, v), false);
         checkType("Join table keyType", kt, equalTo(k));
         final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(k), superOf(v), superOf(vt));
-        final var joined = JoinUtil.joinedOf(name, k, v, vt, gracePeriod);
-        final var userJoiner = JoinUtil.valueJoinerWithKey(joiner, tags);
+        final var joined = joinedOf(k, v, vt, gracePeriod);
+        final var userJoiner = valueJoinerWithKey(joiner, tags);
         final KStream<Object, Object> output = joined != null
                 ? input.stream.join(otherTable.table, userJoiner, joined)
                 : input.stream.join(otherTable.table, userJoiner);
@@ -108,13 +105,13 @@ public class JoinWithTableOperation extends StoreOperation {
 
             final var userFkExtract = new UserForeignKeyExtractor(fkExtract, tags);
             final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(k), superOf(v), superOf(vo));
-            final var userJoiner = JoinUtil.valueJoiner(joiner, tags);
+            final var userJoiner = valueJoiner(joiner, tags);
             final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, equalTo(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
             final var userPart = part != null ? new UserStreamPartitioner(part, tags) : null;
             final var otherPart = userFunctionOf(context, PARTITIONER_NAME, otherPartitioner, equalTo(DataInteger.DATATYPE), equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
             final var userOtherPart = part != null ? new UserStreamPartitioner(otherPart, tags) : null;
-            final var tableJoined = JoinUtil.tableJoinedOf(name, userPart, userOtherPart);
-            final var kvStore = StoreUtil.validateKeyValueStore(this, store(), k, vr);
+            final var tableJoined = tableJoinedOf(userPart, userOtherPart);
+            final var kvStore = validateKeyValueStore(store(), k, vr);
             final var mat = materializedOf(context, kvStore);
             final KTable<Object, Object> output = tableJoined != null
                     ? mat != null
@@ -134,8 +131,8 @@ public class JoinWithTableOperation extends StoreOperation {
              */
 
             final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(k), superOf(v), superOf(vo));
-            final var userJoiner = JoinUtil.valueJoiner(joiner, tags);
-            final var kvStore = StoreUtil.validateKeyValueStore(this, store(), k, vr);
+            final var userJoiner = valueJoiner(joiner, tags);
+            final var kvStore = validateKeyValueStore(store(), k, vr);
             final var mat = materializedOf(context, kvStore);
             final var named = namedOf();
             final KTable<Object, Object> output = named != null

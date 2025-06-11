@@ -48,8 +48,7 @@ public class ResolvingListConsumerGroupsResult extends ExtendableListConsumerGro
 
     private ConsumerGroupListing unresolveConsumerGroupListings(ConsumerGroupListing consumerGroupListing) {
         final String unresolvedGroupId = groupResolver.unresolve(consumerGroupListing.groupId());
-        return new ConsumerGroupListing(unresolvedGroupId, consumerGroupListing.isSimpleConsumerGroup(),
-                consumerGroupListing.state());
+        return new ConsumerGroupListing(unresolvedGroupId, consumerGroupListing.groupState(), consumerGroupListing.isSimpleConsumerGroup());
     }
 
     @Override

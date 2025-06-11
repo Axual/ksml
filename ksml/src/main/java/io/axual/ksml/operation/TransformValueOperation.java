@@ -25,7 +25,6 @@ import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.operation.processor.FixedKeyOperationProcessorSupplier;
 import io.axual.ksml.operation.processor.TransformValueProcessor;
-import io.axual.ksml.store.StoreUtil;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
@@ -87,7 +86,7 @@ public class TransformValueOperation extends StoreOperation {
         final var vr = streamDataTypeOf(firstSpecificType(mapper, v.userType()), false);
         final var map = userFunctionOf(context, MAPPER_NAME, mapper, vr, superOf(k), superOf(v));
         final var userMap = new UserValueTransformerWithKey(map, tags);
-        final var kvStore = StoreUtil.validateKeyValueStore(this, store(), k, vr);
+        final var kvStore = validateKeyValueStore(store(), k, vr);
         final ValueTransformerWithKeySupplier<Object, Object, DataObject> supplier = () -> userMap;
         final var named = namedOf();
         final var mat = materializedOf(context, kvStore);

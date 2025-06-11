@@ -151,8 +151,7 @@ public class JsonNodeUtil {
 
     private static Map<String, Object> convertObjectNodeToMap(ObjectNode node) {
         final var result = new HashMap<String, Object>();
-        for (final var it = node.fields(); it.hasNext(); ) {
-            final var entry = it.next();
+        for (final Map.Entry<String, JsonNode> entry : node.properties()) {
             result.put(entry.getKey(), convertJsonNodeValueToNative(entry.getValue()));
         }
         return result;

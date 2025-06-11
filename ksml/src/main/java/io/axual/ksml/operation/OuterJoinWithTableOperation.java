@@ -24,10 +24,8 @@ package io.axual.ksml.operation;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
-import io.axual.ksml.store.StoreUtil;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.util.JoinUtil;
 import org.apache.kafka.streams.kstream.KTable;
 
 public class OuterJoinWithTableOperation extends StoreOperation {
@@ -61,8 +59,8 @@ public class OuterJoinWithTableOperation extends StoreOperation {
         final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
         checkType("Join table keyType", ko, equalTo(k));
         final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(k), superOf(v), superOf(vo));
-        final var userJoiner = JoinUtil.valueJoiner(joiner, tags);
-        final var kvStore = StoreUtil.validateKeyValueStore(this, store(), k, vr);
+        final var userJoiner = valueJoiner(joiner, tags);
+        final var kvStore = validateKeyValueStore(store(), k, vr);
         final var mat = materializedOf(context, kvStore);
         final var named = namedOf();
         final KTable<Object, Object> output = named != null

@@ -24,12 +24,12 @@ import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.metric.MetricTags;
 
 public class DualStoreOperationConfig extends OperationConfig {
-    public final StateStoreDefinition store1;
-    public final StateStoreDefinition store2;
+    public final StateStoreDefinition thisStore;
+    public final StateStoreDefinition otherStore;
 
-    public DualStoreOperationConfig(String name, MetricTags context, StateStoreDefinition store1, StateStoreDefinition store2) {
+    public DualStoreOperationConfig(String name, MetricTags context, StateStoreDefinition thisStore, StateStoreDefinition otherStore) {
         super(name, context);
-        this.store1 = store1;
-        this.store2 = store2;
+        this.thisStore = thisStore;
+        this.otherStore = otherStore;
     }
 }

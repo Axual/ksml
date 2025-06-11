@@ -27,12 +27,15 @@ import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.WindowedType;
 import io.axual.ksml.definition.*;
+import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.metric.MetricTags;
+import io.axual.ksml.store.StoreUtil;
 import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserFunction;
+import io.axual.ksml.user.UserValueJoiner;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.kstream.*;
@@ -41,7 +44,9 @@ import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.SessionStore;
 import org.apache.kafka.streams.state.WindowStore;
 
+import java.time.Duration;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
 
@@ -365,5 +370,146 @@ public abstract class BaseOperation implements StreamOperation {
         if (mapper != null) printed = printed.withKeyValueMapper(mapper);
         if (name != null) printed = printed.withName(name);
         return printed;
+    }
+
+    protected Joined<Object, Object, Object> joinedOf(StreamDataType k, StreamDataType v, StreamDataType vo, Duration gracePeriod) {
+        var result = Joined.with(k.serde(), v.serde(), vo.serde());
+        if (name != null) result = result.withName(name);
+        if (gracePeriod != null) result = result.withGracePeriod(gracePeriod);
+        return result;
+    }
+
+    protected StreamJoined<Object, Object, Object> streamJoinedOf(WindowStateStoreDefinition thisStore, WindowStateStoreDefinition otherStore, StreamDataType k, StreamDataType v, StreamDataType vo) {
+        var result = StreamJoined.with(k.serde(), v.serde(), vo.serde()).withLoggingDisabled();
+        if (name != null) result = result.withName(name);
+        if (thisStore != null) {
+            if (thisStore.name() != null) result = result.withStoreName(thisStore.name());
+            if (thisStore.logging()) result = result.withLoggingEnabled(new HashMap<>());
+            result = result.withThisStoreSupplier(StoreUtil.getStoreSupplier(thisStore));
+        }
+        if (otherStore != null) {
+            result = result.withOtherStoreSupplier(StoreUtil.getStoreSupplier(otherStore));
+        }
+        return result;
+    }
+
+    private record WrapPartitioner(
+            StreamPartitioner<Object, Object> partitioner) implements StreamPartitioner<Object, Void> {
+        @Override
+        public Optional<Set<Integer>> partitions(String topic, Object key, Void value, int numPartitions) {
+            return partitioner.partitions(topic, key, value, numPartitions);
+        }
+    }
+
+    protected TableJoined<Object, Object> tableJoinedOf(StreamPartitioner<Object, Object> partitioner, StreamPartitioner<Object, Object> otherPartitioner) {
+        final var part = partitioner != null ? new WrapPartitioner(partitioner) : null;
+        final var otherPart = otherPartitioner != null ? new WrapPartitioner(otherPartitioner) : null;
+        return TableJoined.with(part, otherPart).withName(name);
+    }
+
+    protected JoinWindows joinWindowsOf(Duration timeDifference, Duration gracePeriod) {
+        if (gracePeriod != null) {
+            return JoinWindows.ofTimeDifferenceAndGrace(timeDifference, gracePeriod);
+        }
+        return JoinWindows.ofTimeDifferenceWithNoGrace(timeDifference);
+    }
+
+    protected ValueJoiner<Object, Object, Object> valueJoiner(UserFunction function, MetricTags tags) {
+        return new UserValueJoiner(function, tags);
+    }
+
+    protected ValueJoinerWithKey<Object, Object, Object, Object> valueJoinerWithKey(UserFunction function, MetricTags tags) {
+        return new UserValueJoiner(function, tags);
+    }
+
+    protected KeyValueStateStoreDefinition validateKeyValueStore(StateStoreDefinition store, StreamDataType keyType, StreamDataType valueType) {
+        return validateKeyValueStore(store, keyType.userType(), valueType.userType());
+    }
+
+    protected KeyValueStateStoreDefinition validateKeyValueStore(StateStoreDefinition store, UserType keyType, UserType valueType) {
+        if (store == null) return null;
+        if (store instanceof KeyValueStateStoreDefinition keyValueStore) {
+            validateStore(store, keyType, valueType);
+            final var storeKeyType = keyType != null ? keyType : keyValueStore.keyType();
+            final var storeValueType = valueType != null ? valueType : keyValueStore.valueType();
+            return new KeyValueStateStoreDefinition(
+                    keyValueStore.name(),
+                    keyValueStore.persistent(),
+                    keyValueStore.timestamped(),
+                    keyValueStore.versioned(),
+                    keyValueStore.historyRetention(),
+                    keyValueStore.segmentInterval(),
+                    storeKeyType,
+                    storeValueType,
+                    keyValueStore.caching(),
+                    keyValueStore.logging());
+        }
+        throw new ExecutionException(this + " requires a  state store of type 'keyValue'");
+    }
+
+    protected SessionStateStoreDefinition validateSessionStore(StateStoreDefinition store, StreamDataType keyType, StreamDataType valueType) {
+        return validateSessionStore(store, keyType.userType(), valueType.userType());
+    }
+
+    protected SessionStateStoreDefinition validateSessionStore(StateStoreDefinition store, UserType keyType, UserType valueType) {
+        if (store == null) return null;
+        if (store instanceof SessionStateStoreDefinition sessionStore) {
+            validateStore(store, keyType, valueType);
+            final var storeKeyType = keyType != null ? keyType : sessionStore.keyType();
+            final var storeValueType = valueType != null ? valueType : sessionStore.valueType();
+            return new SessionStateStoreDefinition(
+                    sessionStore.name(),
+                    sessionStore.persistent(),
+                    sessionStore.timestamped(),
+                    sessionStore.retention(),
+                    storeKeyType,
+                    storeValueType,
+                    sessionStore.caching(),
+                    sessionStore.logging());
+        }
+        throw new ExecutionException(this + " requires a  state store of type 'session'");
+    }
+
+    protected WindowStateStoreDefinition validateWindowStore(StateStoreDefinition store, StreamDataType keyType, StreamDataType valueType) {
+        return validateWindowStore(store, keyType.userType(), valueType.userType());
+    }
+
+    protected WindowStateStoreDefinition validateWindowStore(StateStoreDefinition store, UserType keyType, UserType valueType) {
+        if (store == null) return null;
+        if (store instanceof WindowStateStoreDefinition windowStore) {
+            validateStore(store, keyType, valueType);
+            final var storeKeyType = keyType != null ? keyType : windowStore.keyType();
+            final var storeValueType = valueType != null ? valueType : windowStore.valueType();
+            return new WindowStateStoreDefinition(
+                    windowStore.name(),
+                    windowStore.persistent(),
+                    windowStore.timestamped(),
+                    windowStore.retention(),
+                    windowStore.windowSize(),
+                    windowStore.retainDuplicates(),
+                    storeKeyType,
+                    storeValueType,
+                    windowStore.caching(),
+                    windowStore.logging());
+        }
+        throw new ExecutionException(this + " requires a  state store of type 'window'");
+    }
+
+    private static void validateStore(StateStoreDefinition store, UserType keyType, UserType valueType) {
+        validateStoreTypeWithStreamType(store, "key", store.keyType(), keyType);
+        validateStoreTypeWithStreamType(store, "value", store.valueType(), valueType);
+    }
+
+    private static void validateStoreTypeWithStreamType(StateStoreDefinition store, String keyOrValue, UserType storeKeyOrValueType, UserType streamKeyOrValueType) {
+        if (streamKeyOrValueType == null) {
+            if (storeKeyOrValueType == null) {
+                throw new ExecutionException("State store '" + store.name() + "' does not have a defined " + keyOrValue + " type");
+            }
+            return;
+        }
+
+        if (storeKeyOrValueType != null && !storeKeyOrValueType.dataType().isAssignableFrom(streamKeyOrValueType.dataType())) {
+            throw new ExecutionException("Incompatible " + keyOrValue + " types for state store '" + store.name() + "': " + storeKeyOrValueType + " and " + streamKeyOrValueType);
+        }
     }
 }

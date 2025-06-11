@@ -23,7 +23,6 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
-import io.axual.ksml.store.StoreUtil;
 import io.axual.ksml.stream.*;
 import io.axual.ksml.user.UserReducer;
 import org.apache.kafka.streams.kstream.KTable;
@@ -57,7 +56,7 @@ public class ReduceOperation extends StoreOperation {
         final var v = input.valueType();
         final var red = userFunctionOf(context, REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
         final var userRed = new UserReducer(red, tags);
-        final var kvStore = StoreUtil.validateKeyValueStore(this, store(), k, v);
+        final var kvStore = validateKeyValueStore(store(), k, v);
         final var mat = materializedOf(context, kvStore);
         final var named = namedOf();
         final KTable<Object, Object> output = mat != null
@@ -84,7 +83,7 @@ public class ReduceOperation extends StoreOperation {
         final var userAdd = new UserReducer(add, tags);
         final var sub = userFunctionOf(context, SUBTRACTOR_NAME, subtractor, v, equalTo(v), equalTo(v));
         final var userSub = new UserReducer(sub, tags);
-        final var kvStore = StoreUtil.validateKeyValueStore(this, store(), k, v);
+        final var kvStore = validateKeyValueStore(store(), k, v);
         final var mat = materializedOf(context, kvStore);
         final var named = namedOf();
         final KTable<Object, Object> output = mat != null
@@ -108,7 +107,7 @@ public class ReduceOperation extends StoreOperation {
         final var v = input.valueType();
         final var red = userFunctionOf(context, REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
         final var userRed = new UserReducer(red, tags);
-        final var sessionStore = StoreUtil.validateSessionStore(this, store(), k, v);
+        final var sessionStore = validateSessionStore(store(), k, v);
         final var mat = materializedOf(context, sessionStore);
         final var named = namedOf();
         final KTable<Windowed<Object>, Object> output = mat != null
@@ -132,7 +131,7 @@ public class ReduceOperation extends StoreOperation {
         final var v = input.valueType();
         final var red = userFunctionOf(context, REDUCER_NAME, reducer, v, equalTo(v), equalTo(v));
         final var userRed = new UserReducer(red, tags);
-        final var windowStore = StoreUtil.validateWindowStore(this, store(), k, v);
+        final var windowStore = validateWindowStore(store(), k, v);
         final var mat = materializedOf(context, windowStore);
         final var named = namedOf();
         final KTable<Windowed<Object>, Object> output = mat != null

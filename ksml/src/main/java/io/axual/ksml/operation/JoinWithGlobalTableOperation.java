@@ -26,7 +26,6 @@ import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserKeyTransformer;
-import io.axual.ksml.util.JoinUtil;
 import org.apache.kafka.streams.kstream.KStream;
 
 public class JoinWithGlobalTableOperation extends BaseOperation {
@@ -65,7 +64,7 @@ public class JoinWithGlobalTableOperation extends BaseOperation {
         final var sel = userFunctionOf(context, KEYSELECTOR_NAME, keySelector, subOf(gk), superOf(k), superOf(v));
         final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(rv), superOf(k), superOf(v), superOf(gv));
         final var userSel = new UserKeyTransformer(sel, tags);
-        final var userJoiner = JoinUtil.valueJoinerWithKey(joiner, tags);
+        final var userJoiner = valueJoinerWithKey(joiner, tags);
         final var named = namedOf();
         final KStream<Object, Object> output = named != null
                 ? input.stream.join(otherGlobalKTable.globalTable, userSel, userJoiner, named)

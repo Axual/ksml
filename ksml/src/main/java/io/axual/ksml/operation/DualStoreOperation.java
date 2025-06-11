@@ -26,19 +26,19 @@ import lombok.Getter;
 
 @Getter
 public class DualStoreOperation extends BaseOperation {
-    private final StateStoreDefinition store1;
-    private final StateStoreDefinition store2;
+    private final StateStoreDefinition thisStore;
+    private final StateStoreDefinition otherStore;
 
     public DualStoreOperation(DualStoreOperationConfig config) {
         super(config);
-        this.store1 = config.store1;
-        this.store2 = config.store2;
+        this.thisStore = config.thisStore;
+        this.otherStore = config.otherStore;
     }
 
     @Override
     public String toString() {
         return super.toString()
-                + (store1 != null && store1.name() != null ? " [storeName1=\"" + store1.name() + "\"]" : "")
-                + (store2 != null && store2.name() != null ? " [storeName2=\"" + store2.name() + "\"]" : "");
+                + (thisStore != null && thisStore.name() != null ? " [thisStore=\"" + thisStore.name() + "\"]" : "")
+                + (otherStore != null && otherStore.name() != null ? " [otherStore=\"" + otherStore.name() + "\"]" : "");
     }
 }

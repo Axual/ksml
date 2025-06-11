@@ -23,10 +23,8 @@ package io.axual.ksml.operation;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
-import io.axual.ksml.store.StoreUtil;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.util.JoinUtil;
 import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.KStream;
 
@@ -42,7 +40,7 @@ public class JoinWithStreamOperation extends DualStoreOperation {
         super(config);
         this.joinStream = joinStream;
         this.valueJoiner = valueJoiner;
-        this.joinWindows = JoinUtil.joinWindowsOf(timeDifference, gracePeriod);
+        this.joinWindows = joinWindowsOf(timeDifference, gracePeriod);
     }
 
     @Override
@@ -64,10 +62,10 @@ public class JoinWithStreamOperation extends DualStoreOperation {
         final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
         checkType("Join stream keyType", ko, equalTo(k));
         final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(k), superOf(v), superOf(vo));
-        final var windowStore1 = StoreUtil.validateWindowStore(this, store1(), k, vr);
-        final var windowStore2 = StoreUtil.validateWindowStore(this, store2(), k, vr);
-        final var streamJoined = JoinUtil.streamJoinedOf(name, windowStore1, windowStore2, k, v, vo);
-        final var userJoiner = JoinUtil.valueJoinerWithKey(joiner, tags);
+        final var thisStore = validateWindowStore(thisStore(), k, vr);
+        final var otherStore = validateWindowStore(otherStore(), k, vr);
+        final var streamJoined = streamJoinedOf(thisStore, otherStore, k, v, vo);
+        final var userJoiner = valueJoinerWithKey(joiner, tags);
         final KStream<Object, Object> output = streamJoined != null
                 ? input.stream.join(otherStream.stream, userJoiner, joinWindows, streamJoined)
                 : input.stream.join(otherStream.stream, userJoiner, joinWindows);
