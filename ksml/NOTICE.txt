@@ -1,5 +1,5 @@
 
-Lists of 113 third-party dependencies.
+Lists of 116 third-party dependencies.
      (MIT License) minimal-json (com.eclipsesource.minimal-json:minimal-json:0.9.5 - https://github.com/ralfstx/minimal-json)
      (The Apache Software License, Version 2.0) Jackson-annotations (com.fasterxml.jackson.core:jackson-annotations:2.19.0 - https://github.com/FasterXML/jackson)
      (The Apache Software License, Version 2.0) Jackson-core (com.fasterxml.jackson.core:jackson-core:2.19.0 - https://github.com/FasterXML/jackson-core)
@@ -35,6 +35,7 @@ Lists of 113 third-party dependencies.
      (Apache-2.0) wire-runtime (com.squareup.wire:wire-runtime-jvm:4.9.11 - https://github.com/square/wire/)
      (Apache-2.0) wire-schema (com.squareup.wire:wire-schema:4.9.11 - https://github.com/square/wire/)
      (Apache-2.0) wire-schema (com.squareup.wire:wire-schema-jvm:4.9.11 - https://github.com/square/wire/)
+     (Eclipse Distribution License - v 1.0) Jakarta SOAP Implementation (com.sun.xml.messaging.saaj:saaj-impl:3.0.4 - https://projects.eclipse.org/projects/ee4j/metro-saaj/saaj-impl)
      (Apache-2.0) Apache Commons Codec (commons-codec:commons-codec:1.17.1 - https://commons.apache.org/proper/commons-codec/)
      (Apache-2.0) Apache Commons IO (commons-io:commons-io:2.16.1 - https://commons.apache.org/proper/commons-io/)
      (Apache License Version 2.0) apicurio-common-rest-client-common (io.apicurio:apicurio-common-rest-client-common:0.1.18.Final - https://www.apicur.io/apicurio-common-rest-client-common/)
@@ -78,6 +79,7 @@ Lists of 113 third-party dependencies.
      (Bouncy Castle Licence) Bouncy Castle Provider (org.bouncycastle:bcprov-jdk18on:1.78.1 - https://www.bouncycastle.org/java.html)
      (Bouncy Castle Licence) Bouncy Castle ASN.1 Extension and Utility APIs (org.bouncycastle:bcutil-jdk18on:1.78.1 - https://www.bouncycastle.org/java.html)
      (The BSD 2-Clause License) Stax2 API (org.codehaus.woodstox:stax2-api:4.2.2 - http://github.com/FasterXML/stax2-api)
+     (EDL 1.0) Angus Activation Registries (org.eclipse.angus:angus-activation:2.0.2 - https://github.com/eclipse-ee4j/angus-activation/angus-activation)
      (New BSD License (3-clause BSD license)) Sulong API (org.graalvm.llvm:llvm-api:24.2.1 - http://www.graalvm.org/)
      (Universal Permissive License, Version 1.0) Polyglot (org.graalvm.polyglot:polyglot:24.2.1 - https://github.com/oracle/graal)
      (MIT License) (Python Software Foundation License) (Universal Permissive License, Version 1.0) Graalpython (org.graalvm.python:python-language:24.2.1 - http://www.graalvm.org/python)
@@ -107,6 +109,7 @@ Lists of 113 third-party dependencies.
      (The Apache License, Version 2.0) kotlinx-datetime (org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.6.1 - https://github.com/Kotlin/kotlinx-datetime)
      (Public Domain) JSON in Java (org.json:json:20231013 - https://github.com/douglascrockford/JSON-java)
      (The Apache License, Version 2.0) JSpecify annotations (org.jspecify:jspecify:1.0.0 - http://jspecify.org/)
+     (Eclipse Distribution License - v 1.0) Extended StAX API (org.jvnet.staxex:stax-ex:2.1.0 - https://projects.eclipse.org/projects/ee4j/stax-ex)
      (The Apache Software License, Version 2.0) LZ4 and xxHash (org.lz4:lz4-java:1.8.0 - https://github.com/lz4/lz4-java)
      (The MIT License) Project Lombok (org.projectlombok:lombok:1.18.38 - https://projectlombok.org)
      (Apache License 2.0) (GNU General Public License, version 2) RocksDB JNI (org.rocksdb:rocksdbjni:9.7.3 - https://rocksdb.org)
