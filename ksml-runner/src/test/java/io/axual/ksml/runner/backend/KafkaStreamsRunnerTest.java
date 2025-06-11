@@ -66,15 +66,17 @@ import static org.mockito.Mockito.*;
 /**
  * Test class for {@link KafkaStreamsRunner}.
  * 
- * This class tests various aspects of the KafkaStreamsRunner:
- * - Configuration handling in the Config record
- * - Streams configuration with various scenarios
- * - Cleanup interceptor addition for different consumer prefixes
- * - Error handling and state transitions
- * - Kafka Streams lifecycle management
+ * <p>This class tests various aspects of the KafkaStreamsRunner:</p>
+ * <ul>
+ *     <li>Configuration handling in the Config record</li>
+ *     <li>Streams configuration with various scenarios</li>
+ *     <li>Cleanup interceptor addition for different consumer prefixes</li>
+ *     <li>Error handling and state transitions</li>
+ *     <li>Kafka Streams lifecycle management</li>
+ * </ul>
  * 
- * The tests use parameterized tests with named arguments for better readability
- * and mock Kafka Streams instances to avoid actual Kafka connections.
+ * <p>The tests use parameterized tests with named arguments for better readability
+ * and mock Kafka Streams instances to avoid actual Kafka connections.</p>
  */
 @Slf4j
 @ExtendWith(MockitoExtension.class)
@@ -127,10 +129,12 @@ class KafkaStreamsRunnerTest {
     /**
      * Provides test data for testing the Config record's pattern handling.
      * 
-     * Test cases:
-     * 1. Configuration without patterns should remain unchanged
-     * 2. Configuration with current pattern format should remain unchanged
-     * 3. Configuration with deprecated (compat) pattern format should be converted to current format
+     * <p>Test cases:</p>
+     * <ol>
+     *     <li>Configuration without patterns should remain unchanged</li>
+     *     <li>Configuration with current pattern format should remain unchanged</li>
+     *     <li>Configuration with deprecated (compat) pattern format should be converted to current format</li>
+     * </ol>
      * 
      * @return Stream of test arguments with input and expected configurations
      */
@@ -145,11 +149,13 @@ class KafkaStreamsRunnerTest {
     /**
      * Tests that the Config record correctly handles pattern configurations.
      * 
-     * This test verifies that:
-     * - Configurations without patterns remain unchanged
-     * - Current pattern formats are preserved
-     * - Deprecated pattern formats are converted to current format
-     * - Restricted (deprecated) config keys are removed
+     * <p>This test verifies that:</p>
+     * <ul>
+     *     <li>Configurations without patterns remain unchanged</li>
+     *     <li>Current pattern formats are preserved</li>
+     *     <li>Deprecated pattern formats are converted to current format</li>
+     *     <li>Restricted (deprecated) config keys are removed</li>
+     * </ul>
      * 
      * @param inputConfig The input configuration to test
      * @param expectedConfig The expected configuration after processing
@@ -169,11 +175,13 @@ class KafkaStreamsRunnerTest {
     /**
      * Provides test data for testing the getStreamsConfig method.
      * 
-     * Test cases include:
-     * 1. Basic configuration with initial configs
-     * 2. Configuration with application server
-     * 3. Configuration with null initial configs
-     * 4. Configuration with existing interceptor configs
+     * <p>Test cases include:</p>
+     * <ol>
+     *     <li>Basic configuration with initial configs</li>
+     *     <li>Configuration with application server</li>
+     *     <li>Configuration with {@code null} initial configs</li>
+     *     <li>Configuration with existing interceptor configs</li>
+     * </ol>
      * 
      * @return Stream of test arguments with different configuration scenarios
      */
@@ -311,13 +319,15 @@ class KafkaStreamsRunnerTest {
     /**
      * Tests the getStreamsConfig method with various scenarios.
      * 
-     * This test verifies that the getStreamsConfig method:
-     * - Correctly handles different initial configurations
-     * - Sets appropriate default values
-     * - Adds exception handlers
-     * - Configures interceptors correctly
-     * - Sets the state directory
-     * - Configures the application server when enabled
+     * <p>This test verifies that the getStreamsConfig method:</p>
+     * <ul>
+     *     <li>Correctly handles different initial configurations</li>
+     *     <li>Sets appropriate default values</li>
+     *     <li>Adds exception handlers</li>
+     *     <li>Configures interceptors correctly</li>
+     *     <li>Sets the state directory</li>
+     *     <li>Configures the application server when enabled</li>
+     * </ul>
      * 
      * @param testCase The test case containing input parameters and expected results
      */
@@ -355,16 +365,20 @@ class KafkaStreamsRunnerTest {
     /**
      * Provides test data for testing the addCleanupInterceptor method.
      * 
-     * Test cases include:
-     * - Plain consumer (CONSUMER_PREFIX) scenarios with different configurations
-     * - Main consumer (MAIN_CONSUMER_PREFIX) scenarios
-     * - Restore consumer (RESTORE_CONSUMER_PREFIX) scenarios
-     * - Global consumer (GLOBAL_CONSUMER_PREFIX) scenarios
+     * <p>Test cases include:</p>
+     * <ul>
+     *     <li>Plain consumer ({@code CONSUMER_PREFIX}) scenarios with different configurations</li>
+     *     <li>Main consumer ({@code MAIN_CONSUMER_PREFIX}) scenarios</li>
+     *     <li>Restore consumer ({@code RESTORE_CONSUMER_PREFIX}) scenarios</li>
+     *     <li>Global consumer ({@code GLOBAL_CONSUMER_PREFIX}) scenarios</li>
+     * </ul>
      * 
-     * Each scenario tests different combinations of:
-     * - Empty or existing interceptor configurations
-     * - Whether to add the interceptor if missing
-     * - Different formats of interceptor configuration (String or List)
+     * <p>Each scenario tests different combinations of:</p>
+     * <ul>
+     *     <li>Empty or existing interceptor configurations</li>
+     *     <li>Whether to add the interceptor if missing</li>
+     *     <li>Different formats of interceptor configuration ({@code String} or {@code List})</li>
+     * </ul>
      * 
      * @return Stream of test arguments with different interceptor scenarios
      */
@@ -474,12 +488,14 @@ class KafkaStreamsRunnerTest {
     /**
      * Tests the addCleanupInterceptor method with various scenarios.
      * 
-     * This test verifies that the addCleanupInterceptor method:
-     * - Correctly handles different consumer prefixes
-     * - Adds the cleanup interceptor as the first interceptor when appropriate
-     * - Respects the addConfigIfMissing flag
-     * - Handles different formats of interceptor configuration
-     * - Preserves existing interceptors
+     * <p>This test verifies that the addCleanupInterceptor method:</p>
+     * <ul>
+     *     <li>Correctly handles different consumer prefixes</li>
+     *     <li>Adds the cleanup interceptor as the first interceptor when appropriate</li>
+     *     <li>Respects the {@code addConfigIfMissing} flag</li>
+     *     <li>Handles different formats of interceptor configuration</li>
+     *     <li>Preserves existing interceptors</li>
+     * </ul>
      * 
      * @param testCase The test case containing input parameters and expected results
      */
@@ -509,10 +525,12 @@ class KafkaStreamsRunnerTest {
     /**
      * Tests error handling in the KafkaStreamsRunner.
      * 
-     * This test verifies that:
-     * - When Kafka Streams is in an ERROR state, the runner reports a FAILED state
-     * - The runner throws a RunnerException when in a failed state
-     * - The runner properly starts and stops the Kafka Streams instance
+     * <p>This test verifies that:</p>
+     * <ul>
+     *     <li>When Kafka Streams is in an {@code ERROR} state, the runner reports a {@code FAILED} state</li>
+     *     <li>The runner throws a {@code RunnerException} when in a failed state</li>
+     *     <li>The runner properly starts and stops the Kafka Streams instance</li>
+     * </ul>
      */
     @Test
     @DisplayName("Test error handling")
@@ -571,9 +589,11 @@ class KafkaStreamsRunnerTest {
     /**
      * Tests state transitions in the KafkaStreamsRunner.
      * 
-     * This test verifies that:
-     * - The runner correctly maps Kafka Streams states to Runner states
-     * - The isRunning method correctly reports the running state based on the Kafka Streams state
+     * <p>This test verifies that:</p>
+     * <ul>
+     *     <li>The runner correctly maps Kafka Streams states to Runner states</li>
+     *     <li>The {@code isRunning} method correctly reports the running state based on the Kafka Streams state</li>
+     * </ul>
      */
     @Test
     @DisplayName("Test state transitions")
@@ -634,11 +654,13 @@ class KafkaStreamsRunnerTest {
     /**
      * Tests the lifecycle of the KafkaStreamsRunner.
      * 
-     * This test verifies that:
-     * - The runner is correctly initialized with the provided configuration
-     * - The runner starts the Kafka Streams instance
-     * - The runner reports the correct state during execution
-     * - The runner can be stopped and properly closes the Kafka Streams instance
+     * <p>This test verifies that:</p>
+     * <ul>
+     *     <li>The runner is correctly initialized with the provided configuration</li>
+     *     <li>The runner starts the Kafka Streams instance</li>
+     *     <li>The runner reports the correct state during execution</li>
+     *     <li>The runner can be stopped and properly closes the Kafka Streams instance</li>
+     * </ul>
      */
     @Test
     @DisplayName("Check Kafka Streams lifecycle")
@@ -718,11 +740,11 @@ class KafkaStreamsRunnerTest {
 
 
     /**
-     * A test helper class that implements BiFunction to supply mock KafkaStreams instances.
+     * A test helper class that implements {@code BiFunction} to supply mock KafkaStreams instances.
      * 
-     * This class captures the topology and properties passed to it when creating
+     * <p>This class captures the topology and properties passed to it when creating
      * KafkaStreams instances, allowing tests to verify that the correct configuration
-     * is being used.
+     * is being used.</p>
      */
     static class MockStreamsSupplier implements BiFunction<Topology, Properties, KafkaStreams> {
         final KafkaStreams mockKafkaStreams;

@@ -57,16 +57,18 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Implementation of the Runner interface that manages Kafka Streams applications.
  * 
- * This class is responsible for:
- * - Creating and configuring Kafka Streams applications
- * - Managing the lifecycle (start, run, stop) of Kafka Streams applications
- * - Handling state transitions and error scenarios
- * - Adding cleanup interceptors to consumer configurations
- * - Providing metrics reporting
+ * <p>This class is responsible for:</p>
+ * <ul>
+ *     <li>Creating and configuring Kafka Streams applications</li>
+ *     <li>Managing the lifecycle (start, run, stop) of Kafka Streams applications</li>
+ *     <li>Handling state transitions and error scenarios</li>
+ *     <li>Adding cleanup interceptors to consumer configurations</li>
+ *     <li>Providing metrics reporting</li>
+ * </ul>
  * 
- * The runner creates a Kafka Streams instance based on the provided configuration,
+ * <p>The runner creates a Kafka Streams instance based on the provided configuration,
  * sets up appropriate error handlers and state listeners, and manages the application's
- * lifecycle through the Runner interface methods.
+ * lifecycle through the Runner interface methods.</p>
  */
 @Slf4j
 public class KafkaStreamsRunner implements Runner {
@@ -176,12 +178,14 @@ public class KafkaStreamsRunner implements Runner {
      * Adds the AxualHeaderCleaningInterceptor to the consumer interceptor configuration.
      * This method is package-private for testability.
      * 
-     * The cleanup interceptor is added as the first interceptor in the chain if it's not already present.
-     * For the plain consumer (CONSUMER_PREFIX), the interceptor is always added if addConfigIfMissing is true.
-     * For other consumers (MAIN_CONSUMER_PREFIX, RESTORE_CONSUMER_PREFIX, GLOBAL_CONSUMER_PREFIX),
-     * the interceptor is only added if the configuration already exists.
+     * <p>The cleanup interceptor is added as the first interceptor in the chain if it's not already present.</p>
+     * <ul>
+     *     <li>For the plain consumer ({@code CONSUMER_PREFIX}), the interceptor is always added if {@code addConfigIfMissing} is true.</li>
+     *     <li>For other consumers ({@code MAIN_CONSUMER_PREFIX}, {@code RESTORE_CONSUMER_PREFIX}, {@code GLOBAL_CONSUMER_PREFIX}),
+     *     the interceptor is only added if the configuration already exists.</li>
+     * </ul>
      * 
-     * @param configPrefix The configuration prefix for the consumer (e.g., consumer., main.consumer., etc.)
+     * @param configPrefix The configuration prefix for the consumer (e.g., {@code consumer.}, {@code main.consumer.}, etc.)
      * @param configs The configuration map to modify
      * @param addConfigIfMissing Whether to add the interceptor configuration if it doesn't exist
      */
@@ -248,15 +252,17 @@ public class KafkaStreamsRunner implements Runner {
      * Creates a configuration map for Kafka Streams with appropriate settings.
      * This method is package-private for testability.
      * 
-     * The method:
-     * - Copies the initial configuration if provided
-     * - Sets default values for optimization if not explicitly configured
-     * - Sets exception handlers for production and deserialization errors
-     * - Adds cleanup interceptors to all consumer configurations
-     * - Sets the state directory for Kafka Streams
-     * - Configures the application server if enabled
+     * <p>The method:</p>
+     * <ul>
+     *     <li>Copies the initial configuration if provided</li>
+     *     <li>Sets default values for optimization if not explicitly configured</li>
+     *     <li>Sets exception handlers for production and deserialization errors</li>
+     *     <li>Adds cleanup interceptors to all consumer configurations</li>
+     *     <li>Sets the state directory for Kafka Streams</li>
+     *     <li>Configures the application server if enabled</li>
+     * </ul>
      * 
-     * @param initialConfigs Initial configuration map (can be null)
+     * @param initialConfigs Initial configuration map (can be {@code null})
      * @param storageDirectory Directory where Kafka Streams will store its state
      * @param appServer Configuration for the application server (used for interactive queries)
      * @return A map with the complete Kafka Streams configuration
@@ -317,12 +323,14 @@ public class KafkaStreamsRunner implements Runner {
      * Starts the Kafka Streams application and monitors its state.
      * This method blocks until the application is stopped or fails.
      * 
-     * The method:
-     * - Starts the Kafka Streams application
-     * - Waits for a short period to allow asynchronous startup
-     * - Continuously monitors the application state
-     * - Closes the application when stopped
-     * - Throws an exception if the application fails
+     * <p>The method:</p>
+     * <ul>
+     *     <li>Starts the Kafka Streams application</li>
+     *     <li>Waits for a short period to allow asynchronous startup</li>
+     *     <li>Continuously monitors the application state</li>
+     *     <li>Closes the application when stopped</li>
+     *     <li>Throws an exception if the application fails</li>
+     * </ul>
      */
     @Override
     public void run() {
