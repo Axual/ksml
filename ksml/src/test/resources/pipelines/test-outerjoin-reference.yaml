@@ -25,7 +25,13 @@ functions:
     type: valueJoiner
     resultType: string
     code: |
-      joined = value1 + "," + value2
+      if value1 == None:
+        value1 = "?"
+      
+      if value2 == None:
+        value2 = "?"
+      
+      joined =  value1 + "," + value2
     expression: joined
 
 pipelines:
