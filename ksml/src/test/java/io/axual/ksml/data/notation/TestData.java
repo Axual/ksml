@@ -2,7 +2,7 @@ package io.axual.ksml.data.notation;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Library - PROTOBUF
+ * KSML
  * %%
  * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
