@@ -69,6 +69,7 @@
         <apache.commons.compress.version>1.27.1</apache.commons.compress.version>
         <apache.kafka.version>4.0.0</apache.kafka.version>
         <apicurio.version>2.6.11.Final</apicurio.version>
+        <axual.utils.version>1.0.0</axual.utils.version>
         <confluent.version>7.9.1</confluent.version>
         <findbugs.jsr305.version>3.0.2</findbugs.jsr305.version>
         <graalvm.version>24.2.1</graalvm.version>
@@ -384,6 +385,11 @@
                 <groupId>com.google.code.findbugs</groupId>
                 <artifactId>jsr305</artifactId>
                 <version>${findbugs.jsr305.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.utils</groupId>
+                <artifactId>axual-header-cleaning</artifactId>
+                <version>${axual.utils.version}</version>
             </dependency>
 
             <dependency>
