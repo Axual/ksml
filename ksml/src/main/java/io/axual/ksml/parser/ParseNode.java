@@ -87,9 +87,7 @@ public class ParseNode {
     public List<ParseNode> children(String childTagKey, String elementPrefix) {
         List<ParseNode> result = new ArrayList<>();
         Set<JsonNode> seen = new HashSet<>();
-        Iterator<Map.Entry<String, JsonNode>> fieldIterator = node.fields();
-        while (fieldIterator.hasNext()) {
-            Map.Entry<String, JsonNode> field = fieldIterator.next();
+        for (Map.Entry<String, JsonNode> field : node.properties()) {
             seen.add(field.getValue());
             final var childTagValue = elementPrefix + field.getKey();
             result.add(new ParseNode(this, field.getValue(), childTagValue, childTagKey != null ? tags.append(childTagKey, childTagValue) : tags));

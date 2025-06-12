@@ -21,23 +21,6 @@ package io.axual.ksml.runner.backend;
  */
 
 
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.common.config.ConfigDef;
-import org.apache.kafka.common.utils.Utils;
-import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.Topology;
-import org.apache.kafka.streams.TopologyConfig;
-
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiFunction;
-
 import io.axual.ksml.TopologyGenerator;
 import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.execution.ExecutionContext;
@@ -53,10 +36,18 @@ import io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.config.ConfigDef;
+import org.apache.kafka.common.utils.Utils;
+import org.apache.kafka.streams.*;
+
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiFunction;
 
 /**
  * Implementation of the Runner interface that manages Kafka Streams applications.
- * 
+ *
  * <p>This class is responsible for:</p>
  * <ul>
  *     <li>Creating and configuring Kafka Streams applications</li>
@@ -65,7 +56,7 @@ import lombok.extern.slf4j.Slf4j;
  *     <li>Adding cleanup interceptors to consumer configurations</li>
  *     <li>Providing metrics reporting</li>
  * </ul>
- * 
+ *
  * <p>The runner creates a Kafka Streams instance based on the provided configuration,
  * sets up appropriate error handlers and state listeners, and manages the application's
  * lifecycle through the Runner interface methods.</p>
@@ -81,11 +72,11 @@ public class KafkaStreamsRunner implements Runner {
 
     /**
      * Configuration record for the KafkaStreamsRunner.
-     * 
-     * @param definitions Map of topology definitions to be used in the Kafka Streams application
-     * @param storageDirectory Directory where Kafka Streams will store its state
-     * @param appServer Configuration for the application server (used for interactive queries)
-     * @param kafkaConfig Kafka configuration properties
+     *
+     * @param definitions         Map of topology definitions to be used in the Kafka Streams application
+     * @param storageDirectory    Directory where Kafka Streams will store its state
+     * @param appServer           Configuration for the application server (used for interactive queries)
+     * @param kafkaConfig         Kafka configuration properties
      * @param pythonContextConfig Configuration for the Python execution context
      */
     @Builder
@@ -119,7 +110,7 @@ public class KafkaStreamsRunner implements Runner {
 
     /**
      * Creates a new KafkaStreamsRunner with the provided configuration.
-     * 
+     *
      * @param config The configuration for the Kafka Streams application
      */
     public KafkaStreamsRunner(Config config) {
@@ -128,8 +119,8 @@ public class KafkaStreamsRunner implements Runner {
 
     /**
      * Package private constructor that allows tests to inject a factory for creating KafkaStreams instances.
-     * 
-     * @param config The configuration for the Kafka Streams application
+     *
+     * @param config              The configuration for the Kafka Streams application
      * @param kafkaStreamsFactory Factory function for creating KafkaStreams instances
      */
     KafkaStreamsRunner(Config config, BiFunction<Topology, Properties, KafkaStreams> kafkaStreamsFactory) {
@@ -164,7 +155,7 @@ public class KafkaStreamsRunner implements Runner {
     /**
      * Logs state changes in the Kafka Streams application.
      * This method is used as a state listener for the Kafka Streams instance.
-     * 
+     *
      * @param newState The new state of the Kafka Streams application
      * @param oldState The previous state of the Kafka Streams application
      */
@@ -177,16 +168,16 @@ public class KafkaStreamsRunner implements Runner {
     /**
      * Adds the AxualHeaderCleaningInterceptor to the consumer interceptor configuration.
      * This method is package-private for testability.
-     * 
+     *
      * <p>The cleanup interceptor is added as the first interceptor in the chain if it's not already present.</p>
      * <ul>
      *     <li>For the plain consumer ({@code CONSUMER_PREFIX}), the interceptor is always added if {@code addConfigIfMissing} is true.</li>
      *     <li>For other consumers ({@code MAIN_CONSUMER_PREFIX}, {@code RESTORE_CONSUMER_PREFIX}, {@code GLOBAL_CONSUMER_PREFIX}),
      *     the interceptor is only added if the configuration already exists.</li>
      * </ul>
-     * 
-     * @param configPrefix The configuration prefix for the consumer (e.g., {@code consumer.}, {@code main.consumer.}, etc.)
-     * @param configs The configuration map to modify
+     *
+     * @param configPrefix       The configuration prefix for the consumer (e.g., {@code consumer.}, {@code main.consumer.}, etc.)
+     * @param configs            The configuration map to modify
      * @param addConfigIfMissing Whether to add the interceptor configuration if it doesn't exist
      */
     void addCleanupInterceptor(String configPrefix, Map<String, Object> configs, boolean addConfigIfMissing) {
@@ -225,10 +216,10 @@ public class KafkaStreamsRunner implements Runner {
     /**
      * Package-private constructor specifically for testing.
      * Creates a KafkaStreamsRunner with a dummy topology and the provided tag enricher.
-     * 
-     * @param config The configuration for the Kafka Streams application
+     *
+     * @param config              The configuration for the Kafka Streams application
      * @param kafkaStreamsFactory Factory function for creating KafkaStreams instances
-     * @param tagEnricher The tag enricher to use for metrics
+     * @param tagEnricher         The tag enricher to use for metrics
      */
     KafkaStreamsRunner(Config config, BiFunction<Topology, Properties, KafkaStreams> kafkaStreamsFactory, KsmlTagEnricher tagEnricher) {
         log.info("Constructing Kafka Backend (test mode)");
@@ -251,7 +242,7 @@ public class KafkaStreamsRunner implements Runner {
     /**
      * Creates a configuration map for Kafka Streams with appropriate settings.
      * This method is package-private for testability.
-     * 
+     *
      * <p>The method:</p>
      * <ul>
      *     <li>Copies the initial configuration if provided</li>
@@ -261,10 +252,10 @@ public class KafkaStreamsRunner implements Runner {
      *     <li>Sets the state directory for Kafka Streams</li>
      *     <li>Configures the application server if enabled</li>
      * </ul>
-     * 
-     * @param initialConfigs Initial configuration map (can be {@code null})
+     *
+     * @param initialConfigs   Initial configuration map (can be {@code null})
      * @param storageDirectory Directory where Kafka Streams will store its state
-     * @param appServer Configuration for the application server (used for interactive queries)
+     * @param appServer        Configuration for the application server (used for interactive queries)
      * @return A map with the complete Kafka Streams configuration
      */
     Map<String, Object> getStreamsConfig(Map<String, String> initialConfigs, String storageDirectory, ApplicationServerConfig appServer) {
@@ -292,7 +283,7 @@ public class KafkaStreamsRunner implements Runner {
 
     /**
      * Converts a Map to a Properties object.
-     * 
+     *
      * @param configs The map to convert
      * @return A Properties object containing all entries from the map
      */
@@ -304,7 +295,7 @@ public class KafkaStreamsRunner implements Runner {
 
     /**
      * Maps the Kafka Streams state to the Runner state.
-     * 
+     *
      * @return The current state of the runner
      */
     @Override
@@ -322,7 +313,7 @@ public class KafkaStreamsRunner implements Runner {
     /**
      * Starts the Kafka Streams application and monitors its state.
      * This method blocks until the application is stopped or fails.
-     * 
+     *
      * <p>The method:</p>
      * <ul>
      *     <li>Starts the Kafka Streams application</li>
@@ -360,7 +351,7 @@ public class KafkaStreamsRunner implements Runner {
     /**
      * Sets the sleep durations used in the run method.
      * This method is package-private and intended for testing to reduce wait times.
-     * 
+     *
      * @param startupSleepMs Time to sleep after starting Kafka Streams to allow asynchronous startup
      * @param pollingSleepMs Time to sleep between state checks while running
      */

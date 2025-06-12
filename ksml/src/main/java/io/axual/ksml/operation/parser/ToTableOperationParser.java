@@ -27,7 +27,7 @@ import io.axual.ksml.operation.ToTableOperation;
 import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.store.StoreType;
 
-public class ToTableOperationParser extends StoreOperationParser<ToTableOperation> {
+public class ToTableOperationParser extends OperationParser<ToTableOperation> {
     public ToTableOperationParser(TopologyResources resources) {
         super(KSMLDSL.Operations.TO_TABLE, resources);
     }

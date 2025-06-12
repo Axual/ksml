@@ -20,6 +20,7 @@ package io.axual.ksml.metric;
  * =========================LICENSE_END==================================
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.metrics.KafkaMetric;
 import org.apache.kafka.streams.TopologyDescription;
 import org.jetbrains.annotations.NotNull;
@@ -30,8 +31,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Translates Kafka Streams metrics into enriched KSML metrics by appending contextual tags

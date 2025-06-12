@@ -26,7 +26,7 @@ import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.CountOperation;
 import io.axual.ksml.parser.StructsParser;
 
-public class CountOperationParser extends StoreOperationParser<CountOperation> {
+public class CountOperationParser extends OperationParser<CountOperation> {
     public CountOperationParser(TopologyResources resources) {
         super(KSMLDSL.Operations.COUNT, resources);
     }

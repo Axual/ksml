@@ -20,15 +20,15 @@ package io.axual.ksml.metric;
  * =========================LICENSE_END==================================
  */
 
-import static org.assertj.core.api.Assertions.*;
-
-import java.util.stream.Stream;
-import java.util.regex.Matcher;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.regex.Matcher;
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class KsmlTagEnricherPatternTest {
 

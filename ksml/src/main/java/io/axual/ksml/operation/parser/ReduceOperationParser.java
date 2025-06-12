@@ -33,7 +33,7 @@ import io.axual.ksml.store.StoreType;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ReduceOperationParser extends StoreOperationParser<ReduceOperation> {
+public class ReduceOperationParser extends OperationParser<ReduceOperation> {
     private static final String DOC = "Operation to reduce a series of records into a single aggregate result";
     private final StructsParser<ReduceOperation> reducerParser;
     private final StructsParser<ReduceOperation> addedSubtractorParser;

@@ -55,9 +55,12 @@ public class ResolvingDescribeConsumerGroupsResult extends ExtendableDescribeCon
                 description.isSimpleConsumerGroup(),
                 description.members(),
                 description.partitionAssignor(),
-                description.state(),
-                description.coordinator()
-        );
+                description.type(),
+                description.groupState(),
+                description.coordinator(),
+                description.authorizedOperations(),
+                description.groupEpoch(),
+                description.targetAssignmentEpoch());
     }
 
     @Override

@@ -28,7 +28,7 @@ import io.axual.ksml.operation.TransformValueOperation;
 import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.store.StoreType;
 
-public class TransformValueOperationParser extends StoreOperationParser<TransformValueOperation> {
+public class TransformValueOperationParser extends OperationParser<TransformValueOperation> {
     public TransformValueOperationParser(TopologyResources resources) {
         super(KSMLDSL.Operations.TRANSFORM_VALUE, resources);
     }

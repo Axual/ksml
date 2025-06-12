@@ -67,7 +67,9 @@
   - **`store`**: *(optional)* Materialized view of the result aggregation.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitStoreType](#definitions/WindowStateStoreDefinitionWithImplicitStoreType)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
   - **`subtractor`**: *(optional)* (GroupedTable) A function that removes a record from the aggregation result.
     - **Any of**
       - *string*
@@ -155,15 +157,15 @@
         - *object*: Refer to *[#/definitions/FilterOperation](#definitions/FilterOperation)*.
         - *object*: Refer to *[#/definitions/GroupByKeyOperation](#definitions/GroupByKeyOperation)*.
         - *object*: Refer to *[#/definitions/GroupByOperation](#definitions/GroupByOperation)*.
-        - *object*: Refer to *[#/definitions/JoinOperationWithGlobalTable](#definitions/JoinOperationWithGlobalTable)*.
-        - *object*: Refer to *[#/definitions/JoinOperationWithStream](#definitions/JoinOperationWithStream)*.
-        - *object*: Refer to *[#/definitions/JoinOperationWithTable](#definitions/JoinOperationWithTable)*.
-        - *object*: Refer to *[#/definitions/LeftJoinOperationWithGlobalTable](#definitions/LeftJoinOperationWithGlobalTable)*.
-        - *object*: Refer to *[#/definitions/LeftJoinOperationWithStream](#definitions/LeftJoinOperationWithStream)*.
-        - *object*: Refer to *[#/definitions/LeftJoinOperationWithTable](#definitions/LeftJoinOperationWithTable)*.
+        - *object*: Refer to *[#/definitions/JoinWithGlobalTableOperation](#definitions/JoinWithGlobalTableOperation)*.
+        - *object*: Refer to *[#/definitions/JoinWithStreamOperation](#definitions/JoinWithStreamOperation)*.
+        - *object*: Refer to *[#/definitions/JoinWithTableOperation](#definitions/JoinWithTableOperation)*.
+        - *object*: Refer to *[#/definitions/LeftJoinWithGlobalTableOperation](#definitions/LeftJoinWithGlobalTableOperation)*.
+        - *object*: Refer to *[#/definitions/LeftJoinWithStreamOperation](#definitions/LeftJoinWithStreamOperation)*.
+        - *object*: Refer to *[#/definitions/LeftJoinWithTableOperation](#definitions/LeftJoinWithTableOperation)*.
         - *object*: Refer to *[#/definitions/MergeOperation](#definitions/MergeOperation)*.
-        - *object*: Refer to *[#/definitions/OuterJoinOperationWithStream](#definitions/OuterJoinOperationWithStream)*.
-        - *object*: Refer to *[#/definitions/OuterJoinOperationWithTable](#definitions/OuterJoinOperationWithTable)*.
+        - *object*: Refer to *[#/definitions/OuterJoinWithStreamOperation](#definitions/OuterJoinWithStreamOperation)*.
+        - *object*: Refer to *[#/definitions/OuterJoinWithTableOperation](#definitions/OuterJoinWithTableOperation)*.
         - *object*: Refer to *[#/definitions/PeekOperation](#definitions/PeekOperation)*.
         - *object*: Refer to *[#/definitions/ReduceOperationWithAdderAndSubtractor](#definitions/ReduceOperationWithAdderAndSubtractor)*.
         - *object*: Refer to *[#/definitions/ReduceOperationWithReducer](#definitions/ReduceOperationWithReducer)*.
@@ -188,10 +190,6 @@
       - *string*
       - *object*: Refer to *[#/definitions/AggregatorDefinitionWithImplicitStoreType](#definitions/AggregatorDefinitionWithImplicitStoreType)*.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
-  - **`store`**: *(optional)* Materialized view of the co-grouped stream.
-    - **Any of**
-      - *string*
-      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitStoreType](#definitions/WindowStateStoreDefinitionWithImplicitStoreType)*.
   - **`type`**: The type of the operation. Must be one of: `["cogroup"]`.
 - <a id="definitions/ConvertKeyOperation"></a>**`ConvertKeyOperation`** *(object)*: An operation to convert the stream key type to another type. Conversion is only syntactic, eg. from Avro to XML. Cannot contain additional properties.
   - **`into`** *(string, required)*: The type to convert the stream key into.
@@ -491,7 +489,7 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the initializer.
     - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the initializer. Only required for function types, which are not pre-defined.
-- <a id="definitions/JoinOperationWithGlobalTable"></a>**`JoinOperationWithGlobalTable`** *(object)*: Operation to join with a table. Cannot contain additional properties.
+- <a id="definitions/JoinWithGlobalTableOperation"></a>**`JoinWithGlobalTableOperation`** *(object)*: Operation to join with a table. Cannot contain additional properties.
   - **`globalTable`**: A reference to the globalTable, or an inline definition of the globalTable to join with.
     - **Any of**
       - *string*
@@ -506,22 +504,24 @@
     - **Any of**
       - *string*
       - *object*: Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitStoreType](#definitions/ValueJoinerDefinitionWithImplicitStoreType)*.
-- <a id="definitions/JoinOperationWithStream"></a>**`JoinOperationWithStream`** *(object)*: Operation to join with a stream. Cannot contain additional properties.
+- <a id="definitions/JoinWithStreamOperation"></a>**`JoinWithStreamOperation`** *(object)*: Operation to join with a stream. Cannot contain additional properties.
   - **`grace`**: *(optional)* The window grace period (the time to admit out-of-order events after the end of the window).
     - **Any of**
       - *integer*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
-  - **`store`**: *(optional)* Materialized view of the joined streams.
+  - **`otherStore`**: Materialized view of the joined stream.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
-      - *object*: Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
-      - *object*: Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
-  - **`stream`**: A reference to the Stream, or an inline definition of the stream to join with.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitStoreType](#definitions/WindowStateStoreDefinitionWithImplicitStoreType)*.
+  - **`stream`**: A reference to the stream, or an inline definition of the stream to join with.
     - **Any of**
       - *string*
       - *object*: Refer to *[#/definitions/StreamDefinitionAsJoinTarget](#definitions/StreamDefinitionAsJoinTarget)*.
+  - **`thisStore`**: Materialized view of the source stream.
+    - **Any of**
+      - *string*
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitStoreType](#definitions/WindowStateStoreDefinitionWithImplicitStoreType)*.
   - **`timeDifference`**: The maximum time difference for a join over two streams on the same key.
     - **Any of**
       - *integer*
@@ -531,7 +531,7 @@
     - **Any of**
       - *string*
       - *object*: Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitStoreType](#definitions/ValueJoinerDefinitionWithImplicitStoreType)*.
-- <a id="definitions/JoinOperationWithTable"></a>**`JoinOperationWithTable`** *(object)*: Operation to join with a table. Cannot contain additional properties.
+- <a id="definitions/JoinWithTableOperation"></a>**`JoinWithTableOperation`** *(object)*: Operation to join with a table. Cannot contain additional properties.
   - **`foreignKeyExtractor`**: *(optional)* A function that can translate the join table value to a primary key.
     - **Any of**
       - *string*
@@ -549,12 +549,10 @@
     - **Any of**
       - *string*
       - *object*: Refer to *[#/definitions/StreamPartitionerDefinitionWithImplicitStoreType](#definitions/StreamPartitionerDefinitionWithImplicitStoreType)*.
-  - **`store`**: *(optional)* Materialized view of the joined streams.
+  - **`store`**: *(optional)* Materialized view of the joined table (only used for Table-Table joins).
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
-      - *object*: Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
-      - *object*: Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreType)*.
   - **`table`**: A reference to the table, or an inline definition of the table to join with.
     - **Any of**
       - *string*
@@ -913,7 +911,7 @@
   - **`resultType`** *(string)*: *(optional)* The data type returned by the keyvalue transformer. Only required for function types, which are not pre-defined.
   - **`stores`** *(array)*: *(optional)* A list of store names that the keyvalue transformer uses. Only required if the function wants to use a state store.
     - **Items** *(string)*
-- <a id="definitions/LeftJoinOperationWithGlobalTable"></a>**`LeftJoinOperationWithGlobalTable`** *(object)*: Operation to leftJoin with a globalTable. Cannot contain additional properties.
+- <a id="definitions/LeftJoinWithGlobalTableOperation"></a>**`LeftJoinWithGlobalTableOperation`** *(object)*: Operation to leftJoin with a globalTable. Cannot contain additional properties.
   - **`globalTable`**: A reference to the globalTable, or an inline definition of the globalTable to join with.
     - **Any of**
       - *string*
@@ -928,22 +926,24 @@
     - **Any of**
       - *string*
       - *object*: Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitStoreType](#definitions/ValueJoinerDefinitionWithImplicitStoreType)*.
-- <a id="definitions/LeftJoinOperationWithStream"></a>**`LeftJoinOperationWithStream`** *(object)*: Operation to leftJoin with a stream. Cannot contain additional properties.
+- <a id="definitions/LeftJoinWithStreamOperation"></a>**`LeftJoinWithStreamOperation`** *(object)*: Operation to leftJoin with a stream. Cannot contain additional properties.
   - **`grace`**: *(optional)* The window grace period (the time to admit out-of-order events after the end of the window).
     - **Any of**
       - *integer*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
-  - **`store`**: *(optional)* Materialized view of the joined streams.
+  - **`otherStore`**: Materialized view of the leftJoined stream.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
-      - *object*: Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
-      - *object*: Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitStoreType](#definitions/WindowStateStoreDefinitionWithImplicitStoreType)*.
   - **`stream`**: A reference to the stream, or an inline definition of the stream to leftJoin with.
     - **Any of**
       - *string*
       - *object*: Refer to *[#/definitions/StreamDefinitionAsJoinTarget](#definitions/StreamDefinitionAsJoinTarget)*.
+  - **`thisStore`**: Materialized view of the source stream.
+    - **Any of**
+      - *string*
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitStoreType](#definitions/WindowStateStoreDefinitionWithImplicitStoreType)*.
   - **`timeDifference`**: The maximum time difference for a leftJoin over two streams on the same key.
     - **Any of**
       - *integer*
@@ -953,7 +953,7 @@
     - **Any of**
       - *string*
       - *object*: Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitStoreType](#definitions/ValueJoinerDefinitionWithImplicitStoreType)*.
-- <a id="definitions/LeftJoinOperationWithTable"></a>**`LeftJoinOperationWithTable`** *(object)*: Operation to leftJoin with a table. Cannot contain additional properties.
+- <a id="definitions/LeftJoinWithTableOperation"></a>**`LeftJoinWithTableOperation`** *(object)*: Operation to leftJoin with a table. Cannot contain additional properties.
   - **`foreignKeyExtractor`**: *(optional)* A function that can translate the join table value to a primary key.
     - **Any of**
       - *string*
@@ -971,13 +971,11 @@
     - **Any of**
       - *string*
       - *object*: Refer to *[#/definitions/StreamPartitionerDefinitionWithImplicitStoreType](#definitions/StreamPartitionerDefinitionWithImplicitStoreType)*.
-  - **`store`**: *(optional)* Materialized view of the joined streams.
+  - **`store`**: *(optional)* Materialized view of the leftJoined table (only used for Table-Table joins).
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
-      - *object*: Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
-      - *object*: Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
-  - **`table`**: A reference to the Table, or an inline definition of the Table to join with.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreType)*.
+  - **`table`**: A reference to the table, or an inline definition of the table to join with.
     - **Any of**
       - *string*
       - *object*: Refer to *[#/definitions/TableDefinitionAsJoinTarget](#definitions/TableDefinitionAsJoinTarget)*.
@@ -1091,22 +1089,24 @@
   - **`resultType`** *(string)*: *(optional)* The data type returned by the metadata transformer. Only required for function types, which are not pre-defined.
   - **`stores`** *(array)*: *(optional)* A list of store names that the metadata transformer uses. Only required if the function wants to use a state store.
     - **Items** *(string)*
-- <a id="definitions/OuterJoinOperationWithStream"></a>**`OuterJoinOperationWithStream`** *(object)*: Operation to outerJoin with a stream. Cannot contain additional properties.
+- <a id="definitions/OuterJoinWithStreamOperation"></a>**`OuterJoinWithStreamOperation`** *(object)*: Operation to outerJoin with a stream. Cannot contain additional properties.
   - **`grace`**: *(optional)* The window grace period (the time to admit out-of-order events after the end of the window).
     - **Any of**
       - *integer*
       - *string*
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
-  - **`store`**: *(optional)* Materialized view of the outerJoined streams.
+  - **`otherStore`**: Materialized view of the outerJoined stream.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
-      - *object*: Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
-      - *object*: Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitStoreType](#definitions/WindowStateStoreDefinitionWithImplicitStoreType)*.
   - **`stream`**: A reference to the stream, or an inline definition of the stream to outerJoin with.
     - **Any of**
       - *string*
       - *object*: Refer to *[#/definitions/StreamDefinitionAsJoinTarget](#definitions/StreamDefinitionAsJoinTarget)*.
+  - **`thisStore`**: Materialized view of the source stream.
+    - **Any of**
+      - *string*
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitStoreType](#definitions/WindowStateStoreDefinitionWithImplicitStoreType)*.
   - **`timeDifference`**: The maximum time difference for an outerJoin over two streams on the same key.
     - **Any of**
       - *integer*
@@ -1116,14 +1116,12 @@
     - **Any of**
       - *string*
       - *object*: Refer to *[#/definitions/ValueJoinerDefinitionWithImplicitStoreType](#definitions/ValueJoinerDefinitionWithImplicitStoreType)*.
-- <a id="definitions/OuterJoinOperationWithTable"></a>**`OuterJoinOperationWithTable`** *(object)*: Operation to outerJoin with a table. Cannot contain additional properties.
+- <a id="definitions/OuterJoinWithTableOperation"></a>**`OuterJoinWithTableOperation`** *(object)*: Operation to outerJoin with a table. Cannot contain additional properties.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
-  - **`store`**: *(optional)* Materialized view of the outerJoined streams.
+  - **`store`**: *(optional)* Materialized view of the outerJoined table.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
-      - *object*: Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
-      - *object*: Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreType)*.
   - **`table`**: A reference to the table, or an inline definition of the table to outerJoin with.
     - **Any of**
       - *string*
@@ -1179,15 +1177,15 @@
         - *object*: Refer to *[#/definitions/FilterOperation](#definitions/FilterOperation)*.
         - *object*: Refer to *[#/definitions/GroupByKeyOperation](#definitions/GroupByKeyOperation)*.
         - *object*: Refer to *[#/definitions/GroupByOperation](#definitions/GroupByOperation)*.
-        - *object*: Refer to *[#/definitions/JoinOperationWithGlobalTable](#definitions/JoinOperationWithGlobalTable)*.
-        - *object*: Refer to *[#/definitions/JoinOperationWithStream](#definitions/JoinOperationWithStream)*.
-        - *object*: Refer to *[#/definitions/JoinOperationWithTable](#definitions/JoinOperationWithTable)*.
-        - *object*: Refer to *[#/definitions/LeftJoinOperationWithGlobalTable](#definitions/LeftJoinOperationWithGlobalTable)*.
-        - *object*: Refer to *[#/definitions/LeftJoinOperationWithStream](#definitions/LeftJoinOperationWithStream)*.
-        - *object*: Refer to *[#/definitions/LeftJoinOperationWithTable](#definitions/LeftJoinOperationWithTable)*.
+        - *object*: Refer to *[#/definitions/JoinWithGlobalTableOperation](#definitions/JoinWithGlobalTableOperation)*.
+        - *object*: Refer to *[#/definitions/JoinWithStreamOperation](#definitions/JoinWithStreamOperation)*.
+        - *object*: Refer to *[#/definitions/JoinWithTableOperation](#definitions/JoinWithTableOperation)*.
+        - *object*: Refer to *[#/definitions/LeftJoinWithGlobalTableOperation](#definitions/LeftJoinWithGlobalTableOperation)*.
+        - *object*: Refer to *[#/definitions/LeftJoinWithStreamOperation](#definitions/LeftJoinWithStreamOperation)*.
+        - *object*: Refer to *[#/definitions/LeftJoinWithTableOperation](#definitions/LeftJoinWithTableOperation)*.
         - *object*: Refer to *[#/definitions/MergeOperation](#definitions/MergeOperation)*.
-        - *object*: Refer to *[#/definitions/OuterJoinOperationWithStream](#definitions/OuterJoinOperationWithStream)*.
-        - *object*: Refer to *[#/definitions/OuterJoinOperationWithTable](#definitions/OuterJoinOperationWithTable)*.
+        - *object*: Refer to *[#/definitions/OuterJoinWithStreamOperation](#definitions/OuterJoinWithStreamOperation)*.
+        - *object*: Refer to *[#/definitions/OuterJoinWithTableOperation](#definitions/OuterJoinWithTableOperation)*.
         - *object*: Refer to *[#/definitions/PeekOperation](#definitions/PeekOperation)*.
         - *object*: Refer to *[#/definitions/ReduceOperationWithAdderAndSubtractor](#definitions/ReduceOperationWithAdderAndSubtractor)*.
         - *object*: Refer to *[#/definitions/ReduceOperationWithReducer](#definitions/ReduceOperationWithReducer)*.
@@ -1297,7 +1295,7 @@
   - **`store`**: *(optional)* Materialized view of the aggregation.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitStoreType](#definitions/WindowStateStoreDefinitionWithImplicitStoreType)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreType)*.
   - **`subtractor`**: A function that removes a record from the aggregate result.
     - **Any of**
       - *string*
@@ -1312,7 +1310,9 @@
   - **`store`**: *(optional)* Materialized view of the aggregation.
     - **Any of**
       - *string*
-      - *object*: Refer to *[#/definitions/WindowStateStoreDefinitionWithImplicitStoreType](#definitions/WindowStateStoreDefinitionWithImplicitStoreType)*.
+      - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinition](#definitions/KeyValueStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/SessionStateStoreDefinition](#definitions/SessionStateStoreDefinition)*.
+      - *object*: Refer to *[#/definitions/WindowStateStoreDefinition](#definitions/WindowStateStoreDefinition)*.
   - **`type`**: The type of the operation. Must be one of: `["reduce"]`.
 - <a id="definitions/ReducerDefinition"></a>**`ReducerDefinition`** *(object)*: Defines a reducer function, that gets injected into the Kafka Streams topology. Cannot contain additional properties.
   - **`code`**: *(optional)* The (multiline) code of the reducer.
