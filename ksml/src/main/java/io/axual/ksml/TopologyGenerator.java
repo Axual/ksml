@@ -27,6 +27,7 @@ import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.generator.TopologyAnalyzer;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.generator.TopologyDefinition;
+import io.axual.ksml.operation.DualStoreOperation;
 import io.axual.ksml.operation.StoreOperation;
 import io.axual.ksml.operation.StreamOperation;
 import io.axual.ksml.python.PythonContextConfig;
@@ -126,9 +127,9 @@ public class TopologyGenerator {
         }
     }
 
-    private void generate(TopologyDefinition specification, TopologyBuildContext context) {
+    private void generate(TopologyDefinition definition, TopologyBuildContext context) {
         // Preload the function into the Python context
-        specification.functions().forEach((name, func) -> context.createUserFunction(func));
+        definition.functions().forEach((name, func) -> context.createUserFunction(func));
 
         // Figure out which state stores to create manually. Mechanism:
         // 1. run through all pipelines and scan for StoreOperations, don't create the stores referenced
@@ -136,12 +137,12 @@ public class TopologyGenerator {
         final var kafkaStreamsCreatedStores = new HashSet<String>();
 
         // Ensure that local state store in tables are registered with the StreamBuilder
-        specification.topics().forEach((name, def) -> {
+        definition.topics().forEach((name, def) -> {
             if (def instanceof TableDefinition tableDef) {
                 context.getStreamWrapper(tableDef);
                 if (tableDef.store() != null) {
                     // Register the state store and mark as already created (by Kafka Streams framework, not by user)
-                    specification.register(tableDef.store().name(), tableDef.store());
+                    definition.register(tableDef.store().name(), tableDef.store());
                     kafkaStreamsCreatedStores.add(tableDef.store().name());
                 }
             }
@@ -149,27 +150,33 @@ public class TopologyGenerator {
                 context.getStreamWrapper(globalTableDef);
                 if (globalTableDef.store() != null) {
                     // Register the state store and mark as already created (by Kafka Streams framework, not by user)
-                    specification.register(globalTableDef.store().name(), globalTableDef.store());
+                    definition.register(globalTableDef.store().name(), globalTableDef.store());
                     kafkaStreamsCreatedStores.add(globalTableDef.store().name());
                 }
             }
         });
 
         // Filter out all state stores that Kafka Streams will set up later as part of the topology
-        specification.pipelines().forEach((name, pipeline) -> pipeline.chain().forEach(operation -> {
+        definition.pipelines().forEach((name, pipeline) -> pipeline.chain().forEach(operation -> {
             if (operation instanceof StoreOperation storeOperation && storeOperation.store() != null)
                 kafkaStreamsCreatedStores.add(storeOperation.store().name());
+            if (operation instanceof DualStoreOperation dualStoreOperation) {
+                if (dualStoreOperation.thisStore() != null)
+                    kafkaStreamsCreatedStores.add(dualStoreOperation.thisStore().name());
+                if (dualStoreOperation.otherStore() != null)
+                    kafkaStreamsCreatedStores.add(dualStoreOperation.otherStore().name());
+            }
         }));
 
         // Create all not-automatically-created stores
-        specification.stateStores().forEach((name, store) -> {
+        definition.stateStores().forEach((name, store) -> {
             if (!kafkaStreamsCreatedStores.contains(name)) {
                 context.createUserStateStore(store);
             }
         });
 
         // For each pipeline, generate the topology
-        specification.pipelines().forEach((name, pipeline) -> {
+        definition.pipelines().forEach((name, pipeline) -> {
             StringBuilder tsBuilder = new StringBuilder();
             // Use a cursor to keep track of where we are in the topology
             StreamWrapper cursor = context.getStreamWrapper(pipeline.source());
