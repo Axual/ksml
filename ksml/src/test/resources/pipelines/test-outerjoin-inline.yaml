@@ -1,4 +1,5 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
 streams:
   test_input1:
     topic: input1
@@ -14,11 +15,22 @@ streams:
     valueType: string
 
 stores:
-  joined_store:
+  left_store:
     type: window
     keyType: string
     valueType: string
     timestamped: true
+    retainDuplicates: true
+    windowSize: 2s
+    retention: 3s
+  right_store:
+    type: window
+    keyType: string
+    valueType: string
+    timestamped: true
+    retainDuplicates: true
+    windowSize: 2s
+    retention: 3s
 
 pipelines:
   main:
@@ -38,5 +50,6 @@ pipelines:
           expression: joined
         timeDifference: 1s
         grace: 1s
-        store: joined_store
+        thisStore: left_store
+        otherStore: right_store
     to: test_output
