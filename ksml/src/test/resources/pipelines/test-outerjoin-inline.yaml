@@ -1,4 +1,4 @@
-# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 streams:
   test_input1:
     topic: input1
@@ -18,6 +18,7 @@ stores:
     type: window
     keyType: string
     valueType: string
+    timestamped: true
 
 pipelines:
   main:
@@ -29,7 +30,7 @@ pipelines:
           resultType: string
           code: |
             if value1 == None:
-              joined = "? ," + value2
+              joined = "?," + value2
             elif value2 == None:
               joined = value1 + ",?"
             else:

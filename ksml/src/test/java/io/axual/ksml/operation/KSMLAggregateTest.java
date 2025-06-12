@@ -29,7 +29,6 @@ import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.apache.kafka.streams.state.KeyValueStore;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -72,7 +71,6 @@ public class KSMLAggregateTest {
 
     @KSMLTest(topology = "pipelines/test-aggregate-inline.yaml")
     @DisplayName("aggregate should work with an inline keyvalue store definition")
-    @Disabled("The inline store definition is not yet supported")
     void testAggregateInline() {
         // given that we send some numbers with the same key
         inputTopic.pipeInput("key1", 1L);

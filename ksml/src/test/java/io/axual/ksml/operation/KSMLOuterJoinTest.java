@@ -25,19 +25,14 @@ import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.Map;
 
-import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(KSMLTestExtension.class)
@@ -53,44 +48,54 @@ public class KSMLOuterJoinTest {
     @KSMLTopic(topic = "joined")
     TestOutputTopic<String,String> mergedTopic;
 
-    @KSMLDriver
-    TopologyTestDriver testDriver;
-
     @KSMLTest(topology = "pipelines/test-outerjoin-reference.yaml")
     @DisplayName("Two topics can be outer joined with function reference")
     void testJoinByReference() {
-        // given that both topics contain some records
-        inputTopic1.pipeInput("1", "one");
-        inputTopic1.pipeInput("2", "two");
+        // given that both topics contain some timestamped records
+        inputTopic1.pipeInput("1", "one", 100);
+        inputTopic1.pipeInput("2", "two", 100);
+        inputTopic1.pipeInput("3", "three", 100);
 
-        inputTopic2.pipeInput("1", "eins");
-        inputTopic2.pipeInput("2", "zwei");
+        inputTopic2.pipeInput("1", "eins",120);
+        inputTopic2.pipeInput("2", "zwei",120);
+        inputTopic2.pipeInput("4", "vier",120);
 
-        // the result should contain the joined values
+        // and the join window has passed (by sending a message into the next window)
+        inputTopic1.pipeInput("5", "trois", 6000);
+
+        // the result should contain all keys
         Map<String, String> keyValues = mergedTopic.readKeyValuesToMap();
-        assertThat(keyValues).hasSize(2).containsEntry("1", "one,eins").containsEntry("2", "two,zwei");
+
+        assertThat(keyValues).hasSize(4)
+                .containsEntry("1", "one,eins")
+                .containsEntry("2", "two,zwei")
+                .containsEntry("3", "three,?")
+                .containsEntry("4", "?,vier");
     }
 
     @KSMLTest(topology = "pipelines/test-outerjoin-inline.yaml")
     @DisplayName("Two topics can be outer joined with inline value joiner")
     void testJoinInline() {
-        // given that both topics contain some records
-        inputTopic1.pipeInput("1", "one");
-        inputTopic1.pipeInput("2", "two");
-        inputTopic1.pipeInput("3", "three");
+        // given that both topics contain some timestamped records
+        inputTopic1.pipeInput("1", "one", 100);
+        inputTopic1.pipeInput("2", "two", 100);
+        inputTopic1.pipeInput("3", "three", 100);
 
-        inputTopic2.pipeInput("1", "eins");
-        inputTopic2.pipeInput("2", "zwei");
-        inputTopic2.pipeInput("4", "vier");
+        inputTopic2.pipeInput("1", "eins",120);
+        inputTopic2.pipeInput("2", "zwei",120);
+        inputTopic2.pipeInput("4", "vier",120);
 
-        testDriver.advanceWallClockTime(Duration.of(5, SECONDS));
+        // and the join window has passed (by sending a message into the next window)
+        inputTopic1.pipeInput("5", "trois", 6000);
 
-        // the result should contain the joined values
+        // the result should contain all keys
         Map<String, String> keyValues = mergedTopic.readKeyValuesToMap();
-        assertThat(keyValues).hasSize(2).containsEntry("1", "one,eins").containsEntry("2", "two,zwei");
 
-        // TO DO: was expecting keys 3 and 4 to also be present in the joined output
-        log.warn("key/values:\n{}", keyValues);
+        assertThat(keyValues).hasSize(4)
+                .containsEntry("1", "one,eins")
+                .containsEntry("2", "two,zwei")
+                .containsEntry("3", "three,?")
+                .containsEntry("4", "?,vier");
     }
 
 }
