@@ -70,7 +70,7 @@
         <apache.kafka.version>4.0.0</apache.kafka.version>
         <apicurio.version>2.6.11.Final</apicurio.version>
         <axual.utils.version>1.0.0</axual.utils.version>
-        <confluent.version>7.9.1</confluent.version>
+        <confluent.version>8.0.0</confluent.version>
         <findbugs.jsr305.version>3.0.2</findbugs.jsr305.version>
         <graalvm.version>24.2.1</graalvm.version>
         <guava.version>33.4.8-jre</guava.version>
