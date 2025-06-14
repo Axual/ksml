@@ -42,6 +42,7 @@ import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.processor.StreamPartitioner;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.SessionStore;
+import org.apache.kafka.streams.state.WindowBytesStoreSupplier;
 import org.apache.kafka.streams.state.WindowStore;
 
 import java.time.Duration;
@@ -379,16 +380,33 @@ public abstract class BaseOperation implements StreamOperation {
         return result;
     }
 
-    protected StreamJoined<Object, Object, Object> streamJoinedOf(WindowStateStoreDefinition thisStore, WindowStateStoreDefinition otherStore, StreamDataType k, StreamDataType v, StreamDataType vo) {
+    protected StreamJoined<Object, Object, Object> streamJoinedOf(WindowStateStoreDefinition thisStore, WindowStateStoreDefinition otherStore, StreamDataType k, StreamDataType v, StreamDataType vo, JoinWindows joinWindows) {
         var result = StreamJoined.with(k.serde(), v.serde(), vo.serde()).withLoggingDisabled();
         if (name != null) result = result.withName(name);
         if (thisStore != null) {
             if (thisStore.name() != null) result = result.withStoreName(thisStore.name());
             if (thisStore.logging()) result = result.withLoggingEnabled(new HashMap<>());
-            result = result.withThisStoreSupplier(StoreUtil.getStoreSupplier(thisStore));
+            result = result.withThisStoreSupplier(validateWindowStore(thisStore, joinWindows));
         }
         if (otherStore != null) {
-            result = result.withOtherStoreSupplier(StoreUtil.getStoreSupplier(otherStore));
+            result = result.withOtherStoreSupplier(validateWindowStore(otherStore, joinWindows));
+        }
+        return result;
+    }
+
+    private WindowBytesStoreSupplier validateWindowStore(WindowStateStoreDefinition store, JoinWindows joinWindows) {
+        // Copied these validation rules from Kafka Streams' KStreamImplJoin::assertWindowSettings.
+        // The checks are duplicated here, since the Kafka Streams error message for invalid window store configs is
+        // really cryptic and makes no sense to an average user.
+        final var result = StoreUtil.getStoreSupplier(store);
+        if (!result.retainDuplicates()) {
+            throw new TopologyException("The window store '" + store.name() + "' should have 'retainDuplicates' set to 'true'.");
+        }
+        if (result.windowSize() != joinWindows.size()) {
+            throw new TopologyException("The window store '" + store.name() + "' should have 'windowSize' equal to '2*timeDifference'.");
+        }
+        if (result.retentionPeriod() != joinWindows.size() + joinWindows.gracePeriodMs()) {
+            throw new TopologyException("The window store '" + store.name() + "' should have 'retention' equal to '2*timeDifference + grace'.");
         }
         return result;
     }

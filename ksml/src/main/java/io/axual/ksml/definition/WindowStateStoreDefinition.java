@@ -37,7 +37,7 @@ public final class WindowStateStoreDefinition extends StateStoreDefinition {
     public WindowStateStoreDefinition(String name, Boolean persistent, Boolean timestamped, Duration retention, Duration windowSize, Boolean retainDuplicates, UserType keyType, UserType valueType, Boolean caching, Boolean logging) {
         super(StoreType.WINDOW_STORE, name, persistent, timestamped, keyType, valueType, caching, logging);
         this.retention = retention != null ? retention : Duration.ZERO;
-        this.windowSize = windowSize != null ? retention : Duration.ZERO;
+        this.windowSize = windowSize != null ? windowSize : Duration.ZERO;
         this.retainDuplicates = retainDuplicates != null && retainDuplicates;
     }
 }

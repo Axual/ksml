@@ -25,6 +25,8 @@ import io.axual.ksml.type.UserType;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import java.util.Objects;
+
 @Getter
 @EqualsAndHashCode
 public abstract class StateStoreDefinition extends AbstractDefinition {
@@ -38,6 +40,8 @@ public abstract class StateStoreDefinition extends AbstractDefinition {
     private final boolean logging;
 
     protected StateStoreDefinition(StoreType type, String name, Boolean persistent, Boolean timestamped, UserType keyType, UserType valueType, Boolean caching, Boolean logging) {
+        Objects.requireNonNull(type, "State stores must have a defined type");
+        Objects.requireNonNull(name, "State stores must have a defined name");
         this.type = type;
         this.name = name;
         this.persistent = persistent != null && persistent;

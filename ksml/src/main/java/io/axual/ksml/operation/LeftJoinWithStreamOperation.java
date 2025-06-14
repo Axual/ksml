@@ -65,7 +65,7 @@ public class LeftJoinWithStreamOperation extends DualStoreOperation {
         final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, subOf(vr), superOf(k), superOf(v), superOf(vo));
         final var thisStore = validateWindowStore(thisStore(), k, vr);
         final var otherStore = validateWindowStore(otherStore(), k, vr);
-        final var streamJoined = streamJoinedOf(thisStore, otherStore, k, v, vo);
+        final var streamJoined = streamJoinedOf(thisStore, otherStore, k, v, vo, joinWindows);
         final var userJoiner = valueJoinerWithKey(joiner, tags);
         final KStream<Object, Object> output = streamJoined != null
                 ? input.stream.leftJoin(otherStream.stream, userJoiner, joinWindows, streamJoined)
