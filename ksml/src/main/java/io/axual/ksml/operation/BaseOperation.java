@@ -395,7 +395,9 @@ public abstract class BaseOperation implements StreamOperation {
     }
 
     private WindowBytesStoreSupplier validateWindowStore(WindowStateStoreDefinition store, JoinWindows joinWindows) {
-        // Copied these validation rules from Kafka Streams' KStreamImplJoin::assertWindowSettings
+        // Copied these validation rules from Kafka Streams' KStreamImplJoin::assertWindowSettings.
+        // The checks are duplicated here, since the Kafka Streams error message for invalid window store configs is
+        // really cryptic and makes no sense to an average user.
         final var result = StoreUtil.getStoreSupplier(store);
         if (!result.retainDuplicates()) {
             throw new TopologyException("The window store '" + store.name() + "' should have 'retainDuplicates' set to 'true'.");
