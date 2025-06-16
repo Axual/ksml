@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
 @ExtendWith({KSMLTestExtension.class})
-class KSMLMFlatMapTest {
+class KSMLFlatMapTest {
 
     @KSMLTopic(topic = "input_topic")
     protected TestInputTopic<String, String> inputTopic;

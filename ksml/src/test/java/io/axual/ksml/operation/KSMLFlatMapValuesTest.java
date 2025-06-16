@@ -27,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
@@ -36,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
 @ExtendWith({KSMLTestExtension.class})
-class KSMLMFlatMapValuesTest {
+class KSMLFlatMapValuesTest {
 
     @KSMLTopic(topic = "input_topic")
     protected TestInputTopic<String, String> inputTopic;
