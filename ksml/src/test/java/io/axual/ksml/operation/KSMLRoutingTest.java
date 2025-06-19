@@ -1,4 +1,4 @@
-package io.axual.ksml;
+package io.axual.ksml.operation;
 
 /*-
  * ========================LICENSE_START=================================
@@ -24,6 +24,7 @@ import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,16 +39,16 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 public class KSMLRoutingTest {
 
     @KSMLTopic(topic = "ksml_sensordata_avro")
-    TestInputTopic inputTopic;
+    TestInputTopic<String, String> inputTopic;
 
     @KSMLTopic(topic = "ksml_sensordata_sensor0")
-    TestOutputTopic outputSensor0;
+    TestOutputTopic<String, String> outputSensor0;
 
     @KSMLTopic(topic = "ksml_sensordata_sensor1")
-    TestOutputTopic outputSensor1;
+    TestOutputTopic<String, String> outputSensor1;
 
     @KSMLTopic(topic = "ksml_sensordata_sensor2")
-    TestOutputTopic outputSensor2;
+    TestOutputTopic<String, String> outputSensor2;
 
     @KSMLTest(topology = "pipelines/test-routing.yaml")
     void testRouting() {
@@ -67,9 +68,9 @@ public class KSMLRoutingTest {
         assertFalse(outputSensor1.isEmpty());
         assertFalse(outputSensor2.isEmpty());
 
-        List keyValues0 = outputSensor0.readKeyValuesToList();
-        List keyValues1 = outputSensor1.readKeyValuesToList();
-        List keyValues2 = outputSensor2.readKeyValuesToList();
+        List<KeyValue<String, String>> keyValues0 = outputSensor0.readKeyValuesToList();
+        List<KeyValue<String, String>> keyValues1 = outputSensor1.readKeyValuesToList();
+        List<KeyValue<String, String>> keyValues2 = outputSensor2.readKeyValuesToList();
 
         assertEquals(2, keyValues2.size(), "2 sensor2 readings were routed to output2");
         assertEquals(4, keyValues1.size(), "4 sensor1 readings were routed to output1");

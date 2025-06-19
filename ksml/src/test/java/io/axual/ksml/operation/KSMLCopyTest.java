@@ -1,4 +1,4 @@
-package io.axual.ksml;
+package io.axual.ksml.operation;
 
 /*-
  * ========================LICENSE_START=================================
@@ -35,10 +35,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 class KSMLCopyTest {
 
     @KSMLTopic(topic = "ksml_sensordata_avro")
-    protected TestInputTopic inputTopic;
+    protected TestInputTopic<String, String> inputTopic;
 
     @KSMLTopic(topic = "ksml_sensordata_copy")
-    protected TestOutputTopic outputTopic;
+    protected TestOutputTopic<String, String> outputTopic;
 
     @KSMLTest(topology = "pipelines/test-copying.yaml")
     void testCopying() {

@@ -1,0 +1,32 @@
+streams:
+  input_stream:
+    topic: input_topic
+    keyType: string
+    valueType: long
+  output_stream:
+    topic: output_topic
+    keyType: string
+    valueType: long
+
+stores:
+  aggregate_store:
+    type: keyValue
+    keyType: string
+    valueType: long
+
+# test aggregate with a pipeline that adds values together by key
+pipelines:
+  main:
+    from: input_stream
+    via:
+      - type: groupByKey
+      - type: aggregate
+        store: aggregate_store
+        initializer:
+          expression: 0
+          resultType: long
+        aggregator:
+          expression: aggregatedValue + value
+          resultType: long
+      - type: toStream
+    to: output_stream

@@ -1,0 +1,20 @@
+streams:
+  test_input:
+    topic: input_topic
+    keyType: string
+    valueType: string
+  test_output:
+    topic: output_topic
+    keyType: string
+    valueType: string
+
+pipelines:
+  main:
+    from: test_input
+    via:
+      - type: flatMap
+        mapper:
+          resultType: "[(string,string)]"
+          code: |
+            return [ (key,value),(key + '-b',value + '-b') ]
+    to: test_output

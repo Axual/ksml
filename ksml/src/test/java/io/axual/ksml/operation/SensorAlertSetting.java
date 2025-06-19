@@ -1,4 +1,4 @@
-package io.axual.ksml;
+package io.axual.ksml.operation;
 
 /*-
  * ========================LICENSE_START=================================
@@ -39,7 +39,7 @@ public class SensorAlertSetting {
     static Schema ALERT_SETTING_SCHEMA;
     static Schema ALERT_TYPE_SCHEMA;
 
-    public static final String SCHEMA_LOCATION = "pipelines/SensorAlertSettings.avsc";
+    public static final String SCHEMA_LOCATION = "schemas/SensorAlertSettings.avsc";
 
     static {
         try {

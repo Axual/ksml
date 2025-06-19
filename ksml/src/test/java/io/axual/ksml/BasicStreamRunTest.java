@@ -29,6 +29,7 @@ import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.YAMLObjectMapper;
+import io.axual.ksml.operation.SensorData;
 import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.type.UserType;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
@@ -103,7 +104,7 @@ class BasicStreamRunTest {
         final var avroNotation = new MockAvroNotation(new HashMap<>());
         ExecutionContext.INSTANCE.notationLibrary().register(avroNotation);
 
-        final var uri = ClassLoader.getSystemResource("pipelines/test-filtering.yaml").toURI();
+        final var uri = ClassLoader.getSystemResource("pipelines/test-filter.yaml").toURI();
         final var path = Paths.get(uri);
         final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(path), JsonNode.class);
         final var definitions = ImmutableMap.of("definition",

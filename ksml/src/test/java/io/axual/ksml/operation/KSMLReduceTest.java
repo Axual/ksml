@@ -1,4 +1,4 @@
-package io.axual.ksml;
+package io.axual.ksml.operation;
 
 /*-
  * ========================LICENSE_START=================================
@@ -37,10 +37,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class KSMLReduceTest {
 
     @KSMLTopic(topic = "inMessages")
-    TestInputTopic inMessages;
+    TestInputTopic<String, String> inMessages;
 
     @KSMLTopic(topic = "outMessages")
-    TestOutputTopic outMessages;
+    TestOutputTopic<String, String> outMessages;
 
     @KSMLTest(topology = "pipelines/test-reduce.yaml")
     void testReduce() {
@@ -54,7 +54,7 @@ public class KSMLReduceTest {
 
         // we should see 5 output messages with the values for each key concatenated
         assertEquals(5, outMessages.getQueueSize());
-        List<KeyValue> keyValuesList = outMessages.readKeyValuesToList();
+        List<KeyValue<String, String>> keyValuesList = outMessages.readKeyValuesToList();
         assertThat(keyValuesList). contains(
                 new KeyValue<>("key1", "Hello "),
                 new KeyValue<>("key1", "Hello World"),

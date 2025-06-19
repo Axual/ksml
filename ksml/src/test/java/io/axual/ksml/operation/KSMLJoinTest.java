@@ -1,4 +1,4 @@
-package io.axual.ksml;
+package io.axual.ksml.operation;
 
 /*-
  * ========================LICENSE_START=================================
@@ -23,6 +23,7 @@ package io.axual.ksml;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
+import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,15 +37,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class KSMLJoinTest {
 
     @KSMLTopic(topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)
-    TestInputTopic sensorIn;
+    TestInputTopic<String, GenericRecord> sensorIn;
 
     @KSMLTopic(topic = "ksml_sensoralert_settings", valueSerde = KSMLTopic.SerdeType.AVRO)
-    TestInputTopic alertSettings;
+    TestInputTopic<String, GenericRecord> alertSettings;
 
     @KSMLTopic(topic = "ksml_sensoralert")
-    TestOutputTopic sensorAlerts;
+    TestOutputTopic<String, String> sensorAlerts;
 
-    @KSMLTest(topology = "pipelines/test-joining.yaml", schemaDirectory = "pipelines")
+    @KSMLTest(topology = "pipelines/test-joining.yaml", schemaDirectory = "schemas")
     void testJoin() throws Exception {
 
         // given that we trigger on humidity > 50 in Amsterdam and temp > 25 in Utrecht
@@ -75,8 +76,8 @@ public class KSMLJoinTest {
 
         // we should see alerts containing the alert that was triggered, joined with the sensor data that triggered it
         assertEquals(2, sensorAlerts.getQueueSize());
-        List valuesList = sensorAlerts.readValuesToList();
-        String alert1 = valuesList.getFirst().toString();
+        List<String> valuesList = sensorAlerts.readValuesToList();
+        String alert1 = valuesList.getFirst();
         System.out.println("alert1 = " + alert1);
         verifyJson(alert1)
                 .hasNode("alert").withChild("type").withTextValue("HUMIDITY")

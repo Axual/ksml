@@ -1,0 +1,20 @@
+streams:
+  test_input:
+    topic: input_topic
+    keyType: string
+    valueType: avro:SensorData
+  test_output:
+    topic: output_topic
+    keyType: string
+    valueType: string
+
+pipelines:
+  main:
+    from: test_input
+    via:
+      - type: transformKeyValue
+        mapper:
+          code: |
+            return (value['city'], value['type'] + ' ' + value['value'])
+          resultType: (string,string)
+    to: test_output

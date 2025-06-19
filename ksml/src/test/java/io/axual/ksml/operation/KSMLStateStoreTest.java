@@ -1,4 +1,4 @@
-package io.axual.ksml;
+package io.axual.ksml.operation;
 
 /*-
  * ========================LICENSE_START=================================
@@ -26,6 +26,7 @@ import io.axual.ksml.testutil.KSMLDriver;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
+import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.apache.kafka.streams.state.KeyValueStore;
@@ -37,12 +38,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class KSMLStateStoreTest {
 
     @KSMLTopic(topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)
-    TestInputTopic sensorIn;
+    TestInputTopic<String, GenericRecord> sensorIn;
 
     @KSMLDriver
     TopologyTestDriver topologyTestDriver;
 
-    @KSMLTest(topology = "pipelines/test-state-store.yaml", schemaDirectory = "pipelines")
+    @KSMLTest(topology = "pipelines/test-state-store.yaml", schemaDirectory = "schemas")
     void testJoin() {
 
         // given that we get events with a higher reading in matching cities

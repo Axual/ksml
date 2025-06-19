@@ -1,0 +1,21 @@
+streams:
+  test_input1:
+    topic: input1
+    keyType: string
+    valueType: string
+  test_input2:
+    topic: input2
+    keyType: string
+    valueType: string
+  test_output:
+    topic: merged
+    keyType: string
+    valueType: string
+
+pipelines:
+  main:
+    from: test_input1
+    via:
+      - type: merge
+        stream: test_input2
+    to: test_output

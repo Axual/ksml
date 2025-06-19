@@ -35,10 +35,7 @@ import io.axual.ksml.type.UserType;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.Serializer;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.common.serialization.*;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TopologyDescription;
@@ -235,6 +232,8 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
                 yield result;
             }
             case STRING -> new StringSerializer();
+            case LONG -> new LongSerializer();
+            case INTEGER -> new IntegerSerializer();
         };
     }
 
@@ -255,6 +254,8 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
                 yield result;
             }
             case STRING -> new StringDeserializer();
+            case LONG -> new LongDeserializer();
+            case INTEGER -> new IntegerDeserializer();
         };
     }
 }

@@ -1,0 +1,18 @@
+streams:
+  input_stream:
+    topic: input_topic
+    keyType: string
+    valueType: string
+  output_stream:
+    topic: output_topic
+    keyType: string
+    valueType: long
+
+pipelines:
+  main:
+    from: input_stream
+    via:
+      - type: groupByKey
+      - type: count
+      - type: toStream
+    to: output_stream

@@ -1,0 +1,19 @@
+streams:
+  test_input:
+    topic: input_topic
+    keyType: string
+    valueType: string
+  test_output:
+    topic: output_topic
+    keyType: string
+    valueType: string
+
+pipelines:
+  main:
+    from: test_input
+    via:
+      - type: transformKeyValueToValueList
+        mapper:
+          resultType: "[string]"  # indicate the result type is a list of strings
+          expression: "[ value+'-1',value+'-2',value+'-3' ]"
+    to: test_output

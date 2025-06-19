@@ -1,4 +1,4 @@
-package io.axual.ksml;
+package io.axual.ksml.operation;
 
 /*-
  * ========================LICENSE_START=================================
@@ -39,15 +39,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class KSMLBranchingTest {
 
     @KSMLTopic(topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)
-    TestInputTopic inputTopic;
+    TestInputTopic<String, GenericRecord> inputTopic;
 
     @KSMLTopic(topic = "ksml_sensordata_blue", valueSerde = KSMLTopic.SerdeType.AVRO)
-    TestOutputTopic outputBlue;
+    TestOutputTopic<String, GenericRecord> outputBlue;
 
     @KSMLTopic(topic = "ksml_sensordata_red", valueSerde = KSMLTopic.SerdeType.AVRO)
-    TestOutputTopic outputRed;
+    TestOutputTopic<String, GenericRecord> outputRed;
 
-    @KSMLTest(topology = "pipelines/test-branching.yaml", schemaDirectory = "pipelines")
+    @KSMLTest(topology = "pipelines/test-branching.yaml", schemaDirectory = "schemas")
     void testBranching() {
         // the pipeline routes readings based on color: generate some records
         List<SensorData> sensorDatas = new ArrayList<>();
