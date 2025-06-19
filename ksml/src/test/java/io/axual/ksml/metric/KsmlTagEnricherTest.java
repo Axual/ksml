@@ -25,6 +25,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.stream.Stream;
 
@@ -110,7 +111,6 @@ class KsmlTagEnricherPatternTest {
 
     @Test
     void shouldHandleSpecialCharactersInNodeNames() {
-        // Test with special characters that might break regex
         String nodeWithSpecialChars = "ns-with-dash_pipelines_pipe.with.dots_op";
         Matcher m = KsmlTagEnricher.NODE_PATTERN.matcher(nodeWithSpecialChars);
 
@@ -118,5 +118,52 @@ class KsmlTagEnricherPatternTest {
         assertThat(m.group("ns")).isEqualTo("ns-with-dash");
         assertThat(m.group("pipeline")).isEqualTo("pipe.with.dots");
         assertThat(m.group("op")).isEqualTo("op");
+    }
+
+    @ParameterizedTest(name = "{index}: taskId={0}")
+    @MethodSource("validTaskIds")
+    void parseTaskIdParsesCorrectly(String taskId,
+                                    String expectedSubtopology,
+                                    String expectedPartition) {
+        Optional<?> maybeComponents = KsmlTagEnricher.parseTaskId(taskId);
+
+        assertThat(maybeComponents)
+                .as("Optional should be present for taskId %s", taskId)
+                .isPresent();
+
+        String repr = maybeComponents.get().toString();
+        assertThat(repr)
+                .contains("subtopology=" + expectedSubtopology)
+                .contains("partition="   + expectedPartition);
+    }
+
+    private static Stream<Arguments> validTaskIds() {
+        return Stream.of(
+                Arguments.of("0_0",   "0",  "0"),
+                Arguments.of("3_17",  "3",  "17"),
+                Arguments.of("12_345","12", "345")
+        );
+    }
+
+    @ParameterizedTest(name = "{index}: invalid taskId={0}")
+    @MethodSource("invalidTaskIds")
+    void parseTaskIdRejectsInvalidInputs(String taskId) {
+        Optional<?> maybeComponents = KsmlTagEnricher.parseTaskId(taskId);
+        assertThat(maybeComponents)
+                .as("Optional should be empty for taskId %s", taskId)
+                .isEmpty();
+    }
+
+    private static Stream<String> invalidTaskIds() {
+        return Stream.of(
+                null,
+                "",
+                "abc",
+                "3-17",
+                "3_17_2",
+                "_3_17",
+                "3_",
+                "3__4"
+        );
     }
 }

@@ -184,7 +184,7 @@ public class MetricsRegistry {
     public synchronized void remove(MetricName metricName) {
         registeredMetrics.remove(metricName);
         metricRegistry.remove(encodeName(metricName));
-        log.warn("Removed metric: {}", metricName);
+        log.debug("Removed metric: {}", metricName);
     }
 
     /**
