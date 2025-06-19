@@ -66,19 +66,19 @@ public class ConvertUtil {
 
         // Recurse into lists
         if (targetType instanceof ListType targetListType && value instanceof DataList valueList) {
-            return convertList(targetListType, valueList);
+            return convertList(targetListType, valueList, allowFail);
         }
 
         // Recurse into structs
         if (targetType instanceof StructType targetStructType && value instanceof DataStruct valueStruct) {
-            return convertStruct(targetStructType, valueStruct);
+            return convertStruct(targetStructType, valueStruct, allowFail);
         }
 
         // Recurse into tuples
         if (targetType instanceof TupleType targetTupleType
                 && value instanceof DataTuple valueTuple
                 && targetTupleType.subTypeCount() == valueTuple.elements().size()) {
-            return convertTuple(targetTupleType, valueTuple);
+            return convertTuple(targetTupleType, valueTuple, allowFail);
         }
 
         // When we reach this point, real data conversion needs to happen
@@ -90,7 +90,7 @@ public class ConvertUtil {
         if (targetType.isAssignableFrom(convertedValue)) return convertedValue;
 
         // As a final attempt to convert to the right type, run it through the compatibility converter
-        convertedValue = convertDataObject(targetType, convertedValue);
+        convertedValue = convertDataObject(targetType, convertedValue, allowFail);
         if (convertedValue != null) return convertedValue;
 
         // If we are okay with failing a conversion, then return null
@@ -116,7 +116,7 @@ public class ConvertUtil {
         return value;
     }
 
-    private DataObject convertDataObject(DataType targetType, DataObject value) {
+    private DataObject convertDataObject(DataType targetType, DataObject value, boolean allowFail) {
         // If we're already compatible with the target type, then return the value itself. This line is here mainly
         // for recursive calls from lists and maps.
         if (targetType.isAssignableFrom(value)) return value;
@@ -125,7 +125,7 @@ public class ConvertUtil {
         if (targetType == DataString.DATATYPE) return new DataString(value.toString());
 
         // Come up with default values if we convert from Null
-        return switch (value) {
+        final var result = switch (value) {
             case null -> convertNullToDataObject(targetType);
             case DataNull ignored -> convertNullToDataObject(targetType);
             // Convert numbers to their proper specific type
@@ -162,20 +162,26 @@ public class ConvertUtil {
                 yield val;
             }
             // Convert from String to anything through recursion using the same target type
-            case DataString stringValue -> convertStringToDataObject(targetType, stringValue.value());
+            case DataString stringValue -> convertStringToDataObject(targetType, stringValue.value(), allowFail);
             // Convert list without a value type to a list with a specific value type
             case DataList listValue when targetType instanceof ListType targetListType ->
-                    convertList(targetListType, listValue);
+                    convertList(targetListType, listValue, allowFail);
             // Convert from schemaless structs to a struct with a schema
             case DataStruct structValue when targetType instanceof StructType targetStructType ->
-                    convertStruct(targetStructType, structValue);
+                    convertStruct(targetStructType, structValue, allowFail);
             // If no conversion was found suitable, then just return the object itself
-            default -> value;
+            default -> null;
         };
+
+        if (result == null) {
+            if (allowFail) return null;
+            throw convertError(targetType, value != null ? value.type() : DataNull.DATATYPE, value);
+        }
+        return result;
     }
 
     @Nullable
-    public DataObject convertStringToDataObject(DataType expected, String value) {
+    public DataObject convertStringToDataObject(DataType expected, String value, boolean allowFail) {
         if (expected == null) return new DataString(value);
         if (expected == DataNull.DATATYPE || value == null) return DataNull.INSTANCE;
         if (expected == DataByte.DATATYPE) return parseOrNull(() -> new DataByte(Byte.parseByte(value)));
@@ -187,10 +193,10 @@ public class ConvertUtil {
         if (expected == DataString.DATATYPE) return new DataString(value);
         return switch (expected) {
             case EnumType ignored -> new DataString(value);
-            case ListType listType -> convertStringToDataList(listType, value);
-            case StructType structType -> convertStringToDataStruct(structType, value);
-            case TupleType tupleType -> convertStringToDataTuple(tupleType, value);
-            case UnionType unionType -> convertStringToUnionMemberType(unionType, value);
+            case ListType listType -> convertStringToDataList(listType, value, allowFail);
+            case StructType structType -> convertStringToDataStruct(structType, value, allowFail);
+            case TupleType tupleType -> convertStringToDataTuple(tupleType, value, allowFail);
+            case UnionType unionType -> convertStringToUnionMemberType(unionType, value, allowFail);
             default -> throw new DataException("Can not convert string to data type \"" + expected + "\": " + value);
         };
     }
@@ -203,62 +209,78 @@ public class ConvertUtil {
         }
     }
 
-    private DataList convertStringToDataList(ListType type, String value) {
+    private DataList convertStringToDataList(ListType listType, String value, boolean allowFail) {
         if (value == null || value.isEmpty()) return null;
         final var elements = JsonNodeUtil.convertStringToList(value);
-        if (elements == null) return null;
-        final var result = new DataList(type.valueType());
+        if (elements == null) {
+            if (!allowFail) throw convertError(DataString.DATATYPE, listType, DataString.from(value));
+            return null;
+        }
+        final var result = new DataList(listType.valueType());
         for (final var element : elements) {
-            final var dataObject = dataObjectMapper.toDataObject(type.valueType(), element);
-            if (!type.valueType().isAssignableFrom(dataObject))
-                throw new DataException("Can not convert data types: expected=" + type.valueType() + ", got " + dataObject.type());
+            final var dataObject = dataObjectMapper.toDataObject(listType.valueType(), element);
+            if (!listType.valueType().isAssignableFrom(dataObject))
+                throw convertError(dataObject != null ? dataObject.type() : null, listType.valueType(), dataObject);
             result.add(dataObject);
         }
         return result;
     }
 
     @Nullable
-    private DataStruct convertStringToDataStruct(StructType structType, String value) {
+    private DataStruct convertStringToDataStruct(StructType structType, String value, boolean allowFail) {
         if (value == null || value.isEmpty()) return null;
         final var map = JsonNodeUtil.convertStringToMap(value);
-        if (map == null) return null;
+        if (map == null) {
+            if (!allowFail) throw convertError(DataString.DATATYPE, structType, DataString.from(value));
+            return null;
+        }
         final var result = new DataStruct(structType.schema());
         for (final var entry : map.entrySet()) {
-            result.put(entry.getKey(), dataObjectMapper.toDataObject(entry.getValue()));
+            final var targetType = structType.fieldType(entry.getKey(), DataType.UNKNOWN, DataType.UNKNOWN);
+            final var targetValue = dataObjectMapper.toDataObject(entry.getValue());
+            if (!targetType.isAssignableFrom(targetValue))
+                throw convertError(targetValue != null ? targetValue.type() : null, targetType, targetValue);
+            result.put(entry.getKey(), targetValue);
         }
         return result;
     }
 
     @Nullable
-    private DataTuple convertStringToDataTuple(TupleType type, String value) {
+    private DataTuple convertStringToDataTuple(TupleType tupleType, String value, boolean allowFail) {
         if (value == null || value.isEmpty()) return null;
         if (value.startsWith("(") && value.endsWith(")")) {
             // Replace round brackets by square brackets and parse as list
             value = "[" + value.substring(1, value.length() - 1) + "]";
         }
         final var elements = JsonNodeUtil.convertStringToList(value);
-        if (elements == null) return null;
-        if (elements.size() != type.subTypeCount())
+        if (elements == null) {
+            if (!allowFail) throw convertError(DataString.DATATYPE, tupleType, DataString.from(value));
+            return null;
+        }
+        if (elements.size() != tupleType.subTypeCount())
             throw new DataException("Error converting string to tuple: element count does not match");
         final var tupleElements = new DataObject[elements.size()];
         var index = 0;
         for (final var element : elements) {
-            final var dataObject = dataObjectMapper.toDataObject(type.subType(index), element);
-            if (!type.subType(index).isAssignableFrom(dataObject))
-                throw new DataException("Can not convert data types: expected=" + type.subType(index) + ", got " + dataObject.type());
-            tupleElements[index++] = dataObject;
+            final var targetType = tupleType.subType(index);
+            final var targetValue = dataObjectMapper.toDataObject(tupleType.subType(index), element);
+            if (!targetType.isAssignableFrom(targetValue))
+                throw convertError(targetValue != null ? targetValue.type() : null, targetType, targetValue);
+            tupleElements[index++] = targetValue;
         }
         return new DataTuple(tupleElements);
     }
 
-    public DataObject convertStringToUnionMemberType(UnionType type, String value) {
+    public DataObject convertStringToUnionMemberType(UnionType unionType, String value, boolean allowFail) {
         final var valueString = new DataString(value);
-        for (final var memberType : type.memberTypes()) {
+        for (final var memberType : unionType.memberTypes()) {
             final var dataObject = convert(memberType.type(), valueString, true);
             if (dataObject != null && memberType.type().isAssignableFrom(dataObject))
                 return dataObject;
         }
-        throw new DataException("Can not convert string to union: type=" + type + ", value=" + (value != null ? value : "null"));
+        if (!allowFail)
+            throw convertError(DataString.DATATYPE, unionType, valueString);
+        return null;
     }
 
     public static DataObject convertNullToDataObject(DataType expected) {
@@ -280,7 +302,7 @@ public class ConvertUtil {
         };
     }
 
-    private DataObject convertList(ListType expected, DataList value) {
+    private DataObject convertList(ListType expected, DataList value, boolean allowFail) {
         // If the target list type does not have a specific value type, then simply return
         final var expectedValueType = expected.valueType();
         if (expectedValueType == null || expectedValueType == DataType.UNKNOWN) return value;
@@ -289,13 +311,13 @@ public class ConvertUtil {
         final var result = new DataList(expectedValueType, value.isNull());
         // Copy all list elements into the new list, possibly making sub-elements compatible
         for (int index = 0; index < value.size(); index++) {
-            result.add(convertDataObject(expected.valueType(), value.get(index)));
+            result.add(convertDataObject(expected.valueType(), value.get(index), allowFail));
         }
         // Return the List with made-compatible elements
         return result;
     }
 
-    private DataObject convertStruct(StructType expected, DataStruct value) {
+    private DataObject convertStruct(StructType expected, DataStruct value, boolean allowFail) {
         // Don't recurse into Structs without a schema, just return those plainly
         final var schema = expected.schema();
         if (schema == null) return value;
@@ -311,7 +333,7 @@ public class ConvertUtil {
             if (field != null) {
                 final var fieldType = dataSchemaMapper.fromDataSchema(field.schema());
                 // Convert to that type if necessary
-                result.put(entry.getKey(), convertDataObject(fieldType, entry.getValue()));
+                result.put(entry.getKey(), convertDataObject(fieldType, entry.getValue(), allowFail));
             }
         }
 
@@ -319,13 +341,20 @@ public class ConvertUtil {
         return result;
     }
 
-    private DataObject convertTuple(TupleType expected, DataTuple value) {
+    private DataObject convertTuple(TupleType expected, DataTuple value, boolean allowFail) {
         if (value.elements().size() != expected.subTypeCount())
             throw new DataException("Error converting tuple to " + expected + ": element count does not match");
         final var convertedDataObjects = new DataObject[value.elements().size()];
         for (int index = 0; index < value.elements().size(); index++) {
-            convertedDataObjects[index] = convertDataObject(expected.subType(index), value.elements().get(index));
+            convertedDataObjects[index] = convertDataObject(expected.subType(index), value.elements().get(index), allowFail);
         }
         return new DataTuple(convertedDataObjects);
+    }
+
+    private DataException convertError(DataType sourceType, DataType targetType, DataObject value) {
+        final var sourceTypeStr = sourceType != null ? sourceType.toString() : "null type";
+        final var targetTypeStr = targetType != null ? targetType.toString() : "null type";
+        final var valueStr = value != null ? value.toString(DataObject.Printer.EXTERNAL_NO_SCHEMA) : DataNull.INSTANCE.toString();
+        return new DataException("Can not convert " + sourceTypeStr + " to " + targetTypeStr + ": value=" + valueStr);
     }
 }

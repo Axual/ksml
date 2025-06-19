@@ -34,6 +34,13 @@ import java.util.*;
  */
 public class StructSchema extends NamedSchema {
     /**
+     * This instance exists for compatibility reasons: if we define eg. JSON Objects, or schema-less Structs, then we
+     * need to somehow capture this in a schema with the proper type. The StructSchema is the proper type, so we let
+     * the absence of a schema be reflected through null fields. Only 1 instance without a name is allowed, so code
+     * that checks if the StructSchema represents "schemaless" can simply perform an '=' check.
+     */
+    public static final StructSchema SCHEMALESS = new StructSchema(null, null, null, null);
+    /**
      * A list of fields that make up the structured schema.
      * <p>
      * Each field is defined by a {@link DataField} object, which includes its name and schema definition.
@@ -48,20 +55,6 @@ public class StructSchema extends NamedSchema {
      * </p>
      */
     private final Map<String, DataField> fieldsByName = new HashMap<>();
-
-    /**
-     * Constructs an empty {@code StructSchema}.
-     * <p>
-     * This constructor creates a schema without fields, typically used as a placeholder
-     * or a base structure to which fields can be added later.
-     * </p>
-     */
-    public StructSchema() {
-        // This exists for compatibility reasons: if we define eg. JSON Objects, or schema-less Structs, then we need
-        // to somehow capture this in a schema with the proper type. The StructSchema is the proper type, so we let
-        // the absence of a schema be reflected through null fields.
-        this(null, null, null, null);
-    }
 
     /**
      * Copy constructor for creating a new {@code StructSchema} based on an existing one.
