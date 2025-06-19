@@ -25,7 +25,6 @@ import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.object.*;
-import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.*;
 
 import javax.annotation.Nullable;
@@ -126,7 +125,7 @@ public class ConvertUtil {
         if (targetType == DataString.DATATYPE) return new DataString(value.toString());
 
         // Come up with default values if we convert from Null
-        return switch (value) {
+        final var result = switch (value) {
             case null -> convertNullToDataObject(targetType);
             case DataNull ignored -> convertNullToDataObject(targetType);
             // Convert numbers to their proper specific type
@@ -171,8 +170,14 @@ public class ConvertUtil {
             case DataStruct structValue when targetType instanceof StructType targetStructType ->
                     convertStruct(targetStructType, structValue, allowFail);
             // If no conversion was found suitable, then just return the object itself
-            default -> value;
+            default -> null;
         };
+
+        if (result == null) {
+            if (allowFail) return null;
+            throw convertError(targetType, value != null ? value.type() : DataNull.DATATYPE, value);
+        }
+        return result;
     }
 
     @Nullable
