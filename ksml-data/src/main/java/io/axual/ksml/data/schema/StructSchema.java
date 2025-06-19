@@ -39,7 +39,7 @@ public class StructSchema extends NamedSchema {
      * the absence of a schema be reflected through null fields. Only 1 instance without a name is allowed, so code
      * that checks if the StructSchema represents "schemaless" can simply perform an '=' check.
      */
-    public static final StructSchema SCHEMALESS = new StructSchema(false, null, null, null, null);
+    public static final StructSchema SCHEMALESS = new StructSchema(null, null, null, null);
     /**
      * A list of fields that make up the structured schema.
      * <p>
@@ -79,12 +79,7 @@ public class StructSchema extends NamedSchema {
      * @throws IllegalArgumentException if {@code name} is null or empty.
      */
     public StructSchema(String namespace, String name, String doc, List<DataField> fields) {
-        this(true, namespace, name, doc, fields);
-    }
-
-    private StructSchema(boolean checkName, String namespace, String name, String doc, List<DataField> fields) {
         super(DataSchemaConstants.STRUCT_TYPE, namespace, name, doc);
-        if (checkName) Objects.requireNonNull(name, "Struct schema must have a name or use StructSchema.SCHEMALESS");
         if (fields != null) {
             this.fields.addAll(fields);
             for (var field : fields) {
