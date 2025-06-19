@@ -32,7 +32,7 @@ import org.apache.kafka.streams.kstream.ValueTransformerWithKey;
 import org.apache.kafka.streams.processor.ProcessorContext;
 
 public class UserValueTransformerWithKey extends Invoker implements ValueTransformerWithKey<Object, Object, DataObject> {
-    private static final NativeDataObjectMapper nativeMapper = new DataObjectFlattener();
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
     public UserValueTransformerWithKey(UserFunction function, MetricTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_VALUETRANSFORMER);
@@ -51,7 +51,7 @@ public class UserValueTransformerWithKey extends Invoker implements ValueTransfo
     }
 
     public DataObject transform(StateStores stores, Object key, Object value) {
-        return timeExecutionOf(() -> function.call(stores, nativeMapper.toDataObject(key), nativeMapper.toDataObject(value)));
+        return timeExecutionOf(() -> function.call(stores, NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value)));
     }
 
     @Override
