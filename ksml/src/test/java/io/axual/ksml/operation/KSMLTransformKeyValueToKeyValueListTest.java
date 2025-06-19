@@ -48,13 +48,15 @@ class KSMLTransformKeyValueToKeyValueListTest {
         log.debug("testFlatMap()");
 
         // given that we pipe a message into the stream
-        inputTopic.pipeInput("keyFirst", "value1");
+        inputTopic.pipeInput("somekey", "somevalue");
 
-        // we expect the output to contain this record, duplicated
+        // we expect the output to contain this record, duplicated, with transformed key and value
         assertEquals(2, outputTopic.getQueueSize(), "output should contain 2 records");
 
         List<KeyValue<String, String>> keyValues = outputTopic.readKeyValuesToList();
-        assertEquals("keyFirst", keyValues.get(1).key, "key should be copied");
-        assertEquals("value1", keyValues.get(1).value, "value should be copied");
+        assertEquals("somekey-a", keyValues.get(0).key, "key should be copied");
+        assertEquals("somevalue-a", keyValues.get(0).value, "value should be copied");
+        assertEquals("somekey-b", keyValues.get(1).key, "key should be copied");
+        assertEquals("somevalue-b", keyValues.get(1).value, "value should be copied");
     }
 }

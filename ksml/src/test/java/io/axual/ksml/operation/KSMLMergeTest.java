@@ -39,13 +39,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class KSMLMergeTest {
 
     @KSMLTopic(topic = "input1")
-    TestInputTopic inputTopic1;
+    TestInputTopic<String, String> inputTopic1;
 
     @KSMLTopic(topic = "input2")
-    TestInputTopic inputTopic2;
+    TestInputTopic<String, String> inputTopic2;
 
     @KSMLTopic(topic = "merged")
-    TestOutputTopic mergedTopic;
+    TestOutputTopic<String, String> mergedTopic;
 
     @KSMLTest(topology = "pipelines/test-merge.yaml")
     @DisplayName("Two topics can be merged")
@@ -59,11 +59,14 @@ public class KSMLMergeTest {
 
         // we expect the output to contain all messages.
         // there are no guarantees for ordering but all records should be present; check values
-        List<KeyValue> keyValues = mergedTopic.readKeyValuesToList();
+        List<KeyValue<String, String>> keyValues = mergedTopic.readKeyValuesToList();
         assertThat(keyValues)
                 .hasSize(4)
-                .extracting(keyValue -> keyValue.value)
-                .containsExactlyInAnyOrder("one","two","eins","zwei");
+                .containsExactlyInAnyOrder(
+                        new KeyValue<>("1", "one"),
+                        new KeyValue<>("2", "two"),
+                        new KeyValue<>("1", "eins"),
+                        new KeyValue<>("2", "zwei"));
     }
 
 }

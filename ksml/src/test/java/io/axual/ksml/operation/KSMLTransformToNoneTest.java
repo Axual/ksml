@@ -36,16 +36,16 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class KSMLTransformToNoneTest {
 
     @KSMLTopic(topic = "ksml_sensordata_avro")
-    protected TestInputTopic inputTopic;
+    protected TestInputTopic<String, String> inputTopic;
 
     @KSMLTopic(topic = "ksml_sensordata_copy")
-    protected TestOutputTopic outputTopic;
+    protected TestOutputTopic<String, String> outputTopic;
 
     @KSMLTest(topology = "pipelines/test-transform-to-none.yaml")
     void testSetNoneValueData() {
         log.debug("testSetNoneValueData()");
 
-        inputTopic.pipeInput("key1", (Object)null);
+        inputTopic.pipeInput("key1", (String) null);
         assertFalse(outputTopic.isEmpty(), "record should be copied");
         var keyValue = outputTopic.readKeyValue();
         assertNull(keyValue.value);

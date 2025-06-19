@@ -32,6 +32,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static io.axual.ksml.operation.SensorData.SensorType.HUMIDITY;
 import static io.axual.ksml.operation.SensorData.SensorType.TEMPERATURE;
@@ -45,10 +46,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class KSMLMapValueTest {
 
     @KSMLTopic(topic = "input_topic", valueSerde = KSMLTopic.SerdeType.AVRO)
-    TestInputTopic inputTopic;
+    TestInputTopic<String, GenericRecord> inputTopic;
 
     @KSMLTopic(topic = "output_topic")
-    TestOutputTopic outputTopic;
+    TestOutputTopic<String, String> outputTopic;
 
     List<GenericRecord> inputs = List.of(
             SensorData.builder().city("AMS").type(HUMIDITY).unit("%").value("80").build().toRecord(),
@@ -60,91 +61,54 @@ public class KSMLMapValueTest {
     @KSMLTest(topology = "pipelines/test-mapvalue-expression.yaml", schemaDirectory = "schemas")
     @DisplayName("Values can be mapped with mapValue with an expression")
     void testMapValueByExpression() {
-        inputs.forEach(rec -> inputTopic.pipeInput("key", rec));
-
-        List<KeyValue> keyValues = outputTopic.readKeyValuesToList();
-        assertEquals(4, keyValues.size(), "All records should be transformed");
-
-        // verify first and last value; the pipeline creates them from fields in the input value
-        assertEquals("HUMIDITY 80", keyValues.get(0).value);
-        assertEquals("HUMIDITY 75", keyValues.get(1).value);
-        assertEquals("TEMPERATURE 25", keyValues.get(2).value);
-        assertEquals("TEMPERATURE 27", keyValues.get(3).value);
+        provideInputsAndCheckOutputs();
     }
 
     @KSMLTest(topology = "pipelines/test-mapvalues-expression.yaml", schemaDirectory = "schemas")
     @DisplayName("Values can be mapped with mapValues with an expression")
     void testMapValuesByExpression() {
-        inputs.forEach(rec -> inputTopic.pipeInput("key", rec));
-
-        List<KeyValue> keyValues = outputTopic.readKeyValuesToList();
-        assertEquals(4, keyValues.size(), "All records should be transformed");
-
-        // verify first and last value; the pipeline creates them from fields in the input value
-        assertEquals("HUMIDITY 80", keyValues.get(0).value);
-        assertEquals("HUMIDITY 75", keyValues.get(1).value);
-        assertEquals("TEMPERATURE 25", keyValues.get(2).value);
-        assertEquals("TEMPERATURE 27", keyValues.get(3).value);
-    }
+        provideInputsAndCheckOutputs();    }
 
     @KSMLTest(topology = "pipelines/test-transformvalue-expression.yaml", schemaDirectory = "schemas")
     @DisplayName("Values can be mapped with transformValue with an expression")
     void testTransformValueByExpression() {
-        inputs.forEach(rec -> inputTopic.pipeInput("key", rec));
-
-        List<KeyValue> keyValues = outputTopic.readKeyValuesToList();
-        assertEquals(4, keyValues.size(), "All records should be transformed");
-
-        // verify first and last value; the pipeline creates them from fields in the input value
-        assertEquals("HUMIDITY 80", keyValues.get(0).value);
-        assertEquals("HUMIDITY 75", keyValues.get(1).value);
-        assertEquals("TEMPERATURE 25", keyValues.get(2).value);
-        assertEquals("TEMPERATURE 27", keyValues.get(3).value);
-    }
+        provideInputsAndCheckOutputs();    }
 
     @KSMLTest(topology = "pipelines/test-mapvalue-code.yaml", schemaDirectory = "schemas")
     @DisplayName("Values can be mapped with mapValue with a code block")
     void testMapValueByCode() {
-        inputs.forEach(rec -> inputTopic.pipeInput("key", rec));
-
-        List<KeyValue> keyValues = outputTopic.readKeyValuesToList();
-        assertEquals(4, keyValues.size(), "All records should be transformed");
-
-        // verify first and last record key and value; the pipeline creates them from fields in the record value
-        assertEquals("HUMIDITY 80", keyValues.get(0).value);
-        assertEquals("HUMIDITY 75", keyValues.get(1).value);
-        assertEquals("TEMPERATURE 25", keyValues.get(2).value);
-        assertEquals("TEMPERATURE 27", keyValues.get(3).value);
-    }
+        provideInputsAndCheckOutputs();    }
 
     @KSMLTest(topology = "pipelines/test-mapvalues-code.yaml", schemaDirectory = "schemas")
     @DisplayName("Values can be mapped with mapValues with a code block")
     void testMapValuesByCode() {
-        inputs.forEach(rec -> inputTopic.pipeInput("key", rec));
-
-        List<KeyValue> keyValues = outputTopic.readKeyValuesToList();
-        assertEquals(4, keyValues.size(), "All records should be transformed");
-
-        // verify first and last record key and value; the pipeline creates them from fields in the record value
-        assertEquals("HUMIDITY 80", keyValues.get(0).value);
-        assertEquals("HUMIDITY 75", keyValues.get(1).value);
-        assertEquals("TEMPERATURE 25", keyValues.get(2).value);
-        assertEquals("TEMPERATURE 27", keyValues.get(3).value);
-    }
+        provideInputsAndCheckOutputs();    }
 
     @KSMLTest(topology = "pipelines/test-transformvalue-code.yaml", schemaDirectory = "schemas")
     @DisplayName("Values can be mapped with transformValue with a code block")
     void testTransformValueByCode() {
-        inputs.forEach(rec -> inputTopic.pipeInput("key", rec));
+        provideInputsAndCheckOutputs();    }
 
-        List<KeyValue> keyValues = outputTopic.readKeyValuesToList();
+    /**
+     * Provides some input key/values and verifies results.
+     */
+    void provideInputsAndCheckOutputs() {
+        IntStream.range(0, inputs.size()).forEach(i -> inputTopic.pipeInput("key"+i, inputs.get(i)));
+
+        List<KeyValue<String, String>> keyValues = outputTopic.readKeyValuesToList();
         assertEquals(4, keyValues.size(), "All records should be transformed");
 
-        // verify first and last record key and value; the pipeline creates them from fields in the record value
+        // the value should be mapped from the input
         assertEquals("HUMIDITY 80", keyValues.get(0).value);
         assertEquals("HUMIDITY 75", keyValues.get(1).value);
         assertEquals("TEMPERATURE 25", keyValues.get(2).value);
         assertEquals("TEMPERATURE 27", keyValues.get(3).value);
+
+        // and the keys should be left unchanged
+        assertEquals("key0", keyValues.get(0).key);
+        assertEquals("key1", keyValues.get(1).key);
+        assertEquals("key2", keyValues.get(2).key);
+        assertEquals("key3", keyValues.get(3).key);
     }
 }
 

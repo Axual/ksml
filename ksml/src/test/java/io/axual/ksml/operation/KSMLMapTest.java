@@ -42,10 +42,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class KSMLMapTest {
 
     @KSMLTopic(topic = "input_topic", valueSerde = KSMLTopic.SerdeType.AVRO)
-    TestInputTopic inputTopic;
+    TestInputTopic<String, GenericRecord> inputTopic;
 
     @KSMLTopic(topic = "output_topic")
-    TestOutputTopic outputTopic;
+    TestOutputTopic<String, String> outputTopic;
 
     List<GenericRecord> inputs = List.of(
             SensorData.builder().city("AMS").type(HUMIDITY).unit("%").value("80").build().toRecord(),
@@ -59,7 +59,7 @@ public class KSMLMapTest {
     void testMapByExpression() {
         inputs.forEach(rec -> inputTopic.pipeInput(rec));
 
-        List<KeyValue> keyValues = outputTopic.readKeyValuesToList();
+        List<KeyValue<String, String>> keyValues = outputTopic.readKeyValuesToList();
         assertEquals(4, keyValues.size(), "All records should be transformed");
 
         // verify first and last record key and value; the pipeline creates them from fields in the record value
@@ -74,7 +74,7 @@ public class KSMLMapTest {
     void testMapByCode() {
         inputs.forEach(rec -> inputTopic.pipeInput(rec));
 
-        List<KeyValue> keyValues = outputTopic.readKeyValuesToList();
+        List<KeyValue<String, String>> keyValues = outputTopic.readKeyValuesToList();
         assertEquals(4, keyValues.size(), "All records should be transformed");
 
         // verify first and last record key and value; the pipeline creates them from fields in the record value

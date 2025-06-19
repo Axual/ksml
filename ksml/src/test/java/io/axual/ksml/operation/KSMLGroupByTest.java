@@ -42,10 +42,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class KSMLGroupByTest {
 
     @KSMLTopic(topic = "input_topic", valueSerde = KSMLTopic.SerdeType.AVRO)
-    TestInputTopic inputTopic;
+    TestInputTopic<String, GenericRecord> inputTopic;
 
     @KSMLTopic(topic = "output_topic", valueSerde = KSMLTopic.SerdeType.LONG)
-    TestOutputTopic outputTopic;
+    TestOutputTopic<String, Long> outputTopic;
 
     List<GenericRecord> inputs = List.of(
             SensorData.builder().city("AMS").type(HUMIDITY).unit("%").value("80").build().toRecord(),
@@ -59,7 +59,7 @@ public class KSMLGroupByTest {
     void testGroupByExpressionStore() {
         inputs.forEach(rec -> inputTopic.pipeInput(rec));
 
-        Map groupedRecords = outputTopic.readKeyValuesToMap();
+        Map<String, Long> groupedRecords = outputTopic.readKeyValuesToMap();
         assertEquals(2, groupedRecords.size(), "records should be grouped by city");
         assertEquals(2L, groupedRecords.get("AMS"), "records for AMS should be counted");
         assertEquals(2L, groupedRecords.get("UTR"), "records for UTR should be counted");
@@ -70,7 +70,7 @@ public class KSMLGroupByTest {
     void testGroupBycodeStore() {
         inputs.forEach(rec -> inputTopic.pipeInput(rec));
 
-        Map groupedRecords = outputTopic.readKeyValuesToMap();
+        Map<String, Long> groupedRecords = outputTopic.readKeyValuesToMap();
         assertEquals(2, groupedRecords.size(), "records should be grouped by city");
         assertEquals(2L, groupedRecords.get("AMS"), "records for AMS should be counted");
         assertEquals(2L, groupedRecords.get("UTR"), "records for UTR should be counted");

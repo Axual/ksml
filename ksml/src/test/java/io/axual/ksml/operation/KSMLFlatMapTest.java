@@ -48,13 +48,15 @@ class KSMLFlatMapTest {
         log.debug("testFlatMap()");
 
         // given that we pipe a message into the stream
-        inputTopic.pipeInput("keyFirst", "value1");
+        inputTopic.pipeInput("someKey", "someValue");
 
         // we expect the output to contain this record, duplicated
         assertEquals(2, outputTopic.getQueueSize(), "output should contain 2 records");
 
         List<KeyValue<String, String>> keyValues = outputTopic.readKeyValuesToList();
-        assertEquals("keyFirst", keyValues.get(1).key, "key should be copied");
-        assertEquals("value1", keyValues.get(1).value, "value should be copied");
+        assertEquals("someKey", keyValues.get(0).key, "key should be copied");
+        assertEquals("someValue", keyValues.get(0).value, "value should be copied");
+        assertEquals("someKey-b", keyValues.get(1).key, "key should be copied and changed");
+        assertEquals("someValue-b", keyValues.get(1).value, "value should be copied and changed");
     }
 }

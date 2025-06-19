@@ -42,10 +42,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class KSMLTransformKeyValueTest {
 
     @KSMLTopic(topic = "input_topic", valueSerde = KSMLTopic.SerdeType.AVRO)
-    TestInputTopic inputTopic;
+    TestInputTopic<String, GenericRecord> inputTopic;
 
     @KSMLTopic(topic = "output_topic")
-    TestOutputTopic outputTopic;
+    TestOutputTopic<String, String> outputTopic;
 
     List<GenericRecord> inputs = List.of(
             SensorData.builder().city("AMS").type(HUMIDITY).unit("%").value("80").build().toRecord(),
@@ -57,24 +57,19 @@ public class KSMLTransformKeyValueTest {
     @KSMLTest(topology = "pipelines/test-transformkeyvalue-expression.yaml", schemaDirectory = "schemas")
     @DisplayName("Keys and values can be mapped with an expression")
     void testMapByExpression() {
-        inputs.forEach(rec -> inputTopic.pipeInput(rec));
-
-        List<KeyValue> keyValues = outputTopic.readKeyValuesToList();
-        assertEquals(4, keyValues.size(), "All records should be transformed");
-
-        // verify first and last record key and value; the pipeline creates them from fields in the record value
-        assertEquals("AMS", keyValues.get(0).key);
-        assertEquals("HUMIDITY 80", keyValues.get(0).value);
-        assertEquals("UTR", keyValues.get(3).key);
-        assertEquals("TEMPERATURE 27", keyValues.get(3).value);
+        provideInputsAndCheckOutputs();
     }
 
     @KSMLTest(topology = "pipelines/test-transformkeyvalue-code.yaml", schemaDirectory = "schemas")
     @DisplayName("Keys and values can be mapped with a code block")
     void testMapByCode() {
+        provideInputsAndCheckOutputs();
+    }
+
+    private void provideInputsAndCheckOutputs() {
         inputs.forEach(rec -> inputTopic.pipeInput(rec));
 
-        List<KeyValue> keyValues = outputTopic.readKeyValuesToList();
+        List<KeyValue<String, String>> keyValues = outputTopic.readKeyValuesToList();
         assertEquals(4, keyValues.size(), "All records should be transformed");
 
         // verify first and last record key and value; the pipeline creates them from fields in the record value

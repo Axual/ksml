@@ -57,6 +57,11 @@ class KSMLTransformKeyValueToValueListTest {
         assertEquals("value1a", keyValues.get(0).value);
         assertEquals("value1b", keyValues.get(1).value);
         assertEquals("value1c", keyValues.get(2).value);
+
+        // and the key to be duplicated as is
+        assertEquals("keyFirst", keyValues.get(0).key);
+        assertEquals("keyFirst", keyValues.get(1).key);
+        assertEquals("keyFirst", keyValues.get(2).key);
     }
 
     @KSMLTest(topology = "pipelines/test-transformkeyvaluetovaluelist-expression.yaml")
@@ -73,5 +78,10 @@ class KSMLTransformKeyValueToValueListTest {
         assertEquals("value1-1", keyValues.get(0).value);
         assertEquals("value1-2", keyValues.get(1).value);
         assertEquals("value1-3", keyValues.get(2).value);
+
+        // and the key to be duplicated as is
+        assertEquals("keyFirst", keyValues.get(0).key);
+        assertEquals("keyFirst", keyValues.get(1).key);
+        assertEquals("keyFirst", keyValues.get(2).key);
     }
 }

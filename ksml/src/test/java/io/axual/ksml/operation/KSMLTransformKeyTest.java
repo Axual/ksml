@@ -41,10 +41,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class KSMLTransformKeyTest {
 
     @KSMLTopic(topic = "input_topic", valueSerde = KSMLTopic.SerdeType.AVRO)
-    TestInputTopic inputTopic;
+    TestInputTopic<String, GenericRecord> inputTopic;
 
-    @KSMLTopic(topic = "output_topic")
-    TestOutputTopic outputTopic;
+    @KSMLTopic(topic = "output_topic", valueSerde =  KSMLTopic.SerdeType.AVRO)
+    TestOutputTopic<String, GenericRecord> outputTopic;
 
     List<GenericRecord> inputs = List.of(
             SensorData.builder().city("AMS").type(HUMIDITY).unit("%").value("80").build().toRecord(),
@@ -54,31 +54,31 @@ public class KSMLTransformKeyTest {
     @KSMLTest(topology = "pipelines/test-transformkey-expression.yaml", schemaDirectory = "schemas")
     @DisplayName("Keys can be mapped with transformkey using an expression")
     void testMapByExpression() {
-        // Given that we give the key in full and lowercase
-        inputTopic.pipeInput("amsterdam", inputs.get(0));
-        inputTopic.pipeInput("utrecht", inputs.get(1));
-
-        List<KeyValue> keyValues = outputTopic.readKeyValuesToList();
-        assertEquals(2, keyValues.size(), "All records should be transformed");
-
-        // we expect the mapped key to be the first 4 characters, uppercased
-        assertEquals("AMST", keyValues.get(0).key);
-        assertEquals("UTRE", keyValues.get(1).key);
+        provideInputsAndCheckOutputs();
     }
 
     @KSMLTest(topology = "pipelines/test-transformkey-code.yaml", schemaDirectory = "schemas")
     @DisplayName("Keys can be mapped with transformkey with a code block")
     void testMapByCode() {
         // Given that we give the key in full and lowercase
+        provideInputsAndCheckOutputs();
+    }
+
+    private void provideInputsAndCheckOutputs() {
+        // Given that we give the key in full and lowercase
         inputTopic.pipeInput("amsterdam", inputs.get(0));
         inputTopic.pipeInput("utrecht", inputs.get(1));
 
-        List<KeyValue> keyValues = outputTopic.readKeyValuesToList();
+        List<KeyValue<String, GenericRecord>> keyValues = outputTopic.readKeyValuesToList();
         assertEquals(2, keyValues.size(), "All records should be transformed");
 
         // we expect the mapped key to be the first 4 characters, uppercased
         assertEquals("AMST", keyValues.get(0).key);
         assertEquals("UTRE", keyValues.get(1).key);
+
+        // and the values to be unchanged
+        assertEquals(inputs.get(0), keyValues.get(0).value);
+        assertEquals(inputs.get(1), keyValues.get(1).value);
     }
 }
 

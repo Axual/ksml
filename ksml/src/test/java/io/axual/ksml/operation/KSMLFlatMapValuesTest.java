@@ -45,7 +45,7 @@ class KSMLFlatMapValuesTest {
 
     @KSMLTest(topology = "pipelines/test-flatmapvalues-code.yaml")
     void testFlatMapValuesCode() {
-        log.debug("testFlatMapValues()");
+        log.debug("testFlatMapValuesCode()");
 
         // given that we pipe a single message into the stream
         inputTopic.pipeInput("keyFirst", "value1");
@@ -57,11 +57,16 @@ class KSMLFlatMapValuesTest {
         assertEquals("value1a", keyValues.get(0).value);
         assertEquals("value1b", keyValues.get(1).value);
         assertEquals("value1c", keyValues.get(2).value);
+
+        // and the key to be unchanged
+        assertEquals("keyFirst", keyValues.get(0).key);
+        assertEquals("keyFirst", keyValues.get(1).key);
+        assertEquals("keyFirst", keyValues.get(2).key);
     }
 
     @KSMLTest(topology = "pipelines/test-flatmapvalues-expression.yaml")
     void testFlatMapValuesExpression() {
-        log.debug("testFlatMapValues()");
+        log.debug("testFlatMapValuesExpression()");
 
         // given that we pipe a single message into the stream
         inputTopic.pipeInput("keyFirst", "value1");
@@ -73,5 +78,10 @@ class KSMLFlatMapValuesTest {
         assertEquals("value1-1", keyValues.get(0).value);
         assertEquals("value1-2", keyValues.get(1).value);
         assertEquals("value1-3", keyValues.get(2).value);
+
+        // and the key to be unchanged
+        assertEquals("keyFirst", keyValues.get(0).key);
+        assertEquals("keyFirst", keyValues.get(1).key);
+        assertEquals("keyFirst", keyValues.get(2).key);
     }
 }

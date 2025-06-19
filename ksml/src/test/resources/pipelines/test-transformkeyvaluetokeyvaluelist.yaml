@@ -16,5 +16,5 @@ pipelines:
         mapper:
           resultType: "[(string,string)]"
           code: |
-            return [ (key,value),(key,value) ]
+            return [ (key + "-a",value + "-a"),(key + "-b",value + "-b") ]
     to: test_output
