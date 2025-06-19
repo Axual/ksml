@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
 
 /**
  * Translates Kafka Streams metrics into enriched KSML metrics by appending contextual tags
- * such as namespace, pipeline, and operation name. his allows latency metrics to be mapped back to
+ * such as namespace, pipeline, and operation name. This allows latency metrics to be mapped back to
  * specific KSML processing elements.
  */
 @Slf4j
@@ -42,6 +42,10 @@ public final class KsmlTagEnricher {
     public static final String STREAM_PROCESSOR_GROUP = "stream-processor-node-metrics";
     private static final Set<String> INTERESTING_GROUPS = Set.of(STREAM_PROCESSOR_GROUP);
     private static final String NODE_LATENCY_PREFIX = "record-e2e-latency-";
+
+    // Pattern to parse task-id format: "subtopology_partition"
+    private static final Pattern TASK_ID_PATTERN = Pattern.compile("^(\\d+)_(\\d+)$");
+
     // Regex Explanation:
     // Matches node names formatted as: <namespace>_pipelines_<pipeline>[_via_step<step>]_operation
     //
@@ -164,8 +168,38 @@ public final class KsmlTagEnricher {
     }
 
     /**
+     * Parses task-id tag and extracts subtopology and partition information.
+     * Task-id format is "subtopology_partition" (e.g., "3_17")
+     *
+     * @param taskId the task-id string
+     * @return an Optional containing parsed values, or empty if parsing fails
+     */
+    static Optional<TaskIdComponents> parseTaskId(String taskId) {
+        if (taskId == null) {
+            return Optional.empty();
+        }
+
+        Matcher matcher = TASK_ID_PATTERN.matcher(taskId);
+        if (!matcher.matches()) {
+            log.debug("Task-id does not match expected format: {}", taskId);
+            return Optional.empty();
+        }
+
+        try {
+            String subtopology = matcher.group(1);
+            String partition = matcher.group(2);
+            return Optional.of(new TaskIdComponents(subtopology, partition));
+        } catch (Exception e) {
+            log.debug("Failed to parse task-id: {}", taskId, e);
+            return Optional.empty();
+        }
+    }
+
+    private record TaskIdComponents(String subtopology, String partition) {}
+
+    /**
      * Converts a Kafka metric name into a KSML-enriched metric name,
-     * adding tags for namespace, pipeline, operation, etc.
+     * adding tags for namespace, pipeline, operation, task-id, subtopology, and partition.
      * Only applies to e2e latency metrics for stream processor nodes.
      *
      * @param kafkaName the original Kafka metric name
@@ -192,9 +226,21 @@ public final class KsmlTagEnricher {
                 .append("namespace", op.namespace)
                 .append("pipeline", op.pipeline)
                 .append("operation_name", op.operation)
-                .append("processor_node_id",  nodeId)
+                .append("processor_node_id", nodeId)
                 .append("unit", "ms")
                 .appendIfPresent("step", op.step);
+
+        // Add task-id and its components
+        String taskId = kafkaName.tags().get("task-id");
+        if (taskId != null) {
+            tags = tags.append("task_id", taskId);
+
+            Optional<TaskIdComponents> comp = parseTaskId(taskId);
+            if (comp.isPresent()) {
+                tags = tags.append("subtopology", comp.get().subtopology());
+                tags = tags.append("partition",   comp.get().partition());
+            }
+        }
 
         if (isNodeLatency(kafkaName.name())) {
             String which = kafkaName.name()
