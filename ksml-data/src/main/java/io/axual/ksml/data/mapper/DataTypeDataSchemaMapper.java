@@ -45,7 +45,7 @@ public class DataTypeDataSchemaMapper implements DataSchemaMapper<DataType> {
             return new ListSchema(toDataSchema(listType.valueType()));
         // Check structs first, since they are a subclass of maps
         if (type instanceof StructType structType)
-            return structType.schema() != null ? new StructSchema(structType.schema()) : new StructSchema();
+            return structType.schema() != null ? new StructSchema(structType.schema()) : StructSchema.SCHEMALESS;
         if (type instanceof MapType mapType)
             return new MapSchema(toDataSchema(namespace, name, mapType.valueType()));
         if (type instanceof UnionType unionType) {

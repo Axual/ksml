@@ -27,7 +27,7 @@ import java.util.List;
 
 @Getter
 public class IgnoreParser<T> implements StructsParser<T> {
-    final List<StructSchema> schemas = List.of(new StructSchema());
+    final List<StructSchema> schemas = List.of(StructSchema.SCHEMALESS);
 
     @Override
     public T parse(ParseNode node) {

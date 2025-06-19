@@ -51,23 +51,26 @@ public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
 
         // If we expect a union dataType, then check its value types, else convert by value.
         if (expected instanceof UnionType unionType)
-            return unionToDataObject(unionType, object);
+            return valueToDataUnion(unionType, object);
 
-        // Finally convert all native types to DataObjects
+        // Finally, convert all native types to DataObjects
         return super.toDataObject(expected, object);
     }
 
-    private DataObject unionToDataObject(UnionType unionType, Object object) {
+    private DataObject valueToDataUnion(UnionType unionType, Object value) {
         for (final var memberType : unionType.memberTypes()) {
             try {
-                var result = toDataObject(memberType.type(), object);
+                var result = toDataObject(memberType.type(), value);
                 if (result != null) return result;
             } catch (Exception e) {
                 // Ignore exception and move to next value type
             }
         }
 
-        throw new ExecutionException("Can not convert Python dataType to Union value: " + object.getClass().getSimpleName());
+        final var sourceValue = toDataObject(value);
+        final var sourceValueStr = sourceValue != null ? sourceValue.toString(DataObject.Printer.EXTERNAL_NO_SCHEMA) : DataNull.INSTANCE.toString();
+        final var sourceType = sourceValue != null ? sourceValue.type() : DataType.UNKNOWN;
+        throw new DataException("Can not convert " + sourceType + " to " + unionType + ": value=" + sourceValueStr);
     }
 
     private Object valueToNative(DataType expected, Value object) {

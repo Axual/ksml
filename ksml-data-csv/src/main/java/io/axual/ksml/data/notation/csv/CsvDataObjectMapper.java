@@ -103,7 +103,7 @@ public class CsvDataObjectMapper implements DataObjectMapper<String> {
     }
 
     private DataObject convertStringToDataObject(DataSchema schema, String value) {
-        return convertUtil.convertStringToDataObject(SCHEMA_TO_TYPE_MAPPER.fromDataSchema(schema), value);
+        return convertUtil.convertStringToDataObject(SCHEMA_TO_TYPE_MAPPER.fromDataSchema(schema), value, false);
     }
 
     @Override
