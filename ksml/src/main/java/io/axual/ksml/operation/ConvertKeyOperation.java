@@ -48,11 +48,11 @@ public class ConvertKeyOperation extends BaseOperation {
             return mapper.convert(k.userType().notation(), keyAsData, kr.userType());
         };
 
+        // Inject the mapper into the topology
         final var output = name != null
                 ? input.stream.selectKey(converter, Named.as(name))
                 : input.stream.selectKey(converter);
 
-        // Inject the mapper into the topology
         return new KStreamWrapper(output, kr, v);
     }
 }
