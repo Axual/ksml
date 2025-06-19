@@ -2,7 +2,21 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# -- Define the k8s-resource selected to deploy the KSML Runner.
+deploymentMode: StatefulSet
+
 replicaCount: 1
+
+# -- Job deployment specific settings.
+job:
+  # -- Clean up a completed or failed job after 3 days. This allows for KSML inspection after completion.
+  ttlSecondsAfterFinished: 259200
+  # -- Allows custom finalizers to be set on the job resource.
+  finalizers: []
+  # -- pod specific configurations.
+  pod:
+    # -- Allows custom finalizers to be set on the pod created by the job.
+    finalizers: []
 
 image:
   # -- Registry to pull the image from and the name of the image.
@@ -25,77 +39,79 @@ ksmlRunnerConfig:
   definitionDirectory: '/ksml'
   # -- Directory containing the Schema files. This should only be changed if an external volume mount is used.
   schemaDirectory: '/ksml'
-  # -- Directory containing the stateful data . This should only be changed if an external volume mount is used.
+  # -- Directory containing the stateful data. This should only be changed if an external volume mount is used.
   storageDirectory: '/ksml-store/data'
-  # -- Create the storageDirectory if it does not exist
+  # -- Create the storageDirectory if it does not exist.
   createStorageDirectory: true
 
 
   # -- KSML Error handling settings. Error Handling can be defined for consume, produce and processing errors.
   errorHandling:
-    # -- Error handling settings for consume related errors
+    # -- Error handling settings for consume related errors.
     consume:
-      # -- log a message when consume errors occur
+      # -- log a message when consume errors occur.
       log: true
-      # -- Add the record payload to the log message
+      # -- Add the record payload to the log message.
       logPayload: false
-      # -- Specify the name of the logger to use
+      # -- Specify the name of the logger to use.
       loggerName: ConsumeError
-      # -- Should the KSML application stop when a consume error occurs
+      # -- Should the KSML application stop when a consume error occurs.
       stopOnError: true
-    # -- Error handling settings for produce related errors
+    # -- Error handling settings for produce related errors.
     produce:
-      # -- log a message when produce errors occur
+      # -- log a message when produce errors occur.
       log: true
-      # -- Add the record payload to the log message
+      # -- Add the record payload to the log message.
       logPayload: false
-      # -- Specify the name of the logger to use
-      loggerName: ProduceErrpr
-      # -- Should the KSML application stop when a consume error occurs
+      # -- Specify the name of the logger to use.
+      loggerName: ProduceError
+      # -- Should the KSML application stop when a consume error occurs.
       stopOnError: true
-    # -- Error handling settings for processing related errors
+    # -- Error handling settings for processing related errors.
     process:
-      # -- log a message when processing errors occur
+      # -- log a message when processing errors occur.
       log: true
-      # -- Add the record payload to the log message
+      # -- Add the record payload to the log message.
       logPayload: false
-      # -- Specify the name of the logger to use
+      # -- Specify the name of the logger to use.
       loggerName: ProcessError
-      # -- Should the KSML application stop when a consume error occurs
+      # -- Should the KSML application stop when a consume error occurs.
       stopOnError: true
 
-  # -- Data generation can be disabled for deployments to prevent accidental test data in non test environments
+  # -- Data generation can be disabled for deployments to prevent accidental test data in non-test environments.
   producersEnabled: true
-  # -- Pipelines can be disabled allow for data generation only deployments.
+  # -- Pipelines can be disabled to allow for data-generation-only deployments.
   pipelinesEnabled: true
 
   # -- Map of the namespace and the KSML definition file executed in that namespace.
   definitions: {}
+#  definitions:
+#    ksml: ksml-definition.yaml
   # -- Map of Kafka connection properties and application id
   kafka: {}
-  # kafka:
-  #   application.id: my-streaming-app
-  #   bootstrap.servers: "localhost:9092"
+#  kafka:
+#    application.id: my-streaming-app
+#    bootstrap.servers: "localhost:9092"
 
-# KSML Pipeline or Producer definition files. See https://axual.github.io/ksml/introduction.html
+# -- KSML Pipeline or Producer definition files. See https://axual.github.io/ksml/introduction.html
 ksmlDefinitions: {}
   # my-definition.yaml: |
   #   ...
 
-# Schema definitions files. See https://github.com/Axual/ksml/tree/main/examples
+# -- Schema definitions files. See https://github.com/Axual/ksml/tree/main/examples
 schemaDefinitions: {}
   # my-schema.avsc: |
   #   ...
 
-# The startup probe for the KSML containers
+# -- The startup probe for the KSML containers.
 startupProbe:
   httpGet:
     path: /startup
     port: http
   # -- Minimum consecutive failures for the probe to be considered failed.
-  # A failed startupProbe will mark the container as unhealthy and triggers a restart for that specific container.
+  # A failed startupProbe will mark the container as unhealthy and trigger a restart for that specific container.
   failureThreshold: 30
-  # -- Number of seconds after the container has started before startyp probes are initiated.
+  # -- Number of seconds after the container has started before startup probes are initiated.
   initialDelaySeconds: 2
   # -- How often (in seconds) to perform the probe.
   periodSeconds: 1
@@ -104,9 +120,9 @@ startupProbe:
   # -- Number of seconds after which the probe times out.
   timeoutSeconds: 1
 
-# The readiness probe for the KSML containers
+# -- The readiness probe for the KSML containers.
 readinessProbe:
-  # The service definition to call to determine readiness.
+  # -- The service definition to call to determine readiness.
   httpGet:
     path: /ready
     port: http
@@ -122,9 +138,9 @@ readinessProbe:
   # -- Number of seconds after which the probe times out.
   timeoutSeconds: 1
 
-# The readiness probe for the KSML containers
+# -- The readiness probe for the KSML containers.
 livenessProbe:
-  # The service definition to call to determine liveness.
+  # -- The service definition to call to determine liveness.
   httpGet:
     path: /live
     port: http
@@ -141,14 +157,14 @@ livenessProbe:
   timeoutSeconds: 1
 
 serviceAccount:
-  # Specifies whether a service account should be created
+  # -- Specifies whether a service account should be created.
   create: true
-  # Automatically mount a ServiceAccount's API credentials?
+  # -- Automatically mount a ServiceAccount's API credentials
   automount: true
-  # Annotations to add to the service account
+  # -- Annotations to add to the service account.
   annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
+  # -- The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template.
   name: ""
 
 # -- Extra annotations to add to the Pods.
@@ -209,21 +225,22 @@ resources: {}
   #   cpu: "500m"
   #   memory: "128Mi"
 
-# Additional volumes on the output Deployment definition.
+# -- Additional volumes on the output Deployment definition.
 volumes: []
 # - name: foo
 #   secret:
 #     secretName: mysecret
 #     optional: false
 
-# Additional volumeMounts on the output Deployment definition.
+# -- Additional volumeMounts on the output Deployment definition.
 volumeMounts: []
 # - name: foo
 #   mountPath: "/etc/foo"
 #   readOnly: true
 
-# Additional volumeClaimTemplates for the app
+# -- Additional volumeClaimTemplates for the stateful.
 volumeClaimTemplates: []
+
 
 # -- Selector which must match a node's labels for the pod to be scheduled on that node.
 nodeSelector: {}
@@ -237,20 +254,20 @@ affinity: {}
 # -- Describes how a group of pods ought to spread across topology domains. See the Kubernetes documentation on [Pod Topology Spread Constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/).
 topologySpreadConstraints: []
 
-# -- KSML application server port defined in the statefulset.
+# -- KSML application server port defined in the StatefulSet/Job.
 applicationServer:
-  # -- Start an application server for the component
+  # -- Start an application server for the component.
   enabled: true
-  # -- Port on which Application server should be initialized
+  # -- Port on which Application server should be initialized.
   port: "8080"
 
 # -- Logging configuration settings for KSML.
 logging:
-  # -- Location of the logging configuration file
+  # -- Location of the logging configuration file.
   configFile: '/ksml-logging/logback.xml'
-  # -- Enable JSON logging
+  # -- Enable JSON logging.
   jsonEnabled: false
-  # -- The logback log pattern to use
+  # -- The logback log pattern to use.
   patterns:
     stdout: '%date{"yyyy-MM-dd''T''HH:mm:ss,SSSXXX", UTC} [%t] %-5level %logger{36} - %msg%n'
     stderr: '%date{"yyyy-MM-dd''T''HH:mm:ss,SSSXXX", UTC} [%t] %-5level %logger{36} - %msg%n'
@@ -258,7 +275,7 @@ logging:
   rootLogLevel: INFO
   # -- Specify log levels for specific loggers.
   loggers: {}
-  # -- Specify default loggers set for all deployments to minimize excessive logging
+  # -- Specify default loggers set for all deployments to minimize excessive logging.
   defaultLoggers:
     io.axual.ksml: INFO
     org.apache.kafka: WARN
@@ -268,21 +285,21 @@ logging:
     org.apache.kafka.streams.StreamsConfig: WARN
     io.confluent: WARN
 
-# -- Configure the storage specification for the KSML State Store volumeClaimTemplate
+# -- Configure the storage specification for the volumeClaimTemplates.
 store:
-  # -- Specifications of the volymeClaimTemplate
+  # -- Specifications of the volumeClaimTemplate.
   spec: {}
 #    accessModes: [ "ReadWriteOnce" ]
 #    resources:
 #      requests:
 #        storage: 1Gi
 
-# -- KSML prometheus server port defined in the statefulset. Note that this must match the port defined in ksmlRunnerConfig.
 prometheus:
+  # -- KSML prometheus server port defined in the StatefulSet/Job. Note that this must match the port defined in ksmlRunnerConfig.
   enabled: false
-  # -- Port on which Prometheus metrics endpoint should be initialized
+  # -- Port on which Prometheus metrics endpoint should be initialized.
   port: "9999"
-  # -- Contents of the JMX exporter config file
+  # -- Contents of the JMX exporter config file.
   config:
     lowercaseOutputName: true
     lowercaseOutputLabelNames: true
@@ -318,15 +335,49 @@ prometheus:
         type: GAUGE
         attrNameSnakeCase: true
 
-    
+prometheusRule:
+  # -- Enables creation of Prometheus Operator [PrometheusRule](https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.PrometheusRule).
+  # Ignored if API `monitoring.coreos.com/v1` is not available or if prometheus is disabled.
+  enabled: false
+  # -- Determines how often rules in the group are evaluated.
+  interval: ""
+  # -- Additional labels for the PrometheusRules.
+  labels: {}
+  defaultRules:
+    # -- Enables the default prometheusRules.
+    # The `{{ include "ksml.fullname" . }} is down` rule requires the `serviceMonitor.enabled=true` to function.
+    enabled: true
+    # -- Customize the labels to the default prometheusRules.
+    labels: {}
+  # -- A list alerting or recording rules to include on top of the defaults. These fields are templated.
+  extraRules:
+#    - alert: MyAlertName
+#      annotations:
+#        summary: Summary of my alert
+#        description: Longer description of my alert that goes into a bit more detail
+#      expr: Expression that could use the helpers functions
+#      for: Time for which this rule is evaluated before been fired
+#      labels:
+#        your-label-key: your-label-value
 
 serviceMonitor:
-  # -- Enables creation of Prometheus Operator [ServiceMonitor](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.ServiceMonitor).
+  # -- Enables creation of Prometheus Operator [ServiceMonitor](https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.ServiceMonitor).
   # Ignored if API `monitoring.coreos.com/v1` is not available or if prometheus is disabled.
   enabled: false
   # -- Interval at which metrics should be scraped.
   interval: 30s
   # -- Timeout after which the scrape is ended.
   scrapeTimeout: 10s
-  # -- Additional labels for the ServiceMonitor
+  # -- Additional labels for the ServiceMonitor.
   labels: {}
+
+networkPolicy:
+  # -- Enables creation of Network policies to declare for the ksml pod.
+  # See the Kubernetes documentation on [NetworkPolicy](https://kubernetes.io/docs/tasks/administer-cluster/declare-network-policy/).
+  enabled: false
+  # -- Network Policy Ingress's Configuration.
+  ingress:
+    - {}
+  # -- Network Policy Egress's Configuration.
+  egress:
+    - {}

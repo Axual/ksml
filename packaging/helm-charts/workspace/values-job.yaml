@@ -1,0 +1,34 @@
+replicas: 2
+deploymentMode: job
+
+image:
+  tag: snapshot
+
+job:
+  finalizers:
+    - io.axual/ksml.cleanup.job
+  pod:
+    finalizers:
+      - io.axual/ksml.cleanup.pod
+
+ksmlRunnerConfig:
+  definitions:
+    generate: generator.yaml
+
+  kafka:
+    bootstrap.servers: localhost:1234
+    application.id: bye
+
+#volumes:
+#  - name: extra-config
+#    emptyDir:
+#      sizeLimit: 10Mi
+#
+#volumeMounts:
+#  - name: extra-config
+#    mountPath: /extras
+
+ksmlDefinitions:
+  generator.yaml: |
+    functions:
+      generate_sensordata_message:
