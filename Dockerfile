@@ -67,7 +67,7 @@ RUN \
 RUN \
   --mount=type=cache,target=/root/.m2/repo,id=mvnRepo_common \
   if [[ "${TARGETARCH}" = "${BUILDARCH}" ]]; then MVN_ARGS="-DskipTests=false"; echo "Run Tests"; else MVN_ARGS="-DskipTests=true";  echo "Skip Tests for cross compile"; fi \
-  && /opt/maven/bin/mvn -Dmaven.repo.local="/root/.m2/repo" --no-transfer-progress package $MVN_ARGS
+  && /opt/maven/bin/mvn -Dmaven.repo.local="/root/.m2/repo" -X package $MVN_ARGS
 
 
 # Step 4: Use the base image and copy GraalVM from Step 2 and the packaged KSML from Step 3
