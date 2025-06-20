@@ -47,7 +47,7 @@ pipelines:
           code: log.info("STRING TO JSON - key={}, value={}", key, value)
       # Change notation from JSON to XML
       - type: convertValue
-        into: xml
+        into: xml:SensorData
         name: json_to_xml
       - type: peek
         forEach:
@@ -61,7 +61,7 @@ pipelines:
           code: log.info("XML TO STRING - key={}, value={}", key, value)
       # Convert back from String to XML
       - type: convertValue
-        into: xml
+        into: xml:SensorData
         name: string_to_xml
       - type: peek
         forEach:

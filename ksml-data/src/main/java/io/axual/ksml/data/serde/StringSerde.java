@@ -49,7 +49,7 @@ public class StringSerde implements Serde<Object> {
     @Override
     public Serializer<Object> serializer() {
         return (topic, data) -> {
-            final var dataObject = nativeMapper.toDataObject(data);
+            final var dataObject = nativeMapper.toDataObject(expectedType, data);
             if (!expectedType.isAssignableFrom(dataObject)) {
                 throw new DataException("Incorrect type passed in: expected=" + expectedType + ", got " + dataObject.type());
             }

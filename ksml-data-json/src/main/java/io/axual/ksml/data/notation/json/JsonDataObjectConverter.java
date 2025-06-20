@@ -47,7 +47,7 @@ public class JsonDataObjectConverter implements Notation.Converter {
         if (value instanceof DataString jsonString) {
             // Convert to structured JSON
             if (targetType instanceof ListType || targetType instanceof StructType || targetType instanceof UnionType) {
-                return DATA_OBJECT_MAPPER.toDataObject(jsonString.value());
+                return DATA_OBJECT_MAPPER.toDataObject(targetType, jsonString.value());
             }
         }
 

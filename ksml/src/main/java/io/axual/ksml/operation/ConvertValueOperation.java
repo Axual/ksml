@@ -48,11 +48,11 @@ public class ConvertValueOperation extends BaseOperation {
             return mapper.convert(v.userType().notation(), valueAsData, vr.userType());
         };
 
+        // Inject the mapper into the topology
         final var output = name != null
                 ? input.stream.mapValues(converter, Named.as(name))
                 : input.stream.mapValues(converter);
 
-        // Inject the mapper into the topology
         return new KStreamWrapper(output, k, vr);
     }
 }

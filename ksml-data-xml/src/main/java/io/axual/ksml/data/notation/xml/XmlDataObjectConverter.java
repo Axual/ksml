@@ -39,7 +39,7 @@ public class XmlDataObjectConverter implements Notation.Converter {
 
         // Convert from String to Struct
         if (value instanceof DataString str && targetType instanceof StructType) {
-            return DATA_OBJECT_MAPPER.toDataObject(str.value());
+            return DATA_OBJECT_MAPPER.toDataObject(targetType, str.value());
         }
 
         // Return null if there is no conversion possible

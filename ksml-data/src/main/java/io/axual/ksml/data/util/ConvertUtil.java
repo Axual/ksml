@@ -237,7 +237,7 @@ public class ConvertUtil {
         final var result = new DataStruct(structType.schema());
         for (final var entry : map.entrySet()) {
             final var targetType = structType.fieldType(entry.getKey(), DataType.UNKNOWN, DataType.UNKNOWN);
-            final var targetValue = dataObjectMapper.toDataObject(entry.getValue());
+            final var targetValue = dataObjectMapper.toDataObject(targetType, entry.getValue());
             if (!targetType.isAssignableFrom(targetValue))
                 throw convertError(targetValue != null ? targetValue.type() : null, targetType, targetValue);
             result.put(entry.getKey(), targetValue);
@@ -263,7 +263,7 @@ public class ConvertUtil {
         var index = 0;
         for (final var element : elements) {
             final var targetType = tupleType.subType(index);
-            final var targetValue = dataObjectMapper.toDataObject(tupleType.subType(index), element);
+            final var targetValue = dataObjectMapper.toDataObject(targetType, element);
             if (!targetType.isAssignableFrom(targetValue))
                 throw convertError(targetValue != null ? targetValue.type() : null, targetType, targetValue);
             tupleElements[index++] = targetValue;

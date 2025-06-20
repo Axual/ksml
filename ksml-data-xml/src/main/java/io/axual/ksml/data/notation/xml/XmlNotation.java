@@ -20,7 +20,6 @@ package io.axual.ksml.data.notation.xml;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.string.StringNotation;
 import io.axual.ksml.data.type.DataType;
@@ -30,10 +29,15 @@ import org.apache.kafka.common.serialization.Serde;
 
 public class XmlNotation extends StringNotation {
     public static final DataType DEFAULT_TYPE = new StructType();
-    private static final DataObjectMapper<String> MAPPER = new XmlDataObjectMapper(true);
 
     public XmlNotation(String name, NativeDataObjectMapper nativeMapper) {
-        super(name, ".xsd", DEFAULT_TYPE, new XmlDataObjectConverter(), new XmlSchemaParser(), nativeMapper, MAPPER);
+        super(name,
+                ".xsd",
+                DEFAULT_TYPE,
+                new XmlDataObjectConverter(),
+                new XmlSchemaParser(),
+                nativeMapper,
+                new XmlDataObjectMapper(false));
     }
 
     @Override

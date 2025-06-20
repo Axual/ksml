@@ -57,11 +57,11 @@ public class ConvertKeyValueOperation extends BaseOperation {
             return new KeyValue<>(convertedKey, convertedValue);
         };
 
+        // Inject the mapper into the topology
         final var output = name != null
                 ? input.stream.map(converter, Named.as(name))
                 : input.stream.map(converter);
 
-        // Inject the mapper into the topology
         return new KStreamWrapper(output, kr, vr);
     }
 }
