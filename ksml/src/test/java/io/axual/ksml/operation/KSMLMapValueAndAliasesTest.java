@@ -57,11 +57,14 @@ public class KSMLMapValueAndAliasesTest {
 
     @KSMLTopologyTest(
             topologies = {
+                    "pipelines/test-mapvalue-expression.yaml",
                     "pipelines/test-mapvalues-expression.yaml",
-                    "pipelines/test-transformvalue-expression.yaml"},
+                    "pipelines/test-transformvalue-expression.yaml",
+                    "pipelines/test-mapvalue-code.yaml",
+                    "pipelines/test-mapvalues-code.yaml",
+                    "pipelines/test-transformvalue-code.yaml"},
             schemaDirectory = "schemas")
-    @DisplayName("Values can be mapped with mapValue")
-    @Disabled("Annotation processing not fully working yet")
+    @DisplayName("Values can be mapped with mapValue and aliases")
     void testMapValueByExpression() {
         inputs.forEach(rec -> inputTopic.pipeInput("key", rec));
 
@@ -69,81 +72,6 @@ public class KSMLMapValueAndAliasesTest {
         assertEquals(4, keyValues.size(), "All records should be transformed");
 
         // verify first and last value; the pipeline creates them from fields in the input value
-        assertEquals("HUMIDITY 80", keyValues.get(0).value);
-        assertEquals("HUMIDITY 75", keyValues.get(1).value);
-        assertEquals("TEMPERATURE 25", keyValues.get(2).value);
-        assertEquals("TEMPERATURE 27", keyValues.get(3).value);
-    }
-
-//    @KSMLTest(topology = "pipelines/test-mapvalues-expression.yaml", schemaDirectory = "schemas")
-//    @DisplayName("Values can be mapped with mapValues with an expression")
-    void testMapValuesByExpression() {
-        inputs.forEach(rec -> inputTopic.pipeInput("key", rec));
-
-        var keyValues = outputTopic.readKeyValuesToList();
-        assertEquals(4, keyValues.size(), "All records should be transformed");
-
-        // verify first and last value; the pipeline creates them from fields in the input value
-        assertEquals("HUMIDITY 80", keyValues.get(0).value);
-        assertEquals("HUMIDITY 75", keyValues.get(1).value);
-        assertEquals("TEMPERATURE 25", keyValues.get(2).value);
-        assertEquals("TEMPERATURE 27", keyValues.get(3).value);
-    }
-
-//    @KSMLTest(topology = "pipelines/test-transformvalue-expression.yaml", schemaDirectory = "schemas")
-//    @DisplayName("Values can be mapped with transformValue with an expression")
-    void testTransformValueByExpression() {
-        inputs.forEach(rec -> inputTopic.pipeInput("key", rec));
-
-        var keyValues = outputTopic.readKeyValuesToList();
-        assertEquals(4, keyValues.size(), "All records should be transformed");
-
-        // verify first and last value; the pipeline creates them from fields in the input value
-        assertEquals("HUMIDITY 80", keyValues.get(0).value);
-        assertEquals("HUMIDITY 75", keyValues.get(1).value);
-        assertEquals("TEMPERATURE 25", keyValues.get(2).value);
-        assertEquals("TEMPERATURE 27", keyValues.get(3).value);
-    }
-
-//    @KSMLTest(topology = "pipelines/test-mapvalue-code.yaml", schemaDirectory = "schemas")
-//    @DisplayName("Values can be mapped with mapValue with a code block")
-    void testMapValueByCode() {
-        inputs.forEach(rec -> inputTopic.pipeInput("key", rec));
-
-        var keyValues = outputTopic.readKeyValuesToList();
-        assertEquals(4, keyValues.size(), "All records should be transformed");
-
-        // verify first and last record key and value; the pipeline creates them from fields in the record value
-        assertEquals("HUMIDITY 80", keyValues.get(0).value);
-        assertEquals("HUMIDITY 75", keyValues.get(1).value);
-        assertEquals("TEMPERATURE 25", keyValues.get(2).value);
-        assertEquals("TEMPERATURE 27", keyValues.get(3).value);
-    }
-
-//    @KSMLTest(topology = "pipelines/test-mapvalues-code.yaml", schemaDirectory = "schemas")
-//    @DisplayName("Values can be mapped with mapValues with a code block")
-    void testMapValuesByCode() {
-        inputs.forEach(rec -> inputTopic.pipeInput("key", rec));
-
-        var keyValues = outputTopic.readKeyValuesToList();
-        assertEquals(4, keyValues.size(), "All records should be transformed");
-
-        // verify first and last record key and value; the pipeline creates them from fields in the record value
-        assertEquals("HUMIDITY 80", keyValues.get(0).value);
-        assertEquals("HUMIDITY 75", keyValues.get(1).value);
-        assertEquals("TEMPERATURE 25", keyValues.get(2).value);
-        assertEquals("TEMPERATURE 27", keyValues.get(3).value);
-    }
-
-//    @KSMLTest(topology = "pipelines/test-transformvalue-code.yaml", schemaDirectory = "schemas")
-//    @DisplayName("Values can be mapped with transformValue with a code block")
-    void testTransformValueByCode() {
-        inputs.forEach(rec -> inputTopic.pipeInput("key", rec));
-
-        var keyValues = outputTopic.readKeyValuesToList();
-        assertEquals(4, keyValues.size(), "All records should be transformed");
-
-        // verify first and last record key and value; the pipeline creates them from fields in the record value
         assertEquals("HUMIDITY 80", keyValues.get(0).value);
         assertEquals("HUMIDITY 75", keyValues.get(1).value);
         assertEquals("TEMPERATURE 25", keyValues.get(2).value);

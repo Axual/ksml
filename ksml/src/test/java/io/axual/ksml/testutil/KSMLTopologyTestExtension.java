@@ -56,21 +56,24 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeAllC
     private TopologyTestDriver topologyTestDriver;
 
     /** Map of annotated {@link TestInputTopic} field names to their annotatopn. */
-    private final Map<String, KSMLTopic> inputTopics = new HashMap<>();
+    private final Map<String, KSMLTopic> inputTopics;
 
     /** Map of annotated {@link org.apache.kafka.streams.TestOutputTopic} to their annotations. */
-    private final Map<String, KSMLTopic> outputTopics = new HashMap<>();
+    private final Map<String, KSMLTopic> outputTopics;
 
     /** If present, name of a field of type {@link TopologyTestDriver} which should be linked by the extension.*/
-    private String testDriverRef;
+    private final String testDriverRef;
 
     private final String schemaDirectory;
 
     private final String topologyName;
 
-    public KSMLTopologyTestExtension(String schemaDirectory, String topologyName) {
+    public KSMLTopologyTestExtension(String schemaDirectory, String topologyName, Map<String, KSMLTopic> inputTopics, Map<String, KSMLTopic> outputTopics, String testDriverRef) {
+        this.inputTopics = inputTopics;
+        this.outputTopics = outputTopics;
         this.schemaDirectory = schemaDirectory;
         this.topologyName = topologyName;
+        this.testDriverRef = testDriverRef;
     }
 
     /**
@@ -100,29 +103,29 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeAllC
     @Override
     public void beforeAll(ExtensionContext extensionContext) {
         log.debug("Registering test notations");
-        final var mapper = new NativeDataObjectMapper();
-        final var jsonNotation = new JsonNotation("json", mapper);
-        ExecutionContext.INSTANCE.notationLibrary().register(new BinaryNotation(UserType.DEFAULT_NOTATION, mapper, jsonNotation::serde));
-        ExecutionContext.INSTANCE.notationLibrary().register(jsonNotation);
+//        final var mapper = new NativeDataObjectMapper();
+//        final var jsonNotation = new JsonNotation("json", mapper);
+//        ExecutionContext.INSTANCE.notationLibrary().register(new BinaryNotation(UserType.DEFAULT_NOTATION, mapper, jsonNotation::serde));
+//        ExecutionContext.INSTANCE.notationLibrary().register(jsonNotation);
 
         log.debug("Registering annotated TestInputTopic, TestOutputTopic and TopologyTestDriver fields");
-        Class<?> requiredTestClass = extensionContext.getRequiredTestClass();
-        Field[] declaredFields = requiredTestClass.getDeclaredFields();
-        Arrays.stream(declaredFields).forEach(field -> {
-            Class<?> type = field.getType();
-            if (type.equals(TestInputTopic.class) && field.isAnnotationPresent(KSMLTopic.class)) {
-                KSMLTopic ksmlTopic = field.getAnnotation(KSMLTopic.class);
-                log.debug("Found annotated input topic field {}:{}", field.getName(), ksmlTopic);
-                inputTopics.put(field.getName(), ksmlTopic);
-            } else if (type.equals(org.apache.kafka.streams.TestOutputTopic.class) && field.isAnnotationPresent(KSMLTopic.class)) {
-                KSMLTopic ksmlTopic = field.getAnnotation(KSMLTopic.class);
-                log.debug("Found annotated output topic field {}:{}", field.getName(), ksmlTopic);
-                outputTopics.put(field.getName(), ksmlTopic);
-            } else if (type.equals(TopologyTestDriver.class) && field.isAnnotationPresent(KSMLDriver.class)) {
-                log.debug("Found annotated test driver field {}", field.getName());
-                testDriverRef = field.getName();
-            }
-        });
+//        Class<?> requiredTestClass = extensionContext.getRequiredTestClass();
+//        Field[] declaredFields = requiredTestClass.getDeclaredFields();
+//        Arrays.stream(declaredFields).forEach(field -> {
+//            Class<?> type = field.getType();
+//            if (type.equals(TestInputTopic.class) && field.isAnnotationPresent(KSMLTopic.class)) {
+//                KSMLTopic ksmlTopic = field.getAnnotation(KSMLTopic.class);
+//                log.debug("Found annotated input topic field {}:{}", field.getName(), ksmlTopic);
+//                inputTopics.put(field.getName(), ksmlTopic);
+//            } else if (type.equals(org.apache.kafka.streams.TestOutputTopic.class) && field.isAnnotationPresent(KSMLTopic.class)) {
+//                KSMLTopic ksmlTopic = field.getAnnotation(KSMLTopic.class);
+//                log.debug("Found annotated output topic field {}:{}", field.getName(), ksmlTopic);
+//                outputTopics.put(field.getName(), ksmlTopic);
+//            } else if (type.equals(TopologyTestDriver.class) && field.isAnnotationPresent(KSMLDriver.class)) {
+//                log.debug("Found annotated test driver field {}", field.getName());
+//                testDriverRef = field.getName();
+//            }
+//        });
     }
 
     @Override

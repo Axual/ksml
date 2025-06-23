@@ -24,8 +24,13 @@ import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContext;
 
 import java.util.List;
+import java.util.Map;
 
-public record KSMLTopologyTestInvocationContext(String topologyName, String schemaDirectory, String displayName) implements TestTemplateInvocationContext {
+public record KSMLTopologyTestInvocationContext(String topologyName,
+                                                String schemaDirectory,
+                                                Map<String, KSMLTopic> inputTopics,
+                                                Map<String, KSMLTopic> outputTopics,
+                                                String testDriverRef) implements TestTemplateInvocationContext {
 
     public static final String NO_SCHEMAS = "";
 
@@ -36,6 +41,6 @@ public record KSMLTopologyTestInvocationContext(String topologyName, String sche
 
     @Override
     public List<Extension> getAdditionalExtensions() {
-        return List.of(new KSMLTopologyTestExtension(schemaDirectory, topologyName));
+        return List.of(new KSMLTopologyTestExtension(schemaDirectory, topologyName, inputTopics, outputTopics, testDriverRef));
     }
 }
