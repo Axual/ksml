@@ -68,13 +68,13 @@
         <apache.commons.text.version>1.13.1</apache.commons.text.version>
         <apache.commons.compress.version>1.27.1</apache.commons.compress.version>
         <apache.kafka.version>4.0.0</apache.kafka.version>
-        <apicurio.version>2.6.11.Final</apicurio.version>
+        <apicurio.version>2.6.12.Final</apicurio.version>
         <axual.utils.version>1.0.0</axual.utils.version>
-        <confluent.version>7.9.1</confluent.version>
+        <confluent.version>8.0.0</confluent.version>
         <findbugs.jsr305.version>3.0.2</findbugs.jsr305.version>
         <graalvm.version>24.2.1</graalvm.version>
         <guava.version>33.4.8-jre</guava.version>
-        <jackson.version>2.19.0</jackson.version>
+        <jackson.version>2.19.1</jackson.version>
         <jakarta.soap.version>3.0.2</jakarta.soap.version>
         <janino.version>3.1.12</janino.version>
         <jersey.version>3.1.10</jersey.version>
@@ -108,7 +108,7 @@
         <maven.install.plugin.version>3.1.4</maven.install.plugin.version>
         <maven.enforcer.plugin.version>3.5.0</maven.enforcer.plugin.version>
         <maven.exec.plugin.version>3.5.1</maven.exec.plugin.version>
-        <maven.license.plugin.version>2.5.0</maven.license.plugin.version>
+        <maven.license.plugin.version>2.6.0</maven.license.plugin.version>
         <maven.resources.plugin.version>3.3.1</maven.resources.plugin.version>
         <maven.versions.plugin.version>2.18.0</maven.versions.plugin.version>
 
