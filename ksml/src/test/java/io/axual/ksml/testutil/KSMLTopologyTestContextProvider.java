@@ -57,17 +57,25 @@ public class KSMLTopologyTestContextProvider implements TestTemplateInvocationCo
         return isAnnotated(context.getTestMethod(), KSMLTopologyTest.class);
     }
 
+    /**
+     * Set up test template invocation contexts for each listed pipeline definition.
+     * This method prepares test execution by scanning the test class for annotated fields ({@link KSMLTopic} and {@link KSMLDriver}
+     * annotated fields) which it will pass into each invocation context, to be handled by {@link KSMLTopologyTestExtension} when the test runs.
+     * @param context the extension context.
+     * @return a list containing one {@link KSMLTopologyTestInvocationContext} per configured KSML topology.
+     */
     @Override
     public Stream<TestTemplateInvocationContext> provideTestTemplateInvocationContexts(ExtensionContext context) {
         log.debug("provideTestTemplateInvocationContexts()");
 
-        Class<?> requiredTestClass = context.getRequiredTestClass();
         Map<String, KSMLTopic> inputTopics = new HashMap<>();
         Map<String, KSMLTopic> outputTopics = new HashMap<>();
         AtomicReference<String> testDriverRef = new AtomicReference<>();
-        Field[] declaredFields = requiredTestClass.getDeclaredFields();
 
+        Class<?> requiredTestClass = context.getRequiredTestClass();
+        Field[] declaredFields = requiredTestClass.getDeclaredFields();
         log.debug("Scanning class {} for annotated fields", requiredTestClass.getName());
+
         Arrays.stream(declaredFields).forEach(field -> {
             Class<?> type = field.getType();
             if (type.equals(TestInputTopic.class) && field.isAnnotationPresent(KSMLTopic.class)) {
@@ -89,7 +97,7 @@ public class KSMLTopologyTestContextProvider implements TestTemplateInvocationCo
         final String schemaDirectory = ksmlTopologyTest.schemaDirectory();
 
         // one-time preparation for the test runs: register notations
-        log.debug("Registering test notations");
+        log.debug("Registering notations in notationLibrary");
         final var mapper = new NativeDataObjectMapper();
         final var jsonNotation = new JsonNotation("json", mapper);
         ExecutionContext.INSTANCE.notationLibrary().register(new BinaryNotation(UserType.DEFAULT_NOTATION, mapper, jsonNotation::serde));

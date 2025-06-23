@@ -192,10 +192,16 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
 
     @Override
     public void afterEach(ExtensionContext context) throws Exception {
-        if (context.getTestMethod().isEmpty()) return;         // not at method level
+        if (context.getTestMethod().isEmpty()) {
+            // not at method level
+            return;
+        }
         final var method = context.getTestMethod().get();
         final var annotation = method.getAnnotation(KSMLTest.class);
-        if (annotation == null) return;         // method was not annotated, nothing to do
+        if (annotation == null) {
+            // method was not annotated, nothing to do
+            return;
+        }
 
         // clean up
         log.debug("Clean up topology test driver");

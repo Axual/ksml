@@ -25,6 +25,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.lang.annotation.*;
 
+/**
+ * Method-level annotation to test multiple KSML topology definitions in one go.
+ */
 @Target({ElementType.ANNOTATION_TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @TestTemplate

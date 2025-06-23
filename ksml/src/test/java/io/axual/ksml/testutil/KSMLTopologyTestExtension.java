@@ -48,8 +48,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
+/**
+ * A test extension supporting tests annotated with {@link KSMLTopologyTest}.
+ * Instances of this extension are created by {@link KSMLTopologyTestContextProvider}.
+ */
 @Slf4j
-public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeAllCallback, BeforeEachCallback, AfterEachCallback {
+public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEachCallback, AfterEachCallback {
 
     private final Set<Field> modifiedFields = new HashSet<>();
 
@@ -97,37 +101,6 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeAllC
         return ConditionEvaluationResult.enabled("on method");
     }
 
-    /**
-     * Register the required notations before executing the tests.
-     */
-    @Override
-    public void beforeAll(ExtensionContext extensionContext) {
-        log.debug("Registering test notations");
-//        final var mapper = new NativeDataObjectMapper();
-//        final var jsonNotation = new JsonNotation("json", mapper);
-//        ExecutionContext.INSTANCE.notationLibrary().register(new BinaryNotation(UserType.DEFAULT_NOTATION, mapper, jsonNotation::serde));
-//        ExecutionContext.INSTANCE.notationLibrary().register(jsonNotation);
-
-        log.debug("Registering annotated TestInputTopic, TestOutputTopic and TopologyTestDriver fields");
-//        Class<?> requiredTestClass = extensionContext.getRequiredTestClass();
-//        Field[] declaredFields = requiredTestClass.getDeclaredFields();
-//        Arrays.stream(declaredFields).forEach(field -> {
-//            Class<?> type = field.getType();
-//            if (type.equals(TestInputTopic.class) && field.isAnnotationPresent(KSMLTopic.class)) {
-//                KSMLTopic ksmlTopic = field.getAnnotation(KSMLTopic.class);
-//                log.debug("Found annotated input topic field {}:{}", field.getName(), ksmlTopic);
-//                inputTopics.put(field.getName(), ksmlTopic);
-//            } else if (type.equals(org.apache.kafka.streams.TestOutputTopic.class) && field.isAnnotationPresent(KSMLTopic.class)) {
-//                KSMLTopic ksmlTopic = field.getAnnotation(KSMLTopic.class);
-//                log.debug("Found annotated output topic field {}:{}", field.getName(), ksmlTopic);
-//                outputTopics.put(field.getName(), ksmlTopic);
-//            } else if (type.equals(TopologyTestDriver.class) && field.isAnnotationPresent(KSMLDriver.class)) {
-//                log.debug("Found annotated test driver field {}", field.getName());
-//                testDriverRef = field.getName();
-//            }
-//        });
-    }
-
     @Override
     public void beforeEach(ExtensionContext extensionContext) throws Exception {
         StreamsBuilder streamsBuilder = new StreamsBuilder();
@@ -141,7 +114,7 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeAllC
         final var methodName = method.getName();
 
         if (!KSMLTopologyTestInvocationContext.NO_SCHEMAS.equals(schemaDirectory)) {
-            log.debug("Configured schema directory: `{}`", schemaDirectory);
+            log.debug("Annotated schema directory variable: `{}`", schemaDirectory);
             final var schemaDirectoryURI = ClassLoader.getSystemResource(schemaDirectory).toURI();
             final var schemaDirectory = schemaDirectoryURI.getPath();
             ExecutionContext.INSTANCE.schemaLibrary().schemaDirectory(schemaDirectory);
@@ -201,10 +174,16 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeAllC
 
     @Override
     public void afterEach(ExtensionContext context) throws Exception {
-        if (context.getTestMethod().isEmpty()) return;         // not at method level
+        if (context.getTestMethod().isEmpty()) {
+            // not at method level
+            return;
+        }
         final var method = context.getTestMethod().get();
-        final var annotation = method.getAnnotation(KSMLTest.class);
-        if (annotation == null) return;         // method was not annotated, nothing to do
+        final var annotation = method.getAnnotation(KSMLTopologyTest.class);
+        if (annotation == null) {
+            // method was not annotated, nothing to do
+            return;
+        }
 
         // clean up
         log.debug("Clean up topology test driver");
