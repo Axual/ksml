@@ -20,10 +20,7 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.testutil.KSMLDriver;
-import io.axual.ksml.testutil.KSMLTest;
-import io.axual.ksml.testutil.KSMLTestExtension;
-import io.axual.ksml.testutil.KSMLTopic;
+import io.axual.ksml.testutil.*;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
@@ -36,8 +33,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith( KSMLTestExtension.class)
-public class KSMLAggregateTest {
+public class KSMLAggregatePipelinesTest {
 
     @KSMLDriver
     TopologyTestDriver testDriver;
@@ -48,8 +44,8 @@ public class KSMLAggregateTest {
     @KSMLTopic(topic = "output_topic", valueSerde = KSMLTopic.SerdeType.LONG)
     TestOutputTopic<String, Long> outputTopic;
 
-    @KSMLTest(topology = "pipelines/test-aggregate-store.yaml")
-    @DisplayName("aggregate should work with a named keyValue store")
+    @KSMLTopologyTest(topologies = {"pipelines/test-aggregate-store.yaml", "pipelines/test-aggregate-inline.yaml"})
+    @DisplayName("aggregate should work with a named or inline keyValue store")
     void testAggregate() {
         // given that we send some numbers with the same key
         inputTopic.pipeInput("key1", 1L);
@@ -67,22 +63,5 @@ public class KSMLAggregateTest {
         // and the named keyvalue store should have the final result
         KeyValueStore<String, Long> aggregateStore = testDriver.getKeyValueStore("aggregate_store");
         assertThat(aggregateStore.get("key1")).isEqualTo(6L);
-    }
-
-    @KSMLTest(topology = "pipelines/test-aggregate-inline.yaml")
-    @DisplayName("aggregate should work with an inline keyvalue store definition")
-    void testAggregateInline() {
-        // given that we send some numbers with the same key
-        inputTopic.pipeInput("key1", 1L);
-        inputTopic.pipeInput("key1", 2L);
-        inputTopic.pipeInput("key1", 3L);
-
-        // the table as a topic should show the values aggregagting
-        List<KeyValue<String, Long>> keyValues = outputTopic.readKeyValuesToList();
-        assertThat(keyValues).contains(
-                new KeyValue<>("key1", 1L),
-                new KeyValue<>("key1", 3L),
-                new KeyValue<>("key1", 6L)
-        );
     }
 }

@@ -23,15 +23,11 @@ package io.axual.ksml.testutil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.TopologyGenerator;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.avro.MockAvroNotation;
-import io.axual.ksml.data.notation.binary.BinaryNotation;
-import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.parser.ParseNode;
-import io.axual.ksml.type.UserType;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import lombok.extern.slf4j.Slf4j;
@@ -47,21 +43,37 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
+/**
+ * A test extension supporting tests annotated with {@link KSMLTopologyTest}.
+ * Instances of this extension are created by {@link KSMLTopologyTestContextProvider}.
+ */
 @Slf4j
-public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback, BeforeEachCallback, AfterEachCallback {
+public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEachCallback, AfterEachCallback {
 
     private final Set<Field> modifiedFields = new HashSet<>();
 
     private TopologyTestDriver topologyTestDriver;
 
     /** Map of annotated {@link TestInputTopic} field names to their annotation. */
-    private final Map<String, KSMLTopic> inputTopics = new HashMap<>();
+    private final Map<String, KSMLTopic> inputTopics;
 
     /** Map of annotated {@link org.apache.kafka.streams.TestOutputTopic} to their annotations. */
-    private final Map<String, KSMLTopic> outputTopics = new HashMap<>();
+    private final Map<String, KSMLTopic> outputTopics;
 
     /** If present, name of a field of type {@link TopologyTestDriver} which should be linked by the extension.*/
-    private String testDriverRef;
+    private final String testDriverRef;
+
+    private final String schemaDirectory;
+
+    private final String topologyName;
+
+    public KSMLTopologyTestExtension(final String schemaDirectory, final String topologyName, final Map<String, KSMLTopic> inputTopics, final Map<String, KSMLTopic> outputTopics, final String testDriverRef) {
+        this.inputTopics = inputTopics;
+        this.outputTopics = outputTopics;
+        this.schemaDirectory = schemaDirectory;
+        this.topologyName = topologyName;
+        this.testDriverRef = testDriverRef;
+    }
 
     /**
      * Check if the test(s) are running on GraalVM.
@@ -84,37 +96,6 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
         return ConditionEvaluationResult.enabled("on method");
     }
 
-    /**
-     * Register the required notations before executing the tests.
-     */
-    @Override
-    public void beforeAll(ExtensionContext extensionContext) {
-        log.debug("Registering test notations");
-        final var mapper = new NativeDataObjectMapper();
-        final var jsonNotation = new JsonNotation("json", mapper);
-        ExecutionContext.INSTANCE.notationLibrary().register(new BinaryNotation(UserType.DEFAULT_NOTATION, mapper, jsonNotation::serde));
-        ExecutionContext.INSTANCE.notationLibrary().register(jsonNotation);
-
-        log.debug("Registering annotated TestInputTopic, TestOutputTopic and TopologyTestDriver fields");
-        final var requiredTestClass = extensionContext.getRequiredTestClass();
-        final var declaredFields = requiredTestClass.getDeclaredFields();
-        Arrays.stream(declaredFields).forEach(field -> {
-            final var type = field.getType();
-            if (type.equals(TestInputTopic.class) && field.isAnnotationPresent(KSMLTopic.class)) {
-                final var ksmlTopic = field.getAnnotation(KSMLTopic.class);
-                log.debug("Found annotated input topic field {}:{}", field.getName(), ksmlTopic);
-                inputTopics.put(field.getName(), ksmlTopic);
-            } else if (type.equals(org.apache.kafka.streams.TestOutputTopic.class) && field.isAnnotationPresent(KSMLTopic.class)) {
-                final var ksmlTopic = field.getAnnotation(KSMLTopic.class);
-                log.debug("Found annotated output topic field {}:{}", field.getName(), ksmlTopic);
-                outputTopics.put(field.getName(), ksmlTopic);
-            } else if (type.equals(TopologyTestDriver.class) && field.isAnnotationPresent(KSMLDriver.class)) {
-                log.debug("Found annotated test driver field {}", field.getName());
-                testDriverRef = field.getName();
-            }
-        });
-    }
-
     @Override
     public void beforeEach(final ExtensionContext extensionContext) throws Exception {
         final var streamsBuilder = new StreamsBuilder();
@@ -126,12 +107,10 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
         log.debug("Setting up KSML test");
         final var method = extensionContext.getTestMethod().get();
         final var methodName = method.getName();
-        final var ksmlTest = method.getAnnotation(KSMLTest.class);
-        if (ksmlTest == null) return;
 
-        if (!KSMLTest.NO_SCHEMAS.equals(ksmlTest.schemaDirectory())) {
-            log.debug("Annotated schema directory: `{}`", ksmlTest.schemaDirectory());
-            final var schemaDirectoryURI = ClassLoader.getSystemResource(ksmlTest.schemaDirectory()).toURI();
+        if (!KSMLTopologyTestInvocationContext.NO_SCHEMAS.equals(schemaDirectory)) {
+            log.debug("Annotated schema directory variable: `{}`", schemaDirectory);
+            final var schemaDirectoryURI = ClassLoader.getSystemResource(schemaDirectory).toURI();
             final var schemaDirectory = schemaDirectoryURI.getPath();
             ExecutionContext.INSTANCE.schemaLibrary().schemaDirectory(schemaDirectory);
             log.debug("Registered schema directory: {}", schemaDirectory);
@@ -142,7 +121,6 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
         ExecutionContext.INSTANCE.notationLibrary().register(new MockAvroNotation(new HashMap<>()));
 
         // Get the KSML definition classpath relative path and load the topology into the test driver
-        final var topologyName = ksmlTest.topology();
         log.debug("Loading topology {}", topologyName);
         final var uri = ClassLoader.getSystemResource(topologyName).toURI();
         final var path = Paths.get(uri);
@@ -196,7 +174,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
             return;
         }
         final var method = context.getTestMethod().get();
-        final var annotation = method.getAnnotation(KSMLTest.class);
+        final var annotation = method.getAnnotation(KSMLTopologyTest.class);
         if (annotation == null) {
             // method was not annotated, nothing to do
             return;
