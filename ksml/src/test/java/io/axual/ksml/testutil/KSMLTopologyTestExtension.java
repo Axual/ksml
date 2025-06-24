@@ -23,22 +23,17 @@ package io.axual.ksml.testutil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.TopologyGenerator;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.avro.MockAvroNotation;
-import io.axual.ksml.data.notation.binary.BinaryNotation;
-import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.parser.ParseNode;
-import io.axual.ksml.type.UserType;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.*;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TestInputTopic;
-import org.apache.kafka.streams.TopologyDescription;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.graalvm.home.Version;
 import org.junit.jupiter.api.extension.*;
@@ -59,7 +54,7 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEach
 
     private TopologyTestDriver topologyTestDriver;
 
-    /** Map of annotated {@link TestInputTopic} field names to their annotatopn. */
+    /** Map of annotated {@link TestInputTopic} field names to their annotation. */
     private final Map<String, KSMLTopic> inputTopics;
 
     /** Map of annotated {@link org.apache.kafka.streams.TestOutputTopic} to their annotations. */
@@ -134,29 +129,29 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEach
                 new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(definition, methodName)));
         var topologyGenerator = new TopologyGenerator(methodName + ".app");
         final var topology = topologyGenerator.create(streamsBuilder, definitions);
-        final TopologyDescription description = topology.describe();
-        System.out.println(description);
+        final var description = topology.describe();
+        log.info("{}",description);
         topologyTestDriver = new TopologyTestDriver(topology);
 
         // create in- and output topics and assign them to variables in the test
-        Class<?> testClass = extensionContext.getRequiredTestClass();
-        Object testInstance = extensionContext.getRequiredTestInstance();
+        var testClass = extensionContext.getRequiredTestClass();
+        var testInstance = extensionContext.getRequiredTestInstance();
 
         log.debug("Registering annotated fields");
-        for (Map.Entry<String, KSMLTopic> entry : inputTopics.entrySet()) {
-            String fieldName = entry.getKey();
-            KSMLTopic ksmlTopic = entry.getValue();
+        for (var entry : inputTopics.entrySet()) {
+            var fieldName = entry.getKey();
+            var ksmlTopic = entry.getValue();
             log.debug("Set variable {} to topic {}", fieldName, ksmlTopic.topic());
-            Field inputTopicField = testClass.getDeclaredField(fieldName);
+            var inputTopicField = testClass.getDeclaredField(fieldName);
             inputTopicField.setAccessible(true);
             inputTopicField.set(testInstance, topologyTestDriver.createInputTopic(ksmlTopic.topic(), getKeySerializer(ksmlTopic), getValueSerializer(ksmlTopic)));
             modifiedFields.add(inputTopicField);
         }
-        for (Map.Entry<String, KSMLTopic> entry : outputTopics.entrySet()) {
-            String fieldName = entry.getKey();
-            KSMLTopic ksmlTopic = entry.getValue();
+        for (var entry : outputTopics.entrySet()) {
+            var fieldName = entry.getKey();
+            var ksmlTopic = entry.getValue();
             log.debug("Set variable {} to topic {}", fieldName, ksmlTopic.topic());
-            Field outputTopicField = testClass.getDeclaredField(fieldName);
+            var outputTopicField = testClass.getDeclaredField(fieldName);
             outputTopicField.setAccessible(true);
             outputTopicField.set(testInstance, topologyTestDriver.createOutputTopic(ksmlTopic.topic(), getKeyDeserializer(ksmlTopic), getValueDeserializer(ksmlTopic)));
             modifiedFields.add(outputTopicField);
@@ -165,7 +160,7 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEach
         // if a variable is configured for the test driver reference, set the reference
         if (testDriverRef != null) {
             log.debug("Set variable {} to test driver", testDriverRef);
-            Field testDriverField = testClass.getDeclaredField(testDriverRef);
+            var testDriverField = testClass.getDeclaredField(testDriverRef);
             testDriverField.setAccessible(true);
             testDriverField.set(testInstance, topologyTestDriver);
             modifiedFields.add(testDriverField);
@@ -195,7 +190,7 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEach
         // clear any set fields
         log.debug("clean up test instance variables");
         final var testInstance = context.getRequiredTestInstance();
-        for (Field field : modifiedFields) {
+        for (var field : modifiedFields) {
             log.debug("Clearing {}", field.getName());
             field.setAccessible(true);
             field.set(testInstance, null);
@@ -225,16 +220,16 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEach
         };
     }
 
-    private Deserializer<?> getKeyDeserializer(KSMLTopic kamlTopic) {
-        return getDeserializer(kamlTopic, true);
+    private Deserializer<?> getKeyDeserializer(KSMLTopic ksmlTopic) {
+        return getDeserializer(ksmlTopic, true);
     }
 
-    private Deserializer<?> getValueDeserializer(KSMLTopic kamlTopic) {
-        return getDeserializer(kamlTopic, false);
+    private Deserializer<?> getValueDeserializer(KSMLTopic ksmlTopic) {
+        return getDeserializer(ksmlTopic, false);
     }
 
-    private Deserializer<?> getDeserializer(KSMLTopic kamlTopic, boolean isKey) {
-        return switch (isKey ? kamlTopic.keySerde() : kamlTopic.valueSerde()) {
+    private Deserializer<?> getDeserializer(KSMLTopic ksmlTopic, boolean isKey) {
+        return switch (isKey ? ksmlTopic.keySerde() : ksmlTopic.valueSerde()) {
             case AVRO -> {
                 final var avroNotation = (MockAvroNotation) ExecutionContext.INSTANCE.notationLibrary().get(MockAvroNotation.NAME);
                 final var result = new KafkaAvroDeserializer(avroNotation.mockSchemaRegistryClient());

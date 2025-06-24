@@ -37,8 +37,6 @@ import static org.junit.platform.commons.support.AnnotationSupport.findAnnotatio
 import static org.junit.platform.commons.support.AnnotationSupport.isAnnotated;
 
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -72,18 +70,18 @@ public class KSMLTopologyTestContextProvider implements TestTemplateInvocationCo
         Map<String, KSMLTopic> outputTopics = new HashMap<>();
         AtomicReference<String> testDriverRef = new AtomicReference<>();
 
-        Class<?> requiredTestClass = context.getRequiredTestClass();
-        Field[] declaredFields = requiredTestClass.getDeclaredFields();
+        var requiredTestClass = context.getRequiredTestClass();
+        var declaredFields = requiredTestClass.getDeclaredFields();
         log.debug("Scanning class {} for annotated fields", requiredTestClass.getName());
 
         Arrays.stream(declaredFields).forEach(field -> {
-            Class<?> type = field.getType();
+            var type = field.getType();
             if (type.equals(TestInputTopic.class) && field.isAnnotationPresent(KSMLTopic.class)) {
-                KSMLTopic ksmlTopic = field.getAnnotation(KSMLTopic.class);
+                var ksmlTopic = field.getAnnotation(KSMLTopic.class);
                 log.debug("Found annotated input topic field {}:{}", field.getName(), ksmlTopic);
                 inputTopics.put(field.getName(), ksmlTopic);
             } else if (type.equals(TestOutputTopic.class) && field.isAnnotationPresent(KSMLTopic.class)) {
-                KSMLTopic ksmlTopic = field.getAnnotation(KSMLTopic.class);
+                var ksmlTopic = field.getAnnotation(KSMLTopic.class);
                 log.debug("Found annotated output topic field {}:{}", field.getName(), ksmlTopic);
                 outputTopics.put(field.getName(), ksmlTopic);
             } else if (type.equals(TopologyTestDriver.class) && field.isAnnotationPresent(KSMLDriver.class)) {
@@ -92,9 +90,9 @@ public class KSMLTopologyTestContextProvider implements TestTemplateInvocationCo
             }
         });
 
-        Method testMethod = context.getRequiredTestMethod();
-        KSMLTopologyTest ksmlTopologyTest = findAnnotation(testMethod, KSMLTopologyTest.class).get();
-        final String schemaDirectory = ksmlTopologyTest.schemaDirectory();
+        var testMethod = context.getRequiredTestMethod();
+        var ksmlTopologyTest = findAnnotation(testMethod, KSMLTopologyTest.class).orElseThrow(()->new KsmlTopologyTestException("Missing KSMLTopologyTest annotation"));
+        final var schemaDirectory = ksmlTopologyTest.schemaDirectory();
 
         // one-time preparation for the test runs: register notations
         log.debug("Registering notations in notationLibrary");
