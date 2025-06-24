@@ -33,13 +33,13 @@ public class JsonVerifier {
 
     private JsonNode cursor;
 
-    private JsonVerifier(String json) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
+    private JsonVerifier(final String json) throws JsonProcessingException {
+        final var mapper = new ObjectMapper();
         this.rootNode = mapper.readTree(json);
         this.cursor = rootNode;
     }
 
-    public static JsonVerifier verifyJson(String json) throws JsonProcessingException {
+    public static JsonVerifier verifyJson(final String json) throws JsonProcessingException {
         return new JsonVerifier(json);
     }
 
@@ -49,8 +49,8 @@ public class JsonVerifier {
      * @param name
      * @return
      */
-    public JsonVerifier hasNode(String name) {
-        JsonNode child = rootNode.get(name);
+    public JsonVerifier hasNode(final String name) {
+        final var child = rootNode.get(name);
         if (child == null) {
             fail(String.format("No node named %s was found in node %s", name, rootNode));
         }
@@ -64,8 +64,8 @@ public class JsonVerifier {
      * @param name
      * @return
      */
-    public JsonVerifier withChild(String name) {
-        JsonNode child = cursor.get(name);
+    public JsonVerifier withChild(final String name) {
+        final var child = cursor.get(name);
         if (child == null) {
             fail(String.format("No node named %s was found in node %s", name, rootNode));
         }
@@ -73,7 +73,7 @@ public class JsonVerifier {
         return this;
     }
 
-    public JsonVerifier withTextValue(String expectedText) {
+    public JsonVerifier withTextValue(final String expectedText) {
         assertEquals(expectedText, cursor.textValue(), String.format("Node value does not match in %s", cursor));
         return this;
     }

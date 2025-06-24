@@ -35,7 +35,7 @@ public record KSMLTopologyTestInvocationContext(String topologyName,
     public static final String NO_SCHEMAS = "";
 
     @Override
-    public String getDisplayName(int invocationIndex) {
+    public String getDisplayName(final int invocationIndex) {
         return invocationIndex + ": " + topologyName;
     }
 

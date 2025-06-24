@@ -70,7 +70,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
      * @return enabled only if the test is running on GraalVM
      */
     @Override
-    public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext extensionContext) {
+    public ConditionEvaluationResult evaluateExecutionCondition(final ExtensionContext extensionContext) {
         if (extensionContext.getTestMethod().isEmpty()) {
             // at class level verification
             log.debug("Check for GraalVM");
@@ -96,16 +96,16 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
         ExecutionContext.INSTANCE.notationLibrary().register(jsonNotation);
 
         log.debug("Registering annotated TestInputTopic, TestOutputTopic and TopologyTestDriver fields");
-        var requiredTestClass = extensionContext.getRequiredTestClass();
-        var declaredFields = requiredTestClass.getDeclaredFields();
+        final var requiredTestClass = extensionContext.getRequiredTestClass();
+        final var declaredFields = requiredTestClass.getDeclaredFields();
         Arrays.stream(declaredFields).forEach(field -> {
-            var type = field.getType();
+            final var type = field.getType();
             if (type.equals(TestInputTopic.class) && field.isAnnotationPresent(KSMLTopic.class)) {
-                var ksmlTopic = field.getAnnotation(KSMLTopic.class);
+                final var ksmlTopic = field.getAnnotation(KSMLTopic.class);
                 log.debug("Found annotated input topic field {}:{}", field.getName(), ksmlTopic);
                 inputTopics.put(field.getName(), ksmlTopic);
             } else if (type.equals(org.apache.kafka.streams.TestOutputTopic.class) && field.isAnnotationPresent(KSMLTopic.class)) {
-                var ksmlTopic = field.getAnnotation(KSMLTopic.class);
+                final var ksmlTopic = field.getAnnotation(KSMLTopic.class);
                 log.debug("Found annotated output topic field {}:{}", field.getName(), ksmlTopic);
                 outputTopics.put(field.getName(), ksmlTopic);
             } else if (type.equals(TopologyTestDriver.class) && field.isAnnotationPresent(KSMLDriver.class)) {
@@ -116,8 +116,8 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
     }
 
     @Override
-    public void beforeEach(ExtensionContext extensionContext) throws Exception {
-        var streamsBuilder = new StreamsBuilder();
+    public void beforeEach(final ExtensionContext extensionContext) throws Exception {
+        final var streamsBuilder = new StreamsBuilder();
         if (extensionContext.getTestMethod().isEmpty()) {
             return;
         }
@@ -142,38 +142,38 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
         ExecutionContext.INSTANCE.notationLibrary().register(new MockAvroNotation(new HashMap<>()));
 
         // Get the KSML definition classpath relative path and load the topology into the test driver
-        var topologyName = ksmlTest.topology();
+        final var topologyName = ksmlTest.topology();
         log.debug("Loading topology {}", topologyName);
         final var uri = ClassLoader.getSystemResource(topologyName).toURI();
         final var path = Paths.get(uri);
         final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(path), JsonNode.class);
         final var definitions = ImmutableMap.of("definition",
                 new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(definition, methodName)));
-        var topologyGenerator = new TopologyGenerator(methodName + ".app");
+        final var topologyGenerator = new TopologyGenerator(methodName + ".app");
         final var topology = topologyGenerator.create(streamsBuilder, definitions);
         final var description = topology.describe();
         log.info("{}",description);
         topologyTestDriver = new TopologyTestDriver(topology);
 
         // create in- and output topics and assign them to variables in the test
-        var testClass = extensionContext.getRequiredTestClass();
-        var testInstance = extensionContext.getRequiredTestInstance();
+        final var testClass = extensionContext.getRequiredTestClass();
+        final var testInstance = extensionContext.getRequiredTestInstance();
 
         log.debug("Registering annotated fields");
-        for (var entry : inputTopics.entrySet()) {
-            var fieldName = entry.getKey();
-            var ksmlTopic = entry.getValue();
+        for (final var entry : inputTopics.entrySet()) {
+            final var fieldName = entry.getKey();
+            final var ksmlTopic = entry.getValue();
             log.debug("Set variable {} to topic {}", fieldName, ksmlTopic.topic());
-            var inputTopicField = testClass.getDeclaredField(fieldName);
+            final var inputTopicField = testClass.getDeclaredField(fieldName);
             inputTopicField.setAccessible(true);
             inputTopicField.set(testInstance, topologyTestDriver.createInputTopic(ksmlTopic.topic(), getKeySerializer(ksmlTopic), getValueSerializer(ksmlTopic)));
             modifiedFields.add(inputTopicField);
         }
-        for (var entry : outputTopics.entrySet()) {
-            var fieldName = entry.getKey();
-            var ksmlTopic = entry.getValue();
+        for (final var entry : outputTopics.entrySet()) {
+            final var fieldName = entry.getKey();
+            final var ksmlTopic = entry.getValue();
             log.debug("Set variable {} to topic {}", fieldName, ksmlTopic.topic());
-            var outputTopicField = testClass.getDeclaredField(fieldName);
+            final var outputTopicField = testClass.getDeclaredField(fieldName);
             outputTopicField.setAccessible(true);
             outputTopicField.set(testInstance, topologyTestDriver.createOutputTopic(ksmlTopic.topic(), getKeyDeserializer(ksmlTopic), getValueDeserializer(ksmlTopic)));
             modifiedFields.add(outputTopicField);
@@ -182,7 +182,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
         // if a variable is configured for the test driver reference, set the reference
         if (testDriverRef != null) {
             log.debug("Set variable {} to test driver", testDriverRef);
-            var testDriverField = testClass.getDeclaredField(testDriverRef);
+            final var testDriverField = testClass.getDeclaredField(testDriverRef);
             testDriverField.setAccessible(true);
             testDriverField.set(testInstance, topologyTestDriver);
             modifiedFields.add(testDriverField);
@@ -190,7 +190,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
     }
 
     @Override
-    public void afterEach(ExtensionContext context) throws Exception {
+    public void afterEach(final ExtensionContext context) throws Exception {
         if (context.getTestMethod().isEmpty()) {
             // not at method level
             return;
@@ -212,7 +212,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
         // clear any set fields
         log.debug("clean up test instance variables");
         final var testInstance = context.getRequiredTestInstance();
-        for (var field : modifiedFields) {
+        for (final var field : modifiedFields) {
             log.debug("Clearing {}", field.getName());
             field.setAccessible(true);
             field.set(testInstance, null);
@@ -220,15 +220,15 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
         modifiedFields.clear();
     }
 
-    private Serializer<?> getKeySerializer(KSMLTopic ksmlTopic) {
+    private Serializer<?> getKeySerializer(final KSMLTopic ksmlTopic) {
         return getSerializer(ksmlTopic, true);
     }
 
-    private Serializer<?> getValueSerializer(KSMLTopic ksmlTopic) {
+    private Serializer<?> getValueSerializer(final KSMLTopic ksmlTopic) {
         return getSerializer(ksmlTopic, false);
     }
 
-    private Serializer<?> getSerializer(KSMLTopic ksmlTopic, boolean isKey) {
+    private Serializer<?> getSerializer(final KSMLTopic ksmlTopic, final boolean isKey) {
         return switch (isKey ? ksmlTopic.keySerde() : ksmlTopic.valueSerde()) {
             case AVRO -> {
                 final var avroNotation = (MockAvroNotation) ExecutionContext.INSTANCE.notationLibrary().get(MockAvroNotation.NAME);
@@ -242,15 +242,15 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
         };
     }
 
-    private Deserializer<?> getKeyDeserializer(KSMLTopic ksmlTopic) {
+    private Deserializer<?> getKeyDeserializer(final KSMLTopic ksmlTopic) {
         return getDeserializer(ksmlTopic, true);
     }
 
-    private Deserializer<?> getValueDeserializer(KSMLTopic ksmlTopic) {
+    private Deserializer<?> getValueDeserializer(final KSMLTopic ksmlTopic) {
         return getDeserializer(ksmlTopic, false);
     }
 
-    private Deserializer<?> getDeserializer(KSMLTopic ksmlTopic, boolean isKey) {
+    private Deserializer<?> getDeserializer(final KSMLTopic ksmlTopic, final boolean isKey) {
         return switch (isKey ? ksmlTopic.keySerde() : ksmlTopic.valueSerde()) {
             case AVRO -> {
                 final var avroNotation = (MockAvroNotation) ExecutionContext.INSTANCE.notationLibrary().get(MockAvroNotation.NAME);
