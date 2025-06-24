@@ -33,7 +33,6 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContext;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
 
-import static org.junit.platform.commons.support.AnnotationSupport.findAnnotation;
 import static org.junit.platform.commons.support.AnnotationSupport.isAnnotated;
 
 
@@ -91,7 +90,7 @@ public class KSMLTopologyTestContextProvider implements TestTemplateInvocationCo
         });
 
         var testMethod = context.getRequiredTestMethod();
-        var ksmlTopologyTest = findAnnotation(testMethod, KSMLTopologyTest.class).orElseThrow(()->new KsmlTopologyTestException("Missing KSMLTopologyTest annotation"));
+        var ksmlTopologyTest=   testMethod.getAnnotation(KSMLTopologyTest.class);
         final var schemaDirectory = ksmlTopologyTest.schemaDirectory();
 
         // one-time preparation for the test runs: register notations
