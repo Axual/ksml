@@ -1,6 +1,7 @@
 # KSML Basics Tutorial
 
-This tutorial will guide you through creating your first KSML data pipeline. By the end, you'll understand the basic components of KSML and how to create a simple but functional data processing application.
+This tutorial will guide you through creating your first KSML data pipeline. By the end, you'll understand the basic
+components of KSML and how to create a simple but functional data processing application.
 
 ## What You'll Build
 
@@ -55,17 +56,20 @@ streams:
 ```
 
 This defines:
+
 - An input stream reading from the `tutorial_input` topic with string keys and JSON values
 - An output stream writing to the `tutorial_output` topic with the same data types
 
 ### Understanding Stream Definitions
 
 Each stream definition includes:
+
 - A unique name (e.g., `input_stream`)
 - The Kafka topic it connects to
 - The data types for keys and values
 
 KSML supports various data types including:
+
 - `string`: For text data
 - `json`: For JSON-formatted data
 - `avro`: For Avro-formatted data (requires schema)
@@ -88,14 +92,17 @@ functions:
 ```
 
 This function:
+
 - Is named `log_message`
-- Is of type `forEach`, which means it [always gets](../reference/function-reference.md)  two parameters `key` and `value`, and does not return a value
+- Is of type `forEach`, which means it [always gets](../reference/function-reference.md)  two parameters `key` and
+  `value`, and does not return a value
 - Takes one additional parameter called `message_type`
 - Uses the built-in `log` object to output information about each message
 
 ### Understanding Functions in KSML
 
 Functions in KSML:
+
 - Can be reused across multiple operations in your pipelines
 - Are written in Python
 - Have access to pre-defined parameters based on function type
@@ -116,7 +123,8 @@ pipelines:
           expression: value.get('temperature') > 70
       - type: mapValues
         mapper:
-          expression: {"sensor": key, "temp_fahrenheit": value.get('temperature'), "temp_celsius": (value.get('temperature') - 32) * 5/9}
+          expression: |
+            {"sensor": key, "temp_fahrenheit": value.get('temperature'), "temp_celsius": (value.get('temperature') - 32) * 5/9}
       - type: peek
         forEach:
           code: log_message(key, value, message_type="Processed")
@@ -124,6 +132,7 @@ pipelines:
 ```
 
 This pipeline:
+
 1. Reads from `input_stream`
 2. Filters out messages where the temperature is 70°F or lower
 3. Transforms the values to include both Fahrenheit and Celsius temperatures
@@ -143,6 +152,7 @@ Let's break down each operation:
 ```
 
 The filter operation:
+
 - Evaluates the expression for each message
 - Only passes messages where the expression returns `True`
 - Discards messages where the expression returns `False`
@@ -152,14 +162,22 @@ The filter operation:
 ```yaml
 - type: mapValues
   mapper:
-    expression: {"sensor": key, "temp_fahrenheit": value.get('temperature'), "temp_celsius": (value.get('temperature') - 32) * 5/9}
+    expression: |
+      {"sensor": key, "temp_fahrenheit": value.get('temperature'), "temp_celsius": (value.get('temperature') - 32) * 5/9}
 ```
 
 The mapValues operation:
+
 - Transforms the value of each message
 - Keeps the original key unchanged
 - Creates a new value based on the expression
 - In this case, creates a new JSON object with the original temperature and a calculated Celsius value
+
+Note that we put the expression on a new line in this example to force the KSML YAML parser to interpret the expression
+as a literal string for Python, instead of parsing it as part of the YAML syntax. Another way of achieving the same
+would be to surround the '{...}' with quotes, but in that case, be aware of consistent single/double quoting to not
+confuse the KSML parser and/or the Python interpreter. We generally recommend using the above notation for readability
+purposes.
 
 #### Peek Operation
 
@@ -170,6 +188,7 @@ The mapValues operation:
 ```
 
 The peek operation:
+
 - Executes the provided code for each message
 - Doesn't modify the message
 - Allows the message to continue through the pipeline
@@ -208,7 +227,8 @@ pipelines:
           expression: value.get('temperature') > 70
       - type: mapValues
         mapper:
-          expression: {"sensor": key, "temp_fahrenheit": value.get('temperature'), "temp_celsius": (value.get('temperature') - 32) * 5/9}
+          expression: |
+            {"sensor": key, "temp_fahrenheit": value.get('temperature'), "temp_celsius": (value.get('temperature') - 32) * 5/9}
       - type: peek
         forEach:
           code: log_message(key, value, message_type="Processed")
@@ -247,12 +267,14 @@ Now let's run the pipeline and see it in action:
    ```
 
 You should see messages like:
+
 ```
 {"sensor":"sensor1","temp_fahrenheit":75,"temp_celsius":23.88888888888889}
 {"sensor":"sensor3","temp_fahrenheit":80,"temp_celsius":26.666666666666668}
 ```
 
-Notice that the message with temperature 65°F was filtered out, and the remaining messages have been transformed to include the Celsius temperature.
+Notice that the message with temperature 65°F was filtered out, and the remaining messages have been transformed to
+include the Celsius temperature.
 
 ## Understanding What's Happening
 
@@ -262,10 +284,10 @@ When you run your KSML definition:
 2. It creates a Kafka Streams topology based on your pipeline definition
 3. The topology starts consuming from the input topic
 4. Each message flows through the operations you defined:
-   - The filter operation drops messages with temperatures ≤ 70°F
-   - The mapValues operation transforms the remaining messages
-   - The peek operation logs each message
-   - The messages are written to the output topic
+    - The filter operation drops messages with temperatures ≤ 70°F
+    - The mapValues operation transforms the remaining messages
+    - The peek operation logs each message
+    - The messages are written to the output topic
 
 ## Next Steps
 
