@@ -1,4 +1,4 @@
-# KSML: Kafka Streams for Low Code Environments
+# KSML: Kafka Streams Without The Need For Java
 
 ## Abstract
 

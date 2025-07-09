@@ -43,7 +43,7 @@ pipelines:
     via:
       - type: filter
         if:
-          expression: value.get('temperature') > 70 and value.get('humidity') < 50 and value.get('location') == 'warehouse'
+          expression: value.get('temperature', 0) > 70 and value.get('humidity', 99) < 50 and value.get('location', '') == 'warehouse'
     to: output_stream
 ```
 
