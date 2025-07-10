@@ -29,7 +29,7 @@ Let's start by creating a filter that combines multiple conditions:
 ```yaml
 streams:
   input_stream:
-    topic: sensor_data
+    topic: tutorial_input
     keyType: string
     valueType: json
   output_stream:
@@ -57,6 +57,16 @@ This filter only passes messages where:
 For more complex filtering logic, you can create a custom filter function:
 
 ```yaml
+streams:
+  input_stream:
+    topic: tutorial_input
+    keyType: string
+    valueType: json
+  alerts_stream:
+    topic: alerts_stream
+    keyType: string
+    valueType: json
+
 functions:
   is_critical_sensor:
     type: predicate
