@@ -4,56 +4,69 @@ Discover how to use Python functions in your KSML applications and understand th
 
 ## What are Functions in KSML?
 
-Functions in KSML allow you to implement custom logic for processing your streaming data. They provide the flexibility to go beyond the built-in operations and implement specific business logic, transformations, and data processing requirements.
+Functions in KSML allow you to implement custom logic for processing your streaming data. They provide the flexibility
+to go beyond the built-in operations and implement specific business logic, transformations, and data processing
+requirements.
 
-KSML functions are written in Python, making them accessible to data scientists, analysts, and developers who may not be familiar with Java or Kafka Streams API. This approach combines the power of Kafka Streams with the simplicity and expressiveness of Python.
+KSML functions are written in Python, making them accessible to data scientists, analysts, and developers who may not be
+familiar with Java or Kafka Streams API. This approach combines the power of Kafka Streams with the simplicity and
+expressiveness of Python.
 
 ## Types of Functions in KSML
 
 KSML supports various function types, each designed for specific purposes in stream processing:
 
-### Stateless Functions
+### Functions used by stateless operations
 
 These functions process each message independently without maintaining state between invocations:
 
-- **Predicates**: Return true or false based on message content, used for filtering and branching
-- **Mappers**: Transform messages from one form to another
-- **ForEach**: Process each message for side effects (like logging)
+- [forEach](../reference/functions-reference.md#foreach): Process each message for side effects
+- [keyTransformer](../reference/functions-reference.md#keyTransformer): Convert a key to another type or value
+- [keyValueToKeyValueListTransformer](../reference/functions-reference.md#keyValueToKeyValueListTransformer): Convert key and value to a list of key/values
+- [keyValueToValueListTransformer](../reference/functions-reference.md#keyValueToValueListTransformer): Convert key and value to a list of values
+- [keyValueTransformer](../reference/functions-reference.md#keyValueTransformer): Convert key and value to another key and value
+- [predicate](../reference/functions-reference.md#predicate): Return true/false based on message content
+- [valueTransformer](../reference/functions-reference.md#valueTransformer): Convert value to another type or value
 
-### Stateful Functions
+### Functions used by stateful operations
 
 These functions maintain state across multiple messages:
 
-- **Aggregators**: Incrementally build aggregated results from multiple messages
-- **Reducers**: Combine two values into one
-- **Initializers**: Provide initial values for aggregations
+- [aggregator](#aggregator): Incrementally build aggregated results
+- [initializer](#initializer): Provide initial values for aggregations
+- [merger](#merger): Merge two aggregation results into one
+- [reducer](#reducer): Combine two values into one
 
 ### Special Purpose Functions
 
-- **Transformers**: Advanced functions that can access state stores and process records
-- **Joiners**: Combine data from multiple streams
-- **Extractors**: Extract specific information from messages (timestamps, topic names, etc.)
+- [foreignKeyExtractor](#foreignKeyExtractor): Extract a key from a join table's record
+- [generator](#generator): Function used in producers to generate a message
+- [keyValueMapper](#keyValueMapper): Convert key and value into a single output value
+- [keyValuePrinter](#keyValuePrinter): Output key and value
+- [metadataTransformer](#metadataTransformer): Convert Kafka headers and timestamps
+- [valueJoiner](#valueJoiner): Combine data from multiple streams
+
+### Stream Related Functions
+
+- [timestampExtractor](#timestampExtractor): Extract timestamps from messages
+- [topicNameExtractor](#topicNameExtractor): Derive a target topic name from key and value
+- [streamPartitioner](#streamPartitioner): Determine to which partition(s) a record is produced
+
+### Other Functions
+- [generic](#generic): Generic custom function
 
 ## Writing Python Functions
 
-KSML functions are defined in the `functions` section of your KSML definition file. A typical function definition includes:
+KSML functions are defined in the `functions` section of your KSML definition file. A typical function definition
+includes:
 
 - **Type**: Specifies the function's purpose and behavior
 - **Parameters**: Input parameters the function accepts
+- **GlobalCode**: Python code that is executed only once upon application start
 - **Code**: Python code implementing the function's logic
-- **Expression**: A shorthand for simple return expressions
+- **Expression**: Shorthand for simple return expressions
 
 Functions can range from simple one-liners to complex implementations with multiple operations.
-
-## Function Parameters and Return Types
-
-Each function type in KSML has specific parameters and return types. For example:
-
-- A **predicate** receives a key and value and returns a boolean
-- A **mapper** receives a key and value and returns a transformed key and value
-- An **aggregator** receives a key, value, and aggregated value, and returns a new aggregated value
-
-Understanding these signatures is crucial for implementing functions correctly.
 
 ## Function Execution Context
 
@@ -95,6 +108,7 @@ functions:
         celsius = value['temperature']
         value['temperature_f'] = (celsius * 9/5) + 32
       return value
+    resultType: struct
 ```
 
 ### Stateful Aggregation Function
@@ -110,12 +124,14 @@ functions:
         count = aggregatedValue['count'] + 1
         sum = aggregatedValue['sum'] + value['amount']
         return {'count': count, 'sum': sum, 'average': sum / count}
+    resultType: struct
 ```
 
 ## Related Topics
 
 - [Pipelines](pipelines.md): Learn how functions fit into the overall pipeline structure
 - [Operations](operations.md): Discover the operations that use functions
-- [Streams and Data Types](streams-and-data-types.md): Understand the data types that functions work with
+- [Streams and Data Types](../reference/stream-types-reference.md): Understand the data types that functions work with
 
-By mastering functions in KSML, you gain the ability to implement custom logic that goes beyond the built-in operations, allowing you to solve complex stream processing challenges with elegant Python code.
+By mastering functions in KSML, you gain the ability to implement custom logic that goes beyond the built-in operations,
+allowing you to solve complex stream processing challenges with elegant Python code.

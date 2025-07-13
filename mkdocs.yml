@@ -1,0 +1,10 @@
+site_name: KSML Documentation
+nav:
+  - Home: index.md
+  - Getting Started: tutorials/getting-started/index.md
+  - Core Concepts: core-concepts/index.md
+  - Tutorials: tutorials/index.md
+  - Use Case Guides: use-cases/index.md
+  - Reference: reference/index.md
+  - Resources: resources/index.md
+  - About: about.md

@@ -95,10 +95,10 @@ Now that you have a running environment, let's run a simple KSML application tha
 
 ### Step 1: Run the Example KSML Runner
 
-If you're using the Docker Compose setup, you can run the example KSML runner with:
+If you're using the Docker Compose setup, after building a local KSML image, you can run the example KSML runner with:
 
 ```bash
-./examples/run.sh
+./examples/run-local.sh
 ```
 
 This will start a KSML runner container that processes the example KSML definitions. You should see output similar to:
@@ -143,13 +143,13 @@ Try modifying one of the examples to see how changes affect the behavior. For in
 
 If you encounter issues not covered here:
 
-- Check the [Troubleshooting Guide](../resources/troubleshooting.md) for more detailed solutions
-- Visit the [Community and Support](../resources/community.md) page for information on how to get help from the KSML community
+- Check the [Troubleshooting Guide](../../resources/troubleshooting.md) for more detailed solutions
+- Visit the [Community and Support](../../resources/community.md) page for information on how to get help from the KSML community
 
 ## Next Steps
 
 Now that you have KSML up and running, you can:
 
 - Follow the [KSML Basics Tutorial](basics-tutorial.md) to learn how to build your first KSML pipeline from scratch
-- Explore the [Core Concepts](../core-concepts/streams-and-data-types.md) to deepen your understanding of KSML
-- Browse the [Examples Library](../resources/examples-library.md) for inspiration and ready-to-use patterns
+- Explore the [Core Concepts](../../reference/stream-types-reference.md) to deepen your understanding of KSML
+- Browse the [Examples Library](../../resources/examples-library.md) for inspiration and ready-to-use patterns

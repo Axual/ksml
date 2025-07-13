@@ -1,135 +1,30 @@
 # KSML Data Types Reference
 
-This document provides a comprehensive reference for all data types available in KSML. Each data type is described with its syntax, behavior, and examples.
+KSML supports a wide range of data types for both keys and values in your streams. Understanding these types is
+essential for properly defining your streams and functions that process your data.
+
+## Data Types in KSML
 
 ## Primitive Types
 
 KSML supports the following primitive types:
 
-| Type | Description | Example | Java Equivalent |
-|------|-------------|---------|----------------|
-| `boolean` | True or false values | `true`, `false` | `Boolean` |
-| `byte` | 8-bit integer | `42` | `Byte` |
-| `short` | 16-bit integer | `1000` | `Short` |
-| `int` | 32-bit integer | `1000000` | `Integer` |
-| `long` | 64-bit integer | `9223372036854775807` | `Long` |
-| `float` | Single-precision floating point | `3.14` | `Float` |
-| `double` | Double-precision floating point | `3.141592653589793` | `Double` |
-| `string` | Text string | `"Hello, World!"` | `String` |
-| `bytes` | Array of bytes | Binary data | `byte[]` |
-| `null` | Null value | `null` | `null` |
+| Type      | Description                     | Example               | Java Equivalent |
+|-----------|---------------------------------|-----------------------|-----------------|
+| `boolean` | True or false values            | `true`, `false`       | `Boolean`       |
+| `byte`    | 8-bit integer                   | `42`                  | `Byte`          |
+| `short`   | 16-bit integer                  | `1000`                | `Short`         |
+| `int`     | 32-bit integer                  | `1000000`             | `Integer`       |
+| `long`    | 64-bit integer                  | `9223372036854775807` | `Long`          |
+| `float`   | Single-precision floating point | `3.14`                | `Float`         |
+| `double`  | Double-precision floating point | `3.141592653589793`   | `Double`        |
+| `string`  | Text string                     | `"Hello, World!"`     | `String`        |
+| `bytes`   | Array of bytes                  | Binary data           | `byte[]`        |
+| `null`    | Null value                      | `null`                | `null`          |
 
 ## Complex Types
 
 KSML also supports several complex types that can contain multiple values:
-
-### Struct
-
-A struct is a key-value map where all keys are strings. This is the most common complex type and is used for JSON objects, AVRO records, etc.
-
-#### Syntax
-
-```yaml
-valueType: struct
-```
-
-#### Example
-
-```yaml
-streams:
-  user_profiles:
-    topic: user-profiles
-    keyType: string
-    valueType: struct
-```
-
-In Python code, a struct is represented as a dictionary:
-
-```yaml
-functions:
-  create_user:
-    type: mapper
-    code: |
-      return {
-        "id": value.get("user_id"),
-        "name": value.get("first_name") + " " + value.get("last_name"),
-        "email": value.get("email"),
-        "age": value.get("age")
-      }
-```
-
-### List
-
-A list contains multiple elements of the same type.
-
-#### Syntax
-
-```yaml
-valueType: "[<element_type>]"
-```
-
-Where `<element_type>` can be any valid KSML type.
-
-#### Examples
-
-```yaml
-# Example 1: List of strings
-streams:
-  tags_stream:
-    topic: tags
-    keyType: string
-    valueType: "[string]"
-
-# Example 2: List of structs (in a different KSML file)
-# streams:
-#   orders_stream:
-#     topic: orders
-#     keyType: string
-#     valueType: "[struct]"
-```
-
-In Python code, a list is represented as a Python list:
-
-```yaml
-functions:
-  extract_tags:
-    type: mapper
-    code: |
-      return value.get("tags", [])
-```
-
-### Tuple
-
-A tuple combines multiple elements of different types into a single value.
-
-#### Syntax
-
-```yaml
-valueType: "(<type1>, <type2>, ...)"
-```
-
-Where `<type1>`, `<type2>`, etc. can be any valid KSML type.
-
-#### Example
-
-```yaml
-# Tuple with a string and an integer
-streams:
-  user_age_stream:
-    topic: user-ages
-    keyType: string
-    valueType: "(string, int)"
-```
-
-In Python code, a tuple is represented as a Python tuple:
-
-```yaml
-functions:
-  create_user_age_pair:
-    type: mapper
-    code: |
-      return (value.get("name"), value.get("age"))
-```
 
 ### Enum
 
@@ -154,19 +49,155 @@ streams:
     valueType: "enum(PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED)"
 ```
 
-In Python code, an enum value is represented as a string:
+In Python code, an enum value is always represented as a string:
 
 ```yaml
 functions:
   update_status:
-    type: mapper
+    type: valueTransformer
     code: |
       if value.get("shipped"):
         return "SHIPPED"
       elif value.get("processing"):
         return "PROCESSING"
-      else:
-        return "PENDING"
+    expression: "PENDING"
+    resultType: string
+```
+
+Note that the `expression` here is mandatory, since the `valueTransformer` function type determines that the function
+is required to return a value.
+
+### List
+
+A list contains multiple elements of the same type.
+
+#### Syntax
+
+```yaml
+valueType: "[<element_type>]"
+```
+
+Where `<element_type>` can be any valid KSML type.
+
+#### Examples
+
+```yaml
+# Example 1: List of strings
+streams:
+  tags_stream:
+    topic: tags
+    keyType: string
+    valueType: "[string]"
+
+  orders_stream:
+    topic: orders
+    keyType: string
+    valueType: "[struct]"
+```
+
+In Python code, a list is represented as a Python list:
+
+```yaml
+functions:
+  extract_tags:
+    type: keyValueToValueListTransformer
+    expression: value.get("tags", [])
+    resultType: "[string]"
+```
+
+### Struct
+
+A struct is a key-value map where all keys are strings. This is the most common complex type and is used for JSON
+objects, AVRO records, etc.
+
+#### Syntax
+
+```yaml
+valueType: struct
+```
+
+#### Example
+
+```yaml
+streams:
+  user_profiles:
+    topic: user-profiles
+    keyType: string
+    valueType: struct
+```
+
+In Python code, a struct is represented as a dictionary:
+
+```yaml
+functions:
+  create_user:
+    type: valueTransformer
+    expression: |
+      return {
+        "id": value.get("user_id"),
+        "name": value.get("first_name") + " " + value.get("last_name"),
+        "email": value.get("email"),
+        "age": value.get("age")
+      }
+```
+
+### Tuple
+
+A tuple combines multiple elements of different types into a single value. Note that the elements in a tuple have no
+name, only a data type.
+
+#### Syntax
+
+```yaml
+valueType: "(<type1>, <type2>, ...)"
+```
+
+Where `<type1>`, `<type2>`, etc. can be any valid KSML type.
+
+Note that tuples can be used as keyType or valueType on Kafka topics, since KSML comes with its own schema format for
+tuples. These schemas are generated dynamically based on the tuple's element types. For example, a tuple defined as
+`(string, int, struct)` will lead to the following schema:
+
+```yaml
+namespace: io.axual.ksml.data
+name: TupleOfStringAndIntAndStruct
+doc: "Tuple of 3 fields"
+fields:
+  - name: elem1
+    type: string
+  - name: elem2
+    type: int
+  - name: elem3
+    type: struct
+```
+
+Since tuple schemas are dynamic, when you want to use a tuple as `keyType` or `valueType` on a topic, be aware that the
+tuple is serialized as a struct. So the schema will be registered by the serializer in the corresponding schema
+registry, or expected to be registered on the topic by the deserializer. If the latter is not the case, but you
+still want to maintain strong typing, then save the generated schema in your desired format (AVRO, JSON Schema, ...) to
+a local file from which KSML can read it. Then you will be able to (re)use it in other pipelines as
+`avro:TupleOfStringAndIntAndStruct` for AVRO, `json:TupleOfStringAndIntAndStruct` for JSON, etc.
+
+#### Example
+
+```yaml
+# Example: Tuple of string and SensorData
+streams:
+  sensor_stream:
+    topic: tags
+    keyType: string
+    valueType: "(string, avro:SensorData)"
+```
+
+In Python code, a tuple is represented as a Python tuple:
+
+```yaml
+functions:
+  create_user_age_pair:
+    type: keyValueTransformer
+    expression: |
+      (value.get("name"), value.get("age"))
+    resultType: "(string, int)"
 ```
 
 ### Union
@@ -183,6 +214,10 @@ Where `<type1>`, `<type2>`, etc. can be any valid KSML type.
 
 #### Example
 
+Unions are serializable to Kafka topics. KSML comes with an internal UnionSerde. Upon serialization, it will use the
+serde that belongs to the value stored in the union. When deserializing it will try all serdes associated with the
+member types until one is able to decode the message without throwing exceptions.
+
 ```yaml
 # Union type that can be either null or a string
 streams:
@@ -197,18 +232,43 @@ In Python code, a union is represented as a value of one of the specified types:
 ```yaml
 functions:
   get_message:
-    type: mapper
+    type: valueMapper
     code: |
       message = value.get("message")
-      if message:
-        return message
-      else:
-        return None
+    expression: message if message else None
 ```
 
 ### Windowed
 
-Some operations in Kafka Streams create windowed keys, which group records by time windows.
+Some operations group messages on an input stream together in user-defined windows. If the input stream's `keyType` is
+`string`, then the resulting stream will have a `keyType` of `windowed(string)`. Sometimes you need to specify this
+type explicitly in your KSML definition, which is why it will be recognized as its own type.
+
+Whenever a `windowed` type is exposed to a Kafka topic, or to Python code, KSML converts the `Windowed` object from
+Kafka Streams into a struct with five fields. This is dynamically done, and the output depends on the type of key.
+For example, a `windowed(string)` type is converted into the following struct schema:
+
+```yaml
+namespace: io.axual.ksml.data
+name: WindowedString
+doc: Windowed String
+fields:
+  - name: start
+    type: long
+    doc: "Start timestamp in milliseconds"
+  - name: end
+    type: long
+    doc: "End timestamp in milliseconds"
+  - name: startTime
+    type: string
+    doc: "Start time in UTC"
+  - name: endTime
+    type: string
+    doc: "End time in UTC"
+  - name: key
+    type: string # This is determined by the windowed type within brackets
+    doc: "Window key"
+```
 
 #### Syntax
 
@@ -234,45 +294,41 @@ In Python code, a windowed key provides access to both the key and the window:
 ```yaml
 functions:
   format_windowed_result:
-    type: mapper
-    code: |
-      return {
-        "key": window.key(),
-        "start": window.start(),
-        "end": window.end(),
+    type: keyValueTransformer
+    expression: |
+      (None, {
+        "key": key.key(),
+        "start": key.start(),
+        "end": key.end(),
         "count": value
-      }
+      })
+    resultType: "(null, struct)"
 ```
 
 ## The Any Type
 
-The special type `?` or `any` can be used when the exact type is unknown or variable. Code that deals with this type should always perform proper type checking.
+The special type `?` or `any` can be used when the exact type is unknown or variable. Code that deals with this type
+should always perform proper type checking.
 
 #### Syntax
 
 ```yaml
 # Either of these can be used:
-# valueType: "?"
-# valueType: "any"
+# resultType: "?"
+# resultType: "any"
 ```
 
 #### Example
 
-```yaml
-# Any type
-streams:
-  generic_stream:
-    topic: generic-data
-    keyType: string
-    valueType: "?"
-```
+It is not possible to use the `any` type on a Kafka topic, as KSML would not be able to tie the type to the right
+serde. Therefore, on Kafka topics you always need to specify a precise type.
 
-In Python code, you should check the type before using values of the any type:
+In Python code, you should check the type before using values of the `any` type:
 
 ```yaml
 functions:
   process_any:
-    type: mapper
+    type: valueTransformer
     code: |
       if isinstance(value, dict):
         return {"type": "object", "value": value}
@@ -282,160 +338,46 @@ functions:
         return {"type": "string", "value": value}
       elif isinstance(value, (int, float)):
         return {"type": "number", "value": value}
-      else:
-        return {"type": "unknown", "value": str(value)}
-```
-
-## Data Formats and Notations
-
-In KSML, data can be serialized and deserialized in various formats using notations. A notation specifies how data is read from or written to Kafka topics.
-
-### AVRO Notation
-
-AVRO is a binary format with schema evolution support.
-
-#### Syntax
-
-```yaml
-valueType: "avro:<schema_name>"
-```
-
-Where `<schema_name>` is the name of an AVRO schema.
-
-#### Example
-
-```yaml
-streams:
-  sensor_readings:
-    topic: sensor-data
-    keyType: string
-    valueType: "avro:SensorReading"
-    schemaRegistry: "http://schema-registry:8081"
-```
-
-### JSON Notation
-
-JSON is a text-based, human-readable format.
-
-#### Syntax
-
-```yaml
-# For schemaless JSON:
-valueType: "json"
-
-# For JSON with a schema:
-# valueType: "json:<schema_name>"
-```
-
-#### Example
-
-```yaml
-streams:
-  user_profiles:
-    topic: user-profiles
-    keyType: string
-    valueType: "json"
-```
-
-### CSV Notation
-
-CSV (Comma-Separated Values) is a simple tabular data format.
-
-#### Syntax
-
-```yaml
-valueType: "csv"
-```
-
-#### Example
-
-```yaml
-streams:
-  sales_data:
-    topic: sales-data
-    keyType: string
-    valueType: "csv"
-    csvConfig:
-      headers: ["date", "product", "quantity", "price"]
-      separator: ","
-```
-
-### XML Notation
-
-XML (Extensible Markup Language) is used for complex hierarchical data.
-
-#### Syntax
-
-```yaml
-# For schemaless XML:
-valueType: "xml"
-
-# For XML with a schema:
-# valueType: "xml:<schema_name>"
-```
-
-#### Example
-
-```yaml
-streams:
-  customer_data:
-    topic: customer-data
-    keyType: string
-    valueType: "xml:CustomerData"
-    schemaPath: "schemas/CustomerData.xsd"
-```
-
-### SOAP Notation
-
-SOAP (Simple Object Access Protocol) is an XML-based messaging protocol.
-
-#### Syntax
-
-```yaml
-valueType: "soap"
-```
-
-#### Example
-
-```yaml
-streams:
-  service_requests:
-    topic: service-requests
-    keyType: string
-    valueType: "soap"
-    soapConfig:
-      wsdlPath: "schemas/service.wsdl"
+    expression: |
+      {"type": "unknown", "value": str(value)}
+    resultType: struct
 ```
 
 ## Schema Management
 
 When working with structured data, it's important to manage your schemas effectively.
 
-### Schema Registry
+### Local files vs. Schema Registry
 
-KSML can retrieve schemas from a schema registry at runtime:
+When a schema is specified, KSML will load the schema from a local file from the `schemaDirectory`. The type of schema
+and its filename extension are determined by the notation. For instance, AVRO schemas will always have the `.avsc`
+file extension, while XML schemas have the `.xsd` extension.
 
-```yaml
-streams:
-  sensor_readings:
-    topic: sensor-data
-    keyType: string
-    valueType: "avro:SensorReading"
-    schemaRegistry: "http://schema-registry:8081"
-```
-
-### Local Schema Files
-
-KSML can also load schemas from local files:
+KSML always loads schemas from local files:
 
 ```yaml
 streams:
-  sensor_readings:
-    topic: sensor-data
+  sensor_data:
+    topic: sensor-reading
     keyType: string
     valueType: "avro:SensorReading"
-    schemaPath: "schemas/SensorReading.avsc"
 ```
+
+In this example, the `SensorReading.avsc` file is looked up in the configured `schemaDirectory`.
+
+Whenever a notation is used without specifying the concrete schema, KSML assumes the schema is loadable from Schema
+Registry.
+
+```yaml
+streams:
+  sensor_data:
+    topic: sensor-reading
+    keyType: string
+    valueType: "avro"
+```
+
+In this example there is no schema specified, so KSML will use the schema registered in Schema Registry for the topic
+value.
 
 ## Type Conversion
 
@@ -444,7 +386,7 @@ KSML automatically handles type conversion in many cases, but you can also expli
 ```yaml
 functions:
   convert_types:
-    type: mapper
+    type: valueTransformer
     code: |
       # String to number
       age_str = value.get("age_str")
@@ -457,8 +399,8 @@ functions:
       # String to boolean
       active_str = value.get("active")
       active = active_str.lower() == "true"
-
-      return {
+    expression: |
+      {
         "age": age,
         "id": id_str,
         "active": active

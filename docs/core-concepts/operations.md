@@ -129,7 +129,7 @@ pipelines:
 
 ## Related Topics
 
-- [Streams and Data Types](streams-and-data-types.md): Understand the data types that operations work with
+- [Streams and Data Types](../reference/stream-types-reference.md): Understand the data types that operations work with
 - [Functions](functions.md): Learn about the functions that power many operations
 - [Pipelines](pipelines.md): See how operations fit into the overall pipeline structure
 

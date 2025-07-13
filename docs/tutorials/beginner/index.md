@@ -6,7 +6,7 @@ Each tutorial provides step-by-step instructions and explanations to help you un
 
 ## Available Tutorials
 
-### [Building Your First KSML Data Pipeline](../../getting-started/basics-tutorial.md)
+### [Building Your First KSML Data Pipeline](../getting-started/basics-tutorial.md)
 
 This tutorial guides you through building a simple data pipeline that filters and transforms temperature data. You'll learn:
 
@@ -48,6 +48,6 @@ We recommend following these tutorials in order, as each one builds on concepts 
 
 ## Additional Resources
 
-- [KSML Core Concepts](../../core-concepts/streams-and-data-types.md) - Deeper explanations of KSML components
+- [KSML Core Concepts](../../reference/stream-types-reference.md) - Deeper explanations of KSML components
 - [Examples Library](../../resources/examples-library.md) - Ready-to-use examples for common patterns
 - [Operations Reference](../../reference/operations-reference.md) - Complete reference for all KSML operations

@@ -19,9 +19,9 @@ In this tutorial, we'll build a data transformation pipeline that processes cust
 Before starting this tutorial, you should:
 
 - Understand basic KSML concepts (streams, functions, pipelines)
-- Have completed the [KSML Basics Tutorial](../../getting-started/basics-tutorial.md)
-- Be familiar with [Filtering and Transforming](../beginner/filtering-transforming.md)
-- Have a basic understanding of [Joins](../intermediate/joins.md) for data enrichment
+- Have completed the [KSML Basics Tutorial](../tutorials/getting-started/basics-tutorial.md)
+- Be familiar with [Filtering and Transforming](../tutorials/beginner/filtering-transforming.md)
+- Have a basic understanding of [Joins](../tutorials/intermediate/joins.md) for data enrichment
 
 ## The Use Case
 
@@ -353,4 +353,4 @@ Data transformation is a powerful use case for KSML, allowing you to integrate d
 
 - Learn about [Real-Time Analytics](real-time-analytics.md) to analyze your transformed data
 - Explore [Event-Driven Applications](event-driven-applications.md) to trigger actions based on data changes
-- Check out [External Integration](../advanced/external-integration.md) for connecting to external systems
+- Check out [External Integration](../tutorials/advanced/external-integration.md) for connecting to external systems

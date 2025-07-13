@@ -1,39 +1,226 @@
 # KSML Functions Reference
 
-This document provides a comprehensive reference for all function types available in KSML. Each function type is described with its parameters, behavior, and examples.
+This document provides a comprehensive reference for all function types available in KSML. Each function type is
+described with its parameters, behavior, and examples.
 
 ## Function Types Overview
 
 KSML supports various function types, each designed for specific purposes in stream processing:
 
-| Function Type | Purpose | Used In |
-|--------------|---------|---------|
-| **Stateless Functions** | Process each message independently | |
-| predicate | Return true/false based on message content | filter, branch |
-| mapper | Transform messages from one form to another | mapValues |
-| keyValueMapper | Transform both key and value | map |
-| forEach | Process each message for side effects | peek |
-| **Stateful Functions** | Maintain state across multiple messages | |
-| aggregator | Incrementally build aggregated results | aggregate |
-| reducer | Combine two values into one | reduce |
-| initializer | Provide initial values for aggregations | aggregate |
-| **Special Purpose Functions** | | |
-| transformer | Access state stores and process records | process |
-| valueJoiner | Combine data from multiple streams | join, leftJoin, outerJoin |
-| timestampExtractor | Extract timestamps from messages | stream definitions |
+| Function Type                                                           | Purpose                                              | Used In                                     |
+|-------------------------------------------------------------------------|------------------------------------------------------|---------------------------------------------|
+| **Functions for stateless operations**                                  |                                                      |                                             |
+| [forEach](#foreach)                                                     | Process each message for side effects                | peek                                        |
+| [keyTransformer](#keyTransformer)                                       | Convert a key to another type or value               | mapKey, selectKey, toStream, transformKey   |
+| [keyValueToKeyValueListTransformer](#keyValueToKeyValueListTransformer) | Convert key and value to a list of key/values        | flatMap, transformKeyValueToKeyValueList    |
+| [keyValueToValueListTransformer](#keyValueToValueListTransformer)       | Convert key and value to a list of values            | flatMapValues, transformKeyValueToValueList |
+| [keyValueTransformer](#keyValueTransformer)                             | Convert key and value to another key and value       | flatMapValues, transformKeyValueToValueList |
+| [predicate](#predicate)                                                 | Return true/false based on message content           | filter, branch                              |
+| [valueTransformer](#valueTransformer)                                   | Convert value to another type or value               | mapValue, mapValues, transformValue         |
+|                                                                         |                                                      |                                             |
+| **Functions for stateful operations**                                   |                                                      |                                             |
+| [aggregator](#aggregator)                                               | Incrementally build aggregated results               | aggregate                                   |
+| [initializer](#initializer)                                             | Provide initial values for aggregations              | aggregate                                   |
+| [merger](#merger)                                                       | Merge two aggregation results into one               | aggregate                                   |
+| [reducer](#reducer)                                                     | Combine two values into one                          | reduce                                      |
+|                                                                         |                                                      |                                             |
+| **Special Purpose Functions**                                           |                                                      |                                             |
+| [foreignKeyExtractor](#foreignKeyExtractor)                             | Extract a key from a join table's record             | join, leftJoin                              |
+| [generator](#generator)                                                 | Function used in producers to generate a message     | producer                                    |
+| [keyValueMapper](#keyValueMapper)                                       | Convert key and value into a single output value     | groupBy, join, leftJoin                     |
+| [keyValuePrinter](#keyValuePrinter)                                     | Output key and value                                 | print                                       |
+| [metadataTransformer](#metadataTransformer)                             | Convert Kafka headers and timestamps                 | transformMetadata                           |
+| [valueJoiner](#valueJoiner)                                             | Combine data from multiple streams                   | join, leftJoin, outerJoin                   |
+|                                                                         |                                                      |                                             |
+| **Stream Related Functions**                                            |                                                      |                                             |
+| [timestampExtractor](#timestampExtractor)                               | Extract timestamps from messages                     | stream, table, globalTable                  |
+| [topicNameExtractor](#topicNameExtractor)                               | Derive a target topic name from key and value        | toTopicNameExtractor                        |
+| [streamPartitioner](#streamPartitioner)                                 | Determine to which partition(s) a record is produced | stream, table, globalTable                  |
+|                                                                         |                                                      |                                             |
+| **Other Functions**                                                     |                                                      |                                             |
+| [generic](#generic)                                                     | Generic custom function                              |                                             |
 
-## Stateless Functions
+## Functions for stateless operations
 
-### `predicate`
+### forEach
+
+Processes each message for side effects like logging, without changing the message.
+
+#### Parameters
+
+| Parameter | Type | Description                             |
+|-----------|------|-----------------------------------------|
+| key       | Any  | The key of the record being processed   |
+| value     | Any  | The value of the record being processed |
+
+#### Return Value
+
+None (the function is called for its side effects)
+
+#### Example
+
+```yaml
+functions:
+  log_message:
+    type: forEach
+    code: |
+      log.info("Processing record with key={}, value={}", key, value)
+
+      # You can also increment metrics
+      metrics.counter("records_processed").increment()
+```
+
+### keyTransformer
+
+Transforms a key/value into a new key, which then gets combined with the original value as a new message on the output
+stream.
+
+#### Parameters
+
+| Parameter | Type | Description                             |
+|-----------|------|-----------------------------------------|
+| key       | Any  | The key of the record being processed   |
+| value     | Any  | The value of the record being processed |
+
+#### Return Value
+
+New key for the output message
+
+#### Example
+
+```yaml
+functions:
+  extract_region:
+    type: keyTransformer
+    code: |
+      # Extract region from the sale event and use it as the new key
+      return value.get("region", "unknown")
+    resultType: string
+```
+
+### keyValueToKeyValueListTransformer
+
+Takes one message and converts it into a list of output messages, which then get sent to the output stream.
+
+#### Parameters
+
+| Parameter | Type | Description                             |
+|-----------|------|-----------------------------------------|
+| key       | Any  | The key of the record being processed   |
+| value     | Any  | The value of the record being processed |
+
+#### Return Value
+
+A list of key-value pairs `[(key1, value1), (key2, value2), ...]`
+
+#### Example
+
+```yaml
+functions:
+  alert_split:
+    type: keyValueToKeyValueListTransformer
+    code: |
+      newRecords = []
+      if value is not None and len(value["alerts"]) > 0:
+        sensordata = value["sensordata"]
+        new_key = {
+          "name": sensordata["name"],
+          "type": sensordata["type"],
+          "city": sensordata["city"]
+        }
+        for alert in value["alerts"]:
+          new_value = {
+            "alert": alert,
+            "sensordata": sensordata
+          }
+          newRecords.append((new_key, new_value))
+      return newRecords
+    resultType: "[(struct,struct)]"
+```
+
+### keyValueToValueListTransformer
+
+Takes one message and converts it into a list of output values, which then get combined with the original key and sent
+to the output stream.
+
+#### Parameters
+
+| Parameter | Type | Description                             |
+|-----------|------|-----------------------------------------|
+| key       | Any  | The key of the record being processed   |
+| value     | Any  | The value of the record being processed |
+
+#### Return Value
+
+A list of values `[value1, value2, ...]` that will be combined with the original key
+
+#### Example
+
+```yaml
+functions:
+  explode_items:
+    type: keyValueToValueListTransformer
+    code: |
+      # Input: key = "order123", value = {"items": [{"id": "item1"}, {"id": "item2"}]}
+      # Output: ("order123", {"id": "item1"}), ("order123", {"id": "item2"})
+
+      if value is None or "items" not in value:
+        return []
+
+      return value["items"]
+    result: "[struct]"
+```
+
+### keyValueTransformer
+
+Takes one message and converts it into another message, which may have different key/value types.
+
+#### Parameters
+
+| Parameter | Type | Description                             |
+|-----------|------|-----------------------------------------|
+| key       | Any  | The key of the record being processed   |
+| value     | Any  | The value of the record being processed |
+
+#### Return Value
+
+A tuple of (new_key, new_value)
+
+#### Example
+
+```yaml
+functions:
+  transform_order:
+    type: keyValueTransformer
+    code: |
+      if value is None:
+        return (None, None)
+
+      # Create a new key based on customer ID
+      new_key = value.get("customer_id", "unknown")
+
+      # Create a new value with selected fields
+      new_value = {
+        "order_id": value.get("order_id"),
+        "total_amount": value.get("total_amount", 0),
+        "item_count": len(value.get("items", [])),
+        "processed_at": int(time.time() * 1000)
+      }
+
+      return (new_key, new_value)
+    resultType: "(string,struct)"
+```
+
+### predicate
 
 Returns true or false based on message content. Used for filtering and branching operations.
 
 #### Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| key | Any | The key of the record being processed |
-| value | Any | The value of the record being processed |
+| Parameter | Type | Description                             |
+|-----------|------|-----------------------------------------|
+| key       | Any  | The key of the record being processed   |
+| value     | Any  | The value of the record being processed |
 
 #### Return Value
 
@@ -58,29 +245,51 @@ functions:
         return False
 
       return True
+
+  deduplicate_events:
+    type: predicate
+    code: |
+      # Access a state store to check for duplicates
+      event_id = value.get("event_id")
+      if event_id is None:
+        return True
+
+      # Check if we've seen this event before
+      seen_before = event_store.get(event_id)
+      if seen_before:
+        # Skip duplicate event
+        return False
+
+      # Mark this event as seen
+      stateStore.put(event_id, True)
+
+      # Process the event
+      return True
+    stores:
+      - event_store
 ```
 
-### `mapper`
+### valueTransformer
 
-Transforms a value from one form to another.
+Transforms a key/value into a new value, which is combined with the original key and sent to the output stream.
 
 #### Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| key | Any | The key of the record being processed |
-| value | Any | The value of the record being processed |
+| Parameter | Type | Description                             |
+|-----------|------|-----------------------------------------|
+| key       | Any  | The key of the record being processed   |
+| value     | Any  | The value of the record being processed |
 
 #### Return Value
 
-Transformed value
+New value for the output message
 
 #### Example
 
 ```yaml
 functions:
   enrich_user:
-    type: mapper
+    type: valueTransformer
     code: |
       return {
         "id": value.get("user_id"),
@@ -90,76 +299,23 @@ functions:
         "is_adult": value.get("age", 0) >= 18,
         "processed_at": int(time.time() * 1000)
       }
+    resultType: struct
+
 ```
 
-### `keyValueMapper`
+## Functions for stateful operations
 
-Transforms both the key and value of a record.
-
-#### Parameters
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| key | Any | The key of the record being processed |
-| value | Any | The value of the record being processed |
-
-#### Return Value
-
-Tuple of (new_key, new_value)
-
-#### Example
-
-```yaml
-functions:
-  repartition_by_user_id:
-    type: keyValueMapper
-    code: |
-      new_key = value.get("user_id")
-      new_value = value
-      return (new_key, new_value)
-```
-
-### `forEach`
-
-Processes each message for side effects like logging, without changing the message.
-
-#### Parameters
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| key | Any | The key of the record being processed |
-| value | Any | The value of the record being processed |
-
-#### Return Value
-
-None (the function is called for its side effects)
-
-#### Example
-
-```yaml
-functions:
-  log_message:
-    type: forEach
-    code: |
-      log.info("Processing record with key={}, value={}", key, value)
-
-      # You can also increment metrics
-      metrics.counter("records_processed").increment()
-```
-
-## Stateful Functions
-
-### `aggregator`
+### aggregator
 
 Incrementally builds aggregated results from multiple messages.
 
 #### Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| key | Any | The key of the record being processed |
-| value | Any | The value of the record being processed |
-| aggregatedValue | Any | The current aggregated value (can be None) |
+| Parameter       | Type | Description                                |
+|-----------------|------|--------------------------------------------|
+| key             | Any  | The key of the record being processed      |
+| value           | Any  | The value of the record being processed    |
+| aggregatedValue | Any  | The current aggregated value (can be None) |
 
 #### Return Value
 
@@ -182,37 +338,10 @@ functions:
           "sum": sum,
           "average": sum / count
         }
+    resultType: struct
 ```
 
-### `reducer`
-
-Combines two values into one.
-
-#### Parameters
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| value1 | Any | The first value to combine |
-| value2 | Any | The second value to combine |
-
-#### Return Value
-
-Combined value
-
-#### Example
-
-```yaml
-functions:
-  sum_reducer:
-    type: reducer
-    code: |
-      return {
-        "count": value1.get("count", 0) + value2.get("count", 0),
-        "sum": value1.get("sum", 0) + value2.get("sum", 0)
-      }
-```
-
-### `initializer`
+### initializer
 
 Provides initial values for aggregations.
 
@@ -230,62 +359,271 @@ Initial value for aggregation
 functions:
   counter_initializer:
     type: initializer
-    expression: {"count": 0, "sum": 0, "min": null, "max": null}
+    expression: { "count": 0, "sum": 0, "average": 0 }
+    resultType: struct
 ```
 
-## Special Purpose Functions
+### merger
 
-### `transformer`
-
-Advanced function that can access state stores and process records.
+Merges two aggregation results into one. Used in aggregation operations to combine partial results.
 
 #### Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| key | Any | The key of the record being processed |
-| value | Any | The value of the record being processed |
-| stateStore | StateStore | The state store to use (if configured) |
+| Parameter | Type | Description                           |
+|-----------|------|---------------------------------------|
+| key       | Any  | The key of the record being processed |
+| value1    | Any  | The value of the first aggregation    |
+| value2    | Any  | The value of the second aggregation   |
 
 #### Return Value
 
-Transformed value or None
+The merged aggregation result
 
 #### Example
 
 ```yaml
 functions:
-  deduplicate_events:
-    type: transformer
+  merge_stats:
+    type: merger
     code: |
-      # Access a state store to check for duplicates
-      event_id = value.get("event_id")
-      if event_id is None:
-        return value
+      # Merge two statistics objects
+      if value1 is None:
+        return value2
+      if value2 is None:
+        return value1
 
-      # Check if we've seen this event before
-      seen_before = stateStore.get(event_id)
-      if seen_before:
-        # Skip duplicate event
-        return None
+      # Combine counts and sums
+      count = value1.get("count", 0) + value2.get("count", 0)
+      sum = value1.get("sum", 0) + value2.get("sum", 0)
+      result = {
+        "count": count,
+        "sum": sum,
+        "average": sum/count if count>0 else 0
+      }
 
-      # Mark this event as seen
-      stateStore.put(event_id, True)
-
-      # Process the event
-      return value
+      return result
+    resultType: struct
 ```
 
-### `valueJoiner`
+### reducer
+
+Combines two values into one.
+
+#### Parameters
+
+| Parameter | Type | Description                 |
+|-----------|------|-----------------------------|
+| value1    | Any  | The first value to combine  |
+| value2    | Any  | The second value to combine |
+
+#### Return Value
+
+Combined value
+
+#### Example
+
+```yaml
+functions:
+  sum_reducer:
+    type: reducer
+    code: |
+      count = value1.get("count", 0) + value2.get("count", 0)
+      sum = value1.get("sum", 0) + value2.get("sum", 0)
+      return {
+        "count": count,
+        "sum": sum,
+        "average": sum/count if count>0 else 0
+      }
+    resultType: struct
+```
+
+## Special Purpose Functions
+
+### foreignKeyExtractor
+
+Extracts a key from a join table's record. Used during join operations to determine which records to join.
+
+#### Parameters
+
+| Parameter | Type | Description                               |
+|-----------|------|-------------------------------------------|
+| value     | Any  | The value of the record to get a key from |
+
+#### Return Value
+
+The key to look up in the table being joined with
+
+#### Example
+
+```yaml
+functions:
+  extract_customer_id:
+    type: foreignKeyExtractor
+    code: |
+      # Extract customer ID from an order to join with customer table
+      if value is None:
+        return None
+
+      return value.get("customer_id")
+    resultType: string
+```
+
+### generator
+
+Function used in producers to generate messages. It takes no input parameters and produces key-value pairs.
+
+#### Parameters
+
+None
+
+#### Return Value
+
+A tuple of (key, value) representing the generated message
+
+#### Example
+
+```yaml
+functions:
+  generate_sensordata_message:
+    type: generator
+    globalCode: |
+      import time
+      import random
+      sensorCounter = 0
+    code: |
+      global sensorCounter
+
+      key = "sensor"+str(sensorCounter)           # Set the key to return ("sensor0" to "sensor9")
+      sensorCounter = (sensorCounter+1) % 10      # Increase the counter for next iteration
+
+      # Generate some random sensor measurement data
+      types = { 0: { "type": "AREA", "unit": random.choice([ "m2", "ft2" ]), "value": str(random.randrange(1000)) },
+                1: { "type": "HUMIDITY", "unit": random.choice([ "g/m3", "%" ]), "value": str(random.randrange(100)) },
+                2: { "type": "LENGTH", "unit": random.choice([ "m", "ft" ]), "value": str(random.randrange(1000)) },
+                3: { "type": "STATE", "unit": "state", "value": random.choice([ "off", "on" ]) },
+                4: { "type": "TEMPERATURE", "unit": random.choice([ "C", "F" ]), "value": str(random.randrange(-100, 100)) }
+              }
+
+      # Build the result value using any of the above measurement types
+      value = { "name": key, "timestamp": str(round(time.time()*1000)), **random.choice(types) }
+      value["color"] = random.choice([ "black", "blue", "red", "yellow", "white" ])
+      value["owner"] = random.choice([ "Alice", "Bob", "Charlie", "Dave", "Evan" ])
+      value["city"] = random.choice([ "Amsterdam", "Xanten", "Utrecht", "Alkmaar", "Leiden" ])
+
+      if random.randrange(10) == 0:
+        key = None
+      if random.randrange(10) == 0:
+        value = None
+    expression: (key, value)                      # Return a message tuple with the key and value
+    resultType: (string, struct)                  # Indicate the type of key and value
+```
+
+### keyValueMapper
+
+Transforms both the key and value of a record.
+
+#### Parameters
+
+| Parameter | Type | Description                             |
+|-----------|------|-----------------------------------------|
+| key       | Any  | The key of the record being processed   |
+| value     | Any  | The value of the record being processed |
+
+#### Return Value
+
+Tuple of (new_key, new_value)
+
+#### Example
+
+```yaml
+functions:
+  repartition_by_user_id:
+    type: keyValueMapper
+    code: |
+      new_key = value.get("user_id")
+      new_value = value
+      return (new_key, new_value)
+    resultType: "(string, struct)"
+```
+
+### keyValuePrinter
+
+Converts a message to a string for output to a file or stdout.
+
+#### Parameters
+
+| Parameter | Type | Description                             |
+|-----------|------|-----------------------------------------|
+| key       | Any  | The key of the record being processed   |
+| value     | Any  | The value of the record being processed |
+
+#### Return Value
+
+String to be written to file or stdout
+
+#### Example
+
+```yaml
+functions:
+  format_message:
+    type: keyValuePrinter
+    code: |
+      # Format the message as a JSON string with timestamp
+      import json
+      import time
+
+      timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+
+      if value is None:
+        return f"[{timestamp}] Key: {key}, Value: null"
+
+      try:
+        # Try to format value as JSON
+        value_str = json.dumps(value, indent=2)
+        return f"[{timestamp}] Key: {key}\nValue:\n{value_str}"
+      except:
+        # Fall back to string representation
+        return f"[{timestamp}] Key: {key}, Value: {str(value)}"
+```
+
+### metadataTransformer
+
+Transforms a message's metadata (headers and timestamp).
+
+#### Parameters
+
+| Parameter | Type   | Description                                       |
+|-----------|--------|---------------------------------------------------|
+| key       | Any    | The key of the record being processed             |
+| value     | Any    | The value of the record being processed           |
+| metadata  | Object | Contains the headers and timestamp of the message |
+
+#### Return Value
+
+Modified metadata for the output message
+
+#### Example
+
+```yaml
+functions:
+  addTime:
+    type: metadataTransformer
+    code: |
+      # Add a custom header to the message
+      metadata["headers"] = metadata["headers"] + [ { "key": "my_own_header_key", "value": "some_value" } ]
+    expression: metadata
+```
+
+### valueJoiner
 
 Combines data from multiple streams during join operations.
 
 #### Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| value1 | Any | The value from the first stream |
-| value2 | Any | The value from the second stream |
+| Parameter | Type | Description                      |
+|-----------|------|----------------------------------|
+| value1    | Any  | The value from the first stream  |
+| value2    | Any  | The value from the second stream |
 
 #### Return Value
 
@@ -317,18 +655,21 @@ functions:
         "total": order.get("total", 0),
         "status": order.get("status", "PENDING")
       }
+    resultType: struct
 ```
 
-### `timestampExtractor`
+## Stream Related Functions
+
+### timestampExtractor
 
 Extracts timestamps from messages for time-based operations.
 
 #### Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| key | Any | The key of the record being processed |
-| value | Any | The value of the record being processed |
+| Parameter         | Type | Description                                      |
+|-------------------|------|--------------------------------------------------|
+| key               | Any  | The key of the record being processed            |
+| value             | Any  | The value of the record being processed          |
 | previousTimestamp | Long | The previous timestamp (can be used as fallback) |
 
 #### Return Value
@@ -350,6 +691,111 @@ functions:
       return previousTimestamp
 ```
 
+### topicNameExtractor
+
+Derives a target topic name from key and value. Used to dynamically route messages to different topics.
+
+#### Parameters
+
+| Parameter | Type | Description                             |
+|-----------|------|-----------------------------------------|
+| key       | Any  | The key of the record being processed   |
+| value     | Any  | The value of the record being processed |
+
+#### Return Value
+
+String representing the topic name to send the message to
+
+#### Example
+
+```yaml
+functions:
+  route_by_sensor:
+    type: topicNameExtractor
+    code: |
+      if key == 'sensor1':
+        return 'sensordata_sensor1'
+      if key == 'sensor2':
+        return 'sensordata_sensor2'
+      return 'sensordata_other_sensors'
+```
+
+### streamPartitioner
+
+Determines to which partition a record is produced. Used to control the partitioning of output topics.
+
+#### Parameters
+
+| Parameter     | Type    | Description                                  |
+|---------------|---------|----------------------------------------------|
+| topic         | String  | The topic of the message                     |
+| key           | Any     | The key of the record being processed        |
+| value         | Any     | The value of the record being processed      |
+| numPartitions | Integer | The number of partitions in the output topic |
+
+#### Return Value
+
+Integer representing the partition number to which the message will be sent
+
+#### Example
+
+```yaml
+functions:
+  custom_partitioner:
+    type: streamPartitioner
+    code: |
+      # Partition by the first character of the key (if it's a string)
+      if key is None:
+        # Use default partitioning for null keys
+        return None
+
+      if isinstance(key, str) and len(key) > 0:
+        # Use the first character's ASCII value modulo number of partitions
+        return ord(key[0]) % numPartitions
+
+      # For non-string keys, use a hash of the string representation
+      return hash(str(key)) % numPartitions
+```
+
+## Other Functions
+
+### generic
+
+Generic custom function that can be used for any purpose. It can accept custom parameters and return any type of value.
+
+#### Parameters
+
+User-defined parameters
+
+#### Return Value
+
+Any value, depending on the function's purpose
+
+#### Example
+
+```yaml
+functions:
+  calculate_discount:
+    type: generic
+    parameters:
+      - name: basePrice
+        type: double
+      - name: discountPercentage
+        type: double
+    code: |
+      # Calculate the discounted price
+      discountAmount = basePrice * (discountPercentage / 100)
+      finalPrice = basePrice - discountAmount
+
+      # Return both the final price and the discount amount
+      return {
+        "finalPrice": finalPrice,
+        "discountAmount": discountAmount,
+        "discountPercentage": discountPercentage
+      }
+    resultType: struct
+```
+
 ## Function Definition Formats
 
 KSML supports two formats for defining functions:
@@ -362,6 +808,8 @@ For simple, one-line functions:
 functions:
   is_valid:
     type: predicate
+    code: |
+      # Code is optional here
     expression: value.get("status") == "ACTIVE"
 ```
 
@@ -372,7 +820,7 @@ For more complex functions:
 ```yaml
 functions:
   process_transaction:
-    type: mapper
+    type: keyValueMapper
     code: |
       result = {}
 
@@ -391,6 +839,7 @@ functions:
       result["processed_at"] = int(time.time() * 1000)
 
       return result
+    resultType: struct
 ```
 
 ## Function Execution Context
@@ -426,19 +875,44 @@ For monitoring function performance and behavior:
 
 ### State Stores
 
-For maintaining state between function invocations (when configured):
+In your function code, you can use the state stores declared by the function as variables:
 
 ```yaml
-# In your function code, you can use the stateStore object:
+  deduplicate_events:
+    type: predicate
+    code: |
+      previous_value = my_state_store.get(key)
+      if previous_value is not None:
+        
+      
+      # Access a state store to check for duplicates
+      event_id = value.get("event_id")
+      if event_id is None:
+        return True
+
+      # Check if we've seen this event before
+      seen_before = event_store.get(event_id)
+      if seen_before:
+        # Skip duplicate event
+        return False
+
+      # Mark this event as seen
+      stateStore.put(event_id, True)
+
+      # Process the event
+      return True
+    stores:
+      - event_store
+      
 # Examples:
 # Get a value from the state store
-# previous_value = stateStore.get(key)
+# previous_value = state_store.get(key)
 #
 # Put a value in the state store
-# stateStore.put(key, new_value)
+# state_store.put(key, new_value)
 #
 # Delete a value from the state store
-# stateStore.delete(key)
+# state_store.delete(key)
 ```
 
 ## Best Practices

@@ -23,9 +23,9 @@ KSML is particularly well-suited for event-driven applications because it allows
 Before starting this tutorial, you should:
 
 - Understand basic KSML concepts (streams, functions, pipelines)
-- Have completed the [KSML Basics Tutorial](../../getting-started/basics-tutorial.md)
-- Be familiar with [Filtering and Transforming](../beginner/filtering-transforming.md)
-- Have a basic understanding of [Complex Event Processing](../advanced/complex-event-processing.md)
+- Have completed the [KSML Basics Tutorial](../tutorials/getting-started/basics-tutorial.md)
+- Be familiar with [Filtering and Transforming](../tutorials/beginner/filtering-transforming.md)
+- Have a basic understanding of [Complex Event Processing](../tutorials/advanced/complex-event-processing.md)
 
 ## The Use Case
 
@@ -416,4 +416,4 @@ Event-driven applications are a powerful use case for KSML, allowing you to buil
 
 - Learn about [Real-Time Analytics](real-time-analytics.md) to analyze your event data
 - Explore [Data Transformation](data-transformation.md) for more complex event processing
-- Check out [External Integration](../advanced/external-integration.md) for connecting your events to external systems
+- Check out [External Integration](../tutorials/advanced/external-integration.md) for connecting your events to external systems

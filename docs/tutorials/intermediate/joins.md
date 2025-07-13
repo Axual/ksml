@@ -18,9 +18,9 @@ KSML supports various types of joins, each with different semantics and use case
 Before starting this tutorial, you should:
 
 - Understand basic KSML concepts (streams, functions, pipelines)
-- Have completed the [KSML Basics Tutorial](../../getting-started/basics-tutorial.md)
+- Have completed the [KSML Basics Tutorial](../getting-started/basics-tutorial.md)
 - Be familiar with [Stateful Operations](../../core-concepts/operations.md#stateful-operations)
-- Understand the difference between [streams and tables](../../core-concepts/streams-and-data-types.md)
+- Understand the difference between [streams and tables](../../reference/stream-types-reference.md)
 
 ## Types of Joins in KSML
 
@@ -355,5 +355,5 @@ In the next tutorial, we'll explore [Using Windowed Operations](windowed-operati
 ## Further Reading
 
 - [Core Concepts: Operations](../../core-concepts/operations.md)
-- [Core Concepts: Streams and Data Types](../../core-concepts/streams-and-data-types.md)
+- [Core Concepts: Streams and Data Types](../../reference/stream-types-reference.md)
 - [Reference: Join Operations](../../reference/operations-reference.md)

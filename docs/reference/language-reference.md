@@ -1,37 +1,61 @@
 # KSML Language Reference
 
-This document provides a comprehensive reference for the KSML (Kafka Streams Markup Language) syntax and structure. It covers all aspects of the KSML language specification, including file structure, data types, and configuration options.
+This document provides a comprehensive reference for the KSML (Kafka Streams Markup Language) syntax and structure. It
+covers all aspects of the KSML language specification, including file structure, data types, and configuration options.
 
 ## KSML File Structure
 
 A KSML definition file is written in YAML and consists of several top-level sections:
 
 ```yaml
+name: my-ksml-app
+version: 0.1.2
+description: This is what my app does
+
 streams:
-  # Stream definitions
+# Stream definitions
+
+tables:
+# Table definitions
+
+globalTables:
+# GlobalTable definitions
+
+stores:
+# State store definitions
 
 functions:
-  # Function definitions
+# Function definitions
 
 pipelines:
-  # Pipeline definitions
+# Pipeline definitions
 
-configuration:
-  # Optional global configuration
+producers:
+# Producer definitions
 ```
 
 ### Required and Optional Sections
 
-- **streams**: Required. Defines the input and output Kafka topics.
-- **pipelines**: Required. Defines the processing logic that connects streams.
+- **name**: Optional. Defines the name of your application.
+- **version**: Optional. Defines the version of your application.
+- **description**: Optional. Defines the purpose of your application.
+- **streams**: Optional. Defines the input and output Kafka streams.
+- **tables**: Optional. Defines the input and output Kafka tables.
+- **globalTables**: Optional. Defines the input and output Kafka globalTables.
+- **stores**: Optional. Defines the state stores used in your functions and pipelines.
 - **functions**: Optional. Defines reusable functions that can be called from pipelines.
-- **configuration**: Optional. Provides global configuration settings.
+- **pipelines**: Optional. Defines the processing logic of your application.
+- **producers**: Optional. Defines the producers that generate data for your output topics.
 
-## Streams Section
+## Metadata Section
 
-The `streams` section defines the input and output Kafka topics and their data types.
+The `name`, `version`, and `description` fields hold informational data for the developer of the application.
 
-### Stream Definition
+## Streams, Tables, and GlobalTables Section
+
+The `streams`, `tables`, and `globalTables` sections defines the input and output Kafka topics and their data types.
+
+### Definition
 
 ```yaml
 streams:
@@ -40,19 +64,33 @@ streams:
     keyType: key_data_type
     valueType: value_data_type
     # Additional configuration options
+
+tables:
+  table_name:
+    topic: kafka_topic_name
+    keyType: key_data_type
+    valueType: value_data_type
+    # Additional configuration options
+
+globalTables:
+  global_table_name:
+    topic: kafka_topic_name
+    keyType: key_data_type
+    valueType: value_data_type
+    # Additional configuration options
 ```
 
 ### Required Properties
 
-- **topic**: The name of the Kafka topic.
-- **keyType**: The data type of the message key.
-- **valueType**: The data type of the message value.
-
-### Optional Properties
-
-- **timestampExtractor**: Specifies how to extract timestamps from messages.
-- **consumed**: Configuration for consuming from the topic.
-- **produced**: Configuration for producing to the topic.
+- `topic`: (Required) The name of the Kafka topic.
+- `keyType`: (Required) The data type of the message key.
+- `valueType`: (Required) The data type of the message value.
+- `offsetResetPolicy`: (Optional) The policy to use when there is no (valid) consumer group offset in Kafka. Choice of
+  `earliest`, `latest`, `none`, or `by_duration:<duration>`. In the latter case, you can pass in a custom duration.
+- `timestampExtractor`: (Optional) A function that is able to extract a timestamp from a consumed message, to be used by
+  Kafka Streams as the message timestamp in all pipeline processing.
+- `partitioner`: (Optional) A stream partitioner that determines to which topic partitions an output record needs to be
+  written.
 
 ### Example
 
@@ -62,9 +100,6 @@ streams:
     topic: incoming_orders
     keyType: string
     valueType: json
-    consumed:
-      keySerde: org.apache.kafka.common.serialization.Serdes$StringSerde
-      valueSerde: io.axual.ksml.data.json.JsonSerde
 ```
 
 ## Functions Section
@@ -82,13 +117,19 @@ functions:
         type: parameter_type
     code: |
       # Python code here
+    expression: |
+      # Python expression here
+    resultType: data_type
 ```
 
 ### Required Properties
 
-- **type**: The type of function (e.g., `mapValues`, `filter`, `aggregate`).
-- **parameters**: List of parameters the function accepts.
+- **type**: The type of function (e.g., `predicate`, `aggregator`, `keyValueMapper`).
+- **parameters**: List of custom parameters, which may be passed in next to the default parameters determined by the
+  function type.
 - **code**: Python code that implements the function.
+- **expression**: Python expression for the return value of the function.
+- **resultType**: The return value data type of the function.
 
 ### Parameter Definition
 
@@ -103,12 +144,14 @@ functions:
     type: mapValues
     parameters:
       - name: order
-        type: object
+        type: struct
     code: |
       total = 0
       for item in order.get("items", []):
         total += item.get("price", 0) * item.get("quantity", 0)
-      return {"order_id": order.get("id"), "total": total}
+    expression: |
+      {"order_id": order.get("id"), "total": total}
+    resultType: struct
 ```
 
 ## Pipelines Section
@@ -185,27 +228,12 @@ Each operation type has its own set of parameters. Common parameters include:
 
 ## Data Types
 
-KSML supports various data types for stream keys and values.
-
-### Primitive Types
-
-- **string**: Text data.
-- **long**: 64-bit integer.
-- **integer**: 32-bit integer.
-- **double**: 64-bit floating point.
-- **boolean**: True/false value.
-
-### Complex Types
-
-- **json**: JSON data.
-- **avro**: Avro data (requires schema).
-- **xml**: XML data.
-- **csv**: Comma-separated values.
-- **binary**: Binary data.
+KSML supports various [data types](data-types-reference.md) for stream keys and values.
 
 ### Type Conversion
 
-KSML automatically handles type conversion between compatible types. For example, a JSON string can be converted to a POJO if the structure matches.
+KSML automatically handles type conversion between compatible types. For example, a JSON string can be converted to an
+AVRO message if the structure (schema) matches.
 
 ## Expressions
 
@@ -230,75 +258,12 @@ code: |
   return False
 ```
 
-## Configuration Section
-
-The `configuration` section provides global settings for the KSML application.
-
-### Common Configuration Options
-
-- **application.id**: The Kafka Streams application ID.
-- **bootstrap.servers**: Kafka bootstrap servers.
-- **default.key.serde**: Default key serializer/deserializer.
-- **default.value.serde**: Default value serializer/deserializer.
-
-### Example
-
-```yaml
-configuration:
-  application.id: order-processing-app
-  bootstrap.servers: kafka:9092
-  default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
-  default.value.serde: io.axual.ksml.data.json.JsonSerde
-```
-
-## Error Handling
-
-KSML provides several mechanisms for error handling:
-
-### Try-Catch Operations
-
-```yaml
-- type: try
-  operations:
-    - type: mapValues
-      mapper:
-        code: parse_complex_data(value)
-  catch:
-    - type: mapValues
-      mapper:
-        code: handle_error(value, exception)
-```
-
-### Dead Letter Queues
-
-```yaml
-streams:
-  errors:
-    topic: processing_errors
-    keyType: string
-    valueType: json
-
-pipelines:
-  main_pipeline:
-    from: input
-    via:
-      - type: mapValues
-        mapper:
-          code: process_data(value)
-        onError:
-          sendTo: errors
-          withKey: "error-" + key
-          withValue: {"original": value, "error": exception.getMessage()}
-    to: output
-```
-
 ## Best Practices
 
 ### Naming Conventions
 
 - Use descriptive names for streams, functions, and pipelines.
-- Use camelCase for function and pipeline names.
-- Use snake_case for parameter names.
+- Use snake_case for state store, function and pipeline names.
 
 ### Code Organization
 
@@ -333,24 +298,35 @@ streams:
 
 functions:
   calculate_total:
-    type: mapValues
+    type: valueTransformer
     parameters:
       - name: order
-        type: object
+        type: struct
     code: |
       total = 0
       for item in order.get("items", []):
         total += item.get("price", 0) * item.get("quantity", 0)
       return {**order, "total": total}
+    resultType: struct
+
+  join_with_customers:
+    type: valueJoiner
+    code: |
+      return {
+        **value1,
+        "customer": value2
+      }
+    resultType: struct
 
   enrich_order:
-    type: mapValues
+    type: valueTransformer
     parameters:
       - name: order
-        type: object
+        type: struct
       - name: customer
-        type: object
+        type: struct
     code: |
+      customer = value.get("customer")
       if customer is None:
         return order
       return {
@@ -359,29 +335,24 @@ functions:
         "customer_tier": customer.get("tier", "standard"),
         "loyalty_points": order.get("total", 0) * 0.1
       }
+    resultType: struct
 
 pipelines:
   order_processing:
     from: orders
     via:
-      - type: mapValues
-        mapper:
-          code: calculate_total(value)
+      - type: transformValue
+        mapper: calculate_total
       - type: join
         with: customers
-      - type: mapValues
-        mapper:
-          code: enrich_order(value, foreignValue)
+        valueJoiner: join_with_customers
+      - type: transformValue
+        mapper: enrich_order
       - type: filter
         if:
           expression: value.get("total") > 0
     to: enriched_orders
-
-configuration:
-  application.id: order-processing-app
-  bootstrap.servers: kafka:9092
-  default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
-  default.value.serde: io.axual.ksml.data.json.JsonSerde
 ```
 
-This example demonstrates a complete KSML application that processes orders, calculates totals, enriches them with customer data, and filters out zero-total orders.
+This example demonstrates a complete KSML application that processes orders, calculates totals, enriches them with
+customer data, and filters out zero-total orders.

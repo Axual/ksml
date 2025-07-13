@@ -6,25 +6,29 @@ Understanding these core concepts will give you a solid foundation for building 
 
 ## Key KSML Components
 
-### [Streams and Data Types](streams-and-data-types.md)
+### [ Data Types ](../reference/data-types-reference.md)
+
+Check out which data types KSML applications can handle. Data types are used as:
+
+- Key and value types
+- Function parameter types
+- Function result types
+
+### [Stream Types](../reference/stream-types-reference.md)
 
 Learn about the fundamental building blocks of KSML applications:
 
 - Understanding stream types (KStream, KTable, GlobalKTable)
-- Working with different data formats (Avro, JSON, CSV, etc.)
+- 
+
+### [Notations](../reference/notations-reference.md)
+
+Find out how to use different notations for Kafka topics:
+
 - Key and value types
+- Working with different data formats (Avro, JSON, CSV, etc.)
 - Schema management
 - Serialization and deserialization
-
-### [Pipelines](pipelines.md)
-
-Explore how data flows through KSML applications:
-
-- Pipeline structure and components
-- Input and output configurations
-- Connecting pipelines
-- Best practices for pipeline design
-- Error handling in pipelines
 
 ### [Functions](functions.md)
 
@@ -35,6 +39,16 @@ Discover how to use Python functions in your KSML applications:
 - Function parameters and return types
 - Reusing functions across pipelines
 - Function execution context and limitations
+
+### [Pipelines](pipelines.md)
+
+Explore how data flows through KSML applications:
+
+- Pipeline structure and components
+- Input and output configurations
+- Connecting pipelines
+- Best practices for pipeline design
+- Error handling in pipelines
 
 ### [Operations](operations.md)
 
@@ -59,7 +73,7 @@ Beyond just the syntax and components, this section helps you understand:
 
 You can read through these core concepts in order for a comprehensive understanding, or jump to specific topics as needed:
 
-1. Start with [Streams and Data Types](streams-and-data-types.md) to understand the basic data model
+1. Start with [Streams and Data Types](../reference/stream-types-reference.md) to understand the basic data model
 2. Move on to [Pipelines](pipelines.md) to learn how data flows through your application
 3. Explore [Functions](functions.md) to see how to implement custom logic
 4. Finish with [Operations](operations.md) to learn about all the ways you can process your data
@@ -68,6 +82,6 @@ Each page includes conceptual explanations, code examples, and best practices to
 
 ## Additional Resources
 
-- [Getting Started: KSML Basics Tutorial](../getting-started/basics-tutorial.md) - A hands-on introduction to KSML
+- [Getting Started: KSML Basics Tutorial](../tutorials/getting-started/basics-tutorial.md) - A hands-on introduction to KSML
 - [Reference Documentation](../reference/language-reference.md) - Complete technical reference
 - [Examples Library](../resources/examples-library.md) - Ready-to-use examples demonstrating these concepts

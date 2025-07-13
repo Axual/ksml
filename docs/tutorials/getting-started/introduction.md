@@ -100,4 +100,4 @@ Now that you understand what KSML is and its key concepts, you can:
 
 - Learn how to [install and set up KSML](installation.md)
 - Follow the [KSML Basics Tutorial](basics-tutorial.md) to build your first application
-- Explore the [Core Concepts](../core-concepts/streams-and-data-types.md) in more detail
+- Explore the [Core Concepts](../../reference/stream-types-reference.md) in more detail

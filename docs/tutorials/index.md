@@ -1,26 +1,40 @@
-# KSML Tutorials and Guides
+# Tutorials
 
-Welcome to the KSML tutorials and guides section. This section provides a progressive learning path from beginner to advanced topics, as well as practical use case guides.
+Welcome to the KSML tutorials and guides section. This section provides a progressive learning path from beginner to
+advanced topics, as well as practical use case guides.
 
 ## Learning Paths
 
+### [Getting Started](getting-started/index.md)
+
+This tutorial will help you understand what KSML is, how to set it up, and how to create your first KSML application.
+
 ### [Beginner Tutorials](beginner/index.md)
-Start here if you're new to KSML. These tutorials cover the basics of building simple data pipelines, filtering and transforming data, and implementing logging and monitoring.
+
+When you've installed KSML and are ready to develop, these tutorials cover the basics of building simple data pipelines,
+filtering and transforming data, and implementing logging and monitoring.
 
 ### [Intermediate Tutorials](intermediate/index.md)
-Once you're comfortable with the basics, move on to these tutorials to learn about aggregations, joins, windowed operations, and error handling.
+
+Once you're comfortable with the basics, move on to these tutorials to learn about aggregations, joins, windowed
+operations, and error handling.
 
 ### [Advanced Tutorials](advanced/index.md)
-These tutorials cover complex topics such as complex event processing, custom state stores, performance optimization, and external integration.
+
+These tutorials cover complex topics such as complex event processing, custom state stores, performance optimization,
+and external integration.
 
 ## Use Cases
 
-### [Use Case Guides](use-cases/index.md)
-Practical guides for implementing common use cases with KSML, including real-time analytics, data transformation, and event-driven applications.
+### [Use Case Guides](../use-cases/index.md)
+
+Practical guides for implementing common use cases with KSML, including real-time analytics, data transformation, and
+event-driven applications.
 
 ## How to Use These Tutorials
 
-Each tutorial builds on concepts from previous tutorials, so we recommend following them in order within each learning path. Each tutorial includes:
+Each tutorial builds on concepts from previous tutorials, so we recommend following them in order within each learning
+path. Each tutorial includes:
 
 1. **Objectives**: What you'll learn
 2. **Prerequisites**: What you need to know before starting
@@ -30,4 +44,6 @@ Each tutorial builds on concepts from previous tutorials, so we recommend follow
 
 ## Getting Help
 
-If you encounter any issues while working through these tutorials, check the [Troubleshooting Guide](../resources/troubleshooting.md) or reach out to the [KSML Community](../resources/community.md) for assistance.
+If you encounter any issues while working through these tutorials, check
+the [Troubleshooting Guide](../resources/troubleshooting.md) or reach out to
+the [KSML Community](../resources/community.md) for assistance.

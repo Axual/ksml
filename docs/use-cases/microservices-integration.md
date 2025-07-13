@@ -245,5 +245,5 @@ KSML provides a powerful yet simple way to implement integration patterns in mic
 ## Next Steps
 
 - Explore [Event-Driven Applications](event-driven-applications.md) for more advanced patterns
-- Learn about [Performance Optimization](../advanced/performance-optimization.md) for high-throughput scenarios
-- Check out [External Integration](../advanced/external-integration.md) for connecting with external systems
+- Learn about [Performance Optimization](../tutorials/advanced/performance-optimization.md) for high-throughput scenarios
+- Check out [External Integration](../tutorials/advanced/external-integration.md) for connecting with external systems

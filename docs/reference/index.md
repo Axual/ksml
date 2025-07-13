@@ -16,6 +16,36 @@ Complete documentation of the KSML language syntax and structure:
 - Schema validation
 - Common syntax patterns
 
+### [Data Types Reference](data-types-reference.md)
+
+Detailed information about all supported data types in KSML:
+
+- Primitive types (string, integer, etc.)
+- Complex types (JSON, Avro, etc.)
+- Type conversion
+- Serialization and deserialization
+- Schema management
+- Custom data types
+
+### [Notations Reference](notations-reference.md)
+
+Explanation of how you can configure the serialization/deserialization formats associated with KSML's notations:
+
+- Introduction to notations
+- How to configure notations
+- List of available supported variations
+
+### [Functions Reference](functions-reference.md)
+
+Complete documentation of KSML function types and usage:
+
+- Function types (forEach, mapper, predicate, etc.)
+- Function parameters and return values
+- Python code integration
+- Built-in functions
+- Function execution context
+- Best practices for function implementation
+
 ### [Operations Reference](operations-reference.md)
 
 Detailed documentation for all KSML operations:
@@ -31,28 +61,6 @@ Detailed documentation for all KSML operations:
   - Examples
   - Common use cases
   - Performance considerations
-
-### [Functions Reference](functions-reference.md)
-
-Complete documentation of KSML function types and usage:
-
-- Function types (forEach, mapper, predicate, etc.)
-- Function parameters and return values
-- Python code integration
-- Built-in functions
-- Function execution context
-- Best practices for function implementation
-
-### [Data Types Reference](data-types-reference.md)
-
-Detailed information about all supported data types in KSML:
-
-- Primitive types (string, integer, etc.)
-- Complex types (JSON, Avro, etc.)
-- Type conversion
-- Serialization and deserialization
-- Schema management
-- Custom data types
 
 ### [Configuration Reference](configuration-reference.md)
 
@@ -79,7 +87,7 @@ You can use the navigation menu to browse the reference sections, or use the sea
 
 ## Additional Resources
 
-- [Getting Started](../getting-started/introduction.md) - Introduction to KSML for beginners
+- [Getting Started](../tutorials/getting-started/introduction.md) - Introduction to KSML for beginners
 - [Core Concepts](../core-concepts/index.md) - Conceptual explanations of KSML components
 - [Tutorials](../tutorials/beginner/index.md) - Step-by-step guides for learning KSML
 - [Examples Library](../resources/examples-library.md) - Ready-to-use examples for common patterns

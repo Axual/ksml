@@ -56,7 +56,7 @@ pipelines:
         duration: 20s
         grace: 40s
       - type: aggregate
-        store: owner_count_store     # refer to predefined store configuration above
+        store: owner_count_store     # refer to the store configuration above
         initializer:
           expression: 0
           resultType: long

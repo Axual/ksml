@@ -51,7 +51,7 @@ Connect with the KSML community and get help:
 
 These resources are designed to complement the main documentation:
 
-- **When learning KSML**: Start with the [Getting Started](../getting-started/introduction.md) section and [Tutorials](../tutorials/beginner/index.md), then explore the [Examples Library](examples-library.md) for inspiration.
+- **When learning KSML**: Start with the [Getting Started](../tutorials/getting-started/introduction.md) section and [Tutorials](../tutorials/beginner/index.md), then explore the [Examples Library](examples-library.md) for inspiration.
 
 - **When building applications**: Refer to the [Core Concepts](../core-concepts/index.md) and [Reference](../reference/index.md) sections, and check the [Examples Library](examples-library.md) for patterns similar to your use case.
 

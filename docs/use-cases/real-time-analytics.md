@@ -18,9 +18,9 @@ In this tutorial, we'll build a real-time analytics pipeline that processes a st
 Before starting this tutorial, you should:
 
 - Understand basic KSML concepts (streams, functions, pipelines)
-- Have completed the [KSML Basics Tutorial](../../getting-started/basics-tutorial.md)
-- Be familiar with [Aggregations](../intermediate/aggregations.md)
-- Have a basic understanding of [Windowed Operations](../intermediate/windowed-operations.md)
+- Have completed the [KSML Basics Tutorial](../tutorials/getting-started/basics-tutorial.md)
+- Be familiar with [Aggregations](../tutorials/intermediate/aggregations.md)
+- Have a basic understanding of [Windowed Operations](../tutorials/intermediate/windowed-operations.md)
 
 ## The Use Case
 
@@ -256,4 +256,4 @@ Real-time analytics is a powerful use case for KSML, allowing you to gain immedi
 
 - Learn about [Data Transformation](data-transformation.md) for more complex processing
 - Explore [Event-Driven Applications](event-driven-applications.md) to trigger actions based on analytics
-- Check out [Performance Optimization](../advanced/performance-optimization.md) for handling high-volume data
+- Check out [Performance Optimization](../tutorials/advanced/performance-optimization.md) for handling high-volume data
