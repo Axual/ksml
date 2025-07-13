@@ -41,7 +41,7 @@ import java.util.*;
 
 @Slf4j
 public class TopologyGenerator {
-    private static final String UNKNOWN = "unknown";
+    private static final String UNDEFINED = "undefined";
     private final String applicationId;
     private final Properties optimization;
     private final PythonContextConfig pythonContextConfig;
@@ -70,9 +70,9 @@ public class TopologyGenerator {
         definitions.forEach((name, definition) -> {
             // Log the start of the producer
             log.info("Creating topology: name={}, version={}, namespace={}",
-                    definition.name() != null ? definition.name() : UNKNOWN,
-                    definition.version() != null ? definition.version() : UNKNOWN,
-                    definition.namespace() != null ? definition.namespace() : UNKNOWN);
+                    definition.name() != null ? definition.name() : UNDEFINED,
+                    definition.version() != null ? definition.version() : UNDEFINED,
+                    definition.namespace() != null ? definition.namespace() : UNDEFINED);
 
             final var context = new TopologyBuildContext(streamsBuilder, definition, pythonContextConfig);
             generate(definition, context);
