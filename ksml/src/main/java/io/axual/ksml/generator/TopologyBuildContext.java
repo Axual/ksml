@@ -142,7 +142,7 @@ public class TopologyBuildContext {
                 if (topicDefinition instanceof StreamDefinition || topicDefinition instanceof TableDefinition || topicDefinition instanceof GlobalTableDefinition) {
                     result = getStreamWrapper(topicDefinition, getStreamWrapperClass(topicDefinition, null));
                 } else {
-                    result = getStreamWrapper(new StreamDefinition(topicDefinition.topic(), topicDefinition.keyType(), topicDefinition.valueType(), topicDefinition.tsExtractor(), topicDefinition.resetPolicy()));
+                    result = getStreamWrapper(new StreamDefinition(topicDefinition.topic(), topicDefinition.keyType(), topicDefinition.valueType(), topicDefinition.resetPolicy(), topicDefinition.tsExtractor(), topicDefinition.partitioner()));
                 }
             }
 

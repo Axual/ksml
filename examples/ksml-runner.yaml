@@ -155,13 +155,11 @@ kafka:
   # Use these configuration properties when connecting to a cluster using the Axual naming patterns.
   # These patterns are resolved into the actual name used on Kafka using the values in this configuration map
   # and the topic names specified in the definition YAML files
+
+  #  axual.topic.pattern: "{tenant}-{instance}-{environment}-{topic}"
+  #  # Results in Kafka topic ksmldemo-dta-dev-<topic name from KSML definition YAML>
+  #  axual.group.id.pattern: "{tenant}-{instance}-{environment}-{group.id}"
+  #  axual.transactional.id.pattern: "{tenant}-{instance}-{environment}-{transactional.id}"
   #  tenant: "ksmldemo"
   #  instance: "dta"
   #  environment: "dev"
-
-  # Results in Kafka topic ksmldemo-dta-dev-<topic name from KSML definition YAML>
-#  axual.topic.pattern: "{tenant}-{instance}-{environment}-{topic}"
-  # Results in Kafka topic ksmldemo-dta-dev-<consumer group id>
-#  axual.group.id.pattern: "{tenant}-{instance}-{environment}-{group.id}"
-  # Results in Kafka topic ksmldemo-dta-dev-<transactional id>
-#  axual.transactional.id.pattern: "{tenant}-{instance}-{environment}-{transactional.id}"

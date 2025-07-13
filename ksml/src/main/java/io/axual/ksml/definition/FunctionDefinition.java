@@ -44,15 +44,23 @@ public class FunctionDefinition extends AbstractDefinition {
     private final ParameterDefinition[] parameters;
     private final String[] globalCode;
     private final String[] code;
-    private final String expression;
+    private final String[] expression;
     private final UserType resultType;
     private final List<String> storeNames;
 
     public static FunctionDefinition as(String type, String name, List<ParameterDefinition> parameters, String globalCode, String code, String expression, UserType resultType, List<String> storeNames) {
-        return new FunctionDefinition(type, name, parameters != null ? parameters.toArray(EMPTY_PARAMETER_ARRAY) : EMPTY_PARAMETER_ARRAY, multiline(globalCode), multiline(code), expression, resultType, storeNames);
+        return as(type, name, parameters, multiline(globalCode), multiline(code), multiline(expression), resultType, storeNames);
     }
 
-    public static FunctionDefinition as(String type, String name, ParameterDefinition[] parameters, String[] globalCode, String[] code, String expression, UserType resultType, List<String> storeNames) {
+    public static FunctionDefinition as(String type, String name, List<ParameterDefinition> parameters, String[] globalCode, String[] code, String[] expression, UserType resultType, List<String> storeNames) {
+        return as(type, name, parameters != null ? parameters.toArray(EMPTY_PARAMETER_ARRAY) : EMPTY_PARAMETER_ARRAY, globalCode, code, expression, resultType, storeNames);
+    }
+
+    public static FunctionDefinition as(String type, String name, ParameterDefinition[] parameters, String globalCode, String code, String expression, UserType resultType, List<String> storeNames) {
+        return new FunctionDefinition(type, name, parameters, multiline(globalCode), multiline(code), multiline(expression), resultType, storeNames);
+    }
+
+    public static FunctionDefinition as(String type, String name, ParameterDefinition[] parameters, String[] globalCode, String[] code, String[] expression, UserType resultType, List<String> storeNames) {
         return new FunctionDefinition(type, name, parameters, globalCode, code, expression, resultType, storeNames);
     }
 
@@ -68,7 +76,7 @@ public class FunctionDefinition extends AbstractDefinition {
         return new FunctionDefinition(type, name, parameters, globalCode, code, expression, resultType, storeNames);
     }
 
-    public FunctionDefinition withCode(String[] globalCode, String[] code, String expression, List<String> storeNames) {
+    public FunctionDefinition withCode(String[] globalCode, String[] code, String[] expression, List<String> storeNames) {
         return new FunctionDefinition(type, name, parameters, globalCode, code, expression, resultType, storeNames);
     }
 
@@ -77,10 +85,14 @@ public class FunctionDefinition extends AbstractDefinition {
     }
 
     public FunctionDefinition withResult(UserType resultType) {
-        return new FunctionDefinition(type, name, parameters, globalCode, code, resultType != null ? expression : null, resultType, storeNames);
+        return new FunctionDefinition(type, name, parameters, globalCode, code, resultType != null ? expression : EMPTY_STRING_ARRAY, resultType, storeNames);
     }
 
     public FunctionDefinition withDefaultExpression(String expression) {
+        return withDefaultExpression(new String[]{expression});
+    }
+
+    public FunctionDefinition withDefaultExpression(String[] expression) {
         if (this.expression == null) {
             return new FunctionDefinition(type, name, parameters, globalCode, code, expression, resultType, storeNames);
         }
@@ -88,10 +100,8 @@ public class FunctionDefinition extends AbstractDefinition {
     }
 
     public FunctionDefinition withAResult() {
-        if (expression == null)
-            throw functionResultError("Function type requires a result expression");
         if (resultType == null)
-            throw functionResultError("Function type requires a result type");
+            throw functionResultError("Function has no defined resultType");
         return this;
     }
 
@@ -116,7 +126,7 @@ public class FunctionDefinition extends AbstractDefinition {
         return new FunctionDefinition(type, name, parameters, globalCode, code, expression, resultType, storeNames);
     }
 
-    private FunctionDefinition(String type, String name, ParameterDefinition[] parameters, String[] globalCode, String[] code, String expression, UserType resultType, List<String> storeNames) {
+    private FunctionDefinition(String type, String name, ParameterDefinition[] parameters, String[] globalCode, String[] code, String[] expression, UserType resultType, List<String> storeNames) {
         this.type = type;
         this.name = name;
         this.parameters = parameters;

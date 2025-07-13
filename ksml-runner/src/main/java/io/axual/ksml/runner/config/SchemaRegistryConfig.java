@@ -1,8 +1,8 @@
-package io.axual.ksml.definition;
+package io.axual.ksml.runner.config;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Runner
  * %%
  * Copyright (C) 2021 - 2023 Axual B.V.
  * %%
@@ -20,19 +20,14 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Builder;
+import lombok.extern.jackson.Jacksonized;
 
-import io.axual.ksml.type.UserType;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import org.apache.kafka.streams.AutoOffsetReset;
+import java.util.Map;
 
-@Getter
-@EqualsAndHashCode
-public class GlobalTableDefinition extends TopicDefinition {
-    private final KeyValueStateStoreDefinition store;
-
-    public GlobalTableDefinition(String topic, UserType keyType, UserType valueType, AutoOffsetReset resetPolicy, FunctionDefinition tsExtractor, FunctionDefinition partitioner, KeyValueStateStoreDefinition store) {
-        super(topic, keyType, valueType, resetPolicy, tsExtractor, partitioner);
-        this.store = store;
-    }
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Builder
+@Jacksonized
+public record SchemaRegistryConfig(Map<String, String> config) {
 }

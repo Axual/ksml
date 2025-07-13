@@ -25,6 +25,8 @@ import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.schema.*;
 import io.axual.ksml.data.type.*;
 
+import java.util.List;
+
 public class DataTypeDataSchemaMapper implements DataSchemaMapper<DataType> {
     public DataSchema toDataSchema(String namespace, String name, DataType type) {
         if (type == DataType.UNKNOWN) return DataSchema.ANY_SCHEMA;
@@ -48,6 +50,8 @@ public class DataTypeDataSchemaMapper implements DataSchemaMapper<DataType> {
             return structType.schema() != null ? new StructSchema(structType.schema()) : StructSchema.SCHEMALESS;
         if (type instanceof MapType mapType)
             return new MapSchema(toDataSchema(namespace, name, mapType.valueType()));
+        if (type instanceof TupleType tupleType)
+            return new TupleSchema(tupleType, this);
         if (type instanceof UnionType unionType) {
             var fields = new DataField[unionType.memberTypes().length];
             for (int index = 0; index < unionType.memberTypes().length; index++) {
@@ -77,8 +81,11 @@ public class DataTypeDataSchemaMapper implements DataSchemaMapper<DataType> {
         if (schema == DataSchema.STRING_SCHEMA) return DataString.DATATYPE;
         if (schema instanceof EnumSchema enumSchema) return new EnumType(enumSchema.symbols());
         if (schema instanceof ListSchema listSchema) return new ListType(fromDataSchema(listSchema.valueSchema()));
-        if (schema instanceof StructSchema structSchema) return new StructType(structSchema);
         if (schema instanceof MapSchema mapSchema) return new MapType(fromDataSchema(mapSchema.valueSchema()));
+        // Process TupleSchema first, since it inherits from StructSchema
+        if (schema instanceof TupleSchema tupleSchema)
+            return new TupleType(convertFieldsToSubTypes(tupleSchema.fields()));
+        if (schema instanceof StructSchema structSchema) return new StructType(structSchema);
         if (schema instanceof UnionSchema unionSchema) {
             var types = new UnionType.MemberType[unionSchema.memberSchemas().length];
             for (int index = 0; index < unionSchema.memberSchemas().length; index++) {
@@ -92,5 +99,13 @@ public class DataTypeDataSchemaMapper implements DataSchemaMapper<DataType> {
         }
 
         throw new SchemaException("Can not convert schema " + schema + " to a dataType");
+    }
+
+    private DataType[] convertFieldsToSubTypes(List<DataField> fields) {
+        var result = new DataType[fields.size()];
+        for (int index = 0; index < fields.size(); index++) {
+            result[index] = fromDataSchema(fields.get(index).schema());
+        }
+        return result;
     }
 }

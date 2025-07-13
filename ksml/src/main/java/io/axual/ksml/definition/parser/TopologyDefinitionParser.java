@@ -21,6 +21,7 @@ package io.axual.ksml.definition.parser;
  */
 
 import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.parser.DefinitionParser;
@@ -34,6 +35,8 @@ import static io.axual.ksml.dsl.KSMLDSL.PIPELINES;
 import static io.axual.ksml.dsl.KSMLDSL.PRODUCERS;
 
 public class TopologyDefinitionParser extends DefinitionParser<TopologyDefinition> {
+    private static final String PIPELINE = "pipeline";
+    private static final String PRODUCER = "producer";
     private final TopologyResourcesParser resourcesParser;
 
     public TopologyDefinitionParser(String namespace) {
@@ -43,8 +46,8 @@ public class TopologyDefinitionParser extends DefinitionParser<TopologyDefinitio
     @Override
     public StructsParser<TopologyDefinition> parser() {
         final var dummyResources = new TopologyResources("dummy");
-        final var pipelinesParser = optional(mapField(PIPELINES, "pipeline", "pipeline", "Collection of named pipelines", new PipelineDefinitionParser(dummyResources)));
-        final var producersParser = optional(mapField(PRODUCERS, "producer", "producer", "Collection of named producers", new ProducerDefinitionParser(dummyResources)));
+        final var pipelinesParser = optional(mapField(PIPELINES, PIPELINE, PIPELINE, "Collection of named pipelines", new PipelineDefinitionParser(dummyResources)));
+        final var producersParser = optional(mapField(PRODUCERS, PRODUCER, PRODUCER, "Collection of named producers", new ProducerDefinitionParser(dummyResources)));
 
         final var fields = resourcesParser.schemas().getFirst().fields();
         fields.addAll(pipelinesParser.schemas().getFirst().fields());
@@ -54,16 +57,20 @@ public class TopologyDefinitionParser extends DefinitionParser<TopologyDefinitio
         return new StructsParser<>() {
             @Override
             public TopologyDefinition parse(ParseNode node) {
+                final var name = optional(stringField(KSMLDSL.NAME, true, "<anonymous topology>", "The name of the topology")).parse(node);
+                final var version = optional(stringField(KSMLDSL.VERSION, true, "<no version>", "The version of the topology")).parse(node);
+                final var description = optional(stringField(KSMLDSL.DESCRIPTION, true, "", "The description of the topology")).parse(node);
+
                 final var resources = resourcesParser.parse(node);
-                final var result = new TopologyDefinition(resources.namespace());
+                final var result = new TopologyDefinition(resources.namespace(), name, version, description);
                 // Copy the resources into the topology definition
                 resources.topics().forEach(result::register);
                 resources.stateStores().forEach(result::register);
                 resources.functions().forEach(result::register);
                 // Parse all defined pipelines, using this topology's name as operation prefix
-                new MapParser<>("pipeline", "pipeline definition", new PipelineDefinitionParser(resources)).parse(node.get(PIPELINES)).forEach(result::register);
+                new MapParser<>(PIPELINE, "pipeline definition", new PipelineDefinitionParser(resources)).parse(node.get(PIPELINES)).forEach(result::register);
                 // Parse all defined producers, using this topology's name as operation prefix
-                new MapParser<>("producer", "producer definition", new ProducerDefinitionParser(resources)).parse(node.get(PRODUCERS)).forEach(result::register);
+                new MapParser<>(PRODUCER, "producer definition", new ProducerDefinitionParser(resources)).parse(node.get(PRODUCERS)).forEach(result::register);
                 return result;
             }
 

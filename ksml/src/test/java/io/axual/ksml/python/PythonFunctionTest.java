@@ -66,7 +66,7 @@ class PythonFunctionTest {
                   return one + two
                 
                 """;
-        final var adderDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "adder", params, null, pythonCode.split("\n"), "myAddFunc(one, two)", resultType, null);
+        final var adderDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "adder", params, null, pythonCode.split("\n"), new String[]{"myAddFunc(one, two)"}, resultType, null);
         final var adder = PythonFunction.forFunction(context, "test", "adder", adderDef);
 
         final var arg1 = new DataInteger(i1);
@@ -88,7 +88,7 @@ class PythonFunctionTest {
                   return one + two
                 
                 """;
-        final var adderDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "adder", params, pythonCode.split("\n"), null, "myAddFunc(one, two)", resultType, null);
+        final var adderDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "adder", params, pythonCode.split("\n"), null, new String[]{"myAddFunc(one, two)"}, resultType, null);
         final var adder = PythonFunction.forFunction(context, "test", "adder", adderDef);
 
         final var arg1 = new DataInteger(i1);

@@ -52,6 +52,7 @@
         <module>ksml-data-binary</module>
         <module>ksml-data-csv</module>
         <module>ksml-data-json</module>
+        <module>ksml-data-jsonschema</module>
         <module>ksml-data-protobuf</module>
         <module>ksml-data-soap</module>
         <module>ksml-data-xml</module>
@@ -86,7 +87,7 @@
         <slf4j.version>2.1.0-alpha1</slf4j.version>
 
         <!-- test dependency versions -->
-        <junit.version>5.13.2</junit.version>
+        <junit.version>5.13.3</junit.version>
         <hamcrest.version>3.0</hamcrest.version>
         <assertj.version>3.27.3</assertj.version>
         <mockito-core.version>5.18.0</mockito-core.version>
@@ -106,7 +107,7 @@
         <maven.compiler.plugin.version>3.14.0</maven.compiler.plugin.version>
         <maven.jar.plugin.version>3.4.2</maven.jar.plugin.version>
         <maven.install.plugin.version>3.1.4</maven.install.plugin.version>
-        <maven.enforcer.plugin.version>3.5.0</maven.enforcer.plugin.version>
+        <maven.enforcer.plugin.version>3.6.0</maven.enforcer.plugin.version>
         <maven.exec.plugin.version>3.5.1</maven.exec.plugin.version>
         <maven.license.plugin.version>2.6.0</maven.license.plugin.version>
         <maven.resources.plugin.version>3.3.1</maven.resources.plugin.version>
@@ -161,6 +162,11 @@
             <dependency>
                 <groupId>io.axual.ksml</groupId>
                 <artifactId>ksml-data-json</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml-data-jsonschema</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -263,6 +269,11 @@
             </dependency>
             <dependency>
                 <groupId>io.apicurio</groupId>
+                <artifactId>apicurio-registry-serdes-jsonschema-serde</artifactId>
+                <version>${apicurio.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.apicurio</groupId>
                 <artifactId>apicurio-registry-protobuf-schema-utilities</artifactId>
                 <version>${apicurio.version}</version>
             </dependency>
@@ -274,6 +285,16 @@
             <dependency>
                 <groupId>io.confluent</groupId>
                 <artifactId>kafka-avro-serializer</artifactId>
+                <version>${confluent.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.confluent</groupId>
+                <artifactId>kafka-json-schema-serializer</artifactId>
+                <version>${confluent.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.confluent</groupId>
+                <artifactId>kafka-protobuf-serializer</artifactId>
                 <version>${confluent.version}</version>
             </dependency>
 

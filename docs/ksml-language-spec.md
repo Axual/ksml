@@ -82,7 +82,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the aggregator. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the aggregator. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -106,7 +106,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the aggregator. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the aggregator. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -241,7 +241,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the foreach action. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the foreach action. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -267,7 +267,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the foreach action. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the foreach action. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -292,7 +292,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the foreign key extractor. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the foreign key extractor. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -316,7 +316,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the foreign key extractor. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the foreign key extractor. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -339,7 +339,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the message generator. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the message generator. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -363,7 +363,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the message generator. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the message generator. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -386,7 +386,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the generic function. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the generic function. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -403,27 +403,35 @@
     - **Items** *(object)*: Refer to *[#/definitions/ParameterDefinition](#definitions/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the generic function. Only required for function types, which are not pre-defined.
   - **`type`**: The type of the function. Must be one of: `["generic"]`.
-- <a id="definitions/GlobalTableDefinition"></a>**`GlobalTableDefinition`** *(object)*: Contains a definition of a GlobalTable, which can be referenced by producers and pipelines. Cannot contain additional properties.
-  - **`keyType`** *(string, required)*: The key type of the global table.
-  - **`offsetResetPolicy`** *(string)*: *(optional)* Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted).
+- <a id="definitions/GlobalTableDefinition"></a>**`GlobalTableDefinition`** *(object)*: Contains a definition of a globalTable, which can be referenced by producers and pipelines. Cannot contain additional properties.
+  - **`keyType`** *(string, required)*: The key type of the globalTable.
+  - **`offsetResetPolicy`** *(string)*: *(optional)* The policy that determines what to do when there is no initial consumer offset in Kafka, or if the message at the committed consumer offset does not exist (e.g. because that data has been deleted).
+  - **`partitioner`**: *(optional)* A function that determines to which topic partition a given message needs to be written.
+    - **Any of**
+      - *string*
+      - *object*: Refer to *[#/definitions/StreamPartitionerDefinitionWithImplicitStoreType](#definitions/StreamPartitionerDefinitionWithImplicitStoreType)*.
   - **`store`**: *(optional)* KeyValue state store definition.
     - **Any of**
       - *string*
       - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType)*.
-  - **`timestampExtractor`**: *(optional)* A function extracts the event time from a consumed record.
+  - **`timestampExtractor`**: *(optional)* A function that extracts the event time from a consumed record.
     - **Any of**
       - *string*
       - *object*: Refer to *[#/definitions/TimestampExtractorDefinitionWithImplicitStoreType](#definitions/TimestampExtractorDefinitionWithImplicitStoreType)*.
-  - **`topic`** *(string, required)*: The name of the Kafka topic for this global table.
-  - **`valueType`** *(string, required)*: The value type of the global table.
-- <a id="definitions/GlobalTableDefinitionAsJoinTarget"></a>**`GlobalTableDefinitionAsJoinTarget`** *(object)*: Reference to a GlobalTable in a join operation. Cannot contain additional properties.
-  - **`keyType`** *(string)*: *(optional)* The key type of the global table.
+  - **`topic`** *(string, required)*: The name of the Kafka topic for this globalTable.
+  - **`valueType`** *(string, required)*: The value type of the globalTable.
+- <a id="definitions/GlobalTableDefinitionAsJoinTarget"></a>**`GlobalTableDefinitionAsJoinTarget`** *(object)*: Reference to a globalTable in a join operation. Cannot contain additional properties.
+  - **`keyType`** *(string)*: *(optional)* The key type of the globalTable.
+  - **`partitioner`**: *(optional)* A function that determines to which topic partition a given message needs to be written.
+    - **Any of**
+      - *string*
+      - *object*: Refer to *[#/definitions/StreamPartitionerDefinitionWithImplicitStoreType](#definitions/StreamPartitionerDefinitionWithImplicitStoreType)*.
   - **`store`**: *(optional)* KeyValue state store definition.
     - **Any of**
       - *string*
       - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType)*.
-  - **`topic`** *(string, required)*: The name of the Kafka topic for this global table.
-  - **`valueType`** *(string)*: *(optional)* The value type of the global table.
+  - **`topic`** *(string, required)*: The name of the Kafka topic for this globalTable.
+  - **`valueType`** *(string)*: *(optional)* The value type of the globalTable.
 - <a id="definitions/GroupByKeyOperation"></a>**`GroupByKeyOperation`** *(object)*: Operation to group all messages with the same key together. Cannot contain additional properties.
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`store`**: *(optional)* Materialized view of the grouped stream.
@@ -449,7 +457,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the initializer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the initializer. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -473,7 +481,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the initializer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the initializer. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -569,7 +577,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the key transformer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the key transformer. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -595,7 +603,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the key transformer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the key transformer. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -620,7 +628,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the keyvalue mapper. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the keyvalue mapper. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -644,7 +652,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the keyvalue mapper. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the keyvalue mapper. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -667,7 +675,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the keyvalue printer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the keyvalue printer. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -691,7 +699,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the keyvalue printer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the keyvalue printer. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -765,7 +773,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the keyvalue-to-keyvaluelist transformer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the keyvalue-to-keyvaluelist transformer. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -791,7 +799,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the keyvalue-to-keyvaluelist transformer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the keyvalue-to-keyvaluelist transformer. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -816,7 +824,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the keyvalue-to-valuelist transformer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the keyvalue-to-valuelist transformer. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -842,7 +850,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the keyvalue-to-valuelist transformer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the keyvalue-to-valuelist transformer. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -867,7 +875,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the keyvalue transformer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the keyvalue transformer. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -893,7 +901,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the keyvalue transformer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the keyvalue transformer. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -998,7 +1006,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the merger. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the merger. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -1022,7 +1030,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the merger. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the merger. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -1045,7 +1053,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the metadata transformer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the metadata transformer. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -1071,7 +1079,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the metadata transformer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the metadata transformer. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -1211,7 +1219,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the predicate. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the predicate. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -1237,7 +1245,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the predicate. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the predicate. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -1321,7 +1329,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the reducer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the reducer. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -1345,7 +1353,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the reducer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the reducer. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -1385,6 +1393,10 @@
 - <a id="definitions/StreamDefinition"></a>**`StreamDefinition`** *(object)*: Contains a definition of a Stream, which can be referenced by producers and pipelines. Cannot contain additional properties.
   - **`keyType`** *(string, required)*: The key type of the stream.
   - **`offsetResetPolicy`** *(string)*: *(optional)* Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted).
+  - **`partitioner`**: *(optional)* A function that determines to which topic partition a given message needs to be written.
+    - **Any of**
+      - *string*
+      - *object*: Refer to *[#/definitions/StreamPartitionerDefinitionWithImplicitStoreType](#definitions/StreamPartitionerDefinitionWithImplicitStoreType)*.
   - **`timestampExtractor`**: *(optional)* A function extracts the event time from a consumed record.
     - **Any of**
       - *string*
@@ -1402,7 +1414,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the stream partitioner. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the stream partitioner. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -1426,7 +1438,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the stream partitioner. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the stream partitioner. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -1465,21 +1477,29 @@
   - **`name`** *(string)*: *(optional)* The name of the operation processor.
   - **`type`**: The type of the operation. Must be one of: `["suppress"]`.
   - **`until`**: The until of the Operation to suppress messages in the source stream until a certain limit is reached. Must be one of: `["windowCloses"]`.
-- <a id="definitions/TableDefinition"></a>**`TableDefinition`** *(object)*: Contains a definition of a Table, which can be referenced by producers and pipelines. Cannot contain additional properties.
+- <a id="definitions/TableDefinition"></a>**`TableDefinition`** *(object)*: Contains a definition of a table, which can be referenced by producers and pipelines. Cannot contain additional properties.
   - **`keyType`** *(string, required)*: The key type of the table.
-  - **`offsetResetPolicy`** *(string)*: *(optional)* Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted).
+  - **`offsetResetPolicy`** *(string)*: *(optional)* The policy that determines what to do when there is no initial consumer offset in Kafka, or if the message at the committed consumer offset does not exist (e.g. because that data has been deleted).
+  - **`partitioner`**: *(optional)* A function that determines to which topic partition a given message needs to be written.
+    - **Any of**
+      - *string*
+      - *object*: Refer to *[#/definitions/StreamPartitionerDefinitionWithImplicitStoreType](#definitions/StreamPartitionerDefinitionWithImplicitStoreType)*.
   - **`store`**: *(optional)* KeyValue state store definition.
     - **Any of**
       - *string*
       - *object*: Refer to *[#/definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType](#definitions/KeyValueStateStoreDefinitionWithImplicitStoreTypeWithImplicitKeyAndValueType)*.
-  - **`timestampExtractor`**: *(optional)* A function extracts the event time from a consumed record.
+  - **`timestampExtractor`**: *(optional)* A function that extracts the event time from a consumed record.
     - **Any of**
       - *string*
       - *object*: Refer to *[#/definitions/TimestampExtractorDefinitionWithImplicitStoreType](#definitions/TimestampExtractorDefinitionWithImplicitStoreType)*.
   - **`topic`** *(string, required)*: The name of the Kafka topic for this table.
   - **`valueType`** *(string, required)*: The value type of the table.
-- <a id="definitions/TableDefinitionAsJoinTarget"></a>**`TableDefinitionAsJoinTarget`** *(object)*: Reference to a Table in a join operation. Cannot contain additional properties.
+- <a id="definitions/TableDefinitionAsJoinTarget"></a>**`TableDefinitionAsJoinTarget`** *(object)*: Reference to a table in a join operation. Cannot contain additional properties.
   - **`keyType`** *(string)*: *(optional)* The key type of the table.
+  - **`partitioner`**: *(optional)* A function that determines to which topic partition a given message needs to be written.
+    - **Any of**
+      - *string*
+      - *object*: Refer to *[#/definitions/StreamPartitionerDefinitionWithImplicitStoreType](#definitions/StreamPartitionerDefinitionWithImplicitStoreType)*.
   - **`store`**: *(optional)* KeyValue state store definition.
     - **Any of**
       - *string*
@@ -1493,7 +1513,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the timestamp extractor. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the timestamp extractor. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -1517,7 +1537,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the timestamp extractor. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the timestamp extractor. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -1571,6 +1591,10 @@
 - <a id="definitions/TopicDefinitionSource"></a>**`TopicDefinitionSource`** *(object)*: Contains a definition of a Kafka topic, to be used by producers and pipelines. Cannot contain additional properties.
   - **`keyType`** *(string, required)*: The key type of the topic.
   - **`offsetResetPolicy`** *(string)*: *(optional)* Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted).
+  - **`partitioner`**: *(optional)* A function that determines to which topic partition a given message needs to be written.
+    - **Any of**
+      - *string*
+      - *object*: Refer to *[#/definitions/StreamPartitionerDefinitionWithImplicitStoreType](#definitions/StreamPartitionerDefinitionWithImplicitStoreType)*.
   - **`timestampExtractor`**: *(optional)* A function extracts the event time from a consumed record.
     - **Any of**
       - *string*
@@ -1584,7 +1608,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the topic name extractor. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the topic name extractor. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -1608,7 +1632,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the topic name extractor. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the topic name extractor. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -1677,7 +1701,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the value joiner. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the value joiner. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -1701,7 +1725,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the value joiner. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the value joiner. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -1724,7 +1748,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the value transformer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the value transformer. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*
@@ -1750,7 +1774,7 @@
       - *integer*
       - *number*
       - *string*
-  - **`expression`**: *(optional)* The expression returned by the value transformer. Only required for functions that return values.
+  - **`expression`**: *(optional)* The (multiline) expression returned by the value transformer. Used as an alternative for 'return' statements in the code.
     - **Any of**
       - *boolean*
       - *integer*

@@ -20,86 +20,51 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.TableDefinition;
-import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyBaseResources;
-import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.parser.StructsParser;
-import io.axual.ksml.parser.TopologyBaseResourceAwareParser;
-import io.axual.ksml.parser.TopologyResourceParser;
-import io.axual.ksml.store.StoreType;
 import io.axual.ksml.type.UserType;
 
-import java.util.List;
-
-import static io.axual.ksml.dsl.KSMLDSL.Streams;
-
-public class TableDefinitionParser extends TopologyBaseResourceAwareParser<TableDefinition> {
-    private static final String TOPIC_DOC = "The name of the Kafka topic for this table";
-    private final boolean isJoinTarget;
-
+public class TableDefinitionParser extends BaseTableDefinitionParser<TableDefinition> {
     public TableDefinitionParser(TopologyBaseResources resources, boolean isJoinTarget) {
-        super(resources);
-        this.isJoinTarget = isJoinTarget;
+        super(resources, isJoinTarget, "table");
     }
 
     @Override
     public StructsParser<TableDefinition> parser() {
-        final var keyField = userTypeField(Streams.KEY_TYPE, "The key type of the table");
-        final var valueField = userTypeField(Streams.VALUE_TYPE, "The value type of the table");
         if (!isJoinTarget) return structsParser(
                 TableDefinition.class,
                 "",
-                "Contains a definition of a Table, which can be referenced by producers and pipelines",
-                stringField(Streams.TOPIC, TOPIC_DOC),
-                keyField,
-                valueField,
-                optional(functionField(KSMLDSL.Streams.TIMESTAMP_EXTRACTOR, "A function extracts the event time from a consumed record", new TimestampExtractorDefinitionParser(false))),
-                optional(stringField(KSMLDSL.Streams.OFFSET_RESET_POLICY, "Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted)")),
+                "Contains a definition of a " + tableType + ", which can be referenced by producers and pipelines",
+                topicField(),
+                keyField(),
+                valueField(),
+                offsetResetPolicyField(),
+                timestampExtractorField(),
+                partitionerField(),
                 storeField(),
-                (topic, keyType, valueType, tsExtractor, resetPolicy, store, tags) -> {
+                (topic, keyType, valueType, resetPolicy, tsExtractor, partitioner, store, tags) -> {
                     keyType = keyType != null ? keyType : UserType.UNKNOWN;
                     valueType = valueType != null ? valueType : UserType.UNKNOWN;
                     final var policy = OffsetResetPolicyParser.parseResetPolicy(resetPolicy);
                     // If a backing store is used, then align its name, keyType and valueType to the topic
-                    return new TableDefinition(topic, keyType, valueType, tsExtractor, policy, store != null ? store.with(topic, keyType, valueType) : null);
+                    return new TableDefinition(topic, keyType, valueType, policy, tsExtractor, partitioner, store != null ? store.with(topic, keyType, valueType) : null);
                 });
+
         return structsParser(
                 TableDefinition.class,
                 "AsJoinTarget",
-                "Reference to a Table in a join operation",
-                stringField(Streams.TOPIC, TOPIC_DOC),
-                optional(keyField),
-                optional(valueField),
+                "Reference to a " + tableType + " in a join operation",
+                topicField(),
+                optional(keyField()),
+                optional(valueField()),
+                partitionerField(),
                 storeField(),
-                (topic, keyType, valueType, store, tags) -> {
+                (topic, keyType, valueType, partitioner, store, tags) -> {
                     keyType = keyType != null ? keyType : UserType.UNKNOWN;
                     valueType = valueType != null ? valueType : UserType.UNKNOWN;
                     // If a backing store is used, then align its name, keyType and valueType to the topic
-                    return new TableDefinition(topic, keyType, valueType, null, null, store != null ? store.with(topic, keyType, valueType) : null);
+                    return new TableDefinition(topic, keyType, valueType, null, null, partitioner, store != null ? store.with(topic, keyType, valueType) : null);
                 });
-    }
-
-    private StructsParser<KeyValueStateStoreDefinition> storeField() {
-        final var storeParser = new StateStoreDefinitionParser(StoreType.KEYVALUE_STORE, true);
-        final var resourceParser = new TopologyResourceParser<>("state store", Streams.STORE, "KeyValue state store definition", null, storeParser);
-        final var schemas = optional(resourceParser).schemas();
-        return new StructsParser<>() {
-            @Override
-            public KeyValueStateStoreDefinition parse(ParseNode node) {
-                storeParser.defaultShortName(node.name());
-                storeParser.defaultLongName(node.longName());
-                final var resource = resourceParser.parse(node);
-                if (resource != null && resource.definition() instanceof KeyValueStateStoreDefinition def) return def;
-                return null;
-            }
-
-            @Override
-            public List<StructSchema> schemas() {
-                return schemas;
-            }
-        };
     }
 }

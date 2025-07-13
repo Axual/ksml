@@ -9,7 +9,6 @@ streams:
     keyType: string
     valueType: avro:SensorData
     offsetResetPolicy: latest
-    timestampExtractor:
 
   sensor_transformed:
     topic: ksml_sensordata_transformed
@@ -35,7 +34,7 @@ functions:
       del sensordata["@schema"]
 
       triggeredAlertSettings=[]
-      
+
       if value2 is not None and value2["alertSettings"] is not None:
         for setting in value2["alertSettings"]:
           if setting["type"] == sensordata["type"] and setting["unit"] == sensordata["unit"] and ( (setting["alertBelow"] is not None and setting["alertBelow"] > sensordata["value"]) or (setting["alertAbove"] is not None and setting["alertAbove"] < sensordata["value"]) ):

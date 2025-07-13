@@ -32,16 +32,16 @@ import io.axual.ksml.operation.StoreOperation;
 import io.axual.ksml.operation.StreamOperation;
 import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.stream.StreamWrapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+@Slf4j
 public class TopologyGenerator {
-    private static final Logger LOG = LoggerFactory.getLogger(TopologyGenerator.class);
+    private static final String UNDEFINED = "undefined";
     private final String applicationId;
     private final Properties optimization;
     private final PythonContextConfig pythonContextConfig;
@@ -68,6 +68,12 @@ public class TopologyGenerator {
         final var stores = new TreeMap<String, StateStoreDefinition>();
 
         definitions.forEach((name, definition) -> {
+            // Log the start of the producer
+            log.info("Creating topology: name={}, version={}, namespace={}",
+                    definition.name() != null ? definition.name() : UNDEFINED,
+                    definition.version() != null ? definition.version() : UNDEFINED,
+                    definition.namespace() != null ? definition.namespace() : UNDEFINED);
+
             final var context = new TopologyBuildContext(streamsBuilder, definition, pythonContextConfig);
             generate(definition, context);
             stores.putAll(definition.stateStores());
@@ -87,7 +93,7 @@ public class TopologyGenerator {
 
         appendStores(summary, "Registered state stores", stores);
 
-        LOG.info("\n{}", summary);
+        log.info("\n{}", summary);
 
         return topology;
     }
@@ -192,7 +198,7 @@ public class TopologyGenerator {
                 tsBuilder.append("%n    ==> %s".formatted(pipeline.sink()));
                 cursor.apply(pipeline.sink(), context);
             }
-            LOG.info("""
+            log.info("""
                     Generating Kafka Streams topology for pipeline {}:
                     {}
                     """, name, tsBuilder);

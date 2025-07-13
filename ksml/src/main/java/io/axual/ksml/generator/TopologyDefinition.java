@@ -24,11 +24,19 @@ import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.definition.PipelineDefinition;
 import io.axual.ksml.definition.ProducerDefinition;
 import io.axual.ksml.exception.TopologyException;
+import lombok.Getter;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class TopologyDefinition extends TopologyResources {
+    // The metadata for this topology
+    @Getter
+    private final String name;
+    @Getter
+    private final String version;
+    @Getter
+    private final String description;
     // All registered pipelines in order of insertion
     private final Map<String, PipelineDefinition> pipelines = new LinkedHashMap<>();
     // All registered producers in order of insertion
@@ -41,8 +49,11 @@ public class TopologyDefinition extends TopologyResources {
         pipelines.put(name, pipelineDefinition);
     }
 
-    public TopologyDefinition(String namespace) {
+    public TopologyDefinition(String namespace, String name, String version, String description) {
         super(namespace);
+        this.name = name;
+        this.version = version;
+        this.description = description;
     }
 
     public PipelineDefinition pipeline(String name) {

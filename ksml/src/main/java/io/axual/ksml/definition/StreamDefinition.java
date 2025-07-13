@@ -25,7 +25,7 @@ import io.axual.ksml.type.UserType;
 import org.apache.kafka.streams.AutoOffsetReset;
 
 public class StreamDefinition extends TopicDefinition {
-    public StreamDefinition(String topic, UserType keyType, UserType valueType, FunctionDefinition tsExtractor, AutoOffsetReset resetPolicy) {
-        super(topic, keyType, valueType, tsExtractor, resetPolicy);
+    public StreamDefinition(String topic, UserType keyType, UserType valueType, AutoOffsetReset resetPolicy, FunctionDefinition tsExtractor, FunctionDefinition partitioner) {
+        super(topic, keyType, valueType, resetPolicy, tsExtractor, partitioner);
     }
 }
