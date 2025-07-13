@@ -35,17 +35,27 @@ ksml:
       loggerName: ProduceError    # Definition of the error logger name.
       handler: continueOnFail     # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
 
-  # This section tells KSML with which serializers / deserializers to handle certain notation types.
-  notations:
-    avro:                          # Definition for "avro" notation
-      type: confluent_avro         # For AVRO there are two implementations: apicurio_avro and confluent_avro
-      ## Below this line, specify properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
+  enableProducers: true           # Set to true to allow producer definitions to be parsed in the KSML definitions and be executed.
+  enablePipelines: false          # Set to true to allow pipeline definitions to be parsed in the KSML definitions and be executed.
+
+  # This section tells KSML which schema registries are available
+  schemaRegistries:
+    # Definition of an Apicurio schema registry
+    apicurio:
       config:
-        # The example uses Apicurio, using the Apicurio Confluent Compatibility URL
-        schema.registry.url: http://schema-registry:8081/apis/ccompat/v7
-        auto.register.schemas: true
-        normalize.schemas: true
-        # Below is an example SSL configuration for Confluent Serialization library
+        # Below is an example SSL configuration for Apicurio Serialization library from Apicurio documentation
+        # apicurio.registry.request.ssl.keystore.location: /path/to/keystore.jks
+        # apicurio.registry.request.ssl.keystore.type: JKS
+        # apicurio.registry.request.ssl.keystore.password: password
+        # apicurio.registry.request.ssl.key.password: password
+        # apicurio.registry.request.ssl.truststore.location: /path/to/truststore.jks
+        # apicurio.registry.request.ssl.truststore.type: JKS
+        # apicurio.registry.request.ssl.truststore.password: password
+
+    # Definition of a Confluent schema registry
+    confluent:
+      config:
+        # Example SSL configuration for Confluent schema registry
         # schema.registry.ssl.protocol: TLSv1.3
         # schema.registry.ssl.enabled.protocols: TLSv1.3,TLSv1.2
         # schema.registry.ssl.endpoint.identification.algorithm: ""
@@ -57,32 +67,43 @@ ksml:
         # schema.registry.ssl.truststore.type: JKS
         # schema.registry.ssl.truststore.password: password
 
-    # Definition for "otherAvro" notation. With this config, you can use a type like otherAvro:SchemaName in your
-    # KSML definition, which then uses the Apicurio implementation for AVRO.
-    otherAvro:
-      type: apicurio_avro         # For AVRO there are two implementations: apicurio_avro and confluent_avro
-      ## Below this line, specify properties to be passed into Apicurio's AvroKafkaSerializer and AvroKafkaDeserializer
+  # This section tells KSML which serializers / deserializers handle which notation types
+  notations:
+    # Definition for "avro" notation
+    avro:
+      serde: confluent_avro         # For AVRO there are two implementations: apicurio_avro and confluent_avro
+      schemaRegistry: confluent
       config:
-        apicurio.registry.url: http://schema-registry:8081/apis/registry/v2
-        # Register schema if it does not exist
-        apicurio.registry.auto-register: "true"
+        # Specify all properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
+        normalize.schemas: true
+        auto.register.schemas: false
+
+    # Definition for "second_avro" notation. With this entry, you can use a type like "second_avro:SchemaName" in your
+    # KSML definition, which then uses the Apicurio implementation for AVRO.
+    second_avro:
+      serde: apicurio_avro
+      schemaRegistry: apicurio
+      config:
         # Apicurio Avro serialisation settings
         # apicurio.registry.avro.encoding: "BINARY"
         # apicurio.registry.headers.enabled: "true"
         # apicurio.registry.serde.IdHandler: "io.apicurio.registry.serde.Default4ByteIdHandler"
         # apicurio.registry.schema-resolver: "io.apicurio.registry.resolver.DefaultSchemaResolver"
 
-        # Below is an example SSL configuration for Apicurio Serialization library from Apicurio documentation
-        # apicurio.registry.request.ssl.keystore.location: /path/to/keystore.jks
-        # apicurio.registry.request.ssl.keystore.type: JKS
-        # apicurio.registry.request.ssl.keystore.password: password
-        # apicurio.registry.request.ssl.key.password: password
-        # apicurio.registry.request.ssl.truststore.location: /path/to/truststore.jks
-        # apicurio.registry.request.ssl.truststore.type: JKS
-        # apicurio.registry.request.ssl.truststore.password: password
+    # Definition for "json" notation
+    jsonschema:
+      serde: apicurio_json          # For JSON there is only one implementation: apicurio_json
+      schemaRegistry: apicurio
+      config:
+        apicurio.registry.auto-register: true
 
-  enableProducers: true           # Set to true to allow producer definitions to be parsed in the KSML definitions and be executed.
-  enablePipelines: false          # Set to true to allow pipeline definitions to be parsed in the KSML definitions and be executed.
+    # Definition for "protobuf" notation
+    protobuf:                      # Definition for "protobuf" notation
+      type: apicurio_protobuf      # For Protobuf there is only one implementation: apicurio_protobuf
+      schemaRegistry: apicurio
+      ## Below this line, specify properties to be passed into Apicurio's ProtobufKafkaSerializer and ProtobufKafkaDeserializer
+      config:
+        apicurio.registry.auto-register: false
 
   # Section where you specify which KSML definitions to load, parse and execute.
   definitions:
@@ -101,29 +122,29 @@ kafka:
   security.protocol: PLAINTEXT
   acks: all
 
-# These are Kafka SSL configuration properties. Check the documentation at1
-# Check the documentation at https://kafka.apache.org/documentation/#producerconfigs for more properties
+  # These are Kafka SSL configuration properties. Check the documentation at1
+  # Check the documentation at https://kafka.apache.org/documentation/#producerconfigs for more properties
 
-#  security.protocol: SSL
-#  ssl.protocol: TLSv1.3
-#  ssl.enabled.protocols: TLSv1.3,TLSv1.2
-#  ssl.endpoint.identification.algorithm: ""
-#  ssl.keystore.type: JKS
-#  ssl.truststore.type: JKS
-#  ssl.key.password: xxx
-#  ssl.keystore.password: xxx
-#  ssl.keystore.location: /path/to/ksml.keystore.jks
-#  ssl.truststore.password: xxx
-#  ssl.truststore.location: /path/to/ksml.truststore.jks
+  #  security.protocol: SSL
+  #  ssl.protocol: TLSv1.3
+  #  ssl.enabled.protocols: TLSv1.3,TLSv1.2
+  #  ssl.endpoint.identification.algorithm: ""
+  #  ssl.keystore.type: JKS
+  #  ssl.truststore.type: JKS
+  #  ssl.key.password: xxx
+  #  ssl.keystore.password: xxx
+  #  ssl.keystore.location: /path/to/ksml.keystore.jks
+  #  ssl.truststore.password: xxx
+  #  ssl.truststore.location: /path/to/ksml.truststore.jks
 
-# Use these configuration properties when connecting to a cluster using the Axual naming patterns.
-# These patterns are resolved into the actual name used on Kafka using the values in this configuration map
-# and the topic names specified in the definition YAML files
+  # Use these configuration properties when connecting to a cluster using the Axual naming patterns.
+  # These patterns are resolved into the actual name used on Kafka using the values in this configuration map
+  # and the topic names specified in the definition YAML files
 
-#  tenant: "ksmldemo"
-#  instance: "dta"
-#  environment: "dev"
-#  topic.pattern: "{tenant}-{instance}-{environment}-{topic}"
-#  # Results in Kafka topic ksmldemo-dta-dev-<topic name from KSML definition YAML>
-#  group.id.pattern: "{tenant}-{instance}-{environment}-{group.id}"
-#  transactional.id.pattern: "{tenant}-{instance}-{environment}-{transactional.id}"
+  #  axual.topic.pattern: "{tenant}-{instance}-{environment}-{topic}"
+  #  # Results in Kafka topic ksmldemo-dta-dev-<topic name from KSML definition YAML>
+  #  axual.group.id.pattern: "{tenant}-{instance}-{environment}-{group.id}"
+  #  axual.transactional.id.pattern: "{tenant}-{instance}-{environment}-{transactional.id}"
+  #  tenant: "ksmldemo"
+  #  instance: "dta"
+  #  environment: "dev"

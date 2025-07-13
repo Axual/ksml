@@ -22,6 +22,7 @@ package io.axual.ksml.definition.parser;
 
 
 import io.axual.ksml.definition.StreamDefinition;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyBaseResources;
 import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyBaseResourceAwareParser;
@@ -48,11 +49,12 @@ public class StreamDefinitionParser extends TopologyBaseResourceAwareParser<Stre
                 stringField(Streams.TOPIC, TOPIC_DOC),
                 keyField,
                 valueField,
-                optional(functionField(Streams.TIMESTAMP_EXTRACTOR, "A function extracts the event time from a consumed record", new TimestampExtractorDefinitionParser(false))),
                 optional(stringField(Streams.OFFSET_RESET_POLICY, "Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted)")),
-                (topic, keyType, valueType, tsExtractor, resetPolicy, tags) -> {
+                optional(functionField(Streams.TIMESTAMP_EXTRACTOR, "A function extracts the event time from a consumed record", new TimestampExtractorDefinitionParser(false))),
+                optional(functionField(KSMLDSL.Streams.PARTITIONER, "A function that determines to which topic partition a given message needs to be written", new StreamPartitionerDefinitionParser(false))),
+                (topic, keyType, valueType, resetPolicy, tsExtractor, partitioner, tags) -> {
                     final var policy = OffsetResetPolicyParser.parseResetPolicy(resetPolicy);
-                    return new StreamDefinition(topic, keyType, valueType, tsExtractor, policy);
+                    return new StreamDefinition(topic, keyType, valueType, policy, tsExtractor, partitioner);
                 });
         return structsParser(
                 StreamDefinition.class,
@@ -61,6 +63,6 @@ public class StreamDefinitionParser extends TopologyBaseResourceAwareParser<Stre
                 stringField(Streams.TOPIC, TOPIC_DOC),
                 optional(keyField),
                 optional(valueField),
-                (topic, keyType, valueType, tags) -> new StreamDefinition(topic, keyType, valueType, null, null));
+                (topic, keyType, valueType, tags) -> new StreamDefinition(topic, keyType, valueType, null, null, null));
     }
 }

@@ -31,8 +31,8 @@ import org.apache.kafka.streams.AutoOffsetReset;
 public class TableDefinition extends TopicDefinition {
     private final KeyValueStateStoreDefinition store;
 
-    public TableDefinition(String topic, UserType keyType, UserType valueType, FunctionDefinition tsExtractor, AutoOffsetReset resetPolicy, KeyValueStateStoreDefinition store) {
-        super(topic, keyType, valueType, tsExtractor, resetPolicy);
+    public TableDefinition(String topic, UserType keyType, UserType valueType, AutoOffsetReset resetPolicy, FunctionDefinition tsExtractor, FunctionDefinition partitioner, KeyValueStateStoreDefinition store) {
+        super(topic, keyType, valueType, resetPolicy, tsExtractor, partitioner);
         this.store = store;
     }
 }

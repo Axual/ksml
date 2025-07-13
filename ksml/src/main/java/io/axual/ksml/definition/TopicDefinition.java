@@ -34,15 +34,17 @@ public class TopicDefinition extends AbstractDefinition {
     private final String topic;
     private final UserType keyType;
     private final UserType valueType;
-    private final FunctionDefinition tsExtractor;
     private final AutoOffsetReset resetPolicy;
+    private final FunctionDefinition tsExtractor;
+    private final FunctionDefinition partitioner;
 
     @Override
     public String toString() {
         final var kt = keyType != null ? ", " + keyType : "";
         final var vt = valueType != null ? ", " + valueType : "";
-        final var te = tsExtractor != null ? ", " + tsExtractor : "";
         final var rp = resetPolicy != null ? ", " + resetPolicy : "";
-        return definitionType() + "[topic=" + topic + kt + vt + te + rp + "]";
+        final var te = tsExtractor != null ? ", " + tsExtractor : "";
+        final var pt = partitioner != null ? ", " + partitioner : "";
+        return definitionType() + "[topic=" + topic + kt + vt + rp + te + pt + "]";
     }
 }

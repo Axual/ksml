@@ -35,6 +35,7 @@ import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
+import io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer;
 import lombok.Getter;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
@@ -50,6 +51,7 @@ public class ProtobufNotation extends BaseNotation {
 
     public enum SerdeType {
         APICURIO,
+        CONFLUENT
     }
 
     private static final String DESERIALIZATION_ERROR_MSG = "Error deserializing Protobuf message from topic ";
@@ -116,10 +118,12 @@ public class ProtobufNotation extends BaseNotation {
             backingSerializer = switch (type) {
                 case APICURIO ->
                         client != null ? new ProtobufKafkaSerializer<>(client) : new ProtobufKafkaSerializer<>();
+                case CONFLUENT -> new KafkaProtobufSerializer<>();
             };
             backingDeserializer = switch (type) {
                 case APICURIO ->
                         client != null ? new ProtobufKafkaDeserializer<>(client) : new ProtobufKafkaDeserializer<>();
+                case CONFLUENT -> new ProtobufKafkaDeserializer<>();
             };
 
             var wrappedSerde = new WrappedSerde(backingSerializer, backingDeserializer, nativeMapper, messageTypeHeaderName);

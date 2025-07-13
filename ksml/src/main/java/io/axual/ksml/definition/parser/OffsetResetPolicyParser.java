@@ -21,12 +21,20 @@ package io.axual.ksml.definition.parser;
  */
 
 import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.parser.DurationParser;
 import org.apache.kafka.clients.consumer.internals.AutoOffsetResetStrategy;
 import org.apache.kafka.streams.AutoOffsetReset;
 
 public class OffsetResetPolicyParser {
     public static AutoOffsetReset parseResetPolicy(String resetPolicy) {
         if (resetPolicy == null || resetPolicy.isEmpty()) return null;
+        if (resetPolicy.toUpperCase().startsWith(AutoOffsetResetStrategy.StrategyType.BY_DURATION.name() + ":")) {
+            // Check if KSML duration syntax is used
+            final var remainder = resetPolicy.substring(AutoOffsetResetStrategy.StrategyType.BY_DURATION.name().length()+1);
+            final var duration =  DurationParser.parseDuration(remainder, true);
+            if (duration!=null) return AutoOffsetReset.byDuration(duration);
+        }
+        // Use Kafka Streams default parsing
         final var strategy = AutoOffsetResetStrategy.fromString(resetPolicy);
         if (strategy.type() == AutoOffsetResetStrategy.StrategyType.EARLIEST)
             return AutoOffsetReset.earliest();

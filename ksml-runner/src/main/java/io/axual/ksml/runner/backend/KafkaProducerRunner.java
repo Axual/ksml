@@ -30,10 +30,9 @@ import io.axual.ksml.runner.exception.RunnerException;
 import io.axual.ksml.runner.producer.ExecutableProducer;
 import io.axual.ksml.runner.producer.IntervalSchedule;
 import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,14 +42,14 @@ import java.util.function.Function;
 import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
 
+@Slf4j
 public class KafkaProducerRunner implements Runner {
-    private static final Logger log = LoggerFactory.getLogger(KafkaProducerRunner.class);
+    private static final String UNKNOWN = "unknown";
     private final IntervalSchedule scheduler = new IntervalSchedule();
-    private final AtomicBoolean isRunning = new AtomicBoolean(false);
     private final AtomicBoolean hasFailed = new AtomicBoolean(false);
     private final AtomicBoolean stopRunning = new AtomicBoolean(false);
     private final Config config;
-    private final Function<Map<String,Object>, Producer<byte[], byte[]>> producerFactory;
+    private final Function<Map<String, Object>, Producer<byte[], byte[]>> producerFactory;
     private State currentState;
 
     @Builder
@@ -81,7 +80,7 @@ public class KafkaProducerRunner implements Runner {
     }
 
     // Package private to allow tests to inject configs
-    KafkaProducerRunner(Config config, Function<Map<String,Object>, Producer<byte[], byte[]>> producerFactory ) {
+    KafkaProducerRunner(Config config, Function<Map<String, Object>, Producer<byte[], byte[]>> producerFactory) {
         this.config = config;
         currentState = State.CREATED;
         this.producerFactory = producerFactory;
@@ -97,11 +96,15 @@ public class KafkaProducerRunner implements Runner {
 
     public void run() {
         log.info("Registering Kafka producer(s)");
-        isRunning.set(true);
         setState(State.STARTING);
 
         try {
             config.definitions.forEach((defName, definition) -> {
+                // Log the start of the producer
+                log.info("Starting producer: name={}, version={}, namespace={}",
+                        definition.name() != null ? definition.name() : UNKNOWN,
+                        definition.version() != null ? definition.version() : UNKNOWN,
+                        definition.namespace() != null ? definition.namespace() : UNKNOWN);
                 // Set up the Python context for this definition
                 final var context = new PythonContext(config.pythonContextConfig());
                 // Pre-register all functions in the Python context
@@ -139,7 +142,6 @@ public class KafkaProducerRunner implements Runner {
             throw new RunnerException("Unhandled producer exception", e);
         }
         setState(State.STOPPED);
-        isRunning.set(false);
         log.info("Producer(s) stopped");
     }
 

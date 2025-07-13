@@ -29,5 +29,5 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Builder
 @Jacksonized
-public record NotationConfig(String type, Map<String, String> config) {
+public record NotationConfig(String serde, String schemaRegistry, Map<String, String> config) {
 }

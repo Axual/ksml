@@ -53,13 +53,13 @@ public abstract class FunctionDefinitionParser<T extends FunctionDefinition> ext
         final var name = optional(stringField(Functions.NAME, "The name of the " + description + ". If this field is not defined, then the name is derived from the context."));
         final var params = optional(listField(Functions.PARAMETERS, "parameter", "parameter", "A list of parameters to be passed into the " + description, new ParameterDefinitionParser()));
         final var globalCode = optional(codeField(Functions.GLOBAL_CODE, "Global (multiline) code that gets loaded into the Python context outside of the " + description + ". Can be used for defining eg. global variables."));
-        final var code = optional(codeField(Functions.CODE, "The (multiline) code of the " + description));
-        final var expression = optional(codeField(Functions.EXPRESSION, "The expression returned by the " + description + ". Only required for functions that return values."));
+        final var code = optional(codeField(Functions.CODE, "The (multiline) code of the " + description + "."));
+        final var expression = optional(codeField(Functions.EXPRESSION, "The (multiline) expression returned by the " + description + ". Used as an alternative for 'return' statements in the code."));
         final var resultType = optional(userTypeField(Functions.RESULT_TYPE, "The data type returned by the " + description + ". Only required for function types, which are not pre-defined."));
         final var stores = includeStores
                 ? optional(listField(Functions.STORES, "store-name", "store", "A list of store names that the " + description + " uses. Only required if the function wants to use a state store.", new StringValueParser()))
                 : new IgnoreParser<List<String>>();
-        // We assume that the resultClass is always either using stores, or not using stores, but not a combination of both. Hence, we do not provide a definitionVariant extension to distinguish between the two.
+        // We assume that the resultClass is always either using stores or not using stores, but not a combination of both. Hence, we do not provide a definitionVariant extension to distinguish between the two.
         final var parser = structsParser(resultClass, parseType || requireType ? "" : KSMLDSL.Types.WITH_IMPLICIT_STORE_TYPE_POSTFIX, doc, name, params, globalCode, code, expression, resultType, stores, innerConstructor);
         return new StructsParser<>() {
             @Override

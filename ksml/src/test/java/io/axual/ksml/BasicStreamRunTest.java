@@ -68,7 +68,7 @@ class BasicStreamRunTest {
         ExecutionContext.INSTANCE.notationLibrary().register(jsonNotation);
 
         try {
-            final var schemaDirectoryURI = ClassLoader.getSystemResource("pipelines").toURI();
+            final var schemaDirectoryURI = ClassLoader.getSystemResource("schemas").toURI();
             final var schemaDirectory = schemaDirectoryURI.getPath();
             System.out.println("schemaDirectory = " + schemaDirectory);
             ExecutionContext.INSTANCE.schemaLibrary().schemaDirectory(schemaDirectory);

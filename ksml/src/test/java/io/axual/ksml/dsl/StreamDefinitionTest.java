@@ -59,7 +59,7 @@ class StreamDefinitionTest {
         final var stringType = UserTypeParser.parse("string");
 
         // given a StreamDefinition
-        final var streamDefinition = new StreamDefinition("topic", stringType, stringType, null, null);
+        final var streamDefinition = new StreamDefinition("topic", stringType, stringType, null, null, null);
         final var resources = new TopologyResources("test");
 
         final var context = new TopologyBuildContext(builder, resources);
