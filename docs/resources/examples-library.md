@@ -6,7 +6,7 @@ This document provides a collection of ready-to-use KSML examples for common str
 
 ### Hello World
 
-A simple pipeline that reads messages from one topic and writes them to another.
+A simple pipeline that reads messages from one topic and logs them to stdout.
 
 ```yaml
 streams:
@@ -14,7 +14,7 @@ streams:
     topic: input-topic
     keyType: string
     valueType: string
-    
+
   output:
     topic: output-topic
     keyType: string
@@ -27,13 +27,13 @@ pipelines:
       - type: peek
         forEach:
           code: |
-            log.info("Processing message: {}", value)
+            log.info("Processing message: key={}, value={}", key, value)
     to: output
 ```
 
 ### Simple Transformation
 
-Transforms JSON messages by extracting and restructuring fields.
+Transforms JSON messages by extracting and restructuring fields and writes the results to a target topic.
 
 ```yaml
 streams:
@@ -41,7 +41,7 @@ streams:
     topic: input-topic
     keyType: string
     valueType: json
-    
+
   output:
     topic: output-topic
     keyType: string
@@ -73,7 +73,7 @@ streams:
     topic: input-topic
     keyType: string
     valueType: json
-    
+
   output:
     topic: output-topic
     keyType: string
@@ -101,10 +101,10 @@ streams:
     topic: input-topic
     keyType: string
     valueType: json
-    
+
   output:
     topic: output-topic
-    keyType: string
+    keyType: json
     valueType: json
 
 pipelines:
@@ -112,10 +112,17 @@ pipelines:
     from: input
     via:
       - type: selectKey
-        keySelector:
+        mapper:
           expression: value.get("category")
       - type: groupByKey
       - type: count
+        store:
+          name: category_count
+          type: window
+          windowSize: 10m
+          retention: 1h
+          caching: false
+      - type: toStream
     to: output
 ```
 
@@ -135,54 +142,33 @@ streams:
     keyType: string
     valueType: json
 
-functions:
-  calculate_average:
-    type: aggregate
-    parameters:
-      - name: value
-        type: object
-      - name: aggregate
-        type: object
-    code: |
-      if aggregate is None:
-        return {"sum": value.get("amount", 0), "count": 1}
-      else:
-        return {
-          "sum": aggregate.get("sum", 0) + value.get("amount", 0),
-          "count": aggregate.get("count", 0) + 1
-        }
-
 pipelines:
   average_by_window:
     from: input
     via:
       - type: selectKey
-        keySelector:
+        mapper:
           expression: value.get("category")
       - type: groupByKey
-      - type: windowedBy
+      - type: windowByTime
         windowType: tumbling
-        timeDifference: 60000  # 1 minute window
+        duration: 1h
+        grace: 10s
       - type: aggregate
         initializer:
           expression: {"sum": 0, "count": 0}
+          resultType: struct
         aggregator:
-          code: calculate_average(value, aggregate)
-      - type: mapValues
-        mapper:
           code: |
-            if value.get("count", 0) > 0:
-              return {
-                "category": key,
-                "average": value.get("sum", 0) / value.get("count", 0),
-                "count": value.get("count", 0)
-              }
-            else:
-              return {
-                "category": key,
-                "average": 0,
-                "count": 0
-              }
+            count = aggregate.get("count", 0) + 1
+            sum = aggregate.get("sum", 0) + value.get("amount", 0)
+            return {
+              "count": count,
+              "sum": sum,
+              "average": sum / count
+            }
+          resultType: struct
+      - type: toStream
     to: output
 ```
 
@@ -210,15 +196,13 @@ streams:
 functions:
   enrich_order:
     type: mapValues
-    parameters:
-      - name: order
-        type: object
-      - name: product
-        type: object
     code: |
+      order = value1
+      product = value2
+
       if product is None:
         return order
-      
+
       return {
         "order_id": order.get("order_id"),
         "product_id": order.get("product_id"),
@@ -236,13 +220,11 @@ pipelines:
     from: orders
     via:
       - type: selectKey
-        keySelector:
+        mapper:
           expression: value.get("product_id")
       - type: join
         with: products
-      - type: mapValues
-        mapper:
-          code: enrich_order(value, foreignValue)
+        valueJoiner: enrich_order
     to: enriched_orders
 ```
 
@@ -266,11 +248,10 @@ streams:
 
 functions:
   detect_pattern:
-    type: process
-    parameters:
-      - name: events
-        type: array
+    type: valueTransformer
     code: |
+      events = value
+
       # Check for a specific pattern: 3 failed login attempts within 1 minute
       if len(events) < 3:
         return None
@@ -280,7 +261,7 @@ functions:
       
       # Check if all events are login failures
       all_failures = all(e.get("event_type") == "LOGIN_FAILURE" for e in sorted_events)
-      
+
       # Check if events occurred within 1 minute
       first_timestamp = sorted_events[0].get("timestamp", 0)
       last_timestamp = sorted_events[-1].get("timestamp", 0)
@@ -306,24 +287,19 @@ pipelines:
         if:
           expression: value.get("event_type") == "LOGIN_FAILURE"
       - type: selectKey
-        keySelector:
+        mapper:
           expression: value.get("user_id")
       - type: groupByKey
-      - type: windowedBy
-        windowType: session
-        timeDifference: 300000  # 5 minute session
+      - type: windowBySession
+        inactivityGap: 5m  # 5 minute session
+        grace: 10s
       - type: aggregate
         initializer:
           expression: []
         aggregator:
-          code: |
-            if aggregate is None:
-              return [value]
-            else:
-              return aggregate + [value]
-      - type: mapValues
-        mapper:
-          code: detect_pattern(value)
+          expression: aggregatedValue + [value]
+      - type: transformValue
+        mapper: detect_pattern
       - type: filter
         if:
           expression: value is not None
@@ -372,21 +348,21 @@ pipelines:
     from: clicks
     via:
       - type: selectKey
-        keySelector:
+        mapper:
           expression: value.get("user_id")
       - type: groupByKey
-      - type: windowedBy
+      - type: windowByTime
         windowType: tumbling
-        timeDifference: 3600000  # 1 hour
+        timeDifference: 1h
       - type: count
-      - type: mapValues
+      - type: toStream
+      - type: transformValue
         mapper:
-          code: |
-            return {
-              "user_id": key,
+          expression: |
+            {
+              "user_id": key.get("key"),
               "click_count": value,
-              "hour": int(window.start() / 3600000),
-              "date": window.startTime().toLocalDate().toString()
+              "datetime": key.get("startTime")
             }
     to: click_stats
     
@@ -395,29 +371,30 @@ pipelines:
     from: purchases
     via:
       - type: selectKey
-        keySelector:
+        mapper:
           expression: value.get("user_id")
       - type: groupByKey
       - type: aggregate
         initializer:
-          expression: {"count": 0, "total": 0}
+          expression: |
+            {"count": 0, "total": 0}
         aggregator:
           code: |
-            if aggregate is None:
-              return {"count": 1, "total": value.get("amount", 0)}
-            else:
-              return {
-                "count": aggregate.get("count", 0) + 1,
-                "total": aggregate.get("total", 0) + value.get("amount", 0)
-              }
-      - type: mapValues
+            count = aggregatedValue.get("count", 0) + 1
+            total = aggregatedValue.get("total", 0) + value.get("amount", 0)
+            return {
+              "count": count,
+              "total": total
+            }
+      - type: toStream
+      - type: transformValue
         mapper:
           code: |
             return {
-              "user_id": key,
-              "purchase_count": value.get("count", 0),
-              "total_spent": value.get("total", 0),
-              "average_order": value.get("total", 0) / value.get("count", 1)
+              "user_id": key.get("key"),
+              "purchase_count": value.get("count"),
+              "total_spent": value.get("total"),
+              "average_order": value.get("total") / value.get("count")
             }
     to: purchase_stats
     
@@ -426,12 +403,14 @@ pipelines:
     from: clicks
     via:
       - type: selectKey
-        keySelector:
+        mapper:
           expression: value.get("user_id")
       - type: leftJoin
         with: purchases
+        valueJoiner: 
       - type: leftJoin
         with: user_profiles
+        valueJoiner:
       - type: mapValues
         mapper:
           code: |
