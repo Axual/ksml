@@ -20,28 +20,28 @@ technical configuration parameters.
 The table below provides a complete list of all notations, their possible implementation alternatives and corresponding
 characteristics, such as what data types a notation maps to.
 
-| Notation name | KSML defined serde name | Serde supplier | Requires schema | Requires Schema Registry |  Schema source  | KSML data type |  Initialization   | Remarks                                             |
-|---------------|-------------------------|:--------------:|:---------------:|:------------------------:|:---------------:|----------------|:-----------------:|-----------------------------------------------------|
-| avro          | apicurio_avro           |    Apicurio    |        N        |            Y             |       SR        | struct         |   If configured   | Any AVRO, schema loaded from SR upon consume        |
-| avro          | confluent_avro          |   Confluent    |        N        |            Y             |       SR        | struct         | Unless overridden | Any AVRO, schema loaded from SR upon consume        |
-| avro          | apicurio_avro           |    Apicurio    |        Y        |            Y             | File or dynamic | struct         |   If configured   | Local file or Python-code-generated schema          |
-| avro          | confluent_avro          |   Confluent    |        Y        |            Y             | File or dynamic | struct         | Unless overridden | Local file or Python-code-generated schema          |
-| csv           | csv                     |      ksml      |        N        |            N             |       N/A       | struct         |      Always       | CSV Schemaless                                      |
-| csv           | csv                     |      ksml      |        Y        |            N             | File or dynamic | struct         |      Always       | Local file or Python-code-generated schema          |
-| json          | json                    |      ksml      |        N        |            N             |       N/A       | list or struct |      Always       | JSON Schemaless                                     |
-| json          | json                    |      ksml      |        Y        |            N             | File or dynamic | list or struct |      Always       | Local file or Python-code-generated schema          |
-| jsonschema    | apicurio_jsonschema     |    Apicurio    |        N        |            Y             |       SR        | struct         |   If configured   | Any JSON Schema, schema loaded from SR upon consume |
-| jsonschema    | confluent_jsonschema    |   Confluent    |        N        |            Y             |       SR        | struct         |   If configured   | Any JSON Schema, schema loaded from SR upon consume |
-| jsonschema    | apicurio_jsonschema     |    Apicurio    |        Y        |            Y             | File or dynamic | struct         |   If configured   | Local file or Python-code-generated schema          |
-| jsonschema    | confluent_jsonschema    |   Confluent    |        Y        |            Y             | File or dynamic | struct         |   If configured   | Local file or Python-code-generated schema          |
-| protobuf      | apicurio_protobuf       |    Apicurio    |        N        |            Y             |       SR        | struct         |   If configured   | Any Protobuf, schema loaded from SR upon consume    |
-| protobuf      | confluent_protobuf      |   Confluent    |        N        |            Y             |       SR        | struct         |   If configured   | Any Protobuf, schema loaded from SR upon consume    |
-| protobuf      | apicurio_protobuf       |    Apicurio    |        Y        |            Y             | File or dynamic | struct         |   If configured   | Local file or Python-code-generated schema          |
-| protobuf      | confluent_protobuf      |   Confluent    |        Y        |            Y             | File or dynamic | struct         |   If configured   | Local file or Python-code-generated schema          |
-| soap          | soap                    |      ksml      |        N        |            N             |       N/A       | struct         |      Always       | SOAP Schemaless                                     |
-| soap          | soap                    |      ksml      |        Y        |            N             | File or dynamic | struct         |      Always       | SOAP with Schema                                    |
-| xml           | xml                     |      ksml      |        N        |            N             |       N/A       | struct         |      Always       | XML Schemaless                                      |
-| xml           | xml                     |      ksml      |        Y        |            N             | File or dynamic | struct         |      Always       | XML with Schema                                     |
+| Notation name | KSML defined serde name | Serde supplier | With(out) schema | Requires SR |  Schema source  | KSML data type | Loaded in KSML | Remarks                                             |
+|---------------|-------------------------|:--------------:|:----------------:|:-----------:|:---------------:|----------------|:--------------:|-----------------------------------------------------|
+| avro          | apicurio_avro           |    Apicurio    |     Without      |      Y      |       SR        | struct         | If configured  | Any AVRO, schema loaded from SR upon consume        |
+| avro          | confluent_avro          |   Confluent    |     Without      |      Y      |       SR        | struct         |     Always     | Any AVRO, schema loaded from SR upon consume        |
+| avro          | apicurio_avro           |    Apicurio    |       With       |      Y      | File or dynamic | struct         | If configured  | Local file or Python-code-generated schema          |
+| avro          | confluent_avro          |   Confluent    |       With       |      Y      | File or dynamic | struct         |     Always     | Local file or Python-code-generated schema          |
+| csv           | csv                     |      ksml      |     Without      |      N      |       N/A       | struct         |     Always     | CSV Schemaless                                      |
+| csv           | csv                     |      ksml      |       With       |      N      | File or dynamic | struct         |     Always     | Local file or Python-code-generated schema          |
+| json          | json                    |      ksml      |     Without      |      N      |       N/A       | list or struct |     Always     | JSON Schemaless                                     |
+| json          | json                    |      ksml      |       With       |      N      | File or dynamic | list or struct |     Always     | Local file or Python-code-generated schema          |
+| jsonschema    | apicurio_jsonschema     |    Apicurio    |     Without      |      Y      |       SR        | struct         | If configured  | Any JSON Schema, schema loaded from SR upon consume |
+| jsonschema    | confluent_jsonschema    |   Confluent    |     Without      |      Y      |       SR        | struct         | If configured  | Any JSON Schema, schema loaded from SR upon consume |
+| jsonschema    | apicurio_jsonschema     |    Apicurio    |       With       |      Y      | File or dynamic | struct         | If configured  | Local file or Python-code-generated schema          |
+| jsonschema    | confluent_jsonschema    |   Confluent    |       With       |      Y      | File or dynamic | struct         | If configured  | Local file or Python-code-generated schema          |
+| protobuf      | apicurio_protobuf       |    Apicurio    |     Without      |      Y      |       SR        | struct         | If configured  | Any Protobuf, schema loaded from SR upon consume    |
+| protobuf      | confluent_protobuf      |   Confluent    |     Without      |      Y      |       SR        | struct         | If configured  | Any Protobuf, schema loaded from SR upon consume    |
+| protobuf      | apicurio_protobuf       |    Apicurio    |       With       |      Y      | File or dynamic | struct         | If configured  | Local file or Python-code-generated schema          |
+| protobuf      | confluent_protobuf      |   Confluent    |       With       |      Y      | File or dynamic | struct         | If configured  | Local file or Python-code-generated schema          |
+| soap          | soap                    |      ksml      |     Without      |      N      |       N/A       | struct         |     Always     | SOAP Schemaless                                     |
+| soap          | soap                    |      ksml      |       With       |      N      | File or dynamic | struct         |     Always     | SOAP with Schema                                    |
+| xml           | xml                     |      ksml      |     Without      |      N      |       N/A       | struct         |     Always     | XML Schemaless                                      |
+| xml           | xml                     |      ksml      |       With       |      N      | File or dynamic | struct         |     Always     | XML with Schema                                     |
 
 ### Using Notations
 
