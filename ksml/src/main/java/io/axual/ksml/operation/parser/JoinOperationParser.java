@@ -144,6 +144,5 @@ public class JoinOperationParser extends OperationParser<BaseOperation> {
                     }
                     throw new TopologyException("Join globalTable not correct, should be a defined globalTable");
                 });
-
     }
 }

@@ -126,7 +126,7 @@ streams:
 
 ### JSON
 
-JSON is a text-based, human-readable format for data transfer.
+JSON is a text-based, human-readable format for data transfer. It can be used with and without a schema.
 
 #### Syntax
 
@@ -275,51 +275,61 @@ streams:
 
 When working with structured data, it's important to manage your schemas effectively.
 
-### AVRO Schemas
+### Local files vs. Schema Registry
 
-AVRO schemas are typically defined in `.avsc` files and registered with a schema registry. KSML can work with AVRO
-schemas in two ways:
+When a schema is specified, KSML will load the schema from a local file from the `schemaDirectory`. The notation
+determines the type of schema and its filename extension. For instance, AVRO schemas will always have the `.avsc`
+file extension, while XML schemas have the `.xsd` extension.
 
-1. **Using a schema registry**: KSML can retrieve schemas from a schema registry at runtime.
-
-   ```yaml
-   streams:
-     sensor_readings:
-       topic: sensor-data
-       keyType: string
-       valueType: avro:SensorReading
-   ```
-
-2. **Using local schema files**: KSML can load schemas from local files.
-
-   ```yaml
-   streams:
-     sensor_readings:
-       topic: sensor-data
-       keyType: string
-       valueType: avro:SensorReading
-   ```
-
-### XML Schemas
-
-XML schemas are defined in `.xsd` files and can be loaded by KSML:
+KSML always loads schemas from local files:
 
 ```yaml
 streams:
-  customer_data:
-    topic: customer-data
+  sensor_data:
+    topic: sensor-reading
     keyType: string
-    valueType: xml:Customer
+    valueType: "avro:SensorReading"
 ```
 
-### JSON Schemas
+In this example, the `SensorReading.avsc` file is looked up in the configured `schemaDirectory`.
 
-While JSON is often used without a schema, KSML also supports JSON Schema:
+Whenever a notation is used without specifying the concrete schema, KSML assumes the schema is loadable from Schema
+Registry.
 
 ```yaml
 streams:
-  user_profiles:
-    topic: user-profiles
+  sensor_data:
+    topic: sensor-reading
     keyType: string
-    valueType: json:UserProfile
+    valueType: "avro"
+```
+
+In this example there is no schema specified, so KSML will use the schema registered in Schema Registry for the topic
+value.
+
+## Type Conversion
+
+KSML automatically performs type conversion wherever required and possible. This holds for numbers (integer to long,
+etc.) but also for string representation of certain notations. For instance between strings and CSV, JSON and XML. The
+following example shows how a string value gets converted into a struct with specific fields by declaring it as CSV with
+a specific schema.
+
+```yaml
+functions:
+  generate_message:
+    type: generator
+    globalCode: |
+      import random
+      sensorCounter = 0
+    code: |
+      global sensorCounter
+
+      # Generate key
+      key = "sensor"+str(sensorCounter)           # Set the key to return ("sensor0" to "sensor9")
+      sensorCounter = (sensorCounter+1) % 10      # Increase the counter for next iteration
+
+      # Generate temperature data as CSV, Temperature.csv file contains: "type,unit,value"
+      value = "TEMPERATURE,C,"+str(random.randrange(-100, 100)
+    expression: (key, value)                      # Return a message tuple with the key and value
+    resultType: (string, csv:Temperature)         # Value is converted to {"type":"TEMPERATURE", "unit":"C", "value":"83"}
 ```

@@ -1,10 +1,12 @@
 # Performance Optimization in KSML
 
-This tutorial explores strategies and techniques for optimizing the performance of your KSML applications, helping you build efficient, scalable, and resource-friendly stream processing solutions.
+This tutorial explores strategies and techniques for optimizing the performance of your KSML applications, helping you
+build efficient, scalable, and resource-friendly stream processing solutions.
 
 ## Introduction to Performance Optimization
 
-Performance optimization is crucial for stream processing applications that need to handle high volumes of data with low latency. Optimizing your KSML applications can help you:
+Performance optimization is crucial for stream processing applications that need to handle high volumes of data with low
+latency. Optimizing your KSML applications can help you:
 
 - Process more data with the same resources
 - Reduce processing latency
@@ -38,14 +40,14 @@ functions:
     code: |
       # Record processing time
       start_time = time.time()
-      
+
       # Process message
       process_message(key, value)
-      
+
       # Calculate and record processing time
       processing_time_ms = (time.time() - start_time) * 1000
       metrics.timer("message.processing.time").updateMillis(processing_time_ms)
-      
+
       # Record message size
       if value is not None:
         message_size = len(str(value))
@@ -80,18 +82,18 @@ runner:
   config:
     application.id: optimized-ksml-app
     bootstrap.servers: kafka:9092
-    
+
     # Performance-related settings
     num.stream.threads: 8
     cache.max.bytes.buffering: 104857600  # 100MB
     commit.interval.ms: 30000
     rocksdb.config.setter: org.example.OptimizedRocksDBConfig
-    
+
     # Producer settings
     producer.linger.ms: 100
     producer.batch.size: 16384
     producer.buffer.memory: 33554432
-    
+
     # Consumer settings
     consumer.fetch.max.bytes: 52428800
     consumer.max.poll.records: 500
@@ -222,13 +224,13 @@ functions:
     code: |
       current_time = int(time.time() * 1000)
       stored_data = data_store.get(key)
-      
+
       if stored_data and "timestamp" in stored_data:
         # Keep data for 30 days
         if current_time - stored_data["timestamp"] > 30 * 24 * 60 * 60 * 1000:
           data_store.delete(key)
           return None
-      
+
       return value
     stores:
       - data_store
@@ -247,18 +249,18 @@ functions:
     code: |
       # Use efficient data structures
       result = {}
-      
+
       # Pre-compute values when possible
       multiplier = 10 if value.get("priority") == "high" else 1
-      
+
       # Use list comprehensions for better performance
       filtered_items = [item for item in value.get("items", []) if item["quantity"] > 0]
-      
+
       # Avoid unnecessary string operations
       for item in filtered_items:
         item_id = item["id"]  # Use the ID directly instead of string manipulation
         result[item_id] = item["price"] * item["quantity"] * multiplier
-      
+
       return {"total": sum(result.values()), "items": result}
 ```
 
@@ -280,16 +282,16 @@ functions:
     globalCode: |
       # Import only what's needed
       from math import sqrt
-      
+
       # Implement simple functions directly instead of importing libraries
       def calculate_mean(values):
           return sum(values) / len(values) if values else 0
-          
+
       def calculate_stddev(values):
           mean = calculate_mean(values)
           variance = sum((x - mean) ** 2 for x in values) / len(values) if values else 0
           return sqrt(variance)
-    
+
     code: |
       # Use the lightweight implementations
       values = [item["value"] for item in value.get("items", [])]
@@ -310,21 +312,21 @@ functions:
     code: |
       # Get batch of items
       items = value.get("items", [])
-      
+
       # Process in a single pass
       results = []
       total = 0
       count = 0
-      
+
       for item in items:
         # Process each item
         processed = process_item(item)
         results.append(processed)
-        
+
         # Update aggregates in the same pass
         total += processed["value"]
         count += 1
-      
+
       # Return batch results
       return {
         "results": results,
@@ -347,7 +349,7 @@ pipelines:
     filter: is_valid_record  # Filter early to reduce downstream processing
     mapValues: enrich_with_minimal_data  # Add only essential data
     to: filtered_enriched_stream
-    
+
   # Process filtered and enriched data
   process_data:
     from: filtered_enriched_stream
@@ -373,7 +375,7 @@ pipelines:
     # Repartition once to optimize downstream joins and aggregations
     selectKey: extract_optimal_key
     to: repartitioned_stream
-    
+
   process_repartitioned:
     from: repartitioned_stream
     groupByKey:  # Now working with optimally partitioned data
@@ -394,7 +396,7 @@ streams:
     keyType: string
     valueType: json
     materializedAs: globalTable  # Use GlobalKTable for small reference data
-    
+
   large_stream:
     topic: transaction_stream
     keyType: string
@@ -420,14 +422,14 @@ streams:
     keyType: string  # User ID
     valueType: avro:UserEvent  # Using Avro for efficient serialization
     schemaRegistry: http://schema-registry:8081
-    
+
   product_catalog:
     topic: product_data
     keyType: string  # Product ID
     valueType: avro:Product
     materializedAs: globalTable  # Use GlobalKTable for reference data
     schemaRegistry: http://schema-registry:8081
-    
+
   user_metrics:
     topic: user_analytics
     keyType: string  # User ID
@@ -444,7 +446,7 @@ stores:
     retainDuplicates: false
     caching: true
     cacheSizeBytes: 104857600  # 100MB
-    
+
   # Store for user profiles
   user_profile_store:
     type: keyValue
@@ -462,10 +464,10 @@ functions:
       event_type = value.get("event_type")
       if event_type not in ["view", "click", "purchase", "search"]:
         return None
-      
+
       # Categorize and extract minimal data for downstream processing
       category = "engagement" if event_type in ["view", "click"] else "conversion"
-      
+
       # Create a minimal record with only needed fields
       minimal_record = {
         "event_id": value.get("event_id"),
@@ -475,9 +477,9 @@ functions:
         "product_id": value.get("product_id"),
         "value": value.get("value", 0)
       }
-      
+
       return (key, minimal_record)
-  
+
   # Update user activity metrics
   update_user_metrics:
     type: valueTransformer
@@ -495,32 +497,32 @@ functions:
           "product_ids": set(),  # Using set for efficient uniqueness check
           "last_updated": 0
         }
-      
+
       # Update metrics efficiently
       event_type = value.get("event_type")
       window_data["event_count"] += 1
       window_data[f"{event_type}_count"] = window_data.get(f"{event_type}_count", 0) + 1
-      
+
       if "value" in value:
         window_data["total_value"] += value["value"]
-      
+
       if "product_id" in value and value["product_id"]:
         window_data["product_ids"].add(value["product_id"])
-      
+
       window_data["last_updated"] = max(window_data.get("last_updated", 0), value.get("timestamp", 0))
-      
+
       # Store updated data
       user_activity_store.put(key, window_data)
-      
+
       # For downstream processing, convert set to list
       result = dict(window_data)
       result["product_ids"] = list(window_data["product_ids"])
       result["unique_products"] = len(result["product_ids"])
-      
+
       return result
     stores:
       - user_activity_store
-  
+
   # Enrich with product data
   enrich_with_products:
     type: valueTransformer
@@ -528,7 +530,7 @@ functions:
       # Skip if no product IDs or no metrics
       if not value or "product_ids" not in value or not value["product_ids"]:
         return value
-      
+
       # Get product categories (efficiently)
       product_categories = {}
       for product_id in value["product_ids"][:5]:  # Limit to top 5 products for efficiency
@@ -536,25 +538,25 @@ functions:
         if product:
           category = product.get("category", "unknown")
           product_categories[category] = product_categories.get(category, 0) + 1
-      
+
       # Add product category distribution
       value["top_categories"] = sorted(
         product_categories.items(), 
         key=lambda x: x[1], 
         reverse=True
       )[:3]  # Keep only top 3 categories
-      
+
       return value
     stores:
       - product_catalog
-  
+
   # Generate final user metrics
   generate_user_metrics:
     type: valueTransformer
     code: |
       # Get user profile for context
       user_profile = user_profile_store.get(key)
-      
+
       # Create optimized metrics record
       metrics = {
         "user_id": key,
@@ -569,29 +571,29 @@ functions:
           "unique_products": value.get("unique_products", 0)
         }
       }
-      
+
       # Add user segment if profile exists
       if user_profile:
         metrics["user_segment"] = user_profile.get("segment", "unknown")
         metrics["account_age_days"] = user_profile.get("account_age_days", 0)
-      
+
       # Add product category insights if available
       if "top_categories" in value:
         metrics["top_categories"] = value["top_categories"]
-      
+
       # Calculate derived metrics efficiently
       if metrics["window_metrics"]["view_count"] > 0:
         metrics["window_metrics"]["click_through_rate"] = (
           metrics["window_metrics"]["click_count"] / 
           metrics["window_metrics"]["view_count"]
         )
-      
+
       if metrics["window_metrics"]["click_count"] > 0:
         metrics["window_metrics"]["conversion_rate"] = (
           metrics["window_metrics"]["purchase_count"] / 
           metrics["window_metrics"]["click_count"]
         )
-      
+
       return metrics
     stores:
       - user_profile_store
@@ -603,19 +605,19 @@ pipelines:
     transformKeyValue: categorize_events
     filter: is_not_null
     to: categorized_events
-  
+
   # Stage 2: Update user metrics
   update_metrics:
     from: categorized_events
     mapValues: update_user_metrics
     to: user_activity_metrics
-  
+
   # Stage 3: Enrich with product data
   enrich_metrics:
     from: user_activity_metrics
     mapValues: enrich_with_products
     to: enriched_metrics
-  
+
   # Stage 4: Generate final user metrics
   finalize_metrics:
     from: enriched_metrics
@@ -627,22 +629,23 @@ runner:
   config:
     application.id: optimized-analytics
     bootstrap.servers: kafka:9092
-    
+
     # Performance configuration
     num.stream.threads: 8
     cache.max.bytes.buffering: 104857600  # 100MB
     commit.interval.ms: 30000
-    
+
     # Producer settings
     producer.linger.ms: 100
     producer.batch.size: 16384
-    
+
     # Consumer settings
     consumer.fetch.max.bytes: 52428800
     consumer.max.poll.records: 500
 ```
 
 This example:
+
 1. Uses Avro for efficient serialization
 2. Implements early filtering to reduce data volume
 3. Processes data in stages for better parallelism
@@ -692,10 +695,10 @@ runner:
   config:
     application.id: offheap-optimized-app
     bootstrap.servers: kafka:9092
-    
+
     # RocksDB configuration for off-heap memory
     rocksdb.config.setter: org.example.OffHeapRocksDBConfig
-    
+
     # JVM settings (would be set in the JVM arguments)
     # -XX:MaxDirectMemorySize=10G
 ```
@@ -713,18 +716,18 @@ functions:
     code: |
       # Record message processing metrics
       start_time = time.time()
-      
+
       # Process message
       process_message(key, value)
-      
+
       # Record metrics
       processing_time_ms = (time.time() - start_time) * 1000
       metrics.timer("processing.time").updateMillis(processing_time_ms)
-      
+
       # Record message size
       message_size = len(str(value)) if value else 0
       metrics.meter("message.size").mark(message_size)
-      
+
       # Record message counts by type
       event_type = value.get("event_type", "unknown")
       metrics.counter(f"messages.{event_type}").increment()
@@ -741,15 +744,15 @@ functions:
     globalCode: |
       last_processed_time = int(time.time() * 1000)
       processed_count = 0
-      
+
     code: |
       global last_processed_time, processed_count
-      
+
       # Update processing metrics
       current_time = int(time.time() * 1000)
       last_processed_time = current_time
       processed_count += 1
-      
+
       # Expose health metrics
       metrics.gauge("health.last_processed_time").set(last_processed_time)
       metrics.gauge("health.processed_count").set(processed_count)
@@ -766,25 +769,25 @@ functions:
     type: valueTransformer
     globalCode: |
       import threading
-      
+
       # Monitor system load
       system_load = 0.0
-      
+
       def update_system_load():
           global system_load
           while True:
               # Get CPU load (simplified example)
               system_load = get_cpu_load()
               time.sleep(5)
-              
+
       # Start monitoring thread
       monitor_thread = threading.Thread(target=update_system_load)
       monitor_thread.daemon = True
       monitor_thread.start()
-      
+
     code: |
       global system_load
-      
+
       # Adapt processing based on system load
       if system_load > 0.8:  # High load
           # Use simplified processing
@@ -807,9 +810,12 @@ functions:
 
 ## Conclusion
 
-Performance optimization in KSML involves a combination of configuration tuning, code optimization, and architectural design. By applying the techniques covered in this tutorial, you can build KSML applications that efficiently process high volumes of data with low latency.
+Performance optimization in KSML involves a combination of configuration tuning, code optimization, and architectural
+design. By applying the techniques covered in this tutorial, you can build KSML applications that efficiently process
+high volumes of data with low latency.
 
-In the next tutorial, we'll explore [Integration with External Systems](external-integration.md) to learn how to connect your KSML applications with databases, APIs, and other external systems.
+In the next tutorial, we'll explore [Integration with External Systems](external-integration.md) to learn how to connect
+your KSML applications with databases, APIs, and other external systems.
 
 ## Further Reading
 

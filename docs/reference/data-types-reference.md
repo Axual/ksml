@@ -343,68 +343,31 @@ functions:
     resultType: struct
 ```
 
-## Schema Management
-
-When working with structured data, it's important to manage your schemas effectively.
-
-### Local files vs. Schema Registry
-
-When a schema is specified, KSML will load the schema from a local file from the `schemaDirectory`. The type of schema
-and its filename extension are determined by the notation. For instance, AVRO schemas will always have the `.avsc`
-file extension, while XML schemas have the `.xsd` extension.
-
-KSML always loads schemas from local files:
-
-```yaml
-streams:
-  sensor_data:
-    topic: sensor-reading
-    keyType: string
-    valueType: "avro:SensorReading"
-```
-
-In this example, the `SensorReading.avsc` file is looked up in the configured `schemaDirectory`.
-
-Whenever a notation is used without specifying the concrete schema, KSML assumes the schema is loadable from Schema
-Registry.
-
-```yaml
-streams:
-  sensor_data:
-    topic: sensor-reading
-    keyType: string
-    valueType: "avro"
-```
-
-In this example there is no schema specified, so KSML will use the schema registered in Schema Registry for the topic
-value.
-
 ## Type Conversion
 
-KSML automatically handles type conversion in many cases, but you can also explicitly convert types in your Python code:
+KSML automatically performs type conversion wherever required and possible. This holds for numbers (integer to long,
+etc.) but also for enums, lists, structs, tuples, and unions. Given a value and the desired data type, KSML will try
+the best possible conversion to allow developers to focus on their logic instead of data type compatibility.
 
+Below is an example of a function that returns a string
 ```yaml
 functions:
-  convert_types:
-    type: valueTransformer
+  generate_message:
+    type: generator
+    globalCode: |
+      import random
+      sensorCounter = 0
     code: |
-      # String to number
-      age_str = value.get("age_str")
-      age = int(age_str) if age_str else 0
+      global sensorCounter
 
-      # Number to string
-      id_num = value.get("id")
-      id_str = str(id_num)
+      # Generate key
+      key = "sensor"+str(sensorCounter)           # Set the key to return ("sensor0" to "sensor9")
+      sensorCounter = (sensorCounter+1) % 10      # Increase the counter for next iteration
 
-      # String to boolean
-      active_str = value.get("active")
-      active = active_str.lower() == "true"
-    expression: |
-      {
-        "age": age,
-        "id": id_str,
-        "active": active
-      }
+      # Generate temperature data as CSV, Temperature.csv file contains: "type,unit,value"
+      value = "TEMPERATURE,C,"+str(random.randrange(-100, 100)
+    expression: (key, value)                      # Return a message tuple with the key and value
+    resultType: (string, csv:Temperature)         # Value is converted to {"type":"TEMPERATURE", "unit":"C", "value":"83"}
 ```
 
 ## Best Practices

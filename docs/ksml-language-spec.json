@@ -5317,6 +5317,10 @@
   },
   "description" : "KSML definition",
   "properties" : {
+    "description" : {
+      "description" : "*(optional)* The description of this KSML definition",
+      "type" : "string"
+    },
     "functions" : {
       "description" : "*(optional)* Functions that can be referenced in producers and pipelines",
       "patternProperties" : {
@@ -5399,6 +5403,10 @@
       },
       "type" : "object"
     },
+    "name" : {
+      "description" : "*(optional)* The name of this KSML definition",
+      "type" : "string"
+    },
     "pipelines" : {
       "description" : "*(optional)* Collection of named pipelines",
       "patternProperties" : {
@@ -5456,6 +5464,10 @@
         }
       },
       "type" : "object"
+    },
+    "version" : {
+      "description" : "*(optional)* The version of this KSML definition",
+      "type" : "string"
     }
   },
   "title" : "TopologyDefinition",

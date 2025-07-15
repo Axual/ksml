@@ -15,7 +15,7 @@ Welcome to the KSML documentation. KSML allows you to build powerful Kafka Strea
 - [Pipelines](core-concepts/pipelines.md)
 - [Operations](core-concepts/operations.md)
 
-## 3. Tutorials and Guides
+## 3. Tutorials
 - [Beginner Tutorials](tutorials/beginner/index.md)
 - [Intermediate Tutorials](tutorials/intermediate/index.md)
 - [Advanced Tutorials](tutorials/advanced/index.md)

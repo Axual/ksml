@@ -94,17 +94,18 @@ globalTables:
     topic: product-catalog
     keyType: string
     valueType: avro:Product
+    store: product_catalog_store
 ```
 
 ### Optional settings for all stream types
 
 Each stream type allows the following additional settings to be specified:
 
-* `offsetResetPolicy`: the policy to use when there is no (valid) consumer group offset in Kafka. Choice of `earliest`,
+- **offsetResetPolicy**: the policy to use when there is no (valid) consumer group offset in Kafka. Choice of `earliest`,
   `latest`, `none`, or `by_duration:<duration>`. In the latter case, you can pass in a custom duration.
-* `timestampExtractor`: a function that is able to extract a timestamp from a consumed message, to be used by Kafka
+- **timestampExtractor**: a function that is able to extract a timestamp from a consumed message, to be used by Kafka
   Streams as the message timestamp in all pipeline processing.
-* `partitioner`: a stream partitioner that determines to which topic partitions an output record needs to be written.
+- **partitioner**: a stream partitioner that determines to which topic partitions an output record needs to be written.
 
 ### Choosing the Right Stream Type
 
@@ -189,6 +190,7 @@ pipelines:
         with: user_profiles
         valueJoiner:
           expression: { "userId": key, "name": value2.get('name'), "preferences": value1 }
+          resultType: struct
       # Additional processing steps...
     to: updated_user_profiles
 ```
@@ -208,10 +210,12 @@ pipelines:
     via:
       - type: join
         with: product_catalog
-        keyValueMapper:
+        mapper:
           expression: value.get('productId')  # Map from order to product ID
+          resultType: string
         valueJoiner:
           expression: { "orderId": value1.get('orderId'), "product": value2, "quantity": value1.get('quantity') }
+          resultType: struct
       # Additional processing steps...
     to: enriched_orders
 ```

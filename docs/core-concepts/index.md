@@ -8,8 +8,11 @@ Understanding these core concepts will give you a solid foundation for building 
 
 ### [ Data Types ](../reference/data-types-reference.md)
 
-Check out which data types KSML applications can handle. Data types are used as:
+Check out which data types KSML applications can handle. What you'll learn is:
 
+- Primitive data types
+- Complex data types
+- Schema 
 - Key and value types
 - Function parameter types
 - Function result types
@@ -19,7 +22,9 @@ Check out which data types KSML applications can handle. Data types are used as:
 Learn about the fundamental building blocks of KSML applications:
 
 - Understanding stream types (KStream, KTable, GlobalKTable)
-- 
+- Choosing the right stream type
+- Best practices
+- Examples
 
 ### [Notations](../reference/notations-reference.md)
 

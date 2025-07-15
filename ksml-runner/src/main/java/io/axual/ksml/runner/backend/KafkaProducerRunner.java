@@ -44,7 +44,6 @@ import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_
 
 @Slf4j
 public class KafkaProducerRunner implements Runner {
-    private static final String UNDEFINED = "undefined";
     private final IntervalSchedule scheduler = new IntervalSchedule();
     private final AtomicBoolean hasFailed = new AtomicBoolean(false);
     private final AtomicBoolean stopRunning = new AtomicBoolean(false);
@@ -101,10 +100,7 @@ public class KafkaProducerRunner implements Runner {
         try {
             config.definitions.forEach((defName, definition) -> {
                 // Log the start of the producer
-                log.info("Starting producer: name={}, version={}, namespace={}",
-                        definition.name() != null ? definition.name() : UNDEFINED,
-                        definition.version() != null ? definition.version() : UNDEFINED,
-                        definition.namespace() != null ? definition.namespace() : UNDEFINED);
+                log.info("Starting producer: name={}, version={}, namespace={}", definition.name(), definition.version(), definition.namespace());
                 // Set up the Python context for this definition
                 final var context = new PythonContext(config.pythonContextConfig());
                 // Pre-register all functions in the Python context

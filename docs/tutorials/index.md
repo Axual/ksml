@@ -24,13 +24,6 @@ operations, and error handling.
 These tutorials cover complex topics such as complex event processing, custom state stores, performance optimization,
 and external integration.
 
-## Use Cases
-
-### [Use Case Guides](../use-cases/index.md)
-
-Practical guides for implementing common use cases with KSML, including real-time analytics, data transformation, and
-event-driven applications.
-
 ## How to Use These Tutorials
 
 Each tutorial builds on concepts from previous tutorials, so we recommend following them in order within each learning

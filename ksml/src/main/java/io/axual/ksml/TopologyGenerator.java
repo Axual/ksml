@@ -41,7 +41,6 @@ import java.util.*;
 
 @Slf4j
 public class TopologyGenerator {
-    private static final String UNDEFINED = "undefined";
     private final String applicationId;
     private final Properties optimization;
     private final PythonContextConfig pythonContextConfig;
@@ -69,13 +68,13 @@ public class TopologyGenerator {
 
         definitions.forEach((name, definition) -> {
             // Log the start of the producer
-            log.info("Creating topology: name={}, version={}, namespace={}",
-                    definition.name() != null ? definition.name() : UNDEFINED,
-                    definition.version() != null ? definition.version() : UNDEFINED,
-                    definition.namespace() != null ? definition.namespace() : UNDEFINED);
+            log.info("Creating topology: name={}, version={}, namespace={}", definition.name(), definition.version(), definition.namespace());
 
+            // Create the build context and generate the topology
             final var context = new TopologyBuildContext(streamsBuilder, definition, pythonContextConfig);
             generate(definition, context);
+
+            // Remember all state stores
             stores.putAll(definition.stateStores());
         });
 

@@ -4,6 +4,7 @@
 
 ## Properties
 
+- **`description`** *(string)*: *(optional)* The description of this KSML definition.
 - **`functions`** *(object)*: *(optional)* Functions that can be referenced in producers and pipelines.
   - **`^[a-zA-Z0-9_]+$`**
     - **Any of**
@@ -30,6 +31,7 @@
       - *object*: Refer to *[#/definitions/ValueTransformerDefinition](#definitions/ValueTransformerDefinition)*.
 - **`globalTables`** *(object)*: *(optional)* GlobalTables that can be referenced in producers and pipelines.
   - **`^[a-zA-Z0-9_]+$`** *(object)*: Refer to *[#/definitions/GlobalTableDefinition](#definitions/GlobalTableDefinition)*.
+- **`name`** *(string)*: *(optional)* The name of this KSML definition.
 - **`pipelines`** *(object)*: *(optional)* Collection of named pipelines.
   - **`^[a-zA-Z0-9_]+$`** *(object)*: Refer to *[#/definitions/PipelineDefinition](#definitions/PipelineDefinition)*.
 - **`producers`** *(object)*: *(optional)* Collection of named producers.
@@ -44,6 +46,7 @@
   - **`^[a-zA-Z0-9_]+$`** *(object)*: Refer to *[#/definitions/StreamDefinition](#definitions/StreamDefinition)*.
 - **`tables`** *(object)*: *(optional)* Tables that can be referenced in producers and pipelines.
   - **`^[a-zA-Z0-9_]+$`** *(object)*: Refer to *[#/definitions/TableDefinition](#definitions/TableDefinition)*.
+- **`version`** *(string)*: *(optional)* The version of this KSML definition.
 ## Definitions
 
 - <a id="definitions/AggregateOperation"></a>**`AggregateOperation`** *(object)*: An aggregate operation. Cannot contain additional properties.
