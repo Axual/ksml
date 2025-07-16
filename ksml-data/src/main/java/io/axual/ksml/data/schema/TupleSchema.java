@@ -20,6 +20,7 @@ package io.axual.ksml.data.schema;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.type.TupleType;
 
@@ -32,6 +33,9 @@ public class TupleSchema extends StructSchema {
     }
 
     private static List<DataField> convertTupleTypeToFields(TupleType type, DataTypeDataSchemaMapper mapper) {
+        if (type.subTypeCount() == 0) {
+            throw new SchemaException("TupleSchema requires at least one field: type=" + type);
+        }
         final var result = new ArrayList<DataField>();
         for (int index = 0; index < type.subTypeCount(); index++) {
             final var field = new DataField("elem" + index, mapper.toDataSchema(type.subType(index)));
