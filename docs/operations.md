@@ -145,17 +145,19 @@ operate on a range of stream types.
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: groupBy
-    mapper: my_mapper_function
-  - type: aggregate
-    initializer:
-      expression: 0
-    aggregator:
-      expression: aggregatedValue + value
-  - type: toStream
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: groupBy
+        mapper: my_mapper_function
+      - type: aggregate
+        initializer:
+          expression: 0
+        aggregator:
+          expression: aggregatedValue + value
+      - type: toStream
+    to: output_stream
 ```
 
 ### cogroup
@@ -171,15 +173,17 @@ operate on a range of stream types.
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: groupBy
-    mapper: my_mapper_function
-  - type: cogroup
-    aggregator:
-      expression: aggregatedValue + value
-  - type: toStream
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: groupBy
+        mapper: my_mapper_function
+      - type: cogroup
+        aggregator:
+          expression: aggregatedValue + value
+      - type: toStream
+    to: output_stream
 ```
 
 _Note: this operation was added to KSML for completion purposes, but is not considered ready or fully functional. Feel
@@ -196,14 +200,16 @@ This built-in operation takes a message and converts the key into a given type.
 Example:
 
 ```yaml
-from:
-  topic: input_stream
-  keyType: string
-  valueType: string
-via:
-  - type: convertKey
-    into: json
-to: output_stream
+pipelines:
+  example_pipeline:
+    from:
+      topic: input_stream
+      keyType: string
+      valueType: string
+    via:
+      - type: convertKey
+        into: json
+    to: output_stream
 ```
 
 ### convertKeyValue
@@ -217,14 +223,16 @@ This built-in operation takes a message and converts the key and value into a gi
 Example:
 
 ```yaml
-from:
-  topic: input_stream
-  keyType: string
-  valueType: string
-via:
-  - type: convertKeyValue
-    into: (json,xml)
-to: output_stream
+pipelines:
+  example_pipeline:
+    from:
+      topic: input_stream
+      keyType: string
+      valueType: string
+    via:
+      - type: convertKeyValue
+        into: (json,xml)
+    to: output_stream
 ```
 
 ### convertValue
@@ -238,14 +246,16 @@ This built-in operation takes a message and converts the value into a given type
 Example:
 
 ```yaml
-from:
-  topic: input_stream
-  keyType: string
-  valueType: string
-via:
-  - type: convertValue
-    into: xml
-to: output_stream
+pipelines:
+  example_pipeline:
+    from:
+      topic: input_stream
+      keyType: string
+      valueType: string
+    via:
+      - type: convertValue
+        into: xml
+    to: output_stream
 ```
 
 ### count
@@ -263,13 +273,15 @@ calling an aggregator function. It can operate on a range of stream types.
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: groupBy
-    mapper: my_mapper_function
-  - type: count
-  - type: toStream
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: groupBy
+        mapper: my_mapper_function
+      - type: count
+      - type: toStream
+    to: output_stream
 ```
 
 ### filter
@@ -287,12 +299,14 @@ the predicate returns `true`, then the message will be sent to the output stream
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: filter
-    if:
-      expression: key.startswith('a')
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: filter
+        if:
+          expression: key.startswith('a')
+    to: output_stream
 ```
 
 ### filterNot
@@ -314,12 +328,14 @@ value types than the source.
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: flatMap
-    mapper:
-      expression: [ (key,value), (key,value) ]   # duplicate all incoming messages
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: flatMap
+        mapper:
+          expression: [ (key,value), (key,value) ]   # duplicate all incoming messages
+    to: output_stream
 ```
 
 ### flatMapValues
@@ -334,12 +350,14 @@ than the source. Every entry in the result list is combined with the source key 
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: flatMapValues
-    mapper:
-      expression: [ value+1, value+2, value+3 ]   # creates 3 new messages [key,VR] for every input message
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: flatMapValues
+        mapper:
+          expression: [ value+1, value+2, value+3 ]   # creates 3 new messages [key,VR] for every input message
+    to: output_stream
 ```
 
 ### groupBy
@@ -356,19 +374,21 @@ Group the records of a stream by value resulting from a KeyValueMapper.
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: groupBy
-    mapper:
-      expression: value["some_field"]
-      resultType: string
-  - type: aggregate
-    initializer:
-      expression: 0
-    aggregator:
-      expression: value1+value2
-  - type: toStream
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: groupBy
+        mapper:
+          expression: value["some_field"]
+          resultType: string
+      - type: aggregate
+        initializer:
+          expression: 0
+        aggregator:
+          expression: value1+value2
+      - type: toStream
+    to: output_stream
 ```
 
 ### groupByKey
@@ -382,16 +402,18 @@ Group the records of a stream by the stream's key.
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: groupByKey
-  - type: aggregate
-    initializer:
-      expression: 0
-    aggregator:
-      expression: value1+value2
-  - type: toStream
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: groupByKey
+      - type: aggregate
+        initializer:
+          expression: 0
+        aggregator:
+          expression: value1+value2
+      - type: toStream
+    to: output_stream
 ```
 
 ### join
@@ -423,13 +445,15 @@ their timestamps need to be close enough as defined by timeDifference.
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: join
-    stream: second_stream
-    valueJoiner: my_key_value_mapper
-    timeDifference: 1m
-to: output_stream
+pipelines:
+   example_pipeline:
+    from: input_stream
+    via:
+      - type: join
+        stream: second_stream
+        valueJoiner: my_key_value_mapper
+        timeDifference: 1m
+    to: output_stream
 ```
 
 ### leftJoin
@@ -461,13 +485,15 @@ their timestamps need to be close enough as defined by timeDifference.
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: leftJoin
-    stream: second_stream
-    valueJoiner: my_key_value_mapper
-    timeDifference: 1m
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: leftJoin
+        stream: second_stream
+        valueJoiner: my_key_value_mapper
+        timeDifference: 1m
+    to: output_stream
 ```
 
 ### map
@@ -482,12 +508,14 @@ different type than the source message key and value.
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: map
-    mapper:
-      expression: (str(key), str(value))   # convert key and value from source type to string
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: map
+        mapper:
+          expression: (str(key), str(value))   # convert key and value from source type to string
+    to: output_stream
 ```
 
 ### mapKey
@@ -497,12 +525,14 @@ This is an alias for [selectKey](#selectkey).
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: mapKey
-    mapper:
-      expression: str(key)   # convert key from source type to string
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: mapKey
+        mapper:
+          expression: str(key)   # convert key from source type to string
+    to: output_stream
 ```
 
 ### mapValue
@@ -512,12 +542,14 @@ This is an alias for [mapValues](#mapvalues).
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: mapValue
-    mapper:
-      expression: str(value)   # convert value from source type to String
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: mapValue
+        mapper:
+          expression: str(value)   # convert value from source type to String
+    to: output_stream
 ```
 
 ### mapValues
@@ -532,12 +564,14 @@ than the source.
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: mapValues
-    mapper:
-      expression: str(value)   # convert value from source type to String
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: mapValues
+        mapper:
+          expression: str(value)   # convert value from source type to String
+    to: output_stream
 ```
 
 ### merge
@@ -553,11 +587,13 @@ though (ie, records within one input stream are processed in order).
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: merge
-    stream: second_stream
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: merge
+        stream: second_stream
+    to: output_stream
 ```
 
 ### outerJoin
@@ -580,13 +616,15 @@ their timestamps need to be close enough as defined by timeDifference.
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: outerJoin
-    stream: second_stream
-    valueJoiner: my_key_value_mapper
-    timeDifference: 1m
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: outerJoin
+        stream: second_stream
+        valueJoiner: my_key_value_mapper
+        timeDifference: 1m
+    to: output_stream
 ```
 
 ### peek
@@ -601,11 +639,13 @@ operation that triggers a side effect (such as logging or statistics collection)
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: peek
-    forEach: print_key_and_value
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: peek
+        forEach: print_key_and_value
+    to: output_stream
 ```
 
 ### reduce
@@ -629,33 +669,35 @@ to [aggregate(Initializer, Aggregator)](#aggregate).
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: groupBy
-    mapper: my_mapper_function
-  - type: aggregate
-    initializer:
-      expression: 0
-    aggregator:
-      expression: aggregatedValue + value
-  - type: toStream
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: groupBy
+        mapper: my_mapper_function
+      - type: aggregate
+        initializer:
+          expression: 0
+        aggregator:
+          expression: aggregatedValue + value
+      - type: toStream
+    to: output_stream
 ```
 
 Example:
 
 ```yaml
-[ yaml ]
-  ----
-from: input_stream
-via:
-  - type: groupBy
-    mapper: my_mapper_function
-  - type: reduce
-    reducer:
-      expression: value1+value2
-  - type: toStream
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: groupBy
+        mapper: my_mapper_function
+      - type: reduce
+        reducer:
+          expression: value1+value2
+      - type: toStream
+    to: output_stream
 ```
 
 ### repartition
@@ -672,16 +714,18 @@ automatically purged. The topic will be named as "${applicationId}-<name>-repart
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: repartition
-    name: my_partitioner
-    numberOfPartitions: 3
-    partitioner: my_own_partitioner
-  - type: peek
-    forEach: print_key_and_value
-  - type: toStream
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: repartition
+        name: my_partitioner
+        numberOfPartitions: 3
+        partitioner: my_own_partitioner
+      - type: peek
+        forEach: print_key_and_value
+      - type: toStream
+    to: output_stream
 ```
 
 ### selectKey
@@ -695,12 +739,14 @@ This operation takes a message and transforms the key into a new key, which may 
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: selectKey
-    mapper:
-      expression: str(key)   # convert key from source type to string
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: selectKey
+        mapper:
+          expression: str(key)   # convert key from source type to string
+    to: output_stream
 ```
 
 ### suppress
@@ -720,18 +766,20 @@ _Suppressed.untilWindowCloses(unbounded())_.
 Example:
 
 ```yaml
-from: input_table
-via:
-  - type: suppress
-    until: timeLimit
-    duration: 30s
-    maxBytes: 128000
-    maxRecords: 10000
-    bufferFullStrategy: emitEarlyWhenFull
-  - type: peek
-    forEach: print_key_and_value
-  - type: toStream
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_table
+    via:
+      - type: suppress
+        until: timeLimit
+        duration: 30s
+        maxBytes: 128000
+        maxRecords: 10000
+        bufferFullStrategy: emitEarlyWhenFull
+      - type: peek
+        forEach: print_key_and_value
+      - type: toStream
+    to: output_stream
 ```
 
 ### toStream
@@ -745,10 +793,12 @@ Convert a KTable into a KStream object.
 Example:
 
 ```yaml
-from: input_table
-via:
-  - type: toStream
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_table
+    via:
+      - type: toStream
+    to: output_stream
 ```
 
 ### transformKey
@@ -758,12 +808,14 @@ This is an alias for [selectKey](#selectkey).
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: transformKey
-    mapper:
-      expression: str(key)   # convert key from source type to string
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: transformKey
+        mapper:
+          expression: str(key)   # convert key from source type to string
+    to: output_stream
 ```
 
 ### transformKeyValue
@@ -773,12 +825,14 @@ This is an alias for [map](#map).
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: transformKeyValue
-    mapper:
-      expression: (str(key), str(value))   # convert key and value from source type to string
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: transformKeyValue
+        mapper:
+          expression: (str(key), str(value))   # convert key and value from source type to string
+    to: output_stream
 ```
 
 ### transformKeyValueToKeyValueList
@@ -788,12 +842,14 @@ This is an alias for [flatMap](#flatmap).
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: transformKeyValueToKeyValueList
-    mapper:
-      expression: [ (key,value), (key,value) ]   # duplicate all incoming messages
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: transformKeyValueToKeyValueList
+        mapper:
+          expression: [ (key,value), (key,value) ]   # duplicate all incoming messages
+    to: output_stream
 ```
 
 ### transformKeyValueToValueList
@@ -803,12 +859,14 @@ This is an alias for [flapMapValues](#flatmapvalues).
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: transformKeyValueToValueList
-    mapper:
-      expression: [ value+1, value+2, value+3 ]   # creates 3 new messages [key,VR] for every input message
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: transformKeyValueToValueList
+        mapper:
+          expression: [ value+1, value+2, value+3 ]   # creates 3 new messages [key,VR] for every input message
+    to: output_stream
 ```
 
 ### transformMetadata
@@ -823,12 +881,14 @@ than the source.
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: transformValue
-    mapper:
-      expression: str(value)   # convert value from source type to String
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: transformValue
+        mapper:
+          expression: str(value)   # convert value from source type to String
+    to: output_stream
 ```
 
 ### transformValue
@@ -838,12 +898,14 @@ This is an alias for [mapValues](#mapvalues).
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: transformValue
-    mapper:
-      expression: str(value)   # convert value from source type to String
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: transformValue
+        mapper:
+          expression: str(value)   # convert value from source type to String
+    to: output_stream
 ```
 
 ### windowBySession
@@ -861,17 +923,19 @@ different types of windows, please refer to [WindowTypes]|[this page].
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: groupBy
-    mapper: my_mapper_function
-  - type: windowedBySession
-    inactivityGap: 1h
-    grace: 5m
-  - type: reduce
-    reducer: my_reducer_function
-  - type: toStream
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: groupBy
+        mapper: my_mapper_function
+      - type: windowBySession
+        inactivityGap: 1h
+        grace: 5m
+      - type: reduce
+        reducer: my_reducer_function
+      - type: toStream
+    to: output_stream
 ```
 
 ### windowByTime
@@ -903,19 +967,21 @@ different types of windows, please refer to [WindowTypes]|[this page].
 Example:
 
 ```yaml
-from: input_stream
-via:
-  - type: groupBy
-    mapper: my_mapper_function
-  - type: windowedBy
-    windowType: time
-    duration: 1h
-    advanceBy: 15m
-    grace: 5m
-  - type: reduce
-    reducer: my_reducer_function
-  - type: toStream
-to: output_stream
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: groupBy
+        mapper: my_mapper_function
+      - type: windowedByTime
+        windowType: tumbling
+        duration: 1h
+        advanceBy: 15m
+        grace: 5m
+      - type: reduce
+        reducer: my_reducer_function
+      - type: toStream
+    to: output_stream
 ```
 
 ## Sink Operations
@@ -970,17 +1036,19 @@ accepts the following parameters:
 Example:
 
 ```yaml
-from: some_source_topic
-branch:
-  - if:
-      expression: value['color'] == 'blue'
-    to: ksml_sensordata_blue
-  - if:
-      expression: value['color'] == 'red'
-    to: ksml_sensordata_red
-  - forEach:
-      code: |
-        print('Unknown color sensor: '+value["color"])
+pipelines:
+  example_pipeline:
+    from: some_source_topic
+    branch:
+      - if:
+          expression: value['color'] == 'blue'
+        to: ksml_sensordata_blue
+      - if:
+          expression: value['color'] == 'red'
+        to: ksml_sensordata_red
+      - forEach:
+          code: |
+            log.warn('Unknown color sensor: {}', value["color"])
 ```
 
 In this example, the first two branches are entered if the respective predicate matches (the color attribute of value
@@ -1000,12 +1068,18 @@ step. The function does not (need to) return anything.
 Examples:
 
 ```yaml
-forEach: my_foreach_function
+pipelines:
+  example_pipeline:
+    from: input_stream
+    forEach: my_foreach_function
 ```
 
 ```yaml
-forEach:
-  code: print(value)
+pipelines:
+  example_pipeline:
+    forEach:
+      code: |
+        log.info("Processing message: key={}, value={}", key, value)
 ```
 
 ### print
@@ -1024,13 +1098,15 @@ As target, you can specify a filename. If none is specified, then all messages a
 Examples:
 
 ```yaml
-from: source
-via:
-  - type: ...
-print:
-  filename: file.txt
-  mapper:
-    expression: "record value: " + str(value)
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: ...
+    print:
+      filename: file.txt
+      mapper:
+        expression: "record value: " + str(value)
 ```
 
 ### to
@@ -1044,19 +1120,24 @@ Messages are sent directly to a named `Stream`.
 Examples:
 
 ```yaml
-to: my_target_topic
+pipelines:
+  example_pipeline:
+    from: input_stream
+    to: my_target_stream
 ```
 
 ```yaml
-from: source
-via:
-  - type: ...
-to:
-  topic: my_target_topic
-  keyType: someType
-  valueType: someOtherType
-  partitioner:
-    expression: hash_of(key)
+pipelines:
+  example_pipeline:
+    from: input_stream
+    via:
+      - type: ...
+    to:
+      topic: my_target_topic
+      keyType: someType
+      valueType: someOtherType
+      partitioner:
+        expression: hash_of(key)
 ```
 
 ### toTopicNameExtractor
@@ -1071,16 +1152,22 @@ operation acts as a Sink and is always the last operation in a [pipeline](pipeli
 Examples:
 
 ```yaml
-toTopicNameExtractor: my_extractor_function
+pipelines:
+  example_pipeline:
+    from: input_stream
+    toTopicNameExtractor: my_extractor_function
 ```
 
 ```yaml
-toTopicNameExtractor:
-  code: |
-    if key == 'sensor1':
-      return 'ksml_sensordata_sensor1'
-    elif key == 'sensor2':
-      return 'ksml_sensordata_sensor2'
-    else:
-      return 'ksml_sensordata_sensor0'
+pipelines:
+  example_pipeline:
+    from: input_stream
+    toTopicNameExtractor:
+      code: |
+        if key == 'sensor1':
+          return 'ksml_sensordata_sensor1'
+        elif key == 'sensor2':
+          return 'ksml_sensordata_sensor2'
+        else:
+          return 'ksml_sensordata_sensor0'
 ```

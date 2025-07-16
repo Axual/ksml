@@ -33,8 +33,10 @@ The simplest aggregation is `count`, which counts the number of messages with th
 pipelines:
   count_by_user:
     from: user_actions
-    groupByKey:
-    count:
+    via:
+      - type: groupByKey
+      - type: count
+      - type: toStream
     to: user_action_counts
 ```
 
@@ -51,8 +53,10 @@ functions:
 pipelines:
   sum_transactions:
     from: financial_transactions
-    groupByKey:
-    reduce: sum_amounts
+    via:
+      - type: groupByKey
+      - type: reduce
+        reducer: sum_amounts
     to: transaction_sums
 ```
 
@@ -89,10 +93,11 @@ functions:
 pipelines:
   calculate_statistics:
     from: payment_stream
-    groupByKey:
-    aggregate:
-      initializer: init_stats
-      aggregator: update_stats
+    via:
+      - type: groupByKey
+      - type: aggregate
+        initializer: init_stats
+        aggregator: update_stats
     to: payment_statistics
 ```
 
@@ -104,14 +109,16 @@ Aggregations become even more powerful when combined with windowing operations, 
 pipelines:
   hourly_statistics:
     from: sensor_readings
-    groupByKey:
-    windowByTime:
-      size: 1h
-      advanceBy: 1h
-      grace: 10m
-    aggregate:
-      initializer: init_stats
-      aggregator: update_stats
+    via:
+      - type: groupByKey
+      - type: windowByTime
+        windowType: tumbling
+        duration: 1h
+        advanceBy: 1h
+        grace: 10m
+      - type: aggregate
+        initializer: init_stats
+        aggregator: update_stats
     to: hourly_sensor_statistics
 ```
 
@@ -173,16 +180,18 @@ functions:
 pipelines:
   regional_sales_analytics:
     from: sales_events
-    # Group by region instead of product ID
-    groupBy: extract_region
-    # Use tumbling window of 1 day
-    windowByTime:
-      size: 1d
-      advanceBy: 1d
-    # Aggregate sales data
-    aggregate:
-      initializer: initialize_sales_stats
-      aggregator: aggregate_sales
+    via:
+      # Group by region instead of product ID
+      - type: groupBy
+      # Use tumbling window of 1 day
+      - type: windowByTime
+        windowType: tumbling
+        duration: 1d
+        advanceBy: 1d
+      # Aggregate sales data
+      - type: aggregate
+        initializer: initialize_sales_stats
+        aggregator: aggregate_sales
     # Output to region-specific topic
     to: sales_by_region
 ```

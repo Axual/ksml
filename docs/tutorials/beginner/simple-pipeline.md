@@ -132,9 +132,8 @@ pipelines:
           expression: {"sensor": key, "temp_fahrenheit": value.get('temperature'), "temp_celsius": (value.get('temperature') - 32) * 5/9}
       - type: peek
         forEach:
-          functionRef: log_message
-          args:
-            message_type: "Processed"
+          code: |
+            log.info("Processed message: key={}, value={}", key, value)
     to: output_stream
 ```
 

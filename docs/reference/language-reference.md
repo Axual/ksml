@@ -190,8 +190,7 @@ pipelines:
         if:
           expression: value.get("total") > 100
       - type: mapValues
-        mapper:
-          code: calculate_total(value)
+        mapper: calculate_total
     to: processed_orders
 ```
 
@@ -215,7 +214,8 @@ Operations are the building blocks of pipelines. They transform, filter, or aggr
 - **count**: Counts records by key.
 - **reduce**: Combines records with the same key.
 - **join**: Joins two streams based on key.
-- **windowedBy**: Groups records into time windows.
+- **windowBySession**: Groups records into time windows.
+- **windowByTime**: Groups records into time windows.
 
 ### Operation Parameters
 
@@ -235,16 +235,19 @@ KSML supports various [data types](data-types-reference.md) for stream keys and 
 KSML automatically handles type conversion between compatible types. For example, a JSON string can be converted to an
 AVRO message if the structure (schema) matches.
 
-## Expressions
+## Returning a value from a function
 
-KSML supports two types of expressions:
+KSML supports two methods to return a value from a function:
 
-### YAML Expressions
+### Python Expressions
 
 Simple expressions can be defined directly in YAML:
 
 ```yaml
-expression: value.get("total") > 100
+functions:
+  my_function:
+    type: predicate
+    expression: value.get("total") > 100
 ```
 
 ### Python Code Blocks
@@ -252,10 +255,13 @@ expression: value.get("total") > 100
 More complex logic can be implemented using Python code blocks:
 
 ```yaml
-code: |
-  if value.get("status") == "COMPLETED" and value.get("total") > 100:
-    return True
-  return False
+functions:
+  my_function:
+    type: predicate
+    code: |
+      if value.get("status") == "COMPLETED" and value.get("total") > 100:
+        return True
+      return False
 ```
 
 ## Best Practices
@@ -276,6 +282,8 @@ code: |
 - Use stateless operations when possible.
 - Be mindful of window sizes in windowed operations.
 - Consider partitioning when designing your pipelines.
+
+## Resources
 
 ## Appendix: Full Example
 
@@ -299,14 +307,11 @@ streams:
 functions:
   calculate_total:
     type: valueTransformer
-    parameters:
-      - name: order
-        type: struct
     code: |
       total = 0
-      for item in order.get("items", []):
+      for item in value.get("items", []):
         total += item.get("price", 0) * item.get("quantity", 0)
-      return {**order, "total": total}
+      return {**value, "total": total}
     resultType: struct
 
   join_with_customers:
@@ -320,20 +325,15 @@ functions:
 
   enrich_order:
     type: valueTransformer
-    parameters:
-      - name: order
-        type: struct
-      - name: customer
-        type: struct
     code: |
       customer = value.get("customer")
       if customer is None:
-        return order
+        return value
       return {
-        **order,
+        **value,
         "customer_name": customer.get("name"),
         "customer_tier": customer.get("tier", "standard"),
-        "loyalty_points": order.get("total", 0) * 0.1
+        "loyalty_points": value.get("total", 0) * 0.1
       }
     resultType: struct
 
@@ -356,3 +356,4 @@ pipelines:
 
 This example demonstrates a complete KSML application that processes orders, calculates totals, enriches them with
 customer data, and filters out zero-total orders.
+
