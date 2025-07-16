@@ -47,7 +47,7 @@ public class JsonNotation extends BaseNotation {
         // JSON types can either be Map (or Struct), or List, or the union type of both Struct and List
         if (type instanceof MapType || type instanceof ListType || JsonNotation.DEFAULT_TYPE.isAssignableFrom(type))
             return new JsonSerde(nativeMapper, type);
-        // Other types can not be serialized as JSON
+        // Other types cannot be serialized as JSON
         throw new DataException("JSON serde not found for data type: " + type);
     }
 }

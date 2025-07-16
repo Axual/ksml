@@ -26,6 +26,10 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class KSMLDSL {
+    public static final String NAME = "name";
+    public static final String VERSION = "version";
+    public static final String DESCRIPTION = "description";
+
     public static final String FUNCTIONS = "functions";
 
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -321,6 +325,7 @@ public class KSMLDSL {
         public static final String VALUE_TYPE = "valueType";
         public static final String TIMESTAMP_EXTRACTOR = "timestampExtractor";
         public static final String OFFSET_RESET_POLICY = "offsetResetPolicy";
+        public static final String PARTITIONER = "partitioner";
     }
 
     @NoArgsConstructor(access = AccessLevel.PRIVATE)

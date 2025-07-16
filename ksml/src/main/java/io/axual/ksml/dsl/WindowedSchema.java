@@ -43,10 +43,10 @@ public class WindowedSchema {
 
     // Private constants are the schema descriptions and doc fields
     public static final String WINDOWED_SCHEMA_DOC_PREFIX = "Windowed ";
-    private static final String WINDOWED_SCHEMA_START_FIELD_DOC = "Start timestamp";
-    private static final String WINDOWED_SCHEMA_END_FIELD_DOC = "End timestamp";
-    private static final String WINDOWED_SCHEMA_START_TIME_FIELD_DOC = "Start time";
-    private static final String WINDOWED_SCHEMA_END_TIME_FIELD_DOC = "End time";
+    private static final String WINDOWED_SCHEMA_START_FIELD_DOC = "Start timestamp in milliseconds";
+    private static final String WINDOWED_SCHEMA_END_FIELD_DOC = "End timestamp in milliseconds";
+    private static final String WINDOWED_SCHEMA_START_TIME_FIELD_DOC = "Start time in UTC";
+    private static final String WINDOWED_SCHEMA_END_TIME_FIELD_DOC = "End time in UTC";
     private static final String WINDOWED_SCHEMA_KEY_FIELD_DOC = "Window key";
 
     public static StructSchema generateWindowedSchema(WindowedType windowedType, Function<DataType, DataSchema> dataTypeToSchema) {

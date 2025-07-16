@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -76,6 +77,8 @@ public class KSMLConfig {
 
     @JsonProperty("errorHandling")
     private ErrorHandlingConfig errorHandlingConfig;
+    @JsonProperty("schemaRegistries")
+    private Map<String, SchemaRegistryConfig> schemaRegistries;
     @JsonProperty("notations")
     private Map<String, NotationConfig> notations;
     @JsonProperty("definitions")
@@ -136,8 +139,13 @@ public class KSMLConfig {
         return errorHandlingConfig;
     }
 
+    public Map<String, SchemaRegistryConfig> schemaRegistries() {
+        if (schemaRegistries != null) return Collections.unmodifiableMap(schemaRegistries);
+        return ImmutableMap.of();
+    }
+
     public Map<String, NotationConfig> notations() {
-        if (notations != null) return ImmutableMap.copyOf(notations);
+        if (notations != null) return Collections.unmodifiableMap(notations);
         return ImmutableMap.of();
     }
 

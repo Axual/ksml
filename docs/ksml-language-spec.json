@@ -92,7 +92,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the aggregator"
+          "description" : "*(optional)* The (multiline) code of the aggregator."
         },
         "expression" : {
           "anyOf" : [ {
@@ -104,7 +104,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the aggregator. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the aggregator. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -157,7 +157,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the aggregator"
+          "description" : "*(optional)* The (multiline) code of the aggregator."
         },
         "expression" : {
           "anyOf" : [ {
@@ -169,7 +169,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the aggregator. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the aggregator. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -591,7 +591,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the foreach action"
+          "description" : "*(optional)* The (multiline) code of the foreach action."
         },
         "expression" : {
           "anyOf" : [ {
@@ -603,7 +603,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the foreach action. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the foreach action. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -663,7 +663,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the foreach action"
+          "description" : "*(optional)* The (multiline) code of the foreach action."
         },
         "expression" : {
           "anyOf" : [ {
@@ -675,7 +675,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the foreach action. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the foreach action. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -730,7 +730,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the foreign key extractor"
+          "description" : "*(optional)* The (multiline) code of the foreign key extractor."
         },
         "expression" : {
           "anyOf" : [ {
@@ -742,7 +742,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the foreign key extractor. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the foreign key extractor. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -795,7 +795,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the foreign key extractor"
+          "description" : "*(optional)* The (multiline) code of the foreign key extractor."
         },
         "expression" : {
           "anyOf" : [ {
@@ -807,7 +807,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the foreign key extractor. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the foreign key extractor. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -855,7 +855,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the message generator"
+          "description" : "*(optional)* The (multiline) code of the message generator."
         },
         "expression" : {
           "anyOf" : [ {
@@ -867,7 +867,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the message generator. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the message generator. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -920,7 +920,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the message generator"
+          "description" : "*(optional)* The (multiline) code of the message generator."
         },
         "expression" : {
           "anyOf" : [ {
@@ -932,7 +932,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the message generator. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the message generator. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -980,7 +980,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the generic function"
+          "description" : "*(optional)* The (multiline) code of the generic function."
         },
         "expression" : {
           "anyOf" : [ {
@@ -992,7 +992,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the generic function. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the generic function. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -1032,15 +1032,24 @@
     },
     "GlobalTableDefinition" : {
       "additionalProperties" : false,
-      "description" : "Contains a definition of a GlobalTable, which can be referenced by producers and pipelines",
+      "description" : "Contains a definition of a globalTable, which can be referenced by producers and pipelines",
       "properties" : {
         "keyType" : {
-          "description" : "The key type of the global table",
+          "description" : "The key type of the globalTable",
           "type" : "string"
         },
         "offsetResetPolicy" : {
-          "description" : "*(optional)* Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted)",
+          "description" : "*(optional)* The policy that determines what to do when there is no initial consumer offset in Kafka, or if the message at the committed consumer offset does not exist (e.g. because that data has been deleted)",
           "type" : "string"
+        },
+        "partitioner" : {
+          "anyOf" : [ {
+            "type" : "string"
+          }, {
+            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
+            "type" : "object"
+          } ],
+          "description" : "*(optional)* A function that determines to which topic partition a given message needs to be written"
         },
         "store" : {
           "anyOf" : [ {
@@ -1058,14 +1067,14 @@
             "$ref" : "#/definitions/TimestampExtractorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
-          "description" : "*(optional)* A function extracts the event time from a consumed record"
+          "description" : "*(optional)* A function that extracts the event time from a consumed record"
         },
         "topic" : {
-          "description" : "The name of the Kafka topic for this global table",
+          "description" : "The name of the Kafka topic for this globalTable",
           "type" : "string"
         },
         "valueType" : {
-          "description" : "The value type of the global table",
+          "description" : "The value type of the globalTable",
           "type" : "string"
         }
       },
@@ -1075,11 +1084,20 @@
     },
     "GlobalTableDefinitionAsJoinTarget" : {
       "additionalProperties" : false,
-      "description" : "Reference to a GlobalTable in a join operation",
+      "description" : "Reference to a globalTable in a join operation",
       "properties" : {
         "keyType" : {
-          "description" : "*(optional)* The key type of the global table",
+          "description" : "*(optional)* The key type of the globalTable",
           "type" : "string"
+        },
+        "partitioner" : {
+          "anyOf" : [ {
+            "type" : "string"
+          }, {
+            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
+            "type" : "object"
+          } ],
+          "description" : "*(optional)* A function that determines to which topic partition a given message needs to be written"
         },
         "store" : {
           "anyOf" : [ {
@@ -1091,11 +1109,11 @@
           "description" : "*(optional)* KeyValue state store definition"
         },
         "topic" : {
-          "description" : "The name of the Kafka topic for this global table",
+          "description" : "The name of the Kafka topic for this globalTable",
           "type" : "string"
         },
         "valueType" : {
-          "description" : "*(optional)* The value type of the global table",
+          "description" : "*(optional)* The value type of the globalTable",
           "type" : "string"
         }
       },
@@ -1178,7 +1196,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the initializer"
+          "description" : "*(optional)* The (multiline) code of the initializer."
         },
         "expression" : {
           "anyOf" : [ {
@@ -1190,7 +1208,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the initializer. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the initializer. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -1243,7 +1261,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the initializer"
+          "description" : "*(optional)* The (multiline) code of the initializer."
         },
         "expression" : {
           "anyOf" : [ {
@@ -1255,7 +1273,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the initializer. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the initializer. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -1495,7 +1513,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the key transformer"
+          "description" : "*(optional)* The (multiline) code of the key transformer."
         },
         "expression" : {
           "anyOf" : [ {
@@ -1507,7 +1525,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the key transformer. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the key transformer. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -1567,7 +1585,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the key transformer"
+          "description" : "*(optional)* The (multiline) code of the key transformer."
         },
         "expression" : {
           "anyOf" : [ {
@@ -1579,7 +1597,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the key transformer. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the key transformer. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -1634,7 +1652,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the keyvalue mapper"
+          "description" : "*(optional)* The (multiline) code of the keyvalue mapper."
         },
         "expression" : {
           "anyOf" : [ {
@@ -1646,7 +1664,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the keyvalue mapper. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the keyvalue mapper. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -1699,7 +1717,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the keyvalue mapper"
+          "description" : "*(optional)* The (multiline) code of the keyvalue mapper."
         },
         "expression" : {
           "anyOf" : [ {
@@ -1711,7 +1729,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the keyvalue mapper. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the keyvalue mapper. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -1759,7 +1777,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the keyvalue printer"
+          "description" : "*(optional)* The (multiline) code of the keyvalue printer."
         },
         "expression" : {
           "anyOf" : [ {
@@ -1771,7 +1789,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the keyvalue printer. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the keyvalue printer. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -1824,7 +1842,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the keyvalue printer"
+          "description" : "*(optional)* The (multiline) code of the keyvalue printer."
         },
         "expression" : {
           "anyOf" : [ {
@@ -1836,7 +1854,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the keyvalue printer. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the keyvalue printer. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -2053,7 +2071,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the keyvalue-to-keyvaluelist transformer"
+          "description" : "*(optional)* The (multiline) code of the keyvalue-to-keyvaluelist transformer."
         },
         "expression" : {
           "anyOf" : [ {
@@ -2065,7 +2083,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the keyvalue-to-keyvaluelist transformer. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the keyvalue-to-keyvaluelist transformer. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -2125,7 +2143,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the keyvalue-to-keyvaluelist transformer"
+          "description" : "*(optional)* The (multiline) code of the keyvalue-to-keyvaluelist transformer."
         },
         "expression" : {
           "anyOf" : [ {
@@ -2137,7 +2155,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the keyvalue-to-keyvaluelist transformer. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the keyvalue-to-keyvaluelist transformer. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -2192,7 +2210,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the keyvalue-to-valuelist transformer"
+          "description" : "*(optional)* The (multiline) code of the keyvalue-to-valuelist transformer."
         },
         "expression" : {
           "anyOf" : [ {
@@ -2204,7 +2222,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the keyvalue-to-valuelist transformer. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the keyvalue-to-valuelist transformer. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -2264,7 +2282,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the keyvalue-to-valuelist transformer"
+          "description" : "*(optional)* The (multiline) code of the keyvalue-to-valuelist transformer."
         },
         "expression" : {
           "anyOf" : [ {
@@ -2276,7 +2294,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the keyvalue-to-valuelist transformer. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the keyvalue-to-valuelist transformer. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -2331,7 +2349,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the keyvalue transformer"
+          "description" : "*(optional)* The (multiline) code of the keyvalue transformer."
         },
         "expression" : {
           "anyOf" : [ {
@@ -2343,7 +2361,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the keyvalue transformer. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the keyvalue transformer. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -2403,7 +2421,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the keyvalue transformer"
+          "description" : "*(optional)* The (multiline) code of the keyvalue transformer."
         },
         "expression" : {
           "anyOf" : [ {
@@ -2415,7 +2433,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the keyvalue transformer. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the keyvalue transformer. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -2688,7 +2706,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the merger"
+          "description" : "*(optional)* The (multiline) code of the merger."
         },
         "expression" : {
           "anyOf" : [ {
@@ -2700,7 +2718,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the merger. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the merger. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -2753,7 +2771,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the merger"
+          "description" : "*(optional)* The (multiline) code of the merger."
         },
         "expression" : {
           "anyOf" : [ {
@@ -2765,7 +2783,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the merger. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the merger. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -2813,7 +2831,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the metadata transformer"
+          "description" : "*(optional)* The (multiline) code of the metadata transformer."
         },
         "expression" : {
           "anyOf" : [ {
@@ -2825,7 +2843,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the metadata transformer. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the metadata transformer. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -2885,7 +2903,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the metadata transformer"
+          "description" : "*(optional)* The (multiline) code of the metadata transformer."
         },
         "expression" : {
           "anyOf" : [ {
@@ -2897,7 +2915,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the metadata transformer. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the metadata transformer. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -3296,7 +3314,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the predicate"
+          "description" : "*(optional)* The (multiline) code of the predicate."
         },
         "expression" : {
           "anyOf" : [ {
@@ -3308,7 +3326,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the predicate. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the predicate. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -3368,7 +3386,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the predicate"
+          "description" : "*(optional)* The (multiline) code of the predicate."
         },
         "expression" : {
           "anyOf" : [ {
@@ -3380,7 +3398,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the predicate. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the predicate. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -3610,7 +3628,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the reducer"
+          "description" : "*(optional)* The (multiline) code of the reducer."
         },
         "expression" : {
           "anyOf" : [ {
@@ -3622,7 +3640,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the reducer. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the reducer. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -3675,7 +3693,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the reducer"
+          "description" : "*(optional)* The (multiline) code of the reducer."
         },
         "expression" : {
           "anyOf" : [ {
@@ -3687,7 +3705,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the reducer. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the reducer. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -3812,6 +3830,15 @@
           "description" : "*(optional)* Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted)",
           "type" : "string"
         },
+        "partitioner" : {
+          "anyOf" : [ {
+            "type" : "string"
+          }, {
+            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
+            "type" : "object"
+          } ],
+          "description" : "*(optional)* A function that determines to which topic partition a given message needs to be written"
+        },
         "timestampExtractor" : {
           "anyOf" : [ {
             "type" : "string"
@@ -3869,7 +3896,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the stream partitioner"
+          "description" : "*(optional)* The (multiline) code of the stream partitioner."
         },
         "expression" : {
           "anyOf" : [ {
@@ -3881,7 +3908,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the stream partitioner. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the stream partitioner. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -3934,7 +3961,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the stream partitioner"
+          "description" : "*(optional)* The (multiline) code of the stream partitioner."
         },
         "expression" : {
           "anyOf" : [ {
@@ -3946,7 +3973,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the stream partitioner. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the stream partitioner. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -4073,15 +4100,24 @@
     },
     "TableDefinition" : {
       "additionalProperties" : false,
-      "description" : "Contains a definition of a Table, which can be referenced by producers and pipelines",
+      "description" : "Contains a definition of a table, which can be referenced by producers and pipelines",
       "properties" : {
         "keyType" : {
           "description" : "The key type of the table",
           "type" : "string"
         },
         "offsetResetPolicy" : {
-          "description" : "*(optional)* Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted)",
+          "description" : "*(optional)* The policy that determines what to do when there is no initial consumer offset in Kafka, or if the message at the committed consumer offset does not exist (e.g. because that data has been deleted)",
           "type" : "string"
+        },
+        "partitioner" : {
+          "anyOf" : [ {
+            "type" : "string"
+          }, {
+            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
+            "type" : "object"
+          } ],
+          "description" : "*(optional)* A function that determines to which topic partition a given message needs to be written"
         },
         "store" : {
           "anyOf" : [ {
@@ -4099,7 +4135,7 @@
             "$ref" : "#/definitions/TimestampExtractorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
-          "description" : "*(optional)* A function extracts the event time from a consumed record"
+          "description" : "*(optional)* A function that extracts the event time from a consumed record"
         },
         "topic" : {
           "description" : "The name of the Kafka topic for this table",
@@ -4116,11 +4152,20 @@
     },
     "TableDefinitionAsJoinTarget" : {
       "additionalProperties" : false,
-      "description" : "Reference to a Table in a join operation",
+      "description" : "Reference to a table in a join operation",
       "properties" : {
         "keyType" : {
           "description" : "*(optional)* The key type of the table",
           "type" : "string"
+        },
+        "partitioner" : {
+          "anyOf" : [ {
+            "type" : "string"
+          }, {
+            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
+            "type" : "object"
+          } ],
+          "description" : "*(optional)* A function that determines to which topic partition a given message needs to be written"
         },
         "store" : {
           "anyOf" : [ {
@@ -4158,7 +4203,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the timestamp extractor"
+          "description" : "*(optional)* The (multiline) code of the timestamp extractor."
         },
         "expression" : {
           "anyOf" : [ {
@@ -4170,7 +4215,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the timestamp extractor. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the timestamp extractor. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -4223,7 +4268,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the timestamp extractor"
+          "description" : "*(optional)* The (multiline) code of the timestamp extractor."
         },
         "expression" : {
           "anyOf" : [ {
@@ -4235,7 +4280,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the timestamp extractor. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the timestamp extractor. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -4411,6 +4456,15 @@
           "description" : "*(optional)* Policy that determines what to do when there is no initial offset in Kafka, or if the current offset does not exist any more on the server (e.g. because that data has been deleted)",
           "type" : "string"
         },
+        "partitioner" : {
+          "anyOf" : [ {
+            "type" : "string"
+          }, {
+            "$ref" : "#/definitions/StreamPartitionerDefinitionWithImplicitStoreType",
+            "type" : "object"
+          } ],
+          "description" : "*(optional)* A function that determines to which topic partition a given message needs to be written"
+        },
         "timestampExtractor" : {
           "anyOf" : [ {
             "type" : "string"
@@ -4447,7 +4501,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the topic name extractor"
+          "description" : "*(optional)* The (multiline) code of the topic name extractor."
         },
         "expression" : {
           "anyOf" : [ {
@@ -4459,7 +4513,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the topic name extractor. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the topic name extractor. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -4512,7 +4566,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the topic name extractor"
+          "description" : "*(optional)* The (multiline) code of the topic name extractor."
         },
         "expression" : {
           "anyOf" : [ {
@@ -4524,7 +4578,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the topic name extractor. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the topic name extractor. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -4737,7 +4791,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the value joiner"
+          "description" : "*(optional)* The (multiline) code of the value joiner."
         },
         "expression" : {
           "anyOf" : [ {
@@ -4749,7 +4803,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the value joiner. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the value joiner. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -4802,7 +4856,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the value joiner"
+          "description" : "*(optional)* The (multiline) code of the value joiner."
         },
         "expression" : {
           "anyOf" : [ {
@@ -4814,7 +4868,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the value joiner. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the value joiner. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -4862,7 +4916,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the value transformer"
+          "description" : "*(optional)* The (multiline) code of the value transformer."
         },
         "expression" : {
           "anyOf" : [ {
@@ -4874,7 +4928,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the value transformer. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the value transformer. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {
@@ -4934,7 +4988,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The (multiline) code of the value transformer"
+          "description" : "*(optional)* The (multiline) code of the value transformer."
         },
         "expression" : {
           "anyOf" : [ {
@@ -4946,7 +5000,7 @@
           }, {
             "type" : "string"
           } ],
-          "description" : "*(optional)* The expression returned by the value transformer. Only required for functions that return values."
+          "description" : "*(optional)* The (multiline) expression returned by the value transformer. Used as an alternative for 'return' statements in the code."
         },
         "globalCode" : {
           "anyOf" : [ {

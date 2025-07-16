@@ -9,9 +9,9 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>ksml-data-protobuf</artifactId>
-    <name>KSML Data Library - PROTOBUF</name>
-    <description>Implementation for PROTOBUF message serialization/deserialization and schemas</description>
+    <artifactId>ksml-data-jsonschema</artifactId>
+    <name>KSML Data Library - JSON Schema</name>
+    <description>Implementation for JSON Schema message serialization/deserialization and schemas</description>
 
     <properties>
         <!-- Compress excluded from avro CVE-2024-25710 CVE-2024-26308  -->
@@ -23,28 +23,15 @@
         <!-- Base dependencies -->
         <dependency>
             <groupId>io.axual.ksml</groupId>
-            <artifactId>ksml-data</artifactId>
-        </dependency>
-        <!-- Serialization formats -->
-        <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
+            <artifactId>ksml-data-json</artifactId>
         </dependency>
         <dependency>
             <groupId>io.apicurio</groupId>
-            <artifactId>apicurio-registry-serdes-protobuf-serde</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.apicurio</groupId>
-            <artifactId>apicurio-registry-protobuf-schema-utilities</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.apicurio</groupId>
-            <artifactId>apicurio-registry-schema-resolver</artifactId>
+            <artifactId>apicurio-registry-serdes-jsonschema-serde</artifactId>
         </dependency>
         <dependency>
             <groupId>io.confluent</groupId>
-            <artifactId>kafka-protobuf-serializer</artifactId>
+            <artifactId>kafka-json-schema-serializer</artifactId>
         </dependency>
 
         <!-- Other dependencies -->
@@ -63,7 +50,6 @@
             <artifactId>assertj-core</artifactId>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>

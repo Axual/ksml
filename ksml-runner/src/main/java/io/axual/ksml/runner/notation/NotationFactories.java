@@ -27,6 +27,7 @@ import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.notation.csv.CsvNotation;
 import io.axual.ksml.data.notation.json.JsonNotation;
+import io.axual.ksml.data.notation.jsonschema.JsonSchemaNotation;
 import io.axual.ksml.data.notation.protobuf.ProtobufNotation;
 import io.axual.ksml.data.notation.soap.SoapNotation;
 import io.axual.ksml.data.notation.xml.XmlNotation;
@@ -45,8 +46,11 @@ public class NotationFactories {
     // Notation constants
     public static final String AVRO = "avro";
     public static final String APICURIO_AVRO = "apicurio_avro";
+    public static final String APICURIO_JSONSCHEMA = "apicurio_jsonschema";
     public static final String APICURIO_PROTOBUF = "apicurio_protobuf";
     public static final String CONFLUENT_AVRO = "confluent_avro";
+    public static final String CONFLUENT_JSONSCHEMA = "confluent_jsonschema";
+    public static final String CONFLUENT_PROTOBUF = "confluent_protobuf";
     public static final String BINARY_NOTATION = "binary";
     public static final String CSV_NOTATION = "csv";
     public static final String DEFAULT_NOTATION = UserType.DEFAULT_NOTATION;
@@ -56,8 +60,11 @@ public class NotationFactories {
 
     // Notation variables
     private final NotationFactory apicurioAvro;
-    private final NotationFactory confluentAvro;
+    private final NotationFactory apicurioJsonSchema;
     private final NotationFactory apicurioProtobuf;
+    private final NotationFactory confluentAvro;
+    private final NotationFactory confluentJsonSchema;
+    private final NotationFactory confluentProtobuf;
     private final NotationFactory binary;
     private final NotationFactory csv;
     private final NotationFactory json;
@@ -83,9 +90,17 @@ public class NotationFactories {
         json = (name, config) -> new JsonNotation(name, nativeMapper);
         notations.put(JSON_NOTATION, json);
 
+        // JSON Schema
+        apicurioJsonSchema = (name, config) -> new JsonSchemaNotation(name, JsonSchemaNotation.SerdeType.APICURIO, nativeMapper, MapUtil.merge(kafkaConfig, config), null);
+        notations.put(APICURIO_JSONSCHEMA, apicurioJsonSchema);
+        confluentJsonSchema = (name, config) -> new JsonSchemaNotation(name, JsonSchemaNotation.SerdeType.CONFLUENT, nativeMapper, MapUtil.merge(kafkaConfig, config), null);
+        notations.put(CONFLUENT_JSONSCHEMA, confluentJsonSchema);
+
         // Protobuf
-        apicurioProtobuf = (name, notationConfig) -> new ProtobufNotation(name, ProtobufNotation.SerdeType.APICURIO, nativeMapper, MapUtil.merge(kafkaConfig, notationConfig));
+        apicurioProtobuf = (name, config) -> new ProtobufNotation(name, ProtobufNotation.SerdeType.APICURIO, nativeMapper, MapUtil.merge(kafkaConfig, config));
         notations.put(APICURIO_PROTOBUF, apicurioProtobuf);
+        confluentProtobuf = (name, config) -> new ProtobufNotation(name, ProtobufNotation.SerdeType.CONFLUENT, nativeMapper, MapUtil.merge(kafkaConfig, config));
+        notations.put(CONFLUENT_PROTOBUF, confluentProtobuf);
 
         // SOAP
         soap = (name, config) -> new SoapNotation(name, nativeMapper);

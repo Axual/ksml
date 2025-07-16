@@ -61,14 +61,14 @@ class TableDefinitionTest {
         final var stringType = UserTypeParser.parse("string");
 
         // given a TableDefinition
-        final var tableDefinition = new TableDefinition("topic", stringType, stringType, null, null, new KeyValueStateStoreDefinition("storename", stringType, stringType));
+        final var tableDefinition = new TableDefinition("topic", stringType, stringType, null, null, null, new KeyValueStateStoreDefinition("storename", stringType, stringType));
         final var resources = new TopologyResources("test");
 
         final var context = new TopologyBuildContext(builder, resources);
         // when it adds itself to Builder
         final var streamWrapper = context.getStreamWrapper(tableDefinition);
 
-        // it adds a KTable to the StreamsBuilder with key and value dataType, and returns a KTableWrapper instance
+        // it adds a KTable to the StreamsBuilder with key and value dataType and returns a KTableWrapper instance
         verify(mockNotation).serde(stringType.dataType(), true);
         verify(mockNotation).serde(stringType.dataType(), false);
 

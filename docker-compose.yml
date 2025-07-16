@@ -102,7 +102,7 @@ services:
                        kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic io.ksml.example.processor-ownerCount-changelog'"
 
   example-producer:
-    image: axual/ksml:latest
+    image: axual/ksml:snapshot
     hostname: kafka-data-generator
     restart: on-failure
     networks:
@@ -119,4 +119,3 @@ services:
         condition: service_healthy
       kafka-setup:
         condition: service_completed_successfully
-

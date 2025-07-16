@@ -25,7 +25,6 @@ import io.axual.ksml.data.notation.SchemaResolver;
 import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.type.*;
-import io.axual.ksml.data.util.ConvertUtil;
 import io.axual.ksml.data.util.MapUtil;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.execution.ExecutionContext;
@@ -74,7 +73,7 @@ public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
     }
 
     private Object valueToNative(DataType expected, Value object) {
-        if (object.isNull()) return ConvertUtil.convertNullToDataObject(expected);
+        if (object.isNull()) return null;
         if (object.isBoolean() && (expected == null || expected == DataBoolean.DATATYPE))
             return object.asBoolean();
 

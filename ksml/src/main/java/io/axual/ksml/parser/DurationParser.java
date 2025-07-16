@@ -38,10 +38,10 @@ public class DurationParser implements ParserWithSchemas<Duration> {
 
     @Override
     public Duration parse(ParseNode node) {
-        return parseDuration(new StringValueParser().parse(node));
+        return parseDuration(new StringValueParser().parse(node), false);
     }
 
-    private Duration parseDuration(String durationStr) {
+    public static Duration parseDuration(String durationStr, boolean allowFail) {
         if (durationStr == null) return null;
         durationStr = durationStr.toLowerCase().trim();
         if (durationStr.length() >= 2) {
@@ -77,7 +77,11 @@ public class DurationParser implements ParserWithSchemas<Duration> {
             // If the duration does not contain a valid unit string, assume it is a whole number in millis
             return Duration.ofMillis(Long.parseLong(durationStr));
         } catch (NumberFormatException e) {
-            throw new TopologyException("Illegal duration: " + durationStr);
+            if (allowFail) return null;
+            throw new TopologyException(
+                    String.format(
+                            "Invalid duration format: '%s'. Expected format: <number><unit> where unit is one of: s, m, h, d, w. Example: '5m' for 5 minutes",
+                            durationStr));
         }
     }
 }

@@ -61,7 +61,7 @@ class GlobalTableDefinitionTest {
         final var stringType = UserTypeParser.parse("string");
 
         // given a TableDefinition
-        final var tableDefinition = new GlobalTableDefinition("topic", stringType, stringType, null, null, new KeyValueStateStoreDefinition("storename", stringType, stringType));
+        final var tableDefinition = new GlobalTableDefinition("topic", stringType, stringType, null, null, null, new KeyValueStateStoreDefinition("storename", stringType, stringType));
         final var resources = new TopologyResources("test");
 
         final var context = new TopologyBuildContext(builder, resources);
