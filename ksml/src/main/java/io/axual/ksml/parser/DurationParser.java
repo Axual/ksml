@@ -78,7 +78,10 @@ public class DurationParser implements ParserWithSchemas<Duration> {
             return Duration.ofMillis(Long.parseLong(durationStr));
         } catch (NumberFormatException e) {
             if (allowFail) return null;
-            throw new TopologyException("Illegal duration: " + durationStr);
+            throw new TopologyException(
+                    String.format(
+                            "Invalid duration format: '%s'. Expected format: <number><unit> where unit is one of: s, m, h, d, w. Example: '5m' for 5 minutes",
+                            durationStr));
         }
     }
 }
