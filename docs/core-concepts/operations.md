@@ -41,6 +41,11 @@ These operations reorganize messages based on keys:
 
 Grouping operations often precede aggregation operations, as they organize data in a way that makes aggregation possible.
 
+### Windowing Operations
+
+- **Windowing by Session Operations**: bundle messages together based on their time difference, where a _session_ is defined as a series of events with a maximum `inactivityGap` duration (eg. `windowBySession`)
+- **Windowing by Time Operations**: bundle messages together based on their specific message timestamp. The window type and parameters determine to which window(s) a message is assigned (eg. `windowByTime`)
+
 ### Sink Operations
 
 These operations represent the end of a pipeline, where data is sent to an external system or another part of your application:

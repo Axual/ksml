@@ -1,0 +1,232 @@
+streams:
+  credit_card_transactions:
+    topic: cc_transactions
+    keyType: string  # Card number
+    valueType: json  # Transaction details
+
+  location_changes:
+    topic: location_events
+    keyType: string  # User ID
+    valueType: json  # Location information
+
+  authentication_events:
+    topic: auth_events
+    keyType: string  # User ID
+    valueType: json  # Authentication details
+
+  fraud_alerts:
+    topic: fraud_alerts
+    keyType: string  # Alert ID
+    valueType: json  # Alert details
+
+stores:
+  transaction_history_store:
+    type: keyValue
+    keyType: string
+    valueType: json
+    persistent: true
+
+  user_profile_store:
+    type: keyValue
+    keyType: string
+    valueType: json
+    persistent: true
+
+  alert_state_store:
+    type: keyValue
+    keyType: string
+    valueType: json
+    persistent: false
+
+functions:
+  detect_transaction_anomalies:
+    type: keyValueTransformer
+    code: |
+      card_number = key
+      transaction = value
+      current_time = transaction.get("timestamp", int(time.time() * 1000))
+
+      # Get transaction history
+      history = transaction_history_store.get(card_number + "_history")
+      if history is None:
+        history = {
+          "transactions": [],
+          "avg_amount": 0,
+          "max_amount": 0,
+          "locations": set(),
+          "merchants": set(),
+          "last_transaction_time": 0
+        }
+
+      # Calculate time since last transaction
+      time_since_last = current_time - history.get("last_transaction_time", 0)
+
+      # Extract transaction details
+      amount = transaction.get("amount", 0)
+      location = transaction.get("location", "unknown")
+      merchant = transaction.get("merchant", "unknown")
+      merchant_category = transaction.get("merchant_category", "unknown")
+
+      # Check for anomalies
+      anomalies = []
+
+      # 1. Unusual amount
+      if amount > 3 * history.get("avg_amount", 0) and amount > 100:
+        anomalies.append("unusual_amount")
+
+      # 2. New location
+      if location not in history.get("locations", set()) and len(history.get("locations", set())) > 0:
+        anomalies.append("new_location")
+
+      # 3. Rapid succession (multiple transactions in short time)
+      if time_since_last < 5 * 60 * 1000 and time_since_last > 0:  # Less than 5 minutes
+        anomalies.append("rapid_succession")
+
+      # 4. High-risk merchant category
+      if merchant_category in ["gambling", "cryptocurrency", "money_transfer"]:
+        anomalies.append("high_risk_category")
+
+      # Update history
+      history["transactions"].append({
+        "timestamp": current_time,
+        "amount": amount,
+        "location": location,
+        "merchant": merchant
+      })
+
+      # Keep only last 20 transactions
+      if len(history["transactions"]) > 20:
+        history["transactions"] = history["transactions"][-20:]
+
+      # Update statistics
+      history["avg_amount"] = sum(t.get("amount", 0) for t in history["transactions"]) / len(history["transactions"])
+      history["max_amount"] = max(history["max_amount"], amount)
+      history["locations"].add(location)
+      history["merchants"].add(merchant)
+      history["last_transaction_time"] = current_time
+
+      # Store updated history
+      transaction_history_store.put(card_number + "_history", history)
+
+      # Generate alert if anomalies detected
+      if anomalies:
+        alert_id = str(uuid.uuid4())
+        alert = {
+          "alert_id": alert_id,
+          "card_number": card_number,
+          "timestamp": current_time,
+          "transaction": transaction,
+          "anomalies": anomalies,
+          "risk_score": len(anomalies) * 25,  # Simple scoring: 25 points per anomaly
+          "status": "new"
+        }
+        return (alert_id, alert)
+
+      return None
+    stores:
+      - transaction_history_store
+
+  correlate_with_location:
+    type: valueTransformer
+    code: |
+      if value is None:
+        return None
+
+      alert = value
+      card_number = alert.get("card_number")
+      transaction = alert.get("transaction", {})
+
+      # Get user profile
+      user_id = transaction.get("user_id")
+      if user_id:
+        user_profile = user_profile_store.get(user_id)
+        if user_profile:
+          # Check for impossible travel
+          last_known_location = user_profile.get("last_known_location")
+          current_location = transaction.get("location")
+
+          if last_known_location and current_location and last_known_location != current_location:
+            last_location_time = user_profile.get("last_location_time", 0)
+            current_time = transaction.get("timestamp", 0)
+
+            # Simple check: if locations changed too quickly, flag as impossible travel
+            if current_time - last_location_time < 3 * 60 * 60 * 1000:  # Less than 3 hours
+              alert["anomalies"].append("impossible_travel")
+              alert["risk_score"] += 50  # Higher score for impossible travel
+
+              # Add location context
+              alert["location_context"] = {
+                "previous_location": last_known_location,
+                "previous_location_time": last_location_time,
+                "current_location": current_location,
+                "travel_time_ms": current_time - last_location_time
+              }
+
+      return alert
+    stores:
+      - user_profile_store
+
+  enrich_with_user_data:
+    type: valueTransformer
+    code: |
+      if value is None:
+        return None
+
+      alert = value
+      transaction = alert.get("transaction", {})
+      user_id = transaction.get("user_id")
+
+      if user_id:
+        user_profile = user_profile_store.get(user_id)
+        if user_profile:
+          # Add user context to alert
+          alert["user_context"] = {
+            "user_id": user_id,
+            "account_age_days": user_profile.get("account_age_days"),
+            "previous_fraud_alerts": user_profile.get("fraud_alert_count", 0)
+          }
+
+          # Adjust risk score based on user history
+          if user_profile.get("fraud_alert_count", 0) > 0:
+            alert["risk_score"] += 25  # Increase risk for users with previous alerts
+
+          if user_profile.get("account_age_days", 0) < 30:
+            alert["risk_score"] += 15  # Increase risk for new accounts
+
+      # Categorize risk level
+      if alert["risk_score"] >= 90:
+        alert["risk_level"] = "high"
+      elif alert["risk_score"] >= 60:
+        alert["risk_level"] = "medium"
+      else:
+        alert["risk_level"] = "low"
+
+      return alert
+    stores:
+      - user_profile_store
+
+pipelines:
+  # Process credit card transactions - first stage
+  detect_transaction_anomalies:
+    from: credit_card_transactions
+    transformKeyValue: detect_transaction_anomalies
+    filter: is_not_null
+    to: potential_fraud_alerts
+
+  # Process credit card transactions - second stage
+  correlate_location_data:
+    from: potential_fraud_alerts
+    mapValues: correlate_with_location
+    to: location_correlated_alerts
+
+  # Process credit card transactions - final stage
+  enrich_and_score_alerts:
+    from: location_correlated_alerts
+    mapValues: enrich_with_user_data
+    to: fraud_alerts
+
+  # Update user profiles with location data
+  track_locations:
+    from: location_changes
+    mapValues: update_user_location
+    to: updated_user_profiles

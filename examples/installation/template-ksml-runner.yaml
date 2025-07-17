@@ -35,8 +35,8 @@ ksml:
       loggerName: ProduceError       # Definition of the error logger name.
       handler: continueOnFail        # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
 
-  enableProducers: true              # Set to true to allow producer definitions to be parsed in the KSML definitions and be executed.
-  enablePipelines: false             # Set to true to allow pipeline definitions to be parsed in the KSML definitions and be executed.
+  enableProducers: false             # Set to true to allow producer definitions to be parsed in the KSML definitions and be executed.
+  enablePipelines: true              # Set to true to allow pipeline definitions to be parsed in the KSML definitions and be executed.
 
   # This section tells KSML which schema registries are available
   schemaRegistries:
@@ -81,8 +81,8 @@ ksml:
       config:
         # Specify all properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
         # These override the settings passed in from the schema registry config
-        normalize.schemas: true
-        auto.register.schemas: false
+        normalize.schemas: false
+        auto.register.schemas: true
 
     # Definition for "jsonschema" notation
     jsonschema:
@@ -103,48 +103,16 @@ ksml:
         # These override the settings passed in from the schema registry config
         apicurio.registry.auto-register: false
 
-  # Section where you specify which KSML definitions to load, parse and execute.
+  # Path to your KSML definition files
   definitions:
-    # Format is <namespace>: <ksml_definition_filename>
-    generate_alert_setting: 00-example-generate-alertsettings.yaml
-    generate_sensor_data_avro: 00-example-generate-sensordata-avro.yaml
-    # generate_sensor_data_avro_batch: 00-example-generate-sensordata-avro-batch.yaml
-    # generate_sensor_data_binary: 00-example-generate-sensordata-binary.yaml
-    # generate_sensor_data_protobuf: 00-example-generate-sensordata-protobuf.yaml
-
+    namespace1: path/to/your/ksml/definition1.yaml
+    namespace2: path/to/your/ksml/definition2.yaml
     # Extend with more definitions if necessary. All definitions will run in their own namespace within KSML, but there
     # are some constraints, such as stream definitions may not define conflicting key/value types in different
     # definitions.
 
-# This setup connects to the Kafka broker and schema registry started with the example docker-compose file
-# These examples are intended to run from inside a container on the same network
 kafka:
-  bootstrap.servers: broker:9093
-  application.id: io.ksml.example.producer
-  security.protocol: PLAINTEXT
-  acks: all
-
-  # These are Kafka SSL configuration properties. Check the documentation at1
-  # Check the documentation at https://kafka.apache.org/documentation/#producerconfigs for more properties
-  # security.protocol: SSL
-  # ssl.protocol: TLSv1.3
-  # ssl.enabled.protocols: TLSv1.3,TLSv1.2
-  # ssl.endpoint.identification.algorithm: ""
-  # ssl.keystore.type: JKS
-  # ssl.truststore.type: JKS
-  # ssl.key.password: xxx
-  # ssl.keystore.password: xxx
-  # ssl.keystore.location: /path/to/ksml.keystore.jks
-  # ssl.truststore.password: xxx
-  # ssl.truststore.location: /path/to/ksml.truststore.jks
-
-  # Use these configuration properties when connecting to a cluster using the Axual naming patterns.
-  # These patterns are resolved into the actual name used on Kafka using the values in this configuration map
-  # and the topic names specified in the definition YAML files
-  # The pattern below results in Kafka topic ksmldemo-dta-dev-<topic name from KSML definition YAML>
-  # axual.topic.pattern: "{tenant}-{instance}-{environment}-{topic}"
-  # axual.group.id.pattern: "{tenant}-{instance}-{environment}-{group.id}"
-  # axual.transactional.id.pattern: "{tenant}-{instance}-{environment}-{transactional.id}"
-  # tenant: "ksmldemo"
-  # instance: "dta"
-  # environment: "dev"
+  bootstrap.servers: your-kafka-broker:9092
+  # Add any other Kafka client properties here
+  url: http://your-schema-registry:8081
+  # Add any other Schema Registry properties here

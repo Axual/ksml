@@ -1,70 +1,11 @@
 # KSML Operations Reference
 
-This document provides a comprehensive reference for all operations available in KSML. Each operation is described with its parameters, behavior, and examples.
+This document provides a comprehensive reference for all operations available in KSML. Each operation is described with
+its parameters, behavior, and examples.
 
 ## Stateless Operations
 
 Stateless operations process each record independently, without maintaining any state between records.
-
-### `mapValues`
-
-Transforms the value of each record without changing the key.
-
-#### Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `mapper` | Object | Yes | Specifies how to transform the value |
-
-The `mapper` can be defined using:
-- `expression`: A simple expression
-- `code`: A Python code block
-
-#### Example
-
-```yaml
-- type: mapValues
-  mapper:
-    expression: {"name": value.get("firstName") + " " + value.get("lastName"), "age": value.get("age")}
-```
-
-```yaml
-- type: mapValues
-  mapper:
-    code: |
-      return {
-        "full_name": value.get("firstName") + " " + value.get("lastName"),
-        "age_in_months": value.get("age") * 12
-      }
-```
-
-### `map`
-
-Transforms both the key and value of each record.
-
-#### Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `mapper` | Object | Yes | Specifies how to transform the key and value |
-
-The `mapper` can be defined using:
-- `expression`: A simple expression returning a tuple (key, value)
-- `code`: A Python code block returning a tuple (key, value)
-
-#### Example
-
-```yaml
-- type: map
-  mapper:
-    code: |
-      new_key = value.get("id")
-      new_value = {
-        "name": value.get("firstName") + " " + value.get("lastName"),
-        "age": value.get("age")
-      }
-      return (new_key, new_value)
-```
 
 ### `filter`
 
@@ -72,11 +13,12 @@ Keeps only records that satisfy a condition.
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `if` | Object | Yes | Specifies the condition |
+| Parameter | Type   | Required | Description             |
+|-----------|--------|----------|-------------------------|
+| `if`      | Object | Yes      | Specifies the condition |
 
 The `if` can be defined using:
+
 - `expression`: A simple boolean expression
 - `code`: A Python code block returning a boolean
 
@@ -103,11 +45,12 @@ Transforms each record into zero or more records.
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `mapper` | Object | Yes | Specifies how to transform each record into multiple records |
+| Parameter | Type   | Required | Description                                                  |
+|-----------|--------|----------|--------------------------------------------------------------|
+| `mapper`  | Object | Yes      | Specifies how to transform each record into multiple records |
 
 The `mapper` can be defined using:
+
 - `expression`: A simple expression returning a list of tuples (key, value)
 - `code`: A Python code block returning a list of tuples (key, value)
 
@@ -123,17 +66,80 @@ The `mapper` can be defined using:
       return result
 ```
 
+### `map`
+
+Transforms both the key and value of each record.
+
+#### Parameters
+
+| Parameter | Type   | Required | Description                                  |
+|-----------|--------|----------|----------------------------------------------|
+| `mapper`  | Object | Yes      | Specifies how to transform the key and value |
+
+The `mapper` can be defined using:
+
+- `expression`: A simple expression returning a tuple (key, value)
+- `code`: A Python code block returning a tuple (key, value)
+
+#### Example
+
+```yaml
+- type: map
+  mapper:
+    code: |
+      new_key = value.get("id")
+      new_value = {
+        "name": value.get("firstName") + " " + value.get("lastName"),
+        "age": value.get("age")
+      }
+      return (new_key, new_value)
+```
+
+### `mapValues`
+
+Transforms the value of each record without changing the key.
+
+#### Parameters
+
+| Parameter | Type   | Required | Description                          |
+|-----------|--------|----------|--------------------------------------|
+| `mapper`  | Object | Yes      | Specifies how to transform the value |
+
+The `mapper` can be defined using:
+
+- `expression`: A simple expression
+- `code`: A Python code block
+
+#### Example
+
+```yaml
+- type: mapValues
+  mapper:
+    expression: {"name": value.get("firstName") + " " + value.get("lastName"), "age": value.get("age")}
+```
+
+```yaml
+- type: mapValues
+  mapper:
+    code: |
+      return {
+        "full_name": value.get("firstName") + " " + value.get("lastName"),
+        "age_in_months": value.get("age") * 12
+      }
+```
+
 ### `peek`
 
 Performs a side effect on each record without changing it.
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `forEach` | Object | Yes | Specifies the action to perform on each record |
+| Parameter | Type   | Required | Description                                    |
+|-----------|--------|----------|------------------------------------------------|
+| `forEach` | Object | Yes      | Specifies the action to perform on each record |
 
 The `forEach` can be defined using:
+
 - `expression`: A simple expression (rarely used for peek)
 - `code`: A Python code block performing the side effect
 
@@ -152,11 +158,12 @@ Changes the key of each record without modifying the value.
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `keySelector` | Object | Yes | Specifies how to select the new key |
+| Parameter     | Type   | Required | Description                         |
+|---------------|--------|----------|-------------------------------------|
+| `keySelector` | Object | Yes      | Specifies how to select the new key |
 
 The `keySelector` can be defined using:
+
 - `expression`: A simple expression returning the new key
 - `code`: A Python code block returning the new key
 
@@ -172,48 +179,19 @@ The `keySelector` can be defined using:
 
 Stateful operations maintain state between records, typically based on the record key.
 
-### `groupByKey`
-
-Groups records by key for subsequent aggregation operations.
-
-#### Parameters
-
-None. This operation is typically followed by an aggregation operation.
-
-#### Example
-
-```yaml
-- type: groupByKey
-- type: count
-```
-
-### `count`
-
-Counts the number of records for each key.
-
-#### Parameters
-
-None.
-
-#### Example
-
-```yaml
-- type: groupByKey
-- type: count
-```
-
 ### `aggregate`
 
 Aggregates records by key using a custom aggregation function.
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `initializer` | Object | Yes | Specifies the initial value for the aggregation |
-| `aggregator` | Object | Yes | Specifies how to combine the current record with the aggregate |
+| Parameter     | Type   | Required | Description                                                    |
+|---------------|--------|----------|----------------------------------------------------------------|
+| `initializer` | Object | Yes      | Specifies the initial value for the aggregation                |
+| `aggregator`  | Object | Yes      | Specifies how to combine the current record with the aggregate |
 
 Both `initializer` and `aggregator` can be defined using:
+
 - `expression`: A simple expression
 - `code`: A Python code block
 
@@ -234,17 +212,48 @@ Both `initializer` and `aggregator` can be defined using:
         }
 ```
 
+### `count`
+
+Counts the number of records for each key.
+
+#### Parameters
+
+None.
+
+#### Example
+
+```yaml
+- type: groupByKey
+- type: count
+```
+
+### `groupByKey`
+
+Groups records by key for subsequent aggregation operations.
+
+#### Parameters
+
+None. This operation is typically followed by an aggregation operation.
+
+#### Example
+
+```yaml
+- type: groupByKey
+- type: count
+```
+
 ### `reduce`
 
 Combines records with the same key using a reducer function.
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `reducer` | Object | Yes | Specifies how to combine two values |
+| Parameter | Type   | Required | Description                         |
+|-----------|--------|----------|-------------------------------------|
+| `reducer` | Object | Yes      | Specifies how to combine two values |
 
 The `reducer` can be defined using:
+
 - `expression`: A simple expression
 - `code`: A Python code block
 
@@ -270,10 +279,10 @@ Performs an inner join between two streams.
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `with` | String | Yes | The name of the stream to join with |
-| `windowSize` | Long | No | The size of the join window in milliseconds (for stream-stream joins) |
+| Parameter    | Type   | Required | Description                                                           |
+|--------------|--------|----------|-----------------------------------------------------------------------|
+| `with`       | String | Yes      | The name of the stream to join with                                   |
+| `windowSize` | Long   | No       | The size of the join window in milliseconds (for stream-stream joins) |
 
 #### Example
 
@@ -288,10 +297,10 @@ Performs a left join between two streams.
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `with` | String | Yes | The name of the stream to join with |
-| `windowSize` | Long | No | The size of the join window in milliseconds (for stream-stream joins) |
+| Parameter    | Type   | Required | Description                                                           |
+|--------------|--------|----------|-----------------------------------------------------------------------|
+| `with`       | String | Yes      | The name of the stream to join with                                   |
+| `windowSize` | Long   | No       | The size of the join window in milliseconds (for stream-stream joins) |
 
 #### Example
 
@@ -306,10 +315,10 @@ Performs an outer join between two streams.
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `with` | String | Yes | The name of the stream to join with |
-| `windowSize` | Long | No | The size of the join window in milliseconds (for stream-stream joins) |
+| Parameter    | Type   | Required | Description                                                           |
+|--------------|--------|----------|-----------------------------------------------------------------------|
+| `with`       | String | Yes      | The name of the stream to join with                                   |
+| `windowSize` | Long   | No       | The size of the join window in milliseconds (for stream-stream joins) |
 
 #### Example
 
@@ -323,32 +332,58 @@ Performs an outer join between two streams.
 
 Windowing operations group records into time-based windows.
 
-### `windowedBy`
+### `windowBySession`
+
+Groups records into session windows, where events with timestamps within `inactivityGap` durations are seen as belonging
+to the same session.
+
+#### Parameters
+
+| Parameter       | Type     | Required | Description                                                                                  |
+|-----------------|----------|----------|----------------------------------------------------------------------------------------------|
+| `inactivityGap` | Duration | Yes      | The maximum duration between events before they are seen as belonging to a different session |
+| `grace`         | Long     | No       | Grace period for late-arriving data                                                          |
+
+#### Example
+
+```yaml
+- type: windowBySession
+  inactivityGap: 1m  # 1 minute window
+```
+
+```yaml
+- type: windowBySession
+  inactivityGap: 1m  # 1 minute window
+  grace: 15s         # 15 seconds grace
+```
+
+### `windowByTime`
 
 Groups records into time windows.
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `windowType` | String | No | The type of window (tumbling, hopping, sliding, session) |
-| `timeDifference` | Long | Yes | The size of the window in milliseconds |
-| `advanceBy` | Long | No | For hopping windows, how often to advance the window |
-| `grace` | Long | No | Grace period for late-arriving data |
+| Parameter        | Type     | Required | Description                                                          |
+|------------------|----------|----------|----------------------------------------------------------------------|
+| `windowType`     | String   | No       | The type of window (`tumbling`, `hopping`, or `sliding`)             |
+| `timeDifference` | Duration | Yes      | The duration of the window                                           |
+| `advanceBy`      | Long     | No       | Only required for `hopping` windows, how often to advance the window |
+| `grace`          | Long     | No       | Grace period for late-arriving data                                  |
 
 #### Example
 
 ```yaml
-- type: windowedBy
+- type: windowByTime
   windowType: tumbling
   timeDifference: 60000  # 1 minute window
 ```
 
 ```yaml
-- type: windowedBy
+- type: windowByTime
   windowType: hopping
-  timeDifference: 300000  # 5 minute window
-  advanceBy: 60000  # Advance every 1 minute
+  timeDifference: 5m  # 5 minute window
+  advanceBy: 1m       # Advance every 1 minute
+  grace: 15s          # 15 seconds grace
 ```
 
 ## Branch Operations
@@ -361,22 +396,31 @@ Splits a stream into multiple substreams based on conditions.
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `predicates` | Array | Yes | List of conditions for each branch |
+| Parameter  | Type  | Required | Description                                              |
+|------------|-------|----------|----------------------------------------------------------|
+| `branches` | Array | Yes      | List of conditions and handling pipeline for each branch |
 
-Each predicate can be defined using:
-- `expression`: A simple boolean expression
-- `code`: A Python code block returning a boolean
+The tag `branches` does not exist in the KSML language, but is meant to represent a composite object here that consists of two elements:
+
+
+| Parameter  | Type      | Required | Description                                                                                                |
+|------------|-----------|----------|------------------------------------------------------------------------------------------------------------|
+| `if`       | Predicate | Yes      | A condition which can evaluate to True or False. When True, the message is sent down the branch's pipeline |
+| `pipeline` | Pipeline  | Yes      | A pipeline that contains a list of processing steps to send the message through                            |
 
 #### Example
 
 ```yaml
-- type: branch
-  predicates:
-    - expression: value.get("amount") > 1000
-    - expression: value.get("amount") > 100
-    - expression: true  # Default branch
+- branch:
+    - if: predicate1
+      via:
+        - type: transformValue
+          mapper: my_value_transformer
+      to: target_topic
+    - if: predicate2
+      as: some_name_to_refer_to_by_another_pipeline
+    - if: predicate3
+      toTopicNameExtractor: my_topic_name_extractor
 ```
 
 ## Error Handling Operations
@@ -389,10 +433,10 @@ Attempts to execute operations and catches any exceptions.
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `operations` | Array | Yes | Operations to try |
-| `catch` | Array | Yes | Operations to execute if an exception occurs |
+| Parameter    | Type  | Required | Description                                  |
+|--------------|-------|----------|----------------------------------------------|
+| `operations` | Array | Yes      | Operations to try                            |
+| `catch`      | Array | Yes      | Operations to execute if an exception occurs |
 
 #### Example
 
@@ -408,55 +452,6 @@ Attempts to execute operations and catches any exceptions.
         code: |
           log.error("Failed to parse JSON: {}", exception)
           return {"error": "Failed to parse", "original": value}
-```
-
-### `onError`
-
-Specifies what to do when an error occurs in an operation.
-
-#### Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `sendTo` | String | Yes | The stream to send error records to |
-| `withKey` | Object | No | How to transform the key for the error record |
-| `withValue` | Object | No | How to transform the value for the error record |
-
-#### Example
-
-```yaml
-- type: mapValues
-  mapper:
-    code: process_data(value)
-  onError:
-    sendTo: error_stream
-    withKey: "error-" + key
-    withValue: {"original": value, "error": exception.getMessage()}
-```
-
-## Custom Operations
-
-KSML allows you to define custom operations using the `custom` operation type.
-
-### `custom`
-
-Executes a custom operation defined in Java code.
-
-#### Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `className` | String | Yes | The fully qualified class name of the custom operation |
-| `config` | Object | No | Configuration parameters for the custom operation |
-
-#### Example
-
-```yaml
-- type: custom
-  className: com.example.ksml.operations.MyCustomOperation
-  config:
-    param1: value1
-    param2: value2
 ```
 
 ## Combining Operations
@@ -475,7 +470,7 @@ pipelines:
       - type: filter
         if:
           expression: value.get("amount") > 0
-      - type: mapValues
+      - type: transformValue
         mapper:
           code: enrich_transaction(value)
       - type: peek
@@ -493,14 +488,13 @@ You can create complex topologies by branching streams and merging them back tog
 pipelines:
   branch_pipeline:
     from: input_stream
-    via:
-      - type: branch
-        predicates:
-          - expression: value.get("type") == "A"
-          - expression: value.get("type") == "B"
-    to:
-      - type_a_stream
-      - type_b_stream
+    branch:
+      - if:
+          expression: value.get("type") == "A"
+        as: type_a_stream
+      - if:
+          expression: value.get("type") == "B"
+        as: type_b_stream
 
   process_a_pipeline:
     from: type_a_stream
@@ -508,7 +502,7 @@ pipelines:
       - type: mapValues
         mapper:
           code: process_type_a(value)
-    to: processed_a_stream
+    to: merged_stream
 
   process_b_pipeline:
     from: type_b_stream
@@ -516,12 +510,6 @@ pipelines:
       - type: mapValues
         mapper:
           code: process_type_b(value)
-    to: processed_b_stream
-
-  merge_pipeline:
-    from:
-      - processed_a_stream
-      - processed_b_stream
     to: merged_stream
 ```
 

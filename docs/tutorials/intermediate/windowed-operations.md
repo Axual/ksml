@@ -362,4 +362,4 @@ In the next tutorial, we'll explore [Error Handling and Recovery](error-handling
 
 - [Core Concepts: Operations](../../core-concepts/operations.md)
 - [Core Concepts: Functions](../../core-concepts/functions.md)
-- [Reference: Windowing Operations](../../reference/operations-reference.md)
+- [Reference: Windowing Operations](../../reference/operation-reference.md)

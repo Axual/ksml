@@ -8,176 +8,194 @@ covers all aspects of the KSML language specification, including file structure,
 A KSML definition file is written in YAML and consists of several top-level sections:
 
 ```yaml
-name: my-ksml-app
-version: 0.1.2
-description: This is what my app does
+name: "my-ksml-application"
+version: "1.0.0"
+description: "My KSML Application"
 
 streams:
-# Stream definitions
-
+  # Stream definitions
 tables:
-# Table definitions
-
+  # Table definitions
 globalTables:
-# GlobalTable definitions
+  # GlobalTable definitions
 
 stores:
-# State store definitions
+  # State store definitions
 
 functions:
-# Function definitions
+  # Function definitions
 
 pipelines:
-# Pipeline definitions
+  # Pipeline definitions
 
 producers:
-# Producer definitions
+  # Producer definitions
 ```
 
-### Required and Optional Sections
+## Application Metadata
 
-- **name**: Optional. Defines the name of your application.
-- **version**: Optional. Defines the version of your application.
-- **description**: Optional. Defines the purpose of your application.
-- **streams**: Optional. Defines the input and output Kafka streams.
-- **tables**: Optional. Defines the input and output Kafka tables.
-- **globalTables**: Optional. Defines the input and output Kafka globalTables.
-- **stores**: Optional. Defines the state stores used in your functions and pipelines.
-- **functions**: Optional. Defines reusable functions that can be called from pipelines.
-- **pipelines**: Optional. Defines the processing logic of your application.
-- **producers**: Optional. Defines the producers that generate data for your output topics.
+### Basic Metadata
 
-## Metadata Section
+| Property      | Type   | Required | Description                          |
+|---------------|--------|----------|--------------------------------------|
+| `name`        | String | No       | The name of the KSML definition      |
+| `version`     | String | No       | The version of the KSML definition   |
+| `description` | String | No       | A description of the KSML definition |
 
-The `name`, `version`, and `description` fields hold informational data for the developer of the application.
-
-## Streams, Tables, and GlobalTables Section
-
-The `streams`, `tables`, and `globalTables` sections defines the input and output Kafka topics and their data types.
-
-### Definition
+Example:
 
 ```yaml
-streams:
-  stream_name:
-    topic: kafka_topic_name
-    keyType: key_data_type
-    valueType: value_data_type
-    # Additional configuration options
-
-tables:
-  table_name:
-    topic: kafka_topic_name
-    keyType: key_data_type
-    valueType: value_data_type
-    # Additional configuration options
-
-globalTables:
-  global_table_name:
-    topic: kafka_topic_name
-    keyType: key_data_type
-    valueType: value_data_type
-    # Additional configuration options
+name: "order-processing-app"
+version: "1.2.3"
+description: "Processes orders from the order topic and enriches them with customer data"
 ```
 
-### Required Properties
+## Data source and target definitions
 
-- `topic`: (Required) The name of the Kafka topic.
-- `keyType`: (Required) The data type of the message key.
-- `valueType`: (Required) The data type of the message value.
-- `offsetResetPolicy`: (Optional) The policy to use when there is no (valid) consumer group offset in Kafka. Choice of
-  `earliest`, `latest`, `none`, or `by_duration:<duration>`. In the latter case, you can pass in a custom duration.
-- `timestampExtractor`: (Optional) A function that is able to extract a timestamp from a consumed message, to be used by
-  Kafka Streams as the message timestamp in all pipeline processing.
-- `partitioner`: (Optional) A stream partitioner that determines to which topic partitions an output record needs to be
-  written.
+### Streams
 
-### Example
+Streams represent unbounded sequences of records.
+
+| Property             | Type   | Required | Description                                                                  |
+|----------------------|--------|----------|------------------------------------------------------------------------------|
+| `topic`              | String | Yes      | The Kafka topic to read from or write to                                     |
+| `keyType`            | String | Yes      | The type of the record key                                                   |
+| `valueType`          | String | Yes      | The type of the record value                                                 |
+| `offsetResetPolicy`  | String | No       | The offset reset policy (`earliest`, `latest`, `none`)                       |
+| `timestampExtractor` | String | No       | The function to extract timestamps from records                              |
+| `partitioner`        | String | No       | The function that determines to which topic partitions a message is produced |
+
+Example:
 
 ```yaml
 streams:
   orders:
-    topic: incoming_orders
-    keyType: string
-    valueType: json
+    topic: "orders"
+    keyType: "string"
+    valueType: "avro:Order"
+    offsetResetPolicy: "earliest"
 ```
 
-## Functions Section
+### Tables
 
-The `functions` section defines reusable functions that can be called from pipelines.
+Tables represent changelog streams from a primary-keyed table.
 
-### Function Definition
+| Property             | Type   | Required | Description                                                                  |
+|----------------------|--------|----------|------------------------------------------------------------------------------|
+| `topic`              | String | Yes      | The Kafka topic to read from or write to                                     |
+| `keyType`            | String | Yes      | The type of the record key                                                   |
+| `valueType`          | String | Yes      | The type of the record value                                                 |
+| `offsetResetPolicy`  | String | No       | The offset reset policy (`earliest`, `latest`, `none`)                       |
+| `timestampExtractor` | String | No       | The function to extract timestamps from records                              |
+| `partitioner`        | String | No       | The function that determines to which topic partitions a message is produced |
+| `store`              | String | No       | The name of the key/value state store to use                                 |
+
+Example:
+
+```yaml
+tables:
+  customers:
+    topic: "customers"
+    keyType: "string"
+    valueType: "avro:Customer"
+    store: "customer-store"
+```
+
+### Global Tables
+
+Global tables are similar to tables but are fully replicated on each instance of the application.
+
+| Property             | Type   | Required | Description                                                                  |
+|----------------------|--------|----------|------------------------------------------------------------------------------|
+| `topic`              | String | Yes      | The Kafka topic to read from                                                 |
+| `keyType`            | String | Yes      | The type of the record key                                                   |
+| `valueType`          | String | Yes      | The type of the record value                                                 |
+| `offsetResetPolicy`  | String | No       | The offset reset policy (`earliest`, `latest`, `none`)                       |
+| `timestampExtractor` | String | No       | The function to extract timestamps from records                              |
+| `partitioner`        | String | No       | The function that determines to which topic partitions a message is produced |
+| `store`              | String | No       | The name of the key/value state store to use                                 |
+
+Example:
+
+```yaml
+globalTables:
+  products:
+    topic: "products"
+    keyType: "string"
+    valueType: "avro:Product"
+```
+
+## Function Definitions
+
+Functions define reusable pieces of logic that can be referenced in pipelines.
+
+| Property     | Type      | Required  | Description                                                                                                                                                      |
+|--------------|-----------|-----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `type`       | String    | Yes       | The type of function (predicate, mapper, aggregator, etc.)                                                                                                       |
+| `parameters` | Array     | No        | Parameters for the function                                                                                                                                      |
+| `globalCode` | String    | No        | Python code executed once upon startup                                                                                                                           |
+| `code`       | String    | No        | Python code implementing the function                                                                                                                            |
+| `expression` | String    | No        | An expression that the function will return as value                                                                                                             |
+| `resultType` | Data type | Sometimes | The data type returned by the function. This is sometimes derived from the function `type`, but where it is not, you need to explicitly declare the result type. |
+
+Example:
 
 ```yaml
 functions:
-  function_name:
-    type: function_type
-    parameters:
-      - name: parameter_name
-        type: parameter_type
+  is_valid_order:
+    type: "predicate"
     code: |
-      # Python code here
+      if value is None:
+        return False
+
+      if "orderId" not in value:
+        return False
+
+      if "items" not in value or not value["items"]:
+        return False
+    expression: True
+
+  enrich_order:
+    type: "mapper"
     expression: |
-      # Python expression here
-    resultType: data_type
+      {
+        "order_id": value.get("orderId"),
+        "customer_id": value.get("customerId"),
+        "items": value.get("items", []),
+        "total": sum(item.get("price", 0) * item.get("quantity", 0) for item in value.get("items", [])),
+        "timestamp": value.get("timestamp", int(time.time() * 1000))
+      }
 ```
 
-### Required Properties
+## Pipeline Definitions
 
-- **type**: The type of function (e.g., `predicate`, `aggregator`, `keyValueMapper`).
-- **parameters**: List of custom parameters, which may be passed in next to the default parameters determined by the
-  function type.
-- **code**: Python code that implements the function.
-- **expression**: Python expression for the return value of the function.
-- **resultType**: The return value data type of the function.
+Pipelines define the flow of data through the application.
 
-### Parameter Definition
+| Property | Type         | Required | Description                         |
+|----------|--------------|----------|-------------------------------------|
+| `from`   | String/Array | Yes      | The source stream(s) or table(s)    |
+| `via`    | Array        | No       | The operations to apply to the data |
+| `to`     | String/Array | Yes      | The destination stream(s)           |
 
-- **name**: The name of the parameter.
-- **type**: The data type of the parameter.
-
-### Example
-
-```yaml
-functions:
-  calculate_total:
-    type: mapValues
-    parameters:
-      - name: order
-        type: struct
-    code: |
-      total = 0
-      for item in order.get("items", []):
-        total += item.get("price", 0) * item.get("quantity", 0)
-    expression: |
-      {"order_id": order.get("id"), "total": total}
-    resultType: struct
-```
-
-## Pipelines Section
-
-The `pipelines` section defines the processing logic that connects streams.
-
-### Pipeline Definition
+Example:
 
 ```yaml
 pipelines:
-  pipeline_name:
-    from: input_stream
+  process_orders:
+    from: "orders"
     via:
-      - type: operation_type
-        # Operation-specific parameters
-    to: output_stream
+      - type: "filter"
+        if:
+          code: "is_valid_order(key, value)"
+      - type: "mapValues"
+        mapper:
+          code: "enrich_order(key, value)"
+      - type: "peek"
+        forEach:
+          code: |
+            log.info("Processing order: {}", value.get("order_id"))
+    to: "processed_orders"
 ```
-
-### Required Properties
-
-- **from**: The input stream.
-- **to**: The output stream.
-
-### Optional Properties
-
-- **via**: List of operations to apply to the stream.
 
 ### Example
 

@@ -40,3 +40,4 @@ Welcome to the KSML documentation. KSML allows you to build powerful Kafka Strea
 
 ## Latest Release
 - [Release Notes](release-notes.md)
+

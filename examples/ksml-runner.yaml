@@ -43,29 +43,34 @@ ksml:
     # Definition of an Apicurio schema registry
     apicurio:
       config:
-      # Below is an example SSL configuration for Apicurio Serialization library from Apicurio documentation
-      # apicurio.registry.request.ssl.keystore.location: /path/to/keystore.jks
-      # apicurio.registry.request.ssl.keystore.type: JKS
-      # apicurio.registry.request.ssl.keystore.password: password
-      # apicurio.registry.request.ssl.key.password: password
-      # apicurio.registry.request.ssl.truststore.location: /path/to/truststore.jks
-      # apicurio.registry.request.ssl.truststore.type: JKS
-      # apicurio.registry.request.ssl.truststore.password: password
+        apicurio.registry.url: https://apicurio.local  # Replace this with your Apicurio endpoint
+        apicurio.registry.auto-register: true
+        # Below is an example SSL configuration for Apicurio SR
+        # apicurio.rest.request.ssl.truststore.location: /path/to/truststore.jks
+        # apicurio.rest.request.ssl.truststore.password: password
+        # apicurio.rest.request.ssl.truststore.type: JKS
+        # apicurio.rest.request.ssl.keystore.location: /path/to/keystore.jks
+        # apicurio.rest.request.ssl.keystore.password: password
+        # apicurio.rest.request.ssl.keystore.type: JKS
+        # apicurio.rest.request.ssl.key.password: password
 
     # Definition of a Confluent schema registry
     confluent:
       config:
-      # Example SSL configuration for Confluent schema registry
-      # schema.registry.ssl.protocol: TLSv1.3
-      # schema.registry.ssl.enabled.protocols: TLSv1.3,TLSv1.2
-      # schema.registry.ssl.endpoint.identification.algorithm: ""
-      # schema.registry.ssl.keystore.location: /path/to/keystore.jks
-      # schema.registry.ssl.keystore.type: JKS
-      # schema.registry.ssl.key.password: password
-      # schema.registry.ssl.keystore.password: password
-      # schema.registry.ssl.truststore.location: /path/to/truststore.jks
-      # schema.registry.ssl.truststore.type: JKS
-      # schema.registry.ssl.truststore.password: password
+        schema.registry.url: https://confluent.local
+        normalize.schemas: true
+        auto.register.schemas: false
+        # Below is an example SSL configuration for Confluent SR
+        # schema.registry.ssl.protocol: TLSv1.3
+        # schema.registry.ssl.enabled.protocols: TLSv1.3,TLSv1.2
+        # schema.registry.ssl.endpoint.identification.algorithm: ""
+        # schema.registry.ssl.keystore.location: /path/to/keystore.jks
+        # schema.registry.ssl.keystore.type: JKS
+        # schema.registry.ssl.key.password: password
+        # schema.registry.ssl.keystore.password: password
+        # schema.registry.ssl.truststore.location: /path/to/truststore.jks
+        # schema.registry.ssl.truststore.type: JKS
+        # schema.registry.ssl.truststore.password: password
 
   # This section tells KSML which serializers / deserializers handle which notation types
   notations:
@@ -78,18 +83,6 @@ ksml:
         normalize.schemas: true
         auto.register.schemas: false
 
-    # Definition for "second_avro" notation. With this entry, you can use a type like "second_avro:SchemaName" in your
-    # KSML definition, which then uses the Apicurio implementation for AVRO.
-    second_avro:
-      serde: apicurio_avro           # For AVRO there are two implementations: apicurio_avro and confluent_avro
-      schemaRegistry: apicurio
-      config:
-      # Specify all properties to be passed into Apicurio's AvroKafkaSerializer and AvroKafkaDeserializer
-      # apicurio.registry.avro.encoding: "BINARY"
-      # apicurio.registry.headers.enabled: "true"
-      # apicurio.registry.serde.IdHandler: "io.apicurio.registry.serde.Default4ByteIdHandler"
-      # apicurio.registry.schema-resolver: "io.apicurio.registry.resolver.DefaultSchemaResolver"
-
     # Definition for "jsonschema" notation
     jsonschema:
       serde: apicurio_jsonschema     # For JSON Schema there are two implementations: apicurio_jsonschema and confluent_jsonschema
@@ -97,6 +90,7 @@ ksml:
       config:
         # Specify all properties to be passed into Apicurio's JsonSchemaKafkaSerializer and JsonSchemaKafkaDeserializer
         apicurio.registry.auto-register: true
+        apicurio.registry.serdes.json-schema.validation-enabled: true
 
     # Definition for "protobuf" notation
     protobuf:                        # Definition for "protobuf" notation
@@ -112,22 +106,26 @@ ksml:
     inspect: 01-example-inspect.yaml
     copy: 02-example-copy.yaml
     filter: 03-example-filter.yaml
-#    branch: 04-example-branch.yaml
-#    route: 05-example-route.yaml
-#    duplicate: 06-example-duplicate.yaml
-#    convert: 07-example-convert.yaml
-#    count: 08-example-count.yaml
-#    aggregate: 09-example-aggregate.yaml
-#    queryable_table: 10-example-queryable-table.yaml
-#    field_modification: 11-example-field-modification.yaml
-#    byte_manipulation: 12-example-byte-manipulation.yaml
-#    join: 13-example-join.yaml
-#    manual_state_store: 14-example-manual-state-store.yaml
-#    pipeline_linking: 15-example-pipeline-linking.yaml
-#    transform_metadata: 16-example-transform-metadata.yaml
-#    inspect_with_metrics: 17-example-inspect-with-metrics.yaml
-#    timestamp_extractor: 18-example-timestamp-extractor.yaml
-#    performance-measurement: 19-example-performance-measurement.yaml
+    # branch: 04-example-branch.yaml
+    # route: 05-example-route.yaml
+    # duplicate: 06-example-duplicate.yaml
+    # convert: 07-example-convert.yaml
+    # count: 08-example-count.yaml
+    # aggregate: 09-example-aggregate.yaml
+    # queryable_table: 10-example-queryable-table.yaml
+    # field_modification: 11-example-field-modification.yaml
+    # byte_manipulation: 12-example-byte-manipulation.yaml
+    # join: 13-example-join.yaml
+    # manual_state_store: 14-example-manual-state-store.yaml
+    # pipeline_linking: 15-example-pipeline-linking.yaml
+    # transform_metadata: 16-example-transform-metadata.yaml
+    # inspect_with_metrics: 17-example-inspect-with-metrics.yaml
+    # timestamp_extractor: 18-example-timestamp-extractor.yaml
+    # performance-measurement: 19-example-performance-measurement.yaml
+
+    # Extend with more definitions if necessary. All definitions will run in their own namespace within KSML, but there
+    # are some constraints, such as stream definitions may not define conflicting key/value types in different
+    # definitions.
 
 # This setup connects to the Kafka broker and schema registry started with the example docker-compose file
 # These examples are intended to run from inside a container on the same network

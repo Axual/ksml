@@ -1,0 +1,2 @@
+- type: filter
+  if: temperature_above_threshold

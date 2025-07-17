@@ -144,11 +144,11 @@ public class UserTypeParser {
             return new UserType(notation, new WindowedType(parseType(windowedType)));
         }
 
-        // Notation type with or without specific schema
+        // Notation type with or without a specific schema
         if (ExecutionContext.INSTANCE.notationLibrary().exists(notation)) {
             final var not = ExecutionContext.INSTANCE.notationLibrary().get(notation);
             if (not != null) {
-                // If the dataType (ie. schema) is empty, then return the notation with default type
+                // If the dataType (ie. schema) is empty, then return the notation with a default type
                 if (dataType.isEmpty()) return new UserType(notation, not.defaultType());
                 // Load the schema
                 final var schema = ExecutionContext.INSTANCE.schemaLibrary().getSchema(not, dataType, false);

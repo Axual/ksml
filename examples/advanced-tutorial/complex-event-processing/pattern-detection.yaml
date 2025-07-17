@@ -1,0 +1,34 @@
+functions:
+  detect_pattern:
+    type: valueTransformer
+    code: |
+      # Check if this event completes a pattern
+      if value.get("event_type") == "C" and state_store.get(key + "_has_A") and state_store.get(key + "_has_B"):
+        # Pattern A -> B -> C detected
+        result = {
+          "pattern_detected": "A_B_C",
+          "completion_time": value.get("timestamp"),
+          "key": key
+        }
+        # Reset pattern tracking
+        state_store.delete(key + "_has_A")
+        state_store.delete(key + "_has_B")
+        return result
+
+      # Track events that are part of the pattern
+      if value.get("event_type") == "A":
+        state_store.put(key + "_has_A", True)
+      elif value.get("event_type") == "B":
+        state_store.put(key + "_has_B", True)
+
+      # Don't emit anything for partial patterns
+      return None
+    stores:
+      - pattern_state_store
+
+pipelines:
+  detect_abc_pattern:
+    from: input_events
+    mapValues: detect_pattern
+    filter: is_not_null  # Only pass through completed patterns
+    to: detected_patterns

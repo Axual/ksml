@@ -68,17 +68,7 @@ If you already have a Kafka cluster and want to use KSML with it, you'll need to
 Create a file named `ksml-runner.yaml` with the following content, adjusting the values to match your Kafka cluster configuration:
 
 ```yaml
-kafka:
-  bootstrap.servers: your-kafka-broker:9092
-  # Add any other Kafka client properties here
-  
-schemaRegistry:
-  url: http://your-schema-registry:8081
-  # Add any other Schema Registry properties here
-
-# Path to your KSML definition files
-definitions:
-  - path/to/your/ksml/definition.yaml
+{% include "../../../examples/installation/template-ksml-runner.yaml" %}
 ```
 
 #### Step 2: Run the KSML Runner

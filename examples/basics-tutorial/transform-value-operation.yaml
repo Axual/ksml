@@ -1,0 +1,2 @@
+- type: transformValue
+  mapper: fahrenheit_to_celsius

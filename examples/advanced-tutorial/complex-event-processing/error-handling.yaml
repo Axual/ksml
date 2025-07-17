@@ -1,0 +1,11 @@
+functions:
+  robust_pattern_detection:
+    type: valueTransformer
+    code: |
+      try:
+        # Pattern detection logic
+        return detected_pattern
+      except Exception as e:
+        log.error("Error in pattern detection: {}", str(e))
+        # Return None to avoid emitting erroneous patterns
+        return None

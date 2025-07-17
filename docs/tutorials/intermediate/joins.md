@@ -356,4 +356,4 @@ In the next tutorial, we'll explore [Using Windowed Operations](windowed-operati
 
 - [Core Concepts: Operations](../../core-concepts/operations.md)
 - [Core Concepts: Streams and Data Types](../../reference/stream-types-reference.md)
-- [Reference: Join Operations](../../reference/operations-reference.md)
+- [Reference: Join Operations](../../reference/operation-reference.md)

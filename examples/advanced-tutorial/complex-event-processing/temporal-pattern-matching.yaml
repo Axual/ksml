@@ -1,0 +1,43 @@
+functions:
+  detect_temporal_pattern:
+    type: valueTransformer
+    code: |
+      current_time = value.get("timestamp", int(time.time() * 1000))
+
+      if value.get("event_type") == "A":
+        # Start tracking a new potential pattern
+        state_store.put(key + "_pattern_start", current_time)
+        state_store.put(key + "_has_A", True)
+        return None
+
+      if value.get("event_type") == "B" and state_store.get(key + "_has_A"):
+        # Check if B occurred within 5 minutes of A
+        pattern_start = state_store.get(key + "_pattern_start")
+        if pattern_start and (current_time - pattern_start) <= 5 * 60 * 1000:
+          state_store.put(key + "_has_B", True)
+          state_store.put(key + "_B_time", current_time)
+        return None
+
+      if value.get("event_type") == "C" and state_store.get(key + "_has_B"):
+        # Check if C occurred within 2 minutes of B
+        b_time = state_store.get(key + "_B_time")
+        if b_time and (current_time - b_time) <= 2 * 60 * 1000:
+          # Pattern A -> B -> C detected within time constraints
+          pattern_start = state_store.get(key + "_pattern_start")
+          result = {
+            "pattern_detected": "A_B_C",
+            "start_time": pattern_start,
+            "end_time": current_time,
+            "duration_ms": current_time - pattern_start,
+            "key": key
+          }
+          # Reset pattern tracking
+          state_store.delete(key + "_has_A")
+          state_store.delete(key + "_has_B")
+          state_store.delete(key + "_pattern_start")
+          state_store.delete(key + "_B_time")
+          return result
+
+      return None
+    stores:
+      - temporal_pattern_store

@@ -36,7 +36,7 @@ nav:
   - Getting Started: tutorials/getting-started/index.md
   - Core Concepts: core-concepts/index.md
   - Tutorials:
-      - Basic Tutorials: tutorials/getting-started/basics-tutorial.md
+      - Basics Tutorials: tutorials/getting-started/basics-tutorial.md
       - Beginner Tutorials: tutorials/beginner/index.md
       - Intermediate Tutorials: tutorials/intermediate/index.md
       - Advanced Tutorials: tutorials/advanced/index.md

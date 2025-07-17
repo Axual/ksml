@@ -1,0 +1,14 @@
+pipelines:
+  tutorial_pipeline:
+    from: input_stream
+    via:
+      - type: filter
+        if: temperature_above_threshold
+      - type: transformValue
+        mapper: fahrenheit_to_celsius
+      - type: peek
+        forEach:
+          code: |
+            # Manually call log_message to pass in additional parameters
+            log_message(key, value, prefix="Processed")
+    to: output_stream

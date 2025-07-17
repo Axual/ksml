@@ -245,4 +245,4 @@ In the next tutorial, we'll explore how to [implement joins](joins.md) to combin
 
 - [Core Concepts: Operations](../../core-concepts/operations.md)
 - [Core Concepts: Functions](../../core-concepts/functions.md)
-- [Reference: Aggregation Operations](../../reference/operations-reference.md)
+- [Reference: Aggregation Operations](../../reference/operation-reference.md)

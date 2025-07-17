@@ -59,5 +59,5 @@ We recommend following these tutorials in order, as they build on concepts intro
 ## Additional Resources
 
 - [Core Concepts: Operations](../../core-concepts/operations.md) - Detailed explanations of KSML operations
-- [Reference: Stateful Operations](../../reference/operations-reference.md#stateful-operations) - Complete reference for stateful operations
+- [Reference: Stateful Operations](../../reference/operation-reference.md#stateful-operations) - Complete reference for stateful operations
 - [Examples Library: Intermediate Examples](../../resources/examples-library.md#intermediate-examples) - Ready-to-use examples for intermediate patterns
