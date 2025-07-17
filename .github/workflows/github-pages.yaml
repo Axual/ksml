@@ -25,9 +25,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: 3.9
-      - name: Install mkdocs
-        run: pip install \
-          mkdocs-material
+      - name: Install material theme
+        run: pip install mkdocs-material
+      - name: Install include plugin
+        run: pip install mkdocs-include-markdown-plugin
       - name: Build mkdocs site
         run: mkdocs build --site-dir _site --config-file mkdocs.yml
       - name: Upload artifact
