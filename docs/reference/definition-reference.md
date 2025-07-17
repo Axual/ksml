@@ -387,6 +387,6 @@ config:
 ## Related Topics
 
 - [KSML Language Reference](language-reference.md)
-- [Operations Reference](operations-reference.md)
-- [Functions Reference](functions-reference.md)
+- [Operations Reference](operation-reference.md)
+- [Functions Reference](function-reference.md)
 - [Data Types Reference](data-types-reference.md)

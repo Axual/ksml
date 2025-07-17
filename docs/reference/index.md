@@ -27,7 +27,7 @@ Detailed information about all supported data types in KSML:
 - Schema management
 - Custom data types
 
-### [Notations Reference](notations-reference.md)
+### [Notations Reference](notation-reference.md)
 
 Explanation of how you can configure the serialization/deserialization formats associated with KSML's notations:
 
@@ -35,7 +35,7 @@ Explanation of how you can configure the serialization/deserialization formats a
 - How to configure notations
 - List of available supported variations
 
-### [Functions Reference](functions-reference.md)
+### [Functions Reference](function-reference.md)
 
 Complete documentation of KSML function types and usage:
 
@@ -46,7 +46,7 @@ Complete documentation of KSML function types and usage:
 - Function execution context
 - Best practices for function implementation
 
-### [Operations Reference](operations-reference.md)
+### [Operations Reference](operation-reference.md)
 
 Detailed documentation for all KSML operations:
 

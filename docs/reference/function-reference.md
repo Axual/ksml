@@ -928,6 +928,6 @@ In your function code, you can use the state stores declared by the function as 
 ## Related Topics
 
 - [KSML Language Reference](language-reference.md)
-- [Operations Reference](operations-reference.md)
+- [Operations Reference](operation-reference.md)
 - [Data Types Reference](data-types-reference.md)
 - [Configuration Reference](configuration-reference.md)

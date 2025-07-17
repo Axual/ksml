@@ -31,37 +31,6 @@ Imagine you're running an e-commerce platform and want to analyze transaction da
 - Transaction volume by region
 - Conversion rates from different marketing channels
 
-## Setting Up the Environment
-
-First, let's set up our environment with Docker Compose:
-
-```yaml
-version: '3'
-services:
-  zookeeper:
-    image: confluentinc/cp-zookeeper:latest
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      
-  kafka:
-    image: confluentinc/cp-kafka:latest
-    depends_on:
-      - zookeeper
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      
-  ksml-runner:
-    image: axual/ksml-runner:latest
-    depends_on:
-      - kafka
-    volumes:
-      - ./config:/config
-      - ./definitions:/definitions
-```
-
 ## Defining the Data Model
 
 Our transaction data will have the following structure:

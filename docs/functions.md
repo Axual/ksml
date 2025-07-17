@@ -35,6 +35,7 @@ functions:
     code: |
       print('Hello there!')
     expression: firstParam == str(secondParam)
+    resultType: boolean
 ```
 
 Functions are defined by the following tags:

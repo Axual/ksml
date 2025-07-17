@@ -20,13 +20,13 @@ KSML supports various function types, each designed for specific purposes in str
 
 These functions process each message independently without maintaining state between invocations:
 
-- [forEach](../reference/functions-reference.md#foreach): Process each message for side effects
-- [keyTransformer](../reference/functions-reference.md#keyTransformer): Convert a key to another type or value
-- [keyValueToKeyValueListTransformer](../reference/functions-reference.md#keyValueToKeyValueListTransformer): Convert key and value to a list of key/values
-- [keyValueToValueListTransformer](../reference/functions-reference.md#keyValueToValueListTransformer): Convert key and value to a list of values
-- [keyValueTransformer](../reference/functions-reference.md#keyValueTransformer): Convert key and value to another key and value
-- [predicate](../reference/functions-reference.md#predicate): Return true/false based on message content
-- [valueTransformer](../reference/functions-reference.md#valueTransformer): Convert value to another type or value
+- [forEach](../reference/function-reference.md#foreach): Process each message for side effects
+- [keyTransformer](../reference/function-reference.md#keyTransformer): Convert a key to another type or value
+- [keyValueToKeyValueListTransformer](../reference/function-reference.md#keyValueToKeyValueListTransformer): Convert key and value to a list of key/values
+- [keyValueToValueListTransformer](../reference/function-reference.md#keyValueToValueListTransformer): Convert key and value to a list of values
+- [keyValueTransformer](../reference/function-reference.md#keyValueTransformer): Convert key and value to another key and value
+- [predicate](../reference/function-reference.md#predicate): Return true/false based on message content
+- [valueTransformer](../reference/function-reference.md#valueTransformer): Convert value to another type or value
 
 ### Functions used by stateful operations
 

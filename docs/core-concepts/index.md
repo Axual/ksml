@@ -26,7 +26,7 @@ Learn about the fundamental building blocks of KSML applications:
 - Best practices
 - Examples
 
-### [Notations](../reference/notations-reference.md)
+### [Notations](../reference/notation-reference.md)
 
 Find out how to use different notations for Kafka topics:
 

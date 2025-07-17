@@ -10,7 +10,7 @@ Welcome to the KSML documentation. KSML allows you to build powerful Kafka Strea
 ## 2. Core Concepts
 - [Data Types](reference/data-types-reference.md)
 - [Stream Types](reference/stream-types-reference.md)
-- [Notations](reference/notations-reference.md)
+- [Notations](reference/notation-reference.md)
 - [Functions](core-concepts/functions.md)
 - [Pipelines](core-concepts/pipelines.md)
 - [Operations](core-concepts/operations.md)
@@ -27,9 +27,9 @@ Welcome to the KSML documentation. KSML allows you to build powerful Kafka Strea
 - [KSML Language Reference](reference/language-reference.md)
 - [Data Types Reference](reference/data-types-reference.md)
 - [Stream Types Reference](reference/stream-types-reference.md)
-- [Notations Reference](reference/notations-reference.md)
-- [Functions Reference](reference/functions-reference.md)
-- [Operations Reference](reference/operations-reference.md)
+- [Notations Reference](reference/notation-reference.md)
+- [Functions Reference](reference/function-reference.md)
+- [Operations Reference](reference/operation-reference.md)
 - [Configuration Reference](reference/configuration-reference.md)
 
 ## 6. Resources

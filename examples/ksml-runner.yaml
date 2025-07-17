@@ -1,112 +1,117 @@
 ksml:
   # The examples directory is mounted to /ksml in the Docker container
-  configDirectory: .              # When not set defaults to the working directory
-  schemaDirectory: .              # When not set defaults to the config directory
-  storageDirectory: /tmp          # When not set defaults to the default JVM temp directory
-  createStorageDirectory: false   # When set to true, the storage directory will be created if it does not exist
+  configDirectory: .                 # When not set defaults to the working directory
+  schemaDirectory: .                 # When not set defaults to the config directory
+  storageDirectory: /tmp             # When not set defaults to the default JVM temp directory
 
   # This section defines if a REST endpoint is opened on the KSML runner, through which
   # state stores and/or readiness / liveness probes can be accessed.
   applicationServer:
-    enabled: false                # Set to true to enable, or false to disable
-    host: 0.0.0.0                 # IP address to bind the REST server to
-    port: 8080                    # Port number to listen on
+    enabled: false                   # Set to true to enable, or false to disable
+    host: 0.0.0.0                    # IP address to bind the REST server to
+    port: 8080                       # Port number to listen on
 
   # This section defines whether a Prometheus endpoint is opened to allow metric scraping.
   prometheus:
-    enabled: true                 # Set to true to enable, or false to disable
-    host: 0.0.0.0                 # IP address to bind the Prometheus agent server to
-    port: 9999                    # Port number to listen on
+    enabled: false                   # Set to true to enable, or false to disable
+    host: 0.0.0.0                    # IP address to bind the Prometheus agent server to
+    port: 9999                       # Port number to listen on
 
   # This section enables error handling or error ignoring for certain types of errors.
   errorHandling:
-    consume:                      # Error handling definitions for consume errors
-      log: true                   # Log errors true/false
-      logPayload: true            # Upon error, should the payload of the message be dumped to the log file.
-      loggerName: ConsumeError    # Definition of the error logger name.
-      handler: stopOnFail         # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
+    consume:                         # Error handling definitions for consume errors
+      log: true                      # Log errors true/false
+      logPayload: true               # Upon error, should the payload of the message be dumped to the log file.
+      loggerName: ConsumeError       # Definition of the error logger name.
+      handler: stopOnFail            # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
     process:
-      log: true                   # Log errors true/false
-      logPayload: true            # Upon error, should the payload of the message be dumped to the log file.
-      loggerName: ProcessError    # Definition of the error logger name.
-      handler: stopOnFail     # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
+      log: true                      # Log errors true/false
+      logPayload: true               # Upon error, should the payload of the message be dumped to the log file.
+      loggerName: ProcessError       # Definition of the error logger name.
+      handler: continueOnFail        # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
     produce:
-      log: true                   # Log errors true/false
-      logPayload: true            # Upon error, should the payload of the message be dumped to the log file.
-      loggerName: ProduceError    # Definition of the error logger name.
-      handler: continueOnFail     # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
+      log: true                      # Log errors true/false
+      logPayload: true               # Upon error, should the payload of the message be dumped to the log file.
+      loggerName: ProduceError       # Definition of the error logger name.
+      handler: continueOnFail        # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
 
-  enableProducers: true           # Set to true to allow producer definitions to be parsed in the KSML definitions and be executed.
-  enablePipelines: true           # Set to true to allow pipeline definitions to be parsed in the KSML definitions and be executed.
+  enableProducers: false             # Set to true to allow producer definitions to be parsed in the KSML definitions and be executed.
+  enablePipelines: true              # Set to true to allow pipeline definitions to be parsed in the KSML definitions and be executed.
 
-  # This section tells KSML with which serializers / deserializers to handle certain notation types.
+  # This section tells KSML which schema registries are available
+  schemaRegistries:
+    # Definition of an Apicurio schema registry
+    apicurio:
+      config:
+      # Below is an example SSL configuration for Apicurio Serialization library from Apicurio documentation
+      # apicurio.registry.request.ssl.keystore.location: /path/to/keystore.jks
+      # apicurio.registry.request.ssl.keystore.type: JKS
+      # apicurio.registry.request.ssl.keystore.password: password
+      # apicurio.registry.request.ssl.key.password: password
+      # apicurio.registry.request.ssl.truststore.location: /path/to/truststore.jks
+      # apicurio.registry.request.ssl.truststore.type: JKS
+      # apicurio.registry.request.ssl.truststore.password: password
+
+    # Definition of a Confluent schema registry
+    confluent:
+      config:
+      # Example SSL configuration for Confluent schema registry
+      # schema.registry.ssl.protocol: TLSv1.3
+      # schema.registry.ssl.enabled.protocols: TLSv1.3,TLSv1.2
+      # schema.registry.ssl.endpoint.identification.algorithm: ""
+      # schema.registry.ssl.keystore.location: /path/to/keystore.jks
+      # schema.registry.ssl.keystore.type: JKS
+      # schema.registry.ssl.key.password: password
+      # schema.registry.ssl.keystore.password: password
+      # schema.registry.ssl.truststore.location: /path/to/truststore.jks
+      # schema.registry.ssl.truststore.type: JKS
+      # schema.registry.ssl.truststore.password: password
+
+  # This section tells KSML which serializers / deserializers handle which notation types
   notations:
-    avro:                          # Definition for "avro" notation
-      type: confluent_avro         # For AVRO there are two implementations: apicurio_avro and confluent_avro
-      ## Below this line, specify properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
+    # Definition for "avro" notation
+    avro:
+      serde: confluent_avro          # For AVRO there are two implementations: apicurio_avro and confluent_avro
+      schemaRegistry: confluent
       config:
-        # Link to Apicurio Confluent Compatibility URL
-        schema.registry.url: http://schema-registry:8081/apis/ccompat/v7
-        auto.register.schemas: true
+        # Specify all properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
         normalize.schemas: true
-        # Below is an example SSL configuration for Confluent Serialization library
-        # schema.registry.ssl.protocol: TLSv1.3
-        # schema.registry.ssl.enabled.protocols: TLSv1.3,TLSv1.2
-        # schema.registry.ssl.endpoint.identification.algorithm: ""
-        # schema.registry.ssl.keystore.location: /path/to/keystore.jks
-        # schema.registry.ssl.keystore.type: JKS
-        # schema.registry.ssl.key.password: password
-        # schema.registry.ssl.keystore.password: password
-        # schema.registry.ssl.truststore.location: /path/to/truststore.jks
-        # schema.registry.ssl.truststore.type: JKS
-        # schema.registry.ssl.truststore.password: password
+        auto.register.schemas: false
 
-    # Definition for "otherAvro" notation. With this config, you can use a type like otherAvro:SchemaName in your
+    # Definition for "second_avro" notation. With this entry, you can use a type like "second_avro:SchemaName" in your
     # KSML definition, which then uses the Apicurio implementation for AVRO.
-    otherAvro:
-      type: apicurio_avro         # For AVRO there are two implementations: apicurio_avro and confluent_avro
-      ## Below this line, specify properties to be passed into Apicurio's AvroKafkaSerializer and AvroKafkaDeserializer
+    second_avro:
+      serde: apicurio_avro           # For AVRO there are two implementations: apicurio_avro and confluent_avro
+      schemaRegistry: apicurio
       config:
-        apicurio.registry.url: http://schema-registry:8081/apis/registry/v2
-        # Register schema if it does not exist
-        apicurio.registry.auto-register: "true"
-        # Apicurio Avro serialisation settings
-        # apicurio.registry.avro.encoding: "BINARY"
-        # apicurio.registry.headers.enabled: "true"
-        # apicurio.registry.serde.IdHandler: "io.apicurio.registry.serde.Default4ByteIdHandler"
-        # apicurio.registry.schema-resolver: "io.apicurio.registry.resolver.DefaultSchemaResolver"
+      # Specify all properties to be passed into Apicurio's AvroKafkaSerializer and AvroKafkaDeserializer
+      # apicurio.registry.avro.encoding: "BINARY"
+      # apicurio.registry.headers.enabled: "true"
+      # apicurio.registry.serde.IdHandler: "io.apicurio.registry.serde.Default4ByteIdHandler"
+      # apicurio.registry.schema-resolver: "io.apicurio.registry.resolver.DefaultSchemaResolver"
 
-        # Below is an example SSL configuration for Apicurio Serialization library from Apicurio documentation
-        # apicurio.registry.request.ssl.keystore.location: /path/to/keystore.jks
-        # apicurio.registry.request.ssl.keystore.type: JKS
-        # apicurio.registry.request.ssl.keystore.password: password
-        # apicurio.registry.request.ssl.key.password: password
-        # apicurio.registry.request.ssl.truststore.location: /path/to/truststore.jks
-        # apicurio.registry.request.ssl.truststore.type: JKS
-        # apicurio.registry.request.ssl.truststore.password: password
-
-    protobuf:                      # Definition for "protobuf" notation
-      type: apicurio_protobuf      # For Protobuf there is only one implementation: apicurio_protobuf
-      ## Below this line, specify properties to be passed into Apicurio's ProtobufKafkaSerializer and ProtobufKafkaDeserializer
+    # Definition for "jsonschema" notation
+    jsonschema:
+      serde: apicurio_jsonschema     # For JSON Schema there are two implementations: apicurio_jsonschema and confluent_jsonschema
+      schemaRegistry: apicurio
       config:
-        apicurio.registry.url: http://schema-registry:8081/apis/registry/v2
-        # Register schema if it does not exist
-        apicurio.registry.auto-register: "true"
-        # Apicurio Avro serialisation settings
-        # apicurio.registry.request.ssl.keystore.location: /path/to/keystore.jks
-        # apicurio.registry.request.ssl.keystore.type: JKS
-        # apicurio.registry.request.ssl.keystore.password: password
-        # apicurio.registry.request.ssl.key.password: password
-        # apicurio.registry.request.ssl.truststore.location: /path/to/truststore.jks
-        # apicurio.registry.request.ssl.truststore.type: JKS
-        # apicurio.registry.request.ssl.truststore.password: password
+        # Specify all properties to be passed into Apicurio's JsonSchemaKafkaSerializer and JsonSchemaKafkaDeserializer
+        apicurio.registry.auto-register: true
+
+    # Definition for "protobuf" notation
+    protobuf:                        # Definition for "protobuf" notation
+      serde: apicurio_protobuf       # For Protobuf there are two implementations: apicurio_protobuf and confluent_protobuf
+      schemaRegistry: apicurio
+      config:
+        # Specify all properties to be passed into Apicurio's ProtobufKafkaSerializer and ProtobufKafkaDeserializer
+        apicurio.registry.auto-register: false
 
   # Section where you specify which KSML definitions to load, parse and execute.
   definitions:
     # Format is <namespace>: <ksml_definition_filename>
     inspect: 01-example-inspect.yaml
-#    copy: 02-example-copy.yaml
-#    filter: 03-example-filter.yaml
+    copy: 02-example-copy.yaml
+    filter: 03-example-filter.yaml
 #    branch: 04-example-branch.yaml
 #    route: 05-example-route.yaml
 #    duplicate: 06-example-duplicate.yaml
@@ -125,41 +130,34 @@ ksml:
 #    performance-measurement: 19-example-performance-measurement.yaml
 
 # This setup connects to the Kafka broker and schema registry started with the example docker-compose file
-# These examples are intended to run from a inside a container on the same network
+# These examples are intended to run from inside a container on the same network
 kafka:
-  application.id: io.ksml.example.streaming
-  # The group instance id is used to identify a single instance of the application, allowing for
-  # faster rebalances and less partition reassignments. The name must be unique for each member in the group.
-  group.instance.id: example-instance
-
   bootstrap.servers: broker:9093
+  application.id: io.ksml.example.producer
   security.protocol: PLAINTEXT
-  auto.offset.reset: earliest
   acks: all
 
   # These are Kafka SSL configuration properties. Check the documentation at1
   # Check the documentation at https://kafka.apache.org/documentation/#producerconfigs for more properties
-
-  #  security.protocol: SSL
-  #  ssl.protocol: TLSv1.3
-  #  ssl.enabled.protocols: TLSv1.3,TLSv1.2
-  #  ssl.endpoint.identification.algorithm: ""
-  #  ssl.keystore.type: JKS
-  #  ssl.truststore.type: JKS
-  #  ssl.key.password: xxx
-  #  ssl.keystore.password: xxx
-  #  ssl.keystore.location: /path/to/ksml.keystore.jks
-  #  ssl.truststore.password: xxx
-  #  ssl.truststore.location: /path/to/ksml.truststore.jks
+  # security.protocol: SSL
+  # ssl.protocol: TLSv1.3
+  # ssl.enabled.protocols: TLSv1.3,TLSv1.2
+  # ssl.endpoint.identification.algorithm: ""
+  # ssl.keystore.type: JKS
+  # ssl.truststore.type: JKS
+  # ssl.key.password: xxx
+  # ssl.keystore.password: xxx
+  # ssl.keystore.location: /path/to/ksml.keystore.jks
+  # ssl.truststore.password: xxx
+  # ssl.truststore.location: /path/to/ksml.truststore.jks
 
   # Use these configuration properties when connecting to a cluster using the Axual naming patterns.
   # These patterns are resolved into the actual name used on Kafka using the values in this configuration map
   # and the topic names specified in the definition YAML files
-
-  #  axual.topic.pattern: "{tenant}-{instance}-{environment}-{topic}"
-  #  # Results in Kafka topic ksmldemo-dta-dev-<topic name from KSML definition YAML>
-  #  axual.group.id.pattern: "{tenant}-{instance}-{environment}-{group.id}"
-  #  axual.transactional.id.pattern: "{tenant}-{instance}-{environment}-{transactional.id}"
-  #  tenant: "ksmldemo"
-  #  instance: "dta"
-  #  environment: "dev"
+  # The pattern below results in Kafka topic ksmldemo-dta-dev-<topic name from KSML definition YAML>
+  # axual.topic.pattern: "{tenant}-{instance}-{environment}-{topic}"
+  # axual.group.id.pattern: "{tenant}-{instance}-{environment}-{group.id}"
+  # axual.transactional.id.pattern: "{tenant}-{instance}-{environment}-{transactional.id}"
+  # tenant: "ksmldemo"
+  # instance: "dta"
+  # environment: "dev"
