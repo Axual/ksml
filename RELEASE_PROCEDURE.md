@@ -1,191 +1,159 @@
 # KSML Release Procedure
 
-## Branching Strategy
+## Overview
 
-- **`main` branch**: Development branch for new features and upcoming major/minor releases
-- **`release/<major>.<minor>.x` branches**: Used for initial releases and subsequent patch releases
-- All releases are built from `release/<major>.<minor>.x` branches
-- Release candidates for new major/minor versions are tested in `main` before creating a release branch
+- **`main` branch**: Development branch for new features
+- **`release/<major>.<minor>.x` branches**: Used for releases and patches
+- All releases are built from release branches
+- Changelog is maintained through GitHub Releases
 
-## Release Types
+## Complete Release Process
 
-### Major/Minor Release (e.g., 1.1.0, 2.0.0)
+### Step 1: Prepare Release Candidates (Major/Minor Releases Only)
 
-1. **Prepare Release Candidate in Main**
-  - Ensure all features for the release are merged to `main`
-  - Tests have been run
+For major/minor releases (e.g., 1.1.0, 2.0.0):
 
-2. **Create Release Branch**
+1. Ensure all features are merged to `main`
+2. Set RC version in `main` branch:
    ```bash
-   git checkout main
-   git checkout -b release/<major>.<minor>.x
-   # Example: git checkout -b release/1.1.x
+   mvn versions:set -DgenerateBackupPoms=false
+   # Enter version like: 1.1.0-RC1
+   ```
+3. Run `mvn clean package -DskipTests` to update NOTICE.txt files
+4. Build, test, commit with message `Release 1.1.0-RC1`
+5. Tag: `git tag 1.1.0-RC1 -m "Release 1.1.0-RC1" -a`
+6. Push tag and test RC
+7. Create additional RCs (RC2, RC3) as needed
+8. Create release branch from first RC:
+   ```bash
+   git checkout -b release/1.1.x <first-RC-commit>
    ```
 
-3. **Update GitHub Actions in Release Branch**
+### Step 2: Set Release Version
 
-   a. Update `.github/workflows/build-push-docker.yml`:
-  - Set Docker tags to `<major>.<minor>-snapshot`
-  - Set Chart app-version to `<major>.<minor>-snapshot`
-  - Set Chart version to `<major>.<minor>.0-snapshot`
+1. Switch to appropriate branch:
+   - **Major/Minor**: Use newly created `release/<major>.<minor>.x`
+   - **Patch**: Use existing `release/<major>.<minor>.x`
 
-   b. Update `.github/workflows/release-push-docker.yml`:
-  - Add additional Docker tag `<major>.<minor>` alongside version-specific tags
-
-   c. Update `.github/workflows/package-push-helm.yml`:
-  - Set default app-version and version to `<major>.<minor>.0-snapshot`
-
-4. **Continue with Standard Release Process** (see below)
-
-### Patch Release (e.g., 1.0.9, 1.1.1)
-
-1. **Work in Existing Release Branch**
+2. Set the release version:
    ```bash
-   git checkout release/<major>.<minor>.x
-   # Example: git checkout release/1.0.x
+   mvn versions:set -DgenerateBackupPoms=false
+   # Enter version like: 1.0.8
    ```
 
-2. **Apply Fixes**
-  - Cherry-pick fixes from `main` or create fixes directly in release branch
-  - Run tests
+### Step 3: Build and Update Files
 
-3. **Continue with Standard Release Process** (see below)
+1. Update NOTICE.txt files:
+   ```bash
+   mvn clean package -DskipTests
+   ```
 
-## Standard Release Process
-
-This process applies to both major/minor and patch releases after the appropriate branch is prepared.
-
-### 1. Prepare Version Strings
-
-Replace all occurrences of `<major>.<minor>.<patch>-SNAPSHOT` with `<major>.<minor>.<patch>` in the release branch.
-
-Example locations:
-- `pom.xml` files
-- Any version configuration files
-
-### 2. Build and Update Files
-
-```bash
-mvn clean package -DskipTests
-```
-
-This ensures `NOTICE.txt` files and other generated files are updated with the correct version.
-
-### 3. Build Docker Image Locally
+### Step 4: Build Docker Image Locally
 
 ```bash
 docker buildx create --name ksml
 docker buildx --builder ksml build --load -t axual/ksml:local --target ksml -f Dockerfile .
 ```
 
-### 4. Test Local Image
+### Step 5: Test the Release
 
-a. Update test configurations to use local image:
-- Modify `run.sh` to use `axual/ksml:local`
-- Update `docker-compose.yml` to use `axual/ksml:local` for all KSML services
-
-b. Start test environment:
+1. Modify `run.sh` and `docker-compose.yml` to use `axual/ksml:local`
+2. Start environment:
    ```bash
    docker compose up -d
    ```
-
-c. Verify data generation:
+3. Verify data generator:
    ```bash
-   docker compose logs example-generator
+   docker compose logs example-producer
+   ```
+4. Execute `./run.sh` and verify:
+   - Correct version appears: `Starting KSML Runner x.x.x (2025-...)`
+   - Wait ~2 minutes for examples to run without errors
+   - Stop the script after verification
+
+### Step 6: Commit Changes
+
+```bash
+git add pom.xml **/NOTICE.txt
+git commit -m "Release 1.0.8"
+```
+**Do not push yet** - tag must be created first
+
+### Step 7: Create and Push Tag
+
+```bash
+git tag 1.0.8 -m "Release 1.0.8" -a
+git push origin 1.0.8
+```
+
+### Step 8: Create GitHub Release
+
+1. Go to GitHub → Releases → "Draft new release"
+2. Select the new tag (e.g., `1.0.8`)
+3. Set previous tag for comparison (e.g., `1.0.7`)
+4. Click "Generate release notes"
+5. Structure the release notes:
+   - **"What's Changed"**: Write concise summary of key changes
+   - **"Full Changelog"**: Keep auto-generated commit list
+6. Publish the release
+
+### Step 9: Monitor Build and Push Branch
+
+1. Go to GitHub → Actions → Monitor release workflow
+2. **Only after successful build**, push the branch:
+   ```bash
+   git push origin release/1.0.x
    ```
 
-### 5. Verify KSML Runner
+### Step 10: Update GitHub Actions (Major/Minor Only)
 
-a. Run the test script:
+For major/minor releases, update the release branch:
+1. Set Docker tags to `<major>.<minor>-snapshot`
+2. Set Chart versions to `<major>.<minor>.0-snapshot`
+3. Add `<major>.<minor>` Docker tag in release workflow
+
+### Step 11: Set Next Development Version
+
+1. In release branch:
    ```bash
-   ./run.sh
+   mvn versions:set -DgenerateBackupPoms=false
+   # Enter next patch snapshot: 1.0.9-SNAPSHOT
    ```
+2. Commit: `git commit -m "Prepare for next development iteration"`
+3. Push: `git push origin release/1.0.x`
 
-b. Verify:
-- Correct version appears in logs: `Starting KSML Runner <major>.<minor>.<patch> (2025-...)`
-- No errors occur after ~2 minutes of running examples
-- Stop the script after verification
+4. For major/minor releases, also update main branch:
+   ```bash
+   git checkout main
+   mvn versions:set -DgenerateBackupPoms=false
+   # Enter next minor/major snapshot: 1.2.0-SNAPSHOT
+   ```
+   Commit and push main branch
 
-### 6. Set Release Version
+## Key Differences for Patch Releases
 
-```bash
-mvn versions:set -DgenerateBackupPoms=false
-```
+When doing a patch release (e.g., 1.0.9, 1.1.1):
 
-When prompted, enter the release version (e.g., `1.1.0` or `1.0.9`)
+1. **Skip Step 1** - No release candidates needed
+2. **Use existing release branch** - Don't create a new one
+3. **Skip Step 10** - GitHub Actions already configured
+4. **Skip main branch update in Step 11** - Only update release branch
 
-### 7. Final Build
+Apply fixes by either:
+- Cherry-picking from main: `git cherry-pick <commit-hash>`
+- Creating fixes directly in release branch
 
-```bash
-mvn clean package -DskipTests
-```
+## Version Numbering
 
-### 8. Commit Changes
+- **Major**: Breaking changes
+- **Minor**: New features (backward compatible)
+- **Patch**: Bug fixes
+- **Snapshot**: Development versions (`-SNAPSHOT`)
+- **RC**: Release candidates (`-RC<number>`)
 
-```bash
-git add -A
-git commit -m "Release <major>.<minor>.<patch>"
-# Example: git commit -m "Release 1.1.0"
-```
+## Rollback Procedure
 
-**Do not push yet!**
-
-### 9. Create and Push Tag
-
-```bash
-git tag <major>.<minor>.<patch> -m "Release <major>.<minor>.<patch>" -a
-git push origin <major>.<minor>.<patch>
-# Example: git tag 1.1.0 -m "Release 1.1.0" -a
-# Example: git push origin 1.1.0
-```
-
-Note: Pushing the tag first allows for easier rollback if issues occur.
-
-### 10. Create GitHub Release
-
-1. Navigate to GitHub → Releases → "Draft new release"
-2. Select the tag you just pushed
-3. Select the appropriate previous tag for comparison
-4. Generate release notes
-5. Structure the release notes with:
-  - **What's Changed**: Manual summary of major changes
-  - **Commits**: Auto-generated commit list
-
-### 11. Final Push
-
-Monitor the GitHub Actions for the tag. If the build succeeds:
-
-```bash
-git push origin release/<major>.<minor>.x
-# Example: git push origin release/1.1.x
-```
-
-### 12. Prepare for Next Development Cycle
-
-In the release branch, update version strings to the next snapshot version:
-
-```bash
-mvn versions:set -DgenerateBackupPoms=false
-# Enter next snapshot version, e.g., 1.1.1-SNAPSHOT
-git add -A
-git commit -m "Prepare for next development iteration"
-git push origin release/<major>.<minor>.x
-```
-
-## Version Numbering Guidelines
-
-- **Major version**: Breaking changes or significant architectural changes
-- **Minor version**: New features, backward compatible
-- **Patch version**: Bug fixes and minor improvements
-- **Snapshot versions**:
-  - Development versions use `-SNAPSHOT` suffix
-  - Docker images use `<major>.<minor>-snapshot` tags
-  - Helm charts require semantic versioning, use `<major>.<minor>.0-snapshot`
-
-## Troubleshooting
-
-If something goes wrong after tagging:
-1. Delete the tag locally: `git tag -d <version>`
-2. Delete the tag remotely: `git push origin :refs/tags/<version>`
-3. Fix the issues
-4. Start again from step 9
+If issues found after tagging but before release build:
+1. Delete remote tag: `git push origin :refs/tags/<version>`
+2. Delete local tag: `git tag -d <version>`
+3. Fix issues and restart from Step 2
