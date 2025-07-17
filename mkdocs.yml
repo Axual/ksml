@@ -1,10 +1,34 @@
 site_name: KSML Documentation
+site_author: Axual
+site_description: Documentation for the KSML project
+
+site_dir: _site
+theme:
+  name: material
+  features:
+    - content.code.copy
+#theme: mkdocs
+#theme: readthedocs
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
 nav:
   - Home: index.md
-  - Getting Started: tutorials/getting-started/index.md
-  - Core Concepts: core-concepts/index.md
-  - Tutorials: tutorials/index.md
-  - Use Case Guides: use-cases/index.md
-  - Reference: reference/index.md
-  - Resources: resources/index.md
-  - About: about.md
+  - Introduction: introduction.md
+  - Quick start: quick-start.md
+  - Reference:
+      - Streams: reference-docs/streams.md
+      - Pipelines: reference-docs/pipelines.md
+      - Types: reference-docs/types.md
+      - Notations: reference-docs/notations.md
+      - Operstions: reference-docs/operations.md
+      - Functions: reference-docs/functions.md
+      - Stores: reference-docs/stores.md
+      - Runners: reference-docs/runners.md
+  - Language specification: ksml-language-spec.md
+  - Release Notes: release-notes.md
