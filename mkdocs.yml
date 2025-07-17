@@ -23,10 +23,10 @@ nav:
   - Getting Started: tutorials/getting-started/index.md
   - Core Concepts: core-concepts/index.md
   - Tutorials:
-      - Basic Tutorial: tutorials/getting-started/basics-tutorial.md
-      - Beginner Tutorial: tutorials/beginner/index.md
-      - Intermediate Tutorial: tutorials/intermediate/index.md
-      - Advanced Tutorial: tutorials/advanced/index.md
+      - Basic Tutorials: tutorials/getting-started/basics-tutorial.md
+      - Beginner Tutorials: tutorials/beginner/index.md
+      - Intermediate Tutorials: tutorials/intermediate/index.md
+      - Advanced Tutorials: tutorials/advanced/index.md
   - Use Cases:
       - Real-time Analytics: use-cases/real-time-analytics.md
       - Data Transformation: use-cases/data-transformation.md
