@@ -43,20 +43,21 @@ acquired company's legacy system into your modern data platform. The legacy data
 The legacy system provides customer data in XML format:
 
 ```xml
+
 <customer>
-   <cust_id>12345</cust_id>
-   <fname>John</fname>
-   <lname>Doe</lname>
-   <dob>1980-01-15</dob>
-   <addr>
-      <street>123 Main St</street>
-      <city>Anytown</city>
-      <state>CA</state>
-      <zip>90210</zip>
-   </addr>
-   <phone>555-123-4567</phone>
-   <legacy_segment>A</legacy_segment>
-   <account_created>2015-03-20</account_created>
+    <cust_id>12345</cust_id>
+    <fname>John</fname>
+    <lname>Doe</lname>
+    <dob>1980-01-15</dob>
+    <addr>
+        <street>123 Main St</street>
+        <city>Anytown</city>
+        <state>CA</state>
+        <zip>90210</zip>
+    </addr>
+    <phone>555-123-4567</phone>
+    <legacy_segment>A</legacy_segment>
+    <account_created>2015-03-20</account_created>
 </customer>
 ```
 
@@ -136,11 +137,11 @@ segment:
 To run the application:
 
 1. Save the processor definition to
-   [`data_transformation.yaml`](../../examples/use-cases/data-transformation/data-transformation.yaml).
+   [`data_transformation.yaml`](../definitions/use-cases/data-transformation/data-transformation.yaml).
 2. Save the producers to
-   [`data-transformation-segment-data-producer.yaml`](../../examples/use-cases/data-transformation/segment-data-producer.yaml)
+   [`segment-data-producer.yaml`](../definitions/use-cases/data-transformation/segment-data-producer.yaml)
    and
-   [`data-transformation-customer-data-producer.yaml`](../../examples/use-cases/data-transformation/customer-data-producer.yaml).
+   [`customer-data-producer.yaml`](../definitions/use-cases/data-transformation/customer-data-producer.yaml).
 3. Set up your `ksml-runner.yaml` configuration, pointing to your Kafka installation.
 ```yaml
 {% include "../../examples/use-cases/data-transformation/ksml-runner.yaml" %}
@@ -178,11 +179,11 @@ To handle changes in the source or target schema over time:
 # Version-aware transformation
 schema_version = value.get("version", "1.0")
 if schema_version == "1.0":
-  # Original transformation logic
+# Original transformation logic
 elif schema_version == "2.0":
-  # Updated transformation logic for new schema
+# Updated transformation logic for new schema
 else:
-  log.error("Unknown schema version: {}", schema_version)
+    log.error("Unknown schema version: {}", schema_version)
 ```
 
 ## Conclusion
