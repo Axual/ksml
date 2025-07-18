@@ -216,7 +216,7 @@ Let's combine all the sections into a complete KSML definition file:
 {% include "../definitions/basics-tutorial/tutorial.yaml" %}
 ```
 
-Save this file as `tutorial.yaml`.
+Save this file as [`tutorial.yaml`](../definitions/basics-tutorial/tutorial.yaml).
 
 ## Step 5: Run Your Pipeline
 
