@@ -97,12 +97,26 @@ git push origin release/1.1.x
 
 ### Step 6: Update GitHub Actions (Major/Minor Only)
 
-For major/minor releases, update the release branch:
+For major/minor releases, update the workflow files in the release branch:
+
 1. Checkout the release branch: `git checkout release/1.1.x`
-2. Set Docker tags to `<major>.<minor>-snapshot`
-3. Set Chart versions to `<major>.<minor>.0-snapshot`
-4. Add `<major>.<minor>` Docker tag in release workflow
-5. Commit and push changes
+
+2. Update `.github/workflows/build-push-docker.yml`:
+   - Change Docker tags from `snapshot` to `<major>.<minor>-snapshot`
+   - Update helm-chart-release job: `app-version: <major>.<minor>-snapshot`, `version: <major>.<minor>.0-snapshot`
+
+3. Update `.github/workflows/package-push-helm.yml`:
+   - Change default `version` parameter to `<major>.<minor>.0-snapshot` in both workflow_dispatch and workflow_call
+
+4. Update `.github/workflows/release-push-docker.yml`:
+   - Add `<major>.<minor>` tag to all Docker registries (axual/ksml, ghcr.io, registry.axual.io)
+
+5. Commit and push:
+   ```bash
+   git add .github/workflows/*.yml
+   git commit -m "Update GitHub Actions for release/<major>.<minor>.x branch"
+   git push origin release/<major>.<minor>.x
+   ```
 
 ### Step 7: Set Next Development Version
 
