@@ -8,7 +8,7 @@ Welcome to the KSML community! This guide provides information on how to get hel
 
 The first place to look for answers is the KSML documentation:
 
-- [Getting Started Guide](../tutorials/getting-started/introduction.md) - For beginners
+- [Getting Started Guide](../getting-started/introduction.md) - For beginners
 - [Core Concepts](../core-concepts/index.md) - For understanding KSML fundamentals
 - [Tutorials](../tutorials/index.md) - For hands-on learning
 - [Reference Documentation](../reference/language-reference.md) - For detailed specifications

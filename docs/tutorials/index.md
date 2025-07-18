@@ -5,7 +5,7 @@ advanced topics, as well as practical use case guides.
 
 ## Learning Paths
 
-### [Getting Started](getting-started/index.md)
+### [Getting Started](../getting-started/index.md)
 
 This tutorial will help you understand what KSML is, how to set it up, and how to create your first KSML application.
 

@@ -6,7 +6,7 @@ This tutorial guides you through building a simple KSML data pipeline. By the en
 
 - Basic understanding of Kafka concepts (topics, messages)
 - Docker installed for running the example environment
-- Completed the [KSML Basics Tutorial](/docs/tutorials/getting-started/basics-tutorial.md)
+- Completed the [KSML Basics Tutorial](/docs/getting-started/basics-tutorial.md)
 
 ## What You'll Build
 

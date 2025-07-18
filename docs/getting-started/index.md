@@ -17,6 +17,6 @@ A hands-on tutorial that guides you through creating your first KSML application
 
 After completing the getting started guides, you'll be ready to:
 
-- Explore [Core Concepts](../../core-concepts/index.md) to deepen your understanding of KSML
-- Try the [Beginner Tutorials](../beginner/index.md) to build more complex applications
-- Browse the [Reference Documentation](../../reference/index.md) for detailed information about KSML features
+- Explore [Core Concepts](../core-concepts/index.md) to deepen your understanding of KSML
+- Try the [Beginner Tutorials](../tutorials/beginner/index.md) to build more complex applications
+- Browse the [Reference Documentation](../reference/index.md) for detailed information about KSML features

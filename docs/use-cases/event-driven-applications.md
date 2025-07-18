@@ -23,7 +23,7 @@ KSML is particularly well-suited for event-driven applications because it allows
 Before starting this tutorial, you should:
 
 - Understand basic KSML concepts (streams, functions, pipelines)
-- Have completed the [KSML Basics Tutorial](../tutorials/getting-started/basics-tutorial.md)
+- Have completed the [KSML Basics Tutorial](../getting-started/basics-tutorial.md)
 - Be familiar with [Filtering and Transforming](../tutorials/beginner/filtering-transforming.md)
 - Have a basic understanding of [Complex Event Processing](../tutorials/advanced/complex-event-processing.md)
 

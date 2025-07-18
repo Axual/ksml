@@ -44,7 +44,7 @@ Let's create each section step by step.
 First, let's define the input and output streams for our pipeline:
 
 ```yaml
-{% include "../../../examples/basics-tutorial/stream-definitions.yaml" %}
+{% include "../../examples/basics-tutorial/stream-definitions.yaml" %}
 ```
 
 This defines:
@@ -73,7 +73,7 @@ KSML supports various data types and notations including:
 Next, let's create a function to log messages as they flow through our pipeline:
 
 ```yaml
-{% include "../../../examples/basics-tutorial/function-definitions.yaml" %}
+{% include "../../examples/basics-tutorial/function-definitions.yaml" %}
 ```
 
 There are three functions defined
@@ -83,7 +83,7 @@ There are three functions defined
 This function:
 
 - Is named `temperature_above_threshold`
-- Is of type `predicate`, which means it [always gets](../../reference/function-reference.md#predicate) a `key` and
+- Is of type `predicate`, which means it [always gets](../reference/function-reference.md#predicate) a `key` and
   `value` as its parameters and needs to return a `boolean` value
 - Uses the `expression` tag to return a True if the `temperature` field in the value (zero if it does not exist) is
   above 70, False otherwise
@@ -93,7 +93,7 @@ This function:
 This function:
 
 - Is named `fahrenheit_to_celsius`
-- Is of type `valueTransformer`, which means it [always gets](../../reference/function-reference.md#valuetransformer)
+- Is of type `valueTransformer`, which means it [always gets](../reference/function-reference.md#valuetransformer)
   two parameters `key` and `value`, and does not return a value
 - Uses the `expression` tag to define the value to return, in this case renaming `temperature` to `temp_fahrenheit` and
   adding a field called `temp_celsius`
@@ -103,7 +103,7 @@ This function:
 This function:
 
 - Is named `log_message`
-- Is of type `forEach`, which means it [always gets](../../reference/function-reference.md#foreach)  two parameters
+- Is of type `forEach`, which means it [always gets](../reference/function-reference.md#foreach)  two parameters
   `key` and `value`, and does not return a value
 - Takes an extra parameter `prefix` of type `string`
 - Checks if the `prefix` variable is of the correct type, and not empty, and if so, uses it to compose a description for
@@ -116,7 +116,7 @@ Functions in KSML:
 
 - Can be reused across multiple operations in your pipelines
 - Are written in Python
-- Have access to pre-defined parameters based on [function type](../../reference/function-reference.md)
+- Have access to pre-defined parameters based on [function type](../reference/function-reference.md)
 - Can take additional parameters for more flexibility
 - Must return a value if required by the function type
 
@@ -125,7 +125,7 @@ Functions in KSML:
 Now, let's create the pipeline that processes our data:
 
 ```yaml
-{% include "../../../examples/basics-tutorial/pipeline-definitions.yaml" %}
+{% include "../../examples/basics-tutorial/pipeline-definitions.yaml" %}
 ```
 
 This pipeline:
@@ -143,7 +143,7 @@ Let's break down each operation:
 #### Filter Operation
 
 ```yaml
-{% include "../../../examples/basics-tutorial/filter-operation.yaml" %}
+{% include "../../examples/basics-tutorial/filter-operation.yaml" %}
 ```
 
 The filter operation:
@@ -155,7 +155,7 @@ The filter operation:
 #### Transform Value Operation
 
 ```yaml
-{% include "../../../examples/basics-tutorial/transform-value-operation.yaml" %}
+{% include "../../examples/basics-tutorial/transform-value-operation.yaml" %}
 ```
 
 The transformValue operation:
@@ -174,7 +174,7 @@ purposes.
 #### Peek Operation
 
 ```yaml
-{% include "../../../examples/basics-tutorial/peek-operation.yaml" %}
+{% include "../../examples/basics-tutorial/peek-operation.yaml" %}
 ```
 
 The peek operation:
@@ -189,7 +189,7 @@ The peek operation:
 Let's combine all the sections into a complete KSML definition file:
 
 ```yaml
-{% include "../../../examples/basics-tutorial/tutorial.yaml" %}
+{% include "../../examples/basics-tutorial/tutorial.yaml" %}
 ```
 
 Save this file as `tutorial.yaml`.
@@ -253,7 +253,7 @@ While you can manually produce the above messages, KSML can also generate messag
 definition that would randomly generate test messages every three seconds.
 
 ```yaml
-{% include "../../../examples/basics-tutorial/tutorial-producer.yaml" %}
+{% include "../../examples/basics-tutorial/tutorial-producer.yaml" %}
 ```
 
 ## Next Steps
@@ -268,13 +268,13 @@ Congratulations! You've built your first KSML data pipeline. Here are some ways 
 
 ### Explore More Advanced Concepts:
 
-- Learn about [stateful operations](../../core-concepts/operations.md#stateful-operations) like aggregations and joins
-- Explore [windowing operations](../../core-concepts/operations.md#windowing-operations) for time-based processing
+- Learn about [stateful operations](../core-concepts/operations.md#stateful-operations) like aggregations and joins
+- Explore [windowing operations](../core-concepts/operations.md#windowing-operations) for time-based processing
 - Try working with different [data formats](../../reference/stream-types-reference.md)
 
 ### Continue Your Learning Journey:
 
-- Check out the [beginner tutorials](../beginner/index.md) for more guided examples
-- Explore the [examples library](../../resources/examples-library.md) for inspiration
-- Dive into the [reference documentation](../../reference/operation-reference.md) to learn about all available
+- Check out the [beginner tutorials](../tutorials/beginner/index.md) for more guided examples
+- Explore the [examples library](../resources/examples-library.md) for inspiration
+- Dive into the [reference documentation](../reference/operation-reference.md) to learn about all available
   operations

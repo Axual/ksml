@@ -22,7 +22,7 @@ applications.
 Before starting this tutorial, you should:
 
 - Understand basic KSML concepts (streams, functions, pipelines)
-- Have completed the [KSML Basics Tutorial](../tutorials/getting-started/basics-tutorial.md)
+- Have completed the [KSML Basics Tutorial](../getting-started/basics-tutorial.md)
 - Be familiar with [Filtering and Transforming](../tutorials/beginner/filtering-transforming.md)
 - Have a basic understanding of [Joins](../tutorials/intermediate/joins.md) for data enrichment
 

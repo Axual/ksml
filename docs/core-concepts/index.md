@@ -87,6 +87,6 @@ Each page includes conceptual explanations, code examples, and best practices to
 
 ## Additional Resources
 
-- [Getting Started: KSML Basics Tutorial](../tutorials/getting-started/basics-tutorial.md) - A hands-on introduction to KSML
+- [Getting Started: KSML Basics Tutorial](../getting-started/basics-tutorial.md) - A hands-on introduction to KSML
 - [Reference Documentation](../reference/language-reference.md) - Complete technical reference
 - [Examples Library](../resources/examples-library.md) - Ready-to-use examples demonstrating these concepts

@@ -7,8 +7,6 @@ theme:
   name: material
   features:
     - content.code.copy
-#theme: mkdocs
-#theme: readthedocs
 
 plugins:
   - include-markdown:
@@ -32,8 +30,8 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Introduction: introduction.md
-  - Getting Started: tutorials/getting-started/index.md
+  - Introduction: getting-started/introduction.md
+  - Getting Started: getting-started/index.md
   - Core Concepts: core-concepts/index.md
   - Tutorials:
       - Basics Tutorials: tutorials/getting-started/basics-tutorial.md

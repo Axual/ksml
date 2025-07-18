@@ -18,7 +18,7 @@ KSML supports various types of joins, each with different semantics and use case
 Before starting this tutorial, you should:
 
 - Understand basic KSML concepts (streams, functions, pipelines)
-- Have completed the [KSML Basics Tutorial](../getting-started/basics-tutorial.md)
+- Have completed the [KSML Basics Tutorial](../../getting-started/basics-tutorial.md)
 - Be familiar with [Stateful Operations](../../core-concepts/operations.md#stateful-operations)
 - Understand the difference between [streams and tables](../../reference/stream-types-reference.md)
 

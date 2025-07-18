@@ -60,6 +60,27 @@ This guide demonstrates how to implement fraud detection systems:
 - Multi-factor anomaly detection
 - Alert generation and notification
 
+## Sector Use Cases
+
+Energy
+
+- [Allocation Reconciliation](../../workspace/use-cases/energy-allocation-reconciliation.md)
+- [Consumption Analytics](../../workspace/use-cases/energy-consumption-analytics.md)
+- [Predictive Maintenance](../../workspace/use-cases/energy-predictive-maintenance.md)
+- [Renewable Integration](../../workspace/use-cases/energy-renewable-integration.md)
+- [Smart Grid](../../workspace/use-cases/energy-smart-grid.md)
+
+Finance
+
+- [Fraud Detection](../../workspace/use-cases/finance-fraud-detection.md)
+- [Market Data](../../workspace/use-cases/finance-market-data.md)
+- [Risk Management](../../workspace/use-cases/finance-risk-management.md)
+
+Public
+
+- [Emergency Response](../../workspace/use-cases/public-emergency-response.md)
+- [Traffic Management](../../workspace/use-cases/public-traffic-management.md)
+
 ## How to Use These Guides
 
 Each guide includes:
@@ -76,5 +97,5 @@ You can follow these guides end-to-end to implement the complete solution, or ad
 
 - [Examples Library](../resources/examples-library.md) - Ready-to-use examples for common patterns
 - [Core Concepts](../reference/stream-types-reference.md) - Detailed explanations of KSML components
-- [Reference Documentation](../reference/operations-reference.md) - Complete reference for all KSML operations
+- [Reference Documentation](../reference/operation-reference.md) - Complete reference for all KSML operations
 - [Community and Support](../resources/community.md) - Connect with other KSML users and get help

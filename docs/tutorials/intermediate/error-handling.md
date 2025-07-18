@@ -26,7 +26,7 @@ KSML provides several mechanisms to handle errors gracefully and implement recov
 Before starting this tutorial, you should:
 
 - Understand basic KSML concepts (streams, functions, pipelines)
-- Have completed the [KSML Basics Tutorial](../getting-started/basics-tutorial.md)
+- Have completed the [KSML Basics Tutorial](../../getting-started/basics-tutorial.md)
 - Be familiar with Python exception handling
 
 ## Error Handling Strategies in KSML

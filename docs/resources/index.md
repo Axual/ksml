@@ -66,7 +66,7 @@ Connect with the KSML community and get help:
 
 These resources are designed to complement the main documentation:
 
-- **When learning KSML**: Start with the [Getting Started](../tutorials/getting-started/introduction.md) section
+- **When learning KSML**: Start with the [Getting Started](../getting-started/introduction.md) section
   and [Tutorials](../tutorials/beginner/index.md), then explore the [Examples Library](examples-library.md) for
   inspiration.
 

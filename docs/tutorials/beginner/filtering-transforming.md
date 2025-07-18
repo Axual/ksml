@@ -1,6 +1,6 @@
 # Filtering and Transforming Data in KSML
 
-This tutorial builds on the [KSML Basics Tutorial](../getting-started/basics-tutorial.md) and explores more advanced filtering and transformation techniques in KSML. You'll learn how to work with complex filter conditions, apply multiple transformations, handle nested data structures, and implement error handling in your transformations.
+This tutorial builds on the [KSML Basics Tutorial](../../getting-started/basics-tutorial.md) and explores more advanced filtering and transformation techniques in KSML. You'll learn how to work with complex filter conditions, apply multiple transformations, handle nested data structures, and implement error handling in your transformations.
 
 ## What You'll Build
 
@@ -16,7 +16,7 @@ In this tutorial, you'll build a data pipeline that:
 
 Before you begin, make sure you have:
 
-- Completed the [KSML Basics Tutorial](../getting-started/basics-tutorial.md)
+- Completed the [KSML Basics Tutorial](../../getting-started/basics-tutorial.md)
 - A running KSML environment with Kafka
 - Basic understanding of YAML and Python syntax
 

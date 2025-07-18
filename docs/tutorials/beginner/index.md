@@ -6,7 +6,7 @@ Each tutorial provides step-by-step instructions and explanations to help you un
 
 ## Available Tutorials
 
-### [Building Your First KSML Data Pipeline](../getting-started/basics-tutorial.md)
+### [Building Your First KSML Data Pipeline](../../getting-started/basics-tutorial.md)
 
 This tutorial guides you through building a simple data pipeline that filters and transforms temperature data. You'll learn:
 

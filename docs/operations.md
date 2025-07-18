@@ -47,7 +47,7 @@
 
 [Duration]: types.md#duration
 
-[Store]: stores.md
+[Store]: tutorials/intermediate/stores.md
 
 [KStream]: https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/kstream/KStream.html
 

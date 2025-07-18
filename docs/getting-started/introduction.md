@@ -1,5 +1,24 @@
 # Introduction to KSML
 
+## Background
+
+Kafka Streams is at the heart of many organisations' event sourcing, analytical processing, real-time, batch or ML
+workloads. It has a beautiful Java DSL that allows developers to focus on what their applications need to do, not how to
+do it. But the Java requirement also holds people back. If you don’t know Java, does that mean you cannot use Kafka
+Streams?
+
+Enter KSML.
+
+KSML is a wrapper language and interpreter around Kafka Streams that lets you express any topology in a YAML syntax.
+Simply define your topology as a processing pipeline with a series of steps that your data passes through. Your custom
+functions can be expressed inline in Python. KSML will read your definition and construct the topology dynamically via
+the Kafka Streams DSL and run it in GraalVM. Curious? This talk will take you for a deep-dive into KSML. We will cover
+the language, how to run, and of course several examples. After the session, you will understand how easily and quickly
+you can develop Kafka Streams applications without writing a single line of Java.
+
+This documentation helps you to understand KSML. By the time you read through these pages, you will be able to write
+streaming applications yourself, using only a few simple basic rules and Python snippets.
+
 ## What is KSML?
 
 KSML is a declarative language that allows you to build powerful Kafka Streams applications using YAML and Python,
@@ -48,7 +67,7 @@ In KSML, a stream represents a flow of data from or to a Kafka topic. Streams ar
 types for keys and values.
 
 ```yaml
-{% include "../../../examples/introduction/example-stream-definition.yaml" %}
+{% include "../../examples/introduction/example-stream-definition.yaml" %}
 ```
 
 ### Functions
@@ -57,7 +76,7 @@ Functions in KSML are reusable pieces of Python code that can be called from you
 filter messages, or perform side effects like logging.
 
 ```yaml
-{% include "../../../examples/introduction/example-function-definition.yaml" %}
+{% include "../../examples/introduction/example-function-definition.yaml" %}
 ```
 
 ### Pipelines
@@ -66,7 +85,7 @@ Pipelines define the flow and processing of data. A pipeline starts with a sourc
 operations, and typically ends with a sink operation that writes to another stream or performs a terminal action.
 
 ```yaml
-{% include "../../../examples/introduction/example-pipeline-definition.yaml" %}
+{% include "../../examples/introduction/example-pipeline-definition.yaml" %}
 ```
 
 ### Operations

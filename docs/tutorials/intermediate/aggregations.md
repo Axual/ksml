@@ -18,7 +18,7 @@ In KSML, aggregations are implemented using the Kafka Streams stateful operation
 Before starting this tutorial, you should:
 
 - Understand basic KSML concepts (streams, functions, pipelines)
-- Have completed the [KSML Basics Tutorial](../getting-started/basics-tutorial.md)
+- Have completed the [KSML Basics Tutorial](../../getting-started/basics-tutorial.md)
 - Be familiar with [Stateful Operations](../../core-concepts/operations.md#stateful-operations)
 
 ## Types of Aggregations in KSML

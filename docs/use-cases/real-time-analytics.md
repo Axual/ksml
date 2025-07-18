@@ -18,7 +18,7 @@ In this tutorial, we'll build a real-time analytics pipeline that processes a st
 Before starting this tutorial, you should:
 
 - Understand basic KSML concepts (streams, functions, pipelines)
-- Have completed the [KSML Basics Tutorial](../tutorials/getting-started/basics-tutorial.md)
+- Have completed the [KSML Basics Tutorial](../getting-started/basics-tutorial.md)
 - Be familiar with [Aggregations](../tutorials/intermediate/aggregations.md)
 - Have a basic understanding of [Windowed Operations](../tutorials/intermediate/windowed-operations.md)
 

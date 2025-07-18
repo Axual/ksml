@@ -87,7 +87,7 @@ You can use the navigation menu to browse the reference sections, or use the sea
 
 ## Additional Resources
 
-- [Getting Started](../tutorials/getting-started/introduction.md) - Introduction to KSML for beginners
+- [Getting Started](../getting-started/introduction.md) - Introduction to KSML for beginners
 - [Core Concepts](../core-concepts/index.md) - Conceptual explanations of KSML components
 - [Tutorials](../tutorials/beginner/index.md) - Step-by-step guides for learning KSML
 - [Examples Library](../resources/examples-library.md) - Ready-to-use examples for common patterns
