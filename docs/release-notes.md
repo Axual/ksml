@@ -4,7 +4,12 @@
 
 * [Release Notes](#release-notes)
     * [Releases](#releases)
-        * [1.0.4 (2024-10-18)](#103-2024-10-18)
+        * [1.0.8 (2025-06-20)](#108-2025-06-20)
+        * [1.0.7 (2025-06-09)](#107-2025-06-09)
+        * [1.0.6 (2025-03-24)](#106-2025-03-24)
+        * [1.0.5 (2025-01-14)](#105-2025-01-14)
+        * [1.0.4 (2024-11-22)](#104-2024-11-22)
+        * [1.0.3 (2024-10-18)](#103-2024-10-18)
         * [1.0.2 (2024-09-20)](#102-2024-09-20)
         * [1.0.1 (2024-07-17)](#101-2024-07-17)
         * [1.0.0 (2024-06-28)](#100-2024-06-28)
@@ -20,22 +25,55 @@
         * [0.0.2 (2021-06-28)](#002-2021-06-28)
         * [0.0.1 (2021-04-30)](#001-2021-04-30)
 
+### 1.0.8 (2025-06-20)
+
+KSML
+
+* Axual header cleaning interceptor to KSML
+
+Helm charts
+
+* Run as Job
+* Prometheus alert rules
+* Network policies
+
+### 1.0.7 (2025-06-09)
+
+* Fix KSML crash when topic creation is needed and pattern configurations were provided
+
+### 1.0.6 (2025-03-24)
+
+* Fix storage issues, Persistent Volumes always created and never cleaned
+* Fix slow and failing builds with multiple architectures
+
+### 1.0.5 (2025-01-14)
+* Fix store serde regression
+
+### 1.0.4 (2024-11-22)
+
+* Fix crash when using AVRO CharSequence encodings and nested objects
+
 ### 1.0.3 (2024-10-18)
-* KSML
-  * Fix high CPU usage
-  * Upgrade to Avro 1.11.4 to fix CVE-2024-47561
+
+* Fix high CPU usage
+* Upgrade to Avro 1.11.4 to fix CVE-2024-47561
 
 ### 1.0.2 (2024-09-20)
-* KSML
-  * Upgrade to Kafka Streams 3.8.0
-  * Avro Schema Registry settings no longer required if Avro not used 
-  * Add missing object in KSML Json Schema
-  * Fix serialisation and list handling issues
-* Helm charts
-  * Use liveness and readiness and startup probes to fix state issues
-  * Fix conflicting default configuration Prometheus export and ServiceMonitor
+
+KSML
+
+* Upgrade to Kafka Streams 3.8.0
+* Avro Schema Registry settings no longer required if Avro not used 
+* Add missing object in KSML Json Schema
+* Fix serialisation and list handling issues
+
+Helm charts
+
+* Use liveness and readiness and startup probes to fix state issues
+* Fix conflicting default configuration Prometheus export and ServiceMonitor
 
 ### 1.0.1 (2024-07-17)
+
 * Topology Optimization can be applied
 * Runtime dependencies, like LZ4 compression support, are back in the KSML image
 * Fix parse error messages during join
@@ -97,8 +135,6 @@
 
 ### 0.2.2 (2024-01-30)
 
-**Changes:**
-
 * Fix KSML java process not stopping on exception
 * Fix stream-stream join validation and align other checks
 * Bump logback to 1.4.12
@@ -107,13 +143,9 @@
 
 ### 0.2.1 (2023-12-20)
 
-**Changes:**
-
 * Fixed an issue with AVRO and field validations
 
 ### 0.2.0 (2023-12-07)
-
-**Changes:**
 
 * Optimized Docker build
 * Merged KSML Runners into one module, optimize Docker builds and workflow
@@ -129,8 +161,6 @@
 
 ### 0.1.0 (2023-03-15)
 
-**Changes:**
-
 * Added XML/SOAP support
 * Added data generator
 * Added Automatic Type Conversion
@@ -139,9 +169,7 @@
 
 ### 0.0.4 (2022-12-02)
 
-**Changes:**
-
-* Update to kafka 3.2.3
+* Update to Kafka 3.2.3
 * Update to Java 17
 * Support multiple architectures in KSML, linux/amd64 and linux/arm64
 * Refactored internal typing system, plus some fixes to store operations
@@ -157,20 +185,14 @@
 
 ### 0.0.3 (2021-07-30)
 
-**Changes:**
-
 * Support for Python 3 through GraalVM
 * improved data structuring
 * bug fixes
 
 ### 0.0.2 (2021-06-28)
 
-**Changes:**
-
 * Added JSON support, Named topology and name store supported
 
 ### 0.0.1 (2021-04-30)
-
-**Changes:**
 
 * First alpha release 

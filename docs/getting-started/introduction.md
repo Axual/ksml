@@ -12,12 +12,11 @@ Enter KSML.
 KSML is a wrapper language and interpreter around Kafka Streams that lets you express any topology in a YAML syntax.
 Simply define your topology as a processing pipeline with a series of steps that your data passes through. Your custom
 functions can be expressed inline in Python. KSML will read your definition and construct the topology dynamically via
-the Kafka Streams DSL and run it in GraalVM. Curious? This talk will take you for a deep-dive into KSML. We will cover
-the language, how to run, and of course several examples. After the session, you will understand how easily and quickly
-you can develop Kafka Streams applications without writing a single line of Java.
+the Kafka Streams DSL and run it in GraalVM.
 
-This documentation helps you to understand KSML. By the time you read through these pages, you will be able to write
-streaming applications yourself, using only a few simple basic rules and Python snippets.
+This documentation takes you for a deep-dive into KSML. It covers the basic concepts, how to run, and of course,
+contains lots of useful and near-real-world examples. After going through these docs, you will understand how easily and
+quickly you can develop Kafka Streams applications without writing a single line of Java.
 
 ## What is KSML?
 

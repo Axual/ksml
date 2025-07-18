@@ -1,0 +1,52 @@
+functions:
+  haversine:
+    type: generic
+    parameters:
+      - name: lat1
+        type: double
+      - name: lon1
+        type: double
+      - name: lat2
+        type: double
+      - name: lon2
+        type: double
+    globalCode: |
+      # Import only once
+      import math
+    code: |
+      R = 6371  # Earth radius in kilometers
+      dlat = math.radians(lat2 - lat1)
+      dlon = math.radians(lon2 - lon1)
+      a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon/2)**2
+      c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+      distance = R * c
+    expression: distance
+    resultType: double
+
+  calculate_distance:
+    type: valueTransformer
+    code: |
+      # Reference point (e.g., building entrance)
+      ref_lat = 52.0903304
+      ref_lng = 5.1063283
+
+      # Device coordinates
+      device_lat = value.get("location", {}).get("coordinates", {}).get("lat")
+      device_lng = value.get("location", {}).get("coordinates", {}).get("lng")
+
+      if device_lat is not None and device_lng is not None:
+        distance = haversine(ref_lat, ref_lng, device_lat, device_lng)
+        value["distance_from_reference"] = distance
+
+      return value
+
+pipelines:
+  proximity_analysis:
+    from: sensor_readings
+    via:
+      - type: transformValue
+        mapper: calculate_distance
+      - type: filter
+        if:
+          expression: value.get("distance_from_reference", float('inf')) < 0.1  # Within 100 meters
+    to: proximity_alerts

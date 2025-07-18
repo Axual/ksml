@@ -43,21 +43,20 @@ acquired company's legacy system into your modern data platform. The legacy data
 The legacy system provides customer data in XML format:
 
 ```xml
-
 <customer>
-    <cust_id>12345</cust_id>
-    <fname>John</fname>
-    <lname>Doe</lname>
-    <dob>1980-01-15</dob>
-    <addr>
-        <street>123 Main St</street>
-        <city>Anytown</city>
-        <state>CA</state>
-        <zip>90210</zip>
-    </addr>
-    <phone>555-123-4567</phone>
-    <legacy_segment>A</legacy_segment>
-    <account_created>2015-03-20</account_created>
+   <cust_id>12345</cust_id>
+   <fname>John</fname>
+   <lname>Doe</lname>
+   <dob>1980-01-15</dob>
+   <addr>
+      <street>123 Main St</street>
+      <city>Anytown</city>
+      <state>CA</state>
+      <zip>90210</zip>
+   </addr>
+   <phone>555-123-4567</phone>
+   <legacy_segment>A</legacy_segment>
+   <account_created>2015-03-20</account_created>
 </customer>
 ```
 
@@ -69,7 +68,7 @@ You have a reference table topic with segment code (key) mappings to segment det
 |-----|----------------------------------------------------------------------------------------------|
 | A   | `{"segment_name": "Premium", "discount_tier": "Tier 1", "marketing_group": "High Value"}`    |
 | B   | `{"segment_name": "Standard", "discount_tier": "Tier 2", "marketing_group": "Medium Value"}` |
-| C   | `{"segment_name": "Basic", "discount_tier": "Tier 3", "marketing_group": "Growth Target" }`  |
+| C   | `{"segment_name": "Basic", "discount_tier": "Tier 3", "marketing_group": "Growth Target"}`   |
 
 ### Target Data (JSON)
 
@@ -112,114 +111,7 @@ You want to transform the data into this format:
 Now, let's create our KSML definition file:
 
 ```yaml
-streams:
-  legacy_customers:
-    topic: legacy_customer_data
-    keyType: string  # customer_id
-    valueType: xml  # XML customer data
-
-  transformed_customers:
-    topic: standardized_customer_data
-    keyType: string  # customer_id
-    valueType: json  # transformed customer data
-
-tables:
-  segment_reference:
-    topic: customer_segments
-    keyType: string  # segment code
-    valueType: json  # segment details
-
-functions:
-  transform_customer:
-    type: mapValues
-    code: |
-      import datetime
-
-      # Extract values from XML
-      customer_id = value.get("cust_id")
-      first_name = value.get("fname")
-      last_name = value.get("lname")
-      birth_date = value.get("dob")
-      phone = value.get("phone")
-      legacy_segment = value.get("legacy_segment")
-      customer_since = value.get("account_created")
-
-      # Extract address
-      address = value.get("addr")
-      street = address.get("street")
-      city = address.get("city")
-      state = address.get("state")
-      zip_code = address.get("zip")
-
-      # Generate email (not in source data)
-      email = f"{first_name.lower()}.{last_name.lower()}@example.com"
-
-      # Get segment info from reference data
-      segment_info = value.get("segment_info")
-      segment_name = segment_info.get("segment_name") if segment_info else "Unknown"
-      discount_tier = segment_info.get("discount_tier") if segment_info else "Unknown"
-      marketing_group = segment_info.get("marketing_group") if segment_info else "Unknown"
-
-      # Current timestamp for metadata
-      current_time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
-
-      # Create transformed customer object
-      return {
-        "customer_id": customer_id,
-        "name": {
-          "first": first_name,
-          "last": last_name
-        },
-        "contact_info": {
-          "email": email,
-          "phone": phone,
-          "address": {
-            "street": street,
-            "city": city,
-            "state": state,
-            "postal_code": zip_code,
-            "country": "USA"  # Default value not in source
-          }
-        },
-        "birth_date": birth_date,
-        "customer_since": customer_since,
-        "segment": segment_name,
-        "marketing_preferences": {
-          "group": marketing_group,
-          "discount_tier": discount_tier
-        },
-        "metadata": {
-          "source": "legacy_system",
-          "last_updated": current_time
-        }
-      }
-    resultType: json
-
-pipelines:
-  customer_transformation_pipeline:
-    from: legacy_customers
-    via:
-      - type: peek
-        forEach:
-          code: |
-            log.info("Processing customer: {}", key)
-      - type: leftJoin
-        foreignKeyExtractor:
-          code: value.get("legacy_segment")
-        table: segment_reference
-        valueJoiner:
-          expression: |
-            {
-              **value1,
-              "segment_info": value2
-            }
-      - type: transformValue
-        mapper: transform_customer
-      - type: peek
-        forEach:
-          code: |
-            log.info("Transformed customer: {}", key)
-    to: transformed_customers
+{% include "../../examples/use-cases/data-transformation/data-transformation.yaml" %}
 ```
 
 ## Setting up two producers for test data
@@ -229,84 +121,30 @@ To test out the topology above, we create two test data producers.
 The first producer is a _single shot producer_ that generates data for the `customer_segments` topic:
 
 ```yaml
-tables:
-  customer_segments:
-    topic: customer_segments
-    keyType: string  # segment code
-    valueType: json  # segment details
-
-functions:
-  customer_segment_generator:
-    globalCode: |
-      import random
-      count = 0
-    code: |
-      refs = {
-        0: {"key": "A", "value": {"segment_name": "Premium", "discount_tier": "Tier 1", "marketing_group": "High Value"}},
-        1: {"key": "B", "value": {"segment_name": "Standard", "discount_tier": "Tier 2", "marketing_group": "Medium Value"}},
-        2: {"key": "C", "value": {"segment_name": "Basic", "discount_tier": "Tier 3", "marketing_group": "Growth Target" }}
-      }
-      key = refs.get(count)["key"]
-      value = refs.get(count)["value"]
-      count = (count + 1) % 3
-      return (key, value)
-    resultType: (string, struct)
-
-producers:
-  customer_segment_producer:
-    generator: customer_segment_generator
-    to: customer_segments
-    interval: 1
-    count: 3
+{% include "../../examples/use-cases/data-transformation/segment-data-producer.yaml" %}
 ```
 
-The second producer produces a message every second to the `legacy_customer_data` topic, using a randomly chosen segment:
+The second producer produces a message every second to the `legacy_customer_data` topic, using a randomly chosen
+segment:
 
 ```yaml
-streams:
-  legacy_customer_data:
-    topic: legacy_customer_data
-    keyType: string  # customer_id
-    valueType: xml  # XML customer data
-
-functions:
-  legacy_customer_data_generator:
-    globalCode: |
-      import random
-    code: |
-      key = "A"
-      value = {
-        "cust_id": "12345",
-        "fname": "John",
-        "lname": "Doe",
-        "dob": "1980-01-15",
-        "addr": {
-          "street": "123 Main St",
-          "city": "Anytown",
-          "state": "CA",
-          "zip": "90210"
-        },
-        "phone": "555-123-4567",
-        "legacy_segment": random.choice(["A","B","C"]),
-        "account_created": "2015-03-20"
-      }
-      return (key, value)
-    resultType: (string, struct)
-
-producers:
-  legacy_customer_data_producer:
-    generator: legacy_customer_data_generator
-    to: legacy_customer_data
-    interval: 1s
+{% include "../../examples/use-cases/data-transformation/customer-data-producer.yaml" %}
 ```
 
 ## Running the Application
 
 To run the application:
 
-1. Save the KSML definition to `data_transformation.yaml`.
-2. Save the producers to `customer_segment_producer.yaml` and `legacy_customer_data_producer.yaml`.
+1. Save the processor definition to
+   [`data_transformation.yaml`](../../examples/use-cases/data-transformation/data-transformation.yaml).
+2. Save the producers to
+   [`data-transformation-segment-data-producer.yaml`](../../examples/use-cases/data-transformation/segment-data-producer.yaml)
+   and
+   [`data-transformation-customer-data-producer.yaml`](../../examples/use-cases/data-transformation/customer-data-producer.yaml).
 3. Set up your `ksml-runner.yaml` configuration, pointing to your Kafka installation.
+```yaml
+{% include "../../examples/use-cases/data-transformation/ksml-runner.yaml" %}
+```
 4. Start the `customer_segment_producer` to produce the sample segment information to Kafka.
 5. Start the `legacy_customer_data_producer` to produce some sample data to the input topic.
 6. Start the `data_transformation` topology to initiate the continuous data transformation logic.
@@ -323,7 +161,7 @@ handle these cases:
 # Check if a field exists before accessing it
 birth_date = value.get("dob") if value.get("dob") is not None else "Unknown"
 
-# Provide default values
+# Provide default value in case dictionary key does not exist
 state = address.get("state", "N/A")
 
 # Validate data
@@ -340,11 +178,11 @@ To handle changes in the source or target schema over time:
 # Version-aware transformation
 schema_version = value.get("version", "1.0")
 if schema_version == "1.0":
-# Original transformation logic
+  # Original transformation logic
 elif schema_version == "2.0":
-# Updated transformation logic for new schema
+  # Updated transformation logic for new schema
 else:
-    log.error("Unknown schema version: {}", schema_version)
+  log.error("Unknown schema version: {}", schema_version)
 ```
 
 ## Conclusion

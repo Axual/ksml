@@ -1,0 +1,45 @@
+pipelines:
+  cloud_analytics:
+    from: edge_processed_readings
+    via:
+      - type: transformValue
+        mapper:
+          code: |
+            # Expand abbreviated fields
+            return {
+              "device_id": value.get("id"),
+              "timestamp": value.get("ts"),
+              "location": {"room": value.get("loc")},
+              "readings": {
+                "temperature": value.get("temp"),
+                "humidity": value.get("hum")
+              }
+            }
+      - type: groupBy
+        mapper:
+          expression: value.get("location", {}).get("room")
+      - type: windowByTime
+        windowType: tumbling
+        duration: 5m
+      - type: aggregate
+        initializer:
+          expression: |
+            {
+              "room": value.get("location", {}).get("room"),
+              "min_temp": value.get("readings", {}).get("temperature"),
+              "max_temp": value.get("readings", {}).get("temperature"),
+              "avg_temp": value.get("readings", {}).get("temperature"),
+              "count": 1
+            }
+          resultType: struct
+        aggregator:
+          code: |
+            temp = value.get("readings", {}).get("temperature")
+            return {
+              "room": aggregate.get("room"),
+              "min_temp": min(aggregate.get("min_temp"), temp),
+              "max_temp": max(aggregate.get("max_temp"), temp),
+              "avg_temp": (aggregate.get("avg_temp") * aggregate.get("count") + temp) / (aggregate.get("count") + 1),
+              "count": aggregate.get("count") + 1
+            }
+    to: room_temperature_stats

@@ -1,0 +1,49 @@
+stores:
+  device_state_store:
+    type: keyValue
+    persistent: true
+
+functions:
+  update_device_state:
+    type: valueTransformer
+    code: |
+      # Get previous state
+      previous_state = device_state_store.get(key)
+      
+      # Create new state
+      new_state = {
+        "device_id": value.get("device_id"),
+        "last_reading_time": value.get("timestamp"),
+        "current_readings": value.get("readings"),
+        "battery_level": value.get("battery_level"),
+        "status": value.get("status")
+      }
+      
+      # Add derived fields
+      if previous_state is not None:
+        # Calculate time since last reading
+        time_diff = (value.get("timestamp") - previous_state.get("last_reading_time")) / 1000  # in seconds
+        new_state["seconds_since_last_reading"] = time_diff
+      
+        # Calculate rate of change for temperature
+        prev_temp = previous_state.get("current_readings", {}).get("temperature")
+        curr_temp = value.get("readings", {}).get("temperature")
+      
+        if prev_temp is not None and curr_temp is not None and time_diff > 0:
+          new_state["temperature_change_rate"] = (curr_temp - prev_temp) / time_diff  # degrees per second
+
+      # Update store
+      device_state_store.put(key, new_state)
+
+      return new_state
+    resultType: struct
+    stores:
+      - device_state_store
+
+pipelines:
+  device_state_tracking:
+    from: sensor_readings
+    via:
+      - type: transformValue
+        mapper: update_device_state
+    to: device_status

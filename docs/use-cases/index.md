@@ -6,15 +6,6 @@ Unlike the tutorials that focus on specific KSML features, these guides take a p
 
 ## Available Use Case Guides
 
-### [Real-time Analytics](real-time-analytics.md)
-
-Learn how to implement real-time analytics solutions with KSML:
-
-- Building real-time dashboards
-- Calculating key performance indicators
-- Implementing sliding window analytics
-- Detecting anomalies in streaming data
-
 ### [Data Transformation](data-transformation.md)
 
 This guide covers common data transformation patterns:
@@ -51,6 +42,15 @@ Learn how to process IoT data streams with KSML:
 - Geospatial data processing
 - Edge-to-cloud data pipelines
 
+### [Real-time Analytics](real-time-analytics.md)
+
+Learn how to implement real-time analytics solutions with KSML:
+
+- Building real-time dashboards
+- Calculating key performance indicators
+- Implementing sliding window analytics
+- Detecting anomalies in streaming data
+
 ### [Fraud Detection](fraud-detection.md)
 
 This guide demonstrates how to implement fraud detection systems:
@@ -59,27 +59,6 @@ This guide demonstrates how to implement fraud detection systems:
 - Real-time risk scoring
 - Multi-factor anomaly detection
 - Alert generation and notification
-
-## Sector Use Cases
-
-Energy
-
-- [Allocation Reconciliation](../../workspace/use-cases/energy-allocation-reconciliation.md)
-- [Consumption Analytics](../../workspace/use-cases/energy-consumption-analytics.md)
-- [Predictive Maintenance](../../workspace/use-cases/energy-predictive-maintenance.md)
-- [Renewable Integration](../../workspace/use-cases/energy-renewable-integration.md)
-- [Smart Grid](../../workspace/use-cases/energy-smart-grid.md)
-
-Finance
-
-- [Fraud Detection](../../workspace/use-cases/finance-fraud-detection.md)
-- [Market Data](../../workspace/use-cases/finance-market-data.md)
-- [Risk Management](../../workspace/use-cases/finance-risk-management.md)
-
-Public
-
-- [Emergency Response](../../workspace/use-cases/public-emergency-response.md)
-- [Traffic Management](../../workspace/use-cases/public-traffic-management.md)
 
 ## How to Use These Guides
 
