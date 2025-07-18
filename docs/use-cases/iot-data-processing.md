@@ -71,7 +71,7 @@ Our IoT sensor data will have the following structure:
 Now, let's create our KSML definition file:
 
 ```yaml
-{% include "../../examples/use-cases/iot-data-processing/iot-data-processing.yaml" %}
+{% include "../definitions/use-cases/iot-data-processing/iot-data-processing.yaml" %}
 ```
 
 ## Processing Geospatial Data
@@ -79,7 +79,7 @@ Now, let's create our KSML definition file:
 IoT applications often involve geospatial data processing. Here's how to handle location-based analytics with KSML:
 
 ```yaml
-{% include "../../examples/use-cases/iot-data-processing/processing-geospatial-data.yaml" %}
+{% include "../definitions/use-cases/iot-data-processing/processing-geospatial-data.yaml" %}
 ```
 
 ## Implementing Device State Tracking
@@ -87,7 +87,7 @@ IoT applications often involve geospatial data processing. Here's how to handle 
 For many IoT applications, tracking device state over time is crucial. Here's how to implement this using KSML's state stores:
 
 ```yaml
-{% include "../../examples/use-cases/iot-data-processing/device-state-tracking.yaml" %}
+{% include "../definitions/use-cases/iot-data-processing/device-state-tracking.yaml" %}
 ```
 
 ## Edge-to-Cloud Processing
@@ -99,7 +99,7 @@ IoT architectures often involve processing at the edge before sending data to th
 At the edge, you might want to filter, aggregate, and compress data before sending it to the cloud:
 
 ```yaml
-{% include "../../examples/use-cases/iot-data-processing/edge-processing.yaml" %}
+{% include "../definitions/use-cases/iot-data-processing/edge-processing.yaml" %}
 ```
 
 ### Cloud Processing

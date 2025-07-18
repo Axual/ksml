@@ -29,7 +29,7 @@ Before starting this tutorial, you should:
 Pattern detection involves identifying specific sequences or combinations of events within a stream:
 
 ```yaml
-{% include "../../../examples/advanced-tutorial/complex-event-processing/pattern-detection.yaml" %}
+{% include "definitions/advanced-tutorial/complex-event-processing/pattern-detection.yaml" %}
 ```
 
 ### 2. Temporal Pattern Matching
@@ -37,7 +37,7 @@ Pattern detection involves identifying specific sequences or combinations of eve
 Temporal pattern matching adds time constraints to pattern detection:
 
 ```yaml
-{% include "../../../examples/advanced-tutorial/complex-event-processing/temporal-pattern-matching.yaml" %}
+{% include "definitions/advanced-tutorial/complex-event-processing/temporal-pattern-matching.yaml" %}
 ```
 
 ### 3. Event Correlation and Enrichment
@@ -45,7 +45,7 @@ Temporal pattern matching adds time constraints to pattern detection:
 Event correlation involves combining related events from different streams:
 
 ```yaml
-{% include "../../../examples/advanced-tutorial/complex-event-processing/event-correlation-and-enrichment.yaml" %}
+{% include "definitions/advanced-tutorial/complex-event-processing/event-correlation-and-enrichment.yaml" %}
 ```
 
 ### 4. Anomaly Detection
@@ -53,7 +53,7 @@ Event correlation involves combining related events from different streams:
 Anomaly detection identifies unusual patterns or deviations from normal behavior:
 
 ```yaml
-{% include "../../../examples/advanced-tutorial/complex-event-processing/anomaly-detection.yaml" %}
+{% include "definitions/advanced-tutorial/complex-event-processing/anomaly-detection.yaml" %}
 ```
 
 ## Practical Example: Fraud Detection System
@@ -61,7 +61,7 @@ Anomaly detection identifies unusual patterns or deviations from normal behavior
 Let's build a complete example that implements a real-time fraud detection system using CEP patterns:
 
 ```yaml
-{% include "../../../examples/advanced-tutorial/complex-event-processing/fraud-detection.yaml" %}
+{% include "definitions/advanced-tutorial/complex-event-processing/fraud-detection.yaml" %}
 ```
 
 This example:
@@ -78,7 +78,7 @@ This example:
 For patterns that span long periods, consider using persistent state stores:
 
 ```yaml
-{% include "../../../examples/advanced-tutorial/complex-event-processing/long-term-pattern-store.yaml" %}
+{% include "definitions/advanced-tutorial/complex-event-processing/long-term-pattern-store.yaml" %}
 ```
 
 ### Handling Out-of-Order Events
@@ -86,7 +86,7 @@ For patterns that span long periods, consider using persistent state stores:
 Use windowing with grace periods to handle events that arrive out of order:
 
 ```yaml
-{% include "../../../examples/advanced-tutorial/complex-event-processing/long-term-pattern-store.yaml" %}
+{% include "definitions/advanced-tutorial/complex-event-processing/long-term-pattern-store.yaml" %}
 ```
 
 ### Hierarchical Pattern Detection
@@ -94,7 +94,7 @@ Use windowing with grace periods to handle events that arrive out of order:
 Implement hierarchical patterns by building higher-level patterns from lower-level ones:
 
 ```yaml
-{% include "../../../examples/advanced-tutorial/complex-event-processing/hierarchical-pattern-detection.yaml" %}
+{% include "definitions/advanced-tutorial/complex-event-processing/hierarchical-pattern-detection.yaml" %}
 ```
 
 ## Best Practices for Complex Event Processing
@@ -116,7 +116,7 @@ Implement hierarchical patterns by building higher-level patterns from lower-lev
 Implement robust error handling to prevent pattern detection failures:
 
 ```yaml
-{% include "../../../examples/advanced-tutorial/complex-event-processing/error-handling.yaml" %}
+{% include "definitions/advanced-tutorial/complex-event-processing/error-handling.yaml" %}
 ```
 
 ## Conclusion
@@ -130,4 +130,4 @@ In the next tutorial, we'll explore [Custom State Stores](custom-state-stores.md
 - [Core Concepts: Operations](../../core-concepts/operations.md)
 - [Core Concepts: Functions](../../core-concepts/functions.md)
 - [Intermediate Tutorial: Windowed Operations](../intermediate/windowed-operations.md)
-- [Reference: State Stores](../../reference/data-types-reference.md)
+- [Reference: State Stores](../../reference/data-type-reference.md)

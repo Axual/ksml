@@ -8,7 +8,7 @@ covers all aspects of the KSML language specification, including file structure,
 A KSML definition file is written in YAML and consists of several top-level sections:
 
 ```yaml
-{% include "../../examples/reference/template-definition.yaml" %}
+{% include "../definitions/reference/template-definition.yaml" %}
 ```
 
 ## Application Metadata
@@ -225,7 +225,7 @@ Each operation type has its own set of parameters. Common parameters include:
 
 ## Data Types
 
-KSML supports various [data types](data-types-reference.md) for stream keys and values.
+KSML supports various [data types](data-type-reference.md) for stream keys and values.
 
 ### Type Conversion
 

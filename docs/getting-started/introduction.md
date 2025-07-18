@@ -66,7 +66,7 @@ In KSML, a stream represents a flow of data from or to a Kafka topic. Streams ar
 types for keys and values.
 
 ```yaml
-{% include "../../examples/introduction/example-stream-definition.yaml" %}
+{% include "definitions/introduction/example-stream-definition.yaml" %}
 ```
 
 ### Functions
@@ -75,7 +75,7 @@ Functions in KSML are reusable pieces of Python code that can be called from you
 filter messages, or perform side effects like logging.
 
 ```yaml
-{% include "../../examples/introduction/example-function-definition.yaml" %}
+{% include "definitions/introduction/example-function-definition.yaml" %}
 ```
 
 ### Pipelines
@@ -84,7 +84,7 @@ Pipelines define the flow and processing of data. A pipeline starts with a sourc
 operations, and typically ends with a sink operation that writes to another stream or performs a terminal action.
 
 ```yaml
-{% include "../../examples/introduction/example-pipeline-definition.yaml" %}
+{% include "definitions/introduction/example-pipeline-definition.yaml" %}
 ```
 
 ### Operations
@@ -121,4 +121,4 @@ Now that you understand what KSML is and its key concepts, you can:
 
 - Learn how to [install and set up KSML](installation.md)
 - Follow the [KSML Basics Tutorial](basics-tutorial.md) to build your first application
-- Explore the [Core Concepts](../../reference/stream-types-reference.md) in more detail
+- Explore the [Core Concepts](../reference/stream-type-reference.md) in more detail

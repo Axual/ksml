@@ -91,26 +91,26 @@ This execution context provides the tools needed for debugging, monitoring, and 
 ### Simple Predicate Function
 
 ```yaml
-{% include "../../examples/reference/functions/predicate-example.yaml" %}
+{% include "definitions/reference/functions/predicate-example.yaml" %}
 ```
 
 ### Value Transformation Function
 
 ```yaml
-{% include "../../examples/reference/functions/valuetransformer-example.yaml" %}
+{% include "definitions/reference/functions/valuetransformer-example.yaml" %}
 ```
 
 ### Stateful Aggregation Function
 
 ```yaml
-{% include "../../examples/reference/functions/aggregator-example.yaml" %}
+{% include "definitions/reference/functions/aggregator-example.yaml" %}
 ```
 
 ## Related Topics
 
 - [Pipelines](pipelines.md): Learn how functions fit into the overall pipeline structure
 - [Operations](operations.md): Discover the operations that use functions
-- [Streams and Data Types](../reference/stream-types-reference.md): Understand the data types that functions work with
+- [Streams and Data Types](../reference/stream-type-reference.md): Understand the data types that functions work with
 
 By mastering functions in KSML, you gain the ability to implement custom logic that goes beyond the built-in operations,
 allowing you to solve complex stream processing challenges with elegant Python code.

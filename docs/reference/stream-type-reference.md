@@ -227,4 +227,4 @@ stream types, data types, and notations for your use case, you can create effici
 processing pipelines.
 
 For more detailed information, refer to the [KSML Language Reference](language-reference.md)
-and [Data Types Reference](data-types-reference.md).
+and [Data Types Reference](data-type-reference.md).

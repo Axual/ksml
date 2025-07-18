@@ -827,4 +827,4 @@ config:
 - [KSML Language Reference](language-reference.md)
 - [Operations Reference](operation-reference.md)
 - [Functions Reference](function-reference.md)
-- [Data Types Reference](data-types-reference.md)
+- [Data Types Reference](data-type-reference.md)

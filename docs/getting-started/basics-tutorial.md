@@ -44,7 +44,7 @@ Let's create each section step by step.
 First, let's define the input and output streams for our pipeline:
 
 ```yaml
-{% include "../../examples/basics-tutorial/stream-definitions.yaml" %}
+{% include "../definitions/basics-tutorial/stream-definitions.yaml" %}
 ```
 
 This defines:
@@ -66,14 +66,14 @@ KSML supports various data types and notations including:
 - `json`: For JSON-formatted data
 - `avro`: For Avro-formatted data (requires schema)
 - `binary`: For raw binary data
-- And [more](../../reference/data-types-reference.md)
+- And [more](../reference/data-type-reference.md)
 
 ## Step 2: Create a Simple Function
 
 Next, let's create a function to log messages as they flow through our pipeline:
 
 ```yaml
-{% include "../../examples/basics-tutorial/function-definitions.yaml" %}
+{% include "../definitions/basics-tutorial/function-definitions.yaml" %}
 ```
 
 There are three functions defined
@@ -125,7 +125,7 @@ Functions in KSML:
 Now, let's create the pipeline that processes our data:
 
 ```yaml
-{% include "../../examples/basics-tutorial/pipeline-definitions.yaml" %}
+{% include "definitions/basics-tutorial/pipeline-definitions.yaml" %}
 ```
 
 This pipeline:
@@ -143,7 +143,7 @@ Let's break down each operation:
 #### Filter Operation
 
 ```yaml
-{% include "../../examples/basics-tutorial/filter-operation.yaml" %}
+{% include "../definitions/basics-tutorial/filter-operation.yaml" %}
 ```
 
 The filter operation:
@@ -155,7 +155,7 @@ The filter operation:
 #### Transform Value Operation
 
 ```yaml
-{% include "../../examples/basics-tutorial/transform-value-operation.yaml" %}
+{% include "../definitions/basics-tutorial/transform-value-operation.yaml" %}
 ```
 
 The transformValue operation:
@@ -174,7 +174,7 @@ purposes.
 #### Peek Operation
 
 ```yaml
-{% include "../../examples/basics-tutorial/peek-operation.yaml" %}
+{% include "../definitions/basics-tutorial/peek-operation.yaml" %}
 ```
 
 The peek operation:
@@ -189,7 +189,7 @@ The peek operation:
 Let's combine all the sections into a complete KSML definition file:
 
 ```yaml
-{% include "../../examples/basics-tutorial/tutorial.yaml" %}
+{% include "../definitions/basics-tutorial/tutorial.yaml" %}
 ```
 
 Save this file as `tutorial.yaml`.
@@ -253,7 +253,7 @@ While you can manually produce the above messages, KSML can also generate messag
 definition that would randomly generate test messages every three seconds.
 
 ```yaml
-{% include "../../examples/basics-tutorial/tutorial-producer.yaml" %}
+{% include "../definitions/basics-tutorial/tutorial-producer.yaml" %}
 ```
 
 ## Next Steps
@@ -270,7 +270,7 @@ Congratulations! You've built your first KSML data pipeline. Here are some ways 
 
 - Learn about [stateful operations](../core-concepts/operations.md#stateful-operations) like aggregations and joins
 - Explore [windowing operations](../core-concepts/operations.md#windowing-operations) for time-based processing
-- Try working with different [data formats](../../reference/stream-types-reference.md)
+- Try working with different [data formats](../reference/stream-type-reference.md)
 
 ### Continue Your Learning Journey:
 

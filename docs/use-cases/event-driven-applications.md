@@ -108,7 +108,7 @@ In this tutorial, we'll build an event-driven inventory management system for an
 Now, let's create our KSML definition file:
 
 ```yaml
-{% include "../../examples/use-cases/event-driven-applications.yaml" %}
+{% include "../definitions/use-cases/event-driven-applications.yaml" %}
 ```
 
 ## Running the Application

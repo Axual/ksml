@@ -77,4 +77,4 @@ This will start the KSML docker container. You should see the following typical 
 Check out the examples in the `examples` directory of the project. By modifying the file `examples/ksml-runner.yaml` you
 can select the example(s) to run.
 
-For a more elaborate introduction, you can start [here](introduction.md) or refer to the [documentation](index.md).
+For a more elaborate introduction, you can start [here](getting-started/introduction.md) or refer to the [documentation](index.md).

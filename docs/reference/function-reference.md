@@ -60,7 +60,7 @@ None (the function is called for its side effects)
 #### Example
 
 ```yaml
-{% include "../../examples/reference/functions/foreach-example.yaml" %}
+{% include "../definitions/reference/functions/foreach-example.yaml" %}
 ```
 
 ### keyTransformer
@@ -82,7 +82,7 @@ New key for the output message
 #### Example
 
 ```yaml
-{% include "../../examples/reference/functions/keytransformer-example.yaml" %}
+{% include "../definitions/reference/functions/keytransformer-example.yaml" %}
 ```
 
 ### keyValueToKeyValueListTransformer
@@ -103,7 +103,7 @@ A list of key-value pairs `[(key1, value1), (key2, value2), ...]`
 #### Example
 
 ```yaml
-{% include "../../examples/reference/functions/keyvaluetokeyvaluelisttransformer.yaml" %}
+{% include "../definitions/reference/functions/keyvaluetokeyvaluelisttransformer.yaml" %}
 ```
 
 ### keyValueToValueListTransformer
@@ -897,5 +897,5 @@ In your function code, you can use the state stores declared by the function as 
 
 - [KSML Language Reference](language-reference.md)
 - [Operations Reference](operation-reference.md)
-- [Data Types Reference](data-types-reference.md)
+- [Data Types Reference](data-type-reference.md)
 - [Configuration Reference](configuration-reference.md)

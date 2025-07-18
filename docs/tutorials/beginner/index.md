@@ -48,6 +48,6 @@ We recommend following these tutorials in order, as each one builds on concepts 
 
 ## Additional Resources
 
-- [KSML Core Concepts](../../reference/stream-types-reference.md) - Deeper explanations of KSML components
+- [KSML Core Concepts](../../reference/stream-type-reference.md) - Deeper explanations of KSML components
 - [Examples Library](../../resources/examples-library.md) - Ready-to-use examples for common patterns
 - [Operations Reference](../../reference/operation-reference.md) - Complete reference for all KSML operations

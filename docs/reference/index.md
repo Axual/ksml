@@ -16,7 +16,7 @@ Complete documentation of the KSML language syntax and structure:
 - Schema validation
 - Common syntax patterns
 
-### [Data Types Reference](data-types-reference.md)
+### [Data Types Reference](data-type-reference.md)
 
 Detailed information about all supported data types in KSML:
 

@@ -68,7 +68,7 @@ If you already have a Kafka cluster and want to use KSML with it, you'll need to
 Create a file named `ksml-runner.yaml` with the following content, adjusting the values to match your Kafka cluster configuration:
 
 ```yaml
-{% include "../../examples/installation/template-ksml-runner.yaml" %}
+{% include "../definitions/installation/template-ksml-runner.yaml" %}
 ```
 
 #### Step 2: Run the KSML Runner
@@ -141,5 +141,5 @@ If you encounter issues not covered here:
 Now that you have KSML up and running, you can:
 
 - Follow the [KSML Basics Tutorial](basics-tutorial.md) to learn how to build your first KSML pipeline from scratch
-- Explore the [Core Concepts](../../reference/stream-types-reference.md) to deepen your understanding of KSML
+- Explore the [Core Concepts](../reference/stream-type-reference.md) to deepen your understanding of KSML
 - Browse the [Examples Library](../resources/examples-library.md) for inspiration and ready-to-use patterns

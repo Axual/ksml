@@ -6,7 +6,7 @@ Understanding these core concepts will give you a solid foundation for building 
 
 ## Key KSML Components
 
-### [ Data Types ](../reference/data-types-reference.md)
+### [ Data Types ](../reference/data-type-reference.md)
 
 Check out which data types KSML applications can handle. What you'll learn is:
 
@@ -17,7 +17,7 @@ Check out which data types KSML applications can handle. What you'll learn is:
 - Function parameter types
 - Function result types
 
-### [Stream Types](../reference/stream-types-reference.md)
+### [Stream Types](../reference/stream-type-reference.md)
 
 Learn about the fundamental building blocks of KSML applications:
 
@@ -78,7 +78,7 @@ Beyond just the syntax and components, this section helps you understand:
 
 You can read through these core concepts in order for a comprehensive understanding, or jump to specific topics as needed:
 
-1. Start with [Streams and Data Types](../reference/stream-types-reference.md) to understand the basic data model
+1. Start with [Streams and Data Types](../reference/stream-type-reference.md) to understand the basic data model
 2. Move on to [Pipelines](pipelines.md) to learn how data flows through your application
 3. Explore [Functions](functions.md) to see how to implement custom logic
 4. Finish with [Operations](operations.md) to learn about all the ways you can process your data

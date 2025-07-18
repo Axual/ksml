@@ -75,7 +75,7 @@ four sink types in KSML:
 | `toTopicNameExtractor` | Messages are passed onto a user function, which returns the name of the topic that message needs to be sent to.                                                                                                      |
 
 For more information, see the respective documentation on pipeline definitions in
-the [definitions section of the KSML language spec](ksml-language-spec.html#definitions/PipelineDefinition).
+the [definitions section of the KSML language spec](ksml-language-spec.md#definitions).
 
 ## Duration
 

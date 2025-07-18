@@ -665,4 +665,4 @@ In the next tutorial, we'll explore [Performance Optimization](performance-optim
 - [Core Concepts: Operations](../../core-concepts/operations.md)
 - [Core Concepts: Functions](../../core-concepts/functions.md)
 - [Intermediate Tutorial: Aggregations](../intermediate/aggregations.md)
-- [Reference: State Stores](../../reference/data-types-reference.md)
+- [Reference: State Stores](../../reference/data-type-reference.md)

@@ -25,8 +25,8 @@ Welcome to the KSML documentation. KSML allows you to build powerful Kafka Strea
 
 ## 5. Reference
 - [KSML Language Reference](reference/language-reference.md)
-- [Data Types Reference](reference/data-types-reference.md)
-- [Stream Types Reference](reference/stream-types-reference.md)
+- [Data Types Reference](reference/data-type-reference.md)
+- [Stream Types Reference](reference/stream-type-reference.md)
 - [Notations Reference](reference/notation-reference.md)
 - [Functions Reference](reference/function-reference.md)
 - [Operations Reference](reference/operation-reference.md)
