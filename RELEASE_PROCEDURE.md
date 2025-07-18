@@ -6,7 +6,7 @@
 - **`release/<major>.<minor>.x` branches**: Used for releases and patches
 - All releases are built from release branches
 - Changelog is maintained through GitHub Releases
-- For major/minor releases: RC versions and the actual release are created on main, then release branch is created from first RC
+- For major/minor releases: RC versions and the actual release are created on main, then release branch is created from the final release tag
 
 ## Complete Release Process
 
@@ -73,15 +73,15 @@ Still on `main` branch:
 After the release tag is created on main:
 
 ```bash
-git checkout -b release/1.1.x 1.1.0-RC1
+git checkout -b release/1.1.x 1.1.0
 git push origin release/1.1.x
 ```
 
-Note: The release branch is created from the **first RC tag**, not from the release tag.
+**Important**: The release branch is created from the **final release tag** (e.g., 1.1.0), not from any RC tag. This ensures the release branch contains all fixes and changes made during the RC process.
 
 ### Step 4: Create GitHub Release
 
-1. Go to GitHub → Releases → "Draft new release"
+1. Go to GitHub -> Releases -> "Draft new release"
 2. Select the new tag (e.g., `1.1.0`)
 3. Set previous tag for comparison (e.g., `1.0.8`)
 4. Click "Generate release notes"
@@ -92,7 +92,7 @@ Note: The release branch is created from the **first RC tag**, not from the rele
 
 ### Step 5: Monitor Build
 
-1. Go to GitHub → Actions → Monitor release workflow
+1. Go to GitHub -> Actions -> Monitor release workflow
 2. Ensure the build completes successfully
 
 ### Step 6: Update GitHub Actions (Major/Minor Only)
@@ -184,7 +184,7 @@ Same as Step 4 in major/minor releases
 
 ### Step 9: Monitor Build and Push Branch
 
-1. Go to GitHub → Actions → Monitor release workflow
+1. Go to GitHub -> Actions -> Monitor release workflow
 2. **Only after successful build**, push the branch:
    ```bash
    git push origin release/1.0.x
