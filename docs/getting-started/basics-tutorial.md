@@ -44,7 +44,11 @@ Let's create each section step by step.
 First, let's define the input and output streams for our pipeline:
 
 ```yaml
-{% include "../definitions/basics-tutorial/stream-definitions.yaml" %}
+{%
+  include "../definitions/basics-tutorial/tutorial.yaml"
+  start="## Streams"
+  end="## End of Streams"
+%}
 ```
 
 This defines:
@@ -73,7 +77,11 @@ KSML supports various data types and notations including:
 Next, let's create a function to log messages as they flow through our pipeline:
 
 ```yaml
-{% include "../definitions/basics-tutorial/function-definitions.yaml" %}
+{%
+  include "../definitions/basics-tutorial/tutorial.yaml"
+  start="## Functions"
+  end="## End of Functions"
+%}
 ```
 
 There are three functions defined
@@ -125,7 +133,11 @@ Functions in KSML:
 Now, let's create the pipeline that processes our data:
 
 ```yaml
-{% include "definitions/basics-tutorial/pipeline-definitions.yaml" %}
+{%
+  include "../definitions/basics-tutorial/tutorial.yaml"
+  start="## Pipelines"
+  end="## End of Pipelines"
+%}
 ```
 
 This pipeline:
@@ -143,7 +155,11 @@ Let's break down each operation:
 #### Filter Operation
 
 ```yaml
-{% include "../definitions/basics-tutorial/filter-operation.yaml" %}
+{%
+  include "../definitions/basics-tutorial/tutorial.yaml"
+  start="## Filter Operation"
+  end="## End of Filter Operation"
+%}
 ```
 
 The filter operation:
@@ -155,7 +171,11 @@ The filter operation:
 #### Transform Value Operation
 
 ```yaml
-{% include "../definitions/basics-tutorial/transform-value-operation.yaml" %}
+{%
+  include "../definitions/basics-tutorial/tutorial.yaml"
+  start="## Transform Value Operation"
+  end="## End of Transform Value Operation"
+%}
 ```
 
 The transformValue operation:
@@ -174,7 +194,11 @@ purposes.
 #### Peek Operation
 
 ```yaml
-{% include "../definitions/basics-tutorial/peek-operation.yaml" %}
+{%
+  include "../definitions/basics-tutorial/tutorial.yaml"
+  start="## Peek Operation"
+  end="## End of Peek Operation"
+%}
 ```
 
 The peek operation:

@@ -1,3 +1,4 @@
+## Streams
 streams:
   input_stream:
     topic: tutorial_input
@@ -7,7 +8,9 @@ streams:
     topic: tutorial_output
     keyType: string
     valueType: json
+## End of Streams
 
+## Functions
 functions:
   temperature_above_threshold:
     type: predicate
@@ -27,18 +30,27 @@ functions:
     code: |
       msg = prefix + " message" if isinstance(prefix, str) and prefix != "" else "Message"
       log.info(msg + ": key={}, value={}", key, value)
+## End of Functions
 
+## Pipelines
 pipelines:
   tutorial_pipeline:
     from: input_stream
     via:
+      ## Filter Operation
       - type: filter
         if: temperature_above_threshold
+      ## End of Filter Operation
+      ## Transform Value Operation
       - type: transformValue
         mapper: fahrenheit_to_celsius
+      ## End of Transform Value Operation
+      ## Peek Operation
       - type: peek
         forEach:
           code: |
             # Manually call log_message to pass in additional parameters
             log_message(key, value, prefix="Processed")
+      ## End of Peek Operation
     to: output_stream
+## End of Pipelines

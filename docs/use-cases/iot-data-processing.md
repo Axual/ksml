@@ -107,6 +107,7 @@ At the edge, you might want to filter, aggregate, and compress data before sendi
 In the cloud, you can perform more complex analytics and aggregations:
 
 ```yaml
+{% include "../definitions/use-cases/iot-data-processing/cloud-processing.yaml" %}
 ```
 
 ## Testing and Validation

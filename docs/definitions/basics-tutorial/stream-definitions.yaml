@@ -1,9 +1,0 @@
-streams:
-  input_stream:
-    topic: tutorial_input
-    keyType: string
-    valueType: json
-  output_stream:
-    topic: tutorial_output
-    keyType: string
-    valueType: json

@@ -12,9 +12,9 @@ plugins:
   - include-markdown:
       encoding: ascii
       preserve_includer_indent: false
-      dedent: false
+      dedent: true
       trailing_newlines: true
-      comments: true
+      comments: false
       rewrite_relative_urls: true
       heading_offset: 0
       recursive: true
