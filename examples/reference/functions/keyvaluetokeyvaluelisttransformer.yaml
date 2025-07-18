@@ -1,0 +1,20 @@
+functions:
+  alert_split:
+    type: keyValueToKeyValueListTransformer
+    code: |
+      newRecords = []
+      if value is not None and len(value["alerts"]) > 0:
+        sensordata = value["sensordata"]
+        new_key = {
+          "name": sensordata["name"],
+          "type": sensordata["type"],
+          "city": sensordata["city"]
+        }
+        for alert in value["alerts"]:
+          new_value = {
+            "alert": alert,
+            "sensordata": sensordata
+          }
+          newRecords.append((new_key, new_value))
+      return newRecords
+    resultType: "[(struct,struct)]"

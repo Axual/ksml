@@ -29,6 +29,8 @@ jobs:
         run: pip install mkdocs-material
       - name: Install include plugin
         run: pip install mkdocs-include-markdown-plugin
+      - name: Install autorefs plugin
+        run: pip install mkdocs-autorefs
       - name: Build mkdocs site
         run: mkdocs build --site-dir _site --config-file mkdocs.yml
       - name: Upload artifact

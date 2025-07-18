@@ -1,4 +1,4 @@
-# KSML Functions Reference
+# KSML Function Reference
 
 This document provides a comprehensive reference for all function types available in KSML. Each function type is
 described with its parameters, behavior, and examples.
@@ -11,12 +11,12 @@ KSML supports various function types, each designed for specific purposes in str
 |-------------------------------------------------------------------------|------------------------------------------------------|---------------------------------------------|
 | **Functions for stateless operations**                                  |                                                      |                                             |
 | [forEach](#foreach)                                                     | Process each message for side effects                | peek                                        |
-| [keyTransformer](#keyTransformer)                                       | Convert a key to another type or value               | mapKey, selectKey, toStream, transformKey   |
-| [keyValueToKeyValueListTransformer](#keyValueToKeyValueListTransformer) | Convert key and value to a list of key/values        | flatMap, transformKeyValueToKeyValueList    |
-| [keyValueToValueListTransformer](#keyValueToValueListTransformer)       | Convert key and value to a list of values            | flatMapValues, transformKeyValueToValueList |
-| [keyValueTransformer](#keyValueTransformer)                             | Convert key and value to another key and value       | flatMapValues, transformKeyValueToValueList |
+| [keyTransformer](#keytransformer)                                       | Convert a key to another type or value               | mapKey, selectKey, toStream, transformKey   |
+| [keyValueToKeyValueListTransformer](#keyvaluetokeyvaluelisttransformer) | Convert key and value to a list of key/values        | flatMap, transformKeyValueToKeyValueList    |
+| [keyValueToValueListTransformer](#keyvaluetovaluelisttransformer)       | Convert key and value to a list of values            | flatMapValues, transformKeyValueToValueList |
+| [keyValueTransformer](#keyvaluetransformer)                             | Convert key and value to another key and value       | flatMapValues, transformKeyValueToValueList |
 | [predicate](#predicate)                                                 | Return true/false based on message content           | filter, branch                              |
-| [valueTransformer](#valueTransformer)                                   | Convert value to another type or value               | mapValue, mapValues, transformValue         |
+| [valueTransformer](#valuetransformer)                                   | Convert value to another type or value               | mapValue, mapValues, transformValue         |
 |                                                                         |                                                      |                                             |
 | **Functions for stateful operations**                                   |                                                      |                                             |
 | [aggregator](#aggregator)                                               | Incrementally build aggregated results               | aggregate                                   |
@@ -25,17 +25,17 @@ KSML supports various function types, each designed for specific purposes in str
 | [reducer](#reducer)                                                     | Combine two values into one                          | reduce                                      |
 |                                                                         |                                                      |                                             |
 | **Special Purpose Functions**                                           |                                                      |                                             |
-| [foreignKeyExtractor](#foreignKeyExtractor)                             | Extract a key from a join table's record             | join, leftJoin                              |
+| [foreignKeyExtractor](#foreignkeyextractor)                             | Extract a key from a join table's record             | join, leftJoin                              |
 | [generator](#generator)                                                 | Function used in producers to generate a message     | producer                                    |
-| [keyValueMapper](#keyValueMapper)                                       | Convert key and value into a single output value     | groupBy, join, leftJoin                     |
-| [keyValuePrinter](#keyValuePrinter)                                     | Output key and value                                 | print                                       |
-| [metadataTransformer](#metadataTransformer)                             | Convert Kafka headers and timestamps                 | transformMetadata                           |
-| [valueJoiner](#valueJoiner)                                             | Combine data from multiple streams                   | join, leftJoin, outerJoin                   |
+| [keyValueMapper](#keyvaluemapper)                                       | Convert key and value into a single output value     | groupBy, join, leftJoin                     |
+| [keyValuePrinter](#keyvalueprinter)                                     | Output key and value                                 | print                                       |
+| [metadataTransformer](#metadatatransformer)                             | Convert Kafka headers and timestamps                 | transformMetadata                           |
+| [valueJoiner](#valuejoiner)                                             | Combine data from multiple streams                   | join, leftJoin, outerJoin                   |
 |                                                                         |                                                      |                                             |
 | **Stream Related Functions**                                            |                                                      |                                             |
-| [timestampExtractor](#timestampExtractor)                               | Extract timestamps from messages                     | stream, table, globalTable                  |
-| [topicNameExtractor](#topicNameExtractor)                               | Derive a target topic name from key and value        | toTopicNameExtractor                        |
-| [streamPartitioner](#streamPartitioner)                                 | Determine to which partition(s) a record is produced | stream, table, globalTable                  |
+| [timestampExtractor](#timestampextractor)                               | Extract timestamps from messages                     | stream, table, globalTable                  |
+| [topicNameExtractor](#topicnameextractor)                               | Derive a target topic name from key and value        | toTopicNameExtractor                        |
+| [streamPartitioner](#streampartitioner)                                 | Determine to which partition(s) a record is produced | stream, table, globalTable                  |
 |                                                                         |                                                      |                                             |
 | **Other Functions**                                                     |                                                      |                                             |
 | [generic](#generic)                                                     | Generic custom function                              |                                             |
@@ -60,14 +60,7 @@ None (the function is called for its side effects)
 #### Example
 
 ```yaml
-functions:
-  log_message:
-    type: forEach
-    code: |
-      log.info("Processing record with key={}, value={}", key, value)
-
-      # You can also increment metrics
-      metrics.counter("records_processed").increment()
+{% include "../../examples/reference/functions/foreach-example.yaml" %}
 ```
 
 ### keyTransformer
@@ -89,13 +82,7 @@ New key for the output message
 #### Example
 
 ```yaml
-functions:
-  extract_region:
-    type: keyTransformer
-    code: |
-      # Extract region from the sale event and use it as the new key
-      return value.get("region", "unknown")
-    resultType: string
+{% include "../../examples/reference/functions/keytransformer-example.yaml" %}
 ```
 
 ### keyValueToKeyValueListTransformer
@@ -116,26 +103,7 @@ A list of key-value pairs `[(key1, value1), (key2, value2), ...]`
 #### Example
 
 ```yaml
-functions:
-  alert_split:
-    type: keyValueToKeyValueListTransformer
-    code: |
-      newRecords = []
-      if value is not None and len(value["alerts"]) > 0:
-        sensordata = value["sensordata"]
-        new_key = {
-          "name": sensordata["name"],
-          "type": sensordata["type"],
-          "city": sensordata["city"]
-        }
-        for alert in value["alerts"]:
-          new_value = {
-            "alert": alert,
-            "sensordata": sensordata
-          }
-          newRecords.append((new_key, new_value))
-      return newRecords
-    resultType: "[(struct,struct)]"
+{% include "../../examples/reference/functions/keyvaluetokeyvaluelisttransformer.yaml" %}
 ```
 
 ### keyValueToValueListTransformer

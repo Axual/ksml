@@ -1,4 +1,4 @@
-# KSML Operations Reference
+# KSML Operation Reference
 
 This document provides a comprehensive reference for all operations available in KSML. Each operation is described with
 its parameters, behavior, and examples.

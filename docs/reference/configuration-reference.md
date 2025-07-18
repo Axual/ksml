@@ -196,7 +196,7 @@ kafka:
   # environment: "dev"
 ```
 
-### KSML Configuration
+## KSML Configuration
 
 The `ksml` section in the configuration contains the following items:
 
@@ -375,7 +375,40 @@ kafka:
 ```
 
 
-### Kafka Configuration
+
+
+## How to configure notations
+
+To accommodate for variations in Kafka setups and/or ecosystem variations, the following table lists the available
+options you can configure. The `notation name` lists the notation you use in your KSML definitions, for example
+`avro:SensorData`. The configuration of all notations is done in the `ksml-runner.yaml` file, from which KSML reads its
+technical configuration parameters.
+
+## List of available supported variations
+
+The table below provides a complete list of all notations, their possible implementation alternatives and corresponding
+characteristics, such as what data types a notation maps to.
+
+| Notation name | Available serdes     | Serde supplier | Schema Registry | Loaded in KSML | Remarks                                          |
+|---------------|----------------------|:--------------:|:---------------:|:--------------:|--------------------------------------------------|
+| avro          | apicurio_avro        |    Apicurio    |    Apicurio     | If configured  | Talks to Apicurio Schema Registry                |
+| avro          | confluent_avro       |   Confluent    |    Confluent    |    Default     | Talks to Confluent Schema Registry               |
+| csv           | csv                  |      ksml      |        -        |     Always     | CSV Schemaless                                   |
+| json          | json                 |      ksml      |        -        |     Always     | JSON Schemaless                                  |
+| jsonschema    | apicurio_jsonschema  |    Apicurio    |    Apicurio     | If configured  | Talks to Apicurio Schema Registry                |
+| jsonschema    | confluent_jsonschema |   Confluent    |    Confluent    | If configured  | Talks to Confluent Schema Registry               |
+| protobuf      | apicurio_protobuf    |    Apicurio    |        Y        | If configured  | Any Protobuf, schema loaded from SR upon consume |
+| protobuf      | confluent_protobuf   |   Confluent    |        Y        | If configured  | Any Protobuf, schema loaded from SR upon consume |
+| soap          | soap                 |      ksml      |        N        |     Always     | SOAP Schemaless                                  |
+| xml           | xml                  |      ksml      |        N        |     Always     | XML Schemaless                                   |
+
+
+
+
+
+
+
+## Kafka Configuration
 
 
 
@@ -408,32 +441,37 @@ config:
 # Application configuration
 ```
 
+## Application Configuration
+
+The `config` section contains application-level configuration options.
+
+### Kafka Configuration
+
+| Property              | Type   | Required | Description                                                |
+|-----------------------|--------|----------|------------------------------------------------------------|
+| `bootstrap.servers`   | String | Yes      | Comma-separated list of Kafka broker addresses             |
+| `application.id`      | String | Yes      | The unique identifier for the Kafka Streams application    |
+| `client.id`           | String | No       | The client identifier                                      |
+| `auto.offset.reset`   | String | No       | Default offset reset policy (`earliest`, `latest`, `none`) |
+| `schema.registry.url` | String | No       | The URL of the schema registry                             |
+
+Example:
+
+```yaml
+config:
+  kafka:
+    bootstrap.servers: "kafka1:9092,kafka2:9092,kafka3:9092"
+    application.id: "order-processing-app"
+    client.id: "order-processing-client"
+    auto.offset.reset: "earliest"
+    schema.registry.url: "http://schema-registry:8081"
+```
 
 
-## How to configure notations
 
-To accommodate for variations in Kafka setups and/or ecosystem variations, the following table lists the available
-options you can configure. The `notation name` lists the notation you use in your KSML definitions, for example
-`avro:SensorData`. The configuration of all notations is done in the `ksml-runner.yaml` file, from which KSML reads its
-technical configuration parameters.
 
-## List of available supported variations
 
-The table below provides a complete list of all notations, their possible implementation alternatives and corresponding
-characteristics, such as what data types a notation maps to.
 
-| Notation name | Available serdes     | Serde supplier | Schema Registry | Loaded in KSML | Remarks                                          |
-|---------------|----------------------|:--------------:|:---------------:|:--------------:|--------------------------------------------------|
-| avro          | apicurio_avro        |    Apicurio    |    Apicurio     | If configured  | Talks to Apicurio Schema Registry                |
-| avro          | confluent_avro       |   Confluent    |    Confluent    |    Default     | Talks to Confluent Schema Registry               |
-| csv           | csv                  |      ksml      |        -        |     Always     | CSV Schemaless                                   |
-| json          | json                 |      ksml      |        -        |     Always     | JSON Schemaless                                  |
-| jsonschema    | apicurio_jsonschema  |    Apicurio    |    Apicurio     | If configured  | Talks to Apicurio Schema Registry                |
-| jsonschema    | confluent_jsonschema |   Confluent    |    Confluent    | If configured  | Talks to Confluent Schema Registry               |
-| protobuf      | apicurio_protobuf    |    Apicurio    |        Y        | If configured  | Any Protobuf, schema loaded from SR upon consume |
-| protobuf      | confluent_protobuf   |   Confluent    |        Y        | If configured  | Any Protobuf, schema loaded from SR upon consume |
-| soap          | soap                 |      ksml      |        N        |     Always     | SOAP Schemaless                                  |
-| xml           | xml                  |      ksml      |        N        |     Always     | XML Schemaless                                   |
 
 
 

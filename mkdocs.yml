@@ -19,9 +19,9 @@ plugins:
       comments: true
       rewrite_relative_urls: true
       heading_offset: 0
-      start: "~~~yaml\n"
-      end: "~~~\n"
       recursive: true
+  - autorefs:
+      resolve_closest: true
 
 markdown_extensions:
   - pymdownx.highlight:
@@ -48,12 +48,15 @@ nav:
       - IoT Data Processing: use-cases/iot-data-processing.md
       - Fraud Detection: use-cases/fraud-detection.md
   - Reference:
-      - Types: reference/data-types-reference.md
+      - Language: reference/language-reference.md
+      - Data Types: reference/data-types-reference.md
       - Notations: reference/notation-reference.md
       - Streams: reference/stream-type-reference.md
-      - Operations: reference/operation-reference.md
       - Functions: reference/function-reference.md
+      - Pipelines: reference/pipeline-reference.md
+      - Operations: reference/operation-reference.md
       - State Stores: reference/store-reference.md
       - Runners: runners.md
   - Language specification: ksml-language-spec.md
   - Release Notes: release-notes.md
+  - About KSML: about.md

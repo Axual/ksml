@@ -504,4 +504,4 @@ pipelines:
 
 Pipelines are the core building blocks of KSML applications. By understanding how to design and connect pipelines effectively, you can create powerful stream processing applications that are both maintainable and efficient.
 
-For more detailed information about specific operations that can be used in pipelines, see the [Operations](/docs/core-concepts/operations.md) page. To learn about functions that can be used within pipeline operations, see the [Functions](/docs/core-concepts/functions.md) page.
+For more detailed information about specific operations that can be used in pipelines, see the [Operations](operations.md) page. To learn about functions that can be used within pipeline operations, see the [Functions](functions.md) page.

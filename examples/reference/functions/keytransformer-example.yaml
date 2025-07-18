@@ -1,0 +1,7 @@
+functions:
+  extract_region:
+    type: keyTransformer
+    code: |
+      # Extract region from the sale event and use it as the new key
+      return value.get("region", "unknown")
+    resultType: string

@@ -8,28 +8,7 @@ covers all aspects of the KSML language specification, including file structure,
 A KSML definition file is written in YAML and consists of several top-level sections:
 
 ```yaml
-name: "my-ksml-application"
-version: "1.0.0"
-description: "My KSML Application"
-
-streams:
-  # Stream definitions
-tables:
-  # Table definitions
-globalTables:
-  # GlobalTable definitions
-
-stores:
-  # State store definitions
-
-functions:
-  # Function definitions
-
-pipelines:
-  # Pipeline definitions
-
-producers:
-  # Producer definitions
+{% include "../../examples/reference/template-definition.yaml" %}
 ```
 
 ## Application Metadata

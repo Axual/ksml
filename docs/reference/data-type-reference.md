@@ -1,4 +1,4 @@
-# KSML Data Types Reference
+# KSML Data Type Reference
 
 KSML supports a wide range of data types for both keys and values in your streams. Understanding these types is
 essential for properly defining your streams and functions that process your data.

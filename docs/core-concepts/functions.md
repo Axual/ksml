@@ -21,39 +21,39 @@ KSML supports various function types, each designed for specific purposes in str
 These functions process each message independently without maintaining state between invocations:
 
 - [forEach](../reference/function-reference.md#foreach): Process each message for side effects
-- [keyTransformer](../reference/function-reference.md#keyTransformer): Convert a key to another type or value
-- [keyValueToKeyValueListTransformer](../reference/function-reference.md#keyValueToKeyValueListTransformer): Convert key and value to a list of key/values
-- [keyValueToValueListTransformer](../reference/function-reference.md#keyValueToValueListTransformer): Convert key and value to a list of values
-- [keyValueTransformer](../reference/function-reference.md#keyValueTransformer): Convert key and value to another key and value
+- [keyTransformer](../reference/function-reference.md#keytransformer): Convert a key to another type or value
+- [keyValueToKeyValueListTransformer](../reference/function-reference.md#keyvaluetokeyvaluelisttransformer): Convert key and value to a list of key/values
+- [keyValueToValueListTransformer](../reference/function-reference.md#keyvaluetovaluelisttransformer): Convert key and value to a list of values
+- [keyValueTransformer](../reference/function-reference.md#keyvaluetransformer): Convert key and value to another key and value
 - [predicate](../reference/function-reference.md#predicate): Return true/false based on message content
-- [valueTransformer](../reference/function-reference.md#valueTransformer): Convert value to another type or value
+- [valueTransformer](../reference/function-reference.md#valuetransformer): Convert value to another type or value
 
 ### Functions used by stateful operations
 
 These functions maintain state across multiple messages:
 
-- [aggregator](#aggregator): Incrementally build aggregated results
-- [initializer](#initializer): Provide initial values for aggregations
-- [merger](#merger): Merge two aggregation results into one
-- [reducer](#reducer): Combine two values into one
+- [aggregator](../reference/function-reference.md#aggregator): Incrementally build aggregated results
+- [initializer](../reference/function-reference.md#initializer): Provide initial values for aggregations
+- [merger](../reference/function-reference.md#merger): Merge two aggregation results into one
+- [reducer](../reference/function-reference.md#reducer): Combine two values into one
 
 ### Special Purpose Functions
 
-- [foreignKeyExtractor](#foreignKeyExtractor): Extract a key from a join table's record
-- [generator](#generator): Function used in producers to generate a message
-- [keyValueMapper](#keyValueMapper): Convert key and value into a single output value
-- [keyValuePrinter](#keyValuePrinter): Output key and value
-- [metadataTransformer](#metadataTransformer): Convert Kafka headers and timestamps
-- [valueJoiner](#valueJoiner): Combine data from multiple streams
+- [foreignKeyExtractor](../reference/function-reference.md#foreignkeyextractor): Extract a key from a join table's record
+- [generator](../reference/function-reference.md#generator): Function used in producers to generate a message
+- [keyValueMapper](../reference/function-reference.md#keyvaluemapper): Convert key and value into a single output value
+- [keyValuePrinter](../reference/function-reference.md#keyvalueprinter): Output key and value
+- [metadataTransformer](../reference/function-reference.md#metadatatransformer): Convert Kafka headers and timestamps
+- [valueJoiner](../reference/function-reference.md#valuejoiner): Combine data from multiple streams
 
 ### Stream Related Functions
 
-- [timestampExtractor](#timestampExtractor): Extract timestamps from messages
-- [topicNameExtractor](#topicNameExtractor): Derive a target topic name from key and value
-- [streamPartitioner](#streamPartitioner): Determine to which partition(s) a record is produced
+- [timestampExtractor](../reference/function-reference.md#timestampextractor): Extract timestamps from messages
+- [topicNameExtractor](../reference/function-reference.md#topicnameextractor): Derive a target topic name from key and value
+- [streamPartitioner](../reference/function-reference.md#streampartitioner): Determine to which partition(s) a record is produced
 
 ### Other Functions
-- [generic](#generic): Generic custom function
+- [generic](../reference/function-reference.md#generic): Generic custom function
 
 ## Writing Python Functions
 
@@ -91,40 +91,19 @@ This execution context provides the tools needed for debugging, monitoring, and 
 ### Simple Predicate Function
 
 ```yaml
-functions:
-  temperature_filter:
-    type: predicate
-    expression: value.get('temperature') > 30
+{% include "../../examples/reference/functions/predicate-example.yaml" %}
 ```
 
 ### Value Transformation Function
 
 ```yaml
-functions:
-  celsius_to_fahrenheit:
-    type: valueTransformer
-    code: |
-      if value is not None and 'temperature' in value:
-        celsius = value['temperature']
-        value['temperature_f'] = (celsius * 9/5) + 32
-      return value
-    resultType: struct
+{% include "../../examples/reference/functions/valuetransformer-example.yaml" %}
 ```
 
 ### Stateful Aggregation Function
 
 ```yaml
-functions:
-  average_calculator:
-    type: aggregator
-    code: |
-      if aggregatedValue is None:
-        return {'count': 1, 'sum': value['amount'], 'average': value['amount']}
-      else:
-        count = aggregatedValue['count'] + 1
-        sum = aggregatedValue['sum'] + value['amount']
-        return {'count': count, 'sum': sum, 'average': sum / count}
-    resultType: struct
+{% include "../../examples/reference/functions/aggregator-example.yaml" %}
 ```
 
 ## Related Topics

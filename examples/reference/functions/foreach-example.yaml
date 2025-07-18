@@ -1,0 +1,8 @@
+functions:
+  log_message:
+    type: forEach
+    code: |
+      log.info("Processing record with key={}, value={}", key, value)
+
+      # You can also increment metrics
+      metrics.counter("records_processed").increment()

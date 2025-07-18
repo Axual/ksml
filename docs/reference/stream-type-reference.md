@@ -1,4 +1,4 @@
-# Streams and Data Types
+# KSML Stream Type Reference
 
 This page explains the fundamental concepts of streams and data types in KSML, providing a foundation for understanding
 how data flows through your KSML applications.
@@ -226,5 +226,5 @@ Understanding streams and data types is fundamental to building effective KSML a
 stream types, data types, and notations for your use case, you can create efficient, maintainable, and scalable stream
 processing pipelines.
 
-For more detailed information, refer to the [KSML Language Reference](/docs/reference/ksml-language-reference.md)
-and [Data Types Reference](/docs/reference/data-types-reference.md).
+For more detailed information, refer to the [KSML Language Reference](language-reference.md)
+and [Data Types Reference](data-types-reference.md).

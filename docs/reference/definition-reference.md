@@ -30,32 +30,6 @@ pipelines:
   # Pipeline definitions
 ```
 
-## Application Configuration
-
-The `config` section contains application-level configuration options.
-
-### Kafka Configuration
-
-| Property              | Type   | Required | Description                                                |
-|-----------------------|--------|----------|------------------------------------------------------------|
-| `bootstrap.servers`   | String | Yes      | Comma-separated list of Kafka broker addresses             |
-| `application.id`      | String | Yes      | The unique identifier for the Kafka Streams application    |
-| `client.id`           | String | No       | The client identifier                                      |
-| `auto.offset.reset`   | String | No       | Default offset reset policy (`earliest`, `latest`, `none`) |
-| `schema.registry.url` | String | No       | The URL of the schema registry                             |
-
-Example:
-
-```yaml
-config:
-  kafka:
-    bootstrap.servers: "kafka1:9092,kafka2:9092,kafka3:9092"
-    application.id: "order-processing-app"
-    client.id: "order-processing-client"
-    auto.offset.reset: "earliest"
-    schema.registry.url: "http://schema-registry:8081"
-```
-
 ### State Store Configuration
 
 | Property                    | Type    | Required | Description                            |
