@@ -68,16 +68,35 @@ Still on `main` branch:
    git push origin 1.1.0
    ```
 
-### Step 3: Create Release Branch (Major/Minor Releases Only)
+### Step 3: Create Release Branch and Update GitHub Actions (Major/Minor Releases Only)
 
 After the release tag is created on main:
 
-```bash
-git checkout -b release/1.1.x 1.1.0
-git push origin release/1.1.x
-```
+1. **Create release branch from release tag:**
+   ```bash
+   git checkout -b release/1.1.x 1.1.0
+   ```
 
-**Important**: The release branch is created from the **final release tag** (e.g., 1.1.0), not from any RC tag. This ensures the release branch contains all fixes and changes made during the RC process.
+   **Important**: The release branch is created from the **final release tag** (e.g., 1.1.0), not from any RC tag. This ensures the release branch contains all fixes and changes made during the RC process.
+
+2. **Update GitHub Actions on the release branch:**
+
+   a. Update `.github/workflows/build-push-docker.yml`:
+   - Change Docker tags from `snapshot` to `<major>.<minor>-snapshot`
+   - Update helm-chart-release job: `app-version: <major>.<minor>-snapshot`, `version: <major>.<minor>.0-snapshot`
+
+   b. Update `.github/workflows/package-push-helm.yml`:
+   - Change default `version` parameter to `<major>.<minor>.0-snapshot` in both workflow_dispatch and workflow_call
+
+   c. Update `.github/workflows/release-push-docker.yml`:
+   - Add `<major>.<minor>` tag to all Docker registries (axual/ksml, ghcr.io, registry.axual.io)
+
+3. **Commit and push the release branch:**
+   ```bash
+   git add .github/workflows/*.yml
+   git commit -m "Update GitHub Actions for release/<major>.<minor>.x branch"
+   git push origin release/<major>.<minor>.x
+   ```
 
 ### Step 4: Create GitHub Release
 
@@ -95,30 +114,7 @@ git push origin release/1.1.x
 1. Go to GitHub -> Actions -> Monitor release workflow
 2. Ensure the build completes successfully
 
-### Step 6: Update GitHub Actions (Major/Minor Only)
-
-For major/minor releases, update the workflow files in the release branch:
-
-1. Checkout the release branch: `git checkout release/1.1.x`
-
-2. Update `.github/workflows/build-push-docker.yml`:
-   - Change Docker tags from `snapshot` to `<major>.<minor>-snapshot`
-   - Update helm-chart-release job: `app-version: <major>.<minor>-snapshot`, `version: <major>.<minor>.0-snapshot`
-
-3. Update `.github/workflows/package-push-helm.yml`:
-   - Change default `version` parameter to `<major>.<minor>.0-snapshot` in both workflow_dispatch and workflow_call
-
-4. Update `.github/workflows/release-push-docker.yml`:
-   - Add `<major>.<minor>` tag to all Docker registries (axual/ksml, ghcr.io, registry.axual.io)
-
-5. Commit and push:
-   ```bash
-   git add .github/workflows/*.yml
-   git commit -m "Update GitHub Actions for release/<major>.<minor>.x branch"
-   git push origin release/<major>.<minor>.x
-   ```
-
-### Step 7: Set Next Development Version
+### Step 6: Set Next Development Version
 
 1. In release branch:
    ```bash
@@ -176,7 +172,13 @@ docker buildx --builder ksml build --load -t axual/ksml:local --target ksml -f D
 
 ### Step 5: Test the Release
 
-Same as Step 2.4 in major/minor releases
+- Modify `run.sh` and `docker-compose.yml` to use `axual/ksml:local`
+- Start environment: `docker compose up -d`
+- Verify data generator: `docker compose logs example-producer`
+- Execute `./run.sh` and verify:
+   - Correct version appears: `Starting KSML Runner x.x.x (2025-...)`
+   - Wait ~2 minutes for examples to run without errors
+   - Stop the script after verification
 
 ### Step 6: Commit Changes
 
@@ -194,7 +196,14 @@ git push origin 1.0.9
 
 ### Step 8: Create GitHub Release
 
-Same as Step 4 in major/minor releases
+1. Go to GitHub -> Releases -> "Draft new release"
+2. Select the new tag (e.g., `1.0.9`)
+3. Set previous tag for comparison (e.g., `1.0.8`)
+4. Click "Generate release notes"
+5. Structure the release notes:
+   - **"What's Changed"**: Write concise summary of key changes
+   - **"Full Changelog"**: Keep auto-generated commit list
+6. Publish the release
 
 ### Step 9: Monitor Build and Push Branch
 
