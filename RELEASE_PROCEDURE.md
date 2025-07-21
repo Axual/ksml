@@ -138,6 +138,8 @@ After the release tag is created on main:
 
 When doing a patch release (e.g., 1.0.9, 1.1.1):
 
+**Note**: GitHub Actions do not need to be updated for patch releases as they already contain the correct snapshot versions for the release branch.
+
 ### Step 1: Prepare Patch
 
 1. Checkout existing release branch:
