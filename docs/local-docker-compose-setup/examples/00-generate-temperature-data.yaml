@@ -1,0 +1,29 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
+
+# This example shows how to generate data and have it sent to a target topic in a given format.
+
+functions:
+  generate_temperature_message:
+    type: generator
+    globalCode: |
+      import random
+      sensorCounter = 0
+    code: |
+      global sensorCounter
+
+      key = "sensor"+str(sensorCounter)           # Set the key to return ("sensor0" to "sensor9")
+      sensorCounter = (sensorCounter+1) % 10      # Increase the counter for next iteration
+
+      value = {"temperature": random.randrange(150)}
+    expression: (key, value)                      # Return a message tuple with the key and value
+    resultType: (string, json)                    # Indicate the type of key and value
+
+producers:
+  # Produce a temperature message every 3 seconds
+  tutorial_producer:
+    generator: generate_temperature_message
+    interval: 2s
+    to:
+      topic: temperature_data
+      keyType: string
+      valueType: json
