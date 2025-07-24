@@ -138,7 +138,7 @@ docker compose ps
 
 You should see all services in "Up" status. You can also:
 
-- Visit http://localhost:8080 to access Kafka UI
+- Visit [http://localhost:8080](http://localhost:8080) to access Kafka UI
 - Check logs: `docker compose logs -f`
 
 ### Step 4: Create Your First KSML Definition
@@ -190,7 +190,7 @@ docker compose logs ksml
 
 Now let's explore what's running using the Kafka UI:
 
-1. **Open Kafka UI** in your browser: http://localhost:8080
+1. **Open Kafka UI** in your browser: [http://localhost:8080](http://localhost:8080)
 
 2. **View Topics**: You'll see the pre-created topics:
    - `temperature_data` (input topic)
