@@ -24,8 +24,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.TopologyGenerator;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.notation.avro.MockAvroNotation;
+import io.axual.ksml.data.notation.avro.AvroNotation;
+import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroSerdeProvider;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
+import io.axual.ksml.data.notation.confluent.MockConfluentSchemaRegistryClient;
 import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.execution.ExecutionContext;
@@ -54,13 +56,19 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
 
     private TopologyTestDriver topologyTestDriver;
 
-    /** Map of annotated {@link TestInputTopic} field names to their annotation. */
+    /**
+     * Map of annotated {@link TestInputTopic} field names to their annotation.
+     */
     private final Map<String, KSMLTopic> inputTopics = new HashMap<>();
 
-    /** Map of annotated {@link org.apache.kafka.streams.TestOutputTopic} to their annotations. */
+    /**
+     * Map of annotated {@link org.apache.kafka.streams.TestOutputTopic} to their annotations.
+     */
     private final Map<String, KSMLTopic> outputTopics = new HashMap<>();
 
-    /** If present, name of a field of type {@link TopologyTestDriver} which should be linked by the extension.*/
+    /**
+     * If present, name of a field of type {@link TopologyTestDriver} which should be linked by the extension.
+     */
     private String testDriverRef;
 
     /**
@@ -91,9 +99,9 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
     public void beforeAll(ExtensionContext extensionContext) {
         log.debug("Registering test notations");
         final var mapper = new NativeDataObjectMapper();
-        final var jsonNotation = new JsonNotation("json", mapper);
-        ExecutionContext.INSTANCE.notationLibrary().register(new BinaryNotation(UserType.DEFAULT_NOTATION, mapper, jsonNotation::serde));
-        ExecutionContext.INSTANCE.notationLibrary().register(jsonNotation);
+        final var jsonNotation = new JsonNotation(mapper);
+        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(mapper, jsonNotation::serde));
+        ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
 
         log.debug("Registering annotated TestInputTopic, TestOutputTopic and TopologyTestDriver fields");
         final var requiredTestClass = extensionContext.getRequiredTestClass();
@@ -139,7 +147,10 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
             ExecutionContext.INSTANCE.schemaLibrary().schemaDirectory(KSMLTest.NO_SCHEMAS);
         }
 
-        ExecutionContext.INSTANCE.notationLibrary().register(new MockAvroNotation(new HashMap<>()));
+        final var registryClient = new MockConfluentSchemaRegistryClient();
+        final var serdeProvider = new ConfluentAvroSerdeProvider(registryClient);
+        final var mockAvroNotation = new AvroNotation(serdeProvider, registryClient.configs());
+        ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, mockAvroNotation);
 
         // Get the KSML definition classpath relative path and load the topology into the test driver
         final var topologyName = ksmlTest.topology();
@@ -152,7 +163,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
         final var topologyGenerator = new TopologyGenerator(methodName + ".app");
         final var topology = topologyGenerator.create(streamsBuilder, definitions);
         final var description = topology.describe();
-        log.info("{}",description);
+        log.info("{}", description);
         topologyTestDriver = new TopologyTestDriver(topology);
 
         // create in- and output topics and assign them to variables in the test
@@ -231,9 +242,10 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
     private Serializer<?> getSerializer(final KSMLTopic ksmlTopic, final boolean isKey) {
         return switch (isKey ? ksmlTopic.keySerde() : ksmlTopic.valueSerde()) {
             case AVRO -> {
-                final var avroNotation = (MockAvroNotation) ExecutionContext.INSTANCE.notationLibrary().get(MockAvroNotation.NAME);
-                final var result = new KafkaAvroSerializer(avroNotation.mockSchemaRegistryClient());
-                result.configure(avroNotation.getSchemaRegistryConfigs(), isKey);
+                final var avroNotation = (AvroNotation) ExecutionContext.INSTANCE.notationLibrary().get(AvroNotation.NOTATION_NAME);
+                final var mockRegistry = (MockConfluentSchemaRegistryClient) ((ConfluentAvroSerdeProvider) avroNotation.serdeProvider()).registryClient();
+                final var result = new KafkaAvroSerializer(mockRegistry);
+                result.configure(mockRegistry.configs(), isKey);
                 yield result;
             }
             case STRING -> new StringSerializer();
@@ -253,9 +265,10 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
     private Deserializer<?> getDeserializer(final KSMLTopic ksmlTopic, final boolean isKey) {
         return switch (isKey ? ksmlTopic.keySerde() : ksmlTopic.valueSerde()) {
             case AVRO -> {
-                final var avroNotation = (MockAvroNotation) ExecutionContext.INSTANCE.notationLibrary().get(MockAvroNotation.NAME);
-                final var result = new KafkaAvroDeserializer(avroNotation.mockSchemaRegistryClient());
-                result.configure(avroNotation.getSchemaRegistryConfigs(), isKey);
+                final var avroNotation = (AvroNotation) ExecutionContext.INSTANCE.notationLibrary().get(AvroNotation.NOTATION_NAME);
+                final var mockRegistry = (MockConfluentSchemaRegistryClient) ((ConfluentAvroSerdeProvider) avroNotation.serdeProvider()).registryClient();
+                final var result = new KafkaAvroDeserializer(mockRegistry);
+                result.configure(mockRegistry.configs(), isKey);
                 yield result;
             }
             case STRING -> new StringDeserializer();

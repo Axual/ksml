@@ -9,8 +9,8 @@ target/
 **/.settings
 **/.factorypath
 
-examples/io.axual*
-examples/io.ksml*
+CLAUDE.md
+.claude
 
 workspace/*
 /packaging/helm-charts/**/*.tgz

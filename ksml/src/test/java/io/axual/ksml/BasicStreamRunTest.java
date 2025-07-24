@@ -23,8 +23,10 @@ package io.axual.ksml;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
-import io.axual.ksml.data.notation.avro.MockAvroNotation;
+import io.axual.ksml.data.notation.avro.AvroNotation;
+import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroSerdeProvider;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
+import io.axual.ksml.data.notation.confluent.MockConfluentSchemaRegistryClient;
 import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.execution.ExecutionContext;
@@ -48,7 +50,6 @@ import org.junit.jupiter.api.condition.EnabledIf;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -63,9 +64,9 @@ class BasicStreamRunTest {
     @BeforeAll
     static void setup() {
         final var mapper = new DataObjectFlattener();
-        final var jsonNotation = new JsonNotation("json", mapper);
-        ExecutionContext.INSTANCE.notationLibrary().register(new BinaryNotation(UserType.DEFAULT_NOTATION, mapper, jsonNotation::serde));
-        ExecutionContext.INSTANCE.notationLibrary().register(jsonNotation);
+        final var jsonNotation = new JsonNotation(mapper);
+        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(mapper, jsonNotation::serde));
+        ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
 
         try {
             final var schemaDirectoryURI = ClassLoader.getSystemResource("schemas").toURI();
@@ -101,8 +102,10 @@ class BasicStreamRunTest {
 
     @Test
     void testFilterAvroRecords() throws Exception {
-        final var avroNotation = new MockAvroNotation(new HashMap<>());
-        ExecutionContext.INSTANCE.notationLibrary().register(avroNotation);
+        final var registryClient = new MockConfluentSchemaRegistryClient();
+        final var serdeProvider = new ConfluentAvroSerdeProvider(registryClient);
+        final var avroNotation = new AvroNotation(serdeProvider, registryClient.configs());
+        ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, avroNotation);
 
         final var uri = ClassLoader.getSystemResource("pipelines/test-filter.yaml").toURI();
         final var path = Paths.get(uri);
@@ -115,11 +118,11 @@ class BasicStreamRunTest {
         System.out.println(description);
 
         try (TopologyTestDriver driver = new TopologyTestDriver(topology)) {
-            final var kafkaAvroSerializer = new KafkaAvroSerializer(avroNotation.mockSchemaRegistryClient());
-            kafkaAvroSerializer.configure(avroNotation.getSchemaRegistryConfigs(), false);
+            final var kafkaAvroSerializer = new KafkaAvroSerializer(registryClient);
+            kafkaAvroSerializer.configure(registryClient.configs(), false);
 
-            final var kafkaAvroDeserializer = new KafkaAvroDeserializer(avroNotation.mockSchemaRegistryClient());
-            kafkaAvroDeserializer.configure(avroNotation.getSchemaRegistryConfigs(), false);
+            final var kafkaAvroDeserializer = new KafkaAvroDeserializer(registryClient);
+            kafkaAvroDeserializer.configure(registryClient.configs(), false);
 
             TestInputTopic<String, Object> avroInputTopic = driver.createInputTopic("ksml_sensordata_avro", new StringSerializer(), kafkaAvroSerializer);
             var outputTopic = driver.createOutputTopic("ksml_sensordata_filtered", new StringDeserializer(), kafkaAvroDeserializer);

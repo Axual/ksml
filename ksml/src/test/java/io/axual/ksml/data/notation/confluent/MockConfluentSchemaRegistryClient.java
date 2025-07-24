@@ -1,4 +1,4 @@
-package io.axual.ksml.data.notation.avro;
+package io.axual.ksml.data.notation.confluent;
 
 /*-
  * ========================LICENSE_START=================================
@@ -30,14 +30,21 @@ import io.confluent.kafka.schemaregistry.client.rest.entities.SchemaReference;
 import io.confluent.kafka.schemaregistry.client.rest.entities.SubjectVersion;
 import io.confluent.kafka.schemaregistry.client.rest.entities.requests.RegisterSchemaResponse;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
+import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
-public class SyncMockSchemaRegistryClient implements SchemaRegistryClient {
+public class MockConfluentSchemaRegistryClient implements SchemaRegistryClient {
+    private final MockSchemaRegistryClient wrappedClient = new MockSchemaRegistryClient();
+
+    public Map<String, String> configs() {
+        final var result = new HashMap<String, String>();
+        result.put("schema.registry.url", "mock://mock-scope");
+        result.put(AbstractKafkaSchemaSerDeConfig.AUTO_REGISTER_SCHEMAS, "true");
+        return result;
+    }
+
     @Override
     public synchronized Optional<ParsedSchema> parseSchema(String schemaType, String schemaString, List<SchemaReference> references) {
         return wrappedClient.parseSchema(schemaType, schemaString, references);
@@ -227,6 +234,4 @@ public class SyncMockSchemaRegistryClient implements SchemaRegistryClient {
     public synchronized void reset() {
         wrappedClient.reset();
     }
-
-    private final MockSchemaRegistryClient wrappedClient = new MockSchemaRegistryClient();
 }

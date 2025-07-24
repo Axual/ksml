@@ -24,7 +24,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.axual.ksml.client.serde.ResolvingDeserializer;
 import io.axual.ksml.client.serde.ResolvingSerializer;
+import io.axual.ksml.data.mapper.DataObjectFlattener;
+import io.axual.ksml.data.notation.Notation;
+import io.axual.ksml.data.notation.avro.AvroNotation;
+import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroSerdeProvider;
 import io.axual.ksml.data.notation.json.JsonSchemaMapper;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.execution.ErrorHandler;
 import io.axual.ksml.execution.ExecutionContext;
@@ -43,6 +48,7 @@ import io.axual.ksml.runner.exception.ConfigException;
 import io.axual.ksml.runner.notation.NotationFactories;
 import io.axual.ksml.runner.prometheus.PrometheusExport;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.utils.Utils;
@@ -109,7 +115,7 @@ public class KSMLRunner {
             // Set up all default notations and register them in the NotationLibrary
             final var notationFactories = new NotationFactories(config.kafkaConfig());
             for (final var notation : notationFactories.notations().entrySet()) {
-                ExecutionContext.INSTANCE.notationLibrary().register(notation.getValue().create(notation.getKey(), null));
+                ExecutionContext.INSTANCE.notationLibrary().register(notation.getKey(), notation.getValue().create(null));
             }
 
             // Set up all notation overrides from the KSML config
@@ -135,7 +141,7 @@ public class KSMLRunner {
                         throw FatalError.reportAndExit(new ConfigException("Unknown notation type: " + factoryName));
                     }
                     if (notationConfig.config() != null) notationConfigs.putAll(notationConfig.config());
-                    ExecutionContext.INSTANCE.notationLibrary().register(factory.create(notationStr, notationConfigs));
+                    ExecutionContext.INSTANCE.notationLibrary().register(notationStr, factory.create(notationConfigs));
                 } else {
                     log.warn("Notation configuration incomplete: notation={}, serde={}", notationStr, factoryName);
                 }
@@ -144,9 +150,9 @@ public class KSMLRunner {
             // Ensure typical defaults are used for AVRO
             // WARNING: Defaults for notations will be deprecated in the future. Make sure you explicitly configure
             // notations with multiple implementations (like AVRO) in your ksml-runner.yaml.
-            if (!ExecutionContext.INSTANCE.notationLibrary().exists(NotationFactories.AVRO)) {
-                final var defaultAvro = notationFactories.confluentAvro();
-                ExecutionContext.INSTANCE.notationLibrary().register(defaultAvro.create(NotationFactories.AVRO, null));
+            if (!ExecutionContext.INSTANCE.notationLibrary().exists(AvroNotation.NOTATION_NAME)) {
+                final var defaultAvro = new AvroNotation(new ConfluentAvroSerdeProvider(), new DataObjectFlattener(), null);
+                ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, defaultAvro);
                 log.warn("No implementation specified for AVRO notation. If you use AVRO in your KSML definition, add the required configuration to the ksml-runner.yaml");
             }
 

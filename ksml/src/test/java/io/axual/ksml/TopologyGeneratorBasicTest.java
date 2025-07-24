@@ -57,9 +57,9 @@ class TopologyGeneratorBasicTest {
     static void beforeAll() {
         log.debug("Registering test notations");
         final var mapper = new NativeDataObjectMapper();
-        final var jsonNotation = new JsonNotation("json", mapper);
-        ExecutionContext.INSTANCE.notationLibrary().register(new BinaryNotation(UserType.DEFAULT_NOTATION, mapper, jsonNotation::serde));
-        ExecutionContext.INSTANCE.notationLibrary().register(jsonNotation);
+        final var jsonNotation = new JsonNotation(mapper);
+        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(mapper, jsonNotation::serde));
+        ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
     }
 
     @ParameterizedTest
@@ -67,9 +67,9 @@ class TopologyGeneratorBasicTest {
     @ValueSource(ints = {1, 2, 3, 4, 5})
     void parseAndCheckOuput(int nr) throws Exception {
         final var mapper = new NativeDataObjectMapper();
-        final var jsonNotation = new JsonNotation("json", mapper);
-        ExecutionContext.INSTANCE.notationLibrary().register(new BinaryNotation("binary", mapper, jsonNotation::serde));
-        ExecutionContext.INSTANCE.notationLibrary().register(jsonNotation);
+        final var jsonNotation = new JsonNotation(mapper);
+        ExecutionContext.INSTANCE.notationLibrary().register(BinaryNotation.NOTATION_NAME, new BinaryNotation(mapper, jsonNotation::serde));
+        ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
 
         final var uri = ClassLoader.getSystemResource("pipelines/" + nr + "-demo.yaml").toURI();
         final var path = Paths.get(uri);

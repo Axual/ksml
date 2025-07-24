@@ -33,14 +33,13 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContext;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
 
-import static org.junit.platform.commons.support.AnnotationSupport.isAnnotated;
-
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
+
+import static org.junit.platform.commons.support.AnnotationSupport.isAnnotated;
 
 /**
  * {@link TestTemplateInvocationContextProvider} that supports the {@link KSMLTopologyTest} annotation.
@@ -58,6 +57,7 @@ public class KSMLTopologyTestContextProvider implements TestTemplateInvocationCo
      * Set up test template invocation contexts for each listed pipeline definition.
      * This method prepares test execution by scanning the test class for annotated fields ({@link KSMLTopic} and {@link KSMLDriver}
      * annotated fields) which it will pass into each invocation context, to be handled by {@link KSMLTopologyTestExtension} when the test runs.
+     *
      * @param context the extension context.
      * @return a list containing one {@link KSMLTopologyTestInvocationContext} per configured KSML topology.
      */
@@ -90,18 +90,18 @@ public class KSMLTopologyTestContextProvider implements TestTemplateInvocationCo
         });
 
         final var testMethod = context.getRequiredTestMethod();
-        final var ksmlTopologyTest=   testMethod.getAnnotation(KSMLTopologyTest.class);
+        final var ksmlTopologyTest = testMethod.getAnnotation(KSMLTopologyTest.class);
         final var schemaDirectory = ksmlTopologyTest.schemaDirectory();
 
         // one-time preparation for the test runs: register notations
         log.debug("Registering notations in notationLibrary");
         final var mapper = new NativeDataObjectMapper();
-        final var jsonNotation = new JsonNotation("json", mapper);
-        ExecutionContext.INSTANCE.notationLibrary().register(new BinaryNotation(UserType.DEFAULT_NOTATION, mapper, jsonNotation::serde));
-        ExecutionContext.INSTANCE.notationLibrary().register(jsonNotation);
+        final var jsonNotation = new JsonNotation(mapper);
+        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(mapper, jsonNotation::serde));
+        ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
 
         return Arrays.stream(ksmlTopologyTest.topologies())
                 .map(topologyName -> new KSMLTopologyTestInvocationContext(topologyName, schemaDirectory, inputTopics, outputTopics, testDriverRef.get())
-        );
+                );
     }
 }

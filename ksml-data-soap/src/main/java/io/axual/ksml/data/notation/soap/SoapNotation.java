@@ -36,13 +36,14 @@ import static io.axual.ksml.data.notation.soap.SoapSchema.generateSOAPSchema;
 
 @Getter
 public class SoapNotation extends StringNotation {
+    public static final String NOTATION_NAME = "soap";
     public static final DataType DEFAULT_TYPE = new StructType(generateSOAPSchema(DataSchema.ANY_SCHEMA));
     private static final SoapDataObjectMapper DATA_OBJECT_MAPPER = new SoapDataObjectMapper();
     private static final SoapStringMapper STRING_MAPPER = new SoapStringMapper();
     private final Notation.Converter converter = new SoapDataObjectConverter();
 
-    public SoapNotation(String name, NativeDataObjectMapper nativeMapper) {
-        super(name, null, DEFAULT_TYPE, new SoapDataObjectConverter(), null, nativeMapper, new DataObjectMapper<>() {
+    public SoapNotation(NativeDataObjectMapper nativeMapper) {
+        super(NOTATION_NAME, null, DEFAULT_TYPE, new SoapDataObjectConverter(), null, nativeMapper, new DataObjectMapper<>() {
             @Override
             public DataObject toDataObject(DataType expected, String value) {
                 return DATA_OBJECT_MAPPER.toDataObject(expected, STRING_MAPPER.fromString(value));

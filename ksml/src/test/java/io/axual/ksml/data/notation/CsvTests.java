@@ -34,7 +34,7 @@ class CsvTests {
 
     @Test
     void schemaTest() {
-        NotationTestRunner.schemaTest("csv", new CsvSchemaMapper(), (input, output) -> {
+        NotationTestRunner.schemaTest(CsvNotation.NOTATION_NAME, new CsvSchemaMapper(), (input, output) -> {
             // Check the conversion
             final var inputFieldNames = ((StructSchema) input).fields().stream().map(DataField::name).toArray(String[]::new);
             final var outputFieldNames = ((StructSchema) output).fields().stream().map(DataField::name).toArray(String[]::new);
@@ -44,11 +44,11 @@ class CsvTests {
 
     @Test
     void dataTest() {
-        NotationTestRunner.dataTest("csv", new CsvDataObjectMapper());
+        NotationTestRunner.dataTest(CsvNotation.NOTATION_NAME, new CsvDataObjectMapper());
     }
 
     @Test
     void serdeTest() {
-        NotationTestRunner.serdeTest("csv", new CsvNotation("csv", new NativeDataObjectMapper()),true);
+        NotationTestRunner.serdeTest(CsvNotation.NOTATION_NAME, new CsvNotation(new NativeDataObjectMapper()), true);
     }
 }

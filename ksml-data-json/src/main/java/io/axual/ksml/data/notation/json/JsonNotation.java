@@ -27,13 +27,14 @@ import io.axual.ksml.data.type.*;
 import org.apache.kafka.common.serialization.Serde;
 
 public class JsonNotation extends BaseNotation {
+    public static final String NOTATION_NAME = "json";
     public static final DataType DEFAULT_TYPE = new UnionType(
             new UnionType.MemberType(new StructType()),
             new UnionType.MemberType(new ListType()));
     private final NativeDataObjectMapper nativeMapper;
 
-    public JsonNotation(String name, NativeDataObjectMapper nativeMapper) {
-        super(name, ".json", DEFAULT_TYPE, new JsonDataObjectConverter(), new JsonSchemaLoader());
+    public JsonNotation(NativeDataObjectMapper nativeMapper) {
+        super(NOTATION_NAME, ".json", DEFAULT_TYPE, new JsonDataObjectConverter(), new JsonSchemaLoader());
         this.nativeMapper = nativeMapper;
     }
 

@@ -44,6 +44,6 @@ public abstract class BaseNotation implements Notation {
     }
 
     protected RuntimeException noSerdeFor(DataType type) {
-        return new DataException(name + " serde not found for data type: " + type);
+        return new DataException(name() + " serde not available for data type: " + type);
     }
 }

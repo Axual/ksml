@@ -1,4 +1,4 @@
-package io.axual.ksml.data.notation;
+package io.axual.ksml.data.notation.apicurio;
 
 /*-
  * ========================LICENSE_START=================================
@@ -22,6 +22,7 @@ package io.axual.ksml.data.notation;
 
 import io.apicurio.registry.rest.client.RegistryClient;
 import io.apicurio.registry.rest.v2.beans.*;
+import io.apicurio.registry.serde.SerdeConfig;
 import io.apicurio.registry.types.RoleType;
 import io.apicurio.registry.types.RuleType;
 
@@ -32,7 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MockRegistryClient implements RegistryClient {
+public class MockApicurioSchemaRegistryClient implements RegistryClient {
     private long lastGlobalId = 0;
 
     private record RegistryEntry(long globalId, long contentId, String artifactId, byte[] schema) {
@@ -41,6 +42,12 @@ public class MockRegistryClient implements RegistryClient {
     private final Map<String, RegistryEntry> entryByArtifactId = new HashMap<>();
     private final Map<Long, RegistryEntry> entryByGlobalId = new HashMap<>();
     private final Map<Long, List<ArtifactReference>> references = new HashMap<>();
+
+    public Map<String, String> configs() {
+        final var result = new HashMap<String, String>();
+        result.putIfAbsent(SerdeConfig.AUTO_REGISTER_ARTIFACT, "true");
+        return result;
+    }
 
     private RuntimeException error() {
         return new RuntimeException("Not implemented");

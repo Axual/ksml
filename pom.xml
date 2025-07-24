@@ -49,11 +49,17 @@
     <modules>
         <module>ksml-data</module>
         <module>ksml-data-avro</module>
+        <module>ksml-data-avro-apicurio</module>
+        <module>ksml-data-avro-confluent</module>
         <module>ksml-data-binary</module>
         <module>ksml-data-csv</module>
         <module>ksml-data-json</module>
         <module>ksml-data-jsonschema</module>
+        <module>ksml-data-jsonschema-apicurio</module>
+        <module>ksml-data-jsonschema-confluent</module>
         <module>ksml-data-protobuf</module>
+        <module>ksml-data-protobuf-apicurio</module>
+        <module>ksml-data-protobuf-confluent</module>
         <module>ksml-data-soap</module>
         <module>ksml-data-xml</module>
         <module>ksml</module>
@@ -151,6 +157,16 @@
             </dependency>
             <dependency>
                 <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml-data-avro-apicurio</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml-data-avro-confluent</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
                 <artifactId>ksml-data-binary</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -171,7 +187,27 @@
             </dependency>
             <dependency>
                 <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml-data-jsonschema-apicurio</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml-data-jsonschema-confluent</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
                 <artifactId>ksml-data-protobuf</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml-data-protobuf-apicurio</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml-data-protobuf-confluent</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

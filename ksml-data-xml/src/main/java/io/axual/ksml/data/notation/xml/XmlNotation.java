@@ -28,16 +28,11 @@ import io.axual.ksml.data.type.StructType;
 import org.apache.kafka.common.serialization.Serde;
 
 public class XmlNotation extends StringNotation {
+    public static final String NOTATION_NAME = "xml";
     public static final DataType DEFAULT_TYPE = new StructType();
 
-    public XmlNotation(String name, NativeDataObjectMapper nativeMapper) {
-        super(name,
-                ".xsd",
-                DEFAULT_TYPE,
-                new XmlDataObjectConverter(),
-                new XmlSchemaParser(),
-                nativeMapper,
-                new XmlDataObjectMapper(false));
+    public XmlNotation(NativeDataObjectMapper nativeMapper) {
+        super(NOTATION_NAME, ".xsd", DEFAULT_TYPE, new XmlDataObjectConverter(), new XmlSchemaParser(), nativeMapper, new XmlDataObjectMapper(false));
     }
 
     @Override

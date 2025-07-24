@@ -41,8 +41,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class UserTypeParserTest {
     @BeforeAll
     static void setup() {
-        final var binaryNotation = new BinaryNotation(UserType.DEFAULT_NOTATION, new DataObjectFlattener(), null);
-        ExecutionContext.INSTANCE.notationLibrary().register(binaryNotation);
+        final var binaryNotation = new BinaryNotation(new DataObjectFlattener(), null);
+        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, binaryNotation);
     }
 
     @ParameterizedTest

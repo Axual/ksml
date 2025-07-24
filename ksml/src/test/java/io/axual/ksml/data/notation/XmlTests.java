@@ -29,16 +29,16 @@ import org.junit.jupiter.api.Test;
 class XmlTests {
     @Test
     void schemaTest() {
-        NotationTestRunner.schemaTest("xml", new XmlSchemaMapper());
+        NotationTestRunner.schemaTest(XmlNotation.NOTATION_NAME, new XmlSchemaMapper());
     }
 
     @Test
     void dataTest() {
-        NotationTestRunner.dataTest("xml", new XmlDataObjectMapper(true));
+        NotationTestRunner.dataTest(XmlNotation.NOTATION_NAME, new XmlDataObjectMapper(true));
     }
 
     @Test
     void serdeTest() {
-        NotationTestRunner.serdeTest("xml", new XmlNotation("xml", new NativeDataObjectMapper()), false);
+        NotationTestRunner.serdeTest(XmlNotation.NOTATION_NAME, new XmlNotation(new NativeDataObjectMapper()), false);
     }
 }

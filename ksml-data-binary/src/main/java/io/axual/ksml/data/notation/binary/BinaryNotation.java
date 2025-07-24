@@ -35,13 +35,13 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 
 public class BinaryNotation extends BaseNotation {
-    public static final String NAME = "binary";
+    public static final String NOTATION_NAME = "binary";
     public static final DataType DEFAULT_TYPE = DataType.UNKNOWN;
     private final NativeDataObjectMapper nativeMapper;
     private final SerdeSupplier complexTypeSerdeSupplier;
 
-    public BinaryNotation(String name, NativeDataObjectMapper nativeMapper, SerdeSupplier complexTypeSerdeSupplier) {
-        super(name, null, DEFAULT_TYPE, null, null);
+    public BinaryNotation(NativeDataObjectMapper nativeMapper, SerdeSupplier complexTypeSerdeSupplier) {
+        super(NOTATION_NAME, null, DEFAULT_TYPE, null, null);
         this.nativeMapper = nativeMapper;
         this.complexTypeSerdeSupplier = complexTypeSerdeSupplier;
     }

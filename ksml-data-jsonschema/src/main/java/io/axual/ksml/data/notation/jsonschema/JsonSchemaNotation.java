@@ -20,137 +20,49 @@ package io.axual.ksml.data.notation.jsonschema;
  * =========================LICENSE_END==================================
  */
 
-import com.google.common.collect.ImmutableMap;
-import io.apicurio.registry.rest.client.RegistryClient;
-import io.apicurio.registry.serde.jsonschema.JsonSchemaKafkaDeserializer;
-import io.apicurio.registry.serde.jsonschema.JsonSchemaKafkaSerializer;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.notation.VendorNotation;
 import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
-import io.axual.ksml.data.notation.json.JsonDataObjectMapper;
 import io.axual.ksml.data.notation.json.JsonSchemaLoader;
-import io.axual.ksml.data.notation.string.StringNotation;
-import io.axual.ksml.data.type.*;
-import io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer;
-import io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer;
-import org.apache.kafka.common.header.Headers;
-import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serializer;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.type.UnionType;
+import io.axual.ksml.data.util.JsonNodeUtil;
 
-import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.ServiceLoader;
 
-public class JsonSchemaNotation extends StringNotation {
+public class JsonSchemaNotation extends VendorNotation {
+    public static final String NOTATION_NAME = "jsonschema";
     public static final DataType DEFAULT_TYPE = new UnionType(
             new UnionType.MemberType(new StructType()),
             new UnionType.MemberType(new ListType()));
+    private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
+    private static final DataObjectMapper<Object> JSON_NODE_MAPPER = new DataObjectMapper<>() {
+        @Override
+        public DataObject toDataObject(DataType expected, Object value) {
+            if (value instanceof JsonNode jsonNode) {
+                return NATIVE_MAPPER.toDataObject(expected, JsonNodeUtil.convertJsonNodeToNative(jsonNode));
+            }
+            throw new DataException("Cannot convert value to DataObject: " + value);
+        }
 
-    public enum SerdeType {
-        APICURIO,
-        CONFLUENT
+        @Override
+        public Object fromDataObject(DataObject value) {
+            return JsonNodeUtil.convertNativeToJsonNode(NATIVE_MAPPER.fromDataObject(value));
+        }
+    };
+
+    public JsonSchemaNotation(JsonSchemaSerdeProvider serdeProvider, NativeDataObjectMapper nativeMapper, Map<String, String> serdeConfigs) {
+        super(serdeProvider, ".json", DEFAULT_TYPE, new JsonDataObjectConverter(), new JsonSchemaLoader(), nativeMapper, JSON_NODE_MAPPER, serdeConfigs);
     }
 
-    private static final String DESERIALIZATION_ERROR_MSG = " message could not be deserialized from topic ";
-    private static final String SERIALIZATION_ERROR_MSG = " message could not be serialized to topic ";
-    private final SerdeType serdeType;
-    private final NativeDataObjectMapper nativeMapper;
-    private final Map<String, ?> serdeConfigs;
-    private final RegistryClient client;
-
-    public JsonSchemaNotation(String name, SerdeType type, NativeDataObjectMapper nativeMapper, Map<String, ?> configs, RegistryClient client) {
-        super(name, ".json", DEFAULT_TYPE, new JsonDataObjectConverter(), new JsonSchemaLoader(), nativeMapper, new JsonDataObjectMapper(false));
-        this.serdeType = type;
-        this.nativeMapper = nativeMapper;
-        this.serdeConfigs = ImmutableMap.copyOf(configs);
-        this.client = client;
-    }
-
-    @Override
-    public DataType defaultType() {
-        return DEFAULT_TYPE;
-    }
-
-    @Override
-    public Serde<Object> serde(DataType type, boolean isKey) {
-        // JSON types can either be Map (or Struct), or List, or the union type of both Struct and List
-        if (type instanceof MapType || type instanceof ListType || JsonSchemaNotation.DEFAULT_TYPE.isAssignableFrom(type)) {
-            final var serde = switch (serdeType) {
-                case APICURIO -> new WrappedSerde(
-                        name(),
-                        client != null ? new JsonSchemaKafkaSerializer<>(client) : new JsonSchemaKafkaSerializer<>(),
-                        client != null ? new JsonSchemaKafkaDeserializer<>(client) : new JsonSchemaKafkaDeserializer<>(),
-                        nativeMapper);
-                case CONFLUENT -> new WrappedSerde(
-                        name(),
-                        new KafkaJsonSchemaSerializer<>(),
-                        new KafkaJsonSchemaDeserializer<>(),
-                        nativeMapper);
-            };
-            serde.configure(serdeConfigs, isKey);
-            return serde;
-        }
-        // Other types cannot be serialized as JSON
-        throw noSerdeFor(type);
-    }
-
-    private record WrappedSerde(String name, Serializer<Object> serializer, Deserializer<Object> deserializer,
-                                NativeDataObjectMapper nativeMapper) implements Serializer<Object>, Deserializer<Object>, Serde<Object> {
-        @Override
-        public void configure(final Map<String, ?> configs, final boolean isKey) {
-            serializer.configure(configs, isKey);
-            deserializer.configure(configs, isKey);
-        }
-
-        @Override
-        public Object deserialize(final String topic, final byte[] data) {
-            try {
-                return nativeMapper.toDataObject(deserializer.deserialize(topic, data));
-            } catch (Exception e) {
-                throw new DataException(name.toUpperCase() + DESERIALIZATION_ERROR_MSG + topic, e);
-            }
-        }
-
-        @Override
-        public Object deserialize(final String topic, final Headers headers, final byte[] data) {
-            try {
-                return nativeMapper.toDataObject(deserializer.deserialize(topic, headers, data));
-            } catch (Exception e) {
-                throw new DataException(name.toUpperCase() + DESERIALIZATION_ERROR_MSG + topic, e);
-            }
-        }
-
-        @Override
-        public Object deserialize(final String topic, final Headers headers, final ByteBuffer data) {
-            try {
-                return nativeMapper.toDataObject(deserializer.deserialize(topic, headers, data));
-            } catch (Exception e) {
-                throw new DataException(name.toUpperCase() + DESERIALIZATION_ERROR_MSG + topic, e);
-            }
-        }
-
-        @Override
-        public byte[] serialize(final String topic, final Object data) {
-            try {
-                return serializer.serialize(topic, nativeMapper.fromDataObject(nativeMapper.toDataObject(data)));
-            } catch (Exception e) {
-                throw new DataException(name + SERIALIZATION_ERROR_MSG + topic, e);
-            }
-        }
-
-        @Override
-        public byte[] serialize(final String topic, final Headers headers, final Object data) {
-            try {
-                return serializer.serialize(topic, headers, nativeMapper.fromDataObject(nativeMapper.toDataObject(data)));
-            } catch (Exception e) {
-                throw new DataException(name + SERIALIZATION_ERROR_MSG + topic, e);
-            }
-        }
-
-        @Override
-        public void close() {
-            serializer.close();
-            deserializer.close();
-        }
+    public static ServiceLoader<JsonSchemaSerdeProvider> getSerdeProviders() {
+        return ServiceLoader.load(JsonSchemaSerdeProvider.class);
     }
 }
