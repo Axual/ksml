@@ -1,8 +1,8 @@
-package io.axual.ksml.data.notation.protobuf;
+package io.axual.ksml.data.notation;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Library - JSON Schema
+ * KSML Data Library
  * %%
  * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
@@ -20,14 +20,16 @@ package io.axual.ksml.data.notation.protobuf;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.SerdeProvider;
+public interface NotationProvider {
+    String notationName();
 
-public interface ProtobufSerdeProvider extends SerdeProvider {
-    default String notationName() {
-        return ProtobufNotation.NOTATION_NAME;
+    default String vendorName() {
+        return null;
     }
 
-    ProtobufSchemaParser schemaParser();
+    default String name() {
+        return (vendorName() != null && !vendorName().isEmpty() ? vendorName() + "_" : "") + notationName();
+    }
 
-    ProtobufDescriptorFileElementMapper fileElementMapper();
+    Notation createNotation(NotationContext notationContext);
 }

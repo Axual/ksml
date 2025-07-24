@@ -25,50 +25,37 @@ import io.apicurio.registry.serde.SerdeConfig;
 import io.apicurio.registry.serde.SerdeHeaders;
 import io.apicurio.registry.serde.protobuf.ProtobufKafkaDeserializer;
 import io.apicurio.registry.serde.protobuf.ProtobufKafkaSerializer;
-import io.axual.ksml.data.notation.BaseSerdeProvider;
 import io.axual.ksml.data.serde.HeaderFilterSerde;
+import io.axual.ksml.data.serde.WrappedSerde;
 import io.axual.ksml.data.type.DataType;
-import lombok.Getter;
-import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.common.serialization.Serializer;
 
 import java.util.Map;
 import java.util.Set;
 
-public class ApicurioProtobufSerdeProvider extends BaseSerdeProvider implements ProtobufSerdeProvider {
-    // Registry Client is mocked by tests
-    @Getter
+public class ApicurioProtobufSerdeSupplier implements ProtobufSerdeSupplier {
     private final RegistryClient registryClient;
 
-    public ApicurioProtobufSerdeProvider() {
+    public ApicurioProtobufSerdeSupplier() {
         this(null);
     }
 
-    public ApicurioProtobufSerdeProvider(RegistryClient registryClient) {
-        super("apicurio");
+    public ApicurioProtobufSerdeSupplier(RegistryClient registryClient) {
         this.registryClient = registryClient;
     }
 
     @Override
+    public String vendorName() {
+        return "apicurio";
+    }
+
+    @Override
     public Serde<Object> get(DataType type, boolean isKey) {
-        return new Serde<>() {
-            private final HeaderFilterSerde serde = new HeaderFilterSerde(
-                    (Serde) Serdes.serdeFrom(
-                            registryClient != null ? new ProtobufKafkaSerializer<>(registryClient) : new ProtobufKafkaSerializer<>(),
-                            registryClient != null ? new ProtobufKafkaDeserializer<>(registryClient) : new ProtobufKafkaDeserializer<>()));
-
-            @Override
-            public Serializer<Object> serializer() {
-                return serde.serializer();
-            }
-
-            @Override
-            public Deserializer<Object> deserializer() {
-                return serde.deserializer();
-            }
-
+        final var serde = new HeaderFilterSerde((Serde) Serdes.serdeFrom(
+                registryClient != null ? new ProtobufKafkaSerializer<>(registryClient) : new ProtobufKafkaSerializer<>(),
+                registryClient != null ? new ProtobufKafkaDeserializer<>(registryClient) : new ProtobufKafkaDeserializer<>()));
+        return new WrappedSerde(serde) {
             @Override
             public void configure(Map<String, ?> configs, boolean isKey) {
                 final String messageTypeHeaderName;
@@ -78,18 +65,8 @@ public class ApicurioProtobufSerdeProvider extends BaseSerdeProvider implements 
                     messageTypeHeaderName = (String) ((Map<String, Object>) configs).getOrDefault(SerdeConfig.HEADER_VALUE_MESSAGE_TYPE_OVERRIDE_NAME, SerdeHeaders.HEADER_VALUE_MESSAGE_TYPE);
                 }
                 serde.filteredHeaders(Set.of(messageTypeHeaderName));
-                serde.configure(configs, isKey);
+                super.configure(configs, isKey);
             }
         };
-    }
-
-    @Override
-    public ProtobufSchemaParser schemaParser() {
-        return new ApicurioProtobufSchemaParser();
-    }
-
-    @Override
-    public ProtobufDescriptorFileElementMapper fileElementMapper() {
-        return new ApicurioProtobufDescriptorFileElementMapper();
     }
 }

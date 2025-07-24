@@ -1,8 +1,8 @@
-package io.axual.ksml.data.notation.avro.apicurio;
+package io.axual.ksml.data.notation.jsonschema;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Library - AVRO Apicurio
+ * KSML Data Library - JSON Schema Apicurio
  * %%
  * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
@@ -21,10 +21,8 @@ package io.axual.ksml.data.notation.avro.apicurio;
  */
 
 import io.apicurio.registry.rest.client.RegistryClient;
-import io.apicurio.registry.serde.avro.AvroKafkaDeserializer;
-import io.apicurio.registry.serde.avro.AvroKafkaSerializer;
-import io.axual.ksml.data.notation.BaseSerdeProvider;
-import io.axual.ksml.data.notation.avro.AvroSerdeProvider;
+import io.apicurio.registry.serde.jsonschema.JsonSchemaKafkaDeserializer;
+import io.apicurio.registry.serde.jsonschema.JsonSchemaKafkaSerializer;
 import io.axual.ksml.data.type.DataType;
 import lombok.Getter;
 import org.apache.kafka.common.serialization.Deserializer;
@@ -33,27 +31,31 @@ import org.apache.kafka.common.serialization.Serializer;
 
 import java.util.Map;
 
-public class ApicurioAvroSerdeProvider extends BaseSerdeProvider implements AvroSerdeProvider {
-
+public class ApicurioJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier {
     // Registry Client is mocked by tests
+    @Getter
     private final RegistryClient registryClient;
 
-    public ApicurioAvroSerdeProvider() {
+    public ApicurioJsonSchemaSerdeSupplier() {
         this(null);
     }
 
-    public ApicurioAvroSerdeProvider(RegistryClient registryClient) {
-        super("apicurio");
+    public ApicurioJsonSchemaSerdeSupplier(RegistryClient registryClient) {
         this.registryClient = registryClient;
+    }
+
+    @Override
+    public String vendorName() {
+        return "apicurio";
     }
 
     @Override
     public Serde<Object> get(DataType type, boolean isKey) {
         return new Serde<>() {
             @Getter
-            private final Serializer<Object> serializer = registryClient != null ? new AvroKafkaSerializer<>(registryClient) : new AvroKafkaSerializer<>();
+            private final Serializer<Object> serializer = registryClient != null ? new JsonSchemaKafkaSerializer<>(registryClient) : new JsonSchemaKafkaSerializer<>();
             @Getter
-            private final Deserializer<Object> deserializer = registryClient != null ? new AvroKafkaDeserializer<>(registryClient) : new AvroKafkaDeserializer<>();
+            private final Deserializer<Object> deserializer = registryClient != null ? new JsonSchemaKafkaDeserializer<>(registryClient) : new JsonSchemaKafkaDeserializer<>();
 
             @Override
             public void configure(Map<String, ?> configs, boolean isKey) {

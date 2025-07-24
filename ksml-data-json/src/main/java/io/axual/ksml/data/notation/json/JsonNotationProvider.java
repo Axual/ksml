@@ -1,8 +1,8 @@
-package io.axual.ksml.data.notation;
+package io.axual.ksml.data.notation.json;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Library
+ * KSML Data Library - JSON
  * %%
  * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
@@ -20,13 +20,18 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
-import lombok.Getter;
+import io.axual.ksml.data.notation.Notation;
+import io.axual.ksml.data.notation.NotationContext;
+import io.axual.ksml.data.notation.NotationProvider;
 
-public abstract class BaseSerdeProvider implements SerdeProvider {
-    @Getter
-    private final String vendorName;
+public class JsonNotationProvider implements NotationProvider {
+    @Override
+    public String notationName() {
+        return JsonNotation.NOTATION_NAME;
+    }
 
-    protected BaseSerdeProvider(String vendorName) {
-        this.vendorName = vendorName;
+    @Override
+    public Notation createNotation(NotationContext notationContext) {
+        return new JsonNotation(notationContext.nativeDataObjectMapper());
     }
 }

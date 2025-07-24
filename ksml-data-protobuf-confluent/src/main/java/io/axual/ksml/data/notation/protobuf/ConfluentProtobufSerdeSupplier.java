@@ -22,7 +22,6 @@ package io.axual.ksml.data.notation.protobuf;
 
 import com.google.protobuf.Message;
 import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.notation.BaseSerdeProvider;
 import io.axual.ksml.data.type.DataType;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
@@ -37,18 +36,22 @@ import org.apache.kafka.common.serialization.Serializer;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
-public class ConfluentProtobufSerdeProvider extends BaseSerdeProvider implements ProtobufSerdeProvider {
+public class ConfluentProtobufSerdeSupplier implements ProtobufSerdeSupplier {
     // Registry Client is mocked by tests
     @Getter
     private final SchemaRegistryClient registryClient;
 
-    public ConfluentProtobufSerdeProvider() {
+    public ConfluentProtobufSerdeSupplier() {
         this(null);
     }
 
-    public ConfluentProtobufSerdeProvider(SchemaRegistryClient registryClient) {
-        super("confluent");
+    public ConfluentProtobufSerdeSupplier(SchemaRegistryClient registryClient) {
         this.registryClient = registryClient;
+    }
+
+    @Override
+    public String vendorName() {
+        return "confluent";
     }
 
     @Override
@@ -101,15 +104,5 @@ public class ConfluentProtobufSerdeProvider extends BaseSerdeProvider implements
             }
         };
         return Serdes.serdeFrom(serializer, deserializer);
-    }
-
-    @Override
-    public ProtobufSchemaParser schemaParser() {
-        return new ConfluentProtobufSchemaParser();
-    }
-
-    @Override
-    public ProtobufDescriptorFileElementMapper fileElementMapper() {
-        return new ConfluentProtobufDescriptorFileElementMapper();
     }
 }

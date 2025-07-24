@@ -1,8 +1,8 @@
-package io.axual.ksml.data.notation;
+package io.axual.ksml.data.notation.jsonschema;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Library
+ * KSML Data Library - JSON Schema
  * %%
  * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
@@ -20,14 +20,10 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.serde.SerdeSupplier;
+import io.axual.ksml.data.notation.VendorSerdeSupplier;
 
-public interface SerdeProvider extends SerdeSupplier {
-    String notationName();
-
-    String vendorName();
-
-    default String name() {
-        return (vendorName() != null && !vendorName().isEmpty() ? vendorName() + "_" : "") + notationName();
+public interface JsonSchemaSerdeSupplier extends VendorSerdeSupplier {
+    default String notationName() {
+        return JsonSchemaNotation.NOTATION_NAME;
     }
 }

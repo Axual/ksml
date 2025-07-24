@@ -41,7 +41,7 @@ public class DataObjectSerde implements Serde<Object>, Serializer<Object>, Deser
     private final DataObjectMapper<Object> nativeMapper;
 
     public DataObjectSerde(String name, Serializer<Object> serializer, Deserializer<Object> deserializer, DataObjectMapper<Object> serdeMapper, DataObjectMapper<Object> nativeMapper) {
-        this.name = name;
+        this.name = name.toUpperCase();
         this.serializer = serializer;
         this.deserializer = deserializer;
         this.serdeMapper = serdeMapper;
@@ -67,7 +67,7 @@ public class DataObjectSerde implements Serde<Object>, Serializer<Object>, Deser
         try {
             return serdeMapper.toDataObject(deserializer.deserialize(topic, data));
         } catch (Exception e) {
-            throw new DataException(name.toUpperCase() + DESERIALIZATION_ERROR_MSG + topic, e);
+            throw new DataException(name + DESERIALIZATION_ERROR_MSG + topic, e);
         }
     }
 
@@ -76,7 +76,7 @@ public class DataObjectSerde implements Serde<Object>, Serializer<Object>, Deser
         try {
             return serdeMapper.toDataObject(deserializer.deserialize(topic, headers, data));
         } catch (Exception e) {
-            throw new DataException(name.toUpperCase() + DESERIALIZATION_ERROR_MSG + topic, e);
+            throw new DataException(name + DESERIALIZATION_ERROR_MSG + topic, e);
         }
     }
 
@@ -85,7 +85,7 @@ public class DataObjectSerde implements Serde<Object>, Serializer<Object>, Deser
         try {
             return serdeMapper.toDataObject(deserializer.deserialize(topic, headers, data));
         } catch (Exception e) {
-            throw new DataException(name.toUpperCase() + DESERIALIZATION_ERROR_MSG + topic, e);
+            throw new DataException(name + DESERIALIZATION_ERROR_MSG + topic, e);
         }
     }
 

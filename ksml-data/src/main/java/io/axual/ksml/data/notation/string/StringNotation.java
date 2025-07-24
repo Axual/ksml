@@ -22,7 +22,7 @@ package io.axual.ksml.data.notation.string;
 
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.notation.BaseNotation;
+import io.axual.ksml.data.notation.base.BaseNotation;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.serde.StringSerde;
 import io.axual.ksml.data.type.DataType;
@@ -32,10 +32,10 @@ public abstract class StringNotation extends BaseNotation {
     private final NativeDataObjectMapper nativeMapper;
     private final DataObjectMapper<String> stringMapper;
 
-    protected StringNotation(String name, String filenameExtension, DataType defaultType,
+    protected StringNotation(String notationName, String vendorName, String filenameExtension, DataType defaultType,
                              Notation.Converter converter, Notation.SchemaParser schemaParser,
                              NativeDataObjectMapper nativeMapper, DataObjectMapper<String> stringMapper) {
-        super(name, filenameExtension, defaultType, converter, schemaParser);
+        super(notationName, vendorName, filenameExtension, defaultType, converter, schemaParser);
         this.nativeMapper = nativeMapper;
         this.stringMapper = stringMapper;
     }

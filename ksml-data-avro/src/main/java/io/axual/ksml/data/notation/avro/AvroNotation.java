@@ -20,30 +20,26 @@ package io.axual.ksml.data.notation.avro;
  * =========================LICENSE_END==================================
  */
 
-import com.google.common.collect.ImmutableMap;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.notation.VendorNotation;
+import io.axual.ksml.data.notation.base.BaseNotation;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.StructType;
+import lombok.Getter;
+import org.apache.kafka.common.serialization.Serde;
 
-import java.util.Map;
-import java.util.ServiceLoader;
-
-public class AvroNotation extends VendorNotation {
+public class AvroNotation extends BaseNotation {
     public static final String NOTATION_NAME = "avro";
     public static final DataType DEFAULT_TYPE = new StructType();
-    private static final AvroDataObjectMapper AVRO_MAPPER = new AvroDataObjectMapper();
     private static final AvroSchemaParser AVRO_SCHEMA_PARSER = new AvroSchemaParser();
+    @Getter
+    private final AvroSerdeSupplier serdeSupplier;
 
-    public AvroNotation(AvroSerdeProvider serdeProvider, Map<String, String> configs) {
-        this(serdeProvider, new NativeDataObjectMapper(), configs);
+    public AvroNotation(AvroSerdeSupplier serdeSupplier) {
+        super(NOTATION_NAME, serdeSupplier.vendorName(), ".avsc", DEFAULT_TYPE, null, AVRO_SCHEMA_PARSER);
+        this.serdeSupplier = serdeSupplier;
     }
 
-    public AvroNotation(AvroSerdeProvider serdeProvider, NativeDataObjectMapper nativeMapper, Map<String, String> configs) {
-        super(serdeProvider, ".avsc", DEFAULT_TYPE, null, AVRO_SCHEMA_PARSER, AVRO_MAPPER, nativeMapper, configs);
-    }
-
-    public static ServiceLoader<AvroSerdeProvider> getSerdeProviders() {
-        return ServiceLoader.load(AvroSerdeProvider.class);
+    @Override
+    public Serde<Object> serde(DataType type, boolean isKey) {
+        return serdeSupplier.get(type, isKey);
     }
 }

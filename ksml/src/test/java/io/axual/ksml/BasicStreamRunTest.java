@@ -23,8 +23,10 @@ package io.axual.ksml;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
+import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.avro.AvroNotation;
-import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroSerdeProvider;
+import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroNotationProvider;
+import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroSerdeSupplier;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.notation.confluent.MockConfluentSchemaRegistryClient;
 import io.axual.ksml.data.notation.json.JsonNotation;
@@ -103,8 +105,8 @@ class BasicStreamRunTest {
     @Test
     void testFilterAvroRecords() throws Exception {
         final var registryClient = new MockConfluentSchemaRegistryClient();
-        final var serdeProvider = new ConfluentAvroSerdeProvider(registryClient);
-        final var avroNotation = new AvroNotation(serdeProvider, registryClient.configs());
+        final var notationContext = new NotationContext(registryClient.configs());
+        final var avroNotation = new ConfluentAvroNotationProvider(registryClient).createNotation(notationContext);
         ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, avroNotation);
 
         final var uri = ClassLoader.getSystemResource("pipelines/test-filter.yaml").toURI();

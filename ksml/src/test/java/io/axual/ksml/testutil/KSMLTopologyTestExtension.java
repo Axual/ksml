@@ -24,7 +24,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.TopologyGenerator;
 import io.axual.ksml.data.notation.avro.AvroNotation;
-import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroSerdeProvider;
+import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroNotationProvider;
+import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroSerdeSupplier;
 import io.axual.ksml.data.notation.confluent.MockConfluentSchemaRegistryClient;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.execution.ExecutionContext;
@@ -129,9 +130,8 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEach
         }
 
         final var registryClient = new MockConfluentSchemaRegistryClient();
-        final var serdeProvider = new ConfluentAvroSerdeProvider(registryClient);
-        final var avroNotation = new AvroNotation(serdeProvider, registryClient.configs());
-        ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, avroNotation);
+        final var mockAvroNotation = new ConfluentAvroNotationProvider(registryClient).createNotation();
+        ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, mockAvroNotation);
 
         // Get the KSML definition classpath relative path and load the topology into the test driver
         log.debug("Loading topology {}", topologyName);
@@ -223,7 +223,7 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEach
         return switch (isKey ? ksmlTopic.keySerde() : ksmlTopic.valueSerde()) {
             case AVRO -> {
                 final var avroNotation = (AvroNotation) ExecutionContext.INSTANCE.notationLibrary().get(AvroNotation.NOTATION_NAME);
-                final var registryClient = (MockConfluentSchemaRegistryClient) ((ConfluentAvroSerdeProvider) avroNotation.serdeProvider()).registryClient();
+                final var registryClient = (MockConfluentSchemaRegistryClient) ((ConfluentAvroSerdeSupplier) avroNotation.serdeSupplier()).registryClient();
                 final var result = new KafkaAvroSerializer(registryClient);
                 result.configure(registryClient.configs(), isKey);
                 yield result;
@@ -246,7 +246,7 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEach
         return switch (isKey ? ksmlTopic.keySerde() : ksmlTopic.valueSerde()) {
             case AVRO -> {
                 final var avroNotation = (AvroNotation) ExecutionContext.INSTANCE.notationLibrary().get(AvroNotation.NOTATION_NAME);
-                final var registryClient = (MockConfluentSchemaRegistryClient) ((ConfluentAvroSerdeProvider) avroNotation.serdeProvider()).registryClient();
+                final var registryClient = (MockConfluentSchemaRegistryClient) ((ConfluentAvroSerdeSupplier) avroNotation.serdeSupplier()).registryClient();
                 final var result = new KafkaAvroDeserializer(registryClient);
                 result.configure(registryClient.configs(), isKey);
                 yield result;

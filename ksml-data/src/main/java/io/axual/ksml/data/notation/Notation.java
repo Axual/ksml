@@ -28,7 +28,13 @@ import org.apache.kafka.common.serialization.Serde;
 public interface Notation {
     DataType defaultType();
 
-    String name();
+    String notationName();
+
+    String vendorName();
+
+    default String name() {
+        return (vendorName() != null && !vendorName().isEmpty() ? vendorName() + "_" : "") + notationName();
+    }
 
     String filenameExtension();
 

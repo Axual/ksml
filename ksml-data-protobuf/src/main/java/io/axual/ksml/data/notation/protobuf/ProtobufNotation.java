@@ -21,22 +21,31 @@ package io.axual.ksml.data.notation.protobuf;
  */
 
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.notation.VendorNotation;
+import io.axual.ksml.data.notation.base.BaseNotation;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.StructType;
+import org.apache.kafka.common.serialization.Serde;
 
 import java.util.Map;
-import java.util.ServiceLoader;
 
-public class ProtobufNotation extends VendorNotation {
+public class ProtobufNotation extends BaseNotation {
     public static final String NOTATION_NAME = "protobuf";
     public static final DataType DEFAULT_TYPE = new StructType();
+    private final ProtobufSerdeSupplier serdeSupplier;
+    private final ProtobufDataObjectMapper protobufMapper;
+    private final NativeDataObjectMapper nativeMapper;
+    private final Map<String, String> serdeConfigs;
 
-    public ProtobufNotation(ProtobufSerdeProvider serdeProvider, ProtobufSchemaParser schemaParser, ProtobufDataObjectMapper protobufMapper, NativeDataObjectMapper nativeMapper, Map<String, String> configs) {
-        super(serdeProvider, ".proto", DEFAULT_TYPE, null, schemaParser, protobufMapper, nativeMapper, configs);
+    public ProtobufNotation(ProtobufSerdeSupplier serdeSupplier, ProtobufSchemaParser schemaParser, ProtobufDataObjectMapper protobufMapper, NativeDataObjectMapper nativeMapper, Map<String, String> configs) {
+        super(serdeSupplier.notationName(), serdeSupplier.vendorName(), ".proto", DEFAULT_TYPE, null, schemaParser);
+        this.serdeSupplier = serdeSupplier;
+        this.protobufMapper = protobufMapper;
+        this.nativeMapper = nativeMapper;
+        this.serdeConfigs = configs;
     }
 
-    public static ServiceLoader<ProtobufSerdeProvider> getSerdeProviders() {
-        return ServiceLoader.load(ProtobufSerdeProvider.class);
+    @Override
+    public Serde<Object> serde(DataType type, boolean isKey) {
+        return serdeSupplier.get(type, isKey);
     }
 }

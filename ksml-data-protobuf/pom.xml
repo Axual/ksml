@@ -33,12 +33,10 @@
         <dependency>
             <groupId>com.squareup.wire</groupId>
             <artifactId>wire-schema-jvm</artifactId>
-            <version>5.2.0</version>
         </dependency>
         <dependency>
             <groupId>com.squareup.wire</groupId>
             <artifactId>wire-schema</artifactId>
-            <version>5.2.0</version>
         </dependency>
         <!-- Other dependencies -->
         <dependency>

@@ -118,8 +118,8 @@ public class ConfluentProtobufDescriptorFileElementMapper implements ProtobufDes
                 final var required = field.getLabel() == null || field.getLabel() == Field.Label.REQUIRED;
                 final var repeated = field.getLabel() == Field.Label.REPEATED;
                 final var label = required ? null : repeated ? "repeated" : "optional";
-                final var fld = FieldDefinition.newBuilder(new Context(), field.getName(), field.getTag(), field.getType()).setLabel(label).build();
-                msgBuilder.addField(fld);
+                final var fldBuilder = FieldDefinition.newBuilder(new Context(), field.getName(), field.getTag(), field.getType());
+                msgBuilder.addField(label != null ? fldBuilder.setLabel(label).build() : fldBuilder.build());
             }
 
             // Return definition
@@ -152,6 +152,7 @@ public class ConfluentProtobufDescriptorFileElementMapper implements ProtobufDes
                     DEFAULT_LOCATION,
                     descriptor.getFile().getPackage(),
                     DEFAULT_SYNTAX,
+                    Collections.emptyList(),
                     Collections.emptyList(),
                     Collections.emptyList(),
                     types,

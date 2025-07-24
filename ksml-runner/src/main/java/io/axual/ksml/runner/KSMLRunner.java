@@ -25,11 +25,11 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.axual.ksml.client.serde.ResolvingDeserializer;
 import io.axual.ksml.client.serde.ResolvingSerializer;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
-import io.axual.ksml.data.notation.Notation;
+import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.avro.AvroNotation;
-import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroSerdeProvider;
+import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroNotationProvider;
+import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroSerdeSupplier;
 import io.axual.ksml.data.notation.json.JsonSchemaMapper;
-import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.execution.ErrorHandler;
 import io.axual.ksml.execution.ExecutionContext;
@@ -48,7 +48,6 @@ import io.axual.ksml.runner.exception.ConfigException;
 import io.axual.ksml.runner.notation.NotationFactories;
 import io.axual.ksml.runner.prometheus.PrometheusExport;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.utils.Utils;
@@ -151,7 +150,7 @@ public class KSMLRunner {
             // WARNING: Defaults for notations will be deprecated in the future. Make sure you explicitly configure
             // notations with multiple implementations (like AVRO) in your ksml-runner.yaml.
             if (!ExecutionContext.INSTANCE.notationLibrary().exists(AvroNotation.NOTATION_NAME)) {
-                final var defaultAvro = new AvroNotation(new ConfluentAvroSerdeProvider(), new DataObjectFlattener(), null);
+                final var defaultAvro = new ConfluentAvroNotationProvider().createNotation(new NotationContext(null));
                 ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, defaultAvro);
                 log.warn("No implementation specified for AVRO notation. If you use AVRO in your KSML definition, add the required configuration to the ksml-runner.yaml");
             }

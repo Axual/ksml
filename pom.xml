@@ -24,7 +24,7 @@
     </organization>
 
     <description>
-        KSML allows low-code developers to specify a Kafka Streams topology using YAML and Python snippets.
+        KSML allows developers to define Kafka Streams topologies using YAML and Python.
     </description>
 
     <url>https://github.com/Axual/ksml</url>
@@ -91,6 +91,7 @@
         <protobuf.version>3.25.8</protobuf.version>
         <saaj.version>3.0.4</saaj.version>
         <slf4j.version>2.1.0-alpha1</slf4j.version>
+        <wire.version>5.3.0</wire.version>
 
         <!-- test dependency versions -->
         <junit.version>5.13.3</junit.version>
@@ -285,6 +286,16 @@
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protobuf-java</artifactId>
                 <version>${protobuf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.wire</groupId>
+                <artifactId>wire-schema-jvm</artifactId>
+                <version>${wire.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.wire</groupId>
+                <artifactId>wire-schema</artifactId>
+                <version>${wire.version}</version>
             </dependency>
 
             <dependency>

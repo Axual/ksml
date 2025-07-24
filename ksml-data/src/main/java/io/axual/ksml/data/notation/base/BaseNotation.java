@@ -1,4 +1,4 @@
-package io.axual.ksml.data.notation;
+package io.axual.ksml.data.notation.base;
 
 /*-
  * ========================LICENSE_START=================================
@@ -21,6 +21,7 @@ package io.axual.ksml.data.notation;
  */
 
 import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.type.DataType;
 import lombok.Getter;
 
@@ -28,15 +29,17 @@ import java.util.Objects;
 
 @Getter
 public abstract class BaseNotation implements Notation {
-    private final String name;
+    private final String notationName;
+    private final String vendorName;
     private final String filenameExtension;
     private final DataType defaultType;
     private final Converter converter;
     private final SchemaParser schemaParser;
 
-    protected BaseNotation(String name, String filenameExtension, DataType defaultType, Notation.Converter converter, Notation.SchemaParser schemaParser) {
-        Objects.requireNonNull(name);
-        this.name = name;
+    protected BaseNotation(String notationName, String vendorName, String filenameExtension, DataType defaultType, Notation.Converter converter, Notation.SchemaParser schemaParser) {
+        Objects.requireNonNull(notationName);
+        this.notationName = notationName;
+        this.vendorName = vendorName;
         this.filenameExtension = filenameExtension;
         this.defaultType = defaultType;
         this.converter = converter;

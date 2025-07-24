@@ -22,7 +22,7 @@ package io.axual.ksml.data.notation.json;
 
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.notation.BaseNotation;
+import io.axual.ksml.data.notation.base.BaseNotation;
 import io.axual.ksml.data.type.*;
 import org.apache.kafka.common.serialization.Serde;
 
@@ -34,7 +34,7 @@ public class JsonNotation extends BaseNotation {
     private final NativeDataObjectMapper nativeMapper;
 
     public JsonNotation(NativeDataObjectMapper nativeMapper) {
-        super(NOTATION_NAME, ".json", DEFAULT_TYPE, new JsonDataObjectConverter(), new JsonSchemaLoader());
+        super(NOTATION_NAME, null, ".json", DEFAULT_TYPE, new JsonDataObjectConverter(), new JsonSchemaLoader());
         this.nativeMapper = nativeMapper;
     }
 

@@ -1,8 +1,8 @@
-package io.axual.ksml.data.notation.avro;
+package io.axual.ksml.data.notation.jsonschema;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Library - AVRO
+ * KSML Data Library - JSON Schema Confluent
  * %%
  * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
@@ -20,10 +20,18 @@ package io.axual.ksml.data.notation.avro;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.SerdeProvider;
+import io.axual.ksml.data.notation.Notation;
+import io.axual.ksml.data.notation.NotationContext;
+import io.axual.ksml.data.notation.base.VendorNotationProvider;
 
-public interface AvroSerdeProvider extends SerdeProvider {
-    default String notationName() {
-        return AvroNotation.NOTATION_NAME;
+public class ConfluentJsonSchemaNotationProvider extends VendorNotationProvider {
+    // Registry Client is mocked by tests
+    public ConfluentJsonSchemaNotationProvider() {
+        super(JsonSchemaNotation.NOTATION_NAME, "confluent");
+    }
+
+    @Override
+    public Notation createNotation(NotationContext notationContext) {
+        return new JsonSchemaNotation(new ConfluentJsonSchemaSerdeSupplier(), notationContext.nativeDataObjectMapper(), notationContext.configs());
     }
 }

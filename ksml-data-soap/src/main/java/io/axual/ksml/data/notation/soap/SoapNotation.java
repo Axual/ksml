@@ -43,7 +43,7 @@ public class SoapNotation extends StringNotation {
     private final Notation.Converter converter = new SoapDataObjectConverter();
 
     public SoapNotation(NativeDataObjectMapper nativeMapper) {
-        super(NOTATION_NAME, null, DEFAULT_TYPE, new SoapDataObjectConverter(), null, nativeMapper, new DataObjectMapper<>() {
+        super(NOTATION_NAME, null, null, DEFAULT_TYPE, new SoapDataObjectConverter(), null, nativeMapper, new DataObjectMapper<>() {
             @Override
             public DataObject toDataObject(DataType expected, String value) {
                 return DATA_OBJECT_MAPPER.toDataObject(expected, STRING_MAPPER.fromString(value));
@@ -60,7 +60,7 @@ public class SoapNotation extends StringNotation {
     public Serde<Object> serde(DataType type, boolean isKey) {
         // SOAP types should ways be Maps (or Structs)
         if (type instanceof MapType) return super.serde(type, isKey);
-        // Other types can not be serialized as SOAP
+        // Other types cannot be serialized as SOAP
         throw noSerdeFor(type);
     }
 }

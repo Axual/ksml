@@ -21,7 +21,7 @@ package io.axual.ksml.data.notation.binary;
  */
 
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.notation.BaseNotation;
+import io.axual.ksml.data.notation.base.BaseNotation;
 import io.axual.ksml.data.serde.ByteSerde;
 import io.axual.ksml.data.serde.NullSerde;
 import io.axual.ksml.data.serde.SerdeSupplier;
@@ -41,7 +41,7 @@ public class BinaryNotation extends BaseNotation {
     private final SerdeSupplier complexTypeSerdeSupplier;
 
     public BinaryNotation(NativeDataObjectMapper nativeMapper, SerdeSupplier complexTypeSerdeSupplier) {
-        super(NOTATION_NAME, null, DEFAULT_TYPE, null, null);
+        super(NOTATION_NAME, null, null, DEFAULT_TYPE, null, null);
         this.nativeMapper = nativeMapper;
         this.complexTypeSerdeSupplier = complexTypeSerdeSupplier;
     }
@@ -68,11 +68,11 @@ public class BinaryNotation extends BaseNotation {
         private final Deserializer<Object> deserializer;
 
         public BinarySerde(final Serde<Object> serde) {
-            // Serialize the raw object by converting from user object if necessary
+            // Serialize the raw object by converting from a data object if necessary
             this.serializer = (topic, data) -> serde.serializer().serialize(topic, nativeMapper.fromDataObject(nativeMapper.toDataObject(data)));
             // Deserialize the raw object and return as such. If any conversion to a user
             // object needs to be done, then it's up to the pipeline operations to do so.
-            // This ensures that operations that need the raw type (eg. Count needing Long)
+            // This ensures that operations that need the raw type (e.g., Count needing Long)
             // can read back the binary types they expect.
             this.deserializer = (topic, data) -> serde.deserializer().deserialize(topic, data);
         }

@@ -20,8 +20,11 @@ package io.axual.ksml.data.notation.avro.confluent;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.BaseSerdeProvider;
-import io.axual.ksml.data.notation.avro.AvroSerdeProvider;
+import io.axual.ksml.data.mapper.DataObjectMapper;
+import io.axual.ksml.data.notation.NotationContext;
+import io.axual.ksml.data.notation.avro.AvroDataObjectMapper;
+import io.axual.ksml.data.notation.avro.AvroSerdeSupplier;
+import io.axual.ksml.data.serde.DataObjectSerde;
 import io.axual.ksml.data.type.DataType;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
@@ -31,35 +34,31 @@ import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
 
-import java.util.Map;
-
-public class ConfluentAvroSerdeProvider extends BaseSerdeProvider implements AvroSerdeProvider {
+public class ConfluentAvroSerdeSupplier implements AvroSerdeSupplier {
+    private static final AvroDataObjectMapper MAPPER = new AvroDataObjectMapper();
+    private final DataObjectMapper<Object> nativeMapper;
     // Registry Client is mocked by tests
     @Getter
     private final SchemaRegistryClient registryClient;
 
-    public ConfluentAvroSerdeProvider() {
-        this(null);
+    public ConfluentAvroSerdeSupplier(NotationContext notationContext) {
+        this(notationContext, null);
     }
 
-    public ConfluentAvroSerdeProvider(SchemaRegistryClient registryClient) {
-        super("confluent");
+    public ConfluentAvroSerdeSupplier(NotationContext notationContext, SchemaRegistryClient registryClient) {
+        this.nativeMapper = notationContext.nativeDataObjectMapper();
         this.registryClient = registryClient;
     }
 
     @Override
-    public Serde<Object> get(DataType type, boolean isKey) {
-        return new Serde<>() {
-            @Getter
-            private final Serializer<Object> serializer = registryClient != null ? new KafkaAvroSerializer(registryClient) : new KafkaAvroSerializer();
-            @Getter
-            private final Deserializer<Object> deserializer = registryClient != null ? new KafkaAvroDeserializer(registryClient) : new KafkaAvroDeserializer();
+    public String vendorName() {
+        return "confluent";
+    }
 
-            @Override
-            public void configure(Map<String, ?> configs, boolean isKey) {
-                serializer.configure(configs, isKey);
-                deserializer.configure(configs, isKey);
-            }
-        };
+    @Override
+    public Serde<Object> get(DataType type, boolean isKey) {
+        final Serializer<Object> serializer = registryClient != null ? new KafkaAvroSerializer(registryClient) : new KafkaAvroSerializer();
+        final Deserializer<Object> deserializer = registryClient != null ? new KafkaAvroDeserializer(registryClient) : new KafkaAvroDeserializer();
+        return new DataObjectSerde(vendorName(), serializer, deserializer, MAPPER, nativeMapper);
     }
 }

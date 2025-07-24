@@ -24,13 +24,10 @@ import io.axual.ksml.data.notation.apicurio.MockApicurioSchemaRegistryClient;
 import io.axual.ksml.data.notation.avro.AvroDataObjectMapper;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.avro.AvroSchemaMapper;
-import io.axual.ksml.data.notation.avro.AvroSerdeProvider;
-import io.axual.ksml.data.notation.avro.apicurio.ApicurioAvroSerdeProvider;
-import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroSerdeProvider;
+import io.axual.ksml.data.notation.avro.apicurio.ApicurioAvroNotationProvider;
+import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroNotationProvider;
 import io.axual.ksml.data.notation.confluent.MockConfluentSchemaRegistryClient;
 import org.junit.jupiter.api.Test;
-
-import java.util.Map;
 
 class AvroTests {
     @Test
@@ -43,22 +40,19 @@ class AvroTests {
         NotationTestRunner.dataTest(AvroNotation.NOTATION_NAME, new AvroDataObjectMapper());
     }
 
-    void serdeTest(AvroSerdeProvider serdeProvider, Map<String, String> srConfigs) {
-        final var notation = new AvroNotation(serdeProvider, new AvroDataObjectMapper(), srConfigs);
-        NotationTestRunner.serdeTest(AvroNotation.NOTATION_NAME, notation, true);
-    }
-
     @Test
     void apicurioSerdeTest() {
         final var registryClient = new MockApicurioSchemaRegistryClient();
-        final var serdeProvider = new ApicurioAvroSerdeProvider(registryClient);
-        serdeTest(serdeProvider, registryClient.configs());
+        final var notationContext = new NotationContext(registryClient.configs());
+        final var apicurioAvro = new ApicurioAvroNotationProvider(registryClient).createNotation(notationContext);
+        NotationTestRunner.serdeTest(AvroNotation.NOTATION_NAME, apicurioAvro, true);
     }
 
     @Test
     void confluentSerdeTest() {
         final var registryClient = new MockConfluentSchemaRegistryClient();
-        final var serdeProvider = new ConfluentAvroSerdeProvider(registryClient);
-        serdeTest(serdeProvider, registryClient.configs());
+        final var notationContext = new NotationContext(registryClient.configs());
+        final var confluentAvro = new ConfluentAvroNotationProvider(registryClient).createNotation(notationContext);
+        NotationTestRunner.serdeTest(AvroNotation.NOTATION_NAME, confluentAvro, true);
     }
 }

@@ -37,7 +37,7 @@ public class CsvNotation extends StringNotation {
             new UnionType.MemberType(new ListType()));
 
     public CsvNotation(NativeDataObjectMapper nativeMapper) {
-        super(NOTATION_NAME, ".csv", DEFAULT_TYPE, new CsvDataObjectConverter(), new CsvSchemaParser(), nativeMapper, new CsvDataObjectMapper());
+        super(NOTATION_NAME, null, ".csv", DEFAULT_TYPE, new CsvDataObjectConverter(), new CsvSchemaParser(), nativeMapper, new CsvDataObjectMapper());
     }
 
     @Override

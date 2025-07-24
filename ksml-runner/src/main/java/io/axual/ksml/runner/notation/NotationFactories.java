@@ -23,13 +23,18 @@ package io.axual.ksml.runner.notation;
 import io.axual.ksml.client.util.MapUtil;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.notation.Notation;
+import io.axual.ksml.data.notation.NotationContext;
+import io.axual.ksml.data.notation.NotationProvider;
 import io.axual.ksml.data.notation.avro.AvroNotation;
+import io.axual.ksml.data.notation.avro.AvroSerdeSupplier;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.notation.csv.CsvNotation;
 import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.data.notation.jsonschema.JsonSchemaNotation;
+import io.axual.ksml.data.notation.jsonschema.JsonSchemaSerdeSupplier;
 import io.axual.ksml.data.notation.protobuf.ProtobufDataObjectMapper;
 import io.axual.ksml.data.notation.protobuf.ProtobufNotation;
+import io.axual.ksml.data.notation.protobuf.ProtobufSerdeSupplier;
 import io.axual.ksml.data.notation.soap.SoapNotation;
 import io.axual.ksml.data.notation.xml.XmlNotation;
 import io.axual.ksml.type.UserType;
@@ -37,6 +42,7 @@ import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ServiceLoader;
 
 @Getter
 public class NotationFactories {
@@ -50,38 +56,17 @@ public class NotationFactories {
     public NotationFactories(Map<String, String> kafkaConfig) {
         final var nativeMapper = new DataObjectFlattener();
 
-        // AVRO
-        for (final var provider : AvroNotation.getSerdeProviders()) {
-            notations.put(provider.name(), notationConfig -> new AvroNotation(provider, nativeMapper, MapUtil.merge(kafkaConfig, notationConfig)));
+        // Load all notations
+        for (final var provider : ServiceLoader.load(NotationProvider.class)) {
+            notations.put(provider.name(), configs -> {
+                final var context = new NotationContext(nativeMapper, MapUtil.merge(kafkaConfig, configs));
+                return provider.createNotation(context);
+            });
         }
 
-        // CSV
-        notations.put(CsvNotation.NOTATION_NAME, config -> new CsvNotation(nativeMapper));
-
-        // JSON
-        final NotationFactory json = config -> new JsonNotation(nativeMapper);
-        notations.put(JsonNotation.NOTATION_NAME, json);
-
-        // JSON Schema
-        for (final var provider : JsonSchemaNotation.getSerdeProviders()) {
-            notations.put(provider.name(), notationConfig -> new JsonSchemaNotation(provider, nativeMapper, MapUtil.merge(kafkaConfig, notationConfig)));
-        }
-
-        // Protobuf
-        for (final var provider : ProtobufNotation.getSerdeProviders()) {
-            final var dataObjectMapper = new ProtobufDataObjectMapper(provider.fileElementMapper());
-            final var schemaParser = provider.schemaParser();
-            notations.put(provider.name(), notationConfig -> new ProtobufNotation(provider, schemaParser, dataObjectMapper, nativeMapper, MapUtil.merge(kafkaConfig, notationConfig)));
-        }
-
-        // SOAP
-        notations.put(SoapNotation.NOTATION_NAME, config -> new SoapNotation(nativeMapper));
-
-        // XML
-        notations.put(XmlNotation.NOTATION_NAME, config -> new XmlNotation(nativeMapper));
-
-        // Binary for simple types, complex types are serialized in JSON format
-
+        // Get the JSON notation
+        final NotationFactory json = notations.get(JsonNotation.NOTATION_NAME);
+        // Create the binary notation, with JSON for complex types, and set it as default
         final NotationFactory binary = config -> new BinaryNotation(nativeMapper, json.create(null)::serde);
         notations.put(BinaryNotation.NOTATION_NAME, binary);
         notations.put(UserType.DEFAULT_NOTATION, binary);

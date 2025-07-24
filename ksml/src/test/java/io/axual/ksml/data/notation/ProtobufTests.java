@@ -20,19 +20,11 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
-import io.apicurio.registry.rules.compatibility.protobuf.ProtobufCompatibilityCheckerLibrary;
-import io.apicurio.registry.utils.protobuf.schema.ProtobufFile;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.apicurio.MockApicurioSchemaRegistryClient;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.confluent.MockConfluentSchemaRegistryClient;
 import io.axual.ksml.data.notation.protobuf.*;
 import org.junit.jupiter.api.Test;
-
-import java.util.Collections;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ProtobufTests {
     @Test
@@ -55,27 +47,20 @@ class ProtobufTests {
         NotationTestRunner.dataTest(ProtobufNotation.NOTATION_NAME, new ProtobufDataObjectMapper(new ConfluentProtobufDescriptorFileElementMapper()));
     }
 
-    void serdeTest(ProtobufSerdeProvider serdeProvider, ProtobufSchemaParser schemaParser, ProtobufDataObjectMapper protobufMapper, Map<String, String> srConfigs) {
-        final var notation = new ProtobufNotation(serdeProvider, schemaParser, protobufMapper, new NativeDataObjectMapper(), srConfigs);
-        NotationTestRunner.serdeTest(AvroNotation.NOTATION_NAME, notation, true);
-    }
-
     @Test
     void apicurioSerdeTest() {
         final var registryClient = new MockApicurioSchemaRegistryClient();
-        final var serdeProvider = new ApicurioProtobufSerdeProvider(registryClient);
-        final var schemaParser = new ApicurioProtobufSchemaParser();
-        final var protobufMapper = new ProtobufDataObjectMapper(new ApicurioProtobufDescriptorFileElementMapper());
-        serdeTest(serdeProvider, schemaParser, protobufMapper, registryClient.configs());
+        final var notationContext = new NotationContext(registryClient.configs());
+        final var apicurioProtobuf = new ApicurioProtobufNotationProvider(registryClient).createNotation(notationContext);
+        NotationTestRunner.serdeTest(ProtobufNotation.NOTATION_NAME, apicurioProtobuf, true);
     }
 
     @Test
     void confluentSerdeTest() {
         final var registryClient = new MockConfluentSchemaRegistryClient();
-        final var serdeProvider = new ConfluentProtobufSerdeProvider(registryClient);
-        final var schemaParser = new ConfluentProtobufSchemaParser();
-        final var protobufMapper = new ProtobufDataObjectMapper(new ConfluentProtobufDescriptorFileElementMapper());
-        serdeTest(serdeProvider, schemaParser, protobufMapper, registryClient.configs());
+        final var notationContext = new NotationContext(registryClient.configs());
+        final var confluentProtobuf = new ConfluentProtobufNotationProvider(registryClient).createNotation(notationContext);
+        NotationTestRunner.serdeTest(ProtobufNotation.NOTATION_NAME, confluentProtobuf, true);
     }
 
 //    @Test

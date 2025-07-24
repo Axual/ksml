@@ -1,8 +1,8 @@
-package io.axual.ksml.data.notation.jsonschema;
+package io.axual.ksml.data.notation.soap;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Library - JSON Schema
+ * KSML Data Library - SOAP
  * %%
  * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
@@ -20,10 +20,18 @@ package io.axual.ksml.data.notation.jsonschema;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.SerdeProvider;
+import io.axual.ksml.data.notation.Notation;
+import io.axual.ksml.data.notation.NotationContext;
+import io.axual.ksml.data.notation.NotationProvider;
 
-public interface JsonSchemaSerdeProvider extends SerdeProvider {
-    default String notationName() {
-        return JsonSchemaNotation.NOTATION_NAME;
+public class SoapNotationProvider implements NotationProvider {
+    @Override
+    public String notationName() {
+        return SoapNotation.NOTATION_NAME;
+    }
+
+    @Override
+    public Notation createNotation(NotationContext notationContext) {
+        return new SoapNotation(notationContext.nativeDataObjectMapper());
     }
 }

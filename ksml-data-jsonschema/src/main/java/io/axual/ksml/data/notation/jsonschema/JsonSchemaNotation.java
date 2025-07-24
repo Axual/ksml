@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.notation.VendorNotation;
+import io.axual.ksml.data.notation.base.VendorNotation;
 import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
 import io.axual.ksml.data.notation.json.JsonSchemaLoader;
 import io.axual.ksml.data.object.DataObject;
@@ -35,7 +35,6 @@ import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.data.util.JsonNodeUtil;
 
 import java.util.Map;
-import java.util.ServiceLoader;
 
 public class JsonSchemaNotation extends VendorNotation {
     public static final String NOTATION_NAME = "jsonschema";
@@ -58,11 +57,7 @@ public class JsonSchemaNotation extends VendorNotation {
         }
     };
 
-    public JsonSchemaNotation(JsonSchemaSerdeProvider serdeProvider, NativeDataObjectMapper nativeMapper, Map<String, String> serdeConfigs) {
-        super(serdeProvider, ".json", DEFAULT_TYPE, new JsonDataObjectConverter(), new JsonSchemaLoader(), nativeMapper, JSON_NODE_MAPPER, serdeConfigs);
-    }
-
-    public static ServiceLoader<JsonSchemaSerdeProvider> getSerdeProviders() {
-        return ServiceLoader.load(JsonSchemaSerdeProvider.class);
+    public JsonSchemaNotation(JsonSchemaSerdeSupplier serdeSupplier, NativeDataObjectMapper nativeMapper, Map<String, String> serdeConfigs) {
+        super(NOTATION_NAME, serdeSupplier, ".json", DEFAULT_TYPE, new JsonDataObjectConverter(), new JsonSchemaLoader(), nativeMapper, JSON_NODE_MAPPER, serdeConfigs);
     }
 }

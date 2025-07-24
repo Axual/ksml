@@ -21,33 +21,34 @@ package io.axual.ksml.data.serde;
  */
 
 import lombok.Getter;
-import lombok.Setter;
 import org.apache.kafka.common.header.Headers;
-import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
-import java.util.Set;
 
-public class HeaderFilterSerde implements Serde<Object> {
+public class WrappedSerde implements Serde<Object> {
+    private final Serializer<Object> delegateSerializer;
+    private final Deserializer<Object> delegateDeserializer;
     @Getter
     private final Serializer<Object> serializer;
     @Getter
     private final Deserializer<Object> deserializer;
-    @Getter
-    @Setter
-    public Set<String> filteredHeaders;
 
-    public HeaderFilterSerde(Serde<Object> delegate) {
-        serializer = new Serializer<>() {
-            private final Serializer<Object> delegateSerializer = delegate.serializer();
-
+    public WrappedSerde(Serde<Object> delegate) {
+        this.delegateSerializer = delegate.serializer();
+        this.delegateDeserializer = delegate.deserializer();
+        this.serializer = new Serializer<>() {
             @Override
             public void configure(Map<String, ?> configs, boolean isKey) {
-                delegateSerializer.configure(configs, isKey);
+                WrappedSerde.this.configure(configs, isKey);
+            }
+
+            @Override
+            public byte[] serialize(String topic, Headers headers, Object data) {
+                return delegateSerializer.serialize(topic, headers, data);
             }
 
             @Override
@@ -56,23 +57,14 @@ public class HeaderFilterSerde implements Serde<Object> {
             }
 
             @Override
-            public byte[] serialize(String topic, Headers headers, Object data) {
-                if (data == null) {
-                    final var result = delegateSerializer.serialize(topic, headers, null);
-                    if (filteredHeaders != null) filteredHeaders.forEach(headers::remove);
-                    return result;
-                }
-                final var result = delegateSerializer.serialize(topic, headers, data);
-                if (filteredHeaders != null) filteredHeaders.forEach(headers::remove);
-                return result;
+            public void close() {
+                delegateSerializer.close();
             }
         };
-        deserializer = new Deserializer<>() {
-            private final Deserializer<Object> delegateDeserializer = delegate.deserializer();
-
+        this.deserializer = new Deserializer<>() {
             @Override
             public void configure(Map<String, ?> configs, boolean isKey) {
-                delegateDeserializer.configure(configs, isKey);
+                WrappedSerde.this.configure(configs, isKey);
             }
 
             @Override
@@ -82,29 +74,24 @@ public class HeaderFilterSerde implements Serde<Object> {
 
             @Override
             public Object deserialize(String topic, Headers headers, byte[] data) {
-                if (filteredHeaders != null) {
-                    final var substituteHeaders = new RecordHeaders(headers);
-                    filteredHeaders.forEach(substituteHeaders::remove);
-                    return delegateDeserializer.deserialize(topic, substituteHeaders, data);
-                }
                 return delegateDeserializer.deserialize(topic, headers, data);
             }
 
             @Override
             public Object deserialize(String topic, Headers headers, ByteBuffer data) {
-                if (filteredHeaders != null) {
-                    final var substituteHeaders = new RecordHeaders(headers);
-                    filteredHeaders.forEach(substituteHeaders::remove);
-                    return delegateDeserializer.deserialize(topic, substituteHeaders, data);
-                }
                 return delegateDeserializer.deserialize(topic, headers, data);
+            }
+
+            @Override
+            public void close() {
+                delegateDeserializer.close();
             }
         };
     }
 
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {
-        serializer.configure(configs, isKey);
-        deserializer.configure(configs, isKey);
+        delegateSerializer.configure(configs, isKey);
+        delegateDeserializer.configure(configs, isKey);
     }
 }

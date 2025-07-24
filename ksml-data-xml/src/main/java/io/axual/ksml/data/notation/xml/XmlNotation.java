@@ -32,7 +32,7 @@ public class XmlNotation extends StringNotation {
     public static final DataType DEFAULT_TYPE = new StructType();
 
     public XmlNotation(NativeDataObjectMapper nativeMapper) {
-        super(NOTATION_NAME, ".xsd", DEFAULT_TYPE, new XmlDataObjectConverter(), new XmlSchemaParser(), nativeMapper, new XmlDataObjectMapper(false));
+        super(NOTATION_NAME, null, ".xsd", DEFAULT_TYPE, new XmlDataObjectConverter(), new XmlSchemaParser(), nativeMapper, new XmlDataObjectMapper(false));
     }
 
     @Override
