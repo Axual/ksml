@@ -1,0 +1,540 @@
+# Partial Failures in Distributed Systems Example
+# This example demonstrates handling partial failures, network partitions,
+# and maintaining consistency across distributed components
+
+name: partial-failures-example
+version: 1.0.0
+
+# Input streams
+streams:
+  distributed_transactions:
+    topic: distributed-transactions
+    keyType: string
+    valueType: json
+    offsetResetPolicy: latest
+  
+  component_status:
+    topic: component-health-status
+    keyType: string  # component_id
+    valueType: json
+    offsetResetPolicy: latest
+
+# Tables for tracking distributed state
+tables:
+  component_registry:
+    topic: component-registry
+    keyType: string
+    valueType: json
+    caching: true
+  
+  transaction_state:
+    topic: transaction-state
+    keyType: string
+    valueType: json
+    caching: true
+
+# Output topics
+producers:
+  completed_transactions:
+    topic: completed-transactions
+    keyType: string
+    valueType: json
+  
+  partial_failures:
+    topic: partial-failure-events
+    keyType: string
+    valueType: json
+  
+  compensations:
+    topic: compensation-actions
+    keyType: string
+    valueType: json
+  
+  consistency_violations:
+    topic: consistency-violations
+    keyType: string
+    valueType: json
+
+# State stores
+stores:
+  transaction_participants:
+    type: keyValue
+    keyType: string  # transaction_id
+    valueType: json  # list of participants and their states
+    persistent: true
+  
+  partition_detector:
+    type: keyValue
+    keyType: string  # component_id
+    valueType: json  # last_seen, suspected_partition
+    persistent: true
+  
+  consistency_tracker:
+    type: keyValue
+    keyType: string
+    valueType: json
+    persistent: true
+
+# Functions for handling partial failures
+functions:
+  # Distribute transaction across components
+  distribute_transaction:
+    type: valueTransformer
+    globalCode: |
+      import time
+      import random
+      
+      # Simulate component availability
+      COMPONENT_FAILURE_RATE = 0.2
+      NETWORK_PARTITION_RATE = 0.1
+      PARTIAL_SUCCESS_RATE = 0.15
+      
+      def get_required_components(transaction):
+        # Determine which components are needed
+        tx_type = transaction.get("type", "unknown")
+        
+        components_map = {
+          "payment": ["payment-service", "inventory-service", "notification-service"],
+          "order": ["order-service", "inventory-service", "shipping-service", "payment-service"],
+          "refund": ["payment-service", "accounting-service", "notification-service"],
+          "inventory": ["inventory-service", "warehouse-service"]
+        }
+        
+        return components_map.get(tx_type, ["default-service"])
+    code: |
+      transaction = value
+      tx_id = transaction.get("id", key)
+      required_components = get_required_components(transaction)
+      
+      # Initialize transaction participants
+      participants = {}
+      
+      for component in required_components:
+        # Check component health
+        component_health = state_stores.get("partition_detector", component) or {
+          "last_seen": int(time.time() * 1000),
+          "healthy": True
+        }
+        
+        # Simulate component response
+        if random.random() < NETWORK_PARTITION_RATE:
+          # Network partition
+          participants[component] = {
+            "status": "unreachable",
+            "error": "network_partition",
+            "timestamp": int(time.time() * 1000)
+          }
+        elif random.random() < COMPONENT_FAILURE_RATE:
+          # Component failure
+          participants[component] = {
+            "status": "failed",
+            "error": "component_error",
+            "timestamp": int(time.time() * 1000)
+          }
+        elif random.random() < PARTIAL_SUCCESS_RATE:
+          # Partial success
+          participants[component] = {
+            "status": "partial",
+            "processed": random.randint(50, 90),  # percentage
+            "error": "timeout",
+            "timestamp": int(time.time() * 1000)
+          }
+        else:
+          # Success
+          participants[component] = {
+            "status": "success",
+            "timestamp": int(time.time() * 1000),
+            "result": {"component": component, "tx_id": tx_id}
+          }
+      
+      # Store participant states
+      state_stores.put("transaction_participants", tx_id, participants)
+      
+      # Analyze overall transaction state
+      statuses = [p["status"] for p in participants.values()]
+      
+      if all(s == "success" for s in statuses):
+        transaction_state = "complete"
+      elif any(s in ["failed", "unreachable"] for s in statuses):
+        transaction_state = "partial_failure"
+      else:
+        transaction_state = "partial_success"
+      
+      return {
+        "transaction": transaction,
+        "participants": participants,
+        "state": transaction_state,
+        "timestamp": int(time.time() * 1000)
+      }
+    resultType: json
+    stores:
+      - transaction_participants
+      - partition_detector
+  
+  # Detect and handle split-brain scenarios
+  detect_split_brain:
+    type: valueTransformer
+    globalCode: |
+      import time
+      
+      HEARTBEAT_TIMEOUT_MS = 30000  # 30 seconds
+      PARTITION_THRESHOLD = 3  # Number of missed heartbeats
+    code: |
+      component_status = value
+      component_id = component_status.get("component_id", key)
+      current_time = int(time.time() * 1000)
+      
+      # Get partition detection state
+      partition_state = state_stores.get("partition_detector", component_id) or {
+        "last_seen": current_time,
+        "missed_heartbeats": 0,
+        "suspected_partition": False,
+        "partition_detected_at": None
+      }
+      
+      # Update based on status
+      if component_status.get("status") == "healthy":
+        # Component is healthy
+        partition_state["last_seen"] = current_time
+        partition_state["missed_heartbeats"] = 0
+        
+        # Check if recovering from partition
+        if partition_state["suspected_partition"]:
+          # Detected recovery from partition
+          partition_state["suspected_partition"] = False
+          partition_state["recovered_at"] = current_time
+          
+          return {
+            "event": "partition_recovered",
+            "component_id": component_id,
+            "partition_duration": current_time - partition_state["partition_detected_at"],
+            "action": "reconcile_state"
+          }
+      else:
+        # Component unhealthy or missing heartbeat
+        time_since_last = current_time - partition_state["last_seen"]
+        
+        if time_since_last > HEARTBEAT_TIMEOUT_MS:
+          partition_state["missed_heartbeats"] += 1
+          
+          if partition_state["missed_heartbeats"] >= PARTITION_THRESHOLD:
+            if not partition_state["suspected_partition"]:
+              # New partition detected
+              partition_state["suspected_partition"] = True
+              partition_state["partition_detected_at"] = current_time
+              
+              return {
+                "event": "partition_detected",
+                "component_id": component_id,
+                "missed_heartbeats": partition_state["missed_heartbeats"],
+                "action": "initiate_recovery"
+              }
+      
+      # Store updated state
+      state_stores.put("partition_detector", component_id, partition_state)
+      
+      return {
+        "component_id": component_id,
+        "healthy": not partition_state["suspected_partition"],
+        "last_seen": partition_state["last_seen"],
+        "missed_heartbeats": partition_state["missed_heartbeats"]
+      }
+    resultType: json
+    stores:
+      - partition_detector
+  
+  # Handle partial failure recovery
+  handle_partial_failure:
+    type: valueTransformer
+    globalCode: |
+      import time
+      
+      def determine_recovery_strategy(participants):
+        # Analyze failure pattern
+        failed = [c for c, s in participants.items() if s["status"] in ["failed", "unreachable"]]
+        partial = [c for c, s in participants.items() if s["status"] == "partial"]
+        success = [c for c, s in participants.items() if s["status"] == "success"]
+        
+        total = len(participants)
+        success_rate = len(success) / total if total > 0 else 0
+        
+        if success_rate >= 0.8:
+          # Most components succeeded
+          return "compensate_failures"
+        elif success_rate >= 0.5:
+          # Mixed results
+          return "partial_rollback"
+        else:
+          # Mostly failed
+          return "full_rollback"
+    code: |
+      failure_event = value
+      transaction = failure_event.get("transaction", {})
+      participants = failure_event.get("participants", {})
+      
+      recovery_strategy = determine_recovery_strategy(participants)
+      
+      # Generate recovery actions
+      recovery_actions = []
+      
+      if recovery_strategy == "compensate_failures":
+        # Compensate only failed components
+        for component, status in participants.items():
+          if status["status"] in ["failed", "unreachable"]:
+            recovery_actions.append({
+              "action": "compensate",
+              "component": component,
+              "reason": status.get("error"),
+              "transaction_id": transaction.get("id")
+            })
+          elif status["status"] == "partial":
+            recovery_actions.append({
+              "action": "complete_partial",
+              "component": component,
+              "completed_percentage": status.get("processed", 0),
+              "transaction_id": transaction.get("id")
+            })
+      
+      elif recovery_strategy == "partial_rollback":
+        # Rollback successful operations for failed critical components
+        critical_components = ["payment-service", "inventory-service"]
+        
+        for component, status in participants.items():
+          if component in critical_components and status["status"] != "success":
+            # Need to rollback all successful operations
+            for success_component, success_status in participants.items():
+              if success_status["status"] == "success":
+                recovery_actions.append({
+                  "action": "rollback",
+                  "component": success_component,
+                  "reason": f"critical_component_failed:{component}",
+                  "transaction_id": transaction.get("id")
+                })
+            break
+      
+      else:  # full_rollback
+        # Rollback all successful operations
+        for component, status in participants.items():
+          if status["status"] in ["success", "partial"]:
+            recovery_actions.append({
+              "action": "rollback",
+              "component": component,
+              "reason": "transaction_failed",
+              "transaction_id": transaction.get("id")
+            })
+      
+      return {
+        "transaction_id": transaction.get("id"),
+        "recovery_strategy": recovery_strategy,
+        "recovery_actions": recovery_actions,
+        "failure_summary": {
+          "total_components": len(participants),
+          "succeeded": len([s for s in participants.values() if s["status"] == "success"]),
+          "failed": len([s for s in participants.values() if s["status"] in ["failed", "unreachable"]]),
+          "partial": len([s for s in participants.values() if s["status"] == "partial"])
+        },
+        "timestamp": int(time.time() * 1000)
+      }
+    resultType: json
+  
+  # Check consistency across components
+  check_consistency:
+    type: valueTransformer
+    globalCode: |
+      import time
+      
+      def calculate_consistency_score(states):
+        # Compare states across components
+        if not states:
+          return 1.0
+        
+        # Extract comparable values
+        versions = [s.get("version", 0) for s in states.values()]
+        checksums = [s.get("checksum", "") for s in states.values()]
+        
+        # Check version consistency
+        version_consistency = 1.0 if len(set(versions)) == 1 else 0.5
+        
+        # Check data consistency
+        checksum_consistency = 1.0 if len(set(checksums)) == 1 else 0.0
+        
+        return (version_consistency + checksum_consistency) / 2
+    code: |
+      transaction_result = value
+      tx_id = transaction_result.get("transaction", {}).get("id")
+      
+      # Get consistency tracking data
+      consistency_data = state_stores.get("consistency_tracker", tx_id) or {
+        "states": {},
+        "checks": []
+      }
+      
+      # Update component states
+      for component, status in transaction_result.get("participants", {}).items():
+        if status["status"] == "success" and "result" in status:
+          consistency_data["states"][component] = {
+            "version": status["result"].get("version", 1),
+            "checksum": status["result"].get("checksum", ""),
+            "timestamp": status["timestamp"]
+          }
+      
+      # Calculate consistency score
+      consistency_score = calculate_consistency_score(consistency_data["states"])
+      
+      # Record check
+      check_result = {
+        "timestamp": int(time.time() * 1000),
+        "score": consistency_score,
+        "component_count": len(consistency_data["states"])
+      }
+      consistency_data["checks"].append(check_result)
+      
+      # Keep only last 10 checks
+      if len(consistency_data["checks"]) > 10:
+        consistency_data["checks"] = consistency_data["checks"][-10:]
+      
+      # Detect consistency violations
+      if consistency_score < 1.0:
+        violation = {
+          "transaction_id": tx_id,
+          "consistency_score": consistency_score,
+          "inconsistent_components": list(consistency_data["states"].keys()),
+          "states": consistency_data["states"],
+          "severity": "high" if consistency_score < 0.5 else "medium"
+        }
+        
+        # Store tracking data
+        state_stores.put("consistency_tracker", tx_id, consistency_data)
+        
+        return {
+          "violation_detected": True,
+          "violation": violation,
+          "action": "reconcile"
+        }
+      
+      # Store tracking data
+      state_stores.put("consistency_tracker", tx_id, consistency_data)
+      
+      return {
+        "violation_detected": False,
+        "consistency_score": consistency_score,
+        "transaction_id": tx_id
+      }
+    resultType: json
+    stores:
+      - consistency_tracker
+
+# Main processing pipeline
+pipelines:
+  distributed_transaction_processor:
+    from: distributed_transactions
+    via:
+      # Distribute transaction to components
+      - type: transformValue
+        mapper: distribute_transaction
+      
+      # Check consistency
+      - type: transformValue
+        mapper: check_consistency
+      
+      # Branch based on results
+      - type: branch
+        branches:
+          - name: complete
+            predicate:
+              expression: |
+                value.get("transaction_result", {}).get("state") == "complete" and 
+                not value.get("violation_detected", False)
+          - name: partial_failure
+            predicate:
+              expression: |
+                value.get("transaction_result", {}).get("state") in ["partial_failure", "partial_success"]
+          - name: consistency_violation
+            predicate:
+              expression: value.get("violation_detected", False)
+    
+    branch:
+      complete:
+        to: completed_transactions
+      
+      partial_failure:
+        via:
+          - type: transformValue
+            mapper: handle_partial_failure
+          - type: branch
+            branches:
+              - name: recovery_actions
+                predicate:
+                  expression: len(value.get("recovery_actions", [])) > 0
+              - name: failure_record
+                predicate:
+                  expression: True  # Always record
+        branch:
+          recovery_actions:
+            to: compensations
+          failure_record:
+            to: partial_failures
+      
+      consistency_violation:
+        to: consistency_violations
+
+# Monitor component health for partition detection
+pipelines:
+  partition_monitor:
+    from: component_status
+    via:
+      - type: transformValue
+        mapper: detect_split_brain
+      
+      - type: branch
+        branches:
+          - name: partition_event
+            predicate:
+              expression: value.get("event") in ["partition_detected", "partition_recovered"]
+          - name: health_update
+            predicate:
+              expression: value.get("event") is None
+    
+    branch:
+      partition_event:
+        via:
+          - type: peek
+            forEach:
+              expression: |
+                event = value.get("event")
+                component = value.get("component_id")
+                print(f"Partition event: {event} for component {component}")
+        to: partial_failures
+      
+      health_update:
+        # Regular health updates, no action needed
+        via:
+          - type: peek
+            forEach:
+              expression: pass  # Silent monitoring
+
+# Process compensation actions
+pipelines:
+  compensation_processor:
+    from: compensations
+    via:
+      - type: forEach
+        action:
+          code: |
+            for action in value.get("recovery_actions", []):
+              print(f"Executing {action['action']} for {action['component']}: {action.get('reason', 'unknown')}")
+      
+      # Group by action type
+      - type: transformValue
+        mapper:
+          expression: |
+            actions_by_type = {}
+            for action in value.get("recovery_actions", []):
+              action_type = action["action"]
+              if action_type not in actions_by_type:
+                actions_by_type[action_type] = []
+              actions_by_type[action_type].append(action)
+            
+            value["grouped_actions"] = actions_by_type
+            return value
+          resultType: json

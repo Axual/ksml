@@ -35,10 +35,7 @@ stores:
 
 functions:
   check_high_value:
-    type: filter
-    parameters:
-      - name: value
-        type: object
+    type: predicate
     code: |
       # Define thresholds for different merchant categories
       thresholds = {
@@ -54,10 +51,7 @@ functions:
       return value.get("amount", 0) > threshold
 
   create_high_value_alert:
-    type: mapValues
-    parameters:
-      - name: value
-        type: object
+    type: valueTransformer
     code: |
       return {
         "transaction_id": value.get("transaction_id"),
@@ -69,23 +63,17 @@ functions:
         "alert_type": "high_value_transaction",
         "risk_score": min(100, value.get("amount") / 10)  # Simple scoring based on amount
       }
+    resultType: struct
 
   check_unusual_location:
-    type: process
-    parameters:
-      - name: key
-        type: string
-      - name: value
-        type: object
-      - name: store
-        type: keyValueStore
+    type: valueTransformer
     code: |
       card_id = value.get("card_id")
       current_country = value.get("merchant", {}).get("location", {}).get("country")
       current_state = value.get("merchant", {}).get("location", {}).get("state")
       
       # Get location history for this card
-      location_history = store.get(card_id)
+      location_history = card_location_history.get(card_id)
       
       if location_history is None:
         # First transaction for this card, initialize history
@@ -94,7 +82,7 @@ functions:
           "last_states": [current_state],
           "last_transaction_time": value.get("timestamp")
         }
-        store.put(card_id, location_history)
+        card_location_history.put(card_id, location_history)
         return None  # No alert for first transaction
       
       # Check for unusual location
@@ -128,7 +116,7 @@ functions:
         "last_states": last_states,
         "last_transaction_time": value.get("timestamp")
       }
-      store.put(card_id, location_history)
+      card_location_history.put(card_id, location_history)
       
       if unusual_location:
         return {
@@ -148,24 +136,20 @@ functions:
           "alert_type": "unusual_location",
           "risk_score": 70 if current_country not in location_history.get("last_countries", [])[:-1] else 40
         }
-      else:
-        return None
+
+      return None
+    resultType: struct
+    stores:
+      - card_location_history
 
   check_transaction_velocity:
-    type: process
-    parameters:
-      - name: key
-        type: string
-      - name: value
-        type: object
-      - name: store
-        type: keyValueStore
+    type: valueTransformer
     code: |
       card_id = value.get("card_id")
       current_time = value.get("timestamp")
       
       # Get transaction history for this card
-      history = store.get(card_id)
+      history = customer_transaction_history.get(card_id)
       
       if history is None:
         # First transaction for this card, initialize history
@@ -175,7 +159,7 @@ functions:
           "transaction_count_24h": 1,
           "total_amount_24h": value.get("amount", 0)
         }
-        store.put(card_id, history)
+        customer_transaction_history.put(card_id, history)
         return None  # No alert for first transaction
       
       # Update transaction history
@@ -205,14 +189,11 @@ functions:
         "transaction_count_24h": len(transaction_times),
         "total_amount_24h": total_amount_24h
       }
-      store.put(card_id, history)
-      
-      # Check for velocity anomalies
-      velocity_alert = None
+      customer_transaction_history.put(card_id, history)
       
       # More than 5 transactions in an hour
       if transaction_count_1h > 5:
-        velocity_alert = {
+        return {
           "transaction_id": value.get("transaction_id"),
           "timestamp": value.get("timestamp"),
           "customer_id": value.get("customer_id"),
@@ -224,13 +205,13 @@ functions:
           "risk_score": min(100, transaction_count_1h * 10)
         }
       
-      return velocity_alert
+      return None
+    resultType: struct
+    stores:
+      - customer_transaction_history
 
   calculate_fraud_score:
-    type: mapValues
-    parameters:
-      - name: value
-        type: object
+    type: valueTransformer
     code: |
       # Base risk score from the alert
       risk_score = value.get("risk_score", 0)
@@ -255,41 +236,59 @@ functions:
       value["is_likely_fraud"] = risk_score > 70
       
       return value
+    resultType: struct
 
 pipelines:
   # Pipeline for high-value transaction detection
   high_value_detection:
     from: transactions
-    filter:
-      function: check_high_value
-    mapValues:
-      function: create_high_value_alert
+    via:
+      - type: filter
+        if: check_high_value
+      - type: transformValue
+        mapper: create_high_value_alert
     to: high_value_transactions
 
   # Pipeline for unusual location detection
   unusual_location_detection:
     from: transactions
-    process:
-      function: check_unusual_location
-      stores:
-        - card_location_history
+    via:
+      - type: transformValue
+        mapper: check_unusual_location
+      - type: filter
+        if:
+          expression: value is not None
     to: unusual_location_alerts
 
   # Pipeline for transaction velocity monitoring
   velocity_monitoring:
     from: transactions
-    process:
-      function: check_transaction_velocity
-      stores:
-        - customer_transaction_history
+    via:
+      - type: transformValue
+        mapper: check_transaction_velocity
+      - type: filter
+        if:
+          expression: value is not None
     to: velocity_alerts
 
   # Pipeline for consolidating alerts and calculating final fraud score
-  fraud_scoring:
-    from:
-      - high_value_transactions
-      - unusual_location_alerts
-      - velocity_alerts
-    mapValues:
-      function: calculate_fraud_score
+  fraud_scoring_high_value:
+    from: high_value_transactions
+    via:
+      - type: transformValue
+        mapper: calculate_fraud_score
+    to: fraud_alerts
+
+  fraud_scoring_location:
+    from: unusual_location_alerts
+    via:
+      - type: transformValue
+        mapper: calculate_fraud_score
+    to: fraud_alerts
+
+  fraud_scoring_velocity:
+    from: velocity_alerts
+    via:
+      - type: transformValue
+        mapper: calculate_fraud_score
     to: fraud_alerts

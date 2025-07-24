@@ -1,0 +1,545 @@
+# Dead Letter Queue (DLQ) Example
+# This example demonstrates implementing dead letter queues to handle
+# messages that cannot be processed after multiple attempts
+
+name: dead-letter-queue-example
+version: 1.0.0
+
+# Input streams
+streams:
+  events:
+    topic: business-events
+    keyType: string
+    valueType: json
+    offsetResetPolicy: latest
+  
+  dlq_reprocess:
+    topic: dlq-reprocess-requests
+    keyType: string
+    valueType: json
+    offsetResetPolicy: latest
+
+# Output topics
+producers:
+  processed_events:
+    topic: processed-events
+    keyType: string
+    valueType: json
+  
+  dead_letter_queue:
+    topic: dead-letter-queue
+    keyType: string
+    valueType: json
+  
+  dlq_alerts:
+    topic: dlq-alerts
+    keyType: string
+    valueType: json
+  
+  reprocessed_events:
+    topic: reprocessed-events
+    keyType: string
+    valueType: json
+
+# State stores
+stores:
+  processing_attempts:
+    type: keyValue
+    keyType: string
+    valueType: json  # {count, last_attempt, errors[]}
+    persistent: true
+  
+  dlq_metadata:
+    type: keyValue
+    keyType: string
+    valueType: json  # {original_timestamp, dlq_timestamp, reason, reprocess_count}
+    persistent: true
+  
+  error_patterns:
+    type: keyValue
+    keyType: string  # error_type
+    valueType: json  # {count, last_seen, example_ids[]}
+    persistent: true
+
+# Functions
+functions:
+  # Process event with error tracking
+  process_event_with_tracking:
+    type: valueTransformer
+    globalCode: |
+      import time
+      import random
+      import json
+      
+      MAX_ATTEMPTS = 3
+      DLQ_THRESHOLD = 3
+      
+      # Simulate different types of errors
+      ERROR_TYPES = {
+        "transient": 0.2,      # 20% chance - retryable
+        "data_quality": 0.1,   # 10% chance - needs manual intervention
+        "business_rule": 0.05, # 5% chance - non-retryable
+        "system": 0.05         # 5% chance - retryable
+      }
+      
+      def process_business_logic(event):
+        # Simulate processing with potential errors
+        event_type = event.get("type", "unknown")
+        
+        # Determine if error should occur
+        error_roll = random.random()
+        cumulative_prob = 0.0
+        
+        for error_type, probability in ERROR_TYPES.items():
+          cumulative_prob += probability
+          if error_roll < cumulative_prob:
+            if error_type == "transient":
+              raise Exception("Temporary service unavailable")
+            elif error_type == "data_quality":
+              raise ValueError(f"Invalid data format in field: {random.choice(['amount', 'date', 'id'])}")
+            elif error_type == "business_rule":
+              raise Exception("Business rule violation: Amount exceeds daily limit")
+            elif error_type == "system":
+              raise RuntimeError("System resource exhausted")
+        
+        # Successful processing
+        return {
+          "processed": True,
+          "result": f"Processed {event_type} event",
+          "timestamp": int(time.time() * 1000)
+        }
+    code: |
+      event = value
+      event_id = event.get("id", key)
+      
+      # Get processing attempts
+      attempts = state_stores.get("processing_attempts", event_id) or {
+        "count": 0,
+        "first_attempt": int(time.time() * 1000),
+        "errors": []
+      }
+      
+      # Check if should send to DLQ
+      if attempts["count"] >= MAX_ATTEMPTS:
+        # Prepare DLQ entry
+        dlq_entry = {
+          "event": event,
+          "failure_reason": "max_attempts_exceeded",
+          "attempt_count": attempts["count"],
+          "errors": attempts["errors"],
+          "first_attempt": attempts["first_attempt"],
+          "last_attempt": attempts.get("last_attempt", int(time.time() * 1000))
+        }
+        
+        # Store DLQ metadata
+        state_stores.put("dlq_metadata", event_id, {
+          "original_timestamp": event.get("timestamp", attempts["first_attempt"]),
+          "dlq_timestamp": int(time.time() * 1000),
+          "reason": "max_attempts_exceeded",
+          "error_summary": attempts["errors"][-1] if attempts["errors"] else "Unknown error",
+          "reprocess_count": 0
+        })
+        
+        # Track error patterns
+        if attempts["errors"]:
+          last_error = attempts["errors"][-1]
+          error_type = last_error.get("type", "unknown")
+          
+          pattern = state_stores.get("error_patterns", error_type) or {
+            "count": 0,
+            "example_ids": []
+          }
+          pattern["count"] += 1
+          pattern["last_seen"] = int(time.time() * 1000)
+          if len(pattern["example_ids"]) < 10:
+            pattern["example_ids"].append(event_id)
+          
+          state_stores.put("error_patterns", error_type, pattern)
+        
+        return {
+          "status": "dlq",
+          "entry": dlq_entry
+        }
+      
+      try:
+        # Attempt to process the event
+        result = process_business_logic(event)
+        
+        # Success - clear attempts
+        state_stores.delete("processing_attempts", event_id)
+        
+        return {
+          "status": "success",
+          "event": event,
+          "result": result,
+          "retry_count": attempts["count"]
+        }
+        
+      except Exception as e:
+        # Processing failed
+        current_time = int(time.time() * 1000)
+        attempts["count"] += 1
+        attempts["last_attempt"] = current_time
+        
+        # Classify error
+        error_info = {
+          "timestamp": current_time,
+          "error": str(e),
+          "type": "unknown"
+        }
+        
+        if "service unavailable" in str(e).lower():
+          error_info["type"] = "transient"
+          error_info["retryable"] = True
+        elif isinstance(e, ValueError):
+          error_info["type"] = "data_quality"
+          error_info["retryable"] = False
+        elif "business rule" in str(e).lower():
+          error_info["type"] = "business_rule"
+          error_info["retryable"] = False
+        elif isinstance(e, RuntimeError):
+          error_info["type"] = "system"
+          error_info["retryable"] = True
+        
+        attempts["errors"].append(error_info)
+        
+        # Keep only last 10 errors
+        if len(attempts["errors"]) > 10:
+          attempts["errors"] = attempts["errors"][-10:]
+        
+        state_stores.put("processing_attempts", event_id, attempts)
+        
+        # Determine if retryable
+        if error_info.get("retryable", True) and attempts["count"] < MAX_ATTEMPTS:
+          return {
+            "status": "retry",
+            "event": event,
+            "error": error_info,
+            "attempt": attempts["count"]
+          }
+        else:
+          # Non-retryable or max attempts reached
+          dlq_entry = {
+            "event": event,
+            "failure_reason": error_info["type"],
+            "attempt_count": attempts["count"],
+            "errors": attempts["errors"],
+            "first_attempt": attempts["first_attempt"],
+            "last_attempt": current_time
+          }
+          
+          # Store DLQ metadata
+          state_stores.put("dlq_metadata", event_id, {
+            "original_timestamp": event.get("timestamp", attempts["first_attempt"]),
+            "dlq_timestamp": current_time,
+            "reason": error_info["type"],
+            "error_summary": str(e),
+            "reprocess_count": 0
+          })
+          
+          return {
+            "status": "dlq",
+            "entry": dlq_entry
+          }
+    resultType: json
+    stores:
+      - processing_attempts
+      - dlq_metadata
+      - error_patterns
+  
+  # Analyze DLQ entry for alerting
+  analyze_dlq_entry:
+    type: valueTransformer
+    globalCode: |
+      import time
+      
+      # Alert thresholds
+      CRITICAL_ERROR_TYPES = ["business_rule", "data_quality"]
+      DLQ_RATE_THRESHOLD = 10  # alerts if more than 10 messages in 5 minutes
+      TIME_WINDOW_MS = 300000  # 5 minutes
+    code: |
+      dlq_entry = value.get("entry", value)
+      event_id = dlq_entry.get("event", {}).get("id", key)
+      
+      # Determine alert level
+      failure_reason = dlq_entry.get("failure_reason", "unknown")
+      errors = dlq_entry.get("errors", [])
+      
+      alert_level = "low"
+      alert_reasons = []
+      
+      # Check for critical error types
+      if failure_reason in CRITICAL_ERROR_TYPES:
+        alert_level = "high"
+        alert_reasons.append(f"Critical error type: {failure_reason}")
+      
+      # Check for repeated failures
+      if dlq_entry.get("attempt_count", 0) >= MAX_ATTEMPTS:
+        if alert_level == "low":
+          alert_level = "medium"
+        alert_reasons.append(f"Max attempts ({MAX_ATTEMPTS}) exceeded")
+      
+      # Check error patterns
+      error_types = set()
+      for error in errors:
+        error_types.add(error.get("type", "unknown"))
+      
+      if len(error_types) > 2:
+        alert_level = "high"
+        alert_reasons.append(f"Multiple error types: {list(error_types)}")
+      
+      # Check DLQ rate
+      current_time = int(time.time() * 1000)
+      recent_dlq_count = 0
+      
+      # This would normally query a window of DLQ entries
+      # For demo, we'll check error patterns
+      for error_type in error_types:
+        pattern = state_stores.get("error_patterns", error_type)
+        if pattern and current_time - pattern.get("last_seen", 0) < TIME_WINDOW_MS:
+          recent_dlq_count += pattern.get("count", 0)
+      
+      if recent_dlq_count > DLQ_RATE_THRESHOLD:
+        alert_level = "critical"
+        alert_reasons.append(f"High DLQ rate: {recent_dlq_count} messages in {TIME_WINDOW_MS/60000} minutes")
+      
+      # Generate alert if needed
+      if alert_level in ["high", "critical"] or len(alert_reasons) > 0:
+        return {
+          "alert": {
+            "level": alert_level,
+            "event_id": event_id,
+            "failure_reason": failure_reason,
+            "reasons": alert_reasons,
+            "dlq_entry": dlq_entry,
+            "timestamp": current_time,
+            "recommended_action": "manual_review" if failure_reason in CRITICAL_ERROR_TYPES else "investigate_pattern"
+          }
+        }
+      
+      return {"alert": None}
+    resultType: json
+    stores:
+      - error_patterns
+  
+  # Reprocess DLQ entry
+  reprocess_dlq_entry:
+    type: valueTransformer
+    globalCode: |
+      import time
+      
+      MAX_REPROCESS_ATTEMPTS = 2
+    code: |
+      reprocess_request = value
+      event_id = reprocess_request.get("event_id")
+      dlq_event = reprocess_request.get("dlq_event")
+      
+      if not event_id or not dlq_event:
+        return {
+          "status": "invalid_request",
+          "error": "Missing event_id or dlq_event"
+        }
+      
+      # Get DLQ metadata
+      dlq_meta = state_stores.get("dlq_metadata", event_id) or {}
+      reprocess_count = dlq_meta.get("reprocess_count", 0)
+      
+      # Check reprocess limit
+      if reprocess_count >= MAX_REPROCESS_ATTEMPTS:
+        return {
+          "status": "reprocess_limit_exceeded",
+          "event_id": event_id,
+          "reprocess_count": reprocess_count
+        }
+      
+      # Update metadata
+      dlq_meta["reprocess_count"] = reprocess_count + 1
+      dlq_meta["last_reprocess_attempt"] = int(time.time() * 1000)
+      dlq_meta["reprocess_requested_by"] = reprocess_request.get("requested_by", "system")
+      
+      state_stores.put("dlq_metadata", event_id, dlq_meta)
+      
+      # Clear previous processing attempts to allow fresh retry
+      state_stores.delete("processing_attempts", event_id)
+      
+      # Extract original event
+      original_event = dlq_event.get("event") if isinstance(dlq_event, dict) else dlq_event
+      
+      return {
+        "status": "reprocess",
+        "event": original_event,
+        "reprocess_attempt": reprocess_count + 1,
+        "original_dlq_reason": dlq_meta.get("reason"),
+        "metadata": dlq_meta
+      }
+    resultType: json
+    stores:
+      - dlq_metadata
+      - processing_attempts
+
+# Main processing pipeline
+pipelines:
+  event_processor:
+    from: events
+    via:
+      # Process events with retry logic
+      - type: transformValue
+        mapper: process_event_with_tracking
+      
+      # Branch based on status
+      - type: branch
+        branches:
+          - name: success
+            predicate:
+              expression: value.get("status") == "success"
+          - name: retry
+            predicate:
+              expression: value.get("status") == "retry"
+          - name: dlq
+            predicate:
+              expression: value.get("status") == "dlq"
+    
+    branch:
+      success:
+        to: processed_events
+      
+      retry:
+        via:
+          # Add exponential backoff delay
+          - type: transformValue
+            mapper:
+              expression: |
+                import time
+                attempt = value.get("attempt", 1)
+                backoff_ms = min(1000 * (2 ** (attempt - 1)), 30000)  # Max 30 seconds
+                value["retry_after"] = int(time.time() * 1000) + backoff_ms
+                return value
+              resultType: json
+        # In production, this would go to a retry topic with delayed processing
+        to: events  # Simplified for demo
+      
+      dlq:
+        via:
+          # Analyze for alerts
+          - type: transformValue
+            mapper: analyze_dlq_entry
+          
+          # Branch for alerts
+          - type: branch
+            branches:
+              - name: has_alert
+                predicate:
+                  expression: value.get("alert") is not None
+              - name: no_alert
+                predicate:
+                  expression: value.get("alert") is None
+        
+        branch:
+          has_alert:
+            via:
+              # Send alert
+              - type: transformValue
+                mapper:
+                  expression: value.get("alert")
+                  resultType: json
+              - type: peek
+                forEach:
+                  expression: |
+                    print(f"DLQ Alert: Level={value['level']}, Event={value['event_id']}, Reasons={value['reasons']}")
+            to:
+              - dlq_alerts
+              - dead_letter_queue
+          
+          no_alert:
+            via:
+              # Extract DLQ entry
+              - type: transformValue
+                mapper:
+                  expression: value.get("entry", value)
+                  resultType: json
+            to: dead_letter_queue
+
+# DLQ reprocessing pipeline
+pipelines:
+  dlq_reprocessor:
+    from: dlq_reprocess
+    via:
+      - type: transformValue
+        mapper: reprocess_dlq_entry
+      
+      - type: branch
+        branches:
+          - name: reprocess
+            predicate:
+              expression: value.get("status") == "reprocess"
+          - name: rejected
+            predicate:
+              expression: value.get("status") != "reprocess"
+    
+    branch:
+      reprocess:
+        via:
+          # Extract event for reprocessing
+          - type: transformValue
+            mapper:
+              expression: value.get("event")
+              resultType: json
+          
+          # Process with tracking
+          - type: transformValue
+            mapper: process_event_with_tracking
+          
+          # Branch results
+          - type: branch
+            branches:
+              - name: success
+                predicate:
+                  expression: value.get("status") == "success"
+              - name: failed_again
+                predicate:
+                  expression: value.get("status") in ["retry", "dlq"]
+        
+        branch:
+          success:
+            to: reprocessed_events
+          
+          failed_again:
+            via:
+              - type: peek
+                forEach:
+                  expression: |
+                    print(f"Reprocess failed: {value}")
+            to: dead_letter_queue
+      
+      rejected:
+        via:
+          - type: peek
+            forEach:
+              expression: |
+                print(f"Reprocess rejected: {value.get('status')} - {value.get('error', 'Unknown error')}")
+
+# DLQ monitoring pipeline
+pipelines:
+  dlq_monitor:
+    from: dead_letter_queue
+    via:
+      # Track DLQ metrics
+      - type: transformValue
+        mapper:
+          expression: |
+            import time
+            entry = value
+            return {
+              "timestamp": int(time.time() * 1000),
+              "event_id": entry.get("event", {}).get("id"),
+              "failure_reason": entry.get("failure_reason"),
+              "attempt_count": entry.get("attempt_count"),
+              "error_types": list(set(e.get("type", "unknown") for e in entry.get("errors", [])))
+            }
+          resultType: json
+      
+      # Aggregate metrics (simplified for demo)
+      - type: peek
+        forEach:
+          expression: |
+            print(f"DLQ Entry: ID={value['event_id']}, Reason={value['failure_reason']}, Attempts={value['attempt_count']}")

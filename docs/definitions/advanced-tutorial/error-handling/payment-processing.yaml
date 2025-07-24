@@ -1,0 +1,624 @@
+# Resilient Payment Processing System Example
+# This example demonstrates a complete payment processing system with
+# advanced error handling, circuit breakers, retries, and fallbacks
+
+name: resilient-payment-processing
+version: 1.0.0
+
+# Input streams
+streams:
+  payment_requests:
+    topic: payment-requests
+    keyType: string
+    valueType: json
+    offsetResetPolicy: latest
+  
+  payment_events:
+    topic: payment-events
+    keyType: string
+    valueType: json
+    offsetResetPolicy: latest
+
+# Tables for reference data
+tables:
+  merchant_config:
+    topic: merchant-configuration
+    keyType: string
+    valueType: json
+    caching: true
+  
+  payment_methods:
+    topic: payment-methods
+    keyType: string
+    valueType: json
+    caching: true
+
+# Output topics
+producers:
+  processed_payments:
+    topic: processed-payments
+    keyType: string
+    valueType: json
+  
+  payment_failures:
+    topic: payment-failures
+    keyType: string
+    valueType: json
+  
+  payment_retries:
+    topic: payment-retry-queue
+    keyType: string
+    valueType: json
+  
+  fraud_alerts:
+    topic: fraud-alerts
+    keyType: string
+    valueType: json
+  
+  reconciliation_events:
+    topic: payment-reconciliation
+    keyType: string
+    valueType: json
+
+# State stores
+stores:
+  # Circuit breaker states for each service
+  payment_gateway_circuit:
+    type: keyValue
+    keyType: string  # gateway_name
+    valueType: json
+    persistent: true
+  
+  fraud_service_circuit:
+    type: keyValue
+    keyType: string
+    valueType: json
+    persistent: true
+  
+  # Retry tracking
+  payment_retry_state:
+    type: keyValue
+    keyType: string  # payment_id
+    valueType: json
+    persistent: true
+  
+  # Transaction state for idempotency
+  transaction_state:
+    type: keyValue
+    keyType: string
+    valueType: json
+    persistent: true
+  
+  # Fallback cache for fraud scores
+  fraud_score_cache:
+    type: keyValue
+    keyType: string  # user_id
+    valueType: json
+    persistent: true
+    retention: 86400000  # 24 hours
+
+# Payment processing functions
+functions:
+  # Validate payment request
+  validate_payment:
+    type: valueTransformer
+    globalCode: |
+      import time
+      import re
+      
+      REQUIRED_FIELDS = ["amount", "currency", "user_id", "merchant_id", "payment_method"]
+      SUPPORTED_CURRENCIES = ["USD", "EUR", "GBP", "JPY"]
+      MIN_AMOUNT = 0.01
+      MAX_AMOUNT = 1000000.00
+    code: |
+      payment = value
+      errors = []
+      
+      # Check required fields
+      for field in REQUIRED_FIELDS:
+        if field not in payment:
+          errors.append(f"Missing required field: {field}")
+      
+      # Validate amount
+      if "amount" in payment:
+        amount = payment["amount"]
+        if not isinstance(amount, (int, float)) or amount < MIN_AMOUNT or amount > MAX_AMOUNT:
+          errors.append(f"Invalid amount: {amount}")
+      
+      # Validate currency
+      if "currency" in payment and payment["currency"] not in SUPPORTED_CURRENCIES:
+        errors.append(f"Unsupported currency: {payment['currency']}")
+      
+      # Validate payment method
+      if "payment_method" in payment:
+        method = payment["payment_method"]
+        if method["type"] == "card":
+          # Basic card validation
+          card_number = method.get("card_number", "")
+          if not re.match(r"^\d{13,19}$", card_number.replace(" ", "")):
+            errors.append("Invalid card number")
+      
+      # Check idempotency
+      payment_id = payment.get("id", key)
+      existing_state = state_stores.get("transaction_state", payment_id)
+      
+      if existing_state:
+        # Payment already processed
+        return {
+          "valid": False,
+          "errors": ["Payment already processed"],
+          "existing_result": existing_state,
+          "idempotent_response": True
+        }
+      
+      if errors:
+        return {
+          "valid": False,
+          "errors": errors,
+          "payment": payment
+        }
+      
+      # Store initial state
+      state_stores.put("transaction_state", payment_id, {
+        "status": "validated",
+        "timestamp": int(time.time() * 1000)
+      })
+      
+      return {
+        "valid": True,
+        "payment": payment,
+        "validation_timestamp": int(time.time() * 1000)
+      }
+    resultType: json
+    stores:
+      - transaction_state
+  
+  # Check fraud with circuit breaker and fallback
+  check_fraud_with_fallback:
+    type: valueTransformer
+    globalCode: |
+      import time
+      import random
+      
+      FRAUD_SERVICE_URL = "fraud-detection-service"
+      CIRCUIT_FAILURE_THRESHOLD = 5
+      CIRCUIT_TIMEOUT_MS = 60000
+      FRAUD_THRESHOLD = 0.7
+      
+      def call_fraud_service(payment):
+        # Simulate fraud service call
+        if random.random() < 0.15:  # 15% failure rate
+          raise Exception("Fraud service unavailable")
+        
+        # Simulate processing time
+        time.sleep(random.uniform(0.1, 0.3))
+        
+        # Calculate fraud score
+        amount = payment.get("amount", 0)
+        user_history = random.random()  # Simulated user history
+        
+        if amount > 10000:
+          base_score = 0.6
+        elif amount > 1000:
+          base_score = 0.3
+        else:
+          base_score = 0.1
+        
+        fraud_score = min(1.0, base_score + (user_history * 0.4))
+        
+        return {
+          "fraud_score": fraud_score,
+          "risk_level": "high" if fraud_score > FRAUD_THRESHOLD else "low",
+          "checked_at": int(time.time() * 1000)
+        }
+    code: |
+      payment = value.get("payment", value)
+      payment_id = payment.get("id", key)
+      user_id = payment.get("user_id")
+      
+      # Check circuit breaker
+      circuit_state = state_stores.get("fraud_service_circuit", FRAUD_SERVICE_URL) or {
+        "status": "CLOSED",
+        "failure_count": 0,
+        "last_failure": 0
+      }
+      
+      current_time = int(time.time() * 1000)
+      
+      # Reset circuit if timeout passed
+      if circuit_state["status"] == "OPEN" and current_time - circuit_state["last_failure"] > CIRCUIT_TIMEOUT_MS:
+        circuit_state["status"] = "HALF_OPEN"
+        circuit_state["failure_count"] = 0
+      
+      # Check if circuit is open
+      if circuit_state["status"] == "OPEN":
+        # Use fallback - cached fraud score
+        cached_score = state_stores.get("fraud_score_cache", user_id)
+        
+        if cached_score:
+          return {
+            "payment": payment,
+            "fraud_check": {
+              "fraud_score": cached_score.get("fraud_score", 0.5),
+              "risk_level": cached_score.get("risk_level", "medium"),
+              "source": "cache_fallback",
+              "cached_at": cached_score.get("checked_at")
+            },
+            "circuit_open": True
+          }
+        else:
+          # No cache available, use conservative default
+          return {
+            "payment": payment,
+            "fraud_check": {
+              "fraud_score": 0.5,
+              "risk_level": "medium",
+              "source": "default_fallback"
+            },
+            "circuit_open": True
+          }
+      
+      try:
+        # Attempt to call fraud service
+        fraud_result = call_fraud_service(payment)
+        
+        # Success - update circuit state
+        if circuit_state["status"] == "HALF_OPEN":
+          circuit_state["status"] = "CLOSED"
+        circuit_state["failure_count"] = 0
+        state_stores.put("fraud_service_circuit", FRAUD_SERVICE_URL, circuit_state)
+        
+        # Cache the result
+        state_stores.put("fraud_score_cache", user_id, fraud_result)
+        
+        return {
+          "payment": payment,
+          "fraud_check": fraud_result,
+          "circuit_open": False
+        }
+        
+      except Exception as e:
+        # Failure - update circuit state
+        circuit_state["failure_count"] += 1
+        circuit_state["last_failure"] = current_time
+        
+        if circuit_state["failure_count"] >= CIRCUIT_FAILURE_THRESHOLD:
+          circuit_state["status"] = "OPEN"
+        elif circuit_state["status"] == "HALF_OPEN":
+          circuit_state["status"] = "OPEN"
+        
+        state_stores.put("fraud_service_circuit", FRAUD_SERVICE_URL, circuit_state)
+        
+        # Try fallback
+        cached_score = state_stores.get("fraud_score_cache", user_id)
+        
+        if cached_score:
+          return {
+            "payment": payment,
+            "fraud_check": {
+              "fraud_score": cached_score.get("fraud_score", 0.5),
+              "risk_level": cached_score.get("risk_level", "medium"),
+              "source": "cache_fallback_on_error",
+              "error": str(e)
+            },
+            "circuit_tripped": circuit_state["status"] == "OPEN"
+          }
+        else:
+          raise Exception(f"Fraud check failed and no fallback available: {e}")
+    resultType: json
+    stores:
+      - fraud_service_circuit
+      - fraud_score_cache
+  
+  # Process payment with gateway circuit breaker
+  process_payment_with_gateway:
+    type: valueTransformer
+    globalCode: |
+      import time
+      import random
+      
+      GATEWAY_FAILURE_RATES = {
+        "primary_gateway": 0.05,   # 5% failure rate
+        "secondary_gateway": 0.10,  # 10% failure rate
+        "fallback_gateway": 0.20   # 20% failure rate
+      }
+      
+      def call_payment_gateway(gateway_name, payment):
+        # Simulate gateway call
+        failure_rate = GATEWAY_FAILURE_RATES.get(gateway_name, 0.15)
+        
+        if random.random() < failure_rate:
+          error_types = ["timeout", "connection_error", "gateway_error", "insufficient_funds"]
+          raise Exception(f"{random.choice(error_types)} from {gateway_name}")
+        
+        # Simulate processing time
+        time.sleep(random.uniform(0.5, 1.5))
+        
+        return {
+          "transaction_id": f"{gateway_name}_{int(time.time() * 1000)}_{random.randint(1000, 9999)}",
+          "status": "approved",
+          "gateway": gateway_name,
+          "processed_at": int(time.time() * 1000)
+        }
+    code: |
+      payment_data = value
+      payment = payment_data.get("payment", {})
+      fraud_check = payment_data.get("fraud_check", {})
+      payment_id = payment.get("id", key)
+      
+      # Check fraud score
+      if fraud_check.get("risk_level") == "high":
+        return {
+          "payment": payment,
+          "status": "rejected",
+          "reason": "high_fraud_risk",
+          "fraud_score": fraud_check.get("fraud_score")
+        }
+      
+      # Try payment gateways in order
+      gateways = ["primary_gateway", "secondary_gateway", "fallback_gateway"]
+      
+      for gateway in gateways:
+        # Check circuit breaker for this gateway
+        circuit_key = gateway
+        circuit_state = state_stores.get("payment_gateway_circuit", circuit_key) or {
+          "status": "CLOSED",
+          "failure_count": 0,
+          "last_failure": 0
+        }
+        
+        current_time = int(time.time() * 1000)
+        
+        # Reset circuit if timeout passed
+        if circuit_state["status"] == "OPEN" and current_time - circuit_state["last_failure"] > 300000:  # 5 minutes
+          circuit_state["status"] = "HALF_OPEN"
+        
+        # Skip if circuit is open
+        if circuit_state["status"] == "OPEN":
+          continue
+        
+        try:
+          # Attempt payment
+          result = call_payment_gateway(gateway, payment)
+          
+          # Success - update circuit and transaction state
+          if circuit_state["status"] == "HALF_OPEN":
+            circuit_state["status"] = "CLOSED"
+          circuit_state["failure_count"] = 0
+          state_stores.put("payment_gateway_circuit", circuit_key, circuit_state)
+          
+          # Update transaction state
+          state_stores.put("transaction_state", payment_id, {
+            "status": "completed",
+            "result": result,
+            "timestamp": current_time
+          })
+          
+          return {
+            "payment": payment,
+            "status": "success",
+            "result": result,
+            "gateway_used": gateway,
+            "fraud_check": fraud_check
+          }
+          
+        except Exception as e:
+          # Failure - update circuit state
+          circuit_state["failure_count"] += 1
+          circuit_state["last_failure"] = current_time
+          
+          if circuit_state["failure_count"] >= 3:  # Lower threshold for payment gateways
+            circuit_state["status"] = "OPEN"
+          elif circuit_state["status"] == "HALF_OPEN":
+            circuit_state["status"] = "OPEN"
+          
+          state_stores.put("payment_gateway_circuit", circuit_key, circuit_state)
+          
+          # Continue to next gateway
+          continue
+      
+      # All gateways failed
+      return {
+        "payment": payment,
+        "status": "failed",
+        "reason": "all_gateways_failed",
+        "should_retry": True
+      }
+    resultType: json
+    stores:
+      - payment_gateway_circuit
+      - transaction_state
+  
+  # Handle payment retry logic
+  schedule_payment_retry:
+    type: valueTransformer
+    globalCode: |
+      import time
+      
+      MAX_RETRIES = 5
+      BASE_BACKOFF_MS = 5000  # 5 seconds
+    code: |
+      failed_payment = value
+      payment = failed_payment.get("payment", {})
+      payment_id = payment.get("id", key)
+      
+      # Get retry state
+      retry_state = state_stores.get("payment_retry_state", payment_id) or {
+        "attempt_count": 0,
+        "first_attempt": int(time.time() * 1000)
+      }
+      
+      # Check if should retry
+      if not failed_payment.get("should_retry", False):
+        return {
+          "action": "reject",
+          "payment": payment,
+          "reason": "non_retryable_error"
+        }
+      
+      if retry_state["attempt_count"] >= MAX_RETRIES:
+        return {
+          "action": "reject",
+          "payment": payment,
+          "reason": "max_retries_exceeded",
+          "attempts": retry_state["attempt_count"]
+        }
+      
+      # Calculate next retry time
+      retry_state["attempt_count"] += 1
+      backoff = BASE_BACKOFF_MS * (2 ** (retry_state["attempt_count"] - 1))
+      retry_state["next_retry"] = int(time.time() * 1000) + backoff
+      
+      state_stores.put("payment_retry_state", payment_id, retry_state)
+      
+      return {
+        "action": "retry",
+        "payment": payment,
+        "retry_at": retry_state["next_retry"],
+        "attempt": retry_state["attempt_count"],
+        "backoff_ms": backoff
+      }
+    resultType: json
+    stores:
+      - payment_retry_state
+
+# Main payment processing pipeline
+pipelines:
+  payment_processor:
+    from: payment_requests
+    via:
+      # Validate payment
+      - type: transformValue
+        mapper: validate_payment
+      
+      # Branch on validation
+      - type: branch
+        branches:
+          - name: valid
+            predicate:
+              expression: value.get("valid", False)
+          - name: invalid
+            predicate:
+              expression: not value.get("valid", False) and not value.get("idempotent_response", False)
+          - name: duplicate
+            predicate:
+              expression: value.get("idempotent_response", False)
+    
+    branch:
+      valid:
+        via:
+          # Check fraud
+          - type: transformValue
+            mapper: check_fraud_with_fallback
+          
+          # Process payment
+          - type: transformValue
+            mapper: process_payment_with_gateway
+          
+          # Branch on result
+          - type: branch
+            branches:
+              - name: success
+                predicate:
+                  expression: value.get("status") == "success"
+              - name: rejected
+                predicate:
+                  expression: value.get("status") == "rejected"
+              - name: failed
+                predicate:
+                  expression: value.get("status") == "failed"
+        
+        branch:
+          success:
+            to: processed_payments
+          
+          rejected:
+            via:
+              - type: peek
+                forEach:
+                  expression: |
+                    if value.get("reason") == "high_fraud_risk":
+                      print(f"Fraud alert: Payment {value['payment']['id']} rejected with score {value.get('fraud_score')}")
+            to:
+              - payment_failures
+              - fraud_alerts
+          
+          failed:
+            via:
+              - type: transformValue
+                mapper: schedule_payment_retry
+              - type: branch
+                branches:
+                  - name: retry
+                    predicate:
+                      expression: value.get("action") == "retry"
+                  - name: reject
+                    predicate:
+                      expression: value.get("action") == "reject"
+            branch:
+              retry:
+                to: payment_retries
+              reject:
+                to: payment_failures
+      
+      invalid:
+        to: payment_failures
+      
+      duplicate:
+        via:
+          - type: transformValue
+            mapper:
+              expression: |
+                {
+                  "payment": value.get("payment"),
+                  "status": "duplicate",
+                  "existing_result": value.get("existing_result")
+                }
+              resultType: json
+        to: processed_payments
+
+# Retry processor pipeline
+pipelines:
+  retry_processor:
+    from: payment_retries
+    via:
+      # Wait for retry time
+      - type: filter
+        predicate:
+          expression: |
+            import time
+            current_time = int(time.time() * 1000)
+            retry_time = value.get("retry_at", 0)
+            return current_time >= retry_time
+      
+      # Extract payment and reprocess
+      - type: transformValue
+        mapper:
+          expression: value.get("payment")
+          resultType: json
+    
+    # Send back to main processing
+    to: payment_requests
+
+# Reconciliation pipeline
+pipelines:
+  reconciliation_monitor:
+    from: processed_payments
+    via:
+      # Create reconciliation event
+      - type: transformValue
+        mapper:
+          expression: |
+            import time
+            {
+              "payment_id": value.get("payment", {}).get("id"),
+              "transaction_id": value.get("result", {}).get("transaction_id"),
+              "amount": value.get("payment", {}).get("amount"),
+              "currency": value.get("payment", {}).get("currency"),
+              "gateway": value.get("gateway_used"),
+              "status": value.get("status"),
+              "timestamp": int(time.time() * 1000),
+              "reconciliation_required": True
+            }
+          resultType: json
+    to: reconciliation_events

@@ -1,0 +1,386 @@
+# Retry Strategies Example
+# This example demonstrates sophisticated retry strategies including
+# exponential backoff, jitter, and deadline-aware retries
+
+name: retry-strategies-example
+version: 1.0.0
+
+# Define input stream of tasks to process
+streams:
+  tasks:
+    topic: tasks-to-process
+    keyType: string
+    valueType: json
+    offsetResetPolicy: latest
+
+  # Output topics
+  successful_tasks:
+    topic: processed-tasks
+    keyType: string
+    valueType: json
+  
+  failed_tasks:
+    topic: failed-tasks
+    keyType: string
+    valueType: json
+  
+  retry_queue:
+    topic: tasks-retry-queue
+    keyType: string
+    valueType: json
+
+# State stores for retry management
+stores:
+  retry_attempts:
+    type: keyValue
+    keyType: string
+    valueType: json  # {count, last_attempt, first_attempt}
+    persistent: true
+  
+  backoff_state:
+    type: keyValue
+    keyType: string
+    valueType: json  # {next_retry_time, backoff_interval}
+    persistent: true
+
+# Reusable functions
+functions:
+  # Calculate exponential backoff with jitter
+  calculate_backoff:
+    type: keyValueTransformer
+    globalCode: |
+      import random
+      import time
+      
+      # Retry configuration
+      INITIAL_BACKOFF_MS = 1000  # 1 second
+      MAX_BACKOFF_MS = 300000    # 5 minutes
+      BACKOFF_MULTIPLIER = 2.0
+      JITTER_FACTOR = 0.2        # 20% jitter
+      MAX_RETRY_ATTEMPTS = 5
+      DEADLINE_MS = 3600000      # 1 hour deadline
+    code: |
+      task_id = key
+      retry_info = retry_attempts.get(task_id) or {
+        "count": 0,
+        "first_attempt": int(time.time() * 1000)
+      }
+      
+      retry_count = retry_info["count"]
+      current_time = int(time.time() * 1000)
+      
+      # Check if exceeded max attempts
+      if retry_count >= MAX_RETRY_ATTEMPTS:
+        return (key, {
+          "task": value,
+          "retry_exhausted": True,
+          "attempts": retry_count,
+          "reason": "max_attempts_exceeded"
+        })
+      
+      # Check if deadline exceeded
+      if current_time - retry_info["first_attempt"] > DEADLINE_MS:
+        return (key, {
+          "task": value,
+          "retry_exhausted": True,
+          "attempts": retry_count,
+          "reason": "deadline_exceeded"
+        })
+      
+      # Calculate base backoff
+      base_backoff = min(
+        INITIAL_BACKOFF_MS * (BACKOFF_MULTIPLIER ** retry_count),
+        MAX_BACKOFF_MS
+      )
+      
+      # Add jitter
+      jitter = base_backoff * JITTER_FACTOR * (2 * random.random() - 1)
+      backoff_with_jitter = int(base_backoff + jitter)
+      
+      # Calculate next retry time
+      next_retry_time = current_time + backoff_with_jitter
+      
+      # Update retry state
+      retry_info["count"] = retry_count + 1
+      retry_info["last_attempt"] = current_time
+      state_stores.put("retry_attempts", task_id, retry_info)
+      
+      backoff_info = {
+        "next_retry_time": next_retry_time,
+        "backoff_interval": backoff_with_jitter,
+        "base_backoff": base_backoff,
+        "attempt": retry_count + 1
+      }
+      backoff_state.put(task_id, backoff_info)
+
+      return (key, {
+        "task": value,
+        "retry_info": backoff_info,
+        "can_retry": True
+      })
+    resultType: (string, json)
+    stores:
+      - retry_attempts
+      - backoff_state
+  
+  # Process task with retry logic
+  process_task_with_retry:
+    type: valueTransformer
+    globalCode: |
+      import time
+      import random
+      
+      def process_task(task):
+        # Simulate task processing with potential failures
+        task_type = task.get("type", "unknown")
+        
+        # Different failure rates for different task types
+        failure_rates = {
+          "payment": 0.3,    # 30% failure rate
+          "email": 0.1,      # 10% failure rate
+          "calculation": 0.2, # 20% failure rate
+          "unknown": 0.5     # 50% failure rate
+        }
+        
+        failure_rate = failure_rates.get(task_type, 0.5)
+        
+        if random.random() < failure_rate:
+          # Simulate different error types
+          error_types = [
+            ("timeout", "Service timeout"),
+            ("connection", "Connection refused"),
+            ("rate_limit", "Rate limit exceeded"),
+            ("server_error", "Internal server error")
+          ]
+          error_type, error_msg = random.choice(error_types)
+          
+          raise Exception(f"{error_msg} (type: {error_type})")
+        
+        # Simulate processing time
+        time.sleep(random.uniform(0.1, 0.5))
+        
+        return {
+          "result": "processed",
+          "timestamp": int(time.time() * 1000),
+          "task_id": task.get("id"),
+          "task_type": task_type
+        }
+    code: |
+      task = value.get("task") if "task" in value else value
+      task_id = task.get("id", key)
+      
+      # Check if this is a retry
+      retry_info = value.get("retry_info")
+      if retry_info:
+        current_time = int(time.time() * 1000)
+        if current_time < retry_info["next_retry_time"]:
+          # Not time to retry yet
+          return {
+            "status": "waiting",
+            "task": task,
+            "retry_at": retry_info["next_retry_time"],
+            "remaining_wait": retry_info["next_retry_time"] - current_time
+          }
+      
+      try:
+        # Attempt to process the task
+        result = process_task(task)
+        
+        # Success - clear retry state
+        state_stores.delete("retry_attempts", task_id)
+        state_stores.delete("backoff_state", task_id)
+        
+        return {
+          "status": "success",
+          "result": result,
+          "retry_count": retry_info["attempt"] - 1 if retry_info else 0
+        }
+        
+      except Exception as e:
+        error_msg = str(e)
+        error_type = "unknown"
+        
+        # Extract error type if available
+        if "(type: " in error_msg:
+          error_type = error_msg.split("(type: ")[1].rstrip(")")
+        
+        # Determine if error is retryable
+        non_retryable_errors = ["validation_error", "invalid_input", "not_found"]
+        is_retryable = error_type not in non_retryable_errors
+        
+        return {
+          "status": "failed",
+          "task": task,
+          "error": error_msg,
+          "error_type": error_type,
+          "is_retryable": is_retryable,
+          "timestamp": int(time.time() * 1000)
+        }
+    resultType: json
+    stores:
+      - retry_attempts
+      - backoff_state
+  
+  # Adaptive retry strategy based on error type
+  select_retry_strategy:
+    type: valueTransformer
+    code: |
+      error_type = value.get("error_type", "unknown")
+      
+      # Define retry strategies for different error types
+      strategies = {
+        "timeout": {
+          "multiplier": 2.0,
+          "max_attempts": 5,
+          "initial_backoff": 2000  # 2 seconds
+        },
+        "connection": {
+          "multiplier": 1.5,
+          "max_attempts": 10,
+          "initial_backoff": 1000  # 1 second
+        },
+        "rate_limit": {
+          "multiplier": 1.0,  # Linear backoff for rate limits
+          "max_attempts": 3,
+          "initial_backoff": 60000  # 1 minute
+        },
+        "server_error": {
+          "multiplier": 3.0,
+          "max_attempts": 4,
+          "initial_backoff": 5000  # 5 seconds
+        }
+      }
+      
+      strategy = strategies.get(error_type, {
+        "multiplier": 2.0,
+        "max_attempts": 5,
+        "initial_backoff": 1000
+      })
+      
+      value["retry_strategy"] = strategy
+      return value
+    resultType: json
+
+# Main processing pipeline
+pipelines:
+  task_processing:
+    from: tasks
+    via:
+      # Process tasks
+      - type: transformValue
+        mapper: process_task_with_retry
+      
+      # Branch based on status
+      - type: branch
+        branches:
+          - name: success
+            predicate:
+              expression: value.get("status") == "success"
+          - name: retry
+            predicate:
+              expression: |
+                value.get("status") == "failed" and value.get("is_retryable", False)
+          - name: failed
+            predicate:
+              expression: |
+                value.get("status") == "failed" and not value.get("is_retryable", False)
+          - name: waiting
+            predicate:
+              expression: value.get("status") == "waiting"
+    
+    # Route branches
+    branch:
+      success:
+        to: successful_tasks
+      failed:
+        to: failed_tasks
+      retry:
+        via:
+          # Apply retry strategy
+          - type: transformValue
+            mapper: select_retry_strategy
+          # Calculate backoff
+          - type: transformKeyValue
+            mapper: calculate_backoff
+          # Filter out exhausted retries
+          - type: branch
+            branches:
+              - name: can_retry
+                predicate:
+                  expression: value.get("can_retry", False)
+              - name: exhausted
+                predicate:
+                  expression: value.get("retry_exhausted", False)
+        branch:
+          can_retry:
+            to: retry_queue
+          exhausted:
+            to: failed_tasks
+      waiting:
+        to: retry_queue
+
+  # Process retry queue
+  retry_processor:
+    from: retry_queue
+    via:
+      # Wait for retry time
+      - type: transformValue
+        mapper:
+          type: valueTransformer
+          code: |
+            import time
+            retry_info = value.get("retry_info")
+            if retry_info:
+              current_time = int(time.time() * 1000)
+              wait_time = max(0, retry_info["next_retry_time"] - current_time)
+              if wait_time > 0:
+                # In production, this would use scheduled processing
+                # For demo, we'll just mark it as waiting
+                value["wait_time_remaining"] = wait_time
+            return value
+          resultType: json
+      
+      # Reprocess tasks that are ready
+      - type: filter
+        predicate:
+          expression: |
+            import time
+            retry_info = value.get("retry_info")
+            if not retry_info:
+              return True
+            current_time = int(time.time() * 1000)
+            return current_time >= retry_info["next_retry_time"]
+      
+      # Send back to main processing
+      - type: transformValue
+        mapper: process_task_with_retry
+      
+      # Route results
+      - type: branch
+        branches:
+          - name: success
+            predicate:
+              expression: value.get("status") == "success"
+          - name: retry_again
+            predicate:
+              expression: |
+                value.get("status") == "failed" and value.get("is_retryable", False)
+          - name: failed
+            predicate:
+              expression: |
+                value.get("status") == "failed" and not value.get("is_retryable", False)
+    
+    branch:
+      success:
+        to: successful_tasks
+      failed:
+        to: failed_tasks
+      retry_again:
+        # Send back through retry calculation
+        via:
+          - type: transformKeyValue
+            mapper: calculate_backoff
+          - type: filter
+            predicate:
+              expression: value.get("can_retry", False)
+        to: retry_queue

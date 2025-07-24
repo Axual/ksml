@@ -1,0 +1,469 @@
+# Error Recovery Workflows Example
+# This example demonstrates structured error recovery with different
+# recovery strategies based on error type and severity
+
+name: error-recovery-workflows-example
+version: 1.0.0
+
+# Input streams
+streams:
+  business_events:
+    topic: business-events
+    keyType: string
+    valueType: json
+    offsetResetPolicy: latest
+  
+  error_events:
+    topic: error-events
+    keyType: string
+    valueType: json
+    offsetResetPolicy: latest
+
+# Output topics
+producers:
+  processed_events:
+    topic: processed-events
+    keyType: string
+    valueType: json
+  
+  recovery_actions:
+    topic: recovery-actions
+    keyType: string
+    valueType: json
+  
+  unrecoverable_errors:
+    topic: unrecoverable-errors
+    keyType: string
+    valueType: json
+  
+  audit_log:
+    topic: error-audit-log
+    keyType: string
+    valueType: json
+
+# State stores
+stores:
+  error_history:
+    type: keyValue
+    keyType: string
+    valueType: json  # List of errors with timestamps
+    persistent: true
+  
+  recovery_state:
+    type: keyValue
+    keyType: string
+    valueType: json  # Current recovery workflow state
+    persistent: true
+  
+  fallback_values:
+    type: keyValue
+    keyType: string
+    valueType: json
+    persistent: true
+
+# Error classification and recovery functions
+functions:
+  # Classify errors by type and severity
+  classify_error:
+    type: valueTransformer
+    globalCode: |
+      # Error classification rules
+      ERROR_PATTERNS = {
+        "data_validation": {
+          "patterns": ["validation", "invalid", "schema", "format"],
+          "severity": "medium",
+          "recoverable": True,
+          "recovery_strategy": "data_correction"
+        },
+        "external_service": {
+          "patterns": ["timeout", "connection", "service unavailable", "503"],
+          "severity": "high",
+          "recoverable": True,
+          "recovery_strategy": "retry_with_fallback"
+        },
+        "rate_limit": {
+          "patterns": ["rate limit", "429", "throttle"],
+          "severity": "medium",
+          "recoverable": True,
+          "recovery_strategy": "backpressure"
+        },
+        "authorization": {
+          "patterns": ["unauthorized", "401", "forbidden", "403"],
+          "severity": "high",
+          "recoverable": False,
+          "recovery_strategy": "manual_intervention"
+        },
+        "data_corruption": {
+          "patterns": ["corrupt", "checksum", "integrity"],
+          "severity": "critical",
+          "recoverable": False,
+          "recovery_strategy": "data_recovery"
+        },
+        "business_rule": {
+          "patterns": ["business rule", "constraint", "policy"],
+          "severity": "medium",
+          "recoverable": True,
+          "recovery_strategy": "rule_adjustment"
+        }
+      }
+      
+      def classify(error_message):
+        error_lower = error_message.lower()
+        
+        for error_type, config in ERROR_PATTERNS.items():
+          for pattern in config["patterns"]:
+            if pattern in error_lower:
+              return {
+                "type": error_type,
+                "severity": config["severity"],
+                "recoverable": config["recoverable"],
+                "recovery_strategy": config["recovery_strategy"]
+              }
+        
+        # Default classification
+        return {
+          "type": "unknown",
+          "severity": "medium",
+          "recoverable": True,
+          "recovery_strategy": "generic_retry"
+        }
+    code: |
+      import time
+      
+      error = value
+      classification = classify(error.get("error_message", ""))
+      
+      # Add metadata
+      classification["error_id"] = error.get("id", key)
+      classification["timestamp"] = int(time.time() * 1000)
+      classification["original_error"] = error
+      classification["event_data"] = error.get("event_data", {})
+      
+      # Check error history for patterns
+      error_history = state_stores.get("error_history", key) or []
+      error_history.append({
+        "timestamp": classification["timestamp"],
+        "type": classification["type"],
+        "severity": classification["severity"]
+      })
+      
+      # Keep only last 100 errors
+      if len(error_history) > 100:
+        error_history = error_history[-100:]
+      
+      state_stores.put("error_history", key, error_history)
+      
+      # Detect error patterns (e.g., repeated failures)
+      recent_errors = [e for e in error_history if 
+                       classification["timestamp"] - e["timestamp"] < 300000]  # Last 5 minutes
+      
+      if len(recent_errors) > 5:
+        classification["pattern_detected"] = "frequent_errors"
+        classification["severity"] = "critical"
+      
+      return classification
+    resultType: json
+    stores:
+      - error_history
+  
+  # Execute recovery workflows
+  execute_recovery_workflow:
+    type: valueTransformer
+    globalCode: |
+      import time
+      import json
+      
+      # Recovery workflow definitions
+      RECOVERY_WORKFLOWS = {
+        "data_correction": [
+          {"action": "validate_schema", "timeout": 5000},
+          {"action": "apply_defaults", "timeout": 2000},
+          {"action": "sanitize_data", "timeout": 3000},
+          {"action": "reprocess", "timeout": 10000}
+        ],
+        "retry_with_fallback": [
+          {"action": "check_circuit_breaker", "timeout": 1000},
+          {"action": "attempt_retry", "timeout": 30000},
+          {"action": "use_fallback", "timeout": 5000},
+          {"action": "update_cache", "timeout": 2000}
+        ],
+        "backpressure": [
+          {"action": "calculate_delay", "timeout": 1000},
+          {"action": "queue_for_retry", "timeout": 2000},
+          {"action": "adjust_rate", "timeout": 1000}
+        ],
+        "data_recovery": [
+          {"action": "check_backup", "timeout": 5000},
+          {"action": "restore_from_backup", "timeout": 60000},
+          {"action": "validate_integrity", "timeout": 10000},
+          {"action": "reconcile_state", "timeout": 30000}
+        ],
+        "rule_adjustment": [
+          {"action": "identify_rule", "timeout": 2000},
+          {"action": "check_overrides", "timeout": 1000},
+          {"action": "apply_adjustment", "timeout": 5000},
+          {"action": "reprocess", "timeout": 10000}
+        ],
+        "generic_retry": [
+          {"action": "wait_backoff", "timeout": 5000},
+          {"action": "reprocess", "timeout": 10000}
+        ]
+      }
+      
+      def execute_action(action_name, context):
+        # Simulate recovery actions
+        if action_name == "validate_schema":
+          # Check if data matches expected schema
+          return {"valid": True, "corrections": []}
+        
+        elif action_name == "apply_defaults":
+          # Apply default values for missing fields
+          data = context.get("event_data", {})
+          defaults = {
+            "status": "pending",
+            "priority": "normal",
+            "retry_count": 0
+          }
+          for key, value in defaults.items():
+            if key not in data:
+              data[key] = value
+          return {"data": data}
+        
+        elif action_name == "use_fallback":
+          # Use fallback values from cache
+          fallback = state_stores.get("fallback_values", context.get("key")) or {}
+          return {"fallback_data": fallback, "used_fallback": True}
+        
+        elif action_name == "check_circuit_breaker":
+          # Check if service is available
+          return {"circuit_open": False}
+        
+        # Default action result
+        return {"status": "completed", "action": action_name}
+    code: |
+      classification = value
+      recovery_strategy = classification.get("recovery_strategy", "generic_retry")
+      workflow = RECOVERY_WORKFLOWS.get(recovery_strategy, RECOVERY_WORKFLOWS["generic_retry"])
+      
+      # Get or create recovery state
+      recovery_key = classification.get("error_id")
+      recovery_state = state_stores.get("recovery_state", recovery_key) or {
+        "current_step": 0,
+        "started_at": int(time.time() * 1000),
+        "attempts": 0,
+        "results": []
+      }
+      
+      # Check if workflow is complete or timed out
+      current_time = int(time.time() * 1000)
+      if recovery_state["current_step"] >= len(workflow):
+        # Workflow complete
+        classification["recovery_complete"] = True
+        classification["recovery_results"] = recovery_state["results"]
+        state_stores.delete("recovery_state", recovery_key)
+        return classification
+      
+      # Execute current step
+      current_step = workflow[recovery_state["current_step"]]
+      step_start = current_time
+      
+      try:
+        # Execute recovery action
+        action_result = execute_action(current_step["action"], {
+          "key": recovery_key,
+          "event_data": classification.get("event_data", {}),
+          "error_type": classification.get("type"),
+          "attempt": recovery_state["attempts"]
+        })
+        
+        # Record result
+        recovery_state["results"].append({
+          "step": recovery_state["current_step"],
+          "action": current_step["action"],
+          "result": action_result,
+          "duration": current_time - step_start,
+          "success": True
+        })
+        
+        # Move to next step
+        recovery_state["current_step"] += 1
+        
+      except Exception as e:
+        # Record failure
+        recovery_state["results"].append({
+          "step": recovery_state["current_step"],
+          "action": current_step["action"],
+          "error": str(e),
+          "duration": current_time - step_start,
+          "success": False
+        })
+        
+        # Check if should abort workflow
+        recovery_state["attempts"] += 1
+        if recovery_state["attempts"] > 3:
+          classification["recovery_failed"] = True
+          classification["recovery_results"] = recovery_state["results"]
+          state_stores.delete("recovery_state", recovery_key)
+          return classification
+      
+      # Save recovery state
+      state_stores.put("recovery_state", recovery_key, recovery_state)
+      
+      # Return current status
+      classification["recovery_in_progress"] = True
+      classification["recovery_step"] = recovery_state["current_step"]
+      classification["recovery_workflow"] = recovery_strategy
+      
+      return classification
+    resultType: json
+    stores:
+      - recovery_state
+      - fallback_values
+  
+  # Generate recovery actions
+  generate_recovery_action:
+    type: valueTransformer
+    code: |
+      import time
+      
+      classification = value
+      
+      # Generate specific recovery actions based on classification
+      action = {
+        "id": classification.get("error_id"),
+        "timestamp": int(time.time() * 1000),
+        "error_type": classification.get("type"),
+        "severity": classification.get("severity"),
+        "recovery_strategy": classification.get("recovery_strategy"),
+        "event_data": classification.get("event_data", {})
+      }
+      
+      # Add strategy-specific instructions
+      if classification.get("recovery_strategy") == "data_correction":
+        action["instructions"] = {
+          "validate_fields": True,
+          "apply_transformations": True,
+          "use_defaults": True
+        }
+      elif classification.get("recovery_strategy") == "retry_with_fallback":
+        action["instructions"] = {
+          "max_retries": 3,
+          "backoff_ms": 5000,
+          "fallback_enabled": True
+        }
+      elif classification.get("recovery_strategy") == "manual_intervention":
+        action["instructions"] = {
+          "notify_team": True,
+          "escalation_level": 2,
+          "sla_minutes": 30
+        }
+      
+      # Add recovery results if available
+      if classification.get("recovery_results"):
+        action["recovery_results"] = classification["recovery_results"]
+      
+      return action
+    resultType: json
+
+# Main error processing pipeline
+pipelines:
+  error_processor:
+    from: error_events
+    via:
+      # Classify errors
+      - type: transformValue
+        mapper: classify_error
+      
+      # Branch based on recoverability
+      - type: branch
+        branches:
+          - name: recoverable
+            predicate:
+              expression: value.get("recoverable", False)
+          - name: unrecoverable
+            predicate:
+              expression: not value.get("recoverable", False)
+    
+    branch:
+      recoverable:
+        via:
+          # Execute recovery workflow
+          - type: transformValue
+            mapper: execute_recovery_workflow
+          
+          # Branch based on recovery status
+          - type: branch
+            branches:
+              - name: complete
+                predicate:
+                  expression: value.get("recovery_complete", False)
+              - name: failed
+                predicate:
+                  expression: value.get("recovery_failed", False)
+              - name: in_progress
+                predicate:
+                  expression: value.get("recovery_in_progress", False)
+        
+        branch:
+          complete:
+            via:
+              - type: transformValue
+                mapper: generate_recovery_action
+            to: recovery_actions
+          
+          failed:
+            to: unrecoverable_errors
+          
+          in_progress:
+            # Send back to error events for continued processing
+            to: error_events
+      
+      unrecoverable:
+        to: unrecoverable_errors
+
+# Audit all error handling activities
+pipelines:
+  error_auditor:
+    from: error_events
+    via:
+      # Create audit record
+      - type: transformValue
+        mapper:
+          expression: |
+            import time
+            {
+              "timestamp": int(time.time() * 1000),
+              "error_id": value.get("id", key),
+              "error_type": value.get("type", "unknown"),
+              "severity": value.get("severity", "unknown"),
+              "recovery_strategy": value.get("recovery_strategy"),
+              "event_type": "error_received"
+            }
+          resultType: json
+    to: audit_log
+
+# Monitor recovery actions
+pipelines:
+  recovery_monitor:
+    from: recovery_actions
+    via:
+      # Log recovery actions
+      - type: peek
+        forEach:
+          expression: |
+            print(f"Recovery action generated: {value}")
+      
+      # Create audit record
+      - type: transformValue
+        mapper:
+          expression: |
+            import time
+            {
+              "timestamp": int(time.time() * 1000),
+              "error_id": value.get("id"),
+              "recovery_strategy": value.get("recovery_strategy"),
+              "event_type": "recovery_action_generated",
+              "instructions": value.get("instructions", {})
+            }
+          resultType: json
+    to: audit_log

@@ -65,6 +65,26 @@ Learn about the various operations you can perform on your data:
 - Joining streams and tables
 - Sink operations
 
+### [Error Handling](error-handling.md)
+
+Learn about error handling strategies and techniques in KSML:
+
+- Types of errors in stream processing
+- Error handling strategies (DLQs, retries, etc.)
+- Implementing error handling at different levels
+- Advanced error handling techniques
+- Monitoring and observability for errors
+
+### [Advanced Topics](advanced-topics.md)
+
+Explore advanced concepts and techniques in KSML:
+
+- Performance optimization
+- Complex event processing
+- Custom state stores
+- Integration patterns
+- Advanced windowing and joining
+
 ## Conceptual Understanding
 
 Beyond just the syntax and components, this section helps you understand:

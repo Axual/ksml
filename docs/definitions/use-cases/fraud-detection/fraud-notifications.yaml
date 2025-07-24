@@ -1,0 +1,51 @@
+streams:
+  fraud_alerts:
+    topic: fraud_alerts
+    keyType: string  # transaction_id
+    valueType: json  # consolidated alert data
+
+  fraud_notifications:
+    topic: fraud_notifications
+    keyType: string  # transaction_id
+    valueType: json  # notifications to be sent out
+
+functions:
+  generate_notification:
+    type: valueTransformer
+    code: |
+      risk_score = value.get("final_risk_score", 0)
+      
+      # Determine alert level
+      alert_level = "low"
+      if risk_score > 70:
+        alert_level = "high"
+      elif risk_score > 40:
+        alert_level = "medium"
+      
+      # Create alert message
+      alert = {
+        "transaction_id": value.get("transaction_id"),
+        "timestamp": value.get("timestamp"),
+        "customer_id": value.get("customer_id"),
+        "card_id": value.get("card_id"),
+        "merchant": value.get("merchant"),
+        "amount": value.get("amount"),
+        "alert_type": value.get("alert_type"),
+        "risk_score": risk_score,
+        "alert_level": alert_level,
+        "alert_message": f"Potential fraud detected: {value.get('alert_type')} with risk score {risk_score}",
+        "recommended_action": "block" if alert_level == "high" else "review"
+      }
+      
+      return alert
+
+pipelines:
+  alert_generation:
+    from: fraud_alerts
+    via:
+      - type: filter
+        if:
+          expression: value.get("final_risk_score", 0) > 30  # Only notify on medium to high risk
+      - type: transformValue
+        mapper: generate_alert
+    to: fraud_notifications

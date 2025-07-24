@@ -1,0 +1,40 @@
+streams:
+  raw_transactions:
+    topic: transactions
+    keyType: string
+    valueType: json
+
+  failed_transactions:
+    topic: processed_transactions
+    keyType: string
+    valueType: json
+
+  processed_transactions:
+    topic: processed_transactions
+    keyType: string
+    valueType: json
+
+functions:
+  process_transaction:
+    type: valueTransformer
+    code: |
+      import random
+      if value is None:
+        return None
+      if random.randrange(2) < 1:
+        value["status"] = "ok"
+      else:
+        value["status"] = "failed"
+      return value
+
+pipelines:
+  process_transactions:
+    from: raw_transactions
+    via:
+      - type: transformValue
+        mapper: process_transaction
+    branch:
+      - if:
+          expression: value is not None and value.get("status", "") == "failed"
+        to: failed_transactions
+      - to: processed_transactions

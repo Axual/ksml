@@ -1,0 +1,548 @@
+# Compensating Transactions Example
+# This example demonstrates using compensating transactions to undo
+# partial changes when a multi-step process fails
+
+name: compensating-transactions-example
+version: 1.0.0
+
+# Input streams
+streams:
+  order_requests:
+    topic: order-requests
+    keyType: string
+    valueType: json
+    offsetResetPolicy: latest
+  
+  compensation_requests:
+    topic: compensation-requests
+    keyType: string
+    valueType: json
+    offsetResetPolicy: latest
+
+# Output topics
+producers:
+  completed_orders:
+    topic: completed-orders
+    keyType: string
+    valueType: json
+  
+  failed_orders:
+    topic: failed-orders
+    keyType: string
+    valueType: json
+  
+  compensation_events:
+    topic: compensation-events
+    keyType: string
+    valueType: json
+  
+  compensation_results:
+    topic: compensation-results
+    keyType: string
+    valueType: json
+
+# State stores
+stores:
+  transaction_log:
+    type: keyValue
+    keyType: string  # order_id
+    valueType: json  # list of completed steps with compensation info
+    persistent: true
+  
+  compensation_state:
+    type: keyValue
+    keyType: string  # order_id
+    valueType: json  # compensation progress
+    persistent: true
+  
+  resource_locks:
+    type: keyValue
+    keyType: string  # resource_id
+    valueType: json  # lock info
+    persistent: true
+
+# Functions
+functions:
+  # Execute order workflow with compensation tracking
+  execute_order_workflow:
+    type: valueTransformer
+    globalCode: |
+      import time
+      import random
+      import json
+      
+      # Define workflow steps with compensation actions
+      WORKFLOW_STEPS = [
+        {
+          "name": "reserve_inventory",
+          "failure_rate": 0.1,
+          "compensate": "release_inventory"
+        },
+        {
+          "name": "charge_payment",
+          "failure_rate": 0.15,
+          "compensate": "refund_payment"
+        },
+        {
+          "name": "create_shipment",
+          "failure_rate": 0.2,
+          "compensate": "cancel_shipment"
+        },
+        {
+          "name": "send_notification",
+          "failure_rate": 0.05,
+          "compensate": None  # No compensation needed
+        }
+      ]
+      
+      def execute_step(step_name, order):
+        # Simulate step execution
+        if step_name == "reserve_inventory":
+          items = order.get("items", [])
+          reserved_items = []
+          for item in items:
+            if random.random() > 0.1:  # 90% success rate per item
+              reserved_items.append({
+                "sku": item.get("sku"),
+                "quantity": item.get("quantity"),
+                "reservation_id": f"res_{int(time.time() * 1000)}_{random.randint(1000, 9999)}"
+              })
+            else:
+              raise Exception(f"Inventory not available for SKU: {item.get('sku')}")
+          return {"reserved_items": reserved_items}
+        
+        elif step_name == "charge_payment":
+          amount = order.get("total_amount", 0)
+          if random.random() > 0.1:  # 90% success rate
+            return {
+              "transaction_id": f"pay_{int(time.time() * 1000)}_{random.randint(1000, 9999)}",
+              "amount": amount,
+              "currency": order.get("currency", "USD")
+            }
+          else:
+            raise Exception("Payment declined")
+        
+        elif step_name == "create_shipment":
+          if random.random() > 0.2:  # 80% success rate
+            return {
+              "shipment_id": f"ship_{int(time.time() * 1000)}_{random.randint(1000, 9999)}",
+              "carrier": "FastShip",
+              "tracking_number": f"FS{random.randint(100000, 999999)}"
+            }
+          else:
+            raise Exception("Shipping service unavailable")
+        
+        elif step_name == "send_notification":
+          if random.random() > 0.05:  # 95% success rate
+            return {
+              "notification_id": f"notif_{int(time.time() * 1000)}",
+              "sent_to": order.get("customer_email")
+            }
+          else:
+            raise Exception("Notification service error")
+        
+        return {"status": "completed"}
+    code: |
+      order = value
+      order_id = order.get("id", key)
+      
+      # Initialize transaction log
+      transaction_log = []
+      
+      # Execute workflow steps
+      for step in WORKFLOW_STEPS:
+        step_name = step["name"]
+        
+        try:
+          # Check for simulated failure
+          if random.random() < step["failure_rate"]:
+            raise Exception(f"Simulated failure in {step_name}")
+          
+          # Execute step
+          result = execute_step(step_name, order)
+          
+          # Log successful step with compensation info
+          log_entry = {
+            "step": step_name,
+            "timestamp": int(time.time() * 1000),
+            "result": result,
+            "compensation_action": step["compensate"],
+            "status": "completed"
+          }
+          
+          transaction_log.append(log_entry)
+          
+          # Store transaction log after each successful step
+          state_stores.put("transaction_log", order_id, transaction_log)
+          
+        except Exception as e:
+          # Step failed - need to compensate
+          failed_step = {
+            "step": step_name,
+            "timestamp": int(time.time() * 1000),
+            "error": str(e),
+            "status": "failed"
+          }
+          
+          # Return failure with transaction log for compensation
+          return {
+            "status": "failed",
+            "order": order,
+            "failed_at_step": step_name,
+            "error": str(e),
+            "completed_steps": transaction_log,
+            "failed_step": failed_step,
+            "requires_compensation": len(transaction_log) > 0
+          }
+      
+      # All steps completed successfully
+      return {
+        "status": "completed",
+        "order": order,
+        "transaction_log": transaction_log,
+        "completion_time": int(time.time() * 1000)
+      }
+    resultType: json
+    stores:
+      - transaction_log
+  
+  # Generate compensation plan
+  generate_compensation_plan:
+    type: valueTransformer
+    code: |
+      import time
+      
+      failure_data = value
+      order_id = failure_data.get("order", {}).get("id", key)
+      completed_steps = failure_data.get("completed_steps", [])
+      
+      if not failure_data.get("requires_compensation", False):
+        return {
+          "order_id": order_id,
+          "compensation_required": False
+        }
+      
+      # Create compensation plan - reverse order of completed steps
+      compensation_plan = []
+      
+      for step in reversed(completed_steps):
+        if step.get("compensation_action"):
+          compensation_plan.append({
+            "action": step["compensation_action"],
+            "original_step": step["step"],
+            "step_result": step.get("result", {}),
+            "sequence": len(compensation_plan) + 1,
+            "status": "pending"
+          })
+      
+      # Initialize compensation state
+      compensation_state = {
+        "order_id": order_id,
+        "plan": compensation_plan,
+        "started_at": int(time.time() * 1000),
+        "current_step": 0,
+        "status": "in_progress",
+        "original_error": failure_data.get("error"),
+        "failed_at_step": failure_data.get("failed_at_step")
+      }
+      
+      state_stores.put("compensation_state", order_id, compensation_state)
+      
+      return {
+        "order_id": order_id,
+        "compensation_required": True,
+        "compensation_plan": compensation_plan,
+        "total_steps": len(compensation_plan),
+        "failure_context": {
+          "failed_step": failure_data.get("failed_at_step"),
+          "error": failure_data.get("error")
+        }
+      }
+    resultType: json
+    stores:
+      - compensation_state
+  
+  # Execute compensation actions
+  execute_compensation:
+    type: valueTransformer
+    globalCode: |
+      import time
+      import random
+      
+      def execute_compensation_action(action, context):
+        # Simulate compensation actions
+        if action == "release_inventory":
+          reserved_items = context.get("reserved_items", [])
+          released = []
+          for item in reserved_items:
+            # Simulate release with 95% success rate
+            if random.random() > 0.05:
+              released.append({
+                "reservation_id": item.get("reservation_id"),
+                "status": "released",
+                "timestamp": int(time.time() * 1000)
+              })
+            else:
+              raise Exception(f"Failed to release reservation: {item.get('reservation_id')}")
+          return {"released_items": released}
+        
+        elif action == "refund_payment":
+          transaction_id = context.get("transaction_id")
+          amount = context.get("amount")
+          # Simulate refund with 98% success rate
+          if random.random() > 0.02:
+            return {
+              "refund_id": f"ref_{transaction_id}_{int(time.time() * 1000)}",
+              "amount": amount,
+              "status": "refunded",
+              "timestamp": int(time.time() * 1000)
+            }
+          else:
+            raise Exception(f"Failed to refund transaction: {transaction_id}")
+        
+        elif action == "cancel_shipment":
+          shipment_id = context.get("shipment_id")
+          # Simulate cancellation with 90% success rate
+          if random.random() > 0.1:
+            return {
+              "shipment_id": shipment_id,
+              "status": "cancelled",
+              "timestamp": int(time.time() * 1000)
+            }
+          else:
+            raise Exception(f"Failed to cancel shipment: {shipment_id}")
+        
+        return {"status": "completed"}
+    code: |
+      compensation_data = value
+      order_id = compensation_data.get("order_id")
+      
+      # Get compensation state
+      comp_state = state_stores.get("compensation_state", order_id)
+      if not comp_state:
+        return {
+          "status": "error",
+          "error": "No compensation state found"
+        }
+      
+      # Execute compensation steps
+      plan = comp_state.get("plan", [])
+      current_step = comp_state.get("current_step", 0)
+      compensation_results = []
+      
+      while current_step < len(plan):
+        step = plan[current_step]
+        action = step["action"]
+        context = step.get("step_result", {})
+        
+        try:
+          # Execute compensation action
+          result = execute_compensation_action(action, context)
+          
+          # Update step status
+          step["status"] = "completed"
+          step["result"] = result
+          step["completed_at"] = int(time.time() * 1000)
+          
+          compensation_results.append({
+            "action": action,
+            "status": "success",
+            "result": result
+          })
+          
+          # Update state
+          current_step += 1
+          comp_state["current_step"] = current_step
+          state_stores.put("compensation_state", order_id, comp_state)
+          
+        except Exception as e:
+          # Compensation action failed
+          step["status"] = "failed"
+          step["error"] = str(e)
+          step["failed_at"] = int(time.time() * 1000)
+          
+          compensation_results.append({
+            "action": action,
+            "status": "failed",
+            "error": str(e)
+          })
+          
+          # Update state
+          comp_state["status"] = "failed"
+          comp_state["failed_at_step"] = current_step
+          comp_state["error"] = str(e)
+          state_stores.put("compensation_state", order_id, comp_state)
+          
+          return {
+            "status": "compensation_failed",
+            "order_id": order_id,
+            "failed_action": action,
+            "error": str(e),
+            "completed_compensations": compensation_results[:current_step],
+            "requires_manual_intervention": True
+          }
+      
+      # All compensations completed
+      comp_state["status"] = "completed"
+      comp_state["completed_at"] = int(time.time() * 1000)
+      state_stores.put("compensation_state", order_id, comp_state)
+      
+      return {
+        "status": "compensation_completed",
+        "order_id": order_id,
+        "compensation_results": compensation_results,
+        "total_compensations": len(compensation_results),
+        "completed_at": comp_state["completed_at"]
+      }
+    resultType: json
+    stores:
+      - compensation_state
+  
+  # Monitor compensation progress
+  monitor_compensation:
+    type: valueTransformer
+    code: |
+      import time
+      
+      order_id = value.get("order_id", key)
+      comp_state = state_stores.get("compensation_state", order_id)
+      
+      if not comp_state:
+        return {
+          "order_id": order_id,
+          "status": "not_found"
+        }
+      
+      current_time = int(time.time() * 1000)
+      duration = current_time - comp_state.get("started_at", current_time)
+      
+      plan = comp_state.get("plan", [])
+      completed = sum(1 for step in plan if step.get("status") == "completed")
+      failed = sum(1 for step in plan if step.get("status") == "failed")
+      pending = sum(1 for step in plan if step.get("status") == "pending")
+      
+      return {
+        "order_id": order_id,
+        "compensation_status": comp_state.get("status"),
+        "progress": {
+          "total_steps": len(plan),
+          "completed": completed,
+          "failed": failed,
+          "pending": pending,
+          "percentage": (completed / len(plan) * 100) if plan else 0
+        },
+        "duration_ms": duration,
+        "current_action": plan[comp_state.get("current_step")] if comp_state.get("current_step", 0) < len(plan) else None,
+        "original_failure": {
+          "step": comp_state.get("failed_at_step"),
+          "error": comp_state.get("original_error")
+        }
+      }
+    resultType: json
+    stores:
+      - compensation_state
+
+# Main order processing pipeline
+pipelines:
+  order_processor:
+    from: order_requests
+    via:
+      # Execute order workflow
+      - type: transformValue
+        mapper: execute_order_workflow
+      
+      # Branch based on result
+      - type: branch
+        branches:
+          - name: completed
+            predicate:
+              expression: value.get("status") == "completed"
+          - name: failed
+            predicate:
+              expression: value.get("status") == "failed"
+    
+    branch:
+      completed:
+        to: completed_orders
+      
+      failed:
+        via:
+          # Generate compensation plan
+          - type: transformValue
+            mapper: generate_compensation_plan
+          
+          # Branch based on compensation requirement
+          - type: branch
+            branches:
+              - name: needs_compensation
+                predicate:
+                  expression: value.get("compensation_required", False)
+              - name: no_compensation
+                predicate:
+                  expression: not value.get("compensation_required", False)
+        
+        branch:
+          needs_compensation:
+            via:
+              # Log compensation event
+              - type: peek
+                forEach:
+                  expression: |
+                    print(f"Starting compensation for order {value['order_id']} with {value['total_steps']} steps")
+            to: compensation_events
+          
+          no_compensation:
+            to: failed_orders
+
+# Compensation execution pipeline
+pipelines:
+  compensation_executor:
+    from: compensation_events
+    via:
+      # Execute compensation
+      - type: transformValue
+        mapper: execute_compensation
+      
+      # Branch based on result
+      - type: branch
+        branches:
+          - name: completed
+            predicate:
+              expression: value.get("status") == "compensation_completed"
+          - name: failed
+            predicate:
+              expression: value.get("status") == "compensation_failed"
+    
+    branch:
+      completed:
+        via:
+          - type: peek
+            forEach:
+              expression: |
+                print(f"Compensation completed for order {value['order_id']}")
+        to: compensation_results
+      
+      failed:
+        via:
+          - type: peek
+            forEach:
+              expression: |
+                print(f"ALERT: Compensation failed for order {value['order_id']} - Manual intervention required")
+        to: compensation_results
+
+# Manual compensation request handler
+pipelines:
+  manual_compensation_handler:
+    from: compensation_requests
+    via:
+      # Monitor compensation status
+      - type: transformValue
+        mapper: monitor_compensation
+      
+      # Log status
+      - type: peek
+        forEach:
+          expression: |
+            status = value.get("compensation_status", "unknown")
+            progress = value.get("progress", {})
+            print(f"Compensation status for {value['order_id']}: {status} - {progress.get('completed')}/{progress.get('total_steps')} steps completed")
