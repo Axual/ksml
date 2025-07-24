@@ -90,7 +90,7 @@ services:
     ports:
       - 8080:8080
     volumes:
-      - ./kafka-ui:/config
+      - ./:/config
     environment:
       CONFIG_FILEPATH: "/config/kafka-ui-config.yaml"
     depends_on:
@@ -111,6 +111,18 @@ services:
     command: "bash -c 'echo Trying to create topics... && \
                        kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temperature_data && \
                        kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temperature_data_converted'"
+```
+
+Next, create a config file named `kafka-ui-config` for the Kafka UI service we will use to monitor Kafka, with the following contents:
+
+```yaml
+server:
+  listenPort: 8080
+  listenAddress: 0.0.0.0
+
+kafka:
+  brokers:
+    - broker:9093
 ```
 
 ### Step 2: Start the Environment
