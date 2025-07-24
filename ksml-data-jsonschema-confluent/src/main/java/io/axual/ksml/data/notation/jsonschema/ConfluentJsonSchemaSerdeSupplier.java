@@ -25,11 +25,8 @@ import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer;
 import io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer;
 import lombok.Getter;
-import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serializer;
-
-import java.util.Map;
+import org.apache.kafka.common.serialization.Serdes;
 
 public class ConfluentJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier {
     @Getter
@@ -50,17 +47,8 @@ public class ConfluentJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier
 
     @Override
     public Serde<Object> get(DataType type, boolean isKey) {
-        return new Serde<>() {
-            @Getter
-            private final Serializer<Object> serializer = registryClient != null ? new KafkaJsonSchemaSerializer<>(registryClient) : new KafkaJsonSchemaSerializer<>();
-            @Getter
-            private final Deserializer<Object> deserializer = registryClient != null ? new KafkaJsonSchemaDeserializer<>(registryClient) : new KafkaJsonSchemaDeserializer<>();
-
-            @Override
-            public void configure(Map<String, ?> configs, boolean isKey) {
-                serializer.configure(configs, isKey);
-                deserializer.configure(configs, isKey);
-            }
-        };
+        return Serdes.serdeFrom(
+                registryClient != null ? new KafkaJsonSchemaSerializer<>(registryClient) : new KafkaJsonSchemaSerializer<>(),
+                registryClient != null ? new KafkaJsonSchemaDeserializer<>(registryClient) : new KafkaJsonSchemaDeserializer<>());
     }
 }

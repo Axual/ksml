@@ -31,7 +31,7 @@ public class SoapNotationProvider implements NotationProvider {
     }
 
     @Override
-    public Notation createNotation(NotationContext notationContext) {
-        return new SoapNotation(notationContext.nativeDataObjectMapper());
+    public Notation createNotation(NotationContext context) {
+        return new SoapNotation(context);
     }
 }

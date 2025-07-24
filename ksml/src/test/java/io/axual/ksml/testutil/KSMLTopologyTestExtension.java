@@ -23,6 +23,7 @@ package io.axual.ksml.testutil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.TopologyGenerator;
+import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroNotationProvider;
 import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroSerdeSupplier;
@@ -130,7 +131,9 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEach
         }
 
         final var registryClient = new MockConfluentSchemaRegistryClient();
-        final var mockAvroNotation = new ConfluentAvroNotationProvider(registryClient).createNotation();
+        final var provider =  new ConfluentAvroNotationProvider(registryClient);
+        final var context = new NotationContext(provider.notationName(), provider.vendorName(), registryClient.configs());
+        final var mockAvroNotation = provider.createNotation(context);
         ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, mockAvroNotation);
 
         // Get the KSML definition classpath relative path and load the topology into the test driver

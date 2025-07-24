@@ -31,7 +31,7 @@ public class JsonNotationProvider implements NotationProvider {
     }
 
     @Override
-    public Notation createNotation(NotationContext notationContext) {
-        return new JsonNotation(notationContext.nativeDataObjectMapper());
+    public Notation createNotation(NotationContext context) {
+        return new JsonNotation(context);
     }
 }

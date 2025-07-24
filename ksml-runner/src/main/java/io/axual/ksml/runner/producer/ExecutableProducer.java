@@ -108,7 +108,7 @@ public class ExecutableProducer {
         final var generator = gen.name() != null
                 ? PythonFunction.forGenerator(context, namespace, gen.name(), gen)
                 : PythonFunction.forGenerator(context, namespace, name, gen);
-        final var partitioner = target.partitioner().name() != null
+        final var partitioner = target.partitioner() != null
                 ? PythonFunction.forFunction(context, namespace, target.partitioner().name(), target.partitioner())
                 : null;
 

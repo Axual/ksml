@@ -20,7 +20,7 @@ package io.axual.ksml.data.notation.jsonschema;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.VendorSerdeSupplier;
+import io.axual.ksml.data.notation.vendor.VendorSerdeSupplier;
 
 public interface JsonSchemaSerdeSupplier extends VendorSerdeSupplier {
     default String notationName() {

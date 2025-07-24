@@ -21,6 +21,7 @@ package io.axual.ksml.parser;
  */
 
 import io.axual.ksml.data.mapper.DataObjectFlattener;
+import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.object.*;
 import io.axual.ksml.data.type.DataType;
@@ -41,7 +42,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class UserTypeParserTest {
     @BeforeAll
     static void setup() {
-        final var binaryNotation = new BinaryNotation(new DataObjectFlattener(), null);
+        final var binaryNotation = new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME, new DataObjectFlattener()), null);
         ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, binaryNotation);
     }
 

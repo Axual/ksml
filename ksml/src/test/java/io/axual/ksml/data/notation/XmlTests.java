@@ -20,7 +20,6 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.xml.XmlDataObjectMapper;
 import io.axual.ksml.data.notation.xml.XmlNotation;
 import io.axual.ksml.data.notation.xml.XmlSchemaMapper;
@@ -39,6 +38,6 @@ class XmlTests {
 
     @Test
     void serdeTest() {
-        NotationTestRunner.serdeTest(XmlNotation.NOTATION_NAME, new XmlNotation(new NativeDataObjectMapper()), false);
+        NotationTestRunner.serdeTest(new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME)), false);
     }
 }

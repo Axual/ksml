@@ -1,4 +1,4 @@
-package io.axual.ksml.data.notation;
+package io.axual.ksml.data.notation.vendor;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,8 +20,16 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.serde.SerdeSupplier;
+import io.axual.ksml.data.notation.NotationProvider;
+import lombok.Getter;
 
-public interface VendorSerdeSupplier extends SerdeSupplier {
-    String vendorName();
+@Getter
+public abstract class VendorNotationProvider implements NotationProvider {
+    private final String notationName;
+    private final String vendorName;
+
+    protected VendorNotationProvider(String notationName, String vendorName) {
+        this.notationName = notationName;
+        this.vendorName = vendorName;
+    }
 }

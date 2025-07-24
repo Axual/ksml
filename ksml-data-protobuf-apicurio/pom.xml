@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>ksml-data-protobuf-apicurio</artifactId>
-    <name>KSML Data Library - Protobuf Apicurio</name>
+    <name>KSML Data Library - PROTOBUF Apicurio</name>
     <description>Apicurio implementation of Protobuf message serialization/deserialization</description>
 
     <properties>

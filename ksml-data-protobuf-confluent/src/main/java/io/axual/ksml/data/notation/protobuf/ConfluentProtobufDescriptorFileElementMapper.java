@@ -154,7 +154,6 @@ public class ConfluentProtobufDescriptorFileElementMapper implements ProtobufDes
                     DEFAULT_SYNTAX,
                     Collections.emptyList(),
                     Collections.emptyList(),
-                    Collections.emptyList(),
                     types,
                     Collections.emptyList(),
                     Collections.emptyList(),

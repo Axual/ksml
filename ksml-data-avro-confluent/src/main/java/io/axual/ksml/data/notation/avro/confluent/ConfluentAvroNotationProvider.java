@@ -22,8 +22,10 @@ package io.axual.ksml.data.notation.avro.confluent;
 
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
+import io.axual.ksml.data.notation.avro.AvroDataObjectMapper;
 import io.axual.ksml.data.notation.avro.AvroNotation;
-import io.axual.ksml.data.notation.base.VendorNotationProvider;
+import io.axual.ksml.data.notation.vendor.VendorNotationContext;
+import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 
 public class ConfluentAvroNotationProvider extends VendorNotationProvider {
@@ -38,12 +40,12 @@ public class ConfluentAvroNotationProvider extends VendorNotationProvider {
         this.registryClient = registryClient;
     }
 
-    public Notation createNotation() {
-        return createNotation(new NotationContext());
-    }
-
     @Override
-    public Notation createNotation(NotationContext notationContext) {
-        return new AvroNotation(new ConfluentAvroSerdeSupplier(notationContext, registryClient));
+    public Notation createNotation(NotationContext context) {
+        return new AvroNotation(
+                new VendorNotationContext(
+                        context,
+                        new ConfluentAvroSerdeSupplier(context, registryClient),
+                        new AvroDataObjectMapper()));
     }
 }

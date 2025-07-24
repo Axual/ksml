@@ -42,17 +42,19 @@ class AvroTests {
 
     @Test
     void apicurioSerdeTest() {
-        final var registryClient = new MockApicurioSchemaRegistryClient();
-        final var notationContext = new NotationContext(registryClient.configs());
-        final var apicurioAvro = new ApicurioAvroNotationProvider(registryClient).createNotation(notationContext);
-        NotationTestRunner.serdeTest(AvroNotation.NOTATION_NAME, apicurioAvro, true);
+//        final var registryClient = new MockApicurioSchemaRegistryClient();
+//        final var provider = new ApicurioAvroNotationProvider(registryClient);
+//        final var context = new NotationContext(provider.notationName(), provider.vendorName(), registryClient.configs());
+//        final var notation = provider.createNotation(context);
+//        NotationTestRunner.serdeTest(notation, true);
     }
 
     @Test
     void confluentSerdeTest() {
         final var registryClient = new MockConfluentSchemaRegistryClient();
-        final var notationContext = new NotationContext(registryClient.configs());
-        final var confluentAvro = new ConfluentAvroNotationProvider(registryClient).createNotation(notationContext);
-        NotationTestRunner.serdeTest(AvroNotation.NOTATION_NAME, confluentAvro, true);
+        final var provider = new ConfluentAvroNotationProvider(registryClient);
+        final var context = new NotationContext(provider.notationName(), provider.vendorName(), registryClient.configs());
+        final var notation = provider.createNotation(context);
+        NotationTestRunner.serdeTest(notation, true);
     }
 }

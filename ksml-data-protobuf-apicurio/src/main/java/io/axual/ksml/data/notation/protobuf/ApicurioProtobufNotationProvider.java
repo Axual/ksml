@@ -23,7 +23,8 @@ package io.axual.ksml.data.notation.protobuf;
 import io.apicurio.registry.rest.client.RegistryClient;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
-import io.axual.ksml.data.notation.base.VendorNotationProvider;
+import io.axual.ksml.data.notation.vendor.VendorNotationContext;
+import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
 import lombok.Getter;
 
 public class ApicurioProtobufNotationProvider extends VendorNotationProvider {
@@ -41,12 +42,12 @@ public class ApicurioProtobufNotationProvider extends VendorNotationProvider {
     }
 
     @Override
-    public Notation createNotation(NotationContext notationContext) {
+    public Notation createNotation(NotationContext context) {
         return new ProtobufNotation(
-                new ApicurioProtobufSerdeSupplier(registryClient),
-                new ApicurioProtobufSchemaParser(),
-                new ProtobufDataObjectMapper(new ApicurioProtobufDescriptorFileElementMapper()),
-                notationContext.nativeDataObjectMapper(),
-                notationContext.configs());
+                new VendorNotationContext(
+                        context,
+                        new ApicurioProtobufSerdeSupplier(registryClient),
+                        new ProtobufDataObjectMapper(new ApicurioProtobufDescriptorFileElementMapper())),
+                new ApicurioProtobufSchemaParser());
     }
 }

@@ -150,7 +150,7 @@ public class KSMLRunner {
             // WARNING: Defaults for notations will be deprecated in the future. Make sure you explicitly configure
             // notations with multiple implementations (like AVRO) in your ksml-runner.yaml.
             if (!ExecutionContext.INSTANCE.notationLibrary().exists(AvroNotation.NOTATION_NAME)) {
-                final var defaultAvro = new ConfluentAvroNotationProvider().createNotation(new NotationContext(null));
+                final var defaultAvro = new ConfluentAvroNotationProvider().createNotation(new NotationContext(AvroNotation.NOTATION_NAME, new DataObjectFlattener()));
                 ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, defaultAvro);
                 log.warn("No implementation specified for AVRO notation. If you use AVRO in your KSML definition, add the required configuration to the ksml-runner.yaml");
             }

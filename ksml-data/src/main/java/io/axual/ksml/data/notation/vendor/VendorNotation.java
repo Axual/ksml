@@ -1,4 +1,4 @@
-package io.axual.ksml.data.notation.base;
+package io.axual.ksml.data.notation.vendor;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,30 +20,24 @@ package io.axual.ksml.data.notation.base;
  * =========================LICENSE_END==================================
  */
 
-import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.data.mapper.DataObjectMapper;
-import io.axual.ksml.data.notation.VendorSerdeSupplier;
+import io.axual.ksml.data.notation.base.BaseNotation;
 import io.axual.ksml.data.serde.DataObjectSerde;
 import io.axual.ksml.data.type.DataType;
 import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public abstract class VendorNotation extends BaseNotation {
     @Getter
     private final VendorSerdeSupplier serdeSupplier;
     private final DataObjectMapper<Object> serdeMapper;
-    private final DataObjectMapper<Object> nativeMapper;
-    private final Map<String, Object> serdeConfigs;
 
-    public VendorNotation(String notationName, VendorSerdeSupplier serdeSupplier, String filenameExtension, DataType defaultType, Converter converter, SchemaParser schemaParser, DataObjectMapper<Object> serdeMapper, DataObjectMapper<Object> nativeMapper, Map<String, String> serdeConfigs) {
-        super(notationName, serdeSupplier.vendorName(), filenameExtension, defaultType, converter, schemaParser);
-        this.serdeSupplier = serdeSupplier;
-        this.serdeMapper = serdeMapper;
-        this.nativeMapper = nativeMapper;
-        this.serdeConfigs = serdeConfigs == null ? new HashMap<>() : ImmutableMap.copyOf(serdeConfigs);
+    protected VendorNotation(VendorNotationContext context, String filenameExtension, DataType defaultType, Converter converter, SchemaParser schemaParser) {
+        super(context, filenameExtension, defaultType, converter, schemaParser);
+        this.serdeSupplier = context.serdeSupplier();
+        this.serdeMapper = context.serdeMapper();
     }
 
     @Override
@@ -52,8 +46,8 @@ public abstract class VendorNotation extends BaseNotation {
 
         // Create the serdes only upon request to prevent error messages on missing SR url configs if AVRO is not used
         try (final var serde = serdeSupplier.get(type, isKey)) {
-            final var result = new DataObjectSerde(name(), serde.serializer(), serde.deserializer(), serdeMapper, nativeMapper);
-            result.configure(serdeConfigs, isKey);
+            final var result = new DataObjectSerde(name(), serde.serializer(), serde.deserializer(), serdeMapper, context().nativeDataObjectMapper());
+            result.configure(context().serdeConfigs(), isKey);
             return result;
         }
     }

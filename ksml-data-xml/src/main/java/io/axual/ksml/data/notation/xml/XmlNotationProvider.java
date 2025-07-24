@@ -31,7 +31,7 @@ public class XmlNotationProvider implements NotationProvider {
     }
 
     @Override
-    public Notation createNotation(NotationContext notationContext) {
-        return new XmlNotation(notationContext.nativeDataObjectMapper());
+    public Notation createNotation(NotationContext context) {
+        return new XmlNotation(context);
     }
 }

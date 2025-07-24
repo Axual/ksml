@@ -2,7 +2,7 @@ package io.axual.ksml.data.notation.jsonschema;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML
+ * KSML Data Library - JSON Schema
  * %%
  * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
@@ -24,26 +24,27 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.notation.vendor.VendorNotation;
-import io.axual.ksml.data.notation.json.JsonDataObjectConverter;
-import io.axual.ksml.data.notation.json.JsonSchemaLoader;
-import io.axual.ksml.data.notation.vendor.VendorNotationContext;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.ListType;
-import io.axual.ksml.data.type.StructType;
-import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.data.util.JsonNodeUtil;
 
-import java.util.Map;
+public class JsonSchemaDataObjectMapper implements DataObjectMapper<Object> {
+    private final NativeDataObjectMapper nativeMapper;
 
-public class JsonSchemaNotation extends VendorNotation {
-    public static final String NOTATION_NAME = "jsonschema";
-    public static final DataType DEFAULT_TYPE = new UnionType(
-            new UnionType.MemberType(new StructType()),
-            new UnionType.MemberType(new ListType()));
+    public JsonSchemaDataObjectMapper(NativeDataObjectMapper nativeMapper) {
+        this.nativeMapper = nativeMapper;
+    }
 
-    public JsonSchemaNotation(VendorNotationContext context) {
-        super(context,  ".json", DEFAULT_TYPE, new JsonDataObjectConverter(), new JsonSchemaLoader());
+    @Override
+    public DataObject toDataObject(DataType expected, Object value) {
+        if (value instanceof JsonNode jsonNode) {
+            return nativeMapper.toDataObject(expected, JsonNodeUtil.convertJsonNodeToNative(jsonNode));
+        }
+        throw new DataException("Cannot convert value to DataObject: " + value);
+    }
+
+    @Override
+    public Object fromDataObject(DataObject value) {
+        return JsonNodeUtil.convertNativeToJsonNode(nativeMapper.fromDataObject(value));
     }
 }

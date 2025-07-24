@@ -24,20 +24,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.notation.NotationContext;
+import io.axual.ksml.data.notation.avro.AvroDataObjectMapper;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroNotationProvider;
-import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroSerdeSupplier;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.notation.confluent.MockConfluentSchemaRegistryClient;
 import io.axual.ksml.data.notation.json.JsonNotation;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.operation.SensorData;
 import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.type.UserType;
-import io.confluent.kafka.serializers.KafkaAvroDeserializer;
-import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -66,8 +66,8 @@ class BasicStreamRunTest {
     @BeforeAll
     static void setup() {
         final var mapper = new DataObjectFlattener();
-        final var jsonNotation = new JsonNotation(mapper);
-        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(mapper, jsonNotation::serde));
+        final var jsonNotation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME, mapper));
+        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME, mapper), jsonNotation::serde));
         ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
 
         try {
@@ -105,8 +105,9 @@ class BasicStreamRunTest {
     @Test
     void testFilterAvroRecords() throws Exception {
         final var registryClient = new MockConfluentSchemaRegistryClient();
-        final var notationContext = new NotationContext(registryClient.configs());
-        final var avroNotation = new ConfluentAvroNotationProvider(registryClient).createNotation(notationContext);
+        final var provider = new ConfluentAvroNotationProvider(registryClient);
+        final var context = new NotationContext(provider.notationName(), provider.vendorName(), registryClient.configs());
+        final var avroNotation = provider.createNotation(context);
         ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, avroNotation);
 
         final var uri = ClassLoader.getSystemResource("pipelines/test-filter.yaml").toURI();
@@ -120,18 +121,15 @@ class BasicStreamRunTest {
         System.out.println(description);
 
         try (TopologyTestDriver driver = new TopologyTestDriver(topology)) {
-            final var kafkaAvroSerializer = new KafkaAvroSerializer(registryClient);
-            kafkaAvroSerializer.configure(registryClient.configs(), false);
+            final var serde = avroNotation.serde(new StructType(), false);
 
-            final var kafkaAvroDeserializer = new KafkaAvroDeserializer(registryClient);
-            kafkaAvroDeserializer.configure(registryClient.configs(), false);
+            TestInputTopic<String, Object> avroInputTopic = driver.createInputTopic("ksml_sensordata_avro", new StringSerializer(), serde.serializer());
+            var outputTopic = driver.createOutputTopic("ksml_sensordata_filtered", new StringDeserializer(), serde.deserializer());
 
-            TestInputTopic<String, Object> avroInputTopic = driver.createInputTopic("ksml_sensordata_avro", new StringSerializer(), kafkaAvroSerializer);
-            var outputTopic = driver.createOutputTopic("ksml_sensordata_filtered", new StringDeserializer(), kafkaAvroDeserializer);
+            SensorData data = SensorData.builder().name("name").timestamp(System.currentTimeMillis()).value("AMS").type(SensorData.SensorType.AREA).unit("u").color("blue").build();
+            DataObject dataObject = new AvroDataObjectMapper().toDataObject(data.toRecord());
 
-            SensorData build = SensorData.builder().name("name").timestamp(System.currentTimeMillis()).value("AMS").type(SensorData.SensorType.AREA).unit("u").color("blue").build();
-
-            avroInputTopic.pipeInput("key1", build.toRecord());
+            avroInputTopic.pipeInput("key1", dataObject);
             if (!outputTopic.isEmpty()) {
                 var keyValue = outputTopic.readKeyValue();
                 assertEquals("key1", keyValue.key);

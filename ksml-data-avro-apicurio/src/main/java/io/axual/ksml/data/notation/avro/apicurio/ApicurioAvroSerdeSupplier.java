@@ -25,11 +25,8 @@ import io.apicurio.registry.serde.avro.AvroKafkaDeserializer;
 import io.apicurio.registry.serde.avro.AvroKafkaSerializer;
 import io.axual.ksml.data.notation.avro.AvroSerdeSupplier;
 import io.axual.ksml.data.type.DataType;
-import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serializer;
-
-import java.util.Map;
+import org.apache.kafka.common.serialization.Serdes;
 
 public class ApicurioAvroSerdeSupplier implements AvroSerdeSupplier {
     // Registry Client is mocked by tests
@@ -50,25 +47,8 @@ public class ApicurioAvroSerdeSupplier implements AvroSerdeSupplier {
 
     @Override
     public Serde<Object> get(DataType type, boolean isKey) {
-        return new Serde<>() {
-            private final Serializer<Object> serializer = registryClient != null ? new AvroKafkaSerializer<>(registryClient) : new AvroKafkaSerializer<>();
-            private final Deserializer<Object> deserializer = registryClient != null ? new AvroKafkaDeserializer<>(registryClient) : new AvroKafkaDeserializer<>();
-
-            @Override
-            public void configure(Map<String, ?> configs, boolean isKey) {
-                serializer.configure(configs, isKey);
-                deserializer.configure(configs, isKey);
-            }
-
-            @Override
-            public Serializer<Object> serializer() {
-                return serializer;
-            }
-
-            @Override
-            public Deserializer<Object> deserializer() {
-                return deserializer;
-            }
-        };
+        return Serdes.serdeFrom(
+                registryClient != null ? new AvroKafkaSerializer<>(registryClient) : new AvroKafkaSerializer<>(),
+                registryClient != null ? new AvroKafkaDeserializer<>(registryClient) : new AvroKafkaDeserializer<>());
     }
 }

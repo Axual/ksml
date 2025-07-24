@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>ksml-data-protobuf-confluent</artifactId>
-    <name>KSML Data Library - Protobuf Confluent</name>
+    <name>KSML Data Library - PROTOBUF Confluent</name>
     <description>Confluent implementation of Protobuf message serialization/deserialization</description>
 
     <properties>

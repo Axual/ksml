@@ -20,21 +20,13 @@ package io.axual.ksml.data.notation.protobuf;
  * =========================LICENSE_END==================================
  */
 
-import com.google.protobuf.Message;
-import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.type.DataType;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer;
 import lombok.Getter;
-import org.apache.kafka.common.header.Headers;
-import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.common.serialization.Serializer;
-
-import java.nio.ByteBuffer;
-import java.util.Map;
 
 public class ConfluentProtobufSerdeSupplier implements ProtobufSerdeSupplier {
     // Registry Client is mocked by tests
@@ -56,53 +48,8 @@ public class ConfluentProtobufSerdeSupplier implements ProtobufSerdeSupplier {
 
     @Override
     public Serde<Object> get(DataType type, boolean isKey) {
-        final Serializer<Message> msgSerializer = registryClient != null ? new KafkaProtobufSerializer<>(registryClient) : new KafkaProtobufSerializer<>();
-        final Deserializer<Message> msgDeserializer = registryClient != null ? new KafkaProtobufDeserializer<>(registryClient) : new KafkaProtobufDeserializer<>();
-        final Serializer<Object> serializer = new Serializer<>() {
-            private DataException typeException(Object data) {
-                return new DataException("Can not serialize data of type " + data.getClass().getName() + " to Protobuf. Please use a Protobuf data type.");
-            }
-
-            @Override
-            public void configure(Map<String, ?> configs, boolean isKey) {
-                msgSerializer.configure(configs, isKey);
-            }
-
-            @Override
-            public byte[] serialize(String topic, Object data) {
-                if (data == null) return msgSerializer.serialize(topic, null);
-                if (data instanceof Message msg) return msgSerializer.serialize(topic, msg);
-                throw typeException(data);
-            }
-
-            @Override
-            public byte[] serialize(String topic, Headers headers, Object data) {
-                if (data == null) return msgSerializer.serialize(topic, headers, null);
-                if (data instanceof Message msg) return msgSerializer.serialize(topic, headers, msg);
-                throw typeException(data);
-            }
-        };
-        final Deserializer<Object> deserializer = new Deserializer<>() {
-            @Override
-            public void configure(Map<String, ?> configs, boolean isKey) {
-                msgDeserializer.configure(configs, isKey);
-            }
-
-            @Override
-            public Object deserialize(String topic, Headers headers, byte[] data) {
-                return msgDeserializer.deserialize(topic, headers, data);
-            }
-
-            @Override
-            public Object deserialize(String topic, Headers headers, ByteBuffer data) {
-                return msgDeserializer.deserialize(topic, headers, data);
-            }
-
-            @Override
-            public Object deserialize(String topic, byte[] data) {
-                return msgDeserializer.deserialize(topic, data);
-            }
-        };
-        return Serdes.serdeFrom(serializer, deserializer);
+        return (Serde) Serdes.serdeFrom(
+                registryClient != null ? new KafkaProtobufSerializer<>(registryClient) : new KafkaProtobufSerializer<>(),
+                registryClient != null ? new KafkaProtobufDeserializer<>(registryClient) : new KafkaProtobufDeserializer<>());
     }
 }

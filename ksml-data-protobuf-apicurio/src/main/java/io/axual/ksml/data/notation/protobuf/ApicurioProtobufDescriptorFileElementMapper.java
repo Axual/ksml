@@ -150,7 +150,6 @@ public class ApicurioProtobufDescriptorFileElementMapper implements ProtobufDesc
                     DEFAULT_SYNTAX,
                     Collections.emptyList(),
                     Collections.emptyList(),
-                    Collections.emptyList(),
                     types,
                     Collections.emptyList(),
                     Collections.emptyList(),

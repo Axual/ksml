@@ -23,6 +23,7 @@ package io.axual.ksml.data.notation.jsonschema;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.NotationProvider;
+import io.axual.ksml.data.notation.vendor.VendorNotationContext;
 
 public class ApicurioJsonSchemaNotationProvider implements NotationProvider {
     @Override
@@ -31,7 +32,11 @@ public class ApicurioJsonSchemaNotationProvider implements NotationProvider {
     }
 
     @Override
-    public Notation createNotation(NotationContext notationContext) {
-        return new JsonSchemaNotation(new ApicurioJsonSchemaSerdeSupplier(), notationContext.nativeDataObjectMapper(), notationContext.configs());
+    public Notation createNotation(NotationContext context) {
+        return new JsonSchemaNotation(
+                new VendorNotationContext(
+                        context,
+                        new ApicurioJsonSchemaSerdeSupplier(),
+                        new JsonSchemaDataObjectMapper(context.nativeDataObjectMapper())));
     }
 }

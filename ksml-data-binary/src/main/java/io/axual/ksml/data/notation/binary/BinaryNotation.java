@@ -20,7 +20,7 @@ package io.axual.ksml.data.notation.binary;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.base.BaseNotation;
 import io.axual.ksml.data.serde.ByteSerde;
 import io.axual.ksml.data.serde.NullSerde;
@@ -37,12 +37,10 @@ import org.apache.kafka.common.serialization.Serializer;
 public class BinaryNotation extends BaseNotation {
     public static final String NOTATION_NAME = "binary";
     public static final DataType DEFAULT_TYPE = DataType.UNKNOWN;
-    private final NativeDataObjectMapper nativeMapper;
     private final SerdeSupplier complexTypeSerdeSupplier;
 
-    public BinaryNotation(NativeDataObjectMapper nativeMapper, SerdeSupplier complexTypeSerdeSupplier) {
-        super(NOTATION_NAME, null, null, DEFAULT_TYPE, null, null);
-        this.nativeMapper = nativeMapper;
+    public BinaryNotation(NotationContext context, SerdeSupplier complexTypeSerdeSupplier) {
+        super(context, null, DEFAULT_TYPE, null, null);
         this.complexTypeSerdeSupplier = complexTypeSerdeSupplier;
     }
 
@@ -69,7 +67,7 @@ public class BinaryNotation extends BaseNotation {
 
         public BinarySerde(final Serde<Object> serde) {
             // Serialize the raw object by converting from a data object if necessary
-            this.serializer = (topic, data) -> serde.serializer().serialize(topic, nativeMapper.fromDataObject(nativeMapper.toDataObject(data)));
+            this.serializer = (topic, data) -> serde.serializer().serialize(topic, context().nativeDataObjectMapper().fromDataObject(context().nativeDataObjectMapper().toDataObject(data)));
             // Deserialize the raw object and return as such. If any conversion to a user
             // object needs to be done, then it's up to the pipeline operations to do so.
             // This ensures that operations that need the raw type (e.g., Count needing Long)

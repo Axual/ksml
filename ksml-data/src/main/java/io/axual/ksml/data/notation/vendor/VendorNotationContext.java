@@ -1,8 +1,8 @@
-package io.axual.ksml.data.notation.csv;
+package io.axual.ksml.data.notation.vendor;
 
 /*-
  * ========================LICENSE_START=================================
- * KSML Data Library - CSV
+ * KSML Data Library
  * %%
  * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
@@ -20,18 +20,18 @@ package io.axual.ksml.data.notation.csv;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.Notation;
+import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.notation.NotationContext;
-import io.axual.ksml.data.notation.NotationProvider;
+import lombok.Getter;
 
-public class CsvNotationProvider implements NotationProvider {
-    @Override
-    public String notationName() {
-        return CsvNotation.NOTATION_NAME;
-    }
+@Getter
+public class VendorNotationContext extends NotationContext {
+    private final VendorSerdeSupplier serdeSupplier;
+    private final DataObjectMapper<Object> serdeMapper;
 
-    @Override
-    public Notation createNotation(NotationContext context) {
-        return new CsvNotation(context);
+    public VendorNotationContext(NotationContext context, VendorSerdeSupplier serdeSupplier, DataObjectMapper<Object> serdeMapper) {
+        super(context.notationName(), context.vendorName(), context.nativeDataObjectMapper(), context.serdeConfigs());
+        this.serdeSupplier = serdeSupplier;
+        this.serdeMapper = serdeMapper;
     }
 }

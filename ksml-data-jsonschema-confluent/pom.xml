@@ -33,7 +33,6 @@
             <groupId>io.confluent</groupId>
             <artifactId>kafka-json-schema-serializer</artifactId>
         </dependency>
-
         <!-- Other dependencies -->
         <dependency>
             <groupId>org.projectlombok</groupId>

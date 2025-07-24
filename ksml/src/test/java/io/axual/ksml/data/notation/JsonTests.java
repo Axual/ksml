@@ -20,7 +20,6 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.json.JsonDataObjectMapper;
 import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.data.notation.json.JsonSchemaMapper;
@@ -44,7 +43,7 @@ class JsonTests {
 
     @Test
     void serdeTest() {
-        final var notation = new JsonNotation(new NativeDataObjectMapper());
-        NotationTestRunner.serdeTest(JsonNotation.NOTATION_NAME, notation, true);
+        final var notation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME));
+        NotationTestRunner.serdeTest(notation, true);
     }
 }

@@ -20,26 +20,17 @@ package io.axual.ksml.data.notation.avro;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.base.BaseNotation;
+import io.axual.ksml.data.notation.vendor.VendorNotation;
+import io.axual.ksml.data.notation.vendor.VendorNotationContext;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.StructType;
-import lombok.Getter;
-import org.apache.kafka.common.serialization.Serde;
 
-public class AvroNotation extends BaseNotation {
+public class AvroNotation extends VendorNotation {
     public static final String NOTATION_NAME = "avro";
     public static final DataType DEFAULT_TYPE = new StructType();
     private static final AvroSchemaParser AVRO_SCHEMA_PARSER = new AvroSchemaParser();
-    @Getter
-    private final AvroSerdeSupplier serdeSupplier;
 
-    public AvroNotation(AvroSerdeSupplier serdeSupplier) {
-        super(NOTATION_NAME, serdeSupplier.vendorName(), ".avsc", DEFAULT_TYPE, null, AVRO_SCHEMA_PARSER);
-        this.serdeSupplier = serdeSupplier;
-    }
-
-    @Override
-    public Serde<Object> serde(DataType type, boolean isKey) {
-        return serdeSupplier.get(type, isKey);
+    public AvroNotation(VendorNotationContext context) {
+        super(context, ".avsc", DEFAULT_TYPE, null, AVRO_SCHEMA_PARSER);
     }
 }

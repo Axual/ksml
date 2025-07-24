@@ -22,6 +22,7 @@ package io.axual.ksml.data.notation.base;
 
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.notation.Notation;
+import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.type.DataType;
 import lombok.Getter;
 
@@ -29,21 +30,23 @@ import java.util.Objects;
 
 @Getter
 public abstract class BaseNotation implements Notation {
-    private final String notationName;
-    private final String vendorName;
+    private final NotationContext context;
     private final String filenameExtension;
     private final DataType defaultType;
     private final Converter converter;
     private final SchemaParser schemaParser;
 
-    protected BaseNotation(String notationName, String vendorName, String filenameExtension, DataType defaultType, Notation.Converter converter, Notation.SchemaParser schemaParser) {
-        Objects.requireNonNull(notationName);
-        this.notationName = notationName;
-        this.vendorName = vendorName;
+    protected BaseNotation(NotationContext context, String filenameExtension, DataType defaultType, Notation.Converter converter, Notation.SchemaParser schemaParser) {
+        Objects.requireNonNull(context, "Notation context");
+        this.context = context;
         this.filenameExtension = filenameExtension;
         this.defaultType = defaultType;
         this.converter = converter;
         this.schemaParser = schemaParser;
+    }
+
+    public String name() {
+        return context.name();
     }
 
     protected RuntimeException noSerdeFor(DataType type) {

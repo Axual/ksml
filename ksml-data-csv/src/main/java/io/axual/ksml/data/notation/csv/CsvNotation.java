@@ -20,7 +20,7 @@ package io.axual.ksml.data.notation.csv;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.string.StringNotation;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
@@ -36,8 +36,8 @@ public class CsvNotation extends StringNotation {
             new UnionType.MemberType(new StructType()),
             new UnionType.MemberType(new ListType()));
 
-    public CsvNotation(NativeDataObjectMapper nativeMapper) {
-        super(NOTATION_NAME, null, ".csv", DEFAULT_TYPE, new CsvDataObjectConverter(), new CsvSchemaParser(), nativeMapper, new CsvDataObjectMapper());
+    public CsvNotation(NotationContext context) {
+        super(context, ".csv", DEFAULT_TYPE, new CsvDataObjectConverter(), new CsvSchemaParser(), new CsvDataObjectMapper());
     }
 
     @Override
@@ -45,7 +45,7 @@ public class CsvNotation extends StringNotation {
         // CSV types should ways be Lists, Structs or the union of them both
         if (type instanceof ListType || type instanceof StructType || DEFAULT_TYPE.equals(type))
             return super.serde(type, isKey);
-        // Other types can not be serialized as XML
+        // Other types cannot be serialized as CSV
         throw noSerdeFor(type);
     }
 }

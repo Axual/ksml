@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.axual.ksml.TopologyGenerator;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroNotationProvider;
 import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroSerdeSupplier;
@@ -100,8 +101,8 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
     public void beforeAll(ExtensionContext extensionContext) {
         log.debug("Registering test notations");
         final var mapper = new NativeDataObjectMapper();
-        final var jsonNotation = new JsonNotation(mapper);
-        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(mapper, jsonNotation::serde));
+        final var jsonNotation = new JsonNotation(new NotationContext(JsonNotation.NOTATION_NAME, mapper));
+        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, new BinaryNotation(new NotationContext(BinaryNotation.NOTATION_NAME, mapper), jsonNotation::serde));
         ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
 
         log.debug("Registering annotated TestInputTopic, TestOutputTopic and TopologyTestDriver fields");
@@ -149,7 +150,9 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
         }
 
         final var registryClient = new MockConfluentSchemaRegistryClient();
-        final var mockAvroNotation = new ConfluentAvroNotationProvider(registryClient).createNotation();
+        final var provider = new ConfluentAvroNotationProvider(registryClient);
+        final var context = new NotationContext(provider.notationName(), provider.vendorName(), registryClient.configs());
+        final var mockAvroNotation = provider.createNotation(context);
         ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, mockAvroNotation);
 
         // Get the KSML definition classpath relative path and load the topology into the test driver

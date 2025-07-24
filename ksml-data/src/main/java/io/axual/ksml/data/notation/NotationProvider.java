@@ -27,9 +27,5 @@ public interface NotationProvider {
         return null;
     }
 
-    default String name() {
-        return (vendorName() != null && !vendorName().isEmpty() ? vendorName() + "_" : "") + notationName();
-    }
-
     Notation createNotation(NotationContext notationContext);
 }

@@ -20,23 +20,20 @@ package io.axual.ksml.data.notation.avro.confluent;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.avro.AvroDataObjectMapper;
 import io.axual.ksml.data.notation.avro.AvroSerdeSupplier;
-import io.axual.ksml.data.serde.DataObjectSerde;
 import io.axual.ksml.data.type.DataType;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import lombok.Getter;
-import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.serialization.Serdes;
 
 public class ConfluentAvroSerdeSupplier implements AvroSerdeSupplier {
     private static final AvroDataObjectMapper MAPPER = new AvroDataObjectMapper();
-    private final DataObjectMapper<Object> nativeMapper;
+    private final NotationContext notationContext;
     // Registry Client is mocked by tests
     @Getter
     private final SchemaRegistryClient registryClient;
@@ -46,7 +43,7 @@ public class ConfluentAvroSerdeSupplier implements AvroSerdeSupplier {
     }
 
     public ConfluentAvroSerdeSupplier(NotationContext notationContext, SchemaRegistryClient registryClient) {
-        this.nativeMapper = notationContext.nativeDataObjectMapper();
+        this.notationContext = notationContext;
         this.registryClient = registryClient;
     }
 
@@ -57,8 +54,8 @@ public class ConfluentAvroSerdeSupplier implements AvroSerdeSupplier {
 
     @Override
     public Serde<Object> get(DataType type, boolean isKey) {
-        final Serializer<Object> serializer = registryClient != null ? new KafkaAvroSerializer(registryClient) : new KafkaAvroSerializer();
-        final Deserializer<Object> deserializer = registryClient != null ? new KafkaAvroDeserializer(registryClient) : new KafkaAvroDeserializer();
-        return new DataObjectSerde(vendorName(), serializer, deserializer, MAPPER, nativeMapper);
+        return Serdes.serdeFrom(
+                registryClient != null ? new KafkaAvroSerializer(registryClient) : new KafkaAvroSerializer(),
+                registryClient != null ? new KafkaAvroDeserializer(registryClient) : new KafkaAvroDeserializer());
     }
 }

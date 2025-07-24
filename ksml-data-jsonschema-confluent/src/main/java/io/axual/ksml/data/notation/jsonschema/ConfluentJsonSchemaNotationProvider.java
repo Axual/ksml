@@ -22,7 +22,8 @@ package io.axual.ksml.data.notation.jsonschema;
 
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
-import io.axual.ksml.data.notation.base.VendorNotationProvider;
+import io.axual.ksml.data.notation.vendor.VendorNotationContext;
+import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
 
 public class ConfluentJsonSchemaNotationProvider extends VendorNotationProvider {
     // Registry Client is mocked by tests
@@ -31,7 +32,11 @@ public class ConfluentJsonSchemaNotationProvider extends VendorNotationProvider 
     }
 
     @Override
-    public Notation createNotation(NotationContext notationContext) {
-        return new JsonSchemaNotation(new ConfluentJsonSchemaSerdeSupplier(), notationContext.nativeDataObjectMapper(), notationContext.configs());
+    public Notation createNotation(NotationContext context) {
+        return new JsonSchemaNotation(
+                new VendorNotationContext(
+                        context,
+                        new ConfluentJsonSchemaSerdeSupplier(),
+                        new JsonSchemaDataObjectMapper(context.nativeDataObjectMapper())));
     }
 }

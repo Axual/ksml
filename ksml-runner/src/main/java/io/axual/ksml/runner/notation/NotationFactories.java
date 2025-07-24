@@ -25,18 +25,8 @@ import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.NotationProvider;
-import io.axual.ksml.data.notation.avro.AvroNotation;
-import io.axual.ksml.data.notation.avro.AvroSerdeSupplier;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
-import io.axual.ksml.data.notation.csv.CsvNotation;
 import io.axual.ksml.data.notation.json.JsonNotation;
-import io.axual.ksml.data.notation.jsonschema.JsonSchemaNotation;
-import io.axual.ksml.data.notation.jsonschema.JsonSchemaSerdeSupplier;
-import io.axual.ksml.data.notation.protobuf.ProtobufDataObjectMapper;
-import io.axual.ksml.data.notation.protobuf.ProtobufNotation;
-import io.axual.ksml.data.notation.protobuf.ProtobufSerdeSupplier;
-import io.axual.ksml.data.notation.soap.SoapNotation;
-import io.axual.ksml.data.notation.xml.XmlNotation;
 import io.axual.ksml.type.UserType;
 import lombok.Getter;
 
@@ -58,17 +48,23 @@ public class NotationFactories {
 
         // Load all notations
         for (final var provider : ServiceLoader.load(NotationProvider.class)) {
-            notations.put(provider.name(), configs -> {
-                final var context = new NotationContext(nativeMapper, MapUtil.merge(kafkaConfig, configs));
-                return provider.createNotation(context);
-            });
+            final var context = new NotationContext(provider.notationName(), provider.vendorName(), nativeMapper, kafkaConfig);
+            notations.put(context.name(), configs ->
+                    provider.createNotation(
+                            new NotationContext(
+                                    context.notationName(),
+                                    context.vendorName(),
+                                    context.nativeDataObjectMapper(),
+                                    MapUtil.merge(context.serdeConfigs(), configs))));
         }
 
         // Get the JSON notation
         final NotationFactory json = notations.get(JsonNotation.NOTATION_NAME);
-        // Create the binary notation, with JSON for complex types, and set it as default
-        final NotationFactory binary = config -> new BinaryNotation(nativeMapper, json.create(null)::serde);
-        notations.put(BinaryNotation.NOTATION_NAME, binary);
-        notations.put(UserType.DEFAULT_NOTATION, binary);
+        // Create the binary notation, with JSON for complex types
+        final var binaryContext = new NotationContext(BinaryNotation.NOTATION_NAME, nativeMapper);
+        notations.put(binaryContext.name(), config -> new BinaryNotation(binaryContext, json.create(null)::serde));
+        // Create the default notation, with JSON for complex types
+        final var defaultContext = new NotationContext(UserType.DEFAULT_NOTATION, nativeMapper);
+        notations.put(defaultContext.name(), config -> new BinaryNotation(defaultContext, json.create(null)::serde));
     }
 }

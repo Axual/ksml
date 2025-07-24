@@ -21,16 +21,46 @@ package io.axual.ksml.data.notation;
  */
 
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public record NotationContext(NativeDataObjectMapper nativeDataObjectMapper, Map<String, String> configs) {
-    public NotationContext() {
-        this(new HashMap<>());
+@Getter
+public class NotationContext {
+    private final String notationName;
+    private final String vendorName;
+    private final NativeDataObjectMapper nativeDataObjectMapper;
+    private final Map<String, String> serdeConfigs;
+
+    public NotationContext(String notationName) {
+        this(notationName, (String) null);
     }
 
-    public NotationContext(Map<String, String> configs) {
-        this(new NativeDataObjectMapper(), configs);
+    public NotationContext(String notationName, String vendorName) {
+        this(notationName, vendorName, (Map<String, String>) null);
+    }
+
+    public NotationContext(String notationName, String vendorName, Map<String, String> configs) {
+        this(notationName, vendorName, new NativeDataObjectMapper(), configs);
+    }
+
+    public NotationContext(String notationName, NativeDataObjectMapper nativeDataObjectMapper) {
+        this(notationName, null, nativeDataObjectMapper, null);
+    }
+
+    public NotationContext(String notationName, String vendorName, NativeDataObjectMapper nativeDataObjectMapper) {
+        this(notationName, vendorName, nativeDataObjectMapper, null);
+    }
+
+    public NotationContext(String notationName, String vendorName, NativeDataObjectMapper nativeDataObjectMapper, Map<String, String> serdeConfigs) {
+        this.notationName = notationName;
+        this.vendorName = vendorName;
+        this.nativeDataObjectMapper = nativeDataObjectMapper;
+        this.serdeConfigs = serdeConfigs != null ? serdeConfigs : new HashMap<>();
+    }
+
+    public String name() {
+        return (vendorName() != null && !vendorName().isEmpty() ? vendorName() + "_" : "") + notationName();
     }
 }

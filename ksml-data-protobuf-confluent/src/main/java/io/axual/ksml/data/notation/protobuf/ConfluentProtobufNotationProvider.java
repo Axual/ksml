@@ -22,7 +22,8 @@ package io.axual.ksml.data.notation.protobuf;
 
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
-import io.axual.ksml.data.notation.base.VendorNotationProvider;
+import io.axual.ksml.data.notation.vendor.VendorNotationContext;
+import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 
 public class ConfluentProtobufNotationProvider extends VendorNotationProvider {
@@ -38,12 +39,12 @@ public class ConfluentProtobufNotationProvider extends VendorNotationProvider {
     }
 
     @Override
-    public Notation createNotation(NotationContext notationContext) {
+    public Notation createNotation(NotationContext context) {
         return new ProtobufNotation(
-                new ConfluentProtobufSerdeSupplier(registryClient),
-                new ConfluentProtobufSchemaParser(),
-                new ProtobufDataObjectMapper(new ConfluentProtobufDescriptorFileElementMapper()),
-                notationContext.nativeDataObjectMapper(),
-                notationContext.configs());
+                new VendorNotationContext(
+                        context,
+                        new ConfluentProtobufSerdeSupplier(registryClient),
+                        new ProtobufDataObjectMapper(new ConfluentProtobufDescriptorFileElementMapper())),
+                new ConfluentProtobufSchemaParser());
     }
 }

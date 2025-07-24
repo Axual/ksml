@@ -49,6 +49,6 @@ class CsvTests {
 
     @Test
     void serdeTest() {
-        NotationTestRunner.serdeTest(CsvNotation.NOTATION_NAME, new CsvNotation(new NativeDataObjectMapper()), true);
+        NotationTestRunner.serdeTest(new CsvNotation(new NotationContext(CsvNotation.NOTATION_NAME, new NativeDataObjectMapper())), true);
     }
 }

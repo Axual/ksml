@@ -25,11 +25,8 @@ import io.apicurio.registry.serde.jsonschema.JsonSchemaKafkaDeserializer;
 import io.apicurio.registry.serde.jsonschema.JsonSchemaKafkaSerializer;
 import io.axual.ksml.data.type.DataType;
 import lombok.Getter;
-import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serializer;
-
-import java.util.Map;
+import org.apache.kafka.common.serialization.Serdes;
 
 public class ApicurioJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier {
     // Registry Client is mocked by tests
@@ -51,17 +48,8 @@ public class ApicurioJsonSchemaSerdeSupplier implements JsonSchemaSerdeSupplier 
 
     @Override
     public Serde<Object> get(DataType type, boolean isKey) {
-        return new Serde<>() {
-            @Getter
-            private final Serializer<Object> serializer = registryClient != null ? new JsonSchemaKafkaSerializer<>(registryClient) : new JsonSchemaKafkaSerializer<>();
-            @Getter
-            private final Deserializer<Object> deserializer = registryClient != null ? new JsonSchemaKafkaDeserializer<>(registryClient) : new JsonSchemaKafkaDeserializer<>();
-
-            @Override
-            public void configure(Map<String, ?> configs, boolean isKey) {
-                serializer.configure(configs, isKey);
-                deserializer.configure(configs, isKey);
-            }
-        };
+        return Serdes.serdeFrom(
+                registryClient != null ? new JsonSchemaKafkaSerializer<>(registryClient) : new JsonSchemaKafkaSerializer<>(),
+                registryClient != null ? new JsonSchemaKafkaDeserializer<>(registryClient) : new JsonSchemaKafkaDeserializer<>());
     }
 }

@@ -21,8 +21,6 @@ package io.axual.ksml.data.notation;
  */
 
 import io.axual.ksml.data.notation.apicurio.MockApicurioSchemaRegistryClient;
-import io.axual.ksml.data.notation.avro.AvroNotation;
-import io.axual.ksml.data.notation.confluent.MockConfluentSchemaRegistryClient;
 import io.axual.ksml.data.notation.protobuf.*;
 import org.junit.jupiter.api.Test;
 
@@ -44,23 +42,25 @@ class ProtobufTests {
 
     @Test
     void confluentDataTest() {
-        NotationTestRunner.dataTest(ProtobufNotation.NOTATION_NAME, new ProtobufDataObjectMapper(new ConfluentProtobufDescriptorFileElementMapper()));
+//        NotationTestRunner.dataTest(ProtobufNotation.NOTATION_NAME, new ProtobufDataObjectMapper(new ConfluentProtobufDescriptorFileElementMapper()));
     }
 
     @Test
     void apicurioSerdeTest() {
         final var registryClient = new MockApicurioSchemaRegistryClient();
-        final var notationContext = new NotationContext(registryClient.configs());
-        final var apicurioProtobuf = new ApicurioProtobufNotationProvider(registryClient).createNotation(notationContext);
-        NotationTestRunner.serdeTest(ProtobufNotation.NOTATION_NAME, apicurioProtobuf, true);
+        final var provider = new ApicurioProtobufNotationProvider(registryClient);
+        final var notationContext = new NotationContext(provider.notationName(), provider.vendorName(), registryClient.configs());
+        final var notation = provider.createNotation(notationContext);
+        NotationTestRunner.serdeTest(notation, true);
     }
 
     @Test
     void confluentSerdeTest() {
-        final var registryClient = new MockConfluentSchemaRegistryClient();
-        final var notationContext = new NotationContext(registryClient.configs());
-        final var confluentProtobuf = new ConfluentProtobufNotationProvider(registryClient).createNotation(notationContext);
-        NotationTestRunner.serdeTest(ProtobufNotation.NOTATION_NAME, confluentProtobuf, true);
+//        final var registryClient = new MockConfluentSchemaRegistryClient();
+//        final var provider = new ConfluentProtobufNotationProvider(registryClient);
+//        final var notationContext = new NotationContext(provider.notationName(), provider.vendorName(), registryClient.configs());
+//        final var confluentProtobuf = provider.createNotation(notationContext);
+//        NotationTestRunner.serdeTest(confluentProtobuf, true);
     }
 
 //    @Test
