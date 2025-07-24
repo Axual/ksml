@@ -40,6 +40,7 @@ services:
   broker:
     image: bitnami/kafka:3.8.0
     hostname: broker
+    container_name: broker
     ports:
       - "9092:9092"
     networks:
@@ -113,7 +114,7 @@ services:
                        kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temperature_data_converted'"
 ```
 
-Next, create a config file named `kafka-ui-config` for the Kafka UI service we will use to monitor Kafka, with the following contents:
+Next, create a config file named `kafka-ui-config.yaml` for the Kafka UI service we will use to monitor Kafka, with the following contents:
 
 ```yaml
 server:
@@ -140,25 +141,28 @@ This command starts:
 - **Kafka UI** on port 8080 for monitoring topics and messages
 - **Topic setup** that creates required topics automatically
 
-### Step 3: Verify Everything is Running
+### Step 3: Verify your setup so far
 
-Check that all services are healthy:
+Check the services in the docker compose:
 
 ```bash
 docker compose ps
 ```
 
-You should see all services in "Up" status. You can also:
+You should see Kafka ("`broker`") and Kafka UI ("`kowl`") running; the "Topic setup" container will have done its work and exited.
+The KSML runner will have logged an error about a missing config file and exited; we will fix this in the next step.
+<br>
+For now, you can check Kafka and Kafka UI, and verify that the test topics have been created:
 
-- Visit [http://localhost:8080](http://localhost:8080) to access Kafka UI
+- Visit [http://localhost:8080](http://localhost:8080) to access Kafka UI, and check the "topics" tab
 - Check logs: `docker compose logs -f`
 
 ### Step 4: Create Your First KSML Definition
 
-Create a simple KSML file to test the setup:
+Create a simple KSML file to test the setup. In the `examples/` directory, create a file `hello-world.yaml` with the 
+following contents:
 
-```bash
-cat > examples/hello-world.yaml << 'EOF'
+```yaml
 streams:
   input_stream:
     topic: temperature_data
@@ -181,21 +185,106 @@ pipelines:
       - type: peek
         forEach: log_message
     to: output_stream
-EOF
+```
+
+Finally, the KSML runner needs a configuration file which tells it how to connect to Kafka, and which KSML definitions
+to run, along with some other settings (explained later). The default name for this file is `ksml-runner.yaml`, create it
+in your `examples/` directory and copy and paste the following content:
+
+```yaml
+kafka:
+   bootstrap.servers: broker:9093
+   application.id: io.ksml.example.producer
+   security.protocol: PLAINTEXT
+   acks: all
+
+ksml:
+  definitions:
+    # format is: <namespace>: <filename> 
+    helloworld: hello-world.yaml 
+  
+  # The examples directory is mounted to /ksml in the Docker container
+  configDirectory: /ksml          # When not set defaults to the working directory
+  schemaDirectory: /ksml          # When not set defaults to the config directory
+  storageDirectory: /tmp          # When not set defaults to the default JVM temp directory
+
+  # This section defines if a REST endpoint is opened on the KSML runner, through which
+  # state stores and/or readiness / liveness probes can be accessed.
+  applicationServer:
+    enabled: false                # Set to true to enable, or false to disable
+    host: 0.0.0.0                 # IP address to bind the REST server to
+    port: 8080                    # Port number to listen on
+
+  # This section defines whether a Prometheus endpoint is opened to allow metric scraping.
+  prometheus:
+    enabled: false                 # Set to true to enable, or false to disable
+    host: 0.0.0.0                 # IP address to bind the Prometheus agent server to
+    port: 9999                    # Port number to listen on
+
+  # This section enables error handling or error ignoring for certain types of errors.
+  errorHandling:
+    consume:                      # Error handling definitions for consume errors
+      log: true                   # Log errors true/false
+      logPayload: true            # Upon error, should the payload of the message be dumped to the log file.
+      loggerName: ConsumeError    # Definition of the error logger name.
+      handler: stopOnFail         # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
+    process:
+      log: true                   # Log errors true/false
+      logPayload: true            # Upon error, should the payload of the message be dumped to the log file.
+      loggerName: ProcessError    # Definition of the error logger name.
+      handler: continueOnFail     # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
+    produce:
+      log: true                   # Log errors true/false
+      logPayload: true            # Upon error, should the payload of the message be dumped to the log file.
+      loggerName: ProduceError    # Definition of the error logger name.
+      handler: continueOnFail     # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
+
+  enableProducers: true           # Set to true to allow producer definitions to be parsed in the KSML definitions and be executed.
+  enablePipelines: true          # Set to true to allow pipeline definitions to be parsed in the KSML definitions and be executed.
 ```
 
 ### Step 5: Run Your KSML Application
 
-The KSML runner automatically picks up YAML files from the examples directory. Restart it to load your new definition:
+Restart the KSML runner to load your new definitions:
 
 ```bash
 docker compose restart ksml
 ```
 
-You should see logs indicating your KSML application has started:
+You should see logs indicating your KSML application has started and a Kafka Streams topology was created:
 
 ```bash
 docker compose logs ksml
+```
+
+Try producing some messages, for now using the Kafka console producer. You can start it inside the KSML container,
+running in interactive mode, using the following command:
+
+```bash
+docker compose exec broker kafka-console-producer.sh --bootstrap-server broker:9093 --topic temperature_data --property "parse.key=true" --property "key.separator=:"```
+```
+
+Then you can enter some test messages, using the format `key:value` where the value is a JSON message:
+
+```
+sensor1:{"temperature": 75}
+sensor2:{"temperature": 65}
+sensor3:{"temperature": 80}
+```
+
+To stop entering messages, use `Control-C`. Now, if you check the logs of the KSML runner, you should see that your
+pipeline processed (in this case: logged) the messages:
+
+```bash
+docker compose logs ksml
+```
+
+Should show something like:
+
+```
+ INFO  helloworld.function.log_message      Processing message: key=sensor1, value={'temperature': 75}
+ INFO  helloworld.function.log_message      Processing message: key=sensor2, value={'temperature': 65}
+ INFO  helloworld.function.log_message      Processing message: key=sensor3, value={'temperature': 80}
 ```
 
 ### Step 6: Explore Your Setup with Kafka UI
