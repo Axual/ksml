@@ -58,6 +58,12 @@ These advanced tutorials can be approached based on your specific needs and inte
 
 After completing these tutorials, you'll have a comprehensive understanding of KSML's capabilities and be able to implement complex, production-grade stream processing applications.
 
+## Next Steps
+
+Now that you've mastered KSML, it's time to apply your knowledge to real-world scenarios:
+
+👉 **Explore [Use Case Guides](../../use-cases/)** to see how KSML solves common business problems and get inspiration for your own projects.
+
 ## Additional Resources
 
 - [Core Concepts: Advanced Topics](../../core-concepts/advanced-topics.md) - Detailed explanations of advanced KSML concepts

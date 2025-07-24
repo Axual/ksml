@@ -1,22 +1,30 @@
-# Introduction to KSML
+# Understanding KSML
 
-## Background
+Now that you've seen KSML in action with the [Quick Start](installation.md), let's understand what just happened and why KSML makes stream processing so much simpler.
 
-Kafka Streams is at the heart of many organisations' event sourcing, analytical processing, real-time, batch or ML
-workloads. It has a beautiful Java DSL that allows developers to focus on what their applications need to do, not how to
-do it. But the Java requirement also holds people back. If you don’t know Java, does that mean you cannot use Kafka
-Streams?
+## What You Just Saw
 
-Enter KSML.
+In the Quick Start, you set up a complete stream processing pipeline with just:
 
-KSML is a wrapper language and interpreter around Kafka Streams that lets you express any topology in a YAML syntax.
-Simply define your topology as a processing pipeline with a series of steps that your data passes through. Your custom
-functions can be expressed inline in Python. KSML will read your definition and construct the topology dynamically via
-the Kafka Streams DSL and run it in GraalVM.
+- A simple Docker Compose command  
+- A YAML configuration file
+- No Java code, no compilation, no complex setup
 
-This documentation takes you for a deep-dive into KSML. It covers the basic concepts, how to run, and of course,
-contains lots of useful and near-real-world examples. After going through these docs, you will understand how easily and
-quickly you can develop Kafka Streams applications without writing a single line of Java.
+That pipeline was:
+
+1. **Reading** temperature messages from a Kafka topic
+2. **Processing** each message through your KSML pipeline  
+3. **Writing** the results to another topic
+
+Behind the scenes, KSML converted your YAML definition into a full Kafka Streams application.
+
+## Why KSML Exists
+
+Kafka Streams is at the heart of many organizations' event sourcing, analytical processing, real-time, batch or ML workloads. It has a beautiful Java DSL that allows developers to focus on what their applications need to do, not how to do it. But the Java requirement also holds people back. If you don't know Java, does that mean you cannot use Kafka Streams?
+
+**Enter KSML.**
+
+KSML is a wrapper language and interpreter around Kafka Streams that lets you express any topology in a simple YAML syntax. Simply define your topology as a processing pipeline with a series of steps that your data passes through. Your custom functions can be expressed inline in Python. KSML reads your definition and constructs the topology dynamically via the Kafka Streams DSL.
 
 ## What is KSML?
 
@@ -119,6 +127,5 @@ Kafka Streams implementation.
 
 Now that you understand what KSML is and its key concepts, you can:
 
-- Learn how to [install and set up KSML](installation.md)
+- Explore the [Core Concepts](../../core-concepts/) in more detail
 - Follow the [KSML Basics Tutorial](basics-tutorial.md) to build your first application
-- Explore the [Core Concepts](../reference/stream-type-reference.md) in more detail

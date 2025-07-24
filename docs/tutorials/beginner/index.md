@@ -44,7 +44,13 @@ This tutorial focuses on how to add effective logging and monitoring to your KSM
 
 ## Learning Path
 
-We recommend following these tutorials in order, as each one builds on concepts introduced in previous tutorials. After completing these beginner tutorials, you'll be ready to move on to the [Intermediate Tutorials](../intermediate/index.md), which cover more advanced topics like aggregations, joins, and windowing operations.
+We recommend following these tutorials in order, as each one builds on concepts introduced in previous tutorials.
+
+## Next Steps
+
+After completing these beginner tutorials, you're ready to move on to more advanced topics:
+
+👉 **Continue to [Intermediate Tutorials](../intermediate/index.md)** to learn about aggregations, joins, and windowing operations.
 
 ## Additional Resources
 

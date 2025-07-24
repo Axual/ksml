@@ -25,9 +25,9 @@ Input Topic → Filter → Transform → Output Topic
 
 Before you begin, make sure you have:
 
-- Completed the [Installation and Setup](installation.md) guide
-- A running KSML environment with Kafka
+- Completed the [Installation and Setup](installation.md) guide with Docker Compose running
 - Basic understanding of YAML syntax
+- Your KSML environment running (`docker compose ps` should show all services as "Up")
 
 ## Understanding the KSML File Structure
 
@@ -220,43 +220,83 @@ Save this file as [`tutorial.yaml`](../definitions/basics-tutorial/tutorial.yaml
 
 ## Step 5: Run Your Pipeline
 
-Now let's run the pipeline and see it in action:
+Now let's run the pipeline using our Docker Compose setup:
 
-1. Make sure your Kafka environment is running
-2. Create the input and output topics:
-   ```bash
-   docker exec -it kafka kafka-topics --bootstrap-server localhost:9092 --create --topic tutorial_input --partitions 1 --replication-factor 1
-   docker exec -it kafka kafka-topics --bootstrap-server localhost:9092 --create --topic tutorial_output --partitions 1 --replication-factor 1
-   ```
-3. Run the KSML runner with your definition file:
-   ```bash
-   docker run -v $(pwd):/app -e KAFKA_BOOTSTRAP_SERVERS=kafka:9092 axual/ksml-runner:latest --definitions /app/tutorial.yaml
-   ```
-4. In another terminal, produce some test messages to the input topic:
-   ```bash
-   docker exec -it kafka kafka-console-producer --bootstrap-server localhost:9092 --topic tutorial_input --property "parse.key=true" --property "key.separator=:"
-   ```
-   Then enter messages in the format `key:value`, for example:
-5. 
-   ```
-   sensor1:{"temperature": 75}
-   sensor2:{"temperature": 65}
-   sensor3:{"temperature": 80}
-   ```
-6. In a third terminal, consume messages from the output topic to see the results:
-   ```bash
-   docker exec -it kafka kafka-console-consumer --bootstrap-server localhost:9092 --topic tutorial_output --from-beginning
-   ```
+### Step 5.1: Save Your KSML Definition
+
+Save the complete KSML definition as `examples/tutorial.yaml` in your project directory:
+
+```bash
+cat > examples/tutorial.yaml << 'EOF'
+# Your complete KSML definition goes here
+# (Copy the complete YAML from Step 4 above)
+EOF
+```
+
+### Step 5.2: Create the Required Topics
+
+The docker-compose setup automatically creates some topics, but we need to add our tutorial topics:
+
+```bash
+# Create tutorial input topic
+docker exec ksml kafka-topics.sh --bootstrap-server broker:9093 --create --if-not-exists --topic tutorial_input --partitions 1 --replication-factor 1
+
+# Create tutorial output topic  
+docker exec ksml kafka-topics.sh --bootstrap-server broker:9093 --create --if-not-exists --topic tutorial_output --partitions 1 --replication-factor 1
+```
+
+### Step 5.3: Restart KSML to Load Your Definition
+
+Restart the KSML container to pick up your new definition:
+
+```bash
+docker compose restart ksml
+```
+
+Check the logs to verify your pipeline started:
+
+```bash
+docker compose logs ksml
+```
+
+### Step 5.4: Test with Sample Data
+
+Produce some test messages to the input topic:
+
+```bash
+docker exec ksml kafka-console-producer.sh --bootstrap-server broker:9093 --topic tutorial_input --property "parse.key=true" --property "key.separator=:"
+```
+
+Then enter messages in the format `key:value`:
+```
+sensor1:{"temperature": 75}
+sensor2:{"temperature": 65}
+sensor3:{"temperature": 80}
+```
+
+Press Ctrl+D to exit the producer.
+
+### Step 5.5: View the Results
+
+Consume messages from the output topic to see the results:
+
+```bash
+docker exec ksml kafka-console-consumer.sh --bootstrap-server broker:9093 --topic tutorial_output --from-beginning
+```
+
+You can also view the topics and messages in the Kafka UI at http://localhost:8080.
 
 You should see messages like:
 
 ```
-{"sensor":"sensor1","temp_fahrenheit":75,"temp_celsius":23.88888888888889}
-{"sensor":"sensor3","temp_fahrenheit":80,"temp_celsius":26.666666666666668}
+{"temp_fahrenheit":75,"temp_celsius":23.88888888888889}
+{"temp_fahrenheit":80,"temp_celsius":26.666666666666668}
 ```
 
-Notice that the message with temperature 65°F was filtered out, and the remaining messages have been transformed to
-include the Celsius temperature.
+Notice that:
+- The message with temperature 65°F was filtered out (below our 70°F threshold)
+- The remaining messages have been transformed to include both Fahrenheit and Celsius temperatures
+- You can see processing logs in the KSML container logs: `docker compose logs ksml`
 
 ## Understanding What's Happening
 

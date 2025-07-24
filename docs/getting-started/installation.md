@@ -1,145 +1,245 @@
-# Installation and Setup
+# Quick Start with KSML
 
-This guide will walk you through setting up a development environment for KSML and running your first KSML application.
+Get KSML running in 5 minutes with this simple Docker Compose setup. You'll have a working stream processing pipeline that transforms temperature data from Fahrenheit to Celsius.
 
-## Prerequisites
+## Quick Start with Docker Compose
 
-Before you begin, make sure you have the following installed:
+The fastest way to get started with KSML is using our pre-configured Docker Compose setup that includes everything you need:
 
-- **Docker**: KSML examples and development environment run in Docker containers
-- **Git**: To clone the KSML repository (if you want to run the examples)
-- **Basic understanding of Kafka**: Familiarity with Kafka concepts like topics and messages
-
-## Setting Up a Development Environment
-
-There are two main ways to set up KSML:
-
-1. Using the provided Docker Compose setup (recommended for beginners)
-2. Configuring KSML to connect to an existing Kafka cluster
-
-### Option 1: Using Docker Compose
-
-The easiest way to get started with KSML is to use the provided Docker Compose setup, which includes:
-
-- Zookeeper
-- Kafka broker
-- Schema Registry
-- Example data producer
+- Kafka broker with pre-configured topics
 - KSML runner
+- Kafka UI for easy topic monitoring
+- Example data setup
 
-#### Step 1: Clone the Repository
+### Prerequisites
 
-If you haven't already, clone the KSML repository:
+Before you begin, make sure you have:
+
+- **Docker** and **Docker Compose** installed
+- Basic understanding of Kafka concepts like topics and messages
+
+### Step 1: Create the Docker Compose Configuration
+
+Create a new directory for your KSML project and add the docker-compose.yml:
 
 ```bash
-git clone https://github.com/axual/ksml.git
-cd ksml
+mkdir my-ksml-project
+cd my-ksml-project
+mkdir examples
 ```
 
-#### Step 2: Start the Environment
+Create a `docker-compose.yml` file with the following content:
 
-Start the Docker Compose environment:
+```yaml
+networks:
+  ksml:
+    name: ksml_example
+    driver: bridge
+
+services:
+  broker:
+    image: bitnami/kafka:3.8.0
+    hostname: broker
+    ports:
+      - "9092:9092"
+    networks:
+      - ksml
+    restart: always
+    environment:
+      KAFKA_CFG_PROCESS_ROLES: 'controller,broker'
+      KAFKA_CFG_BROKER_ID: 0
+      KAFKA_CFG_NODE_ID: 0
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: '0@broker:9090'
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_CFG_ADVERTISED_LISTENERS: 'INNER://broker:9093,OUTER://localhost:9092'
+      KAFKA_CFG_LISTENERS: 'INNER://broker:9093,OUTER://broker:9092,CONTROLLER://broker:9090'
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: 'INNER:PLAINTEXT,OUTER:PLAINTEXT,CONTROLLER:PLAINTEXT'
+      KAFKA_CFG_LOG_CLEANUP_POLICY: delete
+      KAFKA_CFG_LOG_RETENTION_MINUTES: 10
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: INNER
+      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CFG_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_CFG_MIN_INSYNC_REPLICAS: 1
+      KAFKA_CFG_NUM_PARTITIONS: 1
+    healthcheck:
+      test: kafka-topics.sh --bootstrap-server broker:9093 --list
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 5s
+
+  ksml:
+    image: registry.axual.io/opensource/images/axual/ksml:1.0.8
+    networks:
+      - ksml
+    container_name: ksml
+    working_dir: /ksml
+    volumes:
+      - ./examples:/ksml
+    depends_on:
+      broker:
+        condition: service_healthy
+      kafka-setup:
+        condition: service_completed_successfully
+
+  kafka-ui:
+    image: quay.io/cloudhut/kowl:master
+    container_name: kowl
+    restart: always
+    ports:
+      - 8080:8080
+    volumes:
+      - ./kafka-ui:/config
+    environment:
+      CONFIG_FILEPATH: "/config/kafka-ui-config.yaml"
+    depends_on:
+      broker:
+        condition: service_healthy
+    networks:
+      - ksml
+
+  kafka-setup:
+    image: bitnami/kafka:3.8.0
+    hostname: kafka-setup
+    networks:
+      - ksml
+    depends_on:
+      broker:
+        condition: service_healthy
+    restart: on-failure
+    command: "bash -c 'echo Trying to create topics... && \
+                       kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temperature_data && \
+                       kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temperature_data_converted'"
+```
+
+### Step 2: Start the Environment
+
+Start all services with Docker Compose:
 
 ```bash
 docker compose up -d
 ```
 
-This command starts all the necessary services in the background. You can check the logs to verify everything is running correctly:
+This command starts:
+
+- **Kafka broker** on port 9092
+- **KSML runner** that will execute your KSML definitions
+- **Kafka UI** on port 8080 for monitoring topics and messages
+- **Topic setup** that creates required topics automatically
+
+### Step 3: Verify Everything is Running
+
+Check that all services are healthy:
 
 ```bash
-docker compose logs -f
+docker compose ps
 ```
 
-You should see log messages indicating that the services are running, including messages from the example producer that's generating random sensor data:
+You should see all services in "Up" status. You can also:
 
-```
-example-producer-1 | 2024-03-06T20:24:49,480Z INFO i.a.k.r.backend.KafkaProducerRunner Calling generate_sensordata_message
-example-producer-1 | 2024-03-06T20:24:49,480Z INFO i.a.k.r.backend.ExecutableProducer Message: key=sensor2, value=SensorData: {"city":"Utrecht", "color":"white", "name":"sensor2", "owner":"Alice", "timestamp":1709756689480, "type":"HUMIDITY", "unit":"%", "value":"66"}
-```
+- Visit http://localhost:8080 to access Kafka UI
+- Check logs: `docker compose logs -f`
 
-Press CTRL-C to stop following the logs when you're satisfied that the environment is running correctly.
+### Step 4: Create Your First KSML Definition
 
-### Option 2: Connecting to an Existing Kafka Cluster
-
-If you already have a Kafka cluster and want to use KSML with it, you'll need to configure the KSML runner to connect to your cluster.
-
-#### Step 1: Create a Configuration File
-
-Create a file named `ksml-runner.yaml` with the following content, adjusting the values to match your Kafka cluster configuration:
-
-```yaml
-{% include "../definitions/installation/template-ksml-runner.yaml" %}
-```
-
-#### Step 2: Run the KSML Runner
-
-Run the KSML runner with your configuration:
+Create a simple KSML file to test the setup:
 
 ```bash
-docker run -v $(pwd):/app axual/ksml-runner:latest --config /app/ksml-runner.yaml
+cat > examples/hello-world.yaml << 'EOF'
+streams:
+  input_stream:
+    topic: temperature_data
+    keyType: string
+    valueType: json
+  output_stream:
+    topic: temperature_data_converted
+    keyType: string
+    valueType: json
+
+functions:
+  log_message:
+    type: forEach
+    code: |
+      log.info(f"Processing message: key={key}, value={value}")
+
+pipelines:
+  - from: input_stream
+    via:
+      - type: peek
+        forEach: log_message
+    to: output_stream
+EOF
 ```
 
-## Running Your First KSML Application
+### Step 5: Run Your KSML Application
 
-Now that you have a running environment, let's run a simple KSML application that processes the example sensor data.
-
-### Step 1: Run the Example KSML Runner
-
-If you're using the Docker Compose setup, after building a local KSML image, you can run the example KSML runner with:
+The KSML runner automatically picks up YAML files from the examples directory. Restart it to load your new definition:
 
 ```bash
-./examples/run-local.sh
+docker compose restart ksml
 ```
 
-This will start a KSML runner container that processes the example KSML definitions. You should see output similar to:
+You should see logs indicating your KSML application has started:
 
-```
-2024-03-06T20:24:51,921Z INFO io.axual.ksml.runner.KSMLRunner Starting KSML Runner 1.76.0.0
-...
-2024-03-06T20:24:57,196Z INFO ksml.functions.log_message Consumed AVRO message - key=sensor9, value={'city': 'Alkmaar', 'color': 'yellow', 'name': 'sensor9', 'owner': 'Bob', 'timestamp': 1709749917190, 'type': 'LENGTH', 'unit': 'm', 'value': '562', '@type': 'SensorData', '@schema': { <<Cleaned KSML Representation of Avro Schema>>}}
+```bash
+docker compose logs ksml
 ```
 
-### Step 2: Explore the Example KSML Definitions
+### Step 6: Explore Your Setup with Kafka UI
 
-The example KSML definitions are located in the `examples` directory. Take a look at some of the simpler examples to understand how KSML works:
+Now let's explore what's running using the Kafka UI:
 
-- `01-example-inspect.yaml`: Shows how to read and log messages from a topic
-- `02-example-copy.yaml`: Demonstrates copying messages from one topic to another
-- `03-example-filter.yaml`: Shows how to filter messages based on their content
+1. **Open Kafka UI** in your browser: http://localhost:8080
 
-### Step 3: Modify an Example
+2. **View Topics**: You'll see the pre-created topics:
+   - `temperature_data` (input topic)
+   - `temperature_data_converted` (output topic)
 
-Try modifying one of the examples to see how changes affect the behavior. For instance, you could change the filter condition in `03-example-filter.yaml` to filter based on a different field or value.
+3. **Explore Messages**: Click on any topic to see its configuration and messages
 
-1. Edit the file using your favorite text editor
-2. Restart the KSML runner to apply your changes:
-   ```bash
-   docker compose restart ksml-runner
-   ```
-3. Check the logs to see the effect of your changes:
-   ```bash
-   docker compose logs -f ksml-runner
-   ```
+4. **Monitor Activity**: The UI shows real-time information about:
+   - Topic partitions and offsets
+   - Consumer groups
+   - Message throughput
+
+This gives you a visual way to monitor your Kafka topics and see how KSML processes your data.
+
+## Alternative Setup Options
+
+For more advanced setups or existing Kafka clusters, see our [Advanced Installation Guide](advanced-installation.md).
 
 ## Troubleshooting
 
 ### Common Issues
 
-- **Connection refused errors**: Make sure all the Docker containers are running with `docker compose ps`
-- **Schema not found errors**: Ensure the Schema Registry is running and accessible
+- **Connection refused errors**: Make sure all containers are running with `docker compose ps`
+- **Port conflicts**: If port 9092 or 8080 are in use, modify the docker-compose.yml ports
 - **KSML syntax errors**: Check your YAML syntax for proper indentation and formatting
 
 ### Getting Help
 
-If you encounter issues not covered here:
+If you encounter issues:
 
-- Check the [Troubleshooting Guide](../resources/troubleshooting.md) for more detailed solutions
-- Visit the [Community and Support](../resources/community.md) page for information on how to get help from the KSML community
+- Check the [Troubleshooting Guide](../resources/troubleshooting.md) for detailed solutions
+- Visit the [Community and Support](../resources/community.md) page for community help
+
+## What Just Happened?
+
+Congratulations! You now have a complete KSML environment running with:
+
+- ✅ Kafka broker ready to handle messages
+- ✅ KSML runner ready to execute your pipelines
+- ✅ Kafka UI for easy monitoring and exploration
+- ✅ Pre-configured topics for immediate use
 
 ## Next Steps
 
-Now that you have KSML up and running, you can:
+Now that you have KSML running, let's understand what you just set up:
 
-- Follow the [KSML Basics Tutorial](basics-tutorial.md) to learn how to build your first KSML pipeline from scratch
-- Explore the [Core Concepts](../reference/stream-type-reference.md) to deepen your understanding of KSML
-- Browse the [Examples Library](../resources/examples-library.md) for inspiration and ready-to-use patterns
+👉 **Continue to [Understanding KSML](introduction.md)** to learn what KSML is and why it makes stream processing so much easier.
+
+After that, you can:
+
+- Follow the [KSML Basics Tutorial](basics-tutorial.md) to build your first complete pipeline
+- Browse the [Examples Library](../resources/examples-library.md) for more patterns

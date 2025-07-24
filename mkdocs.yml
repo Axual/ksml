@@ -30,15 +30,26 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Introduction: getting-started/introduction.md
-  - Getting Started: getting-started/index.md
-  - Core Concepts: core-concepts/index.md
+  - Getting Started:
+      - Quick Start: getting-started/installation.md
+      - Understanding KSML: getting-started/introduction.md
+  - Core Concepts:
+      - Overview: core-concepts/index.md
+      - Data Types: reference/data-type-reference.md
+      - Notations: reference/notation-reference.md
+      - Stream Types: reference/stream-type-reference.md
+      - Functions: core-concepts/functions.md
+      - Pipelines: core-concepts/pipelines.md
+      - Operations: core-concepts/operations.md
+      - Error Handling: core-concepts/error-handling.md
+      - Advanced Topics: core-concepts/advanced-topics.md
   - Tutorials:
-      - Basics Tutorials: getting-started/basics-tutorial.md
+      - KSML Basics Tutorial: getting-started/basics-tutorial.md
       - Beginner Tutorials: tutorials/beginner/index.md
       - Intermediate Tutorials: tutorials/intermediate/index.md
       - Advanced Tutorials: tutorials/advanced/index.md
-  - Use Cases:
+  - Use Case Guides:
+      - Overview: use-cases/index.md
       - Data Transformation: use-cases/data-transformation.md
       - Event-Driven Applications: use-cases/event-driven-applications.md
       - Microservices Integration: use-cases/microservices-integration.md
@@ -46,14 +57,15 @@ nav:
       - Real-time Analytics: use-cases/real-time-analytics.md
       - Fraud Detection: use-cases/fraud-detection.md
   - Reference:
-      - Language: reference/language-reference.md
-      - Data Types: reference/data-type-reference.md
-      - Notations: reference/notation-reference.md
-      - Streams: reference/stream-type-reference.md
-      - Functions: reference/function-reference.md
-      - Pipelines: reference/pipeline-reference.md
-      - Operations: reference/operation-reference.md
-      - State Stores: reference/state-store-reference.md
-      - Runners: runners.md
-  - Language specification: ksml-language-spec.md
+      - Overview: reference/index.md
+      - KSML Language Reference: reference/language-reference.md
+      - Functions Reference: reference/function-reference.md
+      - Operations Reference: reference/operation-reference.md
+      - Configuration Reference: reference/configuration-reference.md
+  - Resources:
+      - Examples Library: resources/examples-library.md
+      - Troubleshooting Guide: resources/troubleshooting.md
+      - Migration Guide: resources/migration.md
+      - Community and Support: resources/community.md
+      - Advanced Installation: getting-started/advanced-installation.md
   - Release Notes: release-notes.md

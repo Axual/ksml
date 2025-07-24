@@ -3,11 +3,11 @@
 Welcome to the KSML documentation. KSML allows you to build powerful Kafka Streams applications using YAML and Python, without writing Java code.
 
 ## 1. Getting Started
-- [Introduction to KSML](getting-started/introduction.md)
-- [Installation and Setup](getting-started/installation.md)
-- [KSML Basics Tutorial](getting-started/basics-tutorial.md)
+- [Quick Start](getting-started/installation.md)
+- [Understanding KSML](getting-started/introduction.md)
 
 ## 2. Core Concepts
+- [Overview](core-concepts/index.md)
 - [Data Types](reference/data-type-reference.md)
 - [Notations](reference/notation-reference.md)
 - [Stream Types](reference/stream-type-reference.md)
@@ -16,18 +16,23 @@ Welcome to the KSML documentation. KSML allows you to build powerful Kafka Strea
 - [Operations](core-concepts/operations.md)
 
 ## 3. Tutorials
+- [KSML Basics Tutorial](getting-started/basics-tutorial.md)
 - [Beginner Tutorials](tutorials/beginner/index.md)
 - [Intermediate Tutorials](tutorials/intermediate/index.md)
 - [Advanced Tutorials](tutorials/advanced/index.md)
 
 ## 4. Use Case Guides
-- [Use Case Guides](use-cases/index.md)
+- [Overview](use-cases/index.md)
+- [Data Transformation](use-cases/data-transformation.md)
+- [Event-Driven Applications](use-cases/event-driven-applications.md)
+- [Microservices Integration](use-cases/microservices-integration.md)
+- [IoT Data Processing](use-cases/iot-data-processing.md)
+- [Real-time Analytics](use-cases/real-time-analytics.md)
+- [Fraud Detection](use-cases/fraud-detection.md)
 
 ## 5. Reference
+- [Overview](reference/index.md)
 - [KSML Language Reference](reference/language-reference.md)
-- [Data Types Reference](reference/data-type-reference.md)
-- [Stream Types Reference](reference/stream-type-reference.md)
-- [Notations Reference](reference/notation-reference.md)
 - [Functions Reference](reference/function-reference.md)
 - [Operations Reference](reference/operation-reference.md)
 - [Configuration Reference](reference/configuration-reference.md)
@@ -37,6 +42,7 @@ Welcome to the KSML documentation. KSML allows you to build powerful Kafka Strea
 - [Troubleshooting Guide](resources/troubleshooting.md)
 - [Migration Guide](resources/migration.md)
 - [Community and Support](resources/community.md)
+- [Advanced Installation Guide (Optional)](getting-started/advanced-installation.md)
 
 ## Latest Release
 - [Release Notes](release-notes.md)

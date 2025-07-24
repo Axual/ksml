@@ -228,3 +228,7 @@ processing pipelines.
 
 For more detailed information, refer to the [KSML Language Reference](language-reference.md)
 and [Data Types Reference](data-type-reference.md).
+
+## Next Steps
+
+Ready to put these concepts into practice? Try the [KSML Basics Tutorial](../getting-started/basics-tutorial.md) to build your first complete pipeline using streams and data types.
