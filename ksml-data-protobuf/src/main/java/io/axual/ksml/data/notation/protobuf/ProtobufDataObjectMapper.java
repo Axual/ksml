@@ -37,11 +37,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
     private static final DataTypeDataSchemaMapper DATA_TYPE_MAPPER = new DataTypeDataSchemaMapper();
-    private static final ProtobufDescriptorFileElementMapper DESCRIPTOR_ELEMENT_MAPPER = new ProtobufDescriptorFileElementMapper();
     private static final ProtobufFileElementSchemaMapper ELEMENT_SCHEMA_MAPPER = new ProtobufFileElementSchemaMapper();
+    private final ProtobufDescriptorFileElementMapper descriptorElementMapper;
     private final ConvertUtil convertUtil;
 
-    public ProtobufDataObjectMapper() {
+    public ProtobufDataObjectMapper(ProtobufDescriptorFileElementMapper descriptorElementMapper) {
+        this.descriptorElementMapper = descriptorElementMapper;
         convertUtil = new ConvertUtil(this, DATA_TYPE_MAPPER);
     }
 
@@ -55,7 +56,7 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
         final var descriptor = message.getDescriptorForType();
         final var namespace = descriptor.getFile().getPackage();
         final var name = descriptor.getName();
-        final var fileElement = DESCRIPTOR_ELEMENT_MAPPER.toFileElement(descriptor);
+        final var fileElement = descriptorElementMapper.toFileElement(descriptor);
         final var schema = ELEMENT_SCHEMA_MAPPER.toDataSchema(namespace, name, fileElement);
         final var result = new DataStruct(schema);
         for (final var field : message.getAllFields().entrySet()) {
@@ -84,7 +85,7 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
             throw new DataException("Can not convert schemaless STRUCT into a PROTOBUF message");
         }
         final var fileElement = ELEMENT_SCHEMA_MAPPER.fromDataSchema(dataSchema);
-        final var descriptor = DESCRIPTOR_ELEMENT_MAPPER.toDescriptor(dataSchema.namespace(), dataSchema.name(), fileElement);
+        final var descriptor = descriptorElementMapper.toDescriptor(dataSchema.namespace(), dataSchema.name(), fileElement);
         final var msgDescriptor = descriptor.findMessageTypeByName(dataSchema.name());
         final var msg = DynamicMessage.newBuilder(msgDescriptor);
 

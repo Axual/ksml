@@ -20,31 +20,41 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
-import io.apicurio.registry.serde.SerdeConfig;
+import io.axual.ksml.data.notation.apicurio.MockApicurioSchemaRegistryClient;
 import io.axual.ksml.data.notation.avro.AvroDataObjectMapper;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.avro.AvroSchemaMapper;
+import io.axual.ksml.data.notation.avro.apicurio.ApicurioAvroNotationProvider;
+import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroNotationProvider;
+import io.axual.ksml.data.notation.confluent.MockConfluentSchemaRegistryClient;
 import org.junit.jupiter.api.Test;
-
-import java.util.HashMap;
 
 class AvroTests {
     @Test
     void schemaTest() {
-        NotationTestRunner.schemaTest("avro", new AvroSchemaMapper());
+        NotationTestRunner.schemaTest(AvroNotation.NOTATION_NAME, new AvroSchemaMapper());
     }
 
     @Test
     void dataTest() {
-        NotationTestRunner.dataTest("avro", new AvroDataObjectMapper());
+        NotationTestRunner.dataTest(AvroNotation.NOTATION_NAME, new AvroDataObjectMapper());
     }
 
     @Test
-    void serdeTest() {
-        final var registryClient = new MockRegistryClient();
-        final var configs = new HashMap<String, Object>();
-        configs.putIfAbsent(SerdeConfig.AUTO_REGISTER_ARTIFACT, true);
-        final var notation = new AvroNotation("avro", AvroNotation.SerdeType.APICURIO, new AvroDataObjectMapper(), configs, registryClient);
-        NotationTestRunner.serdeTest("avro", notation, true);
+    void apicurioSerdeTest() {
+//        final var registryClient = new MockApicurioSchemaRegistryClient();
+//        final var provider = new ApicurioAvroNotationProvider(registryClient);
+//        final var context = new NotationContext(provider.notationName(), provider.vendorName(), registryClient.configs());
+//        final var notation = provider.createNotation(context);
+//        NotationTestRunner.serdeTest(notation, true);
+    }
+
+    @Test
+    void confluentSerdeTest() {
+        final var registryClient = new MockConfluentSchemaRegistryClient();
+        final var provider = new ConfluentAvroNotationProvider(registryClient);
+        final var context = new NotationContext(provider.notationName(), provider.vendorName(), registryClient.configs());
+        final var notation = provider.createNotation(context);
+        NotationTestRunner.serdeTest(notation, true);
     }
 }

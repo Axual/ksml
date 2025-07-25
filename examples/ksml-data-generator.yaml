@@ -43,35 +43,35 @@ ksml:
     # Definition of an Apicurio schema registry
     apicurio:
       config:
-        # Below is an example SSL configuration for Apicurio Serialization library from Apicurio documentation
-        # apicurio.registry.request.ssl.keystore.location: /path/to/keystore.jks
-        # apicurio.registry.request.ssl.keystore.type: JKS
-        # apicurio.registry.request.ssl.keystore.password: password
-        # apicurio.registry.request.ssl.key.password: password
-        # apicurio.registry.request.ssl.truststore.location: /path/to/truststore.jks
-        # apicurio.registry.request.ssl.truststore.type: JKS
-        # apicurio.registry.request.ssl.truststore.password: password
+      # Below is an example SSL configuration for Apicurio Serialization library from Apicurio documentation
+      # apicurio.registry.request.ssl.keystore.location: /path/to/keystore.jks
+      # apicurio.registry.request.ssl.keystore.type: JKS
+      # apicurio.registry.request.ssl.keystore.password: password
+      # apicurio.registry.request.ssl.key.password: password
+      # apicurio.registry.request.ssl.truststore.location: /path/to/truststore.jks
+      # apicurio.registry.request.ssl.truststore.type: JKS
+      # apicurio.registry.request.ssl.truststore.password: password
 
     # Definition of a Confluent schema registry
     confluent:
       config:
-        # Example SSL configuration for Confluent schema registry
-        # schema.registry.ssl.protocol: TLSv1.3
-        # schema.registry.ssl.enabled.protocols: TLSv1.3,TLSv1.2
-        # schema.registry.ssl.endpoint.identification.algorithm: ""
-        # schema.registry.ssl.keystore.location: /path/to/keystore.jks
-        # schema.registry.ssl.keystore.type: JKS
-        # schema.registry.ssl.key.password: password
-        # schema.registry.ssl.keystore.password: password
-        # schema.registry.ssl.truststore.location: /path/to/truststore.jks
-        # schema.registry.ssl.truststore.type: JKS
-        # schema.registry.ssl.truststore.password: password
+      # Example SSL configuration for Confluent schema registry
+      # schema.registry.ssl.protocol: TLSv1.3
+      # schema.registry.ssl.enabled.protocols: TLSv1.3,TLSv1.2
+      # schema.registry.ssl.endpoint.identification.algorithm: ""
+      # schema.registry.ssl.keystore.location: /path/to/keystore.jks
+      # schema.registry.ssl.keystore.type: JKS
+      # schema.registry.ssl.key.password: password
+      # schema.registry.ssl.keystore.password: password
+      # schema.registry.ssl.truststore.location: /path/to/truststore.jks
+      # schema.registry.ssl.truststore.type: JKS
+      # schema.registry.ssl.truststore.password: password
 
   # This section tells KSML which serializers / deserializers handle which notation types
   notations:
     # Definition for "avro" notation
     avro:
-      serde: confluent_avro         # For AVRO there are two implementations: apicurio_avro and confluent_avro
+      type: confluent_avro          # For AVRO there are two implementations: apicurio_avro and confluent_avro
       schemaRegistry: confluent
       config:
         # Specify all properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
@@ -81,29 +81,29 @@ ksml:
     # Definition for "second_avro" notation. With this entry, you can use a type like "second_avro:SchemaName" in your
     # KSML definition, which then uses the Apicurio implementation for AVRO.
     second_avro:
-      serde: apicurio_avro
+      type: apicurio_avro           # For AVRO there are two implementations: apicurio_avro and confluent_avro
       schemaRegistry: apicurio
       config:
-        # Apicurio Avro serialisation settings
-        # apicurio.registry.avro.encoding: "BINARY"
-        # apicurio.registry.headers.enabled: "true"
-        # apicurio.registry.serde.IdHandler: "io.apicurio.registry.serde.Default4ByteIdHandler"
-        # apicurio.registry.schema-resolver: "io.apicurio.registry.resolver.DefaultSchemaResolver"
+      # Apicurio Avro serialisation settings
+      # apicurio.registry.avro.encoding: "BINARY"
+      # apicurio.registry.headers.enabled: "true"
+      # apicurio.registry.serde.IdHandler: "io.apicurio.registry.serde.Default4ByteIdHandler"
+      # apicurio.registry.schema-resolver: "io.apicurio.registry.resolver.DefaultSchemaResolver"
 
     # Definition for "json" notation
     jsonschema:
-      serde: apicurio_json          # For JSON there is only one implementation: apicurio_json
+      type: apicurio_json           # For JSON there is only one implementation: apicurio_json
       schemaRegistry: apicurio
       config:
         apicurio.registry.auto-register: true
 
     # Definition for "protobuf" notation
-    protobuf:                      # Definition for "protobuf" notation
-      type: apicurio_protobuf      # For Protobuf there is only one implementation: apicurio_protobuf
+    protobuf:                       # Definition for "protobuf" notation
+      type: apicurio_protobuf       # For Protobuf there is only one implementation: apicurio_protobuf
       schemaRegistry: apicurio
       ## Below this line, specify properties to be passed into Apicurio's ProtobufKafkaSerializer and ProtobufKafkaDeserializer
       config:
-        apicurio.registry.auto-register: false
+        apicurio.registry.auto-register: true
 
   # Section where you specify which KSML definitions to load, parse and execute.
   definitions:
@@ -112,6 +112,7 @@ ksml:
     generate_sensor_data_avro: 00-example-generate-sensordata-avro.yaml
 #    generate_sensor_data_avro_batch: 00-example-generate-sensordata-avro-batch.yaml
 #    generate_sensor_data_binary: 00-example-generate-sensordata-binary.yaml
+#    generate_sensor_data_jsonschema: 00-example-generate-sensordata-jsonschema.yaml
 #    generate_sensor_data_protobuf: 00-example-generate-sensordata-protobuf.yaml
 
 # This setup connects to the Kafka broker and schema registry started with the example docker-compose file

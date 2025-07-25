@@ -24,7 +24,7 @@
     </organization>
 
     <description>
-        KSML allows low-code developers to specify a Kafka Streams topology using YAML and Python snippets.
+        KSML allows developers to define Kafka Streams topologies using YAML and Python.
     </description>
 
     <url>https://github.com/Axual/ksml</url>
@@ -49,11 +49,17 @@
     <modules>
         <module>ksml-data</module>
         <module>ksml-data-avro</module>
+        <module>ksml-data-avro-apicurio</module>
+        <module>ksml-data-avro-confluent</module>
         <module>ksml-data-binary</module>
         <module>ksml-data-csv</module>
         <module>ksml-data-json</module>
         <module>ksml-data-jsonschema</module>
+        <module>ksml-data-jsonschema-apicurio</module>
+        <module>ksml-data-jsonschema-confluent</module>
         <module>ksml-data-protobuf</module>
+        <module>ksml-data-protobuf-apicurio</module>
+        <module>ksml-data-protobuf-confluent</module>
         <module>ksml-data-soap</module>
         <module>ksml-data-xml</module>
         <module>ksml</module>
@@ -66,16 +72,16 @@
     <properties>
         <!-- compile, runtime and provided dependency versions -->
         <apache.avro.version>1.12.0</apache.avro.version>
-        <apache.commons.text.version>1.13.1</apache.commons.text.version>
+        <apache.commons.text.version>1.14.0</apache.commons.text.version>
         <apache.commons.compress.version>1.27.1</apache.commons.compress.version>
         <apache.kafka.version>4.0.0</apache.kafka.version>
-        <apicurio.version>2.6.12.Final</apicurio.version>
+        <apicurio.version>2.6.13.Final</apicurio.version>
         <axual.utils.version>1.0.0</axual.utils.version>
         <confluent.version>8.0.0</confluent.version>
         <findbugs.jsr305.version>3.0.2</findbugs.jsr305.version>
         <graalvm.version>24.2.2</graalvm.version>
         <guava.version>33.4.8-jre</guava.version>
-        <jackson.version>2.19.1</jackson.version>
+        <jackson.version>2.19.2</jackson.version>
         <jakarta.soap.version>3.0.2</jakarta.soap.version>
         <janino.version>3.1.12</janino.version>
         <jersey.version>3.1.10</jersey.version>
@@ -85,9 +91,10 @@
         <protobuf.version>3.25.8</protobuf.version>
         <saaj.version>3.0.4</saaj.version>
         <slf4j.version>2.1.0-alpha1</slf4j.version>
+        <wire.version>5.2.0</wire.version>
 
         <!-- test dependency versions -->
-        <junit.version>5.13.3</junit.version>
+        <junit.version>5.13.4</junit.version>
         <hamcrest.version>3.0</hamcrest.version>
         <assertj.version>3.27.3</assertj.version>
         <mockito-core.version>5.18.0</mockito-core.version>
@@ -151,6 +158,16 @@
             </dependency>
             <dependency>
                 <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml-data-avro-apicurio</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml-data-avro-confluent</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
                 <artifactId>ksml-data-binary</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -171,7 +188,27 @@
             </dependency>
             <dependency>
                 <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml-data-jsonschema-apicurio</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml-data-jsonschema-confluent</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
                 <artifactId>ksml-data-protobuf</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml-data-protobuf-apicurio</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.axual.ksml</groupId>
+                <artifactId>ksml-data-protobuf-confluent</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -249,6 +286,16 @@
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protobuf-java</artifactId>
                 <version>${protobuf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.wire</groupId>
+                <artifactId>wire-schema-jvm</artifactId>
+                <version>${wire.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.wire</groupId>
+                <artifactId>wire-schema</artifactId>
+                <version>${wire.version}</version>
             </dependency>
 
             <dependency>

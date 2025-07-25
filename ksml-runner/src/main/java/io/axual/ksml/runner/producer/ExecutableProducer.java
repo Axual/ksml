@@ -33,6 +33,7 @@ import io.axual.ksml.python.PythonFunction;
 import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserGenerator;
+import io.axual.ksml.user.UserStreamPartitioner;
 import io.axual.ksml.util.Pair;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -42,9 +43,7 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.Serializer;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -61,6 +60,7 @@ public class ExecutableProducer {
     private final String topic;
     private final UserType keyType;
     private final UserType valueType;
+    private final UserStreamPartitioner partitioner;
     private final Serializer<Object> keySerializer;
     private final Serializer<Object> valueSerializer;
     private long batchCount = 0;
@@ -72,6 +72,7 @@ public class ExecutableProducer {
                                String topic,
                                UserType keyType,
                                UserType valueType,
+                               UserFunction partitioner,
                                Serializer<Object> keySerializer,
                                Serializer<Object> valueSerializer) {
         this.name = generator.name;
@@ -80,6 +81,7 @@ public class ExecutableProducer {
         this.topic = topic;
         this.keyType = keyType;
         this.valueType = valueType;
+        this.partitioner = partitioner != null ? new UserStreamPartitioner(partitioner, tags) : null;
         this.keySerializer = keySerializer;
         this.valueSerializer = valueSerializer;
     }
@@ -106,6 +108,9 @@ public class ExecutableProducer {
         final var generator = gen.name() != null
                 ? PythonFunction.forGenerator(context, namespace, gen.name(), gen)
                 : PythonFunction.forGenerator(context, namespace, name, gen);
+        final var partitioner = target.partitioner() != null
+                ? PythonFunction.forFunction(context, namespace, target.partitioner().name(), target.partitioner())
+                : null;
 
         // Initialize the producer strategy
         final var producerStrategy = new ProducerStrategy(context, namespace, name, tags, producerDefinition);
@@ -119,7 +124,7 @@ public class ExecutableProducer {
         final var valueSerializer = new ResolvingSerializer<>(valueSerde.serializer(), kafkaConfig);
 
         // Set up the producer
-        return new ExecutableProducer(generator, producerStrategy, tags, target.topic(), target.keyType(), target.valueType(), keySerializer, valueSerializer);
+        return new ExecutableProducer(generator, producerStrategy, tags, target.topic(), target.keyType(), target.valueType(), partitioner, keySerializer, valueSerializer);
     }
 
     public void produceMessages(Producer<byte[], byte[]> producer) {
@@ -127,8 +132,22 @@ public class ExecutableProducer {
         final var futures = new ArrayList<Future<RecordMetadata>>();
         try {
             for (final var message : messages) {
-                ProducerRecord<byte[], byte[]> rec = new ProducerRecord<>(topic, message.left(), message.right());
-                futures.add(producer.send(rec));
+                if (partitioner != null) {
+                    // If a partitioner is defined, then call the function and generate producer records for every
+                    // partition the message is sent to
+                    final var numPartitions = producer.partitionsFor(topic).size();
+                    Optional<Set<Integer>> partitions = partitioner.partitions(topic, message.left(), message.right(), numPartitions);
+                    if (partitions.isPresent()) {
+                        for (int partition : partitions.get()) {
+                            ProducerRecord<byte[], byte[]> rec = new ProducerRecord<>(topic, partition, message.left(), message.right());
+                            futures.add(producer.send(rec));
+                        }
+                    }
+                } else {
+                    // No partitioner is defined, so create just one producer record without specifying a partition
+                    ProducerRecord<byte[], byte[]> rec = new ProducerRecord<>(topic, message.left(), message.right());
+                    futures.add(producer.send(rec));
+                }
             }
 
             batchCount++;
