@@ -111,6 +111,7 @@ services:
     restart: on-failure
     command: "bash -c 'echo Trying to create topics... && \
                        kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temperature_data && \
+                       kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temperature_data_copied && \
                        kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temperature_data_converted'"
 ```
 
@@ -169,7 +170,7 @@ streams:
     keyType: string
     valueType: json
   output_stream:
-    topic: temperature_data_converted
+    topic: temperature_data_copied
     keyType: string
     valueType: json
 
@@ -272,7 +273,7 @@ sensor2:{"temperature": 65}
 sensor3:{"temperature": 80}
 ```
 
-To stop entering messages, use `Control-C`. Now, if you check the logs of the KSML runner, you should see that your
+Press <Enter> after each message; to stop entering messages, use `Control-C`. Now, if you check the logs of the KSML runner, you should see that your
 pipeline processed (in this case: logged) the messages:
 
 ```bash
@@ -287,6 +288,14 @@ Should show something like:
  INFO  helloworld.function.log_message      Processing message: key=sensor3, value={'temperature': 80}
 ```
 
+Also, checking the output topic on the UI [http://localhost:8080](http://localhost:8080) should show that the records have
+been copied to topic `temperature_data_copied`.
+
+Congratulations, you have created your first working KSML Streams application. 
+For a more interesting application please continue with the [KSML Basics tutorial](basics-tutorial.md); this will give a more in-depth 
+explanation of the KSML language, and lets you build on this example to do temperature conversion, adding fields, and generating 
+data from within KSML.
+
 ### Step 6: Explore Your Setup with Kafka UI
 
 Now let's explore what's running using the Kafka UI:
@@ -295,7 +304,8 @@ Now let's explore what's running using the Kafka UI:
 
 2. **View Topics**: You'll see the pre-created topics:
    - `temperature_data` (input topic)
-   - `temperature_data_converted` (output topic)
+   - `temperature_data_copied` (output topic)
+   - `temperature_data_converted` (this is used in the KSML Basics tutorial)
 
 3. **Explore Messages**: Click on any topic to see its configuration and messages
 

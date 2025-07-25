@@ -210,61 +210,56 @@ The peek operation:
 
 ## Step 4: Put It All Together
 
-Let's combine all the sections into a complete KSML definition file:
+Let's combine all the sections into a complete KSML definition file. In the [Quick Start guide] you created a directory
+structure containing an `examples/` directory; in this directory create a file called `tutorial.yaml` and copy
+the following content:
 
 ```yaml
 {% include "../definitions/basics-tutorial/tutorial.yaml" %}
 ```
 
-Save this file as [`tutorial.yaml`](../definitions/basics-tutorial/tutorial.yaml).
+Save the file.
+We also need to make the KSML Runner aware of the new pipeline. In the `ksml-runner.yaml` you created before, there is
+a section containing the definitions; modify this part so that it looks like this:
 
-## Step 5: Run Your Pipeline
-
-Now let's run the pipeline using our Docker Compose setup:
-
-### Step 5.1: Save Your KSML Definition
-
-Save the complete KSML definition as `examples/tutorial.yaml` in your project directory:
-
-```bash
-cat > examples/tutorial.yaml << 'EOF'
-# Your complete KSML definition goes here
-# (Copy the complete YAML from Step 4 above)
-EOF
+```yaml
+ksml:
+  definitions:
+    # format is: <namespace>: <filename> 
+    helloworld: hello-world.yaml 
+    tutorial: tutorial.yaml
 ```
 
-### Step 5.2: Create the Required Topics
+You can either replace the line containing `helloworld` or add the tutorial, in the latter case both pipelines will be run.
 
-The docker-compose setup automatically creates some topics, but we need to add our tutorial topics:
+## Step 5: Run Your Pipeline definition(s)
 
-```bash
-# Create tutorial input topic
-docker exec ksml kafka-topics.sh --bootstrap-server broker:9093 --create --if-not-exists --topic tutorial_input --partitions 1 --replication-factor 1
-
-# Create tutorial output topic  
-docker exec ksml kafka-topics.sh --bootstrap-server broker:9093 --create --if-not-exists --topic tutorial_output --partitions 1 --replication-factor 1
-```
-
-### Step 5.3: Restart KSML to Load Your Definition
-
-Restart the KSML container to pick up your new definition:
+Now let's run the pipeline using our Docker Compose setup. If the compose was still running, you can just restart the KSML runner to make it
+aware of the new definition:
 
 ```bash
 docker compose restart ksml
 ```
 
-Check the logs to verify your pipeline started:
+Or, if you stopped the setup, you can start the complete compose as before:
+
+```bash
+docker compose up -d 
+```
+
+Check the logs to verify your pipeline(s) started:
 
 ```bash
 docker compose logs ksml
 ```
 
-### Step 5.4: Test with Sample Data
+### Step 5.1: Test with Sample Data
 
-Produce some test messages to the input topic:
+If you did not stop the compose after completing the Quick Start, data will still be in the input topic and will be processed by the new pipeline.
+If you did stop the compose or want to add some more records, produce some test messages to the input topic:
 
 ```bash
-docker exec ksml kafka-console-producer.sh --bootstrap-server broker:9093 --topic tutorial_input --property "parse.key=true" --property "key.separator=:"
+docker compose exec broker kafka-console-producer.sh --bootstrap-server broker:9093 --topic temperature_data --property "parse.key=true" --property "key.separator=:"
 ```
 
 Then enter messages in the format `key:value`:
@@ -274,14 +269,14 @@ sensor2:{"temperature": 65}
 sensor3:{"temperature": 80}
 ```
 
-Press Ctrl+D to exit the producer.
+Press <Enter> after each record, and press Ctrl+D to exit the producer.
 
-### Step 5.5: View the Results
+### Step 5.2: View the Results
 
 Consume messages from the output topic to see the results:
 
 ```bash
-docker exec ksml kafka-console-consumer.sh --bootstrap-server broker:9093 --topic tutorial_output --from-beginning
+docker compose exec broker kafka-console-consumer.sh --bootstrap-server broker:9093 --topic temperature_data_converted --from-beginning
 ```
 
 You can also view the topics and messages in the Kafka UI at http://localhost:8080.

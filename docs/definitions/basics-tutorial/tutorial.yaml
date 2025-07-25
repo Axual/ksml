@@ -1,11 +1,11 @@
 ## Streams
 streams:
   input_stream:
-    topic: tutorial_input
+    topic: temperature_data
     keyType: string
     valueType: json
   output_stream:
-    topic: tutorial_output
+    topic: temperature_data_converted
     keyType: string
     valueType: json
 ## End of Streams
