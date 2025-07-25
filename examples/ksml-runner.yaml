@@ -36,70 +36,75 @@ ksml:
       loggerName: ProduceError    # Definition of the error logger name.
       handler: continueOnFail     # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
 
-  enableProducers: true           # Set to true to allow producer definitions to be parsed in the KSML definitions and be executed.
+  enableProducers: false          # Set to true to allow producer definitions to be parsed in the KSML definitions and be executed.
   enablePipelines: true           # Set to true to allow pipeline definitions to be parsed in the KSML definitions and be executed.
 
-  # This section tells KSML with which serializers / deserializers to handle certain notation types.
+  # This section tells KSML which schema registries are available
+  schemaRegistries:
+    # Definition of an Apicurio schema registry
+    apicurio:
+      config:
+      # Below is an example SSL configuration for Apicurio Serialization library from Apicurio documentation
+      # apicurio.registry.request.ssl.keystore.location: /path/to/keystore.jks
+      # apicurio.registry.request.ssl.keystore.type: JKS
+      # apicurio.registry.request.ssl.keystore.password: password
+      # apicurio.registry.request.ssl.key.password: password
+      # apicurio.registry.request.ssl.truststore.location: /path/to/truststore.jks
+      # apicurio.registry.request.ssl.truststore.type: JKS
+      # apicurio.registry.request.ssl.truststore.password: password
+
+    # Definition of a Confluent schema registry
+    confluent:
+      config:
+      # Example SSL configuration for Confluent schema registry
+      # schema.registry.ssl.protocol: TLSv1.3
+      # schema.registry.ssl.enabled.protocols: TLSv1.3,TLSv1.2
+      # schema.registry.ssl.endpoint.identification.algorithm: ""
+      # schema.registry.ssl.keystore.location: /path/to/keystore.jks
+      # schema.registry.ssl.keystore.type: JKS
+      # schema.registry.ssl.key.password: password
+      # schema.registry.ssl.keystore.password: password
+      # schema.registry.ssl.truststore.location: /path/to/truststore.jks
+      # schema.registry.ssl.truststore.type: JKS
+      # schema.registry.ssl.truststore.password: password
+
+  # This section tells KSML which serializers / deserializers handle which notation types
   notations:
-    avro:                          # Definition for "avro" notation
-      type: confluent_avro         # For AVRO there are two implementations: apicurio_avro and confluent_avro
-      ## Below this line, specify properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
+    # Definition for "avro" notation
+    avro:
+      serde: confluent_avro         # For AVRO there are two implementations: apicurio_avro and confluent_avro
+      schemaRegistry: confluent
       config:
-        # Link to Apicurio Confluent Compatibility URL
-        schema.registry.url: http://schema-registry:8081/apis/ccompat/v7
-        auto.register.schemas: true
+        # Specify all properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
         normalize.schemas: true
-        # Below is an example SSL configuration for Confluent Serialization library
-        # schema.registry.ssl.protocol: TLSv1.3
-        # schema.registry.ssl.enabled.protocols: TLSv1.3,TLSv1.2
-        # schema.registry.ssl.endpoint.identification.algorithm: ""
-        # schema.registry.ssl.keystore.location: /path/to/keystore.jks
-        # schema.registry.ssl.keystore.type: JKS
-        # schema.registry.ssl.key.password: password
-        # schema.registry.ssl.keystore.password: password
-        # schema.registry.ssl.truststore.location: /path/to/truststore.jks
-        # schema.registry.ssl.truststore.type: JKS
-        # schema.registry.ssl.truststore.password: password
+        auto.register.schemas: false
 
-    # Definition for "otherAvro" notation. With this config, you can use a type like otherAvro:SchemaName in your
+    # Definition for "second_avro" notation. With this entry, you can use a type like "second_avro:SchemaName" in your
     # KSML definition, which then uses the Apicurio implementation for AVRO.
-    otherAvro:
-      type: apicurio_avro         # For AVRO there are two implementations: apicurio_avro and confluent_avro
-      ## Below this line, specify properties to be passed into Apicurio's AvroKafkaSerializer and AvroKafkaDeserializer
+    second_avro:
+      serde: apicurio_avro
+      schemaRegistry: apicurio
       config:
-        apicurio.registry.url: http://schema-registry:8081/apis/registry/v2
-        # Register schema if it does not exist
-        apicurio.registry.auto-register: "true"
-        # Apicurio Avro serialisation settings
-        # apicurio.registry.avro.encoding: "BINARY"
-        # apicurio.registry.headers.enabled: "true"
-        # apicurio.registry.serde.IdHandler: "io.apicurio.registry.serde.Default4ByteIdHandler"
-        # apicurio.registry.schema-resolver: "io.apicurio.registry.resolver.DefaultSchemaResolver"
+      # Apicurio Avro serialisation settings
+      # apicurio.registry.avro.encoding: "BINARY"
+      # apicurio.registry.headers.enabled: "true"
+      # apicurio.registry.serde.IdHandler: "io.apicurio.registry.serde.Default4ByteIdHandler"
+      # apicurio.registry.schema-resolver: "io.apicurio.registry.resolver.DefaultSchemaResolver"
 
-        # Below is an example SSL configuration for Apicurio Serialization library from Apicurio documentation
-        # apicurio.registry.request.ssl.keystore.location: /path/to/keystore.jks
-        # apicurio.registry.request.ssl.keystore.type: JKS
-        # apicurio.registry.request.ssl.keystore.password: password
-        # apicurio.registry.request.ssl.key.password: password
-        # apicurio.registry.request.ssl.truststore.location: /path/to/truststore.jks
-        # apicurio.registry.request.ssl.truststore.type: JKS
-        # apicurio.registry.request.ssl.truststore.password: password
+    # Definition for "json" notation
+    jsonschema:
+      serde: apicurio_json          # For JSON there is only one implementation: apicurio_json
+      schemaRegistry: apicurio
+      config:
+        apicurio.registry.auto-register: true
 
+    # Definition for "protobuf" notation
     protobuf:                      # Definition for "protobuf" notation
       type: apicurio_protobuf      # For Protobuf there is only one implementation: apicurio_protobuf
+      schemaRegistry: apicurio
       ## Below this line, specify properties to be passed into Apicurio's ProtobufKafkaSerializer and ProtobufKafkaDeserializer
       config:
-        apicurio.registry.url: http://schema-registry:8081/apis/registry/v2
-        # Register schema if it does not exist
-        apicurio.registry.auto-register: "true"
-        # Apicurio Avro serialisation settings
-        # apicurio.registry.request.ssl.keystore.location: /path/to/keystore.jks
-        # apicurio.registry.request.ssl.keystore.type: JKS
-        # apicurio.registry.request.ssl.keystore.password: password
-        # apicurio.registry.request.ssl.key.password: password
-        # apicurio.registry.request.ssl.truststore.location: /path/to/truststore.jks
-        # apicurio.registry.request.ssl.truststore.type: JKS
-        # apicurio.registry.request.ssl.truststore.password: password
+        apicurio.registry.auto-register: true
 
   # Section where you specify which KSML definitions to load, parse and execute.
   definitions:
