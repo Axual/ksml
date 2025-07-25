@@ -22,11 +22,13 @@ package io.axual.ksml.runner.notation;
 
 import io.axual.ksml.client.util.MapUtil;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.NotationProvider;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.notation.json.JsonNotation;
+import io.axual.ksml.data.notation.json.JsonNotationProvider;
 import io.axual.ksml.type.UserType;
 import lombok.Getter;
 
@@ -58,12 +60,18 @@ public class NotationFactories {
                                     MapUtil.merge(context.serdeConfigs(), configs))));
         }
 
-        // Get the JSON notation
-        final NotationFactory json = notations.get(JsonNotation.NOTATION_NAME);
+        // JSON and Binary notations are core to KSML, so we instantiate them manually
+
+        // JSON notation
+        final var jsonContext = new NotationContext(JsonNotation.NOTATION_NAME, nativeMapper);
+        final NotationFactory json = configs -> new JsonNotationProvider().createNotation(jsonContext);
+        notations.put(jsonContext.name(), json);
+
         // Create the binary notation, with JSON for complex types
         final var binaryContext = new NotationContext(BinaryNotation.NOTATION_NAME, nativeMapper);
         notations.put(binaryContext.name(), config -> new BinaryNotation(binaryContext, json.create(null)::serde));
-        // Create the default notation, with JSON for complex types
+
+        // Create the binary notation, with JSON for complex types and register it as default notation
         final var defaultContext = new NotationContext(UserType.DEFAULT_NOTATION, nativeMapper);
         notations.put(defaultContext.name(), config -> new BinaryNotation(defaultContext, json.create(null)::serde));
     }

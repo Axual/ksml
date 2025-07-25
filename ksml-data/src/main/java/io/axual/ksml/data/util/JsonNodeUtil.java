@@ -23,8 +23,10 @@ package io.axual.ksml.data.util;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.value.Tuple;
 
 import javax.annotation.Nullable;
@@ -50,7 +52,7 @@ public class JsonNodeUtil {
 
     @Nullable
     public static JsonNode convertStringToJsonNode(String value) {
-        if (value == null) return null; // Allow null strings as input, returning null as native output
+        if (value == null) return NullNode.getInstance(); // Allow null strings as input, returning null as native output
         try {
             return OBJECT_MAPPER.readTree(value);
         } catch (Exception mapException) {
@@ -60,10 +62,9 @@ public class JsonNodeUtil {
     }
 
     public static JsonNode convertNativeToJsonNode(Object value) {
-        if (value instanceof List<?> list)
-            return convertListToJsonNode(list);
-        if (value instanceof Map<?, ?> map)
-            return convertMapToJsonNode(map);
+        if (value == null) return NullNode.getInstance();
+        if (value instanceof List<?> list) return convertListToJsonNode(list);
+        if (value instanceof Map<?, ?> map) return convertMapToJsonNode(map);
         throw new DataException("Can not convert to JsonNode: " + (value != null ? value.getClass().getSimpleName() : "null"));
     }
 
@@ -93,6 +94,7 @@ public class JsonNodeUtil {
     }
 
     private static Object convertValueToJsonNode(Object value) {
+        if (value == null) return NullNode.getInstance();
         if (value instanceof List<?>) return convertNativeToJsonNode(value);
         if (value instanceof Map<?, ?>) return convertNativeToJsonNode(value);
         return value;

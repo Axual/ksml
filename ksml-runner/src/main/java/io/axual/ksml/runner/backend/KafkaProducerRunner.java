@@ -101,7 +101,7 @@ public class KafkaProducerRunner implements Runner {
         try {
             config.definitions.forEach((defName, definition) -> {
                 // Log the start of the producer
-                log.info("Starting producer: name={}, version={}, namespace={}",
+                log.info("Starting producer definition: name={}, version={}, namespace={}",
                         definition.name() != null ? definition.name() : UNDEFINED,
                         definition.version() != null ? definition.version() : UNDEFINED,
                         definition.namespace() != null ? definition.namespace() : UNDEFINED);

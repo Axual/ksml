@@ -18,6 +18,10 @@ streams:
     topic: ksml_sensordata_json
     keyType: string
     valueType: json:SensorData
+  sensor_source_jsonschema:
+    topic: ksml_sensordata_jsonschema
+    keyType: string
+    valueType: jsonschema:SensorData
   sensor_source_protobuf:
     topic: ksml_sensordata_protobuf
     keyType: string
@@ -56,12 +60,17 @@ pipelines:
     forEach:
       code: log_message(key, value, format="JSON")
 
+  consume_jsonschema:
+    from: sensor_source_jsonschema
+    forEach:
+      code: log_message(key, value, format="JSON Schema")
+
   consume_protobuf:
     from: sensor_source_protobuf
     forEach:
       code: log_message(key, value, format="PROTOBUF")
 
-  # This pipeline shows that you may also inline the input stream definition, instead of using the streams
+  # This pipeline shows that you can also inline the input stream definition, instead of using the streams
   # section above.
   consume_xml:
     from:

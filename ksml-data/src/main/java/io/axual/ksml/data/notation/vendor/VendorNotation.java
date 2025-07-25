@@ -27,8 +27,6 @@ import io.axual.ksml.data.type.DataType;
 import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
 
-import java.util.Map;
-
 public abstract class VendorNotation extends BaseNotation {
     @Getter
     private final VendorSerdeSupplier serdeSupplier;
@@ -46,7 +44,7 @@ public abstract class VendorNotation extends BaseNotation {
 
         // Create the serdes only upon request to prevent error messages on missing SR url configs if AVRO is not used
         try (final var serde = serdeSupplier.get(type, isKey)) {
-            final var result = new DataObjectSerde(name(), serde.serializer(), serde.deserializer(), serdeMapper, context().nativeDataObjectMapper());
+            final var result = new DataObjectSerde(name(), serde.serializer(), serde.deserializer(), type, serdeMapper, context().nativeDataObjectMapper());
             result.configure(context().serdeConfigs(), isKey);
             return result;
         }

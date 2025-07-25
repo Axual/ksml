@@ -22,13 +22,12 @@ package io.axual.ksml.data.notation.jsonschema;
 
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
-import io.axual.ksml.data.notation.NotationProvider;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
+import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
 
-public class ApicurioJsonSchemaNotationProvider implements NotationProvider {
-    @Override
-    public String notationName() {
-        return JsonSchemaNotation.NOTATION_NAME;
+public class ApicurioJsonSchemaNotationProvider extends VendorNotationProvider {
+    public ApicurioJsonSchemaNotationProvider() {
+        super(JsonSchemaNotation.NOTATION_NAME, "apicurio");
     }
 
     @Override

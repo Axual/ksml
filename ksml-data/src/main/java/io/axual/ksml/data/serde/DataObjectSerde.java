@@ -23,6 +23,7 @@ package io.axual.ksml.data.serde;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.type.DataType;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
@@ -37,13 +38,15 @@ public class DataObjectSerde implements Serde<Object>, Serializer<Object>, Deser
     private final String name;
     private final Serializer<Object> serializer;
     private final Deserializer<Object> deserializer;
+    private final DataType expectedDataType;
     private final DataObjectMapper<Object> serdeMapper;
     private final DataObjectMapper<Object> nativeMapper;
 
-    public DataObjectSerde(String name, Serializer<Object> serializer, Deserializer<Object> deserializer, DataObjectMapper<Object> serdeMapper, DataObjectMapper<Object> nativeMapper) {
+    public DataObjectSerde(String name, Serializer<Object> serializer, Deserializer<Object> deserializer, DataType expectedDataType, DataObjectMapper<Object> serdeMapper, DataObjectMapper<Object> nativeMapper) {
         this.name = name.toUpperCase();
         this.serializer = serializer;
         this.deserializer = deserializer;
+        this.expectedDataType = expectedDataType;
         this.serdeMapper = serdeMapper;
         this.nativeMapper = nativeMapper;
     }
@@ -65,7 +68,7 @@ public class DataObjectSerde implements Serde<Object>, Serializer<Object>, Deser
     @Override
     public Object deserialize(final String topic, final byte[] data) {
         try {
-            return serdeMapper.toDataObject(deserializer.deserialize(topic, data));
+            return serdeMapper.toDataObject(expectedDataType, deserializer.deserialize(topic, data));
         } catch (Exception e) {
             throw new DataException(name + DESERIALIZATION_ERROR_MSG + topic, e);
         }
@@ -74,7 +77,7 @@ public class DataObjectSerde implements Serde<Object>, Serializer<Object>, Deser
     @Override
     public Object deserialize(final String topic, final Headers headers, final byte[] data) {
         try {
-            return serdeMapper.toDataObject(deserializer.deserialize(topic, headers, data));
+            return serdeMapper.toDataObject(expectedDataType, deserializer.deserialize(topic, headers, data));
         } catch (Exception e) {
             throw new DataException(name + DESERIALIZATION_ERROR_MSG + topic, e);
         }
@@ -83,7 +86,7 @@ public class DataObjectSerde implements Serde<Object>, Serializer<Object>, Deser
     @Override
     public Object deserialize(final String topic, final Headers headers, final ByteBuffer data) {
         try {
-            return serdeMapper.toDataObject(deserializer.deserialize(topic, headers, data));
+            return serdeMapper.toDataObject(expectedDataType, deserializer.deserialize(topic, headers, data));
         } catch (Exception e) {
             throw new DataException(name + DESERIALIZATION_ERROR_MSG + topic, e);
         }
