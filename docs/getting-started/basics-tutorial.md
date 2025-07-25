@@ -53,8 +53,8 @@ First, let's define the input and output streams for our pipeline:
 
 This defines:
 
-- An input stream reading from the `tutorial_input` topic with string keys and JSON values
-- An output stream writing to the `tutorial_output` topic with the same data types
+- An input stream reading from the `temperature_data` topic with string keys and JSON values
+- An output stream writing to the `temperature_data_converted` topic with the same data types
 
 ### Understanding Stream Definitions
 
