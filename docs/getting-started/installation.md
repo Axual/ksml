@@ -261,7 +261,7 @@ Try producing some messages, for now using the Kafka console producer. You can s
 running in interactive mode, using the following command:
 
 ```bash
-docker compose exec broker kafka-console-producer.sh --bootstrap-server broker:9093 --topic temperature_data --property "parse.key=true" --property "key.separator=:"```
+docker compose exec broker kafka-console-producer.sh --bootstrap-server broker:9093 --topic temperature_data --property "parse.key=true" --property "key.separator=:"
 ```
 
 Then you can enter some test messages, using the format `key:value` where the value is a JSON message:
