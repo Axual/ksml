@@ -1,11 +1,11 @@
 
 Lists of 61 third-party dependencies.
      (The Apache Software License, Version 2.0) Handy URI Templates (com.damnhandy:handy-uri-templates:2.1.8 - https://github.com/damnhandy/Handy-URI-Templates)
-     (The Apache Software License, Version 2.0) Jackson-annotations (com.fasterxml.jackson.core:jackson-annotations:2.19.1 - https://github.com/FasterXML/jackson)
-     (The Apache Software License, Version 2.0) Jackson-core (com.fasterxml.jackson.core:jackson-core:2.19.1 - https://github.com/FasterXML/jackson-core)
-     (The Apache Software License, Version 2.0) jackson-databind (com.fasterxml.jackson.core:jackson-databind:2.19.1 - https://github.com/FasterXML/jackson)
-     (The Apache Software License, Version 2.0) Jackson-dataformat-CSV (com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.19.1 - https://github.com/FasterXML/jackson-dataformats-text)
-     (The Apache Software License, Version 2.0) Jackson-dataformat-YAML (com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.19.1 - https://github.com/FasterXML/jackson-dataformats-text)
+     (The Apache Software License, Version 2.0) Jackson-annotations (com.fasterxml.jackson.core:jackson-annotations:2.19.2 - https://github.com/FasterXML/jackson)
+     (The Apache Software License, Version 2.0) Jackson-core (com.fasterxml.jackson.core:jackson-core:2.19.2 - https://github.com/FasterXML/jackson-core)
+     (The Apache Software License, Version 2.0) jackson-databind (com.fasterxml.jackson.core:jackson-databind:2.19.2 - https://github.com/FasterXML/jackson)
+     (The Apache Software License, Version 2.0) Jackson-dataformat-CSV (com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.19.2 - https://github.com/FasterXML/jackson-dataformats-text)
+     (The Apache Software License, Version 2.0) Jackson-dataformat-YAML (com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.19.2 - https://github.com/FasterXML/jackson-dataformats-text)
      (The Apache Software License, Version 2.0) Jackson datatype: Guava (com.fasterxml.jackson.datatype:jackson-datatype-guava:2.16.0 - https://github.com/FasterXML/jackson-datatypes-collections)
      (The Apache Software License, Version 2.0) Jackson datatype: jdk8 (com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.16.0 - https://github.com/FasterXML/jackson-modules-java8/jackson-datatype-jdk8)
      (The Apache Software License, Version 2.0) Jackson datatype: Joda (com.fasterxml.jackson.datatype:jackson-datatype-joda:2.16.0 - https://github.com/FasterXML/jackson-datatype-joda)

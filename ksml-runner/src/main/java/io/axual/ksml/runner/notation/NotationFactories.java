@@ -22,7 +22,6 @@ package io.axual.ksml.runner.notation;
 
 import io.axual.ksml.client.util.MapUtil;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.NotationProvider;
@@ -31,11 +30,13 @@ import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.data.notation.json.JsonNotationProvider;
 import io.axual.ksml.type.UserType;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
 
+@Slf4j
 @Getter
 public class NotationFactories {
     public interface NotationFactory {
@@ -50,14 +51,19 @@ public class NotationFactories {
 
         // Load all notations
         for (final var provider : ServiceLoader.load(NotationProvider.class)) {
-            final var context = new NotationContext(provider.notationName(), provider.vendorName(), nativeMapper, kafkaConfig);
-            notations.put(context.name(), configs ->
-                    provider.createNotation(
-                            new NotationContext(
-                                    context.notationName(),
-                                    context.vendorName(),
-                                    context.nativeDataObjectMapper(),
-                                    MapUtil.merge(context.serdeConfigs(), configs))));
+            if (provider.notationName()!=null && !provider.notationName().isEmpty()) {
+                // Create the notation context and register the corresponding notation factory
+                final var context = new NotationContext(provider.notationName(), provider.vendorName(), nativeMapper, kafkaConfig);
+                notations.put(context.name(), configs ->
+                        provider.createNotation(
+                                new NotationContext(
+                                        context.notationName(),
+                                        context.vendorName(),
+                                        context.nativeDataObjectMapper(),
+                                        MapUtil.merge(context.serdeConfigs(), configs))));
+            } else {
+                log.warn("Provider not initialized: {}", provider.getClass().getName());
+            }
         }
 
         // JSON and Binary notations are core to KSML, so we instantiate them manually
