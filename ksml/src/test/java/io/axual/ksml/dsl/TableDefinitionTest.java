@@ -55,8 +55,7 @@ class TableDefinitionTest {
 
     @Test
     void testTableDefinition() {
-        when(mockNotation.name()).thenReturn(UserType.DEFAULT_NOTATION);
-        ExecutionContext.INSTANCE.notationLibrary().register(mockNotation);
+        ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, mockNotation);
 
         final var stringType = UserTypeParser.parse("string");
 

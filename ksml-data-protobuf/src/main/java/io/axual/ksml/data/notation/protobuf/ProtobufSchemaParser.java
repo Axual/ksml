@@ -22,18 +22,6 @@ package io.axual.ksml.data.notation.protobuf;
 
 
 import io.axual.ksml.data.notation.Notation;
-import io.axual.ksml.data.schema.DataSchema;
-import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collections;
-
-@Slf4j
-public class ProtobufSchemaParser implements Notation.SchemaParser {
-    private static final ProtobufSchemaMapper MAPPER = new ProtobufSchemaMapper();
-
-    @Override
-    public DataSchema parse(String contextName, String schemaName, String schemaString) {
-        final var proto = new io.apicurio.registry.serde.protobuf.ProtobufSchemaParser<>().parseSchema(schemaString.getBytes(), Collections.emptyMap());
-        return MAPPER.toDataSchema(schemaName, proto);
-    }
+public interface ProtobufSchemaParser extends Notation.SchemaParser {
 }

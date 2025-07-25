@@ -75,7 +75,7 @@ class NotationTestRunner {
         }
     }
 
-    static void serdeTest(String type, Notation notation, boolean strictTypeChecking) {
+    static void serdeTest(Notation notation, boolean strictTypeChecking) {
         try {
             final var inputData = TestData.testStruct();
             System.out.println("INPUT DATA: " + inputData);
@@ -84,9 +84,9 @@ class NotationTestRunner {
             final var serialized = serde.serializer().serialize("topic", headers, inputData);
             if (notation instanceof StringNotation) {
                 final var serializedString = new StringDeserializer().deserialize("topic", serialized);
-                System.out.println("SERIALIZED " + type.toUpperCase() + " STRING: " + (serializedString != null ? serializedString : "null"));
+                System.out.println("SERIALIZED " + notation.name().toUpperCase() + " STRING: " + (serializedString != null ? serializedString : "null"));
             } else {
-                System.out.println("SERIALIZED " + type.toUpperCase() + " BYTES: " + new NativeDataObjectMapper().toDataObject(serialized).toString());
+                System.out.println("SERIALIZED " + notation.name().toUpperCase() + " BYTES: " + new NativeDataObjectMapper().toDataObject(serialized).toString());
             }
             System.out.println("HEADERS: " + headers);
             var outputData = (DataObject) serde.deserializer().deserialize("topic", headers, serialized);

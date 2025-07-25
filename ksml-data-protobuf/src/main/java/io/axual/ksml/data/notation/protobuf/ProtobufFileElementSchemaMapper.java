@@ -21,8 +21,8 @@ package io.axual.ksml.data.notation.protobuf;
  */
 
 import com.squareup.wire.schema.Field;
+import com.squareup.wire.schema.Location;
 import com.squareup.wire.schema.internal.parser.*;
-import io.apicurio.registry.utils.protobuf.schema.FileDescriptorUtils;
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.notation.ReferenceResolver;
@@ -333,7 +333,7 @@ public class ProtobufFileElementSchemaMapper implements DataSchemaMapper<ProtoFi
         public ProtoFileElement toProtoFileElement() {
             final var options = new ArrayList<OptionElement>();
             return new ProtoFileElement(
-                    FileDescriptorUtils.DEFAULT_LOCATION,
+                    Location.get(""),
                     namespace,
                     ProtobufConstants.DEFAULT_SYNTAX,
                     Collections.emptyList(),

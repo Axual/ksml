@@ -20,7 +20,6 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.notation.xml.XmlDataObjectMapper;
 import io.axual.ksml.data.notation.xml.XmlNotation;
 import io.axual.ksml.data.notation.xml.XmlSchemaMapper;
@@ -29,16 +28,16 @@ import org.junit.jupiter.api.Test;
 class XmlTests {
     @Test
     void schemaTest() {
-        NotationTestRunner.schemaTest("xml", new XmlSchemaMapper());
+        NotationTestRunner.schemaTest(XmlNotation.NOTATION_NAME, new XmlSchemaMapper());
     }
 
     @Test
     void dataTest() {
-        NotationTestRunner.dataTest("xml", new XmlDataObjectMapper(true));
+        NotationTestRunner.dataTest(XmlNotation.NOTATION_NAME, new XmlDataObjectMapper(true));
     }
 
     @Test
     void serdeTest() {
-        NotationTestRunner.serdeTest("xml", new XmlNotation("xml", new NativeDataObjectMapper()), false);
+        NotationTestRunner.serdeTest(new XmlNotation(new NotationContext(XmlNotation.NOTATION_NAME)), false);
     }
 }

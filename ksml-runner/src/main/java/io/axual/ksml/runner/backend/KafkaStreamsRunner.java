@@ -128,10 +128,8 @@ public class KafkaStreamsRunner implements Runner {
 
         final var streamsProps = getStreamsConfig(config.kafkaConfig, config.storageDirectory, config.appServer);
 
-        var applicationId = config.kafkaConfig != null ? config.kafkaConfig.get(StreamsConfig.APPLICATION_ID_CONFIG) : null;
-        if (applicationId == null) {
-            applicationId = "ksmlApplicationId";
-        }
+        final var defaultAppId = "ksmlApplicationId";
+        final var applicationId = config.kafkaConfig != null ? config.kafkaConfig.getOrDefault(StreamsConfig.APPLICATION_ID_CONFIG, defaultAppId).toString() : defaultAppId;
 
         final var streamsConfig = new StreamsConfig(streamsProps);
         final var topologyConfig = new TopologyConfig(streamsConfig);

@@ -29,21 +29,21 @@ import java.util.Map;
 public class NotationLibrary {
     private final Map<String, Notation> notations = new HashMap<>();
 
-    public void register(Notation notation) {
-        notations.put(notation.name() != null ? notation.name().toUpperCase() : null, notation);
+    public void register(String notationName, Notation notation) {
+        notations.put(notationName != null ? notationName.toUpperCase() : null, notation);
     }
 
-    public boolean exists(String notation) {
-        return notations.containsKey(notation != null ? notation.toUpperCase() : null);
+    public boolean exists(String notationName) {
+        return notations.containsKey(notationName != null ? notationName.toUpperCase() : null);
     }
 
-    public Notation get(String notation) {
-        final var result = getIfExists(notation);
+    public Notation get(String notationName) {
+        final var result = getIfExists(notationName);
         if (result != null) return result;
-        throw new DataException("Unknown data notation: " + (notation != null ? notation : "null"));
+        throw new DataException("Unknown data notation: " + (notationName != null ? notationName : "null"));
     }
 
-    public Notation getIfExists(String notation) {
-        return notations.get(notation != null ? notation.toUpperCase() : null);
+    public Notation getIfExists(String notationName) {
+        return notations.get(notationName != null ? notationName.toUpperCase() : null);
     }
 }

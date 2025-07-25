@@ -46,16 +46,10 @@ public class TopologyDefinitionParser extends DefinitionParser<TopologyDefinitio
     @Override
     public StructsParser<TopologyDefinition> parser() {
         final var dummyResources = new TopologyResources("dummy");
-        final var nameParser = optional(stringField(KSMLDSL.NAME, false, null, "The name of this KSML definition"));
-        final var versionParser = optional(stringField(KSMLDSL.VERSION, false, null, "The version of this KSML definition"));
-        final var descriptionParser = optional(stringField(KSMLDSL.DESCRIPTION, false, null, "The description of this KSML definition"));
         final var pipelinesParser = optional(mapField(PIPELINES, PIPELINE, PIPELINE, "Collection of named pipelines", new PipelineDefinitionParser(dummyResources)));
         final var producersParser = optional(mapField(PRODUCERS, PRODUCER, PRODUCER, "Collection of named producers", new ProducerDefinitionParser(dummyResources)));
 
         final var fields = resourcesParser.schemas().getFirst().fields();
-        fields.addAll(nameParser.schemas().getFirst().fields());
-        fields.addAll(versionParser.schemas().getFirst().fields());
-        fields.addAll(descriptionParser.schemas().getFirst().fields());
         fields.addAll(pipelinesParser.schemas().getFirst().fields());
         fields.addAll(producersParser.schemas().getFirst().fields());
         final var schemas = List.of(structSchema(TopologyDefinition.class, "KSML definition", fields));
@@ -63,18 +57,19 @@ public class TopologyDefinitionParser extends DefinitionParser<TopologyDefinitio
         return new StructsParser<>() {
             @Override
             public TopologyDefinition parse(ParseNode node) {
-                final var name = nameParser.parse(node);
-                final var version = versionParser.parse(node);
-                final var description = descriptionParser.parse(node);
+                final var name = optional(stringField(KSMLDSL.NAME, true, "<anonymous topology>", "The name of the topology")).parse(node);
+                final var version = optional(stringField(KSMLDSL.VERSION, true, "<no version>", "The version of the topology")).parse(node);
+                final var description = optional(stringField(KSMLDSL.DESCRIPTION, true, "", "The description of the topology")).parse(node);
+
                 final var resources = resourcesParser.parse(node);
                 final var result = new TopologyDefinition(resources.namespace(), name, version, description);
                 // Copy the resources into the topology definition
                 resources.topics().forEach(result::register);
                 resources.stateStores().forEach(result::register);
                 resources.functions().forEach(result::register);
-                // Parse all defined pipelines, using this topology's name as the operation prefix
+                // Parse all defined pipelines, using this topology's name as operation prefix
                 new MapParser<>(PIPELINE, "pipeline definition", new PipelineDefinitionParser(resources)).parse(node.get(PIPELINES)).forEach(result::register);
-                // Parse all defined producers, using this topology's name as the operation prefix
+                // Parse all defined producers, using this topology's name as operation prefix
                 new MapParser<>(PRODUCER, "producer definition", new ProducerDefinitionParser(resources)).parse(node.get(PRODUCERS)).forEach(result::register);
                 return result;
             }

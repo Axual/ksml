@@ -30,7 +30,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class TopologyDefinition extends TopologyResources {
-    private static final String UNDEFINED = "<undefined>";
     // The metadata for this topology
     @Getter
     private final String name;
@@ -43,11 +42,18 @@ public class TopologyDefinition extends TopologyResources {
     // All registered producers in order of insertion
     private final Map<String, ProducerDefinition> producers = new LinkedHashMap<>();
 
+    public void register(String name, PipelineDefinition pipelineDefinition) {
+        if (pipelines.containsKey(name)) {
+            throw new TopologyException("Pipeline definition must be unique: " + name);
+        }
+        pipelines.put(name, pipelineDefinition);
+    }
+
     public TopologyDefinition(String namespace, String name, String version, String description) {
         super(namespace);
-        this.name = name != null ? name : UNDEFINED;
-        this.version = version != null ? version : UNDEFINED;
-        this.description = description != null ? description : UNDEFINED;
+        this.name = name;
+        this.version = version;
+        this.description = description;
     }
 
     public PipelineDefinition pipeline(String name) {
@@ -58,25 +64,18 @@ public class TopologyDefinition extends TopologyResources {
         return ImmutableMap.copyOf(pipelines);
     }
 
+    public void register(String name, ProducerDefinition producerDefinition) {
+        if (pipelines.containsKey(name)) {
+            throw new TopologyException("Pipeline definition must be unique: " + name);
+        }
+        producers.put(name, producerDefinition);
+    }
+
     public ProducerDefinition producer(String name) {
         return producers.get(name);
     }
 
     public Map<String, ProducerDefinition> producers() {
         return ImmutableMap.copyOf(producers);
-    }
-
-    public void register(String name, PipelineDefinition pipelineDefinition) {
-        if (pipelines.containsKey(name)) {
-            throw new TopologyException("Pipeline definition must be unique: " + name);
-        }
-        pipelines.put(name, pipelineDefinition);
-    }
-
-    public void register(String name, ProducerDefinition producerDefinition) {
-        if (pipelines.containsKey(name)) {
-            throw new TopologyException("Pipeline definition must be unique: " + name);
-        }
-        producers.put(name, producerDefinition);
     }
 }
