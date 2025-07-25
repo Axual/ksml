@@ -89,9 +89,11 @@ pipelines:
         forEach:
           code: |
             log.info("Processing customer: {}", key)
+      - type: transformKey
+        mapper:
+          expression: value.get("legacy_segment")
+          resultType: string
       - type: leftJoin
-        foreignKeyExtractor:
-          code: value.get("legacy_segment")
         table: segment_reference
         valueJoiner:
           expression: |
@@ -99,10 +101,19 @@ pipelines:
               **value1,
               "segment_info": value2
             }
+          resultType: json
       - type: transformValue
         mapper: transform_customer
       - type: peek
         forEach:
           code: |
-            log.info("Transformed customer: {}", key)
+            log.info("Processing customer: {} = {}", key, value)
+      - type: transformKey
+        mapper:
+          expression: value.get("customer_id")
+          resultType: string
+      - type: peek
+        forEach:
+          code: |
+            log.info("Processing customer: {} = {}", key, value)
     to: transformed_customers

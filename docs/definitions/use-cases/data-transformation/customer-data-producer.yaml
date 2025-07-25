@@ -1,17 +1,10 @@
-streams:
-  legacy_customer_data:
-    topic: legacy_customer_data
-    keyType: string  # customer_id
-    valueType: xml  # XML customer data
-
 functions:
   legacy_customer_data_generator:
     globalCode: |
       import random
     code: |
-      key = "A"
       value = {
-        "cust_id": "12345",
+        "cust_id": random.randrange(100000),
         "fname": "John",
         "lname": "Doe",
         "dob": "1980-01-15",
@@ -25,11 +18,15 @@ functions:
         "legacy_segment": random.choice(["A","B","C"]),
         "account_created": "2015-03-20"
       }
+      key = value.get("cust_id")
       return (key, value)
     resultType: (string, struct)
 
 producers:
   legacy_customer_data_producer:
     generator: legacy_customer_data_generator
-    to: legacy_customer_data
     interval: 1s
+    to:
+      topic: legacy_customer_data
+      keyType: string  # customer_id
+      valueType: xml  # XML customer data

@@ -1,15 +1,10 @@
-tables:
-  customer_segments:
-    topic: customer_segments
-    keyType: string  # segment code
-    valueType: json  # segment details
-
 functions:
   customer_segment_generator:
     globalCode: |
       import random
       count = 0
     code: |
+      global count
       refs = {
         0: {"key": "A", "value": {"segment_name": "Premium", "discount_tier": "Tier 1", "marketing_group": "High Value"}},
         1: {"key": "B", "value": {"segment_name": "Standard", "discount_tier": "Tier 2", "marketing_group": "Medium Value"}},
@@ -24,6 +19,8 @@ functions:
 producers:
   customer_segment_producer:
     generator: customer_segment_generator
-    to: customer_segments
-    interval: 1
-    count: 3
+    interval: 10s
+    to:
+      topic: customer_segments
+      keyType: string  # segment code
+      valueType: json  # segment details
