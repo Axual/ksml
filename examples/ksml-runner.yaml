@@ -72,7 +72,7 @@ ksml:
   notations:
     # Definition for "avro" notation
     avro:
-      serde: confluent_avro         # For AVRO there are two implementations: apicurio_avro and confluent_avro
+      type: confluent_avro          # For AVRO there are two implementations: apicurio_avro and confluent_avro
       schemaRegistry: confluent
       config:
         # Specify all properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
@@ -82,7 +82,7 @@ ksml:
     # Definition for "second_avro" notation. With this entry, you can use a type like "second_avro:SchemaName" in your
     # KSML definition, which then uses the Apicurio implementation for AVRO.
     second_avro:
-      serde: apicurio_avro
+      type: apicurio_avro           # For AVRO there are two implementations: apicurio_avro and confluent_avro
       schemaRegistry: apicurio
       config:
       # Apicurio Avro serialisation settings
@@ -93,14 +93,14 @@ ksml:
 
     # Definition for "json" notation
     jsonschema:
-      serde: apicurio_json          # For JSON there is only one implementation: apicurio_json
+      type: apicurio_json           # For JSON there is only one implementation: apicurio_json
       schemaRegistry: apicurio
       config:
         apicurio.registry.auto-register: true
 
     # Definition for "protobuf" notation
-    protobuf:                      # Definition for "protobuf" notation
-      type: apicurio_protobuf      # For Protobuf there is only one implementation: apicurio_protobuf
+    protobuf:                       # Definition for "protobuf" notation
+      type: apicurio_protobuf       # For Protobuf there is only one implementation: apicurio_protobuf
       schemaRegistry: apicurio
       ## Below this line, specify properties to be passed into Apicurio's ProtobufKafkaSerializer and ProtobufKafkaDeserializer
       config:
