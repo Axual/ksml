@@ -26,6 +26,7 @@ producers:
   customer_segment_producer:
     generator: customer_segment_generator
     interval: 10s
+    count: 3
     to:
       topic: customer_segments
       keyType: string  # segment code
