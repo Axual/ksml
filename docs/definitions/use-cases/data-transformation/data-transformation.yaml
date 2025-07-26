@@ -1,3 +1,9 @@
+name: "Data Transformation Use Case"
+version: "1.0"
+description: |
+  This definition shows how to take legacy customer data in XML, join it with a customer segments table on Kafka, and
+  write out the customer data in another structure as JSON.
+
 streams:
   legacy_customers:
     topic: legacy_customer_data
@@ -104,10 +110,6 @@ pipelines:
           resultType: json
       - type: transformValue
         mapper: transform_customer
-      - type: peek
-        forEach:
-          code: |
-            log.info("Processing customer: {} = {}", key, value)
       - type: transformKey
         mapper:
           expression: value.get("customer_id")
@@ -115,5 +117,5 @@ pipelines:
       - type: peek
         forEach:
           code: |
-            log.info("Processing customer: {} = {}", key, value)
+            log.info("Transformed customer: {} = {}", key, value)
     to: transformed_customers
