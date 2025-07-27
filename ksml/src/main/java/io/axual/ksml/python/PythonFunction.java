@@ -70,12 +70,17 @@ public class PythonFunction extends UserFunction {
         final var pyCode = generatePythonCode(namespace, type, name, definition);
         function = context.registerFunction(pyCode, name + "_caller");
         if (function == null) {
+            final var pyCodeLines = pyCode.split("\n");
+            final var builder = new StringBuilder();
+            for (int index = 1; index <= pyCodeLines.length; index++) {
+                builder.append(index).append("  ").append(pyCodeLines[index - 1]).append("\n");
+            }
             log.error("""
                     Function {} {}
                     Error in generated Python code:
                     
                     {}
-                    """, namespace, name, pyCode);
+                    """, namespace, name, builder);
             throw new ExecutionException("Error in function: %s.%s".formatted(namespace, name));
         }
     }

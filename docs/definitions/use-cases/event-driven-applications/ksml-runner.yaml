@@ -1,0 +1,9 @@
+ksml:
+  enableProducers: true              # Set to true to allow producer definitions to be parsed in the KSML definitions and be executed.
+  enablePipelines: true              # Set to true to allow pipeline definitions to be parsed in the KSML definitions and be executed.
+  definitions:
+    product_order_producer: product-and-order-event-producer.yaml
+    inventory_apps: inventory-event-processors.yaml
+kafka:
+  bootstrap.servers: broker:9093
+  application.id: your.app.id

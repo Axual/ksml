@@ -108,49 +108,41 @@ In this tutorial, we'll build an event-driven inventory management system for an
 Now, let's create our KSML definition file:
 
 ```yaml
-{% include "../definitions/use-cases/event-driven-applications/event-driven-applications.yaml" %}
+{% include "../definitions/use-cases/event-driven-applications/inventory-event-processors.yaml" %}
+```
+
+## Setting up the producers for test data
+
+To test out the topology above, we create a test data producer definition.
+
+The definition consists of two producers. The first producer is a _single shot producer_ that generates three records
+for the `product_catalog` topic. The second producer produces a message every second to the `order_events` topic, using
+a randomly generated product order:
+
+```yaml
+{% include "../definitions/use-cases/event-driven-applications/product-and-order-event-producer.yaml" %}
 ```
 
 ## Running the Application
 
 To run the application:
 
-1. Save the KSML definition to `definitions/event_driven.yaml`
-2. Create a configuration file at `config/application.properties` with your Kafka connection details
-3. Start the Docker Compose environment: `docker-compose up -d`
-4. Produce sample data to the input topics
-5. Monitor the output topics to see the events being generated
+1. Save the processor definition to
+   [`inventory-event-processors.yaml`](../definitions/use-cases/event-driven-applications/inventory-event-processors.yaml).
+2. Save the producers to
+   [`product-and-order-event-producer`](../definitions/use-cases/event-driven-applications/product-and-order-event-producer.yaml)
+   and
+   [`customer-data-producer.yaml`](../definitions/use-cases/data-transformation/customer-data-producer.yaml).
+3. Set up your `ksml-runner.yaml` configuration, pointing to your Kafka installation.
 
-## Testing the Event-Driven System
-
-You can test the system by producing sample data to the input topics:
-
-```bash
-# Produce product reference data
-echo 'prod-123:{"product_id":"prod-123","reorder_threshold":10,"reorder_quantity":50,"critical_threshold":5}' | \
-  kafka-console-producer --broker-list localhost:9092 --topic product_reference --property "parse.key=true" --property "key.separator=:"
-
-# Produce inventory update
-echo 'prod-123:{"product_id":"prod-123","product_name":"Wireless Headphones","category":"electronics","current_stock":8,"warehouse_id":"wh-east-1","timestamp":1625097600000,"unit_price":79.99}' | \
-  kafka-console-producer --broker-list localhost:9092 --topic inventory_updates --property "parse.key=true" --property "key.separator=:"
-
-# Produce order event
-echo 'order-456:{"order_id":"order-456","customer_id":"cust-789","items":[{"product_id":"prod-123","quantity":3,"unit_price":79.99}],"order_total":239.97,"timestamp":1625097600000}' | \
-  kafka-console-producer --broker-list localhost:9092 --topic order_events --property "parse.key=true" --property "key.separator=:"
+```yaml
+{% include "../definitions/use-cases/data-transformation/ksml-runner.yaml" %}
 ```
 
-Then, consume from the output topics to see the events being generated:
-
-```bash
-# Monitor reorder events
-kafka-console-consumer --bootstrap-server localhost:9092 --topic reorder_events --from-beginning
-
-# Monitor alerts
-kafka-console-consumer --bootstrap-server localhost:9092 --topic inventory_alerts --from-beginning
-
-# Monitor updated inventory
-kafka-console-consumer --bootstrap-server localhost:9092 --topic inventory_updates --from-beginning
-```
+4. Start the `customer_segment_producer` to produce the sample segment information to Kafka.
+5. Start the `legacy_customer_data_producer` to produce some sample data to the input topic.
+6. Start the `data_transformation` topology to initiate the continuous data transformation logic.
+7. Monitor the output topic to see the transformed data.
 
 ## Extending the Event-Driven System
 

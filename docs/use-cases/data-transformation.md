@@ -143,9 +143,11 @@ To run the application:
    and
    [`customer-data-producer.yaml`](../definitions/use-cases/data-transformation/customer-data-producer.yaml).
 3. Set up your `ksml-runner.yaml` configuration, pointing to your Kafka installation.
+
 ```yaml
 {% include "../definitions/use-cases/data-transformation/ksml-runner.yaml" %}
 ```
+
 4. Start the `customer_segment_producer` to produce the sample segment information to Kafka.
 5. Start the `legacy_customer_data_producer` to produce some sample data to the input topic.
 6. Start the `data_transformation` topology to initiate the continuous data transformation logic.
@@ -179,9 +181,11 @@ To handle changes in the source or target schema over time:
 # Version-aware transformation
 schema_version = value.get("version", "1.0")
 if schema_version == "1.0":
-# Original transformation logic
+    # Original transformation logic
+    value = transform_v1(value)
 elif schema_version == "2.0":
-# Updated transformation logic for new schema
+    # Updated transformation logic for new schema
+    value = transform_v2(value)
 else:
     log.error("Unknown schema version: {}", schema_version)
 ```
