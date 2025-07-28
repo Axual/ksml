@@ -40,7 +40,7 @@ If you used the shell command, you can visit [http://localhost:8080/topics](http
 ### Add some test data creation
 
 In [KSML Basics Tutorial](../../getting-started/basics-tutorial.md), in the final step, you added a data producer function.
-In de `producers:` section that you added, add a new producer as follows:
+In de `functions:` section, add a new producer functionwith the following code:
 ```yaml
   generate_tutorial_data:
     type: generator
@@ -60,6 +60,17 @@ In de `producers:` section that you added, add a new producer as follows:
 ```
 This will generated simulated sensor data for temperature and humidity, in different locations. The data does not necessarily make sense, 
 but it will enable us to try out some more complex techniques as detailed in the following sections.
+In the `producers:` section that you added before, call this producer every 3 seconds to provide a stream of test data:
+
+```yaml
+  data_producer:
+    generator: generate_tutorial_data
+    interval: 3s
+    to:
+      topic: tutorial_input
+      keyType: string
+      valueType: json
+```
 
 ## Complex Filtering Techniques
 
