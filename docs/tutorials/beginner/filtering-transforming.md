@@ -17,8 +17,49 @@ In this tutorial, you'll build a data pipeline that:
 Before you begin, make sure you have:
 
 - Completed the [KSML Basics Tutorial](../../getting-started/basics-tutorial.md)
-- A running KSML environment with Kafka
+- A running KSML environment with Kafka (the [Quick Start](../../getting-started/installation.md) guide will help you set up a local environment using Docker Compose)
 - Basic understanding of YAML and Python syntax
+
+## Initial setup
+
+### Add the tutorial topics
+
+This tutorial assumes a topic with more complex data than was present in the Basics Tutorial. With the Docker Compose from the Quick Start running, 
+issue the following commands to create the extra topics:
+
+```bash
+docker compose exec broker kafka-topics.sh --bootstrap-server broker:9093 --create --if-not-exists --topic tutorial_input --partitions 1 --replication-factor 1
+docker compose exec broker kafka-topics.sh --bootstrap-server broker:9093 --create --if-not-exists --topic filtered_data --partitions 1 --replication-factor 1
+docker compose exec broker kafka-topics.sh --bootstrap-server broker:9093 --create --if-not-exists --topic alerts_stream --partitions 1 --replication-factor 1
+```
+
+Alternatively, visit [http://localhost:8080/topics](http://localhost:8080/topics) and click the button "Create Topic" to create the topic with names as above. In the pop up, set "Partitions" to 1, and leave the
+rest of the input fields unchanged, then click "Create" to create the topic.
+If you used the shell command, you can visit [http://localhost:8080/topics](http://localhost:8080/topics) to verify that the topics were created.
+
+### Add some test data creation
+
+In [KSML Basics Tutorial](../../getting-started/basics-tutorial.md), in the final step, you added a data producer function.
+In de `producers:` section that you added, add a new producer as follows:
+```yaml
+  generate_tutorial_data:
+    type: generator
+    globalCode: |
+      import random
+      sensor_id = 0
+      locations = ["server_room", "warehouse", "data_center"]
+    code: |
+      global sensor_id, locations
+      key = "sensor" + str(sensor_id)
+      sensor_id = (sensor_id + 1) % 5
+      location = random.choice(locations)
+      sensors = {"temperature": random.randrange(150), "humidity": random.randrange(90), "location": location}
+      value = {"sensors": sensors}
+    expression: (key, value)
+    resultType: (string, json)
+```
+This will generated simulated sensor data for temperature and humidity, in different locations. The data does not necessarily make sense, 
+but it will enable us to try out some more complex techniques as detailed in the following sections.
 
 ## Complex Filtering Techniques
 
