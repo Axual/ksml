@@ -210,7 +210,7 @@ The peek operation:
 
 ## Step 4: Put It All Together
 
-Let's combine all the sections into a complete KSML definition file. In the [Quick Start guide] you created a directory
+Let's combine all the sections into a complete KSML definition file. In the [Quick Start guide](installation.md) you created a directory
 structure containing an `examples/` directory; in this directory create a file called `tutorial.yaml` and copy
 the following content:
 
