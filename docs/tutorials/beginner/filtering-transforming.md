@@ -58,8 +58,9 @@ In de `functions:` section, add a new producer functionwith the following code:
     expression: (key, value)
     resultType: (string, json)
 ```
-This will generated simulated sensor data for temperature and humidity, in different locations. The data does not necessarily make sense, 
+This will generate simulated sensor data for temperature and humidity, in different locations. The data does not necessarily make sense, 
 but it will enable us to try out some more complex techniques as detailed in the following sections.
+<br>
 In the `producers:` section that you added before, call this producer every 3 seconds to provide a stream of test data:
 
 ```yaml
