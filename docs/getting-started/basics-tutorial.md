@@ -308,12 +308,51 @@ When you run your KSML definition:
 
 ## Using KSML to produce messages
 
-While you can manually produce the above messages, KSML can also generate messages for you. See below for a KSML
-definition that would randomly generate test messages every three seconds.
+While you can manually produce the above messages, KSML can also generate messages for you. 
+To randomly generate test messages every three seconds, do the following:
+
+In the `functions:` setting of your KSML file, add the following function definition:
 
 ```yaml
-{% include "../definitions/basics-tutorial/tutorial-producer.yaml" %}
+  generate_temperature_message:
+    type: generator
+    globalCode: |
+      import random
+      sensorCounter = 0
+    code: |
+      global sensorCounter
+
+      key = "sensor" + str(sensorCounter)         # Simulate 10 sensors "sensor0" to "sensor9"
+      sensorCounter = (sensorCounter+1) % 10      # Increase the counter for next iteration
+
+      value = {"temperature": random.randrange(150)}
+    expression: (key, value)                      # Return a message tuple with the key and value
+    resultType: (string, json)                    # Indicate the type of key and value
 ```
+
+Next, _before_ the section `pipelines:` in your defintion file, add a new section `producers:` as follows:
+
+```yaml
+producers:
+  # Produce a temperature message every 3 seconds
+  tutorial_producer:
+    generator: generate_temperature_message
+    interval: 3s
+    to:
+      topic: tutorial_input
+      keyType: string
+      valueType: json
+```
+
+Restart the KSML Runner to make it aware of the new definitions:
+
+```bash
+docker compose restart ksml
+```
+
+You can check the runner logs (`docker compose logs ksml`) or go to the Kafka UI at [http://localhost:8080](http://localhost:8080)
+to verify that new messages are generated; the generated messages are copied to `temperature_data_copied`, and filtered and converted
+messages will appear on topic `temperature_data_converted`.
 
 ## Next Steps
 
