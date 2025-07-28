@@ -40,6 +40,14 @@ data:
 {{- with .Values.ksmlRunnerConfig.definitions }}
   {{- toYaml . | nindent 8 }}
 {{- end }}
+      schemaRegistries:
+{{- with .Values.ksmlRunnerConfig.schemaRegistries }}
+  {{- toYaml . | nindent 8 }}
+{{- end }}
+      notations:
+{{- with .Values.ksmlRunnerConfig.notations }}
+  {{- toYaml . | nindent 8 }}
+{{- end }}
     kafka:
       config.providers: env
       config.providers.env.class: 'org.apache.kafka.common.config.provider.EnvVarConfigProvider'
