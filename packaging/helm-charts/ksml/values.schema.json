@@ -176,6 +176,12 @@
                         "application.id",
                         "bootstrap.servers"
                     ]
+                },
+                "schemaRegistries": {
+                    "type": "object"
+                },
+                "notations": {
+                    "type": "object"
                 }
             },
             "required": [
