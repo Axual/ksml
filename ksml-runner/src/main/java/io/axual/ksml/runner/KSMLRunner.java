@@ -44,6 +44,7 @@ import io.axual.ksml.runner.backend.KafkaStreamsRunner;
 import io.axual.ksml.runner.backend.Runner;
 import io.axual.ksml.runner.config.ErrorHandlingConfig;
 import io.axual.ksml.runner.config.KSMLRunnerConfig;
+import io.axual.ksml.runner.config.NotationConfig;
 import io.axual.ksml.runner.exception.ConfigException;
 import io.axual.ksml.runner.notation.NotationFactories;
 import io.axual.ksml.runner.prometheus.PrometheusExport;
@@ -149,10 +150,10 @@ public class KSMLRunner {
             // Ensure typical defaults are used for AVRO
             // WARNING: Defaults for notations will be deprecated in the future. Make sure you explicitly configure
             // notations with multiple implementations (like AVRO) in your ksml-runner.yaml.
-            if (!ExecutionContext.INSTANCE.notationLibrary().exists(AvroNotation.NOTATION_NAME)) {
-                final var defaultAvro = new ConfluentAvroNotationProvider().createNotation(new NotationContext(AvroNotation.NOTATION_NAME, new DataObjectFlattener()));
+            if(ksmlConfig.notations().isEmpty()){
+                final var defaultAvro = new ConfluentAvroNotationProvider().createNotation(new NotationContext(AvroNotation.NOTATION_NAME,null,  new DataObjectFlattener(), config.kafkaConfig()));
                 ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, defaultAvro);
-                log.warn("No implementation specified for AVRO notation. If you use AVRO in your KSML definition, add the required configuration to the ksml-runner.yaml");
+                log.warn("No notations specified, loading default notations. If you use AVRO in your KSML definition, add the required configuration to the ksml-runner.yaml.");
             }
 
             final var errorHandling = ksmlConfig.errorHandlingConfig();
