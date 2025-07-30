@@ -151,7 +151,7 @@ public class KSMLRunner {
             if(ksmlConfig.notations().isEmpty()){
                 final var defaultAvro = new ConfluentAvroNotationProvider().createNotation(new NotationContext(AvroNotation.NOTATION_NAME,null,  new DataObjectFlattener(), config.kafkaConfig()));
                 ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME, defaultAvro);
-                log.warn("No notations specified, loading default notations. If you use AVRO in your KSML definition, add the required configuration to the ksml-runner.yaml.");
+                log.warn("No notations configured. Loading default Avro notation with Confluent implementation. If you use AVRO in your KSML definition, please explicitly configure notations in the ksml-runner.yaml.");
             }
 
             final var errorHandling = ksmlConfig.errorHandlingConfig();
