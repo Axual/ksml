@@ -311,7 +311,7 @@ When you run your KSML definition:
 While you can manually produce the above messages, KSML can also generate messages for you. 
 To randomly generate test messages every three seconds, do the following:
 
-In the `functions:` setting of your KSML file, add the following function definition:
+In the `functions:` section of your KSML file, add the following function definition:
 
 ```yaml
   generate_temperature_message:
@@ -339,7 +339,7 @@ producers:
     generator: generate_temperature_message
     interval: 3s
     to:
-      topic: tutorial_input
+      topic: temperature_data
       keyType: string
       valueType: json
 ```

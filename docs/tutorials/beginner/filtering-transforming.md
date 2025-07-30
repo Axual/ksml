@@ -28,8 +28,8 @@ This tutorial assumes a topic with more complex data than was present in the Bas
 issue the following commands to create the extra topics:
 
 ```bash
-docker compose exec broker kafka-topics.sh --bootstrap-server broker:9093 --create --if-not-exists --topic tutorial_input --partitions 1 --replication-factor 1
-docker compose exec broker kafka-topics.sh --bootstrap-server broker:9093 --create --if-not-exists --topic filtered_data --partitions 1 --replication-factor 1
+docker compose exec broker kafka-topics.sh --bootstrap-server broker:9093 --create --if-not-exists --topic tutorial_input --partitions 1 --replication-factor 1 && \
+docker compose exec broker kafka-topics.sh --bootstrap-server broker:9093 --create --if-not-exists --topic filtered_data --partitions 1 --replication-factor 1 && \
 docker compose exec broker kafka-topics.sh --bootstrap-server broker:9093 --create --if-not-exists --topic alerts_stream --partitions 1 --replication-factor 1
 ```
 
@@ -40,7 +40,7 @@ If you used the shell command, you can visit [http://localhost:8080/topics](http
 ### Add some test data creation
 
 In [KSML Basics Tutorial](../../getting-started/basics-tutorial.md), in the final step, you added a data producer function.
-In de `functions:` section, add a new producer functionwith the following code:
+In de `functions:` section, add a new producer function with the following code:
 ```yaml
   generate_tutorial_data:
     type: generator
@@ -72,6 +72,10 @@ In the `producers:` section that you added before, call this producer every 3 se
       keyType: string
       valueType: json
 ```
+
+Restart the KSML Runner using `docker compose restart ksml` to make it aware of the new definitions, and 
+visit [http://localhost:8080/topics/tutorial_input](http://localhost:8080/topics/tutorial_input) to verify that the
+new producer is now producing data.
 
 ## Complex Filtering Techniques
 
