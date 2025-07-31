@@ -217,7 +217,7 @@ pipelines:
 
 This approach ensures that malformed messages are logged and filtered out rather than causing the pipeline to fail.
 This will not throw errors currently, to check that errors are correctly logged, change the key to something that doesn't exist, for example:
-```python
+```bash
 sensors = value.get('sensors2', {})
 ```
 

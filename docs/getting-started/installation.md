@@ -395,26 +395,30 @@ Open Kafka UI at [http://localhost:8080](http://localhost:8080) and explore the 
 
 **INPUT** (to `temperature_data` topic):
 ```json
-key: sensor1
-value: {
-  "temperature": 72,
-  "humidity": 45, 
-  "location": "office"
+{
+  "key": "sensor1",
+  "value": {
+    "temperature": 72,
+    "humidity": 45,
+    "location": "office"
+  }
 }
 ```
 
 **OUTPUT** (to `temperature_data_converted` topic):
 ```json
-key: sensor1
-value: {
-  "sensor_id": "sensor1",
-  "location": "office",
-  "temperature_f": 72,
-  "temperature_c": 22.22,
-  "humidity": 45,
-  "heat_index": 26.89,
-  "comfort_level": "comfortable",
-  "timestamp": 1753956574552
+{
+  "key": "sensor1",
+  "value": {
+    "sensor_id": "sensor1",
+    "location": "office",
+    "temperature_f": 72,
+    "temperature_c": 22.22,
+    "humidity": 45,
+    "heat_index": 26.89,
+    "comfort_level": "comfortable",
+    "timestamp": 1753956574552
+  }
 }
 ```
 
@@ -422,25 +426,29 @@ value: {
 
 **INPUT** (to `temperature_data` topic):
 ```json
-key: sensor2
-value: {
-  "temperature": 98,
-  "humidity": 80,
-  "location": "server_room"
+{
+  "key": "sensor2",
+  "value": {
+    "temperature": 98,
+    "humidity": 80,
+    "location": "server_room"
+  }
 }
 ```
 
 **OUTPUT** (to `alerts_stream` topic):
 ```json
-key: sensor2
-value: {
-  "alert_type": "TEMPERATURE_EXTREME",
-  "sensor_id": "sensor2",
-  "temperature_c": 36.67,
-  "temperature_f": 98,
-  "message": "Extreme temperature detected at server_room: 36.67°C",
-  "timestamp": 1753956579977,
-  "severity": "MEDIUM"
+{
+  "key": "sensor2",
+  "value": {
+    "alert_type": "TEMPERATURE_EXTREME",
+    "sensor_id": "sensor2",
+    "temperature_c": 36.67,
+    "temperature_f": 98,
+    "message": "Extreme temperature detected at server_room: 36.67°C",
+    "timestamp": 1753956579977,
+    "severity": "MEDIUM"
+  }
 }
 ```
 

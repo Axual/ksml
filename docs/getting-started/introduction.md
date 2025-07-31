@@ -128,5 +128,5 @@ Kafka Streams implementation.
 
 Now that you understand what KSML is and its key concepts, you can:
 
-- Explore the [Core Concepts](../../core-concepts/) in more detail
+- Explore the [Core Concepts](../core-concepts/) in more detail
 - Follow the [KSML Basics Tutorial](basics-tutorial.md) to build your first application
