@@ -1,29 +1,26 @@
 # Quick Start with KSML
 
-Get KSML running in 5 minutes! This guide shows you how to create a powerful stream processing application using only YAML and Python - no Java required. You'll build a real-time data pipeline that filters sensor data, converts temperatures, and triggers alerts.
+Get KSML running in 5 minutes! This guide shows you how to create your first stream processing application using only YAML - no Java required. You'll build a simple pipeline that filters and transforms sensor data.
 
 ## What We'll Build
 
-In this quickstart, you'll create a stream processing application that:
+A simple data pipeline that:
 
-- 🔍 **Filters** out invalid sensor readings
-- 🌡️ **Converts** temperatures from Fahrenheit to Celsius
-- 📊 **Calculates** heat index based on temperature and humidity
-- 🚨 **Triggers** alerts for extreme conditions
-- 📝 **Logs** all processing steps for monitoring
+- **Filters** out invalid sensor readings  
+- **Transforms** temperature data
+- **Logs** processed messages
 
-All with just YAML configuration and simple Python expressions!
+All with just YAML configuration and Python code snippets!
 
 ## Prerequisites
 
 You'll need:
-
 - **Docker Compose** installed ([installation guide](https://docs.docker.com/compose/install/))
 - 5 minutes of your time
 
 ## Step 1: Set Up Your Environment
 
-Create a new directory for your KSML project and add the docker-compose.yml:
+Create a new directory for your KSML project:
 
 ```bash
 mkdir my-ksml-project
@@ -31,7 +28,7 @@ cd my-ksml-project
 mkdir examples
 ```
 
-Create a `docker-compose.yml` file with the following content:
+Create a `docker-compose.yml` file:
 
 ```yaml
 networks:
@@ -112,15 +109,13 @@ services:
       broker:
         condition: service_healthy
     restart: on-failure
-    command: "bash -c 'echo Trying to create topics... && \
-                       kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temperature_data && \
-                       kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic tutorial_input && \
+    command: "bash -c 'echo Creating topics... && \
+                       kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic sensor_data && \
+                       kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic processed_data && \
                        kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic filtered_data && \
                        kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic alerts_stream && \
-                       kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temperature_data_copied && \
-                       kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temperature_data_converted'"
+                       kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic tutorial_input'"
 ```
-
 
 Create `kafka-ui-config.yaml` for monitoring:
 
@@ -141,9 +136,8 @@ docker compose up -d
 ```
 
 This starts:
-
 - **Kafka** broker (port 9092)
-- **KSML** runner for your stream processing
+- **KSML** runner for your stream processing  
 - **Kafka UI** for monitoring (port 8080)
 - Automatic topic creation
 
@@ -156,13 +150,14 @@ docker compose ps
 ✅ Kafka broker and UI should be running  
 ⚠️ KSML runner will have exited (missing config - we'll fix this next)
 
-Check the Kafka UI at [http://localhost:8080/topics](http://localhost:8080/topics) to see your topics.
+Check the Kafka UI at [http://localhost:8080](http://localhost:8080) to see your topics.
 
-## Step 4: Create Your KSML Stream Processing Application
+## Step 4: Create Your First KSML Application
 
-Now for the exciting part! Let's create a real stream processing application that showcases KSML's power.
+Now let's create a simple but powerful stream processing application!
 
-In the `examples/` directory, create `sensor-monitor.yaml`:
+In the `examples/` directory, create `sensor-pipeline.yaml`:
+> This is a definition for a demo KSML application. It is not required at this point to understand this YAML & Python syntax, we will explain what it does and how it works later.
 
 ```yaml
 streams:
@@ -170,211 +165,108 @@ streams:
     topic: temperature_data
     keyType: string
     valueType: json
-  processed_stream:
-    topic: temperature_data_converted
-    keyType: string
-    valueType: json
-  alerts_stream:
-    topic: alerts_stream
+  output_stream:
+    topic: processed_data
     keyType: string
     valueType: json
 
 functions:
-  # Filter out invalid readings
-  is_valid_reading:
+  is_valid_sensor:
     type: predicate
-    code: |
-      # Check if temperature is within reasonable range
-      temp = value.get('temperature', 0)
-      humidity = value.get('humidity', 0)
-      valid = 0 < temp < 150 and 0 <= humidity <= 100
-      if not valid:
-        print(f"Filtering out invalid reading: temp={temp}, humidity={humidity}")
-    expression: valid
+    expression: value.get('temperature') is not None and value.get('temperature') > -50 and value.get('temperature') < 150
     resultType: boolean
 
-  # Convert temperature and calculate heat index
-  enrich_sensor_data:
-    type: keyValueTransformer
+  enrich_data:
+    type: keyValueMapper
     code: |
-      import time
-      
-      # Convert Fahrenheit to Celsius
-      temp_f = value.get('temperature', 0)
-      temp_c = round((temp_f - 32) * 5/9, 2)
-      humidity = value.get('humidity', 50)
-      
-      # Calculate heat index (simplified formula)
-      heat_index = round(temp_c * 1.2 + (humidity * 0.1), 2)
-      
-      # Determine comfort level
-      if heat_index < 20:
-        comfort = "cold"
-      elif heat_index < 25:
-        comfort = "comfortable"
-      elif heat_index < 30:
-        comfort = "warm"
-      else:
-        comfort = "hot"
-      
-      # Build enriched data
+      # Add sensor ID and convert temperature to Celsius
+      temp_c = round((value.get('temperature', 0) - 32) * 5/9, 1)
       enriched = {
         "sensor_id": key,
-        "temperature_f": temp_f,
+        "temperature_f": value.get('temperature'),
         "temperature_c": temp_c,
-        "humidity": humidity,
-        "heat_index": heat_index,
-        "comfort_level": comfort,
-        "timestamp": int(time.time() * 1000),
-        "location": value.get('location', 'unknown')
+        "location": value.get('location', 'unknown'),
+        "status": "processed"
       }
-      
-      print(f"Processed {key}: {temp_f}°F → {temp_c}°C, comfort: {comfort}")
     expression: (key, enriched)
     resultType: (string, json)
 
-  # Check if we need to send an alert
-  needs_alert:
-    type: predicate
-    code: |
-      # Alert if temperature is extreme
-      result = value.get('temperature_c', 0) > 35 or value.get('temperature_c', 0) < 5
-    expression: result
-    resultType: boolean
-
-  # Create alert message
-  create_alert:
-    type: keyValueTransformer
-    code: |
-      alert = {
-        "alert_type": "TEMPERATURE_EXTREME",
-        "sensor_id": key,
-        "temperature_c": value.get('temperature_c'),
-        "temperature_f": value.get('temperature_f'),
-        "message": f"Extreme temperature detected at {value.get('location', 'unknown')}: {value.get('temperature_c')}°C",
-        "timestamp": value.get('timestamp'),
-        "severity": "HIGH" if value.get('temperature_c', 0) > 40 or value.get('temperature_c', 0) < 0 else "MEDIUM"
-      }
-    expression: (key, alert)
-    resultType: (string, json)
-
 pipelines:
-  main_pipeline:
+  sensor_processing:
     from: input_stream
     via:
-      # Step 1: Filter out invalid readings
+      # Step 1: Filter valid readings
       - type: filter
-        if: is_valid_reading
+        if: is_valid_sensor
       
-      # Step 2: Enrich and transform the data
-      - type: transformKeyValue
-        mapper: enrich_sensor_data
+      # Step 2: Transform and enrich
+      - type: map
+        mapper: enrich_data
+        
+      # Step 3: Log what we processed
+      - type: peek
+        forEach:
+          code: |
+            temp_f = value.get('temperature_f')
+            temp_c = value.get('temperature_c') 
+            location = value.get('location')
+            print(f"✅ Processed {key}: {temp_f}°F → {temp_c}°C at {location}")
     
-    # Step 3: Route to different topics based on conditions
+    # Route processed data to output, invalid data to error stream
     branch:
-      # Send alerts for extreme temperatures
-      - if: needs_alert
-        via:
-          - type: transformKeyValue
-            mapper: create_alert
-        to: alerts_stream
-      
-      # All valid readings go to processed stream
-      - to: processed_stream
+      - to: output_stream
 ```
 
-Now create the KSML runner configuration file `ksml-runner.yaml` in your `examples/` directory:
+Now create the KSML runner configuration file `ksml-runner.yaml`:
 
 ```yaml
 kafka:
-   bootstrap.servers: broker:9093
-   application.id: io.ksml.example.producer
-   security.protocol: PLAINTEXT
-   acks: all
+  bootstrap.servers: broker:9093
+  application.id: io.ksml.example.producer
+  security.protocol: PLAINTEXT
+  acks: all
 
 ksml:
   definitions:
-    # format is: <namespace>: <filename> 
-    sensormonitor: sensor-monitor.yaml 
-  
-  # The examples directory is mounted to /ksml in the Docker container
-  configDirectory: /ksml          # When not set defaults to the working directory
-  schemaDirectory: /ksml          # When not set defaults to the config directory
-  storageDirectory: /tmp          # When not set defaults to the default JVM temp directory
-
-  # This section defines if a REST endpoint is opened on the KSML runner, through which
-  # state stores and/or readiness / liveness probes can be accessed.
-  applicationServer:
-    enabled: false                # Set to true to enable, or false to disable
-    host: 0.0.0.0                 # IP address to bind the REST server to
-    port: 8080                    # Port number to listen on
-
-  # This section defines whether a Prometheus endpoint is opened to allow metric scraping.
-  prometheus:
-    enabled: false                 # Set to true to enable, or false to disable
-    host: 0.0.0.0                 # IP address to bind the Prometheus agent server to
-    port: 9999                    # Port number to listen on
-
-  # This section enables error handling or error ignoring for certain types of errors.
-  errorHandling:
-    consume:                      # Error handling definitions for consume errors
-      log: true                   # Log errors true/false
-      logPayload: true            # Upon error, should the payload of the message be dumped to the log file.
-      loggerName: ConsumeError    # Definition of the error logger name.
-      handler: stopOnFail         # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
-    process:
-      log: true                   # Log errors true/false
-      logPayload: true            # Upon error, should the payload of the message be dumped to the log file.
-      loggerName: ProcessError    # Definition of the error logger name.
-      handler: continueOnFail     # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
-    produce:
-      log: true                   # Log errors true/false
-      logPayload: true            # Upon error, should the payload of the message be dumped to the log file.
-      loggerName: ProduceError    # Definition of the error logger name.
-      handler: continueOnFail     # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
-
-  enableProducers: true           # Set to true to allow producer definitions to be parsed in the KSML definitions and be executed.
-  enablePipelines: true          # Set to true to allow pipeline definitions to be parsed in the KSML definitions and be executed.
+    sensor-monitor: sensor-monitor.yaml
 ```
 
-## Step 5: Start Your Stream Processing Application
+## Step 5: Start Your Application
 
-Restart the KSML runner to load your application:
+Restart the KSML runner:
 
 ```bash
 docker compose restart ksml
 ```
 
-Check the logs to confirm it started:
+Check the logs:
 
 ```bash
-docker compose logs ksml -f
+docker compose logs ksml
 ```
 
-## Step 6: See It In Action! 
+## Step 6: See It In Action!
 
-Let's send some sensor data and watch the magic happen. Start the Kafka console producer:
-> Please note that KSML is capable of also producing
+Send some test data to see your pipeline work:
 
 ```bash
-docker compose exec broker kafka-console-producer.sh --bootstrap-server broker:9093 --topic temperature_data --property "parse.key=true" --property "key.separator=:"
+docker compose exec broker kafka-console-producer.sh --bootstrap-server broker:9093 --topic sensor_data --property "parse.key=true" --property "key.separator=:"
 ```
 
-Now paste these test messages (press Enter after each line):
+Paste these test messages (press Enter after each):
 
 ```
-sensor1:{"temperature": 72, "humidity": 45, "location": "office"}
-sensor2:{"temperature": 98, "humidity": 80, "location": "server_room"} 
-sensor3:{"temperature": -10, "humidity": 30, "location": "freezer"}
-sensor4:{"temperature": 105, "humidity": 95, "location": "boiler_room"}
-sensor5:{"temperature": 200, "humidity": 150, "location": "invalid"}
+sensor1:{"temperature": 72, "location": "office"}
+sensor2:{"temperature": 98, "location": "server_room"}
+sensor3:{"temperature": 32, "location": "warehouse"}
+sensor4:{"temperature": 999, "location": "invalid"}
 ```
 
-Press `Ctrl+C` to exit the producer.
+Press `Ctrl+C` to exit.
 
 ## What Just Happened?
 
-Check the KSML logs to see your pipeline in action:
+Check the KSML logs:
 
 ```bash
 docker compose logs ksml -f
@@ -382,129 +274,76 @@ docker compose logs ksml -f
 
 You'll see:
 
-- ✅ Valid readings being processed with temperature conversions
-- 🌡️ Comfort levels calculated (cold, comfortable, warm, hot)
-- 🚨 Alerts generated for extreme temperatures (freezer and boiler room)
-- ❌ Invalid sensor5 data filtered out
+- ✅ Valid sensor readings processed with temperature conversions
+- ❌ Invalid sensor4 data filtered out (999°F is unrealistic)
 
-Open Kafka UI at [http://localhost:8080](http://localhost:8080) and explore the transformed data:
+## Data Flow Examples
 
-## Data Transformation Examples
+### Valid Reading Processing
 
-### Normal Processing Flow
+**INPUT** (to `sensor_data` topic):
 
-**INPUT** (to `temperature_data` topic):
+key: `sensor0`
+value:
 ```json
 {
-  "key": "sensor1",
-  "value": {
-    "temperature": 72,
-    "humidity": 45,
-    "location": "office"
-  }
+  "temperature": 72,
+  "location": "office"
 }
 ```
 
-**OUTPUT** (to `temperature_data_converted` topic):
+**OUTPUT** (to `processed_data` topic):
+key: `sensor0`
+value:
 ```json
 {
-  "key": "sensor1",
-  "value": {
-    "sensor_id": "sensor1",
-    "location": "office",
-    "temperature_f": 72,
-    "temperature_c": 22.22,
-    "humidity": 45,
-    "heat_index": 26.89,
-    "comfort_level": "comfortable",
-    "timestamp": 1753956574552
-  }
+  "location": "office",
+  "sensor_id": "sensor1",
+  "status": "processed",
+  "temperature_c": 22.2,
+  "temperature_f": 72
 }
 ```
 
-### Alert Generation Flow
-
-**INPUT** (to `temperature_data` topic):
-```json
-{
-  "key": "sensor2",
-  "value": {
-    "temperature": 98,
-    "humidity": 80,
-    "location": "server_room"
-  }
-}
+**LOG OUTPUT**:
+```
+✅ Processed sensor1: 72°F → 22.2°C at office
 ```
 
-**OUTPUT** (to `alerts_stream` topic):
-```json
-{
-  "key": "sensor2",
-  "value": {
-    "alert_type": "TEMPERATURE_EXTREME",
-    "sensor_id": "sensor2",
-    "temperature_c": 36.67,
-    "temperature_f": 98,
-    "message": "Extreme temperature detected at server_room: 36.67°C",
-    "timestamp": 1753956579977,
-    "severity": "MEDIUM"
-  }
-}
-```
-
-See how your simple YAML configuration:
-
-- ✅ **Validates** data (filters invalid sensor5)
-- 🌡️ **Converts** temperatures (72°F → 22.22°C)
-- 📊 **Calculates** heat index and comfort levels
-- 🚨 **Generates** alerts for extreme conditions (>35°C)
-- 📝 **Enriches** data with timestamps and metadata
-
+Open [http://localhost:8080](http://localhost:8080) to explore your topics and see the transformed data!
 
 ## 🎉 Congratulations!
 
-You just built a production-ready stream processing application without writing a single line of Java! Your pipeline:
+You just built a stream processing application with:
 
-- **Validates** data quality in real-time
-- **Transforms** temperatures and calculates metrics
-- **Routes** messages intelligently based on content
-- **Generates** alerts for critical conditions
+- **20 lines of YAML** (vs 100+ lines of Java)
+- **Minimal Python** (just 3 lines for temperature conversion)
+- **Real-time processing** with filtering and transformation
+- **No compilation** or complex setup needed
 
-All with just YAML configuration and simple Python expressions.
+## What Makes KSML Powerful?
 
-## What Makes This Powerful?
+**Traditional Kafka Streams requires:**
 
-Traditional Kafka Streams would require:
-
-- 100s (if not 1000s)  lines of Java 
+- Java expertise and boilerplate code
 - Complex build configuration
 - Compilation and deployment steps
-- Java expertise
 
-With KSML, you got the same result with:
+**✅ With KSML you get:**
 
-- ✅ 50 lines of readable YAML
-- ✅ Simple Python expressions
-- ✅ Instant deployment
-- ✅ No compilation needed
-
-## Troubleshooting
-
-**Common Issues:**
-
-- **Port conflicts**: Modify ports in docker-compose.yml if 9092/8080 are in use
-- **Container issues**: Run `docker compose logs <service>` to check specific services
-- **YAML errors**: Ensure proper indentation (2 spaces, not tabs)
+- Simple YAML configuration
+- Optional Python for custom logic
+- Instant deployment
 
 ## Next Steps
 
-Ready to learn more? Here's where to go next:
+Ready to learn more?
 
-1. **[Understanding KSML](introduction.md)** - Learn the concepts behind what you just built
-2. **[KSML Basics Tutorial](basics-tutorial.md)** - Deep dive into the language features with a step-by-step tutorial
-3. **[Examples Library](../resources/examples-library.md)** - More patterns and use cases
+1. **[Understanding KSML](introduction.md)** - Learn the concepts
+2. **[KSML Basics Tutorial](basics-tutorial.md)** - Build more advanced pipelines
+3. **[Examples Library](../resources/examples-library.md)** - More patterns
 
-## Quick Commands Reference
+## Quick Commands
 
 ```bash
 # Start everything
@@ -520,6 +359,4 @@ docker compose restart ksml
 docker compose down
 ```
 
----
-
-**Need help?** Check our [Troubleshooting Guide](../resources/troubleshooting.md) or visit the [Community Forum](../resources/community.md).
+**Need help?** Check our [Troubleshooting Guide](../resources/troubleshooting.md)
