@@ -213,13 +213,15 @@ Save the file.
 We also need to make the KSML Runner aware of the new pipeline. In the `ksml-runner.yaml` you created before, there is
 a section containing the definitions; modify this part so that it looks like this:
 
-```yaml
-ksml:
-  definitions:
-    # format is: <namespace>: <filename> 
-    helloworld: hello-world.yaml 
-    tutorial: tutorial.yaml
-```
+??? info "KSML Runner Configuration Update (click to expand)"
+
+    ```yaml
+    ksml:
+      definitions:
+        # format is: <namespace>: <filename> 
+        helloworld: hello-world.yaml 
+        tutorial: tutorial.yaml
+    ```
 
 You can either replace the line containing `helloworld` or add the tutorial, in the latter case both pipelines will be run.
 
@@ -304,36 +306,40 @@ To randomly generate test messages every three seconds, do the following:
 
 In the `functions:` section of your KSML file, add the following function definition:
 
-```yaml
-  generate_temperature_message:
-    type: generator
-    globalCode: |
-      import random
-      sensorCounter = 0
-    code: |
-      global sensorCounter
+??? info "Generator Function Definition (click to expand)"
 
-      key = "sensor" + str(sensorCounter)         # Simulate 10 sensors "sensor0" to "sensor9"
-      sensorCounter = (sensorCounter+1) % 10      # Increase the counter for next iteration
+    ```yaml
+      generate_temperature_message:
+        type: generator
+        globalCode: |
+          import random
+          sensorCounter = 0
+        code: |
+          global sensorCounter
 
-      value = {"temperature": random.randrange(150)}
-    expression: (key, value)                      # Return a message tuple with the key and value
-    resultType: (string, json)                    # Indicate the type of key and value
-```
+          key = "sensor" + str(sensorCounter)         # Simulate 10 sensors "sensor0" to "sensor9"
+          sensorCounter = (sensorCounter+1) % 10      # Increase the counter for next iteration
+
+          value = {"temperature": random.randrange(150)}
+        expression: (key, value)                      # Return a message tuple with the key and value
+        resultType: (string, json)                    # Indicate the type of key and value
+    ```
 
 Next, _before_ the section `pipelines:` in your defintion file, add a new section `producers:` as follows:
 
-```yaml
-producers:
-  # Produce a temperature message every 3 seconds
-  tutorial_producer:
-    generator: generate_temperature_message
-    interval: 3s
-    to:
-      topic: temperature_data
-      keyType: string
-      valueType: json
-```
+??? info "Producer Configuration (click to expand)"
+
+    ```yaml
+    producers:
+      # Produce a temperature message every 3 seconds
+      tutorial_producer:
+        generator: generate_temperature_message
+        interval: 3s
+        to:
+          topic: temperature_data
+          keyType: string
+          valueType: json
+    ```
 
 Restart the KSML Runner to make it aware of the new definitions:
 
