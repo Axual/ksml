@@ -16,6 +16,15 @@ Complete documentation of the KSML language syntax and structure:
 - Schema validation
 - Common syntax patterns
 
+### [Stream Types](../reference/stream-type-reference.md)
+
+Learn about the fundamental building blocks of KSML applications:
+
+- Understanding stream types (KStream, KTable, GlobalKTable)
+- Choosing the right stream type
+- Best practices
+- Examples
+
 ### [Data Types Reference](data-type-reference.md)
 
 Detailed information about all supported data types in KSML:

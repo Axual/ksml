@@ -41,7 +41,7 @@ Let's create each section step by step.
 
 ## Step 1: Define Your Streams
 
-First, let's define the input and output streams for our pipeline:
+First, let's create a new file `tutorial.yaml` and start by defining the input and output streams for our pipeline:
 
 ```yaml
 {%
@@ -58,7 +58,7 @@ This defines:
 
 ### Understanding Stream Definitions
 
-Each stream definition includes:
+Each KSML stream has:
 
 - A unique name (e.g., `input_stream`)
 - The Kafka topic it connects to
@@ -74,7 +74,7 @@ KSML supports various data types and notations including:
 
 ## Step 2: Create a Simple Function
 
-Next, let's create a function to log messages as they flow through our pipeline:
+Next, let's add functions to filter, transform and log messages as they flow through our pipeline:
 
 ```yaml
 {%
@@ -84,33 +84,24 @@ Next, let's create a function to log messages as they flow through our pipeline:
 %}
 ```
 
-There are three functions defined
+We defined three uniquely named functions:
 
-**`temperature_above_threshold`**
+**`temperature_above_threshold`** function:
 
-This function:
-
-- Is named `temperature_above_threshold`
 - Is of type `predicate`, which means it [always gets](../reference/function-reference.md#predicate) a `key` and
   `value` as its parameters and needs to return a `boolean` value
-- Uses the `expression` tag to return a True if the `temperature` field in the value (zero if it does not exist) is
-  above 70, False otherwise
+- Uses the `expression` tag to return a `True` if the `temperature` field in the value (zero if it does not exist) is
+  above 70, `False` otherwise.
 
-**`fahrenheit_to_celsius`**
+**`fahrenheit_to_celsius`** function:
 
-This function:
-
-- Is named `fahrenheit_to_celsius`
 - Is of type `valueTransformer`, which means it [always gets](../reference/function-reference.md#valuetransformer)
   two parameters `key` and `value`, and does not return a value
 - Uses the `expression` tag to define the value to return, in this case renaming `temperature` to `temp_fahrenheit` and
   adding a field called `temp_celsius`
 
-**`log_message`**
+**`log_message`** function:
 
-This function:
-
-- Is named `log_message`
 - Is of type `forEach`, which means it [always gets](../reference/function-reference.md#foreach)  two parameters
   `key` and `value`, and does not return a value
 - Takes an extra parameter `prefix` of type `string`
@@ -130,7 +121,7 @@ Functions in KSML:
 
 ## Step 3: Build Your Pipeline
 
-Now, let's create the pipeline that processes our data:
+Now, let's add the pipeline that processes our data:
 
 ```yaml
 {%
@@ -269,7 +260,7 @@ sensor2:{"temperature": 65}
 sensor3:{"temperature": 80}
 ```
 
-Press <Enter> after each record, and press Ctrl+D to exit the producer.
+Press <Enter> after each record, and press Ctrl+C to exit the producer.
 
 ### Step 5.2: View the Results
 
@@ -289,6 +280,7 @@ You should see messages like:
 ```
 
 Notice that:
+
 - The message with temperature 65°F was filtered out (below our 70°F threshold)
 - The remaining messages have been transformed to include both Fahrenheit and Celsius temperatures
 - You can see processing logs in the KSML container logs: `docker compose logs ksml`

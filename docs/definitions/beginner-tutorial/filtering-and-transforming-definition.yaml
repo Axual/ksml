@@ -1,0 +1,37 @@
+streams:
+  input_stream:
+    topic: tutorial_input
+    keyType: string
+    valueType: json
+  output_stream:
+    topic: filtered_data
+    keyType: string
+    valueType: json
+
+functions:
+  temperature_above_threshold:
+    type: predicate
+    #expression: value.get('temperature', 0) > 70
+    expression: value.get('sensors', {}).get('temperature', 0) > 70 
+  log_message:
+    type: forEach
+    parameters:
+      - name: prefix
+        type: string
+    code: |
+      msg = prefix + " message" if isinstance(prefix, str) and prefix != "" else "Message"
+      log.info(msg + ": key={}, value={}", key, value)
+
+pipelines:
+  filtering_pipeline:
+    from: input_stream
+    via:
+      - type: filter
+        if: temperature_above_threshold
+      - type: peek
+        forEach:
+          code: |
+            # Manually call log_message to pass in additional parameters
+            log_message(key, value, prefix="Processed")
+    to: output_stream
+

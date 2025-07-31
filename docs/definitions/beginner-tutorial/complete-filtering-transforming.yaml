@@ -1,0 +1,103 @@
+streams:
+  sensor_data:
+    topic: raw_sensor_data
+    keyType: string
+    valueType: json
+  processed_data:
+    topic: processed_sensor_data
+    keyType: string
+    valueType: json
+  error_data:
+    topic: error_sensor_data
+    keyType: string
+    valueType: json
+
+functions:
+  validate_sensor_data:
+    type: predicate
+    code: |
+      try:
+        # Check if all required fields are present
+        required_fields = ['temperature', 'humidity', 'location', 'timestamp']
+        for field in required_fields:
+          if field not in value:
+            log.warn("Missing required field '{}' in message: {}", field, value)
+            return False
+
+        # Validate data types and ranges
+        if not isinstance(value['temperature'], (int, float)) or value['temperature'] < -100 or value['temperature'] > 200:
+          log.warn("Invalid temperature value: {}", value['temperature'])
+          return False
+
+        if not isinstance(value['humidity'], (int, float)) or value['humidity'] < 0 or value['humidity'] > 100:
+          log.warn("Invalid humidity value: {}", value['humidity'])
+          return False
+
+        return True
+      except Exception as e:
+        log.error("Error validating sensor data: {} - Message: {}", str(e), value)
+        return False
+
+  transform_sensor_data:
+    type: valueMapper
+    code: |
+      try:
+        # Convert temperature from F to C
+        temp_c = (value['temperature'] - 32) * 5/9
+
+        # Calculate heat index
+        heat_index = temp_c * 1.8 + 32 - 0.55 * (1 - value['humidity'] / 100)
+
+        # Format timestamp
+        timestamp = value['timestamp']
+        if isinstance(timestamp, (int, float)):
+          # Assume it's a Unix timestamp
+          from datetime import datetime
+          formatted_time = datetime.fromtimestamp(timestamp / 1000).isoformat()
+        else:
+          # Pass through as is
+          formatted_time = timestamp
+
+        return {
+          "sensor_id": key,
+          "location": value['location'],
+          "readings": {
+            "temperature": {
+              "celsius": round(temp_c, 2),
+              "fahrenheit": value['temperature']
+            },
+            "humidity": value['humidity'],
+            "heat_index": round(heat_index, 2)
+          },
+          "timestamp": formatted_time,
+          "processed_at": int(time.time() * 1000)
+        }
+      except Exception as e:
+        log.error("Error transforming sensor data: {} - Message: {}", str(e), value)
+        return {
+          "error": str(e),
+          "original": value,
+          "sensor_id": key,
+          "timestamp": int(time.time() * 1000)
+        }
+
+pipelines:
+  process_sensor_data:
+    from: sensor_data
+    via:
+      - type: filter
+        if: validate_sensor_data
+      - type: mapValues
+        mapper: transform_sensor_data
+      - type: peek
+        forEach:
+          code: |
+            log.info("Processed sensor data for {}: temp={}°C, humidity={}%", 
+                     value.get('sensor_id'), 
+                     value.get('readings', {}).get('temperature', {}).get('celsius'), 
+                     value.get('readings', {}).get('humidity'))
+    branch:
+      - if:
+          expression: 'error' in value
+        to: error_data
+      - to: processed_data

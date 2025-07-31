@@ -17,15 +17,6 @@ Check out which data types KSML applications can handle. What you'll learn is:
 - Function parameter types
 - Function result types
 
-### [Stream Types](../reference/stream-type-reference.md)
-
-Learn about the fundamental building blocks of KSML applications:
-
-- Understanding stream types (KStream, KTable, GlobalKTable)
-- Choosing the right stream type
-- Best practices
-- Examples
-
 ### [Notations](../reference/notation-reference.md)
 
 Find out how to use different notations for Kafka topics:

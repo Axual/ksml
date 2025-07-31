@@ -1,15 +1,14 @@
 # Quick Start with KSML
 
-Get KSML running in 5 minutes with this simple Docker Compose setup. You'll have a working stream processing pipeline that transforms temperature data from Fahrenheit to Celsius.
+Get KSML running in 5 minutes with this simple Docker Compose setup. You'll have a working KSML application, written in YAML and Python, that creates a Kafka Stream topology that copies a message from one topic to another and prints a log statement.
 
 ## Quick Start with Docker Compose
 
 The fastest way to get started with KSML is using our pre-configured Docker Compose setup that includes everything you need:
 
 - Kafka broker with pre-configured topics
-- KSML runner
-- Kafka UI for easy topic monitoring
-- Example data setup
+- KSML runner - the container that runs the KSML definition
+- Kowl UI for easy Kafka topic monitoring
 
 ### Prerequisites
 
@@ -56,7 +55,7 @@ services:
       KAFKA_CFG_LISTENERS: 'INNER://broker:9093,OUTER://broker:9092,CONTROLLER://broker:9090'
       KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: 'INNER:PLAINTEXT,OUTER:PLAINTEXT,CONTROLLER:PLAINTEXT'
       KAFKA_CFG_LOG_CLEANUP_POLICY: delete
-      KAFKA_CFG_LOG_RETENTION_MINUTES: 10
+      KAFKA_CFG_LOG_RETENTION_MINUTES: 10070
       KAFKA_CFG_INTER_BROKER_LISTENER_NAME: INNER
       KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_CFG_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
@@ -111,9 +110,14 @@ services:
     restart: on-failure
     command: "bash -c 'echo Trying to create topics... && \
                        kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temperature_data && \
+                       kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic tutorial_input && \
+                       kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic filtered_data && \
+                       kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic alerts_stream && \
                        kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temperature_data_copied && \
                        kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temperature_data_converted'"
 ```
+
+> Please note that we are creating more topics than we need for this tutorial, these extra topics will be used for more advanced tutorials later.
 
 Next, create a config file named `kafka-ui-config.yaml` for the Kafka UI service we will use to monitor Kafka, with the following contents:
 
@@ -160,7 +164,13 @@ For now, you can check Kafka and Kafka UI, and verify that the test topics have 
 
 ### Step 4: Create Your First KSML Definition
 
-Create a simple KSML file to test the setup. In the `examples/` directory, create a file `hello-world.yaml` with the 
+Create a simple KSML file to test the setup. This KSML file create a Kafka Streams topology that:
+
+- Copies a message from topic `temperature_data` to `temperature_data_copied` 
+- Prints a log statement in KSML docker compose service:
+    - `Processing message: key=sensorX, value={'temperature': YY}`
+
+In the `examples/` directory, create a file `hello-world.yaml` with the 
 following contents:
 
 ```yaml

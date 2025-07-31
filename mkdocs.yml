@@ -35,9 +35,6 @@ nav:
       - Understanding KSML: getting-started/introduction.md
   - Core Concepts:
       - Overview: core-concepts/index.md
-      - Data Types: reference/data-type-reference.md
-      - Notations: reference/notation-reference.md
-      - Stream Types: reference/stream-type-reference.md
       - Functions: core-concepts/functions.md
       - Pipelines: core-concepts/pipelines.md
       - Operations: core-concepts/operations.md
@@ -75,6 +72,9 @@ nav:
   - References:
       - Overview: reference/index.md
       - KSML Language Reference: reference/language-reference.md
+      - Stream Types Reference: reference/stream-type-reference.md
+      - Data Types Reference: reference/data-type-reference.md
+      - Notations Reference: reference/notation-reference.md
       - Functions Reference: reference/function-reference.md
       - Operations Reference: reference/operation-reference.md
       - Configuration Reference: reference/configuration-reference.md
