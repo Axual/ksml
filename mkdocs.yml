@@ -35,6 +35,8 @@ nav:
       - Understanding KSML: getting-started/introduction.md
   - Core Concepts:
       - Overview: core-concepts/index.md
+      - Data Types: reference/data-type-reference.md
+      - Notations: reference/notation-reference.md
       - Functions: core-concepts/functions.md
       - Pipelines: core-concepts/pipelines.md
       - Operations: core-concepts/operations.md

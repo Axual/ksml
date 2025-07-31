@@ -1,23 +1,27 @@
 # Quick Start with KSML
 
-Get KSML running in 5 minutes with this simple Docker Compose setup. You'll have a working KSML application, written in YAML and Python, that creates a Kafka Stream topology that copies a message from one topic to another and prints a log statement.
+Get KSML running in 5 minutes! This guide shows you how to create a powerful stream processing application using only YAML and Python - no Java required. You'll build a real-time data pipeline that filters sensor data, converts temperatures, and triggers alerts.
 
-## Quick Start with Docker Compose
+## What We'll Build
 
-The fastest way to get started with KSML is using our pre-configured Docker Compose setup that includes everything you need:
+In this quickstart, you'll create a stream processing application that:
 
-- Kafka broker with pre-configured topics
-- KSML runner - the container that runs the KSML definition
-- Kowl UI for easy Kafka topic monitoring
+- 🔍 **Filters** out invalid sensor readings
+- 🌡️ **Converts** temperatures from Fahrenheit to Celsius
+- 📊 **Calculates** heat index based on temperature and humidity
+- 🚨 **Triggers** alerts for extreme conditions
+- 📝 **Logs** all processing steps for monitoring
 
-### Prerequisites
+All with just YAML configuration and simple Python expressions!
 
-Before you begin, make sure you have:
+## Prerequisites
 
-- **Docker** and **Docker Compose** installed
-- Basic understanding of Kafka concepts like topics and messages
+You'll need:
 
-### Step 1: Create the Docker Compose Configuration
+- **Docker Compose** installed ([installation guide](https://docs.docker.com/compose/install/))
+- 5 minutes of your time
+
+## Step 1: Set Up Your Environment
 
 Create a new directory for your KSML project and add the docker-compose.yml:
 
@@ -117,9 +121,8 @@ services:
                        kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temperature_data_converted'"
 ```
 
-> Please note that we are creating more topics than we need for this tutorial, these extra topics will be used for more advanced tutorials later.
 
-Next, create a config file named `kafka-ui-config.yaml` for the Kafka UI service we will use to monitor Kafka, with the following contents:
+Create `kafka-ui-config.yaml` for monitoring:
 
 ```yaml
 server:
@@ -131,47 +134,35 @@ kafka:
     - broker:9093
 ```
 
-### Step 2: Start the Environment
-
-Start all services with Docker Compose:
+## Step 2: Start Docker Services
 
 ```bash
 docker compose up -d
 ```
 
-This command starts:
+This starts:
 
-- **Kafka broker** on port 9092
-- **KSML runner** that will execute your KSML definitions
-- **Kafka UI** on port 8080 for monitoring topics and messages
-- **Topic setup** that creates required topics automatically
+- **Kafka** broker (port 9092)
+- **KSML** runner for your stream processing
+- **Kafka UI** for monitoring (port 8080)
+- Automatic topic creation
 
-### Step 3: Verify your setup so far
-
-Check the services in the docker compose:
+## Step 3: Verify Everything Started
 
 ```bash
 docker compose ps
 ```
 
-You should see Kafka ("`broker`") and Kafka UI ("`kowl`") running; the "Topic setup" container will have done its work and exited.
-The KSML runner will have logged an error about a missing config file and exited; we will fix this in the next step.
-<br>
-For now, you can check Kafka and Kafka UI, and verify that the test topics have been created:
+✅ Kafka broker and UI should be running  
+⚠️ KSML runner will have exited (missing config - we'll fix this next)
 
-- Visit [http://localhost:8080](http://localhost:8080) to access Kafka UI, and check the "topics" tab
-- Check logs: `docker compose logs -f`
+Check the Kafka UI at [http://localhost:8080/topics](http://localhost:8080/topics) to see your topics.
 
-### Step 4: Create Your First KSML Definition
+## Step 4: Create Your KSML Stream Processing Application
 
-Create a simple KSML file to test the setup. This KSML file create a Kafka Streams topology that:
+Now for the exciting part! Let's create a real stream processing application that showcases KSML's power.
 
-- Copies a message from topic `temperature_data` to `temperature_data_copied` 
-- Prints a log statement in KSML docker compose service:
-    - `Processing message: key=sensorX, value={'temperature': YY}`
-
-In the `examples/` directory, create a file `hello-world.yaml` with the 
-following contents:
+In the `examples/` directory, create `sensor-monitor.yaml`:
 
 ```yaml
 streams:
@@ -179,28 +170,120 @@ streams:
     topic: temperature_data
     keyType: string
     valueType: json
-  output_stream:
-    topic: temperature_data_copied
+  processed_stream:
+    topic: temperature_data_converted
+    keyType: string
+    valueType: json
+  alerts_stream:
+    topic: alerts_stream
     keyType: string
     valueType: json
 
 functions:
-  log_message:
-    type: forEach
+  # Filter out invalid readings
+  is_valid_reading:
+    type: predicate
     code: |
-      log.info(f"Processing message: key={key}, value={value}")
+      # Check if temperature is within reasonable range
+      temp = value.get('temperature', 0)
+      humidity = value.get('humidity', 0)
+      valid = 0 < temp < 150 and 0 <= humidity <= 100
+      if not valid:
+        print(f"Filtering out invalid reading: temp={temp}, humidity={humidity}")
+    expression: valid
+    resultType: boolean
+
+  # Convert temperature and calculate heat index
+  enrich_sensor_data:
+    type: keyValueTransformer
+    code: |
+      import time
+      
+      # Convert Fahrenheit to Celsius
+      temp_f = value.get('temperature', 0)
+      temp_c = round((temp_f - 32) * 5/9, 2)
+      humidity = value.get('humidity', 50)
+      
+      # Calculate heat index (simplified formula)
+      heat_index = round(temp_c * 1.2 + (humidity * 0.1), 2)
+      
+      # Determine comfort level
+      if heat_index < 20:
+        comfort = "cold"
+      elif heat_index < 25:
+        comfort = "comfortable"
+      elif heat_index < 30:
+        comfort = "warm"
+      else:
+        comfort = "hot"
+      
+      # Build enriched data
+      enriched = {
+        "sensor_id": key,
+        "temperature_f": temp_f,
+        "temperature_c": temp_c,
+        "humidity": humidity,
+        "heat_index": heat_index,
+        "comfort_level": comfort,
+        "timestamp": int(time.time() * 1000),
+        "location": value.get('location', 'unknown')
+      }
+      
+      print(f"Processed {key}: {temp_f}°F → {temp_c}°C, comfort: {comfort}")
+    expression: (key, enriched)
+    resultType: (string, json)
+
+  # Check if we need to send an alert
+  needs_alert:
+    type: predicate
+    code: |
+      # Alert if temperature is extreme
+      result = value.get('temperature_c', 0) > 35 or value.get('temperature_c', 0) < 5
+    expression: result
+    resultType: boolean
+
+  # Create alert message
+  create_alert:
+    type: keyValueTransformer
+    code: |
+      alert = {
+        "alert_type": "TEMPERATURE_EXTREME",
+        "sensor_id": key,
+        "temperature_c": value.get('temperature_c'),
+        "temperature_f": value.get('temperature_f'),
+        "message": f"Extreme temperature detected at {value.get('location', 'unknown')}: {value.get('temperature_c')}°C",
+        "timestamp": value.get('timestamp'),
+        "severity": "HIGH" if value.get('temperature_c', 0) > 40 or value.get('temperature_c', 0) < 0 else "MEDIUM"
+      }
+    expression: (key, alert)
+    resultType: (string, json)
 
 pipelines:
-  - from: input_stream
+  main_pipeline:
+    from: input_stream
     via:
-      - type: peek
-        forEach: log_message
-    to: output_stream
+      # Step 1: Filter out invalid readings
+      - type: filter
+        if: is_valid_reading
+      
+      # Step 2: Enrich and transform the data
+      - type: transformKeyValue
+        mapper: enrich_sensor_data
+    
+    # Step 3: Route to different topics based on conditions
+    branch:
+      # Send alerts for extreme temperatures
+      - if: needs_alert
+        via:
+          - type: transformKeyValue
+            mapper: create_alert
+        to: alerts_stream
+      
+      # All valid readings go to processed stream
+      - to: processed_stream
 ```
 
-Finally, the KSML runner needs a configuration file which tells it how to connect to Kafka, and which KSML definitions
-to run, along with some other settings (explained later). The default name for this file is `ksml-runner.yaml`, create it
-in your `examples/` directory and copy and paste the following content:
+Now create the KSML runner configuration file `ksml-runner.yaml` in your `examples/` directory:
 
 ```yaml
 kafka:
@@ -212,7 +295,7 @@ kafka:
 ksml:
   definitions:
     # format is: <namespace>: <filename> 
-    helloworld: hello-world.yaml 
+    sensormonitor: sensor-monitor.yaml 
   
   # The examples directory is mounted to /ksml in the Docker container
   configDirectory: /ksml          # When not set defaults to the working directory
@@ -254,113 +337,181 @@ ksml:
   enablePipelines: true          # Set to true to allow pipeline definitions to be parsed in the KSML definitions and be executed.
 ```
 
-### Step 5: Run Your KSML Application
+## Step 5: Start Your Stream Processing Application
 
-Restart the KSML runner to load your new definitions:
+Restart the KSML runner to load your application:
 
 ```bash
 docker compose restart ksml
 ```
 
-You should see logs indicating your KSML application has started and a Kafka Streams topology was created:
+Check the logs to confirm it started:
 
 ```bash
-docker compose logs ksml
+docker compose logs ksml -f
 ```
 
-Try producing some messages, for now using the Kafka console producer. You can start it inside the KSML container,
-running in interactive mode, using the following command:
+## Step 6: See It In Action! 
+
+Let's send some sensor data and watch the magic happen. Start the Kafka console producer:
+> Please note that KSML is capable of also producing
 
 ```bash
 docker compose exec broker kafka-console-producer.sh --bootstrap-server broker:9093 --topic temperature_data --property "parse.key=true" --property "key.separator=:"
 ```
 
-Then you can enter some test messages, using the format `key:value` where the value is a JSON message:
+Now paste these test messages (press Enter after each line):
 
 ```
-sensor1:{"temperature": 75}
-sensor2:{"temperature": 65}
-sensor3:{"temperature": 80}
+sensor1:{"temperature": 72, "humidity": 45, "location": "office"}
+sensor2:{"temperature": 98, "humidity": 80, "location": "server_room"} 
+sensor3:{"temperature": -10, "humidity": 30, "location": "freezer"}
+sensor4:{"temperature": 105, "humidity": 95, "location": "boiler_room"}
+sensor5:{"temperature": 200, "humidity": 150, "location": "invalid"}
 ```
 
-Press <Enter> after each message; to stop entering messages, use `Control-C`. Now, if you check the logs of the KSML runner, you should see that your
-pipeline processed (in this case: logged) the messages:
-
-```bash
-docker compose logs ksml
-```
-
-Should show something like:
-
-```
- INFO  helloworld.function.log_message      Processing message: key=sensor1, value={'temperature': 75}
- INFO  helloworld.function.log_message      Processing message: key=sensor2, value={'temperature': 65}
- INFO  helloworld.function.log_message      Processing message: key=sensor3, value={'temperature': 80}
-```
-
-Also, checking the output topic on the UI [http://localhost:8080](http://localhost:8080) should show that the records have
-been copied to topic `temperature_data_copied`.
-
-Congratulations, you have created your first working KSML Streams application. 
-For a more interesting application please continue with the [KSML Basics tutorial](basics-tutorial.md); this will give a more in-depth 
-explanation of the KSML language, and lets you build on this example to do temperature conversion, adding fields, and generating 
-data from within KSML.
-
-### Step 6: Explore Your Setup with Kafka UI
-
-Now let's explore what's running using the Kafka UI:
-
-1. **Open Kafka UI** in your browser: [http://localhost:8080](http://localhost:8080)
-
-2. **View Topics**: You'll see the pre-created topics:
-   - `temperature_data` (input topic)
-   - `temperature_data_copied` (output topic)
-   - `temperature_data_converted` (this is used in the KSML Basics tutorial)
-
-3. **Explore Messages**: Click on any topic to see its configuration and messages
-
-4. **Monitor Activity**: The UI shows real-time information about:
-   - Topic partitions and offsets
-   - Consumer groups
-   - Message throughput
-
-This gives you a visual way to monitor your Kafka topics and see how KSML processes your data.
-
-## Alternative Setup Options
-
-For more advanced setups or existing Kafka clusters, see our [Advanced Installation Guide](advanced-installation.md).
-
-## Troubleshooting
-
-### Common Issues
-
-- **Connection refused errors**: Make sure all containers are running with `docker compose ps`
-- **Port conflicts**: If port 9092 or 8080 are in use, modify the docker-compose.yml ports
-- **KSML syntax errors**: Check your YAML syntax for proper indentation and formatting
-
-### Getting Help
-
-If you encounter issues:
-
-- Check the [Troubleshooting Guide](../resources/troubleshooting.md) for detailed solutions
-- Visit the [Community and Support](../resources/community.md) page for community help
+Press `Ctrl+C` to exit the producer.
 
 ## What Just Happened?
 
-Congratulations! You now have a complete KSML environment running with:
+Check the KSML logs to see your pipeline in action:
 
-- ✅ Kafka broker ready to handle messages
-- ✅ KSML runner ready to execute your pipelines
-- ✅ Kafka UI for easy monitoring and exploration
-- ✅ Pre-configured topics for immediate use
+```bash
+docker compose logs ksml -f
+```
+
+You'll see:
+
+- ✅ Valid readings being processed with temperature conversions
+- 🌡️ Comfort levels calculated (cold, comfortable, warm, hot)
+- 🚨 Alerts generated for extreme temperatures (freezer and boiler room)
+- ❌ Invalid sensor5 data filtered out
+
+Open Kafka UI at [http://localhost:8080](http://localhost:8080) and explore the transformed data:
+
+## Data Transformation Examples
+
+### Normal Processing Flow
+
+**INPUT** (to `temperature_data` topic):
+```json
+key: sensor1
+value: {
+  "temperature": 72,
+  "humidity": 45, 
+  "location": "office"
+}
+```
+
+**OUTPUT** (to `temperature_data_converted` topic):
+```json
+key: sensor1
+value: {
+  "sensor_id": "sensor1",
+  "location": "office",
+  "temperature_f": 72,
+  "temperature_c": 22.22,
+  "humidity": 45,
+  "heat_index": 26.89,
+  "comfort_level": "comfortable",
+  "timestamp": 1753956574552
+}
+```
+
+### Alert Generation Flow
+
+**INPUT** (to `temperature_data` topic):
+```json
+key: sensor2
+value: {
+  "temperature": 98,
+  "humidity": 80,
+  "location": "server_room"
+}
+```
+
+**OUTPUT** (to `alerts_stream` topic):
+```json
+key: sensor2
+value: {
+  "alert_type": "TEMPERATURE_EXTREME",
+  "sensor_id": "sensor2",
+  "temperature_c": 36.67,
+  "temperature_f": 98,
+  "message": "Extreme temperature detected at server_room: 36.67°C",
+  "timestamp": 1753956579977,
+  "severity": "MEDIUM"
+}
+```
+
+See how your simple YAML configuration:
+
+- ✅ **Validates** data (filters invalid sensor5)
+- 🌡️ **Converts** temperatures (72°F → 22.22°C)
+- 📊 **Calculates** heat index and comfort levels
+- 🚨 **Generates** alerts for extreme conditions (>35°C)
+- 📝 **Enriches** data with timestamps and metadata
+
+
+## 🎉 Congratulations!
+
+You just built a production-ready stream processing application without writing a single line of Java! Your pipeline:
+
+- **Validates** data quality in real-time
+- **Transforms** temperatures and calculates metrics
+- **Routes** messages intelligently based on content
+- **Generates** alerts for critical conditions
+
+All with just YAML configuration and simple Python expressions.
+
+## What Makes This Powerful?
+
+Traditional Kafka Streams would require:
+
+- 100s (if not 1000s)  lines of Java 
+- Complex build configuration
+- Compilation and deployment steps
+- Java expertise
+
+With KSML, you got the same result with:
+
+- ✅ 50 lines of readable YAML
+- ✅ Simple Python expressions
+- ✅ Instant deployment
+- ✅ No compilation needed
+
+## Troubleshooting
+
+**Common Issues:**
+
+- **Port conflicts**: Modify ports in docker-compose.yml if 9092/8080 are in use
+- **Container issues**: Run `docker compose logs <service>` to check specific services
+- **YAML errors**: Ensure proper indentation (2 spaces, not tabs)
 
 ## Next Steps
 
-Now that you have KSML running, let's understand what you just set up:
+Ready to learn more? Here's where to go next:
 
-👉 **Continue to [Understanding KSML](introduction.md)** to learn what KSML is and why it makes stream processing so much easier.
+1. **[Understanding KSML](introduction.md)** - Learn the concepts behind what you just built
+2. **[KSML Basics Tutorial](basics-tutorial.md)** - Deep dive into the language features with a step-by-step tutorial
+3. **[Examples Library](../resources/examples-library.md)** - More patterns and use cases
 
-After that, you can:
+## Quick Commands Reference
 
-- Follow the [KSML Basics Tutorial](basics-tutorial.md) to build your first complete pipeline
-- Browse the [Examples Library](../resources/examples-library.md) for more patterns
+```bash
+# Start everything
+docker compose up -d
+
+# Check logs
+docker compose logs ksml -f
+
+# Restart KSML after changes
+docker compose restart ksml
+
+# Stop everything
+docker compose down
+```
+
+---
+
+**Need help?** Check our [Troubleshooting Guide](../resources/troubleshooting.md) or visit the [Community Forum](../resources/community.md).
