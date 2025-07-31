@@ -246,8 +246,7 @@ docker compose logs ksml
 
 ### Step 5.1: Test with Sample Data
 
-If you did not stop the compose after completing the Quick Start, data will still be in the input topic and will be processed by the new pipeline.
-If you did stop the compose or want to add some more records, produce some test messages to the input topic:
+Produce some test messages to the input topic:
 
 ```bash
 docker compose exec broker kafka-console-producer.sh --bootstrap-server broker:9093 --topic temperature_data --property "parse.key=true" --property "key.separator=:"
@@ -343,7 +342,7 @@ docker compose restart ksml
 ```
 
 You can check the runner logs (`docker compose logs ksml`) or go to the Kafka UI at [http://localhost:8080](http://localhost:8080)
-to verify that new messages are generated; the generated messages are copied to `temperature_data_copied`, and filtered and converted
+to verify that new messages are generated in `temperature_data` topic and filtered and converted
 messages will appear on topic `temperature_data_converted`.
 
 ## Next Steps
