@@ -15,6 +15,7 @@ All with just YAML configuration and Python code snippets!
 ## Prerequisites
 
 You'll need:
+
 - **Docker Compose** installed ([installation guide](https://docs.docker.com/compose/install/))
 - 5 minutes of your time
 
@@ -212,9 +213,8 @@ pipelines:
             location = value.get('location')
             print(f"✅ Processed {key}: {temp_f}°F → {temp_c}°C at {location}")
     
-    # Route processed data to output, invalid data to error stream
-    branch:
-      - to: output_stream
+    # Route processed data to output_stream
+    to: output_stream
 ```
 
 Now create the KSML runner configuration file `ksml-runner.yaml`:
@@ -266,20 +266,29 @@ Press `Ctrl+C` to exit.
 
 ## What Just Happened?
 
-Check the KSML logs:
+Your KSML pipeline processed the data in real-time:
+
+1. **sensor1** (72°F) → **Filtered IN** (valid range) → **Converted** to 22.2°C → **Logged** processing
+2. **sensor2** (98°F) → **Filtered IN** (valid range) → **Converted** to 36.7°C → **Logged** processing  
+3. **sensor3** (32°F) → **Filtered IN** (valid range) → **Converted** to 0.0°C → **Logged** processing
+4. **sensor4** (999°F) → **Filtered OUT** (invalid - outside -50°F to 150°F range)
+
+Check the KSML logs to see the processing:
 
 ```bash
 docker compose logs ksml -f
 ```
 
-You'll see:
+You'll see logs like:
+```
+✅ Processed sensor1: 72°F → 22.2°C at office
+✅ Processed sensor2: 98°F → 36.7°C at server_room
+✅ Processed sensor3: 32°F → 0.0°C at warehouse
+```
 
-- ✅ Valid sensor readings processed with temperature conversions
-- ❌ Invalid sensor4 data filtered out (999°F is unrealistic)
+Notice sensor4 doesn't appear in the logs because it was filtered out for having an unrealistic temperature.
 
-## Data Flow Examples
-
-### Valid Reading Processing
+### Example messages
 
 **INPUT** (to `sensor_data` topic):
 
@@ -303,11 +312,6 @@ value:
   "temperature_c": 22.2,
   "temperature_f": 72
 }
-```
-
-**LOG OUTPUT**:
-```
-✅ Processed sensor1: 72°F → 22.2°C at office
 ```
 
 Open [http://localhost:8080](http://localhost:8080) to explore your topics and see the transformed data!
@@ -342,21 +346,5 @@ Ready to learn more?
 1. **[Understanding KSML](introduction.md)** - Learn the concepts
 2. **[KSML Basics Tutorial](basics-tutorial.md)** - Build more advanced pipelines
 3. **[Examples Library](../resources/examples-library.md)** - More patterns
-
-## Quick Commands
-
-```bash
-# Start everything
-docker compose up -d
-
-# Check logs
-docker compose logs ksml -f
-
-# Restart KSML after changes
-docker compose restart ksml
-
-# Stop everything
-docker compose down
-```
 
 **Need help?** Check our [Troubleshooting Guide](../resources/troubleshooting.md)
