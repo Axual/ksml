@@ -76,13 +76,16 @@ KSML supports various data types and notations including:
 
 Next, let's add functions to filter, transform and log messages as they flow through our pipeline:
 
-```yaml
-{%
-  include "../definitions/basics-tutorial/tutorial.yaml"
-  start="## Functions"
-  end="## End of Functions"
-%}
-```
+??? info "Functions to filter, transform and log messages to filter (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/basics-tutorial/tutorial.yaml"
+      start="## Functions"
+      end="## End of Functions"
+    %}
+    ```
+
 
 We defined three uniquely named functions:
 

@@ -11,7 +11,7 @@ theme:
 plugins:
   - include-markdown:
       encoding: ascii
-      preserve_includer_indent: false
+      preserve_includer_indent: true
       dedent: true
       trailing_newlines: true
       comments: false

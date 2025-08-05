@@ -1,0 +1,26 @@
+ksml:
+  storageDirectory: /tmp
+  definitions:
+    producer: soap-producer.yaml
+    processor: soap-processor.yaml
+#    avro-to-json: avro-to-json-example.yaml
+#    avro-filtering-example: avro-filtering-example.yaml
+#    avro-transformation-example: avro-transformation-example.yaml
+#    avro-enrichment-example: avro-enrichment-example.yaml
+  schemaRegistries:
+    my_schema_registry:
+      config:
+        schema.registry.url: http://schema-registry:8081/apis/ccompat/v7
+  notations:
+    avro:  
+      type: confluent_avro         # For AVRO there are two implementations: apicurio_avro and confluent_avro
+      schemaRegistry: my_schema_registry
+      ## Below this line, specify properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
+      config:
+        normalize.schemas: true
+        auto.register.schemas: true
+kafka:
+  bootstrap.servers: broker:9093
+  application.id: io.ksml.example.producer
+  security.protocol: PLAINTEXT
+  acks: all

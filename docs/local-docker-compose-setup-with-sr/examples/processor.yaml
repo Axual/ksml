@@ -1,0 +1,31 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
+
+# Simple example showing how to read and write AVRO data in KSML
+# This pipeline reads AVRO sensor data and writes it to another topic unchanged
+
+streams:
+  avro_input:
+    topic: sensor_data_avro
+    keyType: string
+    valueType: avro:SensorData
+    offsetResetPolicy: latest
+  
+  avro_output:
+    topic: sensor_data_avro_output
+    keyType: string
+    valueType: avro:SensorData
+
+pipelines:
+  simple_avro_pipeline:
+    from: avro_input
+    via:
+      # Log each message to show we're processing AVRO data
+      - type: peek
+        forEach:
+          code: |
+            if value is not None:
+              log.info("Processing AVRO message: sensor={}, type={}, value={}, unit={}", 
+                      value.get("name"), value.get("type"), value.get("value"), value.get("unit"))
+            else:
+              log.info("Received null message with key={}", key)
+    to: avro_output
