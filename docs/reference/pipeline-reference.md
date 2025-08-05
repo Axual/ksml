@@ -1,4 +1,4 @@
-# KSML Pipeline Reference
+# Pipeline Reference
 
 This document provides a comprehensive reference for pipelines in KSML. It covers pipeline structure, configuration options, and best practices.
 

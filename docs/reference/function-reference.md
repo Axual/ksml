@@ -1,4 +1,4 @@
-# KSML Function Reference
+# Function Reference
 
 This document provides a comprehensive reference for all function types available in KSML. Each function type is
 described with its parameters, behavior, and examples.

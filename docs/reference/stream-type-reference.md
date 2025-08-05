@@ -1,4 +1,4 @@
-# KSML Stream Type Reference
+# Stream Type Reference
 
 This page explains the fundamental concepts of streams and data types in KSML, providing a foundation for understanding
 how data flows through your KSML applications.

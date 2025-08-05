@@ -1,4 +1,4 @@
-# KSML State Store Reference
+# State Store Reference
 
 This document provides a comprehensive reference for state stores in KSML. It covers state store types, configuration options, and best practices.
 

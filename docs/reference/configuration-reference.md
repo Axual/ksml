@@ -1,4 +1,4 @@
-# KSML Configuration Reference
+# Configuration Reference
 
 This document provides a comprehensive reference for all configuration options available in KSML. Each configuration
 section is described with its purpose, available options, and examples.

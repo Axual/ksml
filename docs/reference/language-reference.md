@@ -1,4 +1,4 @@
-# KSML Language Reference
+# Language Reference
 
 This document provides a comprehensive reference for the KSML (Kafka Streams Markup Language) syntax and structure. It
 covers all aspects of the KSML language specification, including file structure, data types, and configuration options.

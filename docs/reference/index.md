@@ -6,7 +6,19 @@ While the [tutorials](../tutorials/beginner/index.md) and [core concepts](../cor
 
 ## Reference Sections
 
-### [KSML Language Reference](language-reference.md)
+### [Configuration Reference](configuration-reference.md)
+
+Complete documentation of KSML configuration options:
+
+- Runner configuration
+- Kafka client configuration
+- Schema Registry configuration
+- Performance tuning options
+- Security settings
+- Logging configuration
+- Environment variables
+
+### [Language Reference](language-reference.md)
 
 Complete documentation of the KSML language syntax and structure:
 
@@ -16,7 +28,7 @@ Complete documentation of the KSML language syntax and structure:
 - Schema validation
 - Common syntax patterns
 
-### [Stream Types](../reference/stream-type-reference.md)
+### [Stream Type Reference](../reference/stream-type-reference.md)
 
 Learn about the fundamental building blocks of KSML applications:
 
@@ -25,7 +37,7 @@ Learn about the fundamental building blocks of KSML applications:
 - Best practices
 - Examples
 
-### [Data Types Reference](data-type-reference.md)
+### [Data Type Reference](data-type-reference.md)
 
 Detailed information about all supported data types in KSML:
 
@@ -36,7 +48,7 @@ Detailed information about all supported data types in KSML:
 - Schema management
 - Custom data types
 
-### [Notations Reference](notation-reference.md)
+### [Notation Reference](notation-reference.md)
 
 Explanation of how you can configure the serialization/deserialization formats associated with KSML's notations:
 
@@ -44,7 +56,7 @@ Explanation of how you can configure the serialization/deserialization formats a
 - How to configure notations
 - List of available supported variations
 
-### [Functions Reference](function-reference.md)
+### [Function Reference](function-reference.md)
 
 Complete documentation of KSML function types and usage:
 
@@ -55,7 +67,7 @@ Complete documentation of KSML function types and usage:
 - Function execution context
 - Best practices for function implementation
 
-### [Operations Reference](operation-reference.md)
+### [Operation Reference](operation-reference.md)
 
 Detailed documentation for all KSML operations:
 
@@ -70,18 +82,6 @@ Detailed documentation for all KSML operations:
   - Examples
   - Common use cases
   - Performance considerations
-
-### [Configuration Reference](configuration-reference.md)
-
-Complete documentation of KSML configuration options:
-
-- Runner configuration
-- Kafka client configuration
-- Schema Registry configuration
-- Performance tuning options
-- Security settings
-- Logging configuration
-- Environment variables
 
 ## How to Use This Reference
 

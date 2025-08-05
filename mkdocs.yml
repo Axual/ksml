@@ -74,13 +74,13 @@ nav:
       - Fraud Detection: use-cases/fraud-detection.md
   - References:
       - Overview: reference/index.md
-      - KSML Language Reference: reference/language-reference.md
-      - Stream Types Reference: reference/stream-type-reference.md
-      - Data Types Reference: reference/data-type-reference.md
-      - Notations Reference: reference/notation-reference.md
-      - Functions Reference: reference/function-reference.md
-      - Operations Reference: reference/operation-reference.md
       - Configuration Reference: reference/configuration-reference.md
+      - KSML Language Reference: reference/language-reference.md
+      - Stream Type Reference: reference/stream-type-reference.md
+      - Data Type Reference: reference/data-type-reference.md
+      - Notation Reference: reference/notation-reference.md
+      - Function Reference: reference/function-reference.md
+      - Operation Reference: reference/operation-reference.md
   - Resources:
       - Examples Library: resources/examples-library.md
       - Troubleshooting Guide: resources/troubleshooting.md
