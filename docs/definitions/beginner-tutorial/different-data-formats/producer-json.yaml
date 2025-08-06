@@ -1,0 +1,36 @@
+functions:
+  generate_json_sensordata:
+    type: generator
+    globalCode: |
+      import time
+      import random
+      sensorCounter = 0
+    code: |
+      global sensorCounter
+      
+      key = "sensor"+str(sensorCounter)           # Set the key to return ("sensor0" to "sensor9")
+      sensorCounter = (sensorCounter+1) % 10      # Increase the counter for next iteration
+      
+      # Generate random sensor measurement data as JSON
+      value = {
+        "name": key,
+        "timestamp": str(round(time.time()*1000)),
+        "type": random.choice(["TEMPERATURE", "HUMIDITY", "PRESSURE"]),
+        "unit": random.choice(["C", "F", "%", "Pa"]),
+        "value": str(random.randrange(0, 100)),
+        "color": random.choice(["black", "blue", "red", "yellow", "white"]),
+        "owner": random.choice(["Alice", "Bob", "Charlie", "Dave", "Evan"]),
+        "city": random.choice(["Amsterdam", "Utrecht", "Rotterdam", "The Hague", "Eindhoven"])
+      }
+    expression: (key, value)                      # Return a message tuple with the key and value
+    resultType: (string, json)                    # Indicate the type of key and value
+
+producers:
+  # Produce JSON sensor data messages every 2 seconds
+  json_sensor_producer:
+    generator: generate_json_sensordata
+    interval: 2s
+    to:
+      topic: sensor_data_json_raw
+      keyType: string
+      valueType: json
