@@ -47,133 +47,9 @@ Schema-based formats (Avro, XML, CSV) require a schema name: `format:SchemaName`
 ??? info "Docker Compose Configuration (click to expand)"
 
     ```yaml
-    networks:
-      ksml:
-        name: ksml_example
-        driver: bridge
-
-    services:
-      broker:
-        image: bitnami/kafka:3.8.0
-        hostname: broker
-        ports:
-          - "9092:9092"
-        networks:
-          - ksml
-        restart: always
-        environment:
-          KAFKA_CFG_PROCESS_ROLES: 'controller,broker'
-          KAFKA_CFG_BROKER_ID: 0
-          KAFKA_CFG_NODE_ID: 0
-          KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: '0@broker:9090'
-          KAFKA_CFG_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
-
-          KAFKA_CFG_ADVERTISED_LISTENERS: 'INNER://broker:9093,OUTER://localhost:9092'
-          KAFKA_CFG_LISTENERS: 'INNER://broker:9093,OUTER://broker:9092,CONTROLLER://broker:9090'
-          KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: 'INNER:PLAINTEXT,OUTER:PLAINTEXT,CONTROLLER:PLAINTEXT'
-          KAFKA_CFG_LOG_CLEANUP_POLICY: delete
-          KAFKA_CFG_LOG_RETENTION_MINUTES: 10
-          KAFKA_CFG_INTER_BROKER_LISTENER_NAME: INNER
-          KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-          KAFKA_CFG_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-          KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: 'false'
-          KAFKA_CFG_MIN_INSYNC_REPLICAS: 1
-          KAFKA_CFG_NUM_PARTITIONS: 1
-        healthcheck:
-          # If the kafka topics can list data, the broker is healthy
-          test: kafka-topics.sh --bootstrap-server broker:9093 --list
-          interval: 5s
-          timeout: 10s
-          retries: 10
-          start_period: 5s
-
-      ksml:
-        image: registry.axual.io/opensource/images/axual/ksml:snapshot
-        networks:
-          - ksml
-        container_name: ksml
-        working_dir: /ksml
-        volumes:
-          - ./examples:/ksml
-        depends_on:
-          broker:
-            condition: service_healthy
-          kafka-setup:
-            condition: service_completed_successfully
-          schema_registry:
-            condition: service_healthy
-
-
-      schema_registry:
-        image: apicurio/apicurio-registry:3.0.2
-        hostname: schema-registry
-        depends_on:
-          broker:
-            condition: service_healthy
-        ports:
-          - "8081:8081"
-        networks:
-          - ksml
-        restart: always
-        environment:
-          QUARKUS_HTTP_PORT: 8081
-          QUARKUS_HTTP_CORS_ORIGINS: '*'
-          QUARKUS_PROFILE: "prod"
-          APICURIO_STORAGE_KIND: kafkasql
-          APICURIO_KAFKASQL_BOOTSTRAP_SERVERS: 'broker:9093'
-          APICURIO_KAFKASQL_TOPIC: '_apciurio-kafkasql-store'
-        healthcheck:
-          # If the api endpoint is available, the service is considered healthy
-          test: curl http://localhost:8081/apis
-          interval: 15s
-          timeout: 10s
-          retries: 10
-          start_period: 10s
-
-      kafka-ui:
-        image: quay.io/cloudhut/kowl:master
-        container_name: kowl
-        restart: always
-        ports:
-          - 8080:8080
-        volumes:
-          - ./kowl-ui-config.yaml:/config/kowl-ui-config.yaml:ro
-        environment:
-          CONFIG_FILEPATH: "/config/kowl-ui-config.yaml"
-        depends_on:
-          broker:
-            condition: service_healthy
-        networks:
-          - ksml
-
-      # This "container" is a workaround to pre-create topics
-      kafka-setup:
-        image: bitnami/kafka:3.8.0
-        hostname: kafka-setup
-        networks:
-          - ksml
-        depends_on:
-          broker:
-            condition: service_healthy
-        restart: on-failure
-        command: "bash -c 'echo Trying to create topics... && \
-                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic sensor_data_avro && \
-                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic sensor_data_json_raw && \
-                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic sensor_data_transformed && \
-                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_csv && \
-                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_csv_processed && \
-                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic sensor_data_json_processed && \
-                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic sensor_data_converted_formats && \
-                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic device_config && \
-                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic sensor_readings && \
-                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic combined_sensor_data && \
-                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_xml && \
-                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_xml_processed && \
-                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_binary && \
-                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_binary_processed && \
-                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_soap_requests && \
-                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_soap_responses && \
-                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic sensor_data_json'"
+    {%
+      include "../../local-docker-compose-setup-with-sr/docker-compose.yml"
+    %}
     ```
 
 2. Create `kowl-ui-config.yaml` for Kafka UI:
@@ -181,17 +57,9 @@ Schema-based formats (Avro, XML, CSV) require a schema name: `format:SchemaName`
 ??? info "Kafka UI Configuration (click to expand)"
 
     ```yaml
-    server:
-      listenPort: 8080
-      listenAddress: 0.0.0.0
-
-    kafka:
-      brokers:
-        - broker:9093
-      schemaRegistry:
-        enabled: true
-        urls:
-          - http://schema-registry:8081/apis/ccompat/v7
+    {%
+      include "../../local-docker-compose-setup-with-sr/kowl-ui-config.yaml"
+    %}
     ```
 
 3. Create `examples/ksml-runner.yaml` with Avro configuration:
@@ -199,30 +67,12 @@ Schema-based formats (Avro, XML, CSV) require a schema name: `format:SchemaName`
 ??? info "KSML Runner Configuration (click to expand)"
 
     ```yaml
-    ksml:
-      storageDirectory: /tmp
-      definitions:
-        producer: producer.yaml
-        processor: processor.yaml
-      schemaRegistries:
-        my_schema_registry:
-          config:
-            schema.registry.url: http://schema-registry:8081/apis/ccompat/v7
-      notations:
-        avro:
-          type: confluent_avro         # For AVRO there are two implementations: apicurio_avro and confluent_avro
-          schemaRegistry: my_schema_registry
-          ## Below this line, specify properties to be passed into Confluent's KafkaAvroSerializer and KafkaAvroDeserializer
-          config:
-            normalize.schemas: true
-            auto.register.schemas: true
-    kafka:
-      bootstrap.servers: broker:9093
-      application.id: io.ksml.example.producer
-      security.protocol: PLAINTEXT
-      acks: all
+    {%
+      include "../../local-docker-compose-setup-with-sr/examples/ksml-runner.yaml"
+    %}
     ```
-4. For each example, create `producer.yaml` and `processor.yaml` files
+
+4. For each example, create `producer.yaml` and `processor.yaml` files and reference them from `ksml-runner.yaml`
 5. Restart KSML: `docker compose down & docker compose up -d && docker compose logs ksml -f` (which is faster than `docker compose restart ksml`)
 
 

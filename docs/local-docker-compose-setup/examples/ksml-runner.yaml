@@ -1,48 +1,9 @@
 ksml:
-  # The examples directory is mounted to /ksml in the Docker container
-  configDirectory: .              # When not set defaults to the working directory
-  schemaDirectory: .              # When not set defaults to the config directory
-  storageDirectory: /tmp          # When not set defaults to the default JVM temp directory
-
-  # This section defines if a REST endpoint is opened on the KSML runner, through which
-  # state stores and/or readiness / liveness probes can be accessed.
-  applicationServer:
-    enabled: false                # Set to true to enable, or false to disable
-    host: 0.0.0.0                 # IP address to bind the REST server to
-    port: 8080                    # Port number to listen on
-
-  # This section defines whether a Prometheus endpoint is opened to allow metric scraping.
-  prometheus:
-    enabled: false                 # Set to true to enable, or false to disable
-    host: 0.0.0.0                 # IP address to bind the Prometheus agent server to
-    port: 9999                    # Port number to listen on
-
-  # This section enables error handling or error ignoring for certain types of errors.
-  errorHandling:
-    consume:                      # Error handling definitions for consume errors
-      log: true                   # Log errors true/false
-      logPayload: true            # Upon error, should the payload of the message be dumped to the log file.
-      loggerName: ConsumeError    # Definition of the error logger name.
-      handler: stopOnFail         # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
-    process:
-      log: true                   # Log errors true/false
-      logPayload: true            # Upon error, should the payload of the message be dumped to the log file.
-      loggerName: ProcessError    # Definition of the error logger name.
-      handler: continueOnFail     # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
-    produce:
-      log: true                   # Log errors true/false
-      logPayload: true            # Upon error, should the payload of the message be dumped to the log file.
-      loggerName: ProduceError    # Definition of the error logger name.
-      handler: continueOnFail     # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
-
-  enableProducers: true           # Set to true to allow producer definitions to be parsed in the KSML definitions and be executed.
-  enablePipelines: true          # Set to true to allow pipeline definitions to be parsed in the KSML definitions and be executed.
-
   # Section where you specify which KSML definitions to load, parse and execute.
   definitions:
     # Format is <namespace>: <ksml_definition_filename>
-    generate-temperature-data: 00-generate-temperature-data.yaml
-    inspect-temperature-data: 01-inspect-temperature-data.yaml
+    generate-temperature-data: example-producer-temperature.yaml
+    inspect-temperature-data: example-processor-temperature.yaml
 
 # This setup connects to the Kafka broker and schema registry started with the example docker-compose file
 # These examples are intended to run from a inside a container on the same network

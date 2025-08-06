@@ -97,7 +97,7 @@ services:
     networks:
       - ksml
 
-  # This "container" is a workaround to pre-create topics
+  # This "container" is a workaround to pre-create topics, because setting KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE to true results in Kafka Streams errors
   kafka-setup:
     image: bitnami/kafka:3.8.0
     hostname: kafka-setup
@@ -130,19 +130,3 @@ services:
                        kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_soap_requests && \
                        kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_soap_responses && \
                        kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic sensor_data_json'"
-  redpanda-console:
-    image: redpandadata/console:v3.1.2
-    container_name: redpanda-console
-    ports:
-      - "8888:8080"
-    depends_on:
-      broker:
-        condition: service_healthy
-      schema_registry:
-        condition: service_healthy
-    volumes:
-      - ./redpanda-console-config.yaml:/etc/redpanda/redpanda-console-config.yaml:ro
-    environment:
-      CONFIG_FILEPATH: /etc/redpanda/redpanda-console-config.yaml
-    networks:
-      - ksml

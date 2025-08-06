@@ -59,16 +59,16 @@ services:
     ports:
       - 8080:8080
     volumes:
-      - ./kafka-ui:/config
+      - ./kowl-ui-config.yaml:/config
     environment:
-      CONFIG_FILEPATH: "/config/kafka-ui-config.yaml"
+      CONFIG_FILEPATH:  "/config/kowl-ui-config.yaml"
     depends_on:
       broker:
         condition: service_healthy
     networks:
       - ksml
 
-  # This "container" is a workaround to pre-create topics
+  # This "container" is a workaround to pre-create topics, because setting KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE to true results in Kafka Streams errors
   kafka-setup:
     image: bitnami/kafka:3.8.0
     hostname: kafka-setup

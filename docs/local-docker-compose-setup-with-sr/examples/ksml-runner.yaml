@@ -1,12 +1,7 @@
 ksml:
-  storageDirectory: /tmp
   definitions:
-    producer: soap-producer.yaml
-    processor: soap-processor.yaml
-#    avro-to-json: avro-to-json-example.yaml
-#    avro-filtering-example: avro-filtering-example.yaml
-#    avro-transformation-example: avro-transformation-example.yaml
-#    avro-enrichment-example: avro-enrichment-example.yaml
+    producer: example-avro-to-json-producer.yaml
+    processor: example-avro-to-json-processor.yaml
   schemaRegistries:
     my_schema_registry:
       config:

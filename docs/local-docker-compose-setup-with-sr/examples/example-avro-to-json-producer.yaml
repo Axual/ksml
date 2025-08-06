@@ -1,3 +1,7 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
+
+# Producer for AVRO to JSON conversion example
+
 functions:
   generate_sensordata_message:
     type: generator
@@ -23,7 +27,7 @@ functions:
         "city": random.choice(["Amsterdam", "Utrecht", "Rotterdam", "The Hague", "Eindhoven"])
       }
     expression: (key, value)                      # Return a message tuple with the key and value
-    resultType: (string, json)                    # Indicate the type of key and value
+    resultType: (string, json)                    # Generate as JSON, output as AVRO
 
 producers:
   # Produce an AVRO SensorData message every 3 seconds

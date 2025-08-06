@@ -1,9 +1,0 @@
-kafka:
-  brokers:
-    - broker:9093
-schemaRegistry:
-  enabled: true
-  urls:
-    - http://schema-registry:8081/apis/ccompat/v7
-server:
-  listenPort: 8080
