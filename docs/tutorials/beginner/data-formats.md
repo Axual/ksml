@@ -42,7 +42,7 @@ Schema-based formats (Avro, XML, CSV) require a schema name: `format:SchemaName`
 
 ### Setup Requirements
 
-1. Create `docker-compose.yml` with schema registry and pre-created topics 
+- Create `docker-compose.yml` with schema registry and pre-created topics 
 
 ??? info "Docker Compose Configuration (click to expand)"
 
@@ -52,7 +52,7 @@ Schema-based formats (Avro, XML, CSV) require a schema name: `format:SchemaName`
     %}
     ```
 
-2. Create `kowl-ui-config.yaml` for Kafka UI:
+- Create `kowl-ui-config.yaml` for Kafka UI:
 
 ??? info "Kafka UI Configuration (click to expand)"
 
@@ -62,7 +62,7 @@ Schema-based formats (Avro, XML, CSV) require a schema name: `format:SchemaName`
     %}
     ```
 
-3. Create `examples/ksml-runner.yaml` with Avro configuration:
+- Create `examples/ksml-runner.yaml` with Avro configuration:
 
 ??? info "KSML Runner Configuration (click to expand)"
 
@@ -72,8 +72,8 @@ Schema-based formats (Avro, XML, CSV) require a schema name: `format:SchemaName`
     %}
     ```
 
-4. For each example, create `producer.yaml` and `processor.yaml` files and reference them from `ksml-runner.yaml`
-5. Restart KSML: `docker compose down & docker compose up -d && docker compose logs ksml -f` (which is faster than `docker compose restart ksml`)
+- For each example, create `producer.yaml` and `processor.yaml` files and reference them from `ksml-runner.yaml`
+- Restart KSML: `docker compose down & docker compose up -d && docker compose logs ksml -f` (which is faster than `docker compose restart ksml`)
 
 
 ## Working with Avro Data

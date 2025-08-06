@@ -17,6 +17,14 @@ In this tutorial, you'll learn how to:
 4. Configure logging settings
 5. Implement basic error handling with logging
 
+## Prerequisites
+
+Before we begin:
+
+- Make sure there is a running Docker Compose KSML environment as described in the [Quick Start](../../getting-started/installation.md).
+   - Also please make sure you have `ksml-runner.yaml` defined as described in the [Quick Start](../../getting-started/installation.md).
+- We recommend to have completed the [KSML Basics Tutorial](../../getting-started/basics-tutorial.md)
+
 ## Understanding Logging in KSML
 
 KSML provides built-in logging capabilities through the `log` object, which is available in Python functions and expressions. The logging system follows standard logging levels:
