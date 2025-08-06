@@ -1,0 +1,52 @@
+# Processor demonstrating error handling with logging
+# Shows try-catch blocks and safe transformations
+
+streams:
+  error_input:
+    topic: ksml_logging_input
+    keyType: string  
+    valueType: json
+  error_output:
+    topic: ksml_error_handled_output
+    keyType: string
+    valueType: json
+
+functions:
+  safe_transform:
+    type: valueTransformer
+    code: |
+      try:
+        result = dict(value) if value else {}
+        
+        # Simulate potentially failing operation
+        if "importance" in result:
+          result["risk_score"] = result["importance"] * 2.5
+        
+        result["status"] = "success"
+        
+      except Exception as e:
+        log.error("Error processing message: {} - Error: {}", value, str(e))
+        result = {
+          "original_message": str(value) if value else "null",
+          "status": "error", 
+          "error_message": str(e),
+          "processed_at": time.time()
+        }
+    expression: result
+    resultType: json
+
+pipelines:
+  error_handling_pipeline:
+    from: error_input
+    via:
+      - type: transformValue
+        mapper:
+          functionRef: safe_transform
+      - type: peek
+        forEach:
+          code: |
+            if value.get("status") == "error":
+              log.error("Failed to process message: {}", value.get("error_message"))
+            else:
+              log.debug("Successfully processed message")
+    to: error_output

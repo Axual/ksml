@@ -1,0 +1,59 @@
+# Processor for logging and monitoring tutorial  
+# Demonstrates various logging levels, peek operations, and message counting
+
+streams:
+  log_input:
+    topic: ksml_logging_input
+    keyType: string
+    valueType: json
+  log_output:
+    topic: ksml_logging_output
+    keyType: string
+    valueType: json
+
+functions:
+  log_with_level:
+    type: forEach
+    code: |
+      level = value.get("level", "INFO")
+      message = value.get("message", "")
+      component = value.get("component", "unknown")
+      
+      if level == "ERROR":
+        log.error("[{}] {}", component, message)
+      elif level == "WARN":  
+        log.warn("[{}] {}", component, message)
+      elif level == "DEBUG":
+        log.debug("[{}] {}", component, message) 
+      else:
+        log.info("[{}] {}", component, message)
+
+  enrich_with_processing_info:
+    type: valueTransformer
+    code: |
+      result = dict(value) if value else {}
+      result["processed_at"] = time.time()
+      result["processed_by"] = "logging-processor"
+    expression: result
+    resultType: json
+
+pipelines:
+  logging_pipeline:
+    from: log_input
+    via:
+      - type: peek
+        forEach:
+          functionRef: log_with_level
+      - type: filter
+        if:
+          expression: value.get("importance", 0) > 3
+      - type: peek  
+        forEach:
+          code: log.info("High importance message passed filter: {}", value.get("message"))
+      - type: transformValue
+        mapper:
+          functionRef: enrich_with_processing_info
+      - type: peek
+        forEach:
+          code: log.debug("Sending processed message: {}", value.get("message"))
+    to: log_output
