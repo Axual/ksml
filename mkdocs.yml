@@ -51,19 +51,21 @@ nav:
         - Different Data Formats: tutorials/beginner/data-formats.md
         - Logging and Monitoring: tutorials/beginner/logging-monitoring.md
       - Intermediate Tutorials:
-        - Overview: tutorials/intermediate/index.md
-        - Aggregations: tutorials/intermediate/aggregations.md
-        - Joins: tutorials/intermediate/joins.md
-        - Windowing: tutorials/intermediate/windowing.md
-        - Error Handling and Recovery: tutorials/intermediate/error-handling.md
-        - State Stores: tutorials/intermediate/state-stores.md
+#        - Overview: tutorials/intermediate/index.md
+        - Overview: tutorials/intermediate/index-coming-soon.md
+#        - Aggregations: tutorials/intermediate/aggregations.md
+#        - Joins: tutorials/intermediate/joins.md
+#        - Windowing: tutorials/intermediate/windowing.md
+#        - Error Handling and Recovery: tutorials/intermediate/error-handling.md
+#        - State Stores: tutorials/intermediate/state-stores.md
       - Advanced Tutorials:
-        - Overview: tutorials/advanced/index.md
-        - Complex Event Processing: tutorials/advanced/complex-event-processing.md
-        - Custom State Stores: tutorials/advanced/custom-state-stores.md
-        - Performance Optimization: tutorials/advanced/performance-optimization.md
-        - Integration with External Systems: tutorials/advanced/external-integration.md
-        - Advanced Error Handling: tutorials/advanced/advanced-error-handling.md
+#        - Overview: tutorials/advanced/index.md
+        - Overview: tutorials/advanced/index-coming-soon.md
+#        - Complex Event Processing: tutorials/advanced/complex-event-processing.md
+#        - Custom State Stores: tutorials/advanced/custom-state-stores.md
+#        - Performance Optimization: tutorials/advanced/performance-optimization.md
+#        - Integration with External Systems: tutorials/advanced/external-integration.md
+#        - Advanced Error Handling: tutorials/advanced/advanced-error-handling.md
   - Use Case Guides:
       - Overview: use-cases/index.md
       - Data Transformation: use-cases/data-transformation.md
