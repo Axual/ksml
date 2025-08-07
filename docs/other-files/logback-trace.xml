@@ -37,6 +37,6 @@
     
     <!-- Enable TRACE for all user functions in logging-processor.yaml -->
     <!-- KSML automatically takes the first letter of your YAML filename as the namespace abbreviation to keep logger names short and manageable.
-    For example: logging-producer.yaml → namespace "l" -->
+    For example: logging-producer.yaml means that the namespace is "l" -->
     <logger name="l" level="TRACE"/>  <!-- Enables TRACE for ALL functions in logging-processor.yaml -->
 </configuration>
