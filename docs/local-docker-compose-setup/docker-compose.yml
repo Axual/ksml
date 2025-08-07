@@ -59,7 +59,7 @@ services:
     ports:
       - 8080:8080
     volumes:
-      - ./kowl-ui-config.yaml:/config
+      - ./kowl-ui-config.yaml:/config/kowl-ui-config.yaml
     environment:
       CONFIG_FILEPATH:  "/config/kowl-ui-config.yaml"
     depends_on:
@@ -89,5 +89,7 @@ services:
                            kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_error_handled_output && \
                            kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temperature_data_converted && \
                            kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_logging_output && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic iot_sensor_data && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic device_health_alerts && \
                            kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_logging_input && \
                            kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic tutorial_input'"

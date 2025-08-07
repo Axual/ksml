@@ -1,7 +1,7 @@
 ksml:
   definitions:
-    producer: example-avro-to-json-producer.yaml
-    processor: example-avro-to-json-processor.yaml
+    producer: producer.yaml
+    processor: processor.yaml
   schemaRegistries:
     my_schema_registry:
       config:

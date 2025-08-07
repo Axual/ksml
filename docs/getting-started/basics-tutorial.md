@@ -29,6 +29,21 @@ Before you begin, make sure you have:
 - Basic understanding of YAML syntax
 - Your KSML environment running (`docker compose ps` should show all services as "Up")
 
+## Choose Your Setup Method
+
+**Option A: Quick Start (Recommended)**
+Download the pre-configured tutorial files and start immediately:
+
+1. Download and extract: [local-docker-compose-setup-basics-tutorial.zip](../local-docker-compose-setup/local-docker-compose-setup-basics-tutorial.zip)
+2. Navigate to the extracted folder
+3. Run `docker compose up -d` (if not already running)
+4. Skip to [Step 5: Run Your Pipeline](#step-5-run-your-pipeline-definitions)
+
+**Option B: Step-by-Step Tutorial**
+Follow the detailed instructions below to create everything from scratch and learn each component.
+
+---
+
 ## Understanding the KSML File Structure
 
 A KSML definition file consists of three main sections:
@@ -40,6 +55,8 @@ A KSML definition file consists of three main sections:
 Let's create each section step by step.
 
 ## Step 1: Define Your Streams
+
+> **Note**: Skip Steps 1-4 if you chose Option A above.
 
 First, let's create a new file `tutorial.yaml` and start by defining the input and output streams for our pipeline:
 
@@ -222,7 +239,6 @@ a section containing the definitions; modify this part so that it looks like thi
     ksml:
       definitions:
         # format is: <namespace>: <filename> 
-        helloworld: hello-world.yaml 
         tutorial: tutorial.yaml
     ```
 
@@ -304,14 +320,14 @@ When you run your KSML definition:
 
 ## Using KSML to produce messages
 
-While you can manually produce the above messages, KSML can also generate messages for you. 
-To randomly generate test messages every three seconds, do the following:
+While you can manually produce the above messages, KSML can also generate messages for you automatically.
 
-In the `functions:` section of your KSML file, add the following function definition:
+Create a new file called `producer.yaml` in your `examples/` directory:
 
-??? info "Generator Function Definition (click to expand)"
+??? info "Producer Definition - producer.yaml (click to expand)"
 
     ```yaml
+    functions:
       generate_temperature_message:
         type: generator
         globalCode: |
@@ -326,16 +342,10 @@ In the `functions:` section of your KSML file, add the following function defini
           value = {"temperature": random.randrange(150)}
         expression: (key, value)                      # Return a message tuple with the key and value
         resultType: (string, json)                    # Indicate the type of key and value
-    ```
 
-Next, _before_ the section `pipelines:` in your defintion file, add a new section `producers:` as follows:
-
-??? info "Producer Configuration (click to expand)"
-
-    ```yaml
     producers:
       # Produce a temperature message every 3 seconds
-      tutorial_producer:
+      temperature_producer:
         generator: generate_temperature_message
         interval: 3s
         to:
@@ -344,15 +354,26 @@ Next, _before_ the section `pipelines:` in your defintion file, add a new sectio
           valueType: json
     ```
 
-Restart the KSML Runner to make it aware of the new definitions:
+Now update your `ksml-runner.yaml` to include the producer definition:
+
+??? info "KSML Runner Configuration Update (click to expand)"
+
+    ```yaml
+    ksml:
+      definitions:
+        tutorial: tutorial.yaml
+        producer: producer.yaml     # Add this line
+    ```
+
+Restart the KSML Runner to load the new producer:
 
 ```bash
 docker compose restart ksml
 ```
 
 You can check the runner logs (`docker compose logs ksml`) or go to the Kafka UI at [http://localhost:8080](http://localhost:8080)
-to verify that new messages are generated in `temperature_data` topic and filtered and converted
-messages will appear on topic `temperature_data_converted`.
+to verify that new messages are generated every 3 seconds in the `temperature_data` topic. The filtered and converted
+messages will appear on the `temperature_data_converted` topic.
 
 ## Next Steps
 

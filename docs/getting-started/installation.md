@@ -1,16 +1,17 @@
 # Quick Start with KSML
 
-Get KSML running in 5 minutes! This guide shows you how to create your first stream processing application using only YAML - no Java required. You'll build a simple pipeline that filters and transforms sensor data.
+Get KSML running in 5 minutes! This guide shows you how to create your first **real-time analytics application** using only YAML - no Java required. You'll build an IoT analytics system that processes sensor data in real-time.
 
 ## What We'll Build
 
-A simple data pipeline that:
+A **real-time device health monitoring system** that:
 
-- **Filters** out invalid sensor readings  
-- **Transforms** temperature data
-- **Logs** processed messages
+- **Filters** offline devices from processing
+- **Analyzes** device health from battery, signal, and error metrics
+- **Categorizes** devices as "healthy" or "needs attention"  
+- **Alerts** on specific issues like low battery or poor signal
 
-All with just YAML configuration and Python code snippets!
+All with just YAML configuration and clear Python logic.
 
 ## Prerequisites
 
@@ -19,7 +20,24 @@ You'll need:
 - **Docker Compose** installed ([installation guide](https://docs.docker.com/compose/install/))
 - 5 minutes of your time
 
+## Choose Your Setup Method
+
+**Option A: Quick Start (Recommended)**
+Download the pre-configured setup and run immediately:
+
+1. Download and extract: [local-docker-compose-setup.zip](../local-docker-compose-setup/local-docker-compose-setup.zip)
+2. Navigate to the extracted folder
+3. Run `docker compose up -d`
+4. Skip to [Step 3: Verify Everything Started](#step-3-verify-everything-started)
+
+**Option B: Step-by-Step Setup**
+Follow the detailed instructions below to create everything from scratch.
+
+---
+
 ## Step 1: Set Up Your Environment
+
+> **Note**: Skip this step if you chose Option A above.
 
 - Create a new directory for your KSML project:
 
@@ -28,6 +46,7 @@ mkdir my-ksml-project
 cd my-ksml-project
 mkdir examples
 ```
+
 - Create a `docker-compose.yml` file:
 
 ??? info "Docker Compose Configuration (click to expand)"
@@ -50,6 +69,8 @@ mkdir examples
 
 ## Step 2: Start Docker Services
 
+> **Note**: Skip this step if you chose Option A above.
+
 ```bash
 docker compose up -d
 ```
@@ -58,7 +79,7 @@ This starts:
 
 - **Kafka** broker (port 9092)
 - **KSML** runner for your stream processing  
-- **Kafka UI** for monitoring (port 8080)
+- **Kowl (Kafka UI)** for monitoring (port 8080)
 - Automatic topic creation
 
 ## Step 3: Verify Everything Started
@@ -67,76 +88,30 @@ This starts:
 docker compose ps
 ```
 
-- Kafka broker and UI should be running  
-- KSML runner will have exited (missing config - we'll fix this next)
+You should see:
+
+- **Kafka broker** and **Kafka UI** are running  
+- **Topic setup container** has exited successfully (this creates the required topics)
+- **KSML runner** will have exited (missing config - we'll fix this next)
 
 Check the Kafka UI at [http://localhost:8080](http://localhost:8080) to see your topics.
 
 ## Step 4: Create Your First KSML Application
 
-Now let's create a simple but powerful stream processing application!
+> **Note**: If you chose Option A (zip download), these files already exist - you can skip to [Step 5](#step-5-start-your-application).
 
-In the `examples/` directory, create `sensor-pipeline.yaml`:
+Now let's create a smart device health monitoring application!
 
-??? info "KSML Pipeline Definition (click to expand)"
+In the `examples/` directory, create `iot-analytics.yaml`:
 
-       > This is a definition for a demo KSML application. It is not required at this point to understand this YAML & Python syntax, we will explain what it does and how it works later.
+??? info "KSML Device Health Monitoring processing definition (click to expand)"
+
+       > This is a definition for a demo KSML application showing device health monitoring. It is not required at this point to understand this YAML & Python syntax, we will explain what it does and how it works later.
 
     ```yaml
-    streams:
-      input_stream:
-        topic: sensor_data
-        keyType: string
-        valueType: json
-      output_stream:
-        topic: processed_data
-        keyType: string
-        valueType: json
-
-    functions:
-      is_valid_sensor:
-        type: predicate
-        expression: value.get('temperature') is not None and value.get('temperature') > -50 and value.get('temperature') < 150
-        resultType: boolean
-
-      enrich_data:
-        type: keyValueMapper
-        code: |
-          # Add sensor ID and convert temperature to Celsius
-          temp_c = round((value.get('temperature', 0) - 32) * 5/9, 1)
-          enriched = {
-            "sensor_id": key,
-            "temperature_f": value.get('temperature'),
-            "temperature_c": temp_c,
-            "location": value.get('location', 'unknown'),
-            "status": "processed"
-          }
-        expression: (key, enriched)
-        resultType: (string, json)
-
-    pipelines:
-      sensor_processing:
-        from: input_stream
-        via:
-          # Step 1: Filter valid readings
-          - type: filter
-            if: is_valid_sensor
-          
-          # Step 2: Transform and enrich
-          - type: map
-            mapper: enrich_data
-            
-          # Step 3: Log what we processed
-          - type: peek
-            forEach:
-              code: |
-                temp_f = value.get('temperature_f')
-                temp_c = value.get('temperature_c') 
-                location = value.get('location')
-                print(f"✅ Processed {key}: {temp_f}°F → {temp_c}°C at {location}")
-        
-        # Route processed data to output_stream
-        to: output_stream
+    {%
+      include "../definitions/installation/processor.yaml"
+    %}
     ```
 
 Now create the KSML runner configuration file `ksml-runner.yaml`:
@@ -152,7 +127,7 @@ Now create the KSML runner configuration file `ksml-runner.yaml`:
 
     ksml:
       definitions:
-        sensor: sensor-pipeline.yaml
+        iot: iot-analytics.yaml
     ```
 
 ## Step 5: Start Your Application
@@ -174,68 +149,73 @@ docker compose logs ksml
 Send some test data to see your pipeline work:
 
 ```bash
-docker compose exec broker kafka-console-producer.sh --bootstrap-server broker:9093 --topic sensor_data --property "parse.key=true" --property "key.separator=:"
+docker compose exec broker kafka-console-producer.sh --bootstrap-server broker:9093 --topic iot_sensor_data --property "parse.key=true" --property "key.separator=:"
 ```
 
-Paste these test messages (press Enter after each):
+Paste these device health metrics (press Enter after each):
 
 ```
-sensor1:{"temperature": 72, "location": "office"}
-sensor2:{"temperature": 98, "location": "server_room"}
-sensor3:{"temperature": 32, "location": "warehouse"}
-sensor4:{"temperature": 999, "location": "invalid"}
+sensor-001:{"battery_percent":15,"signal_strength":80,"error_count":1,"status":"online"}
+sensor-002:{"battery_percent":75,"signal_strength":30,"error_count":2,"status":"online"}
+sensor-003:{"battery_percent":90,"signal_strength":85,"error_count":0,"status":"online"}
+sensor-004:{"battery_percent":60,"signal_strength":70,"error_count":8,"status":"online"}
+sensor-005:{"battery_percent":50,"signal_strength":60,"error_count":1,"status":"offline"}
 ```
 
 Press `Ctrl+C` to exit.
 
 ## What Just Happened?
 
-Your KSML pipeline processed the data in real-time:
+Your KSML pipeline performed **real-time device health monitoring** in just a few lines of YAML:
 
-1. **sensor1** (72°F) → **Filtered IN** (valid range) → **Converted** to 22.2°C → **Logged** processing
-2. **sensor2** (98°F) → **Filtered IN** (valid range) → **Converted** to 36.7°C → **Logged** processing  
-3. **sensor3** (32°F) → **Filtered IN** (valid range) → **Converted** to 0.0°C → **Logged** processing
-4. **sensor4** (999°F) → **Filtered OUT** (invalid - outside -50°F to 150°F range)
+1. **Filtered** offline devices (only processes devices with status "online")
+2. **Analyzed** device health from battery, signal strength, and error metrics
+3. **Categorized** devices as "healthy" or "needs attention" 
+4. **Identified** specific issues (low battery, poor signal, high errors)
 
-Check the KSML logs to see the processing:
+Check the KSML logs to see the real-time analysis:
 
 ```bash
 docker compose logs ksml -f
 ```
 
-You'll see logs like:
+You'll see device health reports like:
 ```
-✅ Processed sensor1: 72°F → 22.2°C at office
-✅ Processed sensor2: 98°F → 36.7°C at server_room
-✅ Processed sensor3: 32°F → 0.0°C at warehouse
+sensor-003: Healthy (Battery: 90%)
+sensor-001: Needs attention - low_battery
+sensor-002: Needs attention - poor_signal
+sensor-004: Needs attention - high_errors
 ```
 
-Notice sensor4 doesn't appear in the logs because it was filtered out for having an unrealistic temperature.
+**This is real-time device monitoring!** Each device status is instantly analyzed and categorized as data flows through the pipeline.
 
 ### Example messages
 
-**INPUT** (to `sensor_data` topic):
+**INPUT** (to `iot_sensor_data` topic):
 
-- key: `sensor0`
+- key: `sensor-001`
 - value:
 ```json
 {
-  "temperature": 72,
-  "location": "office"
+  "battery_percent": 15,
+  "signal_strength": 80,
+  "error_count": 1,
+  "status": "online"
 }
 ```
 
-**OUTPUT** (to `processed_data` topic):
+**OUTPUT** (to `device_health_alerts` topic):
 
-- key: `sensor0`
+- key: `sensor-001`
 - value:
 ```json
 {
-  "location": "office",
-  "sensor_id": "sensor1",
-  "status": "processed",
-  "temperature_c": 22.2,
-  "temperature_f": 72
+  "device_id": "sensor-001",
+  "battery_percent": 15,
+  "signal_strength": 80,
+  "error_count": 1,
+  "health_status": "needs_attention",
+  "issue_reason": "low_battery"
 }
 ```
 
@@ -243,26 +223,28 @@ Open [http://localhost:8080](http://localhost:8080) to explore your topics and s
 
 ## Congratulations!
 
-You just built a stream processing application with:
+You just built a **real-time device health monitoring system** with:
 
 - **20 lines of YAML** (vs 100+ lines of Java)
-- **Minimal Python** (just 3 lines for temperature conversion)
-- **Real-time processing** with filtering and transformation
-- **No compilation** or complex setup needed
+- **Smart device analysis** with battery, signal, and error monitoring
+- **Real-time filtering and categorization** of device health status
+- **No compilation** or complex infrastructure needed
 
 ## What Makes KSML Powerful?
 
-**Traditional Kafka Streams requires:**
+**Traditional stream processing requires:**
 
-- Java expertise and boilerplate code
-- Complex build configuration
-- Compilation and deployment steps
+- Java/Scala expertise for Kafka Streams
+- Complex filtering and transformation code
+- Extensive boilerplate and configuration
+- Build and deployment pipelines
 
-** With KSML you get:**
+**With KSML you get:**
 
-- Simple YAML configuration
-- Optional Python for custom logic
-- Instant deployment
+- Simple YAML configuration for data processing
+- Built-in filtering and transformation operations
+- Optional Python for custom business logic
+- Instant deployment with containers
 
 ## Next Steps
 
