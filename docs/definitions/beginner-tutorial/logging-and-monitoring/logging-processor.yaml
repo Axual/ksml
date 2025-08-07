@@ -1,5 +1,5 @@
 # Processor for logging and monitoring tutorial  
-# Demonstrates various logging levels, peek operations, and message counting
+# Demonstrates basic logging levels using the log object
 
 streams:
   log_input:
@@ -12,12 +12,18 @@ streams:
     valueType: json
 
 functions:
-  log_with_level:
+  log_message:
     type: forEach
     code: |
+      # Test TRACE logging
+      log.trace("TRACE: Processing message with key={}", key)
+      
       level = value.get("level", "INFO")
       message = value.get("message", "")
       component = value.get("component", "unknown")
+      
+      # Test DEBUG logging
+      log.debug("DEBUG: Message details - level={}, component={}", level, component)
       
       if level == "ERROR":
         log.error("[{}] {}", component, message)
@@ -28,32 +34,11 @@ functions:
       else:
         log.info("[{}] {}", component, message)
 
-  enrich_with_processing_info:
-    type: valueTransformer
-    code: |
-      result = dict(value) if value else {}
-      result["processed_at"] = time.time()
-      result["processed_by"] = "logging-processor"
-    expression: result
-    resultType: json
-
 pipelines:
   logging_pipeline:
     from: log_input
     via:
       - type: peek
         forEach:
-          functionRef: log_with_level
-      - type: filter
-        if:
-          expression: value.get("importance", 0) > 3
-      - type: peek  
-        forEach:
-          code: log.info("High importance message passed filter: {}", value.get("message"))
-      - type: transformValue
-        mapper:
-          functionRef: enrich_with_processing_info
-      - type: peek
-        forEach:
-          code: log.debug("Sending processed message: {}", value.get("message"))
+          code: log_message(key, value)
     to: log_output

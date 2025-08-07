@@ -2,8 +2,8 @@ ksml:
   # Section where you specify which KSML definitions to load, parse and execute.
   definitions:
     # Format is <namespace>: <ksml_definition_filename>
-    generate-temperature-data: example-producer-temperature.yaml
-    inspect-temperature-data: example-processor-temperature.yaml
+    producer: producer.yaml
+    processor: processor.yaml
 
 # This setup connects to the Kafka broker and schema registry started with the example docker-compose file
 # These examples are intended to run from a inside a container on the same network

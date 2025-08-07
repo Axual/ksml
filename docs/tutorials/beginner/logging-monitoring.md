@@ -6,19 +6,8 @@ Learn how to implement effective logging, monitoring, and error handling in your
 
 Before we begin:
 
-- Make sure there is a running Docker Compose KSML environment as described in the [Quick Start](../../getting-started/installation.md).
-    - Also please make sure you have `ksml-runner.yaml` defined as described in the [Quick Start](../../getting-started/installation.md).
+- Please make sure there is a running Docker Compose KSML environment as described in the [Quick Start](../../getting-started/installation.md).
 - We recommend to have completed the [KSML Basics Tutorial](../../getting-started/basics-tutorial.md)
-
-## Logging Levels
-
-KSML provides standard logging levels through the `log` object available in Python functions:
-
-- **ERROR**: Critical errors requiring attention
-- **WARN**: Potential issues or unusual conditions  
-- **INFO**: Normal operational events
-- **DEBUG**: Detailed troubleshooting information
-- **TRACE**: Very detailed debugging output
 
 ## Basic Logging with Different Levels
 
@@ -30,23 +19,35 @@ This producer generates log messages with various importance levels and componen
 
     ```yaml
     {%
-      include "../../local-docker-compose-setup/examples/logging-producer.yaml"
+      include "../../definitions/beginner-tutorial/logging-and-monitoring/logging-producer.yaml"
     %}
     ```
 
-This processor demonstrates logging at different levels and filtering based on message importance:
+### KSML Features Demonstrated:
+- **`log` object**: Built-in logger available in all Python functions
+- **Log levels**: `log.error()`, `log.warn()`, `log.info()`, `log.debug()`
+- **`peek` operation**: Non-intrusive message inspection without modification
+- **`forEach` function type**: Process messages without transforming them
+
+This processor demonstrates logging at different levels using the `log` object:
 
 ??? info "Processor definition with multi-level logging (click to expand)"
 
     ```yaml
     {%
-      include "../../local-docker-compose-setup/examples/logging-processor.yaml"
+      include "../../definitions/beginner-tutorial/logging-and-monitoring/logging-processor.yaml"
     %}
     ```
 
-## Monitoring Message Flow with Peek
+## Monitoring with Peek Operations
 
 The `peek` operation allows non-intrusive monitoring of message flow without modifying the data.
+
+### KSML Features Demonstrated:
+- **`peek` operation**: Inspect messages in the pipeline without modifying them
+- **Global variables**: Using `globals()` to maintain state across function calls
+- **Conditional logging**: Log only when specific conditions are met
+- **Message counting**: Track processed messages across invocations
 
 This processor shows message counting and error detection using peek operations:
 
@@ -54,7 +55,7 @@ This processor shows message counting and error detection using peek operations:
 
     ```yaml
     {%
-      include "../../local-docker-compose-setup/examples/monitoring-processor.yaml"
+      include "../../definitions/beginner-tutorial/logging-and-monitoring/monitoring-simple-processor.yaml"
     %}
     ```
 
@@ -62,79 +63,70 @@ This processor shows message counting and error detection using peek operations:
 
 Use try-catch blocks in Python functions to handle errors gracefully and log them appropriately.
 
-This processor demonstrates safe transformations with comprehensive error handling:
+### KSML Features Demonstrated:
+- **`transformValue` operation**: Transform message values with error handling
+- **`valueTransformer` function type**: Returns transformed values
+- **Try-except blocks**: Safe processing with error catching
+- **Structured logging**: Format logs with timestamps and component info
+- **`time.strftime()`**: Format timestamps for readable logs
+
+This processor demonstrates basic error handling with logging:
 
 ??? info "Processor definition with error handling (click to expand)"
 
     ```yaml
     {%
-      include "../../local-docker-compose-setup/examples/error-handling-processor.yaml"
+      include "../../definitions/beginner-tutorial/logging-and-monitoring/error-handling-processor.yaml"
     %}
     ```
 
-## Running with Different Log Levels
+## Configuring Log Levels
 
-Configure KSML Runner to show different amounts of logging detail:
+KSML provides standard logging levels through the `log` object available in Python functions:
 
-```bash
-# Run with INFO level (default) 
-java -jar ksml-runner.jar examples/ksml-runner.yaml
+- **ERROR**: Critical errors requiring attention
+- **WARN**: Potential issues or unusual conditions  
+- **INFO**: Normal operational events
+- **DEBUG**: Detailed troubleshooting information
+- **TRACE**: Very detailed debugging output
 
-# Run with DEBUG level for detailed logs
-java -jar ksml-runner.jar examples/ksml-runner.yaml --logging.level.io.axual.ksml=DEBUG
+By default, KSML shows INFO, WARN, and ERROR logs. You can enable DEBUG and TRACE logging without rebuilding the image.
 
-# Run with TRACE level for maximum detail
-java -jar ksml-runner.jar examples/ksml-runner.yaml --logging.level.root=TRACE
+### Enabling All Log Levels (Including DEBUG and TRACE)
+
+- Create a custom logback configuration file `logback-trace.xml` in your `examples` directory:
+
+??? info "Custom logback configuration for TRACE logging (click to expand)"
+
+    ```xml
+    {%
+      include "../../other-files/logback-trace.xml"
+    %}
+    ```
+
+- Update your `docker-compose.yml` to use the custom configuration:
+
+```yaml
+ksml:
+  environment:
+    - LOGBACK_CONFIGURATION_FILE=/ksml/logback-trace.xml
 ```
 
-## Practical Logging Patterns
-
-### Conditional Logging
-Log only when specific conditions are met:
-
-```python
-# Only log high-importance messages
-if value.get("importance", 0) > 8:
-    log.warn("Critical message: {}", value.get("message"))
-```
-
-### Structured Logging
-Include context for easier parsing:
-
-```python
-# Include timestamp and component info
-timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-log.info("[{}] Component: {} | Message: {}", 
-         timestamp, value.get("component"), value.get("message"))
-```
-
-### Performance Monitoring
-Track processing time for operations:
-
-```python
-start_time = time.time()
-# ... processing logic ...
-duration = (time.time() - start_time) * 1000
-log.debug("Processing took {:.2f}ms", duration)
-```
-
-### Message Counting
-Periodically log throughput metrics:
-
-```python
-global message_count
-message_count = message_count + 1 if 'message_count' in globals() else 1
-if message_count % 100 == 0:
-    log.info("Processed {} messages", message_count)
-```
+- Restart the containers to see all log levels including DEBUG and TRACE.
+    - To test, add for example `log.trace("TRACE: Processing message with key={}", key)` into your processing definition.
 
 ## Best Practices
 
-1. **Use appropriate log levels**: ERROR for failures, WARN for issues, INFO for events, DEBUG for details
-2. **Include context**: Add message keys, component names, and relevant metadata
-3. **Avoid excessive logging**: Use sampling or conditional logging for high-volume streams
-4. **Structure messages**: Use consistent formats with key-value pairs
-5. **Monitor performance**: Track throughput, processing time, and error rates
+1. **Use appropriate log levels**: 
+    - ERROR for failures, WARN for issues, INFO for events, DEBUG for details
+2. **Include context**: 
+    - Add message keys, component names, and relevant metadata
+3. **Avoid excessive logging**:
+    - Use sampling or conditional logging for high-volume streams
+4. **Structure messages**:
+    - Use consistent formats with key-value pairs
+5. **Monitor performance**:
+    - Track throughput, processing time, and error rates
 
 ## Conclusion
 

@@ -15,7 +15,6 @@ In this tutorial, we'll build a data pipeline that:
 Before we begin:
 
 - Make sure there is a running Docker Compose KSML environment as described in the [Quick Start](../../getting-started/installation.md). 
-    - Also please make sure you have `ksml-runner.yaml` defined as described in the [Quick Start](../../getting-started/installation.md).
 - We recommend to have completed the [KSML Basics Tutorial](../../getting-started/basics-tutorial.md)
 
 ### To try out each example

@@ -4,8 +4,13 @@
 functions:
   generate_log_message:
     type: generator
-    code: |
+    globalCode: |
       import random
+      import time
+      log_counter = 0
+    code: |
+      global log_counter
+      
       levels = ["INFO", "WARN", "ERROR", "DEBUG"]
       messages = [
         "System startup completed",
@@ -16,24 +21,24 @@ functions:
         "Backup process completed"
       ]
       
-      result = {
+      key = "log-" + str(log_counter)
+      log_counter += 1
+      
+      value = {
         "level": random.choice(levels),
         "message": random.choice(messages),
         "timestamp": time.time(),
         "importance": random.randint(1, 10),
         "component": random.choice(["auth", "db", "cache", "backup"])
       }
-    expression: result
-    resultType: json
+    expression: (key, value)
+    resultType: (string, json)
 
 producers:
   log_message_producer:
-    topic: ksml_logging_input
-    key:
-      generator:
-        expression: "log-" + str(counter)
-        resultType: string
-    value:
-      generator:
-        functionRef: generate_log_message
-    interval: 2.0s
+    generator: generate_log_message
+    interval: 2s
+    to:
+      topic: ksml_logging_input
+      keyType: string
+      valueType: json
