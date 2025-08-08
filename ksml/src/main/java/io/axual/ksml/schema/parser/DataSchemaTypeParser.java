@@ -26,17 +26,16 @@ import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.ParseNode;
 
 public class DataSchemaTypeParser extends BaseParser<String> {
-
     @Override
     public String parse(ParseNode node) {
         if (node.isArray()) return DataSchemaConstants.UNION_TYPE;
         if (node.isObject()) {
             final var subtype = parseString(node, DataSchemaDSL.DATA_SCHEMA_TYPE_FIELD);
-            if (DataSchemaConstants.TYPES.contains(subtype)) return subtype;
+            if (DataSchemaConstants.isType(subtype)) return subtype;
         }
         if (node.isString()) {
             final var type = node.asString();
-            if (DataSchemaConstants.TYPES.contains(type)) return type;
+            if (DataSchemaConstants.isType(type)) return type;
         }
         throw new ParseException(node, "Can not parse schema type: " + node);
     }

@@ -34,9 +34,9 @@ import java.util.Objects;
  * Represents a list of {@link DataObject} instances within the {@link DataObject} framework.
  *
  * <p>The {@code DataList} class provides a structured wrapper for handling collections
- * of {@link DataObject} elements. It extends the functionality of Java's {@code ArrayList}
- * while maintaining type metadata for each element, ensuring compatibility with the
- * schema-driven {@code DataObject} framework.</p>
+ * of {@link DataObject} elements. It builds on the functionality of Java's {@code ArrayList}
+ * while validating type metadata for each element, ensuring compatibility with the
+ * type-driven {@code DataObject} framework.</p>
  *
  * @see DataObject
  * @see ListType
@@ -53,7 +53,7 @@ public class DataList implements DataObject, Iterable<DataObject> {
     private final ArrayList<DataObject> contents;
 
     /**
-     * The schema type information for this {@code DataList} instance, represented by a {@link ListType}.
+     * The value type information for this {@code DataList} instance, represented by a {@link ListType}.
      */
     @JsonIgnore
     private final ListType type;
@@ -69,7 +69,7 @@ public class DataList implements DataObject, Iterable<DataObject> {
      * Constructs an empty {@code DataList} with the specified value type.
      *
      * <p>This constructor allows defining the type of elements the list should contain,
-     * enabling schema validation during data processing.</p>
+     * enabling type validation during data processing.</p>
      *
      * @param valueType The {@link DataType} of the elements to be stored in the list.
      */

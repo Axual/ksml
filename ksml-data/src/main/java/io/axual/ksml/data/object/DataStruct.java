@@ -171,7 +171,7 @@ public class DataStruct implements DataObject {
      *
      * @param action The action to perform for each key-value pair.
      */
-    public void forEach(BiConsumer<String, DataObject> action) {
+    public void forEach(BiConsumer<String, ? super DataObject> action) {
         if (contents != null) contents.forEach(action);
     }
 
