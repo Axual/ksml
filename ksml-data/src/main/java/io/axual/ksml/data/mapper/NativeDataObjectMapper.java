@@ -106,8 +106,12 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         if (value instanceof CharSequence val) return new DataString(val.toString());
         if (value instanceof List<?> val)
             return convertListToDataList(val, expected instanceof ListType expectedList ? expectedList.valueType() : DataType.UNKNOWN);
-        if (value instanceof Map<?, ?> val)
+        if (value instanceof Map<?, ?> val) {
+            if (expected instanceof MapType expectedMapType) {
+                return convertMapToDataMap(MapUtil.stringKeys(val), expectedMapType);
+            }
             return convertMapToDataStruct(MapUtil.stringKeys(val), expected instanceof StructType expectedStruct ? expectedStruct.schema() : null);
+        }
         if (value instanceof Tuple<?> val) return convertTupleToDataTuple(val);
         throw new DataException("Can not convert value to DataObject: " + value.getClass().getSimpleName());
     }
@@ -125,7 +129,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         if (value instanceof String) return DataString.DATATYPE;
         if (value instanceof Enum<?> val) return inferEnumTypeFromEnum(val);
         if (value instanceof List<?> val) return inferListTypeFromList(val);
-        if (value instanceof Map<?, ?> val) return inferStructTypeFromNativeMap(val, null);
+        if (value instanceof Map<?, ?> val) return inferDataTypeFromNativeMap(val, null);
         if (value instanceof Tuple<?> val) return inferTupleTypeFromTuple(val);
         return DataType.UNKNOWN;
     }
@@ -147,10 +151,11 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         return new ListType(inferDataTypeFromObject(list.getFirst()));
     }
 
-    protected StructType inferStructTypeFromNativeMap(Map<?, ?> map, DataSchema expected) {
+    protected DataType inferDataTypeFromNativeMap(Map<?, ?> map, DataSchema expected) {
         // If the expected schema is a struct schema, then return that as inferred type
         if (expected instanceof StructSchema structSchema) return new StructType(structSchema);
         // By default, return a schemaless struct type. This behaviour can be overridden in subclasses.
+        // TODO: this should be MapType(), but leaving this step for now, as we may switch anytime in the future
         return new StructType();
     }
 
@@ -182,9 +187,17 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         return result;
     }
 
+    protected DataObject convertMapToDataMap(Map<String, Object> map, MapType targetType) {
+        final var result = new DataMap(targetType.valueType());
+        map.forEach((key, value) -> result.put(key, toDataObject(targetType.valueType(), value)));
+        return result;
+    }
+
     protected DataObject convertMapToDataStruct(Map<String, Object> map, DataSchema schema) {
-        final var type = inferStructTypeFromNativeMap(map, schema);
-        return convertMapToDataStruct(map, type);
+        final var type = inferDataTypeFromNativeMap(map, schema);
+        if (type instanceof MapType mapType) return convertMapToDataMap(map, mapType);
+        if (type instanceof StructType structType) return convertMapToDataStruct(map, structType);
+        throw new DataException("Can not convert map to DataObject: " + type.getClass().getSimpleName());
     }
 
     protected DataObject convertMapToDataStruct(Map<String, Object> map, StructType type) {
@@ -225,6 +238,7 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         if (value instanceof DataString val) return val.value();
 
         if (value instanceof DataList val) return convertDataListToList(val);
+        if (value instanceof DataMap val) return convertDataMapToMap(val);
         if (value instanceof DataStruct val) return convertDataStructToMap(val);
         if (value instanceof DataTuple val) return convertDataTupleToTuple(val);
 
@@ -240,9 +254,16 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     }
 
     @Nullable
+    public Map<String, Object> convertDataMapToMap(DataMap map) {
+        if (map.isNull()) return null;
+        final var result = new TreeMap<String, Object>();
+        map.forEach((key, value) -> result.put(key, fromDataObject(value)));
+        return result;
+    }
+
+    @Nullable
     public Map<String, Object> convertDataStructToMap(DataStruct struct) {
         if (struct.isNull()) return null;
-
         final var result = new TreeMap<>(DataStruct.COMPARATOR);
         if (struct.type().schema() instanceof StructSchema structSchema) {
             for (final var field : structSchema.fields()) {

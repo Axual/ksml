@@ -37,7 +37,7 @@ public class StructSchema extends NamedSchema {
      * This instance exists for compatibility reasons: if we define eg. JSON Objects, or schema-less Structs, then we
      * need to somehow capture this in a schema with the proper type. The StructSchema is the proper type, so we let
      * the absence of a schema be reflected through null fields. Only 1 instance without a name is allowed, so code
-     * that checks if the StructSchema represents "schemaless" can simply perform an '=' check.
+     * that checks if the StructSchema represents "schemaless" can simply perform an equality ('==') check.
      */
     public static final StructSchema SCHEMALESS = new StructSchema(null, null, null, null);
     /**

@@ -21,14 +21,8 @@ package io.axual.ksml.data.notation.json;
  */
 
 import io.axual.ksml.data.notation.Notation;
-import io.axual.ksml.data.object.DataList;
-import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataString;
-import io.axual.ksml.data.object.DataStruct;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.ListType;
-import io.axual.ksml.data.type.StructType;
-import io.axual.ksml.data.type.UnionType;
+import io.axual.ksml.data.object.*;
+import io.axual.ksml.data.type.*;
 
 public class JsonDataObjectConverter implements Notation.Converter {
     private static final JsonDataObjectMapper DATA_OBJECT_MAPPER = new JsonDataObjectMapper(false);
@@ -36,7 +30,7 @@ public class JsonDataObjectConverter implements Notation.Converter {
     @Override
     public DataObject convert(DataObject value, DataType targetType) {
         // Convert from structured JSON
-        if (value instanceof DataList || value instanceof DataStruct) {
+        if (value instanceof DataList || value instanceof DataMap || value instanceof DataStruct) {
             // Convert to String
             if (targetType == DataString.DATATYPE) {
                 return new DataString(DATA_OBJECT_MAPPER.fromDataObject(value));
@@ -46,7 +40,7 @@ public class JsonDataObjectConverter implements Notation.Converter {
         // Convert from String
         if (value instanceof DataString jsonString) {
             // Convert to structured JSON
-            if (targetType instanceof ListType || targetType instanceof StructType || targetType instanceof UnionType) {
+            if (targetType instanceof ListType || targetType instanceof MapType || targetType instanceof StructType || targetType instanceof UnionType) {
                 return DATA_OBJECT_MAPPER.toDataObject(targetType, jsonString.value());
             }
         }

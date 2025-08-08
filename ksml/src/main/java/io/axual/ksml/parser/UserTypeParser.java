@@ -23,9 +23,7 @@ package io.axual.ksml.parser;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.object.*;
-import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.DataSchemaConstants;
-import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.type.*;
 import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.exception.TopologyException;
@@ -37,6 +35,8 @@ import io.axual.ksml.type.UserType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static io.axual.ksml.data.schema.DataSchemaConstants.MAP_TYPE;
 
 public class UserTypeParser {
     private static final String NOTATION_SEPARATOR = ":";
@@ -56,7 +56,7 @@ public class UserTypeParser {
     }
 
     public static UserType parse(String type) {
-        UserType[] types = parseListOfTypesAndNotation(type, UserType.DEFAULT_NOTATION);
+        final var types = parseListOfTypesAndNotation(type, UserType.DEFAULT_NOTATION);
         if (types.length == 1) {
             return types[0];
         }
@@ -71,9 +71,9 @@ public class UserTypeParser {
         }
         type = type.trim();
 
-        String leftTerm = parseLeftMostTerm(type);
-        String remainder = type.substring(leftTerm.length()).trim();
-        UserType leftTermType = parseTypeAndNotation(leftTerm, defaultNotation);
+        final var leftTerm = parseLeftMostTerm(type);
+        final var remainder = type.substring(leftTerm.length()).trim();
+        final var leftTermType = parseTypeAndNotation(leftTerm, defaultNotation);
         var remainderTypes = new UserType[0];
         if (remainder.startsWith(TYPE_SEPARATOR)) {
             remainderTypes = parseListOfTypesAndNotation(remainder.substring(1), defaultNotation);
@@ -81,7 +81,7 @@ public class UserTypeParser {
             throw new ParseException("Could not parse data type: " + type);
         }
 
-        var result = new UserType[remainderTypes.length + 1];
+        final var result = new UserType[remainderTypes.length + 1];
         result[0] = leftTermType;
         System.arraycopy(remainderTypes, 0, result, 1, remainderTypes.length);
         return result;
@@ -112,8 +112,8 @@ public class UserTypeParser {
             }
             // Parse the type in brackets separately as the type of list elements. Notation overrides are not allowed
             // for list elements. If specified (eg. "[avro:SomeSchema]") then the notation is ignored.
-            var valueType = parseTypeAndNotation(dataType.substring(1, dataType.length() - 1), notation);
-            // Return as list of parsed value type using notation specified by the above parsed parent list type
+            final var valueType = parseTypeAndNotation(dataType.substring(1, dataType.length() - 1), notation);
+            // Return as a list of parsed value types using notation specified by the above parsed parent list type
             return new UserType(notation, new ListType(valueType.dataType()));
         }
 
@@ -122,25 +122,43 @@ public class UserTypeParser {
             if (!dataType.endsWith(ROUND_BRACKET_CLOSE)) {
                 throw new ParseException("Tuple type not properly closed: " + dataType);
             }
-            var valueTypes = parseListOfTypesAndNotation(dataType.substring(1, dataType.length() - 1), notation);
+            final var valueTypes = parseListOfTypesAndNotation(dataType.substring(1, dataType.length() - 1), notation);
             return new UserType(notation, new UserTupleType(valueTypes));
         }
 
         // enum(literal1,literal2,...)
-        if (dataType.startsWith(ENUM_TYPE + ROUND_BRACKET_OPEN) && dataType.endsWith(ROUND_BRACKET_CLOSE)) {
-            var literals = dataType.substring(ENUM_TYPE.length() + 1, dataType.length() - 1);
+        if (dataType.startsWith(ENUM_TYPE + ROUND_BRACKET_OPEN)) {
+            if (!dataType.endsWith(ROUND_BRACKET_CLOSE)) {
+                throw new ParseException("Enum type not properly closed: " + dataType);
+            }
+            final var literals = dataType.substring(ENUM_TYPE.length() + 1, dataType.length() - 1);
             return new UserType(notation, new EnumType(parseListOfLiterals(literals).stream().map(Symbol::new).toList()));
         }
 
+        // map(type)
+        if (dataType.startsWith(MAP_TYPE + ROUND_BRACKET_OPEN)) {
+            if (!dataType.endsWith(ROUND_BRACKET_CLOSE)) {
+                throw new ParseException("Map type not properly closed: " + dataType);
+            }
+            final var valueType = dataType.substring(MAP_TYPE.length() + 1, dataType.length() - 1);
+            return new UserType(notation, new MapType(parseType(valueType)));
+        }
+
         // union(type1,type2,...)
-        if (dataType.startsWith(UNION_TYPE + ROUND_BRACKET_OPEN) && dataType.endsWith(ROUND_BRACKET_CLOSE)) {
-            var unionSubtypes = dataType.substring(UNION_TYPE.length() + 1, dataType.length() - 1);
+        if (dataType.startsWith(UNION_TYPE + ROUND_BRACKET_OPEN)) {
+            if (!dataType.endsWith(ROUND_BRACKET_CLOSE)) {
+                throw new ParseException("Union type not properly closed: " + dataType);
+            }
+            final var unionSubtypes = dataType.substring(UNION_TYPE.length() + 1, dataType.length() - 1);
             return new UserType(notation, new UnionType(Arrays.stream(UserType.userTypesToDataTypes(parseListOfTypesAndNotation(unionSubtypes, notation))).map(UnionType.MemberType::new).toArray(UnionType.MemberType[]::new)));
         }
 
         // windowed(type)
-        if (dataType.startsWith(WINDOWED_TYPE + ROUND_BRACKET_OPEN) && dataType.endsWith(ROUND_BRACKET_CLOSE)) {
-            var windowedType = dataType.substring(WINDOWED_TYPE.length() + 1, dataType.length() - 1);
+        if (dataType.startsWith(WINDOWED_TYPE + ROUND_BRACKET_OPEN)) {
+            if (!dataType.endsWith(ROUND_BRACKET_CLOSE)) {
+                throw new ParseException("Windowed type not properly closed: " + dataType);
+            }
+            final var windowedType = dataType.substring(WINDOWED_TYPE.length() + 1, dataType.length() - 1);
             return new UserType(notation, new WindowedType(parseType(windowedType)));
         }
 
@@ -165,9 +183,9 @@ public class UserTypeParser {
 
     // This method decomposes a user type into its components. User types are always of the form "notation:datatype".
     private static DecomposedType decompose(String composedType, String defaultNotation) {
-        var posColon = composedType.contains(NOTATION_SEPARATOR) ? composedType.indexOf(NOTATION_SEPARATOR) : composedType.length();
-        var posOpenRound = composedType.contains(ROUND_BRACKET_OPEN) ? composedType.indexOf(ROUND_BRACKET_OPEN) : composedType.length();
-        var posOpenSquare = composedType.contains(SQUARE_BRACKET_OPEN) ? composedType.indexOf(SQUARE_BRACKET_OPEN) : composedType.length();
+        final var posColon = composedType.contains(NOTATION_SEPARATOR) ? composedType.indexOf(NOTATION_SEPARATOR) : composedType.length();
+        final var posOpenRound = composedType.contains(ROUND_BRACKET_OPEN) ? composedType.indexOf(ROUND_BRACKET_OPEN) : composedType.length();
+        final var posOpenSquare = composedType.contains(SQUARE_BRACKET_OPEN) ? composedType.indexOf(SQUARE_BRACKET_OPEN) : composedType.length();
 
         // Check if the user type contains a colon (user type is of the form "notation:datatype") AND that this colon
         // appears before any brackets (ie. ignore tuples, lists and other types that use brackets). If so then parse
@@ -216,6 +234,7 @@ public class UserTypeParser {
             case DataSchemaConstants.DOUBLE_TYPE -> DataDouble.DATATYPE;
             case DataSchemaConstants.BYTES_TYPE -> DataBytes.DATATYPE;
             case DataSchemaConstants.STRING_TYPE, DataSchemaDSL.STRING_TYPE_ALTERNATIVE -> DataString.DATATYPE;
+            case DataSchemaConstants.MAP_TYPE -> new MapType();
             case DataSchemaConstants.STRUCT_TYPE -> new StructType();
             default -> null;
         };
@@ -231,10 +250,10 @@ public class UserTypeParser {
         // Scan the literal at the beginning of the string until a non-literal character is found
         var index = 0;
         while (index < type.length()) {
-            var ch = type.substring(index, index + 1);
+            final var ch = type.substring(index, index + 1);
 
             if (ch.equals(ROUND_BRACKET_OPEN) || ch.equals(SQUARE_BRACKET_OPEN)) {
-                var bracketedTerm = parseLeftMostTerm(type.substring(index));
+                final var bracketedTerm = parseLeftMostTerm(type.substring(index));
                 // Skip past the bracketed expression
                 index += bracketedTerm.length() - 1;
             } else if (!ALLOWED_TYPE_CHARACTERS.contains(ch)) {
@@ -249,7 +268,7 @@ public class UserTypeParser {
             closeBracket) {
         var openCount = 1;
         for (var index = 1; index < type.length(); index++) {
-            var ch = type.substring(index, index + 1);
+            final var ch = type.substring(index, index + 1);
             if (ch.equals(openBracket)) openCount++;
             if (ch.equals(closeBracket)) openCount--;
             if (openCount == 0) {
@@ -258,30 +277,5 @@ public class UserTypeParser {
             }
         }
         throw new ParseException("Error in expression: no closing bracket found: " + type);
-    }
-
-    public static DataSchema getSchema() {
-        final var types = new ArrayList<String>();
-        types.add("null");
-        types.add("none");
-        types.add("boolean");
-        types.add("byte");
-        types.add("double");
-        types.add("float");
-        types.add("int");
-        types.add("integer");
-        types.add("long");
-        types.add("bytes");
-        types.add("str");
-        types.add("string");
-        types.add("struct");
-        types.add("any");
-        types.add("?");
-        types.add("notation:schema");
-        return new EnumSchema(
-                DefinitionParser.SCHEMA_NAMESPACE,
-                "UserType",
-                "UserTypes are the basic types used in streams and pipelines",
-                types.stream().map(Symbol::new).toList());
     }
 }

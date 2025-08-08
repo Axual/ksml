@@ -27,6 +27,10 @@ import io.axual.ksml.data.schema.DataSchemaConstants;
 import java.util.Map;
 
 public class MapType extends ComplexType {
+    public MapType() {
+        this(DataType.UNKNOWN);
+    }
+
     public MapType(DataType valueType) {
         super(Map.class,
                 buildName("Map", valueType),

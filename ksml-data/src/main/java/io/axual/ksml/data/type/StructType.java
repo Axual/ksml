@@ -23,11 +23,15 @@ package io.axual.ksml.data.type;
 import com.google.common.base.Objects;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
 import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.StructSchema;
 import lombok.Getter;
 
+import java.util.Map;
+
 @Getter
-public class StructType extends MapType {
+public class StructType extends ComplexType {
     private static final String DEFAULT_NAME = "Struct";
     private static final DataTypeDataSchemaMapper MAPPER = new DataTypeDataSchemaMapper();
     private final String name;
@@ -46,10 +50,22 @@ public class StructType extends MapType {
     }
 
     private StructType(String name, StructSchema schema) {
-        super(UNKNOWN);
+        super(Map.class,
+                buildName("Map", DataType.UNKNOWN),
+                DataSchemaConstants.MAP_TYPE + "(" + buildSpec(DataType.UNKNOWN) + ")",
+                DataString.DATATYPE,
+                DataType.UNKNOWN);
         if (schema == StructSchema.SCHEMALESS) schema = null; // If we're SCHEMALESS, then nullify the schema here
         this.name = name != null && !name.isEmpty() ? name : schema != null ? schema.name() : DEFAULT_NAME;
         this.schema = schema;
+    }
+
+    public DataType keyType() {
+        return subType(0);
+    }
+
+    public DataType valueType() {
+        return subType(1);
     }
 
     @Override

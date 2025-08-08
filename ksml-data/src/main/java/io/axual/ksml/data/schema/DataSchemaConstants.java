@@ -63,7 +63,7 @@ public class DataSchemaConstants {
     public static final String STRUCT_TYPE = "struct";
     public static final String UNION_TYPE = "union";
 
-    public static final Set<String> TYPES = new HashSet<>();
+    private static final Set<String> TYPES = new HashSet<>();
 
     static {
         TYPES.add(ANY_TYPE);
@@ -94,5 +94,9 @@ public class DataSchemaConstants {
      */
     private DataSchemaConstants() {
         // Prevent instantiation.
+    }
+
+    public static boolean isType(String type) {
+        return TYPES.contains(type);
     }
 }
