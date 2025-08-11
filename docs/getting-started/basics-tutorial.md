@@ -297,8 +297,8 @@ You can also view the topics and messages in the Kafka UI at http://localhost:80
 You should see messages like:
 
 ```
-{"temp_fahrenheit":75,"temp_celsius":23.88888888888889}
-{"temp_fahrenheit":80,"temp_celsius":26.666666666666668}
+{"sensor":"sensor1",temp_fahrenheit":75,"temp_celsius":23.88888888888889}
+{"sensor":"sensor3",temp_fahrenheit":80,"temp_celsius":26.666666666666668}
 ```
 
 Notice that:
