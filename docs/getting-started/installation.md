@@ -225,7 +225,6 @@ Open [http://localhost:8080](http://localhost:8080) to explore your topics and s
 
 You just built a **real-time device health monitoring system** with:
 
-- **20 lines of YAML** (vs 100+ lines of Java)
 - **Smart device analysis** with battery, signal, and error monitoring
 - **Real-time filtering and categorization** of device health status
 - **No compilation** or complex infrastructure needed

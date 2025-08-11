@@ -225,9 +225,11 @@ Let's combine all the sections into a complete KSML definition file. In the [Qui
 structure containing an `examples/` directory; in this directory create a file called `tutorial.yaml` and copy
 the following content:
 
-```yaml
-{% include "../definitions/basics-tutorial/tutorial.yaml" %}
-```
+??? info "Full KSML processing definition (click to expand)"
+
+    ```yaml
+    {% include "../definitions/basics-tutorial/tutorial.yaml" %}
+    ```
 
 Save the file.
 We also need to make the KSML Runner aware of the new pipeline. In the `ksml-runner.yaml` you created before, there is
