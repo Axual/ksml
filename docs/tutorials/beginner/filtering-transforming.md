@@ -19,7 +19,7 @@ Before we begin:
 
 ### To try out each example
 
-1. Make sure to update the definitions section in `ksml-runner.yaml`(the full file in is in the [Quick Start](../../getting-started/installation.md):
+1. Make sure to update the definitions section in `ksml-runner.yaml`(the full file in is in the [Basics Tutorial](../../getting-started/basics-tutorial.md):
 ```yaml
 ksml:
   definitions:

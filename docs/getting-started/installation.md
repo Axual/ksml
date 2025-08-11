@@ -25,10 +25,10 @@ You'll need:
 **Option A: Quick Start (Recommended)**
 Download the pre-configured setup and run immediately:
 
-1. Download and extract: [local-docker-compose-setup.zip](../local-docker-compose-setup/local-docker-compose-setup.zip)
+1. Download and extract: [local-docker-compose-setup-quick-start.zip](../local-docker-compose-setup/local-docker-compose-setup-quick-start.zip)
 2. Navigate to the extracted folder
 3. Run `docker compose up -d`
-4. Skip to [Step 3: Verify Everything Started](#step-3-verify-everything-started)
+4. Skip to [Step 6: See It In Action!](#step-6-see-it-in-action)
 
 **Option B: Step-by-Step Setup**
 Follow the detailed instructions below to create everything from scratch.
@@ -235,7 +235,6 @@ You just built a **real-time device health monitoring system** with:
 
 - Java/Scala expertise for Kafka Streams
 - Complex filtering and transformation code
-- Extensive boilerplate and configuration
 - Build and deployment pipelines
 
 **With KSML you get:**
