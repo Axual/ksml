@@ -4,7 +4,7 @@ package io.axual.ksml.data.object;
  * ========================LICENSE_START=================================
  * KSML Data Library
  * %%
- * Copyright (C) 2021 - 2024 Axual B.V.
+ * Copyright (C) 2021 - 2025 Axual B.V.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,18 +29,18 @@ import static io.axual.ksml.data.object.DataObject.Printer.EXTERNAL_TOP_SCHEMA;
 import static io.axual.ksml.data.object.DataObject.Printer.INTERNAL;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class DataIntegerTest {
+class DataLongTest {
     @Test
     @DisplayName("Constructors, type, equals/hashCode")
     void constructorsAndEquality() {
-        var primitive15 = new DataInteger(15);
-        var boxed15 = new DataInteger(Integer.valueOf(15));
-        var boxed20 = new DataInteger(20);
-        var nullDefaultConstruction = new DataInteger();
-        var nullExplicitValue = new DataInteger(null);
+        var primitive15 = new DataLong(15L);
+        var boxed15 = new DataLong(Long.valueOf(15L));
+        var boxed20 = new DataLong(20L);
+        var nullDefaultConstruction = new DataLong();
+        var nullExplicitValue = new DataLong(null);
 
         assertThat(primitive15)
-                .returns(DataInteger.DATATYPE, DataInteger::type)
+                .returns(DataLong.DATATYPE, DataLong::type)
                 .isEqualTo(boxed15)
                 .isNotEqualTo(boxed20)
                 .hasSameHashCodeAs(boxed15);
@@ -48,22 +48,22 @@ class DataIntegerTest {
         assertThat(nullDefaultConstruction)
                 .isEqualTo(nullExplicitValue)
                 .hasSameHashCodeAs(nullExplicitValue)
-                .returns(null, DataInteger::value);
+                .returns(null, DataLong::value);
     }
 
     @Test
     @DisplayName("toString across printers: numeric values unquoted; null shows schema prefix")
     void toStringPrinterModes() {
-        var primitive = new DataInteger(325);
+        var primitive = new DataLong(325L);
         assertThat(primitive.toString(INTERNAL)).isEqualTo("325");
         assertThat(primitive.toString(EXTERNAL_NO_SCHEMA)).isEqualTo("325");
         assertThat(primitive.toString(EXTERNAL_TOP_SCHEMA)).isEqualTo("325");
         assertThat(primitive.toString(EXTERNAL_ALL_SCHEMA)).isEqualTo("325");
 
-        var nullDefaultConstruction = new DataInteger();
-        assertThat(nullDefaultConstruction.toString(INTERNAL)).isEqualTo("integer: null");
-        assertThat(nullDefaultConstruction.toString(EXTERNAL_NO_SCHEMA)).isEqualTo("integer: null");
-        assertThat(nullDefaultConstruction.toString(EXTERNAL_TOP_SCHEMA)).isEqualTo("integer: null");
-        assertThat(nullDefaultConstruction.toString(EXTERNAL_ALL_SCHEMA)).isEqualTo("integer: null");
+        var nullDefaultConstruction = new DataLong();
+        assertThat(nullDefaultConstruction.toString(INTERNAL)).isEqualTo("long: null");
+        assertThat(nullDefaultConstruction.toString(EXTERNAL_NO_SCHEMA)).isEqualTo("long: null");
+        assertThat(nullDefaultConstruction.toString(EXTERNAL_TOP_SCHEMA)).isEqualTo("long: null");
+        assertThat(nullDefaultConstruction.toString(EXTERNAL_ALL_SCHEMA)).isEqualTo("long: null");
     }
 }
