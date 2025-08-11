@@ -24,11 +24,21 @@ import io.axual.ksml.data.mapper.DataObjectMapper;
 import io.axual.ksml.data.notation.NotationContext;
 import lombok.Getter;
 
+/**
+ * Extension of NotationContext that includes vendor-specific serde supplier and mapping.
+ */
 @Getter
 public class VendorNotationContext extends NotationContext {
     private final VendorSerdeSupplier serdeSupplier;
     private final DataObjectMapper<Object> serdeMapper;
 
+    /**
+     * Creates a vendor notation context from an existing base context together with vendor serde components.
+     *
+     * @param context the base notation context
+     * @param serdeSupplier the vendor-specific serde supplier
+     * @param serdeMapper the DataObject mapper used with the vendor serdes
+     */
     public VendorNotationContext(NotationContext context, VendorSerdeSupplier serdeSupplier, DataObjectMapper<Object> serdeMapper) {
         super(context.notationName(), context.vendorName(), context.nativeDataObjectMapper(), context.serdeConfigs());
         this.serdeSupplier = serdeSupplier;

@@ -27,6 +27,10 @@ import io.axual.ksml.data.type.DataType;
 import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
 
+/**
+ * Base notation for vendor-backed serdes where underlying serializers/deserializers
+ * are provided by an external vendor library.
+ */
 public abstract class VendorNotation extends BaseNotation {
     @Getter
     private final VendorSerdeSupplier serdeSupplier;
@@ -38,6 +42,15 @@ public abstract class VendorNotation extends BaseNotation {
         this.serdeMapper = context.serdeMapper();
     }
 
+    /**
+     * Creates a vendor-backed Serde for the given type and key/value role.
+     * Only supported when the requested type is assignable from the notation's default type.
+     *
+     * @param type the data type to serialize/deserialize
+     * @param isKey whether the serde will be used for keys (true) or values (false)
+     * @return a configured Serde backed by the vendor implementation
+     * @throws RuntimeException when the type is not supported
+     */
     @Override
     public Serde<Object> serde(DataType type, boolean isKey) {
         if (!defaultType().isAssignableFrom(type)) throw noSerdeFor(type);

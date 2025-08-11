@@ -28,6 +28,15 @@ import java.util.Objects;
 
 import static io.axual.ksml.data.schema.DataField.NO_TAG;
 
+/**
+ * A {@link ComplexType} representing a tagged union (sum type) composed of multiple member types.
+ * <p>
+ * Assignability succeeds when either:
+ * - the other type is an equivalent union (member-wise assignable in both directions), or
+ * - the value/type is assignable to at least one of the union's member types.
+ * <p>
+ * The nested {@link MemberType} record describes an individual member of the union.
+ */
 @Getter
 public class UnionType extends ComplexType {
     private final MemberType[] memberTypes;

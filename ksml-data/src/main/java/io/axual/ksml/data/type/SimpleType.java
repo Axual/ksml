@@ -25,6 +25,12 @@ import lombok.Getter;
 
 import java.util.Objects;
 
+/**
+ * A concrete {@link DataType} backed by a single Java container class.
+ * <p>
+ * SimpleType represents scalar/primitive-like types where assignability is based on the
+ * assignability of the configured {@code containerClass}.
+ */
 @Getter
 public class SimpleType implements DataType {
     private final Class<?> containerClass;

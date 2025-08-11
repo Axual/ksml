@@ -23,12 +23,39 @@ package io.axual.ksml.data.mapper;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 
+/**
+ * Maps between native Java values of type T and the KSML DataObject model.
+ * Implementations convert to and from the neutral DataObject representation,
+ * optionally guided by an expected DataType.
+ *
+ * @param <T> The native value type handled by this mapper
+ */
 public interface DataObjectMapper<T> {
+    /**
+     * Converts a native value to a DataObject without an expected target type.
+     *
+     * @param value the native value to convert
+     * @return the DataObject representation of the value
+     */
     default DataObject toDataObject(T value) {
         return toDataObject(null, value);
     }
 
+    /**
+     * Converts a native value to a DataObject, using an expected DataType to guide the conversion.
+     * Implementations may coerce or adapt the value to match the expected type.
+     *
+     * @param expected the expected DataType of the result, or null if unknown
+     * @param value    the native value to convert
+     * @return the DataObject representation of the value (never null, unless the implementation permits)
+     */
     DataObject toDataObject(DataType expected, T value);
 
+    /**
+     * Converts a DataObject back to its native representation.
+     *
+     * @param value the DataObject to convert
+     * @return the native value of type T
+     */
     T fromDataObject(DataObject value);
 }

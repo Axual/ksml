@@ -43,21 +43,21 @@ public class DataShort extends DataPrimitive<Short> {
     public static final SimpleType DATATYPE = new SimpleType(Short.class, DataSchemaConstants.SHORT_TYPE);
 
     /**
-     * Constructs a {@code DataDouble} instance with a null value.
-     * <p>This constructor creates a {@code DataDouble} that does not hold any actual
-     * {@code Double} value, effectively representing a "null" double in the framework.</p>
+     * Constructs a {@code DataShort} instance with a null value.
+     * <p>This constructor creates a {@code DataShort} that does not hold any actual
+     * {@code Short} value, effectively representing a "null" short in the framework.</p>
      */
     public DataShort() {
         this(null);
     }
 
     /**
-     * Constructs a {@code DataDouble} instance with the specified {@code Double} value.
+     * Constructs a {@code DataShort} instance with the specified {@code Short} value.
      *
-     * <p>If the input value is {@code null}, the {@code DataDouble} will represent
-     * the absence of a value (a null double).</p>
+     * <p>If the input value is {@code null}, the {@code DataShort} will represent
+     * the absence of a value (a null short).</p>
      *
-     * @param value The {@code Double} value to encapsulate, or {@code null} to represent a null value.
+     * @param value The {@code Short} value to encapsulate, or {@code null} to represent a null value.
      */
     public DataShort(Short value) {
         super(DATATYPE, value);

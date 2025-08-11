@@ -34,6 +34,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Serde for KSML union types. It maintains a list of member Serdes and tries them
+ * in order for serialization and deserialization, accepting the first compatible
+ * type. Null values are always supported and mapped to DataNull for deserialization.
+ */
 public class UnionSerde implements Serde<Object> {
     private record UnionMemberType(DataType type, Serializer<Object> serializer,
                                    Deserializer<Object> deserializer) {
@@ -41,6 +46,14 @@ public class UnionSerde implements Serde<Object> {
 
     private final List<UnionMemberType> memberTypes = new ArrayList<>();
 
+    /**
+     * Constructs a UnionSerde from a KSML UnionType. For each member type, a delegate Serde is
+     * obtained from the provided SerdeSupplier.
+     *
+     * @param unionType     the union type definition
+     * @param isKey         whether the resulting Serde will be used for keys
+     * @param serdeSupplier supplier used to obtain member Serdes
+     */
     public UnionSerde(UnionType unionType, boolean isKey, SerdeSupplier serdeSupplier) {
         for (int index = 0; index < unionType.memberTypes().length; index++) {
             final var memberType = unionType.memberTypes()[index];
@@ -50,6 +63,9 @@ public class UnionSerde implements Serde<Object> {
         }
     }
 
+    /**
+     * Configures all member serializers and deserializers with the provided configuration.
+     */
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {
         for (final var memberType : memberTypes) {

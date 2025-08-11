@@ -30,12 +30,12 @@ import lombok.Getter;
 import java.util.Arrays;
 
 /**
- * Represents a wrapper for a boolean value as part of the {@link DataObject} framework.
+ * Represents a tuple of {@link DataObject} values within the {@link DataObject} framework.
  *
- * <p>The {@code DataBoolean} class encapsulates a boolean value to integrate seamlessly
- * into the structured data model used in schema-compliant or stream-processed data.
- * It enables boolean values to be used as {@link DataObject} types, making them compatible
- * with the framework and allowing for standardized processing.</p>
+ * <p>The {@code DataTuple} class wraps an ordered, fixed-size collection of {@link DataObject}
+ * elements and provides a {@link io.axual.ksml.data.type.TupleType} describing the element types.
+ * This allows tuples to participate in the schema-aware KSML data model and be rendered/validated
+ * consistently with other data objects.</p>
  *
  * @see DataObject
  */
@@ -43,20 +43,17 @@ import java.util.Arrays;
 @EqualsAndHashCode
 public class DataTuple extends Tuple<DataObject> implements DataObject {
     /**
-     * Represents the data type of this {@code DataBoolean}, which is {@code Boolean},
-     * mapped to the schema definition in {@link DataSchemaConstants#BOOLEAN_TYPE}.
-     * <p>This constant ensures that the type metadata for a {@code DataBoolean} is
-     * consistent across all usages in the framework.</p>
+     * The tuple's {@link DataType} metadata describing the types of its elements
+     * (implemented as a {@link TupleType}).
      */
     private final DataType type;
 
     /**
-     * Constructs an empty {@code DataList} with the specified value type.
+     * Constructs a {@code DataTuple} from the provided {@link DataObject} elements.
      *
-     * <p>This constructor allows defining the type of elements the list should contain,
-     * enabling schema validation during data processing.</p>
+     * <p>The element types are collected to form the {@link TupleType} for this tuple.</p>
      *
-     * @param elements The {@link DataType} of the elements to be stored in the list.
+     * @param elements The ordered elements of this tuple.
      */
     public DataTuple(DataObject... elements) {
         super(elements);
@@ -64,9 +61,7 @@ public class DataTuple extends Tuple<DataObject> implements DataObject {
     }
 
     /**
-     * Converts an array of DataObjects
-     *
-     * @return The string representation of this {@code DataTuple}.
+     * Converts an array of {@link DataObject} elements to their corresponding {@link DataType}s.
      */
     private static DataType[] elementsToDataTypes(DataObject... elements) {
         return Arrays.stream(elements).map(DataObject::type).toArray(DataType[]::new);

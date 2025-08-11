@@ -20,6 +20,7 @@ package io.axual.ksml.data.value;
  * =========================LICENSE_END==================================
  */
 
+// This class represents a Null for processing in KSML data objects and Serdes
 public class Null {
     private Null() {
     }

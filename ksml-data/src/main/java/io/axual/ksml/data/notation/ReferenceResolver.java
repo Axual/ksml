@@ -20,6 +20,17 @@ package io.axual.ksml.data.notation;
  * =========================LICENSE_END==================================
  */
 
+/**
+ * Resolves named references to objects of type T.
+ *
+ * @param <T> the target type that can be resolved
+ */
 public interface ReferenceResolver<T> {
+    /**
+     * Resolves a reference by name.
+     *
+     * @param referenceName the reference name
+     * @return the resolved object or null when not found
+     */
     T get(String referenceName);
 }

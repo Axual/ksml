@@ -24,6 +24,16 @@ package io.axual.ksml.data.type;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 
+/**
+ * Describes a KSML logical data type.
+ * <p>
+ * Implementations provide metadata such as a human-readable name and "spec" representation,
+ * the underlying Java container class, and rules to determine assignability from other
+ * {@code DataType} instances, Java {@code Class} objects, or runtime values.
+ * <p>
+ * The {@link #UNKNOWN} constant acts as a wildcard type that is assignable from any other type
+ * or value.
+ */
 public interface DataType {
     Class<?> containerClass();
 

@@ -31,23 +31,70 @@ import javax.annotation.Nullable;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
+/**
+ * Utility class for converting KSML DataObject instances between different DataType targets.
+ * <p>
+ * Conversion is performed recursively for complex types (lists, maps, structs, tuples) and can
+ * optionally leverage Notation-specific converters to bridge between notations before applying
+ * type compatibility conversions.
+ */
 public class ConvertUtil {
     private final NativeDataObjectMapper dataObjectMapper;
     private final DataTypeDataSchemaMapper dataSchemaMapper;
 
+    /**
+     * Create a new ConvertUtil.
+     *
+     * @param dataObjectMapper  mapper to convert between native values and KSML DataObject values
+     * @param dataSchemaMapper  mapper to convert between KSML DataType and notation-specific schemas
+     */
     public ConvertUtil(NativeDataObjectMapper dataObjectMapper, DataTypeDataSchemaMapper dataSchemaMapper) {
         this.dataObjectMapper = dataObjectMapper;
         this.dataSchemaMapper = dataSchemaMapper;
     }
 
+    /**
+     * Convert a value to the given target type.
+     *
+     * <p>This method uses recursive conversion for complex types and may fall back to
+     * compatibility conversions when needed.
+     *
+     * @param targetType the desired target DataType
+     * @param value      the input value as DataObject
+     * @return the converted DataObject; if no conversion is needed, returns the original value
+     * @throws io.axual.ksml.data.exception.DataException if conversion cannot be performed
+     */
     public DataObject convert(DataType targetType, DataObject value) {
         return convert(targetType, value, false);
     }
 
+    /**
+     * Convert a value to the given target type, optionally allowing conversion failure.
+     *
+     * @param targetType the desired target DataType
+     * @param value      the input value as DataObject
+     * @param allowFail  if true, return null when conversion is not possible; otherwise throw
+     * @return the converted DataObject or null if allowFail is true and conversion is not possible
+     * @throws io.axual.ksml.data.exception.DataException if allowFail is false and conversion fails
+     */
     public DataObject convert(DataType targetType, DataObject value, boolean allowFail) {
         return convert(null, null, targetType, value, allowFail);
     }
 
+    /**
+     * Convert a value to the given target type using the provided source and target notations.
+     *
+     * <p>The method first attempts notation-level conversion via Notation.converter(), then applies
+     * type compatibility conversion as needed. Complex types are handled recursively.
+     *
+     * @param sourceNotation the notation of the input value; may be null if unknown
+     * @param targetNotation the desired target notation; may be null to skip notation conversion
+     * @param targetType     the desired target DataType
+     * @param value          the input value as DataObject
+     * @param allowFail      if true, return null when conversion is not possible; otherwise throw
+     * @return the converted DataObject, or null if allowFail is true and conversion is not possible
+     * @throws io.axual.ksml.data.exception.DataException if allowFail is false and conversion fails
+     */
     public DataObject convert(Notation sourceNotation, Notation targetNotation, DataType targetType, DataObject value, boolean allowFail) {
         // If no conversion is possible or necessary, then just return the value object
         if (targetType == null || value == null) return value;

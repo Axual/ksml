@@ -37,21 +37,39 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-// Maps DataObjects to/from native Java structures
+/**
+ * Maps DataObjects to and from native Java structures (Object, Map, List, primitives, etc.).
+ * This mapper infers types when necessary and can use an expected DataType to guide conversions.
+ */
 public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     private static final DataTypeDataSchemaMapper DATA_TYPE_DATA_SCHEMA_MAPPER = new DataTypeDataSchemaMapper();
     private final SchemaResolver<DataSchema> schemaResolver;
     private final ConvertUtil converter;
 
+    /**
+     * Creates a mapper without a SchemaResolver. Schema names that need resolution will cause errors.
+     */
     public NativeDataObjectMapper() {
         this(null);
     }
 
+    /**
+     * Creates a mapper with a provided SchemaResolver for resolving schema names to DataSchema instances.
+     *
+     * @param schemaResolver resolver used to fetch schemas by name; may be null
+     */
     public NativeDataObjectMapper(SchemaResolver<DataSchema> schemaResolver) {
         this.schemaResolver = schemaResolver;
         this.converter = new ConvertUtil(this, DATA_TYPE_DATA_SCHEMA_MAPPER);
     }
 
+    /**
+     * Converts a native Java value to a DataObject, attempting to coerce it to the expected DataType when provided.
+     *
+     * @param expected the expected DataType, or null if unknown
+     * @param value    the native value to convert
+     * @return the DataObject representation of the value
+     */
     public DataObject toDataObject(DataType expected, Object value) {
         if (value instanceof CharSequence val) value = val.toString();
         var result = convertObjectToDataObject(expected, value);
@@ -219,6 +237,12 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         return new DataTuple(elements);
     }
 
+    /**
+     * Converts a DataObject back to its native Java representation (Object, Map, List, primitives, etc.).
+     *
+     * @param value the DataObject to convert
+     * @return the native Java value
+     */
     @Override
     public Object fromDataObject(DataObject value) {
         if (value instanceof DataNull val) return val.value();
@@ -245,6 +269,12 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         throw new DataException("Can not convert DataObject to native dataType: " + (value != null ? value.getClass().getSimpleName() : "null"));
     }
 
+    /**
+     * Converts a DataList to a native Java List.
+     *
+     * @param list the DataList to convert
+     * @return a List of native values, or null if the DataList represents null
+     */
     @Nullable
     public List<Object> convertDataListToList(DataList list) {
         if (list.isNull()) return null;
@@ -253,6 +283,12 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         return result;
     }
 
+    /**
+     * Converts a DataMap to a native Java Map with String keys.
+     *
+     * @param map the DataMap to convert
+     * @return a Map of native values, or null if the DataMap represents null
+     */
     @Nullable
     public Map<String, Object> convertDataMapToMap(DataMap map) {
         if (map.isNull()) return null;
@@ -261,6 +297,13 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         return result;
     }
 
+    /**
+     * Converts a DataStruct to a native Java Map. For typed structs this preserves required fields
+     * and includes only present optional fields; schemaless structs copy all entries.
+     *
+     * @param struct the DataStruct to convert
+     * @return a Map of native values, or null if the DataStruct represents null
+     */
     @Nullable
     public Map<String, Object> convertDataStructToMap(DataStruct struct) {
         if (struct.isNull()) return null;
@@ -282,6 +325,12 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
         return result;
     }
 
+    /**
+     * Converts a DataTuple to a native Tuple<Object>.
+     *
+     * @param value the DataTuple to convert
+     * @return a Tuple containing native values
+     */
     public Tuple<Object> convertDataTupleToTuple(DataTuple value) {
         final var elements = new Object[value.elements().size()];
         for (int index = 0; index < value.elements().size(); index++) {

@@ -30,6 +30,13 @@ import lombok.Getter;
 
 import java.util.Map;
 
+/**
+ * A {@link ComplexType} representing a structured map-like type that may be backed by a
+ * {@link io.axual.ksml.data.schema.StructSchema}.
+ * <p>
+ * When a schema is provided, field types and assignability are validated against it. StructType
+ * allows {@code null} values to support Kafka tombstones.
+ */
 @Getter
 public class StructType extends ComplexType {
     private static final String DEFAULT_NAME = "Struct";
@@ -56,7 +63,13 @@ public class StructType extends ComplexType {
                 DataString.DATATYPE,
                 DataType.UNKNOWN);
         if (schema == StructSchema.SCHEMALESS) schema = null; // If we're SCHEMALESS, then nullify the schema here
-        this.name = name != null && !name.isEmpty() ? name : schema != null ? schema.name() : DEFAULT_NAME;
+        if( name != null && !name.isEmpty() ){
+            this.name = name;
+        }else if( schema != null ){
+            this.name = schema.name();
+        }else {
+            this.name = DEFAULT_NAME;
+        }
         this.schema = schema;
     }
 
