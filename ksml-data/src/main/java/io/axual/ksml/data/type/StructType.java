@@ -113,6 +113,7 @@ public class StructType extends ComplexType {
         if (other == null || getClass() != other.getClass()) return false;
         if (!super.equals(other)) return false;
         StructType that = (StructType) other;
+        if(!Objects.equal(this.name, that.name)) return false;
         return this.isAssignableFrom(that) && that.isAssignableFrom(this);
     }
 

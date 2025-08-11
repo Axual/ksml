@@ -73,7 +73,7 @@ public class UnionType extends ComplexType {
 
         // If the union did not match in its entirety, then check for assignable subtypes
         for (var memberType : memberTypes) {
-            if (memberType.type.isAssignableFrom(type)) return true;
+            if (memberType.type().isAssignableFrom(type)) return true;
         }
         return false;
     }
@@ -82,9 +82,9 @@ public class UnionType extends ComplexType {
         var otherMemberTypes = other.memberTypes();
         if (memberTypes.length != otherMemberTypes.length) return false;
         for (int index = 0; index < memberTypes.length; index++) {
-            if (!memberTypes[index].type.isAssignableFrom(otherMemberTypes[index]))
+            if (!memberTypes[index].type().isAssignableFrom(otherMemberTypes[index].type()))
                 return false;
-            if (!otherMemberTypes[index].type.isAssignableFrom(memberTypes[index]))
+            if (!otherMemberTypes[index].type().isAssignableFrom(memberTypes[index].type()))
                 return false;
         }
         return true;
@@ -93,7 +93,7 @@ public class UnionType extends ComplexType {
     @Override
     public boolean isAssignableFrom(Object value) {
         for (final var memberType : memberTypes) {
-            if (memberType.type.isAssignableFrom(value)) return true;
+            if (memberType.type().isAssignableFrom(value)) return true;
         }
         return false;
     }
