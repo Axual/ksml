@@ -1,326 +1,139 @@
 # Logging and Monitoring in KSML
 
-This tutorial guides you through implementing effective logging and monitoring in your KSML applications. By the end, you'll understand how to track your pipeline's behavior, debug issues, and monitor performance.
+Learn how to implement effective logging, monitoring, and error handling in your KSML stream processing pipelines using the built-in `log` object and peek operations.
 
 ## Prerequisites
 
-- Basic understanding of KSML concepts
-- Completed the [Building a Simple Data Pipeline](/docs/tutorials/beginner/simple-pipeline.md) tutorial
-- A running Kafka environment (as set up in the previous tutorial)
+Before we begin:
 
-## What You'll Learn
+- Please make sure there is a running Docker Compose KSML environment as described in the [Quick Start](../../getting-started/installation.md).
+- We recommend to have completed the [KSML Basics Tutorial](../../getting-started/basics-tutorial.md)
 
-In this tutorial, you'll learn how to:
-1. Implement different levels of logging in KSML
-2. Use the peek operation for monitoring message flow
-3. Create custom monitoring functions
-4. Configure logging settings
-5. Implement basic error handling with logging
+## Basic Logging with Different Levels
 
-## Understanding Logging in KSML
+KSML allows you to log messages at different levels using the `log` object in Python functions.
 
-KSML provides built-in logging capabilities through the `log` object, which is available in Python functions and expressions. The logging system follows standard logging levels:
+This producer generates log messages with various importance levels and components:
 
-- **ERROR**: For error events that might still allow the application to continue running
-- **WARN**: For potentially harmful situations
-- **INFO**: For informational messages highlighting the progress of the application
-- **DEBUG**: For detailed information, typically useful only when diagnosing problems
-- **TRACE**: For even more detailed information than DEBUG
+??? info "Producer definition for logging messages (click to expand)"
 
-## Basic Logging Examples
+    ```yaml
+    {%
+      include "../../definitions/beginner-tutorial/logging-and-monitoring/logging-producer.yaml"
+    %}
+    ```
 
-### Step 1: Create a KSML File with Logging
+### KSML Features Demonstrated:
+- **`log` object**: Built-in logger available in all Python functions
+- **Log levels**: `log.error()`, `log.warn()`, `log.info()`, `log.debug()`
+- **`peek` operation**: Non-intrusive message inspection without modification
+- **`forEach` function type**: Process messages without transforming them
 
-Create a file named `logging-example.yaml` with the following content:
+This processor demonstrates logging at different levels using the `log` object:
 
-```yaml
-streams:
-  input_stream:
-    topic: logging-input
-    keyType: string
-    valueType: json
-  output_stream:
-    topic: logging-output
-    keyType: string
-    valueType: json
+??? info "Processor definition with multi-level logging (click to expand)"
 
-functions:
-  log_with_level:
-    type: forEach
-    parameters:
-      - name: level
-        type: string
-      - name: message
-        type: string
-    code: |
-      if level == "ERROR":
-        log.error(message)
-      elif level == "WARN":
-        log.warn(message)
-      elif level == "INFO":
-        log.info(message)
-      elif level == "DEBUG":
-        log.debug(message)
-      elif level == "TRACE":
-        log.trace(message)
-      else:
-        log.info(message)
+    ```yaml
+    {%
+      include "../../definitions/beginner-tutorial/logging-and-monitoring/logging-processor.yaml"
+    %}
+    ```
 
-pipelines:
-  logging_pipeline:
-    from: input_stream
-    via:
-      - type: peek
-        forEach:
-          functionRef: log_with_level
-          args:
-            level: "INFO"
-            message: "Received message with key: {} and value: {}"
-      - type: filter
-        if:
-          expression: value.get('importance') > 3
-      - type: peek
-        forEach:
-          functionRef: log_with_level
-          args:
-            level: "DEBUG"
-            message: "Message passed filter: {}"
-      - type: mapValues
-        mapper:
-          expression: dict(list(value.items()) + [("processed_at", time.time())])
-      - type: peek
-        forEach:
-          code: |
-            log.info("Sending processed message to output: {}", value)
-    to: output_stream
-```
+## Monitoring with Peek Operations
 
-This pipeline:
-1. Logs every incoming message at INFO level
-2. Filters messages based on an 'importance' field
-3. Logs messages that pass the filter at DEBUG level
-4. Adds a timestamp to each message
-5. Logs the final processed message before sending it to the output topic
+The `peek` operation allows non-intrusive monitoring of message flow without modifying the data.
 
-### Step 2: Create Kafka Topics
+### KSML Features Demonstrated:
+- **`peek` operation**: Inspect messages in the pipeline without modifying them
+- **Global variables**: Using `globals()` to maintain state across function calls
+- **Conditional logging**: Log only when specific conditions are met
+- **Message counting**: Track processed messages across invocations
 
-Create the input and output topics:
+This processor shows message counting and error detection using peek operations:
 
-```bash
-docker-compose exec kafka kafka-topics --create --topic logging-input --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
-docker-compose exec kafka kafka-topics --create --topic logging-output --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
-```
+??? info "Processor definition for monitoring operations (click to expand)"
 
-### Step 3: Run the Pipeline with Different Log Levels
-
-Run the pipeline with different log levels to see how it affects the output:
-
-```bash
-# Run with INFO level (default)
-ksml-runner --config logging-example.yaml
-
-# Run with DEBUG level to see more detailed logs
-ksml-runner --config logging-example.yaml --log-level DEBUG
-
-# Run with TRACE level to see all logs
-ksml-runner --config logging-example.yaml --log-level TRACE
-```
-
-### Step 4: Produce Test Messages
-
-In a new terminal, produce some test messages:
-
-```bash
-docker-compose exec kafka kafka-console-producer --topic logging-input --bootstrap-server localhost:9092 --property "parse.key=true" --property "key.separator=:"
-```
-
-Enter messages in the format `key:value`, for example:
-
-```
-message1:{"importance": 5, "content": "High importance message"}
-message2:{"importance": 2, "content": "Low importance message"}
-message3:{"importance": 4, "content": "Medium-high importance message"}
-```
-
-## Advanced Logging Techniques
-
-### Creating a Detailed Logging Function
-
-Add a more detailed logging function to your KSML file:
-
-```yaml
-functions:
-  detailed_logger:
-    type: forEach
-    parameters:
-      - name: stage
-        type: string
-    code: |
-      timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-      log.info("[{}] Stage: {} | Key: {} | Value Type: {} | Value: {}", 
-               timestamp, stage, key, type(value).__name__, value)
-```
-
-Use this function in your pipeline:
-
-```yaml
-- type: peek
-  forEach:
-    functionRef: detailed_logger
-    args:
-      stage: "Pre-processing"
-```
-
-### Conditional Logging
-
-You can implement conditional logging to only log messages that meet certain criteria:
-
-```yaml
-functions:
-  conditional_logger:
-    type: forEach
-    code: |
-      if "error" in value or value.get("status") == "failed":
-        log.error("Error detected in message: {}", value)
-      elif value.get("importance", 0) > 8:
-        log.warn("High importance message detected: {}", value)
-```
-
-## Monitoring Message Flow
-
-### Using Peek for Monitoring
-
-The `peek` operation is a powerful tool for monitoring message flow without modifying the messages:
-
-```yaml
-- type: peek
-  forEach:
-    code: |
-      global message_count
-      if 'message_count' not in globals():
-        message_count = 0
-      message_count += 1
-      if message_count % 100 == 0:
-        log.info("Processed {} messages", message_count)
-```
-
-### Monitoring Processing Time
-
-You can monitor how long operations take:
-
-```yaml
-functions:
-  time_operation:
-    type: mapper
-    parameters:
-      - name: operation_name
-        type: string
-    code: |
-      start_time = time.time()
-      result = yield
-      end_time = time.time()
-      log.info("Operation '{}' took {:.3f} ms", operation_name, (end_time - start_time) * 1000)
-      return result
-```
-
-Use this function to wrap operations:
-
-```yaml
-- type: process
-  processor:
-    functionRef: time_operation
-    args:
-      operation_name: "Complex Transformation"
-    next:
-      - type: mapValues
-        mapper:
-          expression: # Your complex transformation here
-```
+    ```yaml
+    {%
+      include "../../definitions/beginner-tutorial/logging-and-monitoring/monitoring-simple-processor.yaml"
+    %}
+    ```
 
 ## Error Handling with Logging
 
-### Catching and Logging Errors
+Use try-catch blocks in Python functions to handle errors gracefully and log them appropriately.
 
-Use try-except blocks in your Python functions to catch and log errors:
+### KSML Features Demonstrated:
+- **`transformValue` operation**: Transform message values with error handling
+- **`valueTransformer` function type**: Returns transformed values
+- **Try-except blocks**: Safe processing with error catching
+- **Structured logging**: Format logs with timestamps and component info
+- **`time.strftime()`**: Format timestamps for readable logs
+
+This processor demonstrates basic error handling with logging:
+
+??? info "Processor definition with error handling (click to expand)"
+
+    ```yaml
+    {%
+      include "../../definitions/beginner-tutorial/logging-and-monitoring/error-handling-processor.yaml"
+    %}
+    ```
+
+## Configuring Log Levels
+
+KSML provides standard logging levels through the `log` object available in Python functions:
+
+- **ERROR**: Critical errors requiring attention
+- **WARN**: Potential issues or unusual conditions  
+- **INFO**: Normal operational events
+- **DEBUG**: Detailed troubleshooting information
+- **TRACE**: Very detailed debugging output
+
+By default, KSML shows INFO, WARN, and ERROR logs. You can enable DEBUG and TRACE logging without rebuilding the image.
+
+### Enabling All Log Levels (Including DEBUG and TRACE)
+
+- Create a custom logback configuration file `logback-trace.xml` in your `examples` directory:
+
+??? info "Custom logback configuration for TRACE logging (click to expand)"
+
+    ```xml
+    {%
+      include "../../other-files/logback-trace.xml"
+    %}
+    ```
+
+- Update your `docker-compose.yml` to use the custom configuration:
 
 ```yaml
-functions:
-  safe_transform:
-    type: mapper
-    code: |
-      try:
-        # Attempt the transformation
-        result = {"processed": value.get("data") * 2, "status": "success"}
-        return result
-      except Exception as e:
-        # Log the error and return a fallback value
-        log.error("Error processing message: {} - Error: {}", value, str(e))
-        return {"processed": None, "status": "error", "error_message": str(e)}
+ksml:
+  environment:
+    - LOGBACK_CONFIGURATION_FILE=/ksml/logback-trace.xml
 ```
 
-## Configuring Logging
+- Restart the containers to see all log levels including DEBUG and TRACE.
+    - To test, add for example `log.trace("TRACE: Processing message with key={}", key)` into your processing definition.
 
-### Log Configuration in KSML Runner
+## Best Practices
 
-The KSML Runner supports various logging configuration options:
-
-```bash
-# Set log level
-ksml-runner --config your-pipeline.yaml --log-level INFO
-
-# Log to a file
-ksml-runner --config your-pipeline.yaml --log-file pipeline.log
-
-# Configure log format
-ksml-runner --config your-pipeline.yaml --log-format "%(asctime)s [%(levelname)s] %(message)s"
-```
-
-## Best Practices for Logging and Monitoring
-
-1. **Use appropriate log levels**:
-   - ERROR: For actual errors that need attention
-   - WARN: For potential issues or unusual conditions
-   - INFO: For normal but significant events
-   - DEBUG: For detailed troubleshooting information
-   - TRACE: For very detailed debugging information
-
-2. **Include context in log messages**:
-   - Message keys and values (or summaries for large values)
-   - Operation or stage name
-   - Timestamps
-   - Relevant metrics or counters
-
+1. **Use appropriate log levels**: 
+    - ERROR for failures, WARN for issues, INFO for events, DEBUG for details
+2. **Include context**: 
+    - Add message keys, component names, and relevant metadata
 3. **Avoid excessive logging**:
-   - Don't log every message at high volume
-   - Use sampling or periodic logging for high-throughput pipelines
-   - Consider conditional logging based on message content
-
-4. **Structure your logs**:
-   - Use consistent formats
-   - Include key-value pairs for easier parsing
-   - Consider using JSON formatting for machine-readable logs
-
-5. **Monitor performance metrics**:
-   - Message throughput
-   - Processing time
-   - Error rates
-   - Resource usage (memory, CPU)
-
-## Next Steps
-
-Now that you've learned about logging and monitoring in KSML, you can:
-
-- Explore [intermediate tutorials](/docs/tutorials/intermediate/index.md) to learn about more advanced KSML features
-- Learn about [error handling and recovery](/docs/tutorials/intermediate/error-handling.md) in more detail
-- Dive into [performance optimization](/docs/tutorials/advanced/performance-optimization.md) techniques
+    - Use sampling or conditional logging for high-volume streams
+4. **Structure messages**:
+    - Use consistent formats with key-value pairs
+5. **Monitor performance**:
+    - Track throughput, processing time, and error rates
 
 ## Conclusion
 
-Effective logging and monitoring are essential for building robust KSML applications. By implementing the techniques covered in this tutorial, you'll be able to:
+Effective logging and monitoring enable you to track pipeline behavior, diagnose issues quickly, and maintain reliable KSML applications. Use the `log` object for different severity levels and `peek` operations for non-intrusive monitoring.
 
-- Track the behavior of your pipelines
-- Quickly identify and diagnose issues
-- Monitor performance and resource usage
-- Create more maintainable and reliable applications
+## Next Steps
 
-Remember that good logging practices are a balance between capturing enough information to be useful and avoiding excessive logging that can impact performance.
+- [Error Handling and Recovery](../intermediate/error-handling.md) - Advanced error handling techniques
+- [Performance Optimization](../advanced/performance-optimization.md) - Optimize pipeline performance  
+- [Intermediate Tutorials](../intermediate/index.md) - More advanced KSML features

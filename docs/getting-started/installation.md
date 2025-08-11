@@ -1,26 +1,45 @@
 # Quick Start with KSML
 
-Get KSML running in 5 minutes with this simple Docker Compose setup. You'll have a working stream processing pipeline that transforms temperature data from Fahrenheit to Celsius.
+Get KSML running in 5 minutes! This guide shows you how to create your first **real-time analytics application** using only YAML - no Java required. You'll build an IoT analytics system that processes sensor data in real-time.
 
-## Quick Start with Docker Compose
+## What We'll Build
 
-The fastest way to get started with KSML is using our pre-configured Docker Compose setup that includes everything you need:
+A **real-time device health monitoring system** that:
 
-- Kafka broker with pre-configured topics
-- KSML runner
-- Kafka UI for easy topic monitoring
-- Example data setup
+- **Filters** offline devices from processing
+- **Analyzes** device health from battery, signal, and error metrics
+- **Categorizes** devices as "healthy" or "needs attention"  
+- **Alerts** on specific issues like low battery or poor signal
 
-### Prerequisites
+All with just YAML configuration and clear Python logic.
 
-Before you begin, make sure you have:
+## Prerequisites
 
-- **Docker** and **Docker Compose** installed
-- Basic understanding of Kafka concepts like topics and messages
+You'll need:
 
-### Step 1: Create the Docker Compose Configuration
+- **Docker Compose** installed ([installation guide](https://docs.docker.com/compose/install/))
+- 5 minutes of your time
 
-Create a new directory for your KSML project and add the docker-compose.yml:
+## Choose Your Setup Method
+
+**Option A: Quick Start (Recommended)**
+Download the pre-configured setup and run immediately:
+
+1. Download and extract: [local-docker-compose-setup-quick-start.zip](../local-docker-compose-setup/local-docker-compose-setup-quick-start.zip)
+2. Navigate to the extracted folder
+3. Run `docker compose up -d`
+4. Skip to [Step 6: See It In Action!](#step-6-see-it-in-action)
+
+**Option B: Step-by-Step Setup**
+Follow the detailed instructions below to create everything from scratch.
+
+---
+
+## Step 1: Set Up Your Environment
+
+> **Note**: Skip this step if you chose Option A above.
+
+- Create a new directory for your KSML project:
 
 ```bash
 mkdir my-ksml-project
@@ -28,329 +47,209 @@ cd my-ksml-project
 mkdir examples
 ```
 
-Create a `docker-compose.yml` file with the following content:
+- Create a `docker-compose.yml` file:
 
-```yaml
-networks:
-  ksml:
-    name: ksml_example
-    driver: bridge
+??? info "Docker Compose Configuration (click to expand)"
 
-services:
-  broker:
-    image: bitnami/kafka:3.8.0
-    hostname: broker
-    container_name: broker
-    ports:
-      - "9092:9092"
-    networks:
-      - ksml
-    restart: always
-    environment:
-      KAFKA_CFG_PROCESS_ROLES: 'controller,broker'
-      KAFKA_CFG_BROKER_ID: 0
-      KAFKA_CFG_NODE_ID: 0
-      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: '0@broker:9090'
-      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
-      KAFKA_CFG_ADVERTISED_LISTENERS: 'INNER://broker:9093,OUTER://localhost:9092'
-      KAFKA_CFG_LISTENERS: 'INNER://broker:9093,OUTER://broker:9092,CONTROLLER://broker:9090'
-      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: 'INNER:PLAINTEXT,OUTER:PLAINTEXT,CONTROLLER:PLAINTEXT'
-      KAFKA_CFG_LOG_CLEANUP_POLICY: delete
-      KAFKA_CFG_LOG_RETENTION_MINUTES: 10
-      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: INNER
-      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_CFG_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: 'false'
-      KAFKA_CFG_MIN_INSYNC_REPLICAS: 1
-      KAFKA_CFG_NUM_PARTITIONS: 1
-    healthcheck:
-      test: kafka-topics.sh --bootstrap-server broker:9093 --list
-      interval: 5s
-      timeout: 10s
-      retries: 10
-      start_period: 5s
+    ```yaml
+    {%
+      include "../local-docker-compose-setup/docker-compose.yml"
+    %}
+    ```
 
-  ksml:
-    image: registry.axual.io/opensource/images/axual/ksml:1.0.8
-    networks:
-      - ksml
-    container_name: ksml
-    working_dir: /ksml
-    volumes:
-      - ./examples:/ksml
-    depends_on:
-      broker:
-        condition: service_healthy
-      kafka-setup:
-        condition: service_completed_successfully
+- Create `kowl-ui-config.yaml` for Kafka UI:
 
-  kafka-ui:
-    image: quay.io/cloudhut/kowl:master
-    container_name: kowl
-    restart: always
-    ports:
-      - 8080:8080
-    volumes:
-      - ./:/config
-    environment:
-      CONFIG_FILEPATH: "/config/kafka-ui-config.yaml"
-    depends_on:
-      broker:
-        condition: service_healthy
-    networks:
-      - ksml
+??? info "Kafka UI Configuration (click to expand)"
 
-  kafka-setup:
-    image: bitnami/kafka:3.8.0
-    hostname: kafka-setup
-    networks:
-      - ksml
-    depends_on:
-      broker:
-        condition: service_healthy
-    restart: on-failure
-    command: "bash -c 'echo Trying to create topics... && \
-                       kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temperature_data && \
-                       kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temperature_data_copied && \
-                       kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic temperature_data_converted'"
-```
+    ```yaml
+    {%
+      include "../local-docker-compose-setup/kowl-ui-config.yaml"
+    %}
+    ```
 
-Next, create a config file named `kafka-ui-config.yaml` for the Kafka UI service we will use to monitor Kafka, with the following contents:
+## Step 2: Start Docker Services
 
-```yaml
-server:
-  listenPort: 8080
-  listenAddress: 0.0.0.0
-
-kafka:
-  brokers:
-    - broker:9093
-```
-
-### Step 2: Start the Environment
-
-Start all services with Docker Compose:
+> **Note**: Skip this step if you chose Option A above.
 
 ```bash
 docker compose up -d
 ```
 
-This command starts:
+This starts:
 
-- **Kafka broker** on port 9092
-- **KSML runner** that will execute your KSML definitions
-- **Kafka UI** on port 8080 for monitoring topics and messages
-- **Topic setup** that creates required topics automatically
+- **Kafka** broker (port 9092)
+- **KSML** runner for your stream processing  
+- **Kowl (Kafka UI)** for monitoring (port 8080)
+- Automatic topic creation
 
-### Step 3: Verify your setup so far
-
-Check the services in the docker compose:
+## Step 3: Verify Everything Started
 
 ```bash
 docker compose ps
 ```
 
-You should see Kafka ("`broker`") and Kafka UI ("`kowl`") running; the "Topic setup" container will have done its work and exited.
-The KSML runner will have logged an error about a missing config file and exited; we will fix this in the next step.
-<br>
-For now, you can check Kafka and Kafka UI, and verify that the test topics have been created:
+You should see:
 
-- Visit [http://localhost:8080](http://localhost:8080) to access Kafka UI, and check the "topics" tab
-- Check logs: `docker compose logs -f`
+- **Kafka broker** and **Kafka UI** are running  
+- **Topic setup container** has exited successfully (this creates the required topics)
+- **KSML runner** will have exited (missing config - we'll fix this next)
 
-### Step 4: Create Your First KSML Definition
+Check the Kafka UI at [http://localhost:8080](http://localhost:8080) to see your topics.
 
-Create a simple KSML file to test the setup. In the `examples/` directory, create a file `hello-world.yaml` with the 
-following contents:
+## Step 4: Create Your First KSML Application
 
-```yaml
-streams:
-  input_stream:
-    topic: temperature_data
-    keyType: string
-    valueType: json
-  output_stream:
-    topic: temperature_data_copied
-    keyType: string
-    valueType: json
+> **Note**: If you chose Option A (zip download), these files already exist - you can skip to [Step 5](#step-5-start-your-application).
 
-functions:
-  log_message:
-    type: forEach
-    code: |
-      log.info(f"Processing message: key={key}, value={value}")
+Now let's create a smart device health monitoring application!
 
-pipelines:
-  - from: input_stream
-    via:
-      - type: peek
-        forEach: log_message
-    to: output_stream
-```
+In the `examples/` directory, create `iot-analytics.yaml`:
 
-Finally, the KSML runner needs a configuration file which tells it how to connect to Kafka, and which KSML definitions
-to run, along with some other settings (explained later). The default name for this file is `ksml-runner.yaml`, create it
-in your `examples/` directory and copy and paste the following content:
+??? info "KSML Device Health Monitoring processing definition (click to expand)"
 
-```yaml
-kafka:
-   bootstrap.servers: broker:9093
-   application.id: io.ksml.example.producer
-   security.protocol: PLAINTEXT
-   acks: all
+       > This is a definition for a demo KSML application showing device health monitoring. It is not required at this point to understand this YAML & Python syntax, we will explain what it does and how it works later.
 
-ksml:
-  definitions:
-    # format is: <namespace>: <filename> 
-    helloworld: hello-world.yaml 
-  
-  # The examples directory is mounted to /ksml in the Docker container
-  configDirectory: /ksml          # When not set defaults to the working directory
-  schemaDirectory: /ksml          # When not set defaults to the config directory
-  storageDirectory: /tmp          # When not set defaults to the default JVM temp directory
+    ```yaml
+    {%
+      include "../definitions/installation/processor.yaml"
+    %}
+    ```
 
-  # This section defines if a REST endpoint is opened on the KSML runner, through which
-  # state stores and/or readiness / liveness probes can be accessed.
-  applicationServer:
-    enabled: false                # Set to true to enable, or false to disable
-    host: 0.0.0.0                 # IP address to bind the REST server to
-    port: 8080                    # Port number to listen on
+Now create the KSML runner configuration file `ksml-runner.yaml`:
 
-  # This section defines whether a Prometheus endpoint is opened to allow metric scraping.
-  prometheus:
-    enabled: false                 # Set to true to enable, or false to disable
-    host: 0.0.0.0                 # IP address to bind the Prometheus agent server to
-    port: 9999                    # Port number to listen on
+??? info "KSML Runner Configuration (click to expand)"
 
-  # This section enables error handling or error ignoring for certain types of errors.
-  errorHandling:
-    consume:                      # Error handling definitions for consume errors
-      log: true                   # Log errors true/false
-      logPayload: true            # Upon error, should the payload of the message be dumped to the log file.
-      loggerName: ConsumeError    # Definition of the error logger name.
-      handler: stopOnFail         # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
-    process:
-      log: true                   # Log errors true/false
-      logPayload: true            # Upon error, should the payload of the message be dumped to the log file.
-      loggerName: ProcessError    # Definition of the error logger name.
-      handler: continueOnFail     # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
-    produce:
-      log: true                   # Log errors true/false
-      logPayload: true            # Upon error, should the payload of the message be dumped to the log file.
-      loggerName: ProduceError    # Definition of the error logger name.
-      handler: continueOnFail     # How to proceed after encountering the error. Either continueOnFail or stopOnFail.
+    ```yaml
+    kafka:
+      bootstrap.servers: broker:9093
+      application.id: io.ksml.example.producer
+      security.protocol: PLAINTEXT
+      acks: all
 
-  enableProducers: true           # Set to true to allow producer definitions to be parsed in the KSML definitions and be executed.
-  enablePipelines: true          # Set to true to allow pipeline definitions to be parsed in the KSML definitions and be executed.
-```
+    ksml:
+      definitions:
+        iot: iot-analytics.yaml
+    ```
 
-### Step 5: Run Your KSML Application
+## Step 5: Start Your Application
 
-Restart the KSML runner to load your new definitions:
+Restart the KSML runner:
 
 ```bash
 docker compose restart ksml
 ```
 
-You should see logs indicating your KSML application has started and a Kafka Streams topology was created:
+Check the logs:
 
 ```bash
 docker compose logs ksml
 ```
 
-Try producing some messages, for now using the Kafka console producer. You can start it inside the KSML container,
-running in interactive mode, using the following command:
+## Step 6: See It In Action!
+
+Send some test data to see your pipeline work:
 
 ```bash
-docker compose exec broker kafka-console-producer.sh --bootstrap-server broker:9093 --topic temperature_data --property "parse.key=true" --property "key.separator=:"
+docker compose exec broker kafka-console-producer.sh --bootstrap-server broker:9093 --topic iot_sensor_data --property "parse.key=true" --property "key.separator=:"
 ```
 
-Then you can enter some test messages, using the format `key:value` where the value is a JSON message:
+Paste these device health metrics (press Enter after each):
 
 ```
-sensor1:{"temperature": 75}
-sensor2:{"temperature": 65}
-sensor3:{"temperature": 80}
+sensor-001:{"battery_percent":15,"signal_strength":80,"error_count":1,"status":"online"}
+sensor-002:{"battery_percent":75,"signal_strength":30,"error_count":2,"status":"online"}
+sensor-003:{"battery_percent":90,"signal_strength":85,"error_count":0,"status":"online"}
+sensor-004:{"battery_percent":60,"signal_strength":70,"error_count":8,"status":"online"}
+sensor-005:{"battery_percent":50,"signal_strength":60,"error_count":1,"status":"offline"}
 ```
 
-Press <Enter> after each message; to stop entering messages, use `Control-C`. Now, if you check the logs of the KSML runner, you should see that your
-pipeline processed (in this case: logged) the messages:
-
-```bash
-docker compose logs ksml
-```
-
-Should show something like:
-
-```
- INFO  helloworld.function.log_message      Processing message: key=sensor1, value={'temperature': 75}
- INFO  helloworld.function.log_message      Processing message: key=sensor2, value={'temperature': 65}
- INFO  helloworld.function.log_message      Processing message: key=sensor3, value={'temperature': 80}
-```
-
-Also, checking the output topic on the UI [http://localhost:8080](http://localhost:8080) should show that the records have
-been copied to topic `temperature_data_copied`.
-
-Congratulations, you have created your first working KSML Streams application. 
-For a more interesting application please continue with the [KSML Basics tutorial](basics-tutorial.md); this will give a more in-depth 
-explanation of the KSML language, and lets you build on this example to do temperature conversion, adding fields, and generating 
-data from within KSML.
-
-### Step 6: Explore Your Setup with Kafka UI
-
-Now let's explore what's running using the Kafka UI:
-
-1. **Open Kafka UI** in your browser: [http://localhost:8080](http://localhost:8080)
-
-2. **View Topics**: You'll see the pre-created topics:
-   - `temperature_data` (input topic)
-   - `temperature_data_copied` (output topic)
-   - `temperature_data_converted` (this is used in the KSML Basics tutorial)
-
-3. **Explore Messages**: Click on any topic to see its configuration and messages
-
-4. **Monitor Activity**: The UI shows real-time information about:
-   - Topic partitions and offsets
-   - Consumer groups
-   - Message throughput
-
-This gives you a visual way to monitor your Kafka topics and see how KSML processes your data.
-
-## Alternative Setup Options
-
-For more advanced setups or existing Kafka clusters, see our [Advanced Installation Guide](advanced-installation.md).
-
-## Troubleshooting
-
-### Common Issues
-
-- **Connection refused errors**: Make sure all containers are running with `docker compose ps`
-- **Port conflicts**: If port 9092 or 8080 are in use, modify the docker-compose.yml ports
-- **KSML syntax errors**: Check your YAML syntax for proper indentation and formatting
-
-### Getting Help
-
-If you encounter issues:
-
-- Check the [Troubleshooting Guide](../resources/troubleshooting.md) for detailed solutions
-- Visit the [Community and Support](../resources/community.md) page for community help
+Press `Ctrl+C` to exit.
 
 ## What Just Happened?
 
-Congratulations! You now have a complete KSML environment running with:
+Your KSML pipeline performed **real-time device health monitoring** in just a few lines of YAML:
 
-- ✅ Kafka broker ready to handle messages
-- ✅ KSML runner ready to execute your pipelines
-- ✅ Kafka UI for easy monitoring and exploration
-- ✅ Pre-configured topics for immediate use
+1. **Filtered** offline devices (only processes devices with status "online")
+2. **Analyzed** device health from battery, signal strength, and error metrics
+3. **Categorized** devices as "healthy" or "needs attention" 
+4. **Identified** specific issues (low battery, poor signal, high errors)
+
+Check the KSML logs to see the real-time analysis:
+
+```bash
+docker compose logs ksml -f
+```
+
+You'll see device health reports like:
+```
+sensor-003: Healthy (Battery: 90%)
+sensor-001: Needs attention - low_battery
+sensor-002: Needs attention - poor_signal
+sensor-004: Needs attention - high_errors
+```
+
+**This is real-time device monitoring!** Each device status is instantly analyzed and categorized as data flows through the pipeline.
+
+### Example messages
+
+**INPUT** (to `iot_sensor_data` topic):
+
+- key: `sensor-001`
+- value:
+```json
+{
+  "battery_percent": 15,
+  "signal_strength": 80,
+  "error_count": 1,
+  "status": "online"
+}
+```
+
+**OUTPUT** (to `device_health_alerts` topic):
+
+- key: `sensor-001`
+- value:
+```json
+{
+  "device_id": "sensor-001",
+  "battery_percent": 15,
+  "signal_strength": 80,
+  "error_count": 1,
+  "health_status": "needs_attention",
+  "issue_reason": "low_battery"
+}
+```
+
+Open [http://localhost:8080](http://localhost:8080) to explore your topics and see the transformed data!
+
+## Congratulations!
+
+You just built a **real-time device health monitoring system** with:
+
+- **Smart device analysis** with battery, signal, and error monitoring
+- **Real-time filtering and categorization** of device health status
+- **No compilation** or complex infrastructure needed
+
+## What Makes KSML Powerful?
+
+**Traditional stream processing requires:**
+
+- Java/Scala expertise for Kafka Streams
+- Complex filtering and transformation code
+- Build and deployment pipelines
+
+**With KSML you get:**
+
+- Simple YAML configuration for data processing
+- Built-in filtering and transformation operations
+- Optional Python for custom business logic
+- Instant deployment with containers
 
 ## Next Steps
 
-Now that you have KSML running, let's understand what you just set up:
+Ready to learn more?
 
-👉 **Continue to [Understanding KSML](introduction.md)** to learn what KSML is and why it makes stream processing so much easier.
+1. **[Understanding KSML](introduction.md)** - Learn the concepts
+2. **[KSML Basics Tutorial](basics-tutorial.md)** - Build more advanced pipelines
+3. **[Examples Library](../resources/examples-library.md)** - More patterns
 
-After that, you can:
-
-- Follow the [KSML Basics Tutorial](basics-tutorial.md) to build your first complete pipeline
-- Browse the [Examples Library](../resources/examples-library.md) for more patterns
+**Need help?** Check our [Troubleshooting Guide](../resources/troubleshooting.md)

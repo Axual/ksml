@@ -1,0 +1,60 @@
+streams:
+  avro_input:
+    topic: sensor_data_avro
+    keyType: string
+    valueType: avro:SensorData
+    offsetResetPolicy: latest
+
+  json_output:
+    topic: sensor_data_converted_formats
+    keyType: string
+    valueType: json
+
+pipelines:
+  format_conversion:
+    from: avro_input
+    via:
+      # Log original AVRO data
+      - type: peek
+        forEach:
+          code: |
+            if value is not None:
+              log.info("Original AVRO: sensor={}, type={}, value={}{}",
+                      value.get("name"), value.get("type"), value.get("value"), value.get("unit"))
+            else:
+              log.info("Received null AVRO message with key={}", key)
+
+      # Convert from Avro to JSON
+      - type: convertValue
+        into: json
+      - type: peek
+        forEach:
+          code: |
+            if value is not None:
+              log.info("Converted to JSON: sensor={}, city={}", value.get("name"), value.get("city"))
+            else:
+              log.info("JSON conversion result: null")
+
+      # Convert from JSON to string to see serialized representation
+      - type: convertValue
+        into: string
+      - type: peek
+        forEach:
+          code: |
+            if value is not None:
+              log.info("As string (first 100 chars): {}", str(value)[:100])
+            else:
+              log.info("String conversion result: null")
+
+      # Convert back to JSON for output
+      - type: convertValue
+        into: json
+      - type: peek
+        forEach:
+          code: |
+            if value is not None:
+              log.info("Final JSON output: sensor={}, owner={}", value.get("name"), value.get("owner"))
+            else:
+              log.info("Final conversion result: null")
+
+    to: json_output

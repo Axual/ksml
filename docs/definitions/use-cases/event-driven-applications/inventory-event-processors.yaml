@@ -55,7 +55,7 @@ pipelines:
         mapper:
           code: |
             inventory = inventory_store.get(key)
-            if inventory is None:
+            if not inventory:
               inventory = {
                 "product_id": key,
                 "current_stock": 0
@@ -234,7 +234,7 @@ pipelines:
         mapper:
           code: |
             inventory = inventory_store.get(key)
-            if inventory is None:
+            if not inventory:
               inventory = {
                 "product_id": key,
                 "current_stock": 0

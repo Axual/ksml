@@ -1,0 +1,51 @@
+streams:
+  xml_input:
+    topic: ksml_sensordata_xml
+    keyType: string
+    valueType: xml:SensorData
+    offsetResetPolicy: latest
+
+  xml_output:
+    topic: ksml_sensordata_xml_processed
+    keyType: string
+    valueType: xml:SensorData
+
+functions:
+  uppercase_city:
+    type: valueTransformer
+    code: |
+      # When using xml:SensorData, the data comes as a structured object (dict)
+      if value and isinstance(value, dict):
+        # Create a copy and uppercase the city
+        enriched = dict(value)
+        if "city" in enriched:
+          enriched["city"] = enriched["city"].upper()
+        result = enriched
+      else:
+        result = value
+    expression: result
+    resultType: xml:SensorData
+
+pipelines:
+  process_xml:
+    from: xml_input
+    via:
+      # Log the original XML data
+      - type: peek
+        forEach:
+          code: |
+            if value:
+              log.info("Original: sensor={}, city={}", value.get("name"), value.get("city"))
+
+      # Transform the XML data - uppercase city
+      - type: transformValue
+        mapper: uppercase_city
+
+      # Log the transformed XML data
+      - type: peek
+        forEach:
+          code: |
+            if value:
+              log.info("Transformed: sensor={}, city={}", value.get("name"), value.get("city"))
+
+    to: xml_output

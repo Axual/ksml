@@ -6,8 +6,9 @@ Now that you've seen KSML in action with the [Quick Start](installation.md), let
 
 In the Quick Start, you set up a complete stream processing pipeline with just:
 
-- A simple Docker Compose command  
-- A YAML configuration file
+- A simple Docker Compose YAML configuration file 
+- A YAML KSML definition file that describes the Kafka Streams topology
+- A YAML KSML configuration file that configures the KSML container
 - No Java code, no compilation, no complex setup
 
 That pipeline was:
@@ -127,5 +128,5 @@ Kafka Streams implementation.
 
 Now that you understand what KSML is and its key concepts, you can:
 
-- Explore the [Core Concepts](../../core-concepts/) in more detail
+- Explore the [Core Concepts](../core-concepts/) in more detail
 - Follow the [KSML Basics Tutorial](basics-tutorial.md) to build your first application

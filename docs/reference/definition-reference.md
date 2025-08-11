@@ -1,4 +1,4 @@
-# KSML Definition Reference
+# Definition Reference
 
 This document provides a comprehensive reference for the syntax with which developers can set up their own KSML
 definitions. Each section is described with its purpose, available options, and examples.

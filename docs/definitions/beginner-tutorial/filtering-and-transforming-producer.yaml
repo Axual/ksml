@@ -1,0 +1,24 @@
+producers:
+    data_producer:
+      generator: generate_tutorial_data
+      interval: 3s
+      to:
+        topic: tutorial_input
+        keyType: string
+        valueType: json
+functions:
+    generate_tutorial_data:
+      type: generator
+      globalCode: |
+        import random
+        sensor_id = 0
+        locations = ["server_room", "warehouse", "data_center"]
+      code: |
+        global sensor_id, locations
+        key = "sensor" + str(sensor_id)
+        sensor_id = (sensor_id + 1) % 5
+        location = random.choice(locations)
+        sensors = {"temperature": random.randrange(150), "humidity": random.randrange(90), "location": location}
+        value = {"sensors": sensors}
+      expression: (key, value)
+      resultType: (string, json)

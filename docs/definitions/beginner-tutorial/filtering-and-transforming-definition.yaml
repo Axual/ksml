@@ -1,24 +1,18 @@
 streams:
   input_stream:
-    topic: temperature_data
+    topic: tutorial_input
     keyType: string
     valueType: json
   output_stream:
-    topic: temperature_data_converted
+    topic: filtered_data
     keyType: string
     valueType: json
 
 functions:
   temperature_above_threshold:
     type: predicate
-    expression: value.get('temperature', 0) > 70
-
-  fahrenheit_to_celsius:
-    type: valueTransformer
-    expression: |
-      {"sensor": key, "temp_fahrenheit": value.get('temperature'), "temp_celsius": (value.get('temperature') - 32) * 5/9}
-    resultType: struct
-
+    #expression: value.get('temperature', 0) > 70
+    expression: value.get('sensors', {}).get('temperature', 0) > 70 
   log_message:
     type: forEach
     parameters:
@@ -29,16 +23,15 @@ functions:
       log.info(msg + ": key={}, value={}", key, value)
 
 pipelines:
-  tutorial_pipeline:
+  filtering_pipeline:
     from: input_stream
     via:
       - type: filter
         if: temperature_above_threshold
-      - type: transformValue
-        mapper: fahrenheit_to_celsius
       - type: peek
         forEach:
           code: |
             # Manually call log_message to pass in additional parameters
             log_message(key, value, prefix="Processed")
     to: output_stream
+

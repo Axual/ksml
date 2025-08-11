@@ -11,7 +11,7 @@ theme:
 plugins:
   - include-markdown:
       encoding: ascii
-      preserve_includer_indent: false
+      preserve_includer_indent: true
       dedent: true
       trailing_newlines: true
       comments: false
@@ -27,6 +27,7 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+  - pymdownx.details
 
 nav:
   - Home: index.md
@@ -37,7 +38,6 @@ nav:
       - Overview: core-concepts/index.md
       - Data Types: reference/data-type-reference.md
       - Notations: reference/notation-reference.md
-      - Stream Types: reference/stream-type-reference.md
       - Functions: core-concepts/functions.md
       - Pipelines: core-concepts/pipelines.md
       - Operations: core-concepts/operations.md
@@ -74,10 +74,13 @@ nav:
       - Fraud Detection: use-cases/fraud-detection.md
   - References:
       - Overview: reference/index.md
-      - KSML Language Reference: reference/language-reference.md
-      - Functions Reference: reference/function-reference.md
-      - Operations Reference: reference/operation-reference.md
       - Configuration Reference: reference/configuration-reference.md
+      - KSML Language Reference: reference/language-reference.md
+      - Stream Type Reference: reference/stream-type-reference.md
+      - Data Type Reference: reference/data-type-reference.md
+      - Notation Reference: reference/notation-reference.md
+      - Function Reference: reference/function-reference.md
+      - Operation Reference: reference/operation-reference.md
   - Resources:
       - Examples Library: resources/examples-library.md
       - Troubleshooting Guide: resources/troubleshooting.md

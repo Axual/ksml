@@ -18,8 +18,8 @@ pipelines:
     inputs:
       - name: new-orders
         topic: new-orders
-        keyType: STRING
-        valueType: AVRO
+        keyType: string
+        valueType: avro
         valueSchema: Order
     operations:
       - type: mapValues
@@ -47,8 +47,8 @@ pipelines:
     inputs:
       - name: domain-events
         topic: domain-events
-        keyType: STRING
-        valueType: JSON
+        keyType: string
+        valueType: json
     operations:
       - type: branch
         predicates:
@@ -80,8 +80,8 @@ pipelines:
     inputs:
       - name: write-events
         topic: write-events
-        keyType: STRING
-        valueType: JSON
+        keyType: string
+        valueType: json
     operations:
       - type: mapValues
         mapper:
@@ -120,8 +120,8 @@ When integrating microservices, schema evolution is critical. Use KSML with Avro
 inputs:
   - name: service-events
     topic: service-events
-    keyType: STRING
-    valueType: AVRO
+    keyType: string
+    valueType: avro
     valueSchema: ServiceEvent
     schemaRegistry: http://schema-registry:8081
 ```
@@ -171,8 +171,8 @@ pipelines:
     inputs:
       - name: api-requests
         topic: api-gateway-requests
-        keyType: STRING
-        valueType: JSON
+        keyType: string
+        valueType: json
     operations:
       - type: mapValues
         mapper:
@@ -201,8 +201,8 @@ pipelines:
     inputs:
       - name: db-changes
         topic: mysql.inventory.customers
-        keyType: JSON
-        valueType: JSON
+        keyType: json
+        valueType: json
     operations:
       - type: filter
         predicate:

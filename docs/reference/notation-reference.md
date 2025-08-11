@@ -1,4 +1,4 @@
-# KSML Notation Reference
+# Notation Reference
 
 This document provides a comprehensive reference for all notations available in KSML. Each notation may handle schema
 and/or interaction with a schema registry differently.
