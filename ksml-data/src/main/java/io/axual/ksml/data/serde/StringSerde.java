@@ -74,6 +74,7 @@ public class StringSerde implements Serde<Object> {
     public Serializer<Object> serializer() {
         return (topic, data) -> {
             final var dataObject = nativeMapper.toDataObject(expectedType, data);
+            // TODO No longer needed as this check is done in the nativeMapper toDataObject
             if (!expectedType.isAssignableFrom(dataObject)) {
                 throw new DataException("Incorrect type passed in: expected=" + expectedType + ", got " + dataObject.type());
             }

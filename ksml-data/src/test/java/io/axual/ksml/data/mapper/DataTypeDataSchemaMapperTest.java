@@ -91,6 +91,22 @@ class DataTypeDataSchemaMapperTest {
     }
 
     @Test
+    @DisplayName("EnumSchema ignores provided namespace and uses default enum name")
+    void enumSchemaIgnoresProvidedNamespace() {
+        var allowedSymbols = List.of(new Symbol("X"), new Symbol("Y"));
+        var enumType = new EnumType(allowedSymbols);
+
+        var enumSchema = mapper.toDataSchema("custom.ns", "CustomName", enumType);
+        assertThat(enumSchema).isInstanceOf(EnumSchema.class);
+        var concreteEnumSchema = (EnumSchema) enumSchema;
+        // Namespace is ignored: fullName equals simple name (no namespace prefix)
+        assertThat(concreteEnumSchema.fullName()).isEqualTo(concreteEnumSchema.name());
+        // The name used is the enum type name ("enum")
+        assertThat(concreteEnumSchema.name()).isEqualTo(enumType.toString());
+        assertThat(concreteEnumSchema.hasDoc()).isFalse();
+    }
+
+    @Test
     @DisplayName("ListType and MapType nesting round-trip produces equivalent types")
     void listAndMapNestedRoundTrip() {
         var nestedValueType = new MapType(DataString.DATATYPE);
@@ -156,6 +172,19 @@ class DataTypeDataSchemaMapperTest {
     }
 
     @Test
+    @DisplayName("TupleSchema uses KSML namespace and name equals TupleType.toString() with correct doc")
+    void tupleSchemaUsesKsmlNamespaceAndGeneratedName() {
+        var singleElementTupleType = new TupleType(DataString.DATATYPE);
+        var tupleSchema = mapper.toDataSchema(singleElementTupleType);
+        assertThat(tupleSchema).isInstanceOf(TupleSchema.class);
+        var named = (NamedSchema) tupleSchema;
+        assertThat(named.fullName()).startsWith(DataSchemaConstants.DATA_SCHEMA_KSML_NAMESPACE + ".");
+        assertThat(named.name()).isEqualTo(singleElementTupleType.toString());
+        assertThat(named.hasDoc()).isTrue();
+        assertThat(named.toString()).contains(singleElementTupleType.toString());
+    }
+
+    @Test
     @DisplayName("UnionType round-trip preserves member order, names and tags")
     void unionTypeRoundTripPreservesMemberMetadata() {
         var memberInt = new UnionType.MemberType("intField", DataInteger.DATATYPE, 1);
@@ -183,6 +212,19 @@ class DataTypeDataSchemaMapperTest {
         assertThat(mappedMembers[1].name()).isEqualTo("stringField");
         assertThat(mappedMembers[1].tag()).isEqualTo(2);
         assertThat(mappedMembers[1].type()).isSameAs(DataString.DATATYPE);
+    }
+
+    @Test
+    @DisplayName("Empty UnionType round-trip yields zero members")
+    void emptyUnionTypeRoundTrip() {
+        var emptyUnionType = new UnionType();
+        var unionSchema = mapper.toDataSchema(emptyUnionType);
+        assertThat(unionSchema).isInstanceOf(UnionSchema.class);
+        assertThat(((UnionSchema) unionSchema).memberSchemas()).isEmpty();
+
+        var mappedBack = mapper.fromDataSchema(unionSchema);
+        assertThat(mappedBack).isInstanceOf(UnionType.class);
+        assertThat(((UnionType) mappedBack).memberTypes()).isEmpty();
     }
 
     @Test

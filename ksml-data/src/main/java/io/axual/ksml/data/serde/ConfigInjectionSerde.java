@@ -66,6 +66,12 @@ public class ConfigInjectionSerde implements Serde<Object> {
         };
     }
 
+    @Override
+    public void configure(final Map<String, ?> configs, final boolean isKey) {
+        serializer.configure(configs, isKey);
+        deserializer.configure(configs, isKey);
+    }
+
     protected Map<String, ?> modifyConfigs(Map<String, ?> configs, boolean isKey) {
         return configs;
     }
