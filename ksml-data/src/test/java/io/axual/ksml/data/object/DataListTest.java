@@ -59,7 +59,7 @@ class DataListTest {
 
         assertThatThrownBy(() -> list.add(dataInteger))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Can not cast value of dataType");
+                .hasMessageStartingWith("Can not cast value of dataType");
     }
 
     @Test

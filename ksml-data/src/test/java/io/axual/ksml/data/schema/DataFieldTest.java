@@ -74,7 +74,7 @@ class DataFieldTest {
         final DataValue nullValue = new DataValue(null);
         assertThatThrownBy(() -> new DataField("name", DataSchema.STRING_SCHEMA, null, 0, true, false, nullValue))
                 .isInstanceOf(DataException.class)
-                .hasMessageContaining("Default value for field \"name\" can not be null");
+                .hasMessageEndingWith("Default value for field \"name\" can not be null");
     }
 
     @Test

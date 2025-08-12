@@ -20,27 +20,50 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.exception.SchemaException;
-import io.axual.ksml.data.notation.SchemaResolver;
-import io.axual.ksml.data.object.*;
-import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.type.*;
-import io.axual.ksml.data.util.ConvertUtil;
-import io.axual.ksml.data.util.MapUtil;
-import io.axual.ksml.data.value.Tuple;
-
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import javax.annotation.Nullable;
+
+import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.exception.SchemaException;
+import io.axual.ksml.data.notation.SchemaResolver;
+import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.DataByte;
+import io.axual.ksml.data.object.DataBytes;
+import io.axual.ksml.data.object.DataDouble;
+import io.axual.ksml.data.object.DataFloat;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataMap;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataShort;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.object.DataTuple;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.EnumType;
+import io.axual.ksml.data.type.ListType;
+import io.axual.ksml.data.type.MapType;
+import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.type.Symbol;
+import io.axual.ksml.data.type.TupleType;
+import io.axual.ksml.data.util.ConvertUtil;
+import io.axual.ksml.data.util.MapUtil;
+import io.axual.ksml.data.value.Tuple;
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Maps DataObjects to and from native Java structures (Object, Map, List, primitives, etc.).
  * This mapper infers types when necessary and can use an expected DataType to guide conversions.
  */
+@Slf4j
 public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     private static final DataTypeDataSchemaMapper DATA_TYPE_DATA_SCHEMA_MAPPER = new DataTypeDataSchemaMapper();
     private final SchemaResolver<DataSchema> schemaResolver;
@@ -128,7 +151,12 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
             if (expected instanceof MapType expectedMapType) {
                 return convertMapToDataMap(MapUtil.stringKeys(val), expectedMapType);
             }
-            return convertMapToDataStruct(MapUtil.stringKeys(val), expected instanceof StructType expectedStruct ? expectedStruct.schema() : null);
+            if (expected instanceof StructType expectedStruct) {
+                return convertMapToDataStruct(MapUtil.stringKeys(val), expectedStruct.schema());
+            } else {
+                log.debug("Ignoring exptected type {} for conversion", expected);
+                return convertMapToDataStruct(MapUtil.stringKeys(val), (DataSchema) null);
+            }
         }
         if (value instanceof Tuple<?> val) return convertTupleToDataTuple(val);
         throw new DataException("Can not convert value to DataObject: " + value.getClass().getSimpleName());

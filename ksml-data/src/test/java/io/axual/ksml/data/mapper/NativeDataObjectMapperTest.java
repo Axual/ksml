@@ -20,15 +20,8 @@ package io.axual.ksml.data.mapper;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.object.*;
-import io.axual.ksml.data.schema.DataField;
-import io.axual.ksml.data.schema.DataSchema;
-import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.value.Tuple;
-import lombok.extern.slf4j.Slf4j;
-
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -41,7 +34,34 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.*;
+import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.DataByte;
+import io.axual.ksml.data.object.DataBytes;
+import io.axual.ksml.data.object.DataDouble;
+import io.axual.ksml.data.object.DataFloat;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataMap;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataShort;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.object.DataTuple;
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.StructType;
+import io.axual.ksml.data.value.Tuple;
+import lombok.extern.slf4j.Slf4j;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.entry;
+import static org.assertj.core.api.Assertions.within;
 
 @Slf4j
 class NativeDataObjectMapperTest {
@@ -76,9 +96,11 @@ class NativeDataObjectMapperTest {
         map.put("a", DataNull.INSTANCE);
 
         var nativeMap = mapper.convertDataMapToMap(map);
-        assertThat(nativeMap.keySet()).containsExactly("a", "b");
-        assertThat(nativeMap.get("a")).isNull();
-        assertThat(nativeMap.get("b")).isEqualTo(1);
+        assertThat(nativeMap)
+                .containsEntry("a", null)
+                .containsEntry("b", 1)
+                .extracting(Map::keySet, InstanceOfAssertFactories.set(String.class))
+                .containsExactly("a", "b");
         log.info("end: convertDataMapToMapNullAndOrdering");
     }
 
@@ -255,7 +277,7 @@ class NativeDataObjectMapperTest {
 
         assertThatCode(()->mapper.fromDataObject(unknownDataObject))
                 .isInstanceOf(DataException.class)
-                .hasMessageContaining("Can not convert DataObject to native dataType: UnknownDataObject");
+                .hasMessageEndingWith("Can not convert DataObject to native dataType: UnknownDataObject");
     }
 
     @Test
@@ -263,7 +285,386 @@ class NativeDataObjectMapperTest {
     void fromNativeDataObjectNull(){
         assertThatCode(()->mapper.fromDataObject(null))
                 .isInstanceOf(DataException.class)
-                .hasMessageContaining("Can not convert DataObject to native dataType: null");
+                .hasMessageEndingWith("Can not convert DataObject to native dataType: null");
+    }
+
+    @Test
+    @DisplayName("toDataObject: null -> DataNull")
+    void toDataObjectNull() {
+        var result = mapper.toDataObject(null, null);
+        assertThat(result).isEqualTo(DataNull.INSTANCE);
+    }
+
+    @Test
+    @DisplayName("toDataObject: Boolean -> DataBoolean")
+    void toDataObjectBoolean() {
+        var result = mapper.toDataObject(null, true);
+        assertThat(result).isEqualTo(new DataBoolean(true));
+    }
+
+    @Test
+    @DisplayName("toDataObject: Integer/Long/Short/Byte -> DataByte")
+    void toDataObjectByte() {
+        SoftAssertions softly = new SoftAssertions();
+
+        // Test with Byte values
+        softly.assertThat(mapper.toDataObject(null, (byte) 120))
+                .as("Byte value with no expected type should have value 120")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataByte.class))
+                .returns((byte) 120, DataByte::value);
+        softly.assertThat(mapper.toDataObject(DataByte.DATATYPE, (byte) 121))
+                .as("Byte value with expected Byte type should have value  121")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataByte.class))
+                .returns((byte) 121, DataByte::value);
+
+        // Test with Integer values
+        softly.assertThat(mapper.toDataObject(DataByte.DATATYPE, 122))
+                .as("Integer value with expected Byte type should have value 122")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataByte.class))
+                .returns((byte) 122, DataByte::value);
+
+        // Test with Long values
+        softly.assertThat(mapper.toDataObject(DataByte.DATATYPE, 123L))
+                .as("Long value with expected Byte type should have value 123")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataByte.class))
+                .returns((byte) 123, DataByte::value);
+
+        // Test with Short values
+        softly.assertThat(mapper.toDataObject(DataByte.DATATYPE, (short) 124))
+                .as("Short value with expected Byte type should have value 124")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataByte.class))
+                .returns((byte) 124, DataByte::value);
+
+        softly.assertAll();
+    }
+
+    @Test
+    @DisplayName("toDataObject: Integer/Long/Short/Byte -> DataShort")
+    void toDataObjectShort() {
+        SoftAssertions softly = new SoftAssertions();
+
+        // Test with Short values
+        softly.assertThat(mapper.toDataObject(null, (short) 120))
+                .as("Short value with no expected type should have value 120")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataShort.class))
+                .returns((short) 120, DataShort::value);
+        softly.assertThat(mapper.toDataObject(DataShort.DATATYPE, (short) 121))
+                .as("Short value with expected short type should have value  121")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataShort.class))
+                .returns((short) 121, DataShort::value);
+
+        // Test with Integer values
+        softly.assertThat(mapper.toDataObject(DataShort.DATATYPE, 122))
+                .as("Integer value with expected short type should have value 122")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataShort.class))
+                .returns((short) 122, DataShort::value);
+
+        // Test with Long values
+        softly.assertThat(mapper.toDataObject(DataShort.DATATYPE, 123L))
+                .as("Long value with expected short type should have value 123")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataShort.class))
+                .returns((short) 123, DataShort::value);
+
+        // Test with Byte values
+        softly.assertThat(mapper.toDataObject(DataShort.DATATYPE, (byte) 124))
+                .as("Byte value with expected short type should have value 124")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataShort.class))
+                .returns((short) 124, DataShort::value);
+
+        softly.assertAll();
+    }
+
+    @Test
+    @DisplayName("toDataObject: Integer/Long/Short/Byte -> DataInteger")
+    void toDataObjectInteger() {
+        SoftAssertions softly = new SoftAssertions();
+
+        // Test with Integer values
+        softly.assertThat(mapper.toDataObject(null, 120))
+                .as("Integer value with no expected type should have value 120")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataInteger.class))
+                .returns(120, DataInteger::value);
+        softly.assertThat(mapper.toDataObject(DataInteger.DATATYPE, 121))
+                .as("Integer value with expected integer type should have value  121")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataInteger.class))
+                .returns(121, DataInteger::value);
+
+        // Test with Long values
+        softly.assertThat(mapper.toDataObject(DataInteger.DATATYPE, 122L))
+                .as("Long value with expected integer type should have value 122")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataInteger.class))
+                .returns(122, DataInteger::value);
+
+        // Test with Short values
+        softly.assertThat(mapper.toDataObject(DataInteger.DATATYPE, (short) 123))
+                .as("Short value with expected integer type should have value 123")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataInteger.class))
+                .returns(123, DataInteger::value);
+
+        // Test with Byte values
+        softly.assertThat(mapper.toDataObject(DataInteger.DATATYPE, (byte) 124))
+                .as("Byte value with expected integer type should have value 124")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataInteger.class))
+                .returns(124, DataInteger::value);
+
+        softly.assertAll();
+    }
+
+    @Test
+    @DisplayName("toDataObject: Integer/Long/Short/Byte -> DataLong")
+    void toDataObjectLong() {
+        SoftAssertions softly = new SoftAssertions();
+
+        // Test with Long values
+        softly.assertThat(mapper.toDataObject(null, 120L))
+                .as("Long value with no expected type should have value 120")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataLong.class))
+                .returns(120L, DataLong::value);
+        softly.assertThat(mapper.toDataObject(DataLong.DATATYPE, 121L))
+                .as("Long value with expected long type should have value  121")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataLong.class))
+                .returns(121L, DataLong::value);
+
+        // Test with Integer values
+        softly.assertThat(mapper.toDataObject(DataLong.DATATYPE, 122))
+                .as("Integer value with expected long type should have value 122")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataLong.class))
+                .returns(122L, DataLong::value);
+
+        // Test with Short values
+        softly.assertThat(mapper.toDataObject(DataLong.DATATYPE, (short) 123))
+                .as("Short value with expected long type should have value 123")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataLong.class))
+                .returns(123L, DataLong::value);
+
+        // Test with Byte values
+        softly.assertThat(mapper.toDataObject(DataLong.DATATYPE, (byte) 124))
+                .as("Byte value with expected long type should have value 124")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataLong.class))
+                .returns(124L, DataLong::value);
+
+        softly.assertAll();
+    }
+
+    @Test
+    @DisplayName("toDataObject: Double/Float -> DataDouble")
+    void toDataObjectDouble() {
+        SoftAssertions softly = new SoftAssertions();
+
+        // Test with Double values
+        softly.assertThat(mapper.toDataObject(null, 1.5))
+                .as("Double value with no expected type should have value 1.5")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataDouble.class))
+                .returns(1.5, DataDouble::value);
+        softly.assertThat(mapper.toDataObject(DataDouble.DATATYPE, 1.7))
+                .as("Double value with expected double type should have value  1.7")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataDouble.class))
+                .returns(1.7, DataDouble::value);
+
+        // Test with Float values
+        softly.assertThat(mapper.toDataObject(DataDouble.DATATYPE, 1.9F))
+                .as("Float value with expected double type should have value 1.9")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataDouble.class))
+                .extracting(DataDouble::value, InstanceOfAssertFactories.DOUBLE)
+                .isEqualTo(1.9, within(0.01));
+
+        softly.assertAll();
+    }
+
+    @Test
+    @DisplayName("toDataObject: Double/Float -> DataFloat")
+    void toDataObjectFloat() {
+        SoftAssertions softly = new SoftAssertions();
+
+        // Test with Double values
+        softly.assertThat(mapper.toDataObject(null, 2.5F))
+                .as("Float value with no expected type should have value 2.5")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataFloat.class))
+                .extracting(DataFloat::value, InstanceOfAssertFactories.FLOAT)
+                .isEqualTo(2.5F, within(0.01F));
+        softly.assertThat(mapper.toDataObject(DataFloat.DATATYPE, 2.7F))
+                .as("Float value with expected float type should have value 2.7")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataFloat.class))
+                .extracting(DataFloat::value, InstanceOfAssertFactories.FLOAT)
+                .isEqualTo(2.7F, within(0.01F));
+
+        // Test with Float values
+        softly.assertThat(mapper.toDataObject(DataFloat.DATATYPE, 2.9))
+                .as("Double value with expected float type should have value 2.9")
+                .asInstanceOf(InstanceOfAssertFactories.type(DataFloat.class))
+                .extracting(DataFloat::value, InstanceOfAssertFactories.FLOAT)
+                .isEqualTo(2.9F, within(0.01F));
+
+        softly.assertAll();
+    }
+
+    @Test
+    @DisplayName("toDataObject: byte[] -> DataBytes")
+    void toDataObjectBytes() {
+        byte[] nativeBytes = new byte[]{1, 2};
+        var result = mapper.toDataObject(null, nativeBytes);
+        assertThat(result).isInstanceOf(DataBytes.class);
+        assertThat(((DataBytes) result).value()).isEqualTo(nativeBytes);
+    }
+
+    @Test
+    @DisplayName("toDataObject: CharSequence -> DataString")
+    void toDataObjectCharSequence() {
+        var result = mapper.toDataObject(null, new StringBuilder("abc"));
+        assertThat(result).isEqualTo(new DataString("abc"));
+    }
+
+    @Test
+    @DisplayName("toDataObject: Byte with expected Short -> DataShort(5)")
+    void toDataObjectByteToShort() {
+        var result = mapper.toDataObject(DataShort.DATATYPE, (byte) 5);
+        assertThat(result).isEqualTo(new DataShort((short) 5));
+    }
+
+    @Test
+    @DisplayName("toDataObject: Integer with expected Long -> DataLong(7)")
+    void toDataObjectIntegerToLong() {
+        var result = mapper.toDataObject(DataLong.DATATYPE, 7);
+        assertThat(result).isEqualTo(new DataLong(7L));
+    }
+
+    @Test
+    @DisplayName("toDataObject: Float with expected Double -> DataDouble(2.5)")
+    void toDataObjectFloatToDouble() {
+        var result = mapper.toDataObject(DataDouble.DATATYPE, 2.5f);
+        assertThat(result).isEqualTo(new DataDouble(2.5));
+    }
+
+    @Test
+    @DisplayName("toDataObject: List with nested struct and list -> DataList")
+    void toDataObjectNestedListToDataList() {
+        var nativeInput = List.of(
+                "a",
+                Map.of("m", List.of(1, 2)),
+                List.of(Map.of("k", "v"))
+        );
+        var expected = new DataList(DataType.UNKNOWN);
+        expected.add(new DataString("a"));
+        var innerStruct = new DataStruct();
+        innerStruct.put("m", new DataList(DataType.UNKNOWN));
+        innerStruct.getAs("m", DataList.class).add(new DataInteger(1));
+        innerStruct.getAs("m", DataList.class).add(new DataInteger(2));
+        expected.add(innerStruct);
+        var innerListOfStructs = new DataList(DataType.UNKNOWN);
+        var innerStruct2 = new DataStruct();
+        innerStruct2.put("k", new DataString("v"));
+        innerListOfStructs.add(innerStruct2);
+        expected.add(innerListOfStructs);
+
+        var result = mapper.toDataObject(null, nativeInput);
+        assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    @DisplayName("toDataObject: Map with nested list and struct -> DataStruct")
+    void toDataObjectNestedMapToDataStruct() {
+        var nativeInput = Map.of(
+                "list", List.of("x", Map.of("y", 2)),
+                "struct", Map.of("z", List.of(3))
+        );
+        var expected = new DataStruct();
+        var listInStruct = new DataList(DataType.UNKNOWN);
+        listInStruct.add(new DataString("x"));
+        var structInList = new DataStruct();
+        structInList.put("y", new DataInteger(2));
+        listInStruct.add(structInList);
+        expected.put("list", listInStruct);
+        var structVal = new DataStruct();
+        var listUnderZ = new DataList(DataType.UNKNOWN);
+        listUnderZ.add(new DataInteger(3));
+        structVal.put("z", listUnderZ);
+        expected.put("struct", structVal);
+
+        var result = mapper.toDataObject(null, nativeInput);
+        assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    @DisplayName("toDataObject: Map with expected MapType -> DataMap with nested list/struct values")
+    void toDataObjectNestedMapToDataMapWithExpectedType() {
+        var nativeInput = Map.of(
+                "list", List.of("x", Map.of("y", 2)),
+                "struct", Map.of("z", List.of(3))
+        );
+        var expected = new DataMap(DataType.UNKNOWN);
+        var listInStruct = new DataList(DataType.UNKNOWN);
+        listInStruct.add(new DataString("x"));
+        var structInList = new DataStruct();
+        structInList.put("y", new DataInteger(2));
+        listInStruct.add(structInList);
+        expected.put("list", listInStruct);
+        var structVal = new DataStruct();
+        var listUnderZ = new DataList(DataType.UNKNOWN);
+        listUnderZ.add(new DataInteger(3));
+        structVal.put("z", listUnderZ);
+        expected.put("struct", structVal);
+
+        var result = mapper.toDataObject(new io.axual.ksml.data.type.MapType(DataType.UNKNOWN), nativeInput);
+        assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    @DisplayName("toDataObject: List of numbers with expected Integer -> DataList of DataInteger")
+    void toDataObjectListWithExpectedValueType() {
+        var nativeInput = List.of((byte) 1, (short) 2, 3L);
+        var expected = new DataList(DataInteger.DATATYPE);
+        expected.add(new DataInteger(1));
+        expected.add(new DataInteger(2));
+        expected.add(new DataInteger(3));
+
+        var result = mapper.toDataObject(new io.axual.ksml.data.type.ListType(DataInteger.DATATYPE), nativeInput);
+        assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    @DisplayName("toDataObject: Struct with nested map of String List")
+    void toDataObjectSchemalessStructWithNested() {
+        var nativeInput = Map.of(
+                "name", "Alice",
+                "attributes", Map.of("likes", List.of("coffee", "chess"))
+        );
+        var expected = new DataStruct();
+        expected.put("name", new DataString("Alice"));
+        var attributes = new DataStruct();
+        var likesList = new DataList(DataString.DATATYPE);
+        likesList.add(new DataString("coffee"));
+        likesList.add(new DataString("chess"));
+        attributes.put("likes", likesList);
+        expected.put("attributes", attributes);
+
+        var result = mapper.toDataObject(StructType.UNKNOWN, nativeInput);
+        assertThat(result)
+                .isNotNull()
+                .asInstanceOf(InstanceOfAssertFactories.type(DataStruct.class))
+                .isEqualTo(expected);
+    }
+
+    @Test
+    @DisplayName("toDataObject: Tuple -> DataTuple")
+    void toDataObjectTuple() {
+        var nativeInput = new Tuple<>("first", null, 7);
+        var expected = new DataTuple(new DataString("first"), DataNull.INSTANCE, new DataInteger(7));
+        var result = mapper.toDataObject(null, nativeInput);
+        assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    @DisplayName("toDataObject: Class<?> throws DataException")
+    void toDataObjectWithUnknownValue() {
+        var failingValue = getClass();
+        var softly = new SoftAssertions();
+        softly.assertThatCode(() -> mapper.toDataObject(DataType.UNKNOWN, failingValue))
+                .isInstanceOf(DataException.class)
+                .hasMessageEndingWith("Can not convert value to DataObject: Class");
+        softly.assertThatCode(() -> mapper.toDataObject(null, failingValue))
+                .isInstanceOf(DataException.class)
+                .hasMessageEndingWith("Can not convert value to DataObject: Class");
+        softly.assertAll();
     }
 
     static class UnknownDataObject implements DataObject{

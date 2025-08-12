@@ -77,7 +77,7 @@ class DataMapTest {
         var dataInteger = new DataInteger(1);
         assertThatThrownBy(() -> map.put("b", dataInteger))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Can not cast value of dataType");
+                .hasMessageStartingWith("Can not cast value of dataType");
 
         // putIfAbsent
         var result = map.putIfAbsent("a", new DataString("y"));

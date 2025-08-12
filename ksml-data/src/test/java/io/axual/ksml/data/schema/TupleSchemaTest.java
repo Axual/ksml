@@ -83,6 +83,6 @@ class TupleSchemaTest {
         var empty = new TupleType();
         assertThatThrownBy(() -> new TupleSchema(empty, mapper))
                 .isInstanceOf(SchemaException.class)
-                .hasMessageContaining("TupleSchema requires at least one field: type=" + empty);
+                .hasMessageEndingWith("TupleSchema requires at least one field: type=" + empty);
     }
 }
