@@ -1,0 +1,27 @@
+{
+  "type": "record",
+  "name": "Collections",
+  "namespace": "io.axual.test",
+  "doc": "Record covering arrays, maps, and unions including nested list of unions",
+  "fields": [
+    { "name": "strs", "type": {"type": "array", "items": "string"} },
+    { "name": "intMap", "type": {"type": "map", "values": "int"} },
+    { "name": "singleUnion", "type": [
+      "null",
+      "string",
+      "int",
+      {"type": "record", "name": "X", "fields": [
+        {"name": "id", "type": "int"},
+        {"name": "name", "type": "string"}
+      ]},
+      {"type": "enum", "name": "Y", "symbols": ["A","B","C"]}
+    ], "default": null },
+    { "name": "unionList", "type": {"type": "array", "items": [
+      "null",
+      "string",
+      "int",
+      "io.axual.test.X",
+      "io.axual.test.Y"
+    ]}}
+  ]
+}
