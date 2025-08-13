@@ -20,16 +20,25 @@ package io.axual.ksml.data.notation.avro;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.SchemaException;
-import io.axual.ksml.data.mapper.DataSchemaMapper;
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
-import io.axual.ksml.data.schema.*;
-import io.axual.ksml.data.type.Symbol;
 import org.apache.avro.Schema;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import io.axual.ksml.data.exception.SchemaException;
+import io.axual.ksml.data.mapper.DataSchemaMapper;
+import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.DataValue;
+import io.axual.ksml.data.schema.EnumSchema;
+import io.axual.ksml.data.schema.FixedSchema;
+import io.axual.ksml.data.schema.ListSchema;
+import io.axual.ksml.data.schema.MapSchema;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.schema.UnionSchema;
+import io.axual.ksml.data.type.Symbol;
 
 import static io.axual.ksml.data.schema.DataField.NO_TAG;
 
@@ -97,19 +106,20 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     private SchemaAndRequired convertMemberSchemasToToDataUnionAndRequired(List<Schema> unionTypes) {
         // If a type "null" is found in AVRO schema, the respective property is considered optional, so here we detect
         // this fact and return the result Boolean as "false" indicating a required property.
-        if (unionTypes.size() > 1 && unionTypes.contains(AVRO_NULL_TYPE)) {
-            // Create a copy of the list to prevent modifying immutable lists, then remove the NULL type
-            unionTypes = new ArrayList<>(unionTypes);
-            unionTypes.remove(AVRO_NULL_TYPE);
 
+        var cleanUnionTypes = new ArrayList<>(unionTypes);
+
+        // Remove the NULL schema if it exists, NULL schema makes the enum optional
+        var isRequired = !cleanUnionTypes.remove(AVRO_NULL_TYPE);
+
+        if (cleanUnionTypes.size() == 1) {
             // If the union now contains only a single schema, then unwrap it from the union and return as simple type
-            if (unionTypes.size() == 1) {
-                return new SchemaAndRequired(convertAvroSchemaToDataSchemaAndRequired(unionTypes.getFirst()).schema(), false);
-            }
-            return new SchemaAndRequired(new UnionSchema(convertAvroSchemaToDataFields(unionTypes).toArray(DataField[]::new)), false);
+            // Usually the case when used with a NULL schema to mark the enum as optional
+            return new SchemaAndRequired(convertAvroSchemaToDataSchemaAndRequired(cleanUnionTypes.getFirst()).schema(), isRequired);
         }
 
-        return new SchemaAndRequired(new UnionSchema(convertAvroSchemaToDataFields(unionTypes).toArray(DataField[]::new)), true);
+        // Create a new union schema, and mark it as optional if the NULL schema was in it
+        return new SchemaAndRequired(new UnionSchema(convertAvroSchemaToDataFields(cleanUnionTypes).toArray(DataField[]::new)), isRequired);
     }
 
     private List<DataField> convertAvroSchemaToDataFields(List<Schema> schemas) {
