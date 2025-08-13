@@ -42,11 +42,31 @@ import io.axual.ksml.data.type.Symbol;
 
 import static io.axual.ksml.data.schema.DataField.NO_TAG;
 
+/**
+ * Maps between Avro Schema and KSML DataSchema.
+ *
+ * <p>Responsibilities:
+ * - Avro Schema -> StructSchema/DataSchema including optionality detection via unions with null.
+ * - DataSchema -> Avro Schema including default values and union construction for optional fields.</p>
+ *
+ * <p>See ksml-data/DEVELOPER_GUIDE.md sections on schema classes and mappers for background.</p>
+ */
 public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     private static final AvroDataObjectMapper avroMapper = new AvroDataObjectMapper();
     private static final Schema AVRO_NULL_TYPE = Schema.create(Schema.Type.NULL);
     private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
 
+    /**
+     * Convert an Avro record Schema into a KSML StructSchema.
+     *
+     * <p>The provided namespace and name parameters are ignored because the Avro Schema carries them already
+     * and they take precedence.</p>
+     *
+     * @param namespace ignored; use schema.getNamespace()
+     * @param name      ignored; use schema.getName()
+     * @param schema    the Avro schema (record) to convert
+     * @return a StructSchema with fields mapped from the Avro schema
+     */
     @Override
     public StructSchema toDataSchema(String namespace, String name, Schema schema) {
         // The namespace and name fields are ignored, since they are already contained in the schema and
@@ -54,6 +74,14 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         return new StructSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), convertAvroFieldsToDataFields(schema.getFields()));
     }
 
+    /**
+     * Convert a KSML DataSchema into an Avro Schema.
+     *
+     * <p>Only StructSchema and other concrete schema types are supported; returns null for unsupported inputs.</p>
+     *
+     * @param schema the KSML schema to convert
+     * @return the corresponding Avro Schema, or null when not representable
+     */
     @Override
     public Schema fromDataSchema(DataSchema schema) {
         if (schema instanceof StructSchema structSchema) {

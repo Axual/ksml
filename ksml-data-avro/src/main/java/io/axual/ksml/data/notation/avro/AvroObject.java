@@ -30,6 +30,13 @@ import org.apache.avro.generic.GenericRecord;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Lightweight Avro GenericRecord implementation backed by a KSML StructSchema.
+ *
+ * <p>Used as a bridge object when converting DataStruct values to native objects
+ * for Avro serdes. It validates field assignments against the derived Avro Schema
+ * and supports nested structs and enums.</p>
+ */
 public class AvroObject implements GenericRecord {
     private static final AvroSchemaMapper AVRO_SCHEMA_MAPPER = new AvroSchemaMapper();
     private static final GenericData VALIDATOR = GenericData.get();
@@ -37,6 +44,15 @@ public class AvroObject implements GenericRecord {
     private final Map<String, Object> data = new HashMap<>();
     private Schema avroSchema = null;
 
+    /**
+     * Construct an AvroObject backed by the provided StructSchema and source map.
+     *
+     * <p>Copies all fields from the source if present, otherwise uses field default values from the schema.</p>
+     *
+     * @param schema the struct schema that defines fields and types (required)
+     * @param source a map of field values (may be null)
+     * @throws io.axual.ksml.data.exception.DataException when schema is null
+     */
     public AvroObject(StructSchema schema, Map<?, ?> source) {
         if (schema == null) throw new DataException("Can not create an AVRO object without schema");
         this.schema = schema;
@@ -52,6 +68,16 @@ public class AvroObject implements GenericRecord {
         }
     }
 
+    /**
+     * Put a field value by name, validating against the field schema.
+     *
+     * <p>When the field schema is a nested struct and value is a Map, a nested AvroObject is constructed.
+     * Enum fields are represented as GenericData.EnumSymbol.</p>
+     *
+     * @param key   field name
+     * @param value value to assign (may be null when field is optional)
+     * @throws io.axual.ksml.data.exception.DataException when validation fails
+     */
     @Override
     public void put(String key, Object value) {
         final var field = schema.field(key);
@@ -68,21 +94,45 @@ public class AvroObject implements GenericRecord {
         data.put(key, value);
     }
 
+    /**
+     * Get a field value by name.
+     *
+     * @param key field name
+     * @return the previously assigned value (possibly a nested AvroObject or EnumSymbol), or null
+     */
     @Override
     public Object get(String key) {
         return data.get(key);
     }
 
+    /**
+     * Put a field value by positional index.
+     *
+     * @param index zero-based index into the struct fields
+     * @param value value to assign
+     * @throws io.axual.ksml.data.exception.DataException when validation fails
+     */
     @Override
     public void put(int index, Object value) {
         put(schema.fields().get(index).name(), value);
     }
 
+    /**
+     * Get a field value by positional index.
+     *
+     * @param index zero-based index into the struct fields
+     * @return the value at the given index
+     */
     @Override
     public Object get(int index) {
         return data.get(schema.fields().get(index).name());
     }
 
+    /**
+     * Lazily derive and cache the Avro Schema equivalent of this object's StructSchema.
+     *
+     * @return the Avro Schema used for validation and serialization
+     */
     @Override
     public Schema getSchema() {
         if (avroSchema == null) avroSchema = AVRO_SCHEMA_MAPPER.fromDataSchema(schema);

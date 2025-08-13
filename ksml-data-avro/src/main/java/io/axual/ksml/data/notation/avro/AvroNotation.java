@@ -25,11 +25,22 @@ import io.axual.ksml.data.notation.vendor.VendorNotationContext;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.StructType;
 
+/**
+ * KSML Notation implementation for Avro.
+ *
+ * <p>Provides wiring for vendor-backed Avro serdes via VendorNotation. The default KSML type
+ * for Avro is StructType, and schema parsing is delegated to AvroSchemaParser for .avsc files.</p>
+ */
 public class AvroNotation extends VendorNotation {
     public static final String NOTATION_NAME = "avro";
     public static final DataType DEFAULT_TYPE = new StructType();
     private static final AvroSchemaParser AVRO_SCHEMA_PARSER = new AvroSchemaParser();
 
+    /**
+     * Construct an AvroNotation with the provided vendor context.
+     *
+     * @param context the vendor notation context providing serde supplier, native mapper, and configs
+     */
     public AvroNotation(VendorNotationContext context) {
         super(context, ".avsc", DEFAULT_TYPE, null, AVRO_SCHEMA_PARSER);
     }

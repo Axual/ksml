@@ -22,5 +22,12 @@ package io.axual.ksml.data.notation.avro;
 
 import io.axual.ksml.data.notation.vendor.VendorSerdeSupplier;
 
+/**
+ * Marker interface for vendor-specific Avro Serde suppliers.
+ *
+ * <p>Implementations provide concrete Kafka Serde instances for Avro under a particular vendor
+ * (e.g., Confluent or Apicurio) and are used by AvroNotation via VendorNotation to obtain
+ * serdes for specific DataTypes.</p>
+ */
 public interface AvroSerdeSupplier extends VendorSerdeSupplier {
 }

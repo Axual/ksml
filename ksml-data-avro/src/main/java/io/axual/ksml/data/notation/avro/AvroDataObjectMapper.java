@@ -32,10 +32,35 @@ import org.apache.avro.util.Utf8;
 
 import java.nio.ByteBuffer;
 
+/**
+ * DataObject mapper for Avro-native values.
+ *
+ * <p>This mapper adapts native Avro runtime objects to KSML DataObject instances and back.
+ * It adds Avro-specific handling on top of NativeDataObjectMapper:
+ * - Maps Avro Utf8 to DataString.
+ * - Maps ByteBuffer to bytes (DataBytes) on the way in.
+ * - Maps Avro GenericRecord to DataStruct using AvroSchemaMapper for schema bridging.
+ * - Maps a DataStruct back to an AvroObject wrapper so downstream Avro serdes can validate against schema.</p>
+ *
+ * <p>See ksml-data/DEVELOPER_GUIDE.md for details about DataObject, DataType, and schema mapping.</p>
+ */
 public class AvroDataObjectMapper extends NativeDataObjectMapper {
     private static final AvroSchemaMapper AVRO_SCHEMA_MAPPER = new AvroSchemaMapper();
     private static final DataTypeDataSchemaMapper TYPE_SCHEMA_MAPPER = new DataTypeDataSchemaMapper();
 
+    /**
+     * Convert a native Avro value to a KSML DataObject, honoring an expected DataType when provided.
+     *
+     * <p>Special cases:
+     * - null or Avro's JsonProperties.NULL_VALUE -> typed null via ConvertUtil.convertNullToDataObject(expected)
+     * - Utf8 -> DataString
+     * - ByteBuffer -> treat as byte[]
+     * - GenericRecord -> DataStruct built from its Avro schema using AvroSchemaMapper</p>
+     *
+     * @param expected the expected target KSML DataType (may be null)
+     * @param value    the native value coming from Avro serialization/deserialization
+     * @return a DataObject representing the input, possibly a typed-null container when expected is provided
+     */
     @Override
     public DataObject toDataObject(DataType expected, Object value) {
         if (value == null || value == JsonProperties.NULL_VALUE)
@@ -65,6 +90,16 @@ public class AvroDataObjectMapper extends NativeDataObjectMapper {
         return super.toDataObject(expected, value);
     }
 
+    /**
+     * Convert a KSML DataObject back to a native value suitable for Avro serdes.
+     *
+     * <p>Special cases:
+     * - DataNull or null-struct/list containers -> null
+     * - DataStruct with schema -> AvroObject wrapper that validates values against the derived Avro schema</p>
+     *
+     * @param value the DataObject to convert
+     * @return a native value (including AvroObject for structs) or null
+     */
     @Override
     public Object fromDataObject(DataObject value) {
         if (value instanceof DataNull) return null;
