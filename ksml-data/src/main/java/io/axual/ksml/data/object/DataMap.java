@@ -266,19 +266,12 @@ public class DataMap implements DataObject {
     }
 
     @Override
-    public boolean equals(Object other) {
+    public boolean equals(final Object other) {
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;
-        DataMap that = (DataMap) other;
-        if (!type.isAssignableFrom(that.type) || !that.type.isAssignableFrom(type)) return false;
-        if (contents.size() != that.contents.size()) return false;
-        for (final var content : contents.entrySet()) {
-            final var thisContent = content.getValue();
-            final var thatContent = that.contents.get(content.getKey());
-            if (!thisContent.equals(thatContent))
-                return false;
-        }
-        return true;
+
+        final DataMap dataMap = (DataMap) other;
+        return Objects.equals(type, dataMap.type) && Objects.equals(contents, dataMap.contents);
     }
 
     @Override

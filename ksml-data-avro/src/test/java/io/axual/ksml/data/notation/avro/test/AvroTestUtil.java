@@ -68,6 +68,10 @@ public final class AvroTestUtil {
      * Avro schema covering arrays, maps, and unions including nested list of unions with null|string|int|record X|enum Y.
      */
     public static final String SCHEMA_COLLECTIONS = SCHEMAS_DIR + "collections_record.avsc";
+    /**
+     * Avro schema where all fields are optional via [null, T] unions, covering primitives and basic complex types.
+     */
+    public static final String SCHEMA_OPTIONAL = SCHEMAS_DIR + "optional_record.avsc";
 
     // Data resources
     /**
@@ -94,6 +98,11 @@ public final class AvroTestUtil {
      * JSON Avro data for the Collections schema with singleUnion set to record io.axual.test.X.
      */
     public static final String DATA_COLLECTIONS_SINGLE_UNION_RECORD = DATA_DIR + "collections_record_singleUnion_record.json";
+
+    /**
+     * JSON Avro data for OptionalFields schema with representative non-null values for each field.
+     */
+    public static final String DATA_OPTIONAL_WITH_VALUES = DATA_DIR + "optional_record_with_values.json";
 
     private AvroTestUtil() {}
 
@@ -162,9 +171,8 @@ public final class AvroTestUtil {
      *
      * @param resourcePath classpath-relative path to the resource
      * @return InputStream to the resource, or null if not found
-     * @throws IOException if an IO error occurs while trying to open the resource
      */
-    public static InputStream openResource(String resourcePath) throws IOException {
+    public static InputStream openResource(String resourcePath) {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         InputStream is = cl.getResourceAsStream(resourcePath.startsWith("/") ? resourcePath.substring(1) : resourcePath);
         if (is != null) return is;

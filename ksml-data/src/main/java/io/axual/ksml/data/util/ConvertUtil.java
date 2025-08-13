@@ -367,6 +367,8 @@ public class ConvertUtil {
             case ListType listType -> new DataList(listType.valueType(), true);
             case StructType structType -> new DataStruct(structType.schema(), true);
             case UnionType ignored -> DataNull.INSTANCE;
+            case MapType mapType -> new DataMap(mapType.valueType(), true);
+            case EnumType ignored -> DataNull.INSTANCE;
             default -> throw new DataException("Can not convert NULL to " + expected);
         };
     }

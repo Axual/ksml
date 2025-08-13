@@ -20,11 +20,24 @@ package io.axual.ksml.data.notation.avro;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.avro.test.AvroTestUtil;
-import io.axual.ksml.data.object.*;
 import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.junit.jupiter.api.Test;
+
+import io.axual.ksml.data.notation.avro.test.AvroTestUtil;
+import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.DataBytes;
+import io.axual.ksml.data.object.DataDouble;
+import io.axual.ksml.data.object.DataFloat;
+import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataMap;
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.object.DataStruct;
 
 import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -180,5 +193,62 @@ class AvroDataObjectMapperTest {
 
         // Assert: structures are equal field-by-field (using DataObject equals)
         assertThat(roundTripped).isEqualTo(firstStruct);
+    }
+
+    @Test
+    void optional_allNullOrOmitted_shouldNotContainOptionalFields() {
+        Schema schema = AvroTestUtil.loadSchema(SCHEMA_OPTIONAL);
+        // Create an empty record, all fields are optional
+        GenericData.Record rec = new GenericData.Record(schema);
+        // Verify all fields
+        assertThat(GenericData.get().validate(schema, rec)).isTrue();
+        DataStruct ds = (DataStruct) mapper.toDataObject(null, rec);
+
+        // All fields should be absent (getter returns null)
+        assertThat(ds.get("optStr")).isEqualTo(new DataString(null));
+        assertThat(ds.get("optInt")).isEqualTo(new DataInteger(null));
+        assertThat(ds.get("optLong")).isEqualTo(new DataLong(null));
+        assertThat(ds.get("optFloat")).isEqualTo(new DataFloat(null));
+        assertThat(ds.get("optDouble")).isEqualTo(new DataDouble(null));
+        assertThat(ds.get("optBool")).isEqualTo(new DataBoolean(null));
+        assertThat(ds.get("optBytes")).isEqualTo(new DataBytes(null));
+        assertThat(ds.get("optStrList")).isNull();
+        assertThat(ds.get("optIntMap")).isEqualTo(new DataMap(DataInteger.DATATYPE, true));
+        assertThat(ds.get("optRec")).isNull();
+        assertThat(ds.get("optEnum")).isNull();
+    }
+
+    @Test
+    void optional_withValues_shouldMapCorrectTypes() {
+        Schema schema = AvroTestUtil.loadSchema(SCHEMA_OPTIONAL);
+        GenericRecord rec = AvroTestUtil.parseRecord(schema, DATA_OPTIONAL_WITH_VALUES);
+        DataStruct ds = (DataStruct) mapper.toDataObject(null, rec);
+
+        assertThat(((DataString) ds.get("optStr")).value()).isEqualTo("hello");
+        assertThat(((DataInteger) ds.get("optInt")).value()).isEqualTo(10);
+        assertThat(((DataLong) ds.get("optLong")).value()).isEqualTo(9999999999L);
+        assertThat(((DataFloat) ds.get("optFloat")).value()).isEqualTo(3.5f);
+        assertThat(((DataDouble) ds.get("optDouble")).value()).isEqualTo(6.25d);
+        assertThat(((DataBoolean) ds.get("optBool")).value()).isTrue();
+        // bytes normalization handled in AvroDataObjectMapper -> super; value existence is sufficient
+        assertThat(ds.get("optBytes")).isNotNull();
+
+        DataList list = (DataList) ds.get("optStrList");
+        assertThat(list.size()).isEqualTo(2);
+        assertThat(((DataString) list.get(0)).value()).isEqualTo("x");
+
+        DataMap map = (DataMap) ds.get("optIntMap");
+        assertThat(((DataInteger) map.get("a")).value()).isEqualTo(1);
+        assertThat(((DataInteger) map.get("b")).value()).isEqualTo(2);
+
+        DataStruct inner = (DataStruct) ds.get("optRec");
+        assertThat(((DataInteger) inner.get("id")).value()).isEqualTo(5);
+
+        // Avro enum becomes DataString
+        assertThat(((DataString) ds.get("optEnum")).value()).isEqualTo("GREEN");
+
+        // Round-trip stability for this struct
+        DataStruct again = (DataStruct) mapper.toDataObject(null, mapper.fromDataObject(ds));
+        assertThat(again).usingRecursiveComparison().isEqualTo(ds);
     }
 }

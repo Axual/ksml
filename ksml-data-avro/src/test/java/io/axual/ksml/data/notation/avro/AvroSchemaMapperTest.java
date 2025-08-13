@@ -20,12 +20,25 @@ package io.axual.ksml.data.notation.avro;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.notation.avro.test.AvroTestUtil;
-import io.axual.ksml.data.schema.*;
+import org.apache.avro.JsonProperties;
 import org.apache.avro.Schema;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
-import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.*;
+import io.axual.ksml.data.notation.avro.test.AvroTestUtil;
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.EnumSchema;
+import io.axual.ksml.data.schema.ListSchema;
+import io.axual.ksml.data.schema.MapSchema;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.schema.UnionSchema;
+import io.axual.ksml.data.type.Symbol;
+
+import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.SCHEMA_COLLECTIONS;
+import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.SCHEMA_LOGICAL_TYPES;
+import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.SCHEMA_OPTIONAL;
+import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.SCHEMA_PRIMITIVES;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -150,5 +163,57 @@ class AvroSchemaMapperTest {
         Schema backToAvro = schemaMapper.fromDataSchema(ksml);
         StructSchema again = toKsml(backToAvro);
         assertThat(again).isEqualTo(ksml);
+    }
+
+    @Test
+    void optionalFields_avroToKsml_optionalAndTypes_andRoundTripStable() {
+        Schema avro = AvroTestUtil.loadSchema(SCHEMA_OPTIONAL);
+        StructSchema ksml = schemaMapper.toDataSchema(avro.getNamespace(), avro.getName(), avro);
+
+        // All fields should be optional
+        for (DataField f : ksml.fields()) {
+            assertThat(f.required()).isFalse();
+        }
+
+        // Type assertions
+        assertThat(ksml.field("optStr").schema()).isEqualTo(DataSchema.STRING_SCHEMA);
+        assertThat(ksml.field("optInt").schema()).isEqualTo(DataSchema.INTEGER_SCHEMA);
+        assertThat(ksml.field("optLong").schema()).isEqualTo(DataSchema.LONG_SCHEMA);
+        assertThat(ksml.field("optFloat").schema()).isEqualTo(DataSchema.FLOAT_SCHEMA);
+        assertThat(ksml.field("optDouble").schema()).isEqualTo(DataSchema.DOUBLE_SCHEMA);
+        assertThat(ksml.field("optBool").schema()).isEqualTo(DataSchema.BOOLEAN_SCHEMA);
+        assertThat(ksml.field("optBytes").schema()).isEqualTo(DataSchema.BYTES_SCHEMA);
+
+        assertThat(ksml.field("optStrList").schema()).isInstanceOf(ListSchema.class);
+        assertThat(((ListSchema) ksml.field("optStrList").schema()).valueSchema()).isEqualTo(DataSchema.STRING_SCHEMA);
+
+        assertThat(ksml.field("optIntMap").schema()).isInstanceOf(MapSchema.class);
+        assertThat(((MapSchema) ksml.field("optIntMap").schema()).valueSchema()).isEqualTo(DataSchema.INTEGER_SCHEMA);
+
+        assertThat(ksml.field("optRec").schema()).isInstanceOf(StructSchema.class);
+        StructSchema inner = (StructSchema) ksml.field("optRec").schema();
+        assertThat(inner.name()).isEqualTo("OptInner");
+        assertThat(inner.field("id").schema()).isEqualTo(DataSchema.INTEGER_SCHEMA);
+
+        assertThat(ksml.field("optEnum").schema()).isInstanceOf(EnumSchema.class);
+        EnumSchema color = (EnumSchema) ksml.field("optEnum").schema();
+        assertThat(color.symbols()).extracting(Symbol::name).containsExactly("RED", "GREEN", "BLUE");
+
+        // Round-trip back to Avro and check defaults & union w/ null
+        Schema back = schemaMapper.fromDataSchema(ksml);
+        StructSchema ksmlAgain = schemaMapper.toDataSchema(back.getNamespace(), back.getName(), back);
+        assertThat(ksmlAgain).isEqualTo(ksml);
+
+        // In back schema, all fields should be union with null first and default null
+        for (Schema.Field af : back.getFields()) {
+            assertThat(af)
+                    .as("Verifying field %s", af.name())
+                    .returns(true, Schema.Field::hasDefaultValue)
+                    .returns(JsonProperties.NULL_VALUE, Schema.Field::defaultVal)
+                    .extracting(Schema.Field::schema, InstanceOfAssertFactories.type(Schema.class))
+                    .returns(Schema.Type.UNION, Schema::getType)
+                    .extracting(Schema::getTypes, InstanceOfAssertFactories.list(Schema.class))
+                    .first().returns(Schema.Type.NULL, Schema::getType);
+        }
     }
 }
