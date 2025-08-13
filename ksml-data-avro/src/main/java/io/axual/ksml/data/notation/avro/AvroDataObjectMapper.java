@@ -30,6 +30,8 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.util.Utf8;
 
+import java.nio.ByteBuffer;
+
 public class AvroDataObjectMapper extends NativeDataObjectMapper {
     private static final AvroSchemaMapper AVRO_SCHEMA_MAPPER = new AvroSchemaMapper();
     private static final DataTypeDataSchemaMapper TYPE_SCHEMA_MAPPER = new DataTypeDataSchemaMapper();
@@ -41,6 +43,9 @@ public class AvroDataObjectMapper extends NativeDataObjectMapper {
         if (value instanceof Utf8 utf8) return new DataString(utf8.toString());
         if (value instanceof GenericData.EnumSymbol) {
             return new DataString(value.toString());
+        }
+        if(value instanceof ByteBuffer buffer) {
+            return super.toDataObject(expected, buffer.array());
         }
         if (value instanceof GenericRecord rec) {
             final var avroSchema = rec.getSchema();
