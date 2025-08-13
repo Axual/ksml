@@ -20,13 +20,13 @@ package io.axual.ksml.data.notation.xml;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.NativeDataObjectMapper;
+import org.apache.kafka.common.serialization.Serde;
+
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.string.StringNotation;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
-import org.apache.kafka.common.serialization.Serde;
 
 public class XmlNotation extends StringNotation {
     public static final String NOTATION_NAME = "xml";
@@ -39,7 +39,7 @@ public class XmlNotation extends StringNotation {
     @Override
     public Serde<Object> serde(DataType type, boolean isKey) {
         // XML types should ways be Maps (or Structs)
-        if (type instanceof MapType) return super.serde(type, isKey);
+        if (type instanceof MapType || type instanceof StructType) return super.serde(type, isKey);
         // Other types can not be serialized as XML
         throw noSerdeFor(type);
     }
