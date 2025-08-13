@@ -1,8 +1,33 @@
 # KSML Data (ksml-data) — Developer Guide
 
-This guide explains the KSML DataObject model and how native Java values are converted to DataObjects. It is intended for maintainers and also formatted so AI tools can consume it to assist refactorings.
+Audience: developers maintaining or extending ksml/ksml-data; also structured for AI-assisted refactoring and code generation.
 
-Version/date: 2025-08-12
+Version/date: 2025-08-13
+
+How to use this document
+- If you’re here to add or change functionality, start with the Recipes and How‑Tos section, then jump to the detailed reference linked from each recipe.
+- If you’re onboarding or need a mental model, skim the Overview Map and the Table of Contents below.
+- If you’re debugging conversions, check DataObjects, DataTypes, and ConvertUtil notes.
+
+Overview map (what lives where)
+- DataObjects (runtime values) and DataTypes (logical types) live in ksml-data.
+- Schemas model structural types and bridge to notations.
+- Mappers connect native Java objects with DataObjects and map DataType <-> DataSchema.
+- Serdes connect Kafka byte[] boundaries with DataObjects.
+- Notations provide format-specific serdes, converters, and schema parsers, discovered via ServiceLoader.
+
+Table of Contents
+- 1. DataObject types and native conversion rules
+- 2. DataType implementations
+- 3. Schema classes (io.axual.ksml.data.schema)
+- 4. Mappers: object and schema mapping layer
+- 5. Serdes (Kafka serialization/deserialization layer)
+- 6. Notations (formats) and extending KSML via ServiceLoader
+- 7. Recipes and How‑Tos (task-oriented)
+- 8. Design conventions and pitfalls
+- 9. Module map (where things live)
+- 10. Glossary
+- 11. Contribution checklist
 
 
 ## 1. DataObject types and native conversion rules
@@ -655,3 +680,86 @@ Checklist:
 - Avoid heavy initialization in provider constructors; defer creating underlying serdes until serde(...) is called to prevent early failures when a notation isn’t used (pattern used by VendorNotation).
 - If your notation supports named schemas, integrate a SchemaResolver for loading by name (see NativeDataObjectMapper.loadSchemaByName usage).
 - When adding a new notation module, ensure the module’s POM/JAR packaging includes the service file and that classpaths are correct so ServiceLoader can find it.
+
+
+## 7. Recipes and How‑Tos (task-oriented)
+
+7.1 Add a new scalar DataObject
+- Implement DataPrimitive<T> subclass with a public static final SimpleType DATATYPE.
+- Validate assignability via SimpleType container class.
+- Update NativeDataObjectMapper.convertObjectToDataObject to wrap native input; update inferDataTypeFromObject.
+- Add fromDataObject mapping if needed.
+- Tests: conversion in both directions; printing; null handling.
+
+7.2 Add a new composite DataObject (list/map/struct/tuple-like)
+- Prefer reusing existing DataType (ListType, MapType, StructType, TupleType). If truly new, add a new ComplexType variant and extend ConvertUtil recursion.
+- Implement DataObject container with isNull semantics if nullable container.
+- Update NativeDataObjectMapper and ConvertUtil for conversions and typed nulls.
+
+7.3 Add a new DataType
+- Extend ComplexType or SimpleType. Define containerClass, name(), spec(), and assignability rules.
+- If schema-backed, add to DataTypeDataSchemaMapper (both directions) and StructType/UnionType behaviors if relevant.
+- Extend ConvertUtil: string parsing, typed null construction, recursion where applicable.
+
+7.4 Add a new schema class
+- Add DataSchema subclass; document assignability rules and symmetry (mutual acceptance) if applicable.
+- Bridge in DataTypeDataSchemaMapper to/from DataType.
+- Add tests for edge cases (eg. UnionSchema flattening, FixedSchema size, EnumSchema domain containment).
+
+7.5 Implement a new Notation
+- Choose path: StringNotation (string-backed), VendorNotation (vendor-backed), or BaseNotation (custom).
+- Provide: defaultType(), serde(DataType, isKey), converter(), schemaParser().
+- Provide a NotationProvider and register via META-INF/services/io.axual.ksml.data.notation.NotationProvider.
+- Configuration: wire serde configs through NotationContext; use DataObjectSerde and appropriate boundary mapper.
+
+7.6 Implement a new Serde
+- Compose DataObjectSerde with appropriate boundary mappers where possible.
+- Provide configure/close propagation and null handling consistent with tests.
+
+7.7 Update ConvertUtil safely
+- Add conversions in a conservative order: try notation converters, then compatibility conversions.
+- Maintain helpful error messages via convertError; keep union/member recursion intact.
+- Extend convertNullToDataObject when adding new complex types.
+
+7.8 Map a native model to DataSchema
+- Implement DataSchemaMapper<T> if mapping a non-DataType domain model; otherwise use DataTypeDataSchemaMapper.
+- Ensure StructSchema.SCHEMALESS normalization and TupleSchema generation are respected.
+
+
+## 8. Design conventions and pitfalls
+- Null handling: DataNull is the canonical null; composite containers can be null (isNull); scalar wrappers may hold null values.
+- Assignability: Use DataType.isAssignableFrom for type/value checks; StructSchema/UnionSchema have specific assignability semantics; EnumType has value-based checks.
+- Printing: use DataObject.Printer modes; never rely on toString for program logic.
+- Numeric coercion: Mapper performs only limited coercion as documented; be explicit about loss of precision.
+- Schema naming: NamedSchema.name()/fullName() behaviors ignore vendor-specificity to aid cross-notation comparisons.
+- Defensive copies: DataBytes copies arrays; follow similar patterns for new binary-like types.
+- Performance: Defer heavy initialization (e.g., vendor serdes) until needed; preserve lazy patterns.
+
+
+## 9. Module map (where things live)
+- ksml-data: core DataObject, DataType, Schema, Mappers, Serdes, Notation SPI and base helpers.
+- ksml-data-json: JSON notation and serde.
+- ksml-data-avro, ksml-data-avro-*: Avro notation and vendor-specific providers.
+- ksml-data-protobuf, ksml-data-protobuf-*: Protobuf notation and vendor-specific providers.
+- ksml-data-jsonschema, ksml-data-jsonschema-*: JSON Schema notation and vendor-specific providers.
+- ksml-data-xml, ksml-data-csv, ksml-data-binary, ksml-data-soap: additional notations following BaseNotation patterns.
+
+
+## 10. Glossary
+- DataObject: Runtime container for values with type metadata.
+- DataType: Logical type describing structure, assignability, and container class.
+- DataSchema: Serializable schema model used by notations and registries.
+- Notation: Format binding that provides serde, converter, and schema parser.
+- Serde: Kafka serializer/deserializer pair.
+- Mapper: Bridges native values or schemas to the KSML models.
+- Assignability: Compatibility relation used across DataType/DataSchema.
+
+
+## 11. Contribution checklist
+- [ ] Added/updated unit tests for new or changed behavior.
+- [ ] Updated DataTypeDataSchemaMapper if a type or schema mapping changed.
+- [ ] Extended ConvertUtil for new conversions and null-typed construction if relevant.
+- [ ] Ensured NativeDataObjectMapper symmetry (to/from) remains intact.
+- [ ] Verified serde behavior and error messages, especially null handling.
+- [ ] Updated NotationProvider service file if adding a new notation.
+- [ ] Ran a full build locally and ensured tests pass.
