@@ -61,11 +61,14 @@ Our transaction data will have the following structure:
 
 ## Creating the KSML Definition
 
-Now, let's create our KSML definition file:
+Now, let's create our KSML definition file. This defines operations that check for transactions coming from unusual
+locations, coming at an unsual speed, or are for a high amount:
 
-```yaml
-{% include "../definitions/use-cases/fraud-detection/fraud-detection.yaml" %}
-```
+??? info "Basic fraud detection pipeline (click to expand)"
+
+    ```yaml
+    {% include "../definitions/use-cases/fraud-detection/fraud-detection.yaml" %}
+    ```
 
 ## Advanced Fraud Detection Techniques
 
@@ -73,37 +76,43 @@ Now, let's create our KSML definition file:
 
 To detect complex fraud patterns, you can implement more sophisticated algorithms:
 
-```yaml
-{%
-  include "../definitions/use-cases/fraud-detection/fraud-pattern-detection.yaml"
-  start="## Functions"
-  end="## End of Functions"
-%}
-```
+??? info "Advanced fraud detection pattern recognition (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/use-cases/fraud-detection/fraud-pattern-detection.yaml"
+      start="## Functions"
+      end="## End of Functions"
+    %}
+    ```
 
 ### Machine Learning Integration
 
 For more advanced fraud detection, you can integrate machine learning models:
 
-```yaml
-{%
-  include "../definitions/use-cases/fraud-detection/fraud-detection-machine-learning.yaml"
-  start="## Functions"
-  end="## End of Functions"
-%}
-```
+??? info "Machine learning integration (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/use-cases/fraud-detection/fraud-detection-machine-learning.yaml"
+      start="## Functions"
+      end="## End of Functions"
+    %}
+    ```
 
 ## Real-time Alerting
 
 To make your fraud detection system actionable, you need to generate alerts:
 
-```yaml
-{%
-  include "../definitions/use-cases/fraud-detection/fraud-notifications.yaml"
-  start="## Functions"
-  end="## End of Functions"
-%}
-```
+??? info "Real time alerting code (click to expand)"
+
+    ```yaml
+    {%
+      include "../definitions/use-cases/fraud-detection/fraud-notifications.yaml"
+      start="## Functions"
+      end="## End of Functions"
+    %}
+    ```
 
 ## Testing and Validation
 
