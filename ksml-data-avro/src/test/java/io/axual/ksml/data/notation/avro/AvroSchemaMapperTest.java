@@ -25,6 +25,8 @@ import org.apache.avro.Schema;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import io.axual.ksml.data.notation.avro.test.AvroTestUtil;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
@@ -39,6 +41,7 @@ import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.SCHEMA_COLLECTI
 import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.SCHEMA_LOGICAL_TYPES;
 import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.SCHEMA_OPTIONAL;
 import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.SCHEMA_PRIMITIVES;
+import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -108,7 +111,7 @@ class AvroSchemaMapperTest {
         assertThat(singleUnion.required()).isFalse();
         assertThat(singleUnion.schema()).isInstanceOf(UnionSchema.class);
         UnionSchema singleUnionSchema = (UnionSchema) singleUnion.schema();
-        assertThat(singleUnionSchema.memberSchemas()).hasSize(4);
+        assertThat(singleUnionSchema.memberSchemas()).hasSize(5);
         // Ensure record X and enum Y are present among union member schemas
         boolean hasRecordX = false;
         boolean hasEnumY = false;
@@ -123,7 +126,7 @@ class AvroSchemaMapperTest {
             if (ms instanceof StructSchema s && s.name().equals("X")) hasRecordX = true;
             if (ms instanceof EnumSchema e && e.name().equals("Y")) hasEnumY = true;
         }
-        assertThat(hasNull).as("The null schema in the union should be filtered out").isFalse();
+        assertThat(hasNull).as("The null schema in the union should NOT be filtered out").isTrue();
         assertThat(hasString).isTrue();
         assertThat(hasInt).isTrue();
         assertThat(hasRecordX).isTrue();
@@ -136,7 +139,7 @@ class AvroSchemaMapperTest {
         DataSchema listValue = ((ListSchema) unionList.schema()).valueSchema();
         assertThat(listValue).isInstanceOf(UnionSchema.class);
         UnionSchema unionListValue = (UnionSchema) listValue;
-        assertThat(unionListValue.memberSchemas()).hasSize(4);
+        assertThat(unionListValue.memberSchemas()).hasSize(5);
 
         // Round-trip stability
         Schema backToAvro = schemaMapper.fromDataSchema(ksml);
@@ -176,31 +179,27 @@ class AvroSchemaMapperTest {
         }
 
         // Type assertions
-        assertThat(ksml.field("optStr").schema()).isEqualTo(DataSchema.STRING_SCHEMA);
-        assertThat(ksml.field("optInt").schema()).isEqualTo(DataSchema.INTEGER_SCHEMA);
-        assertThat(ksml.field("optLong").schema()).isEqualTo(DataSchema.LONG_SCHEMA);
-        assertThat(ksml.field("optFloat").schema()).isEqualTo(DataSchema.FLOAT_SCHEMA);
-        assertThat(ksml.field("optDouble").schema()).isEqualTo(DataSchema.DOUBLE_SCHEMA);
-        assertThat(ksml.field("optBool").schema()).isEqualTo(DataSchema.BOOLEAN_SCHEMA);
-        assertThat(ksml.field("optBytes").schema()).isEqualTo(DataSchema.BYTES_SCHEMA);
 
-        assertThat(ksml.field("optStrList").schema()).isInstanceOf(ListSchema.class);
-        assertThat(((ListSchema) ksml.field("optStrList").schema()).valueSchema()).isEqualTo(DataSchema.STRING_SCHEMA);
+        assertThat(ksml.field("optStr").schema()).isEqualTo(optionalSchema(DataSchema.STRING_SCHEMA));
+        assertThat(ksml.field("optInt").schema()).isEqualTo(optionalSchema(DataSchema.INTEGER_SCHEMA));
+        assertThat(ksml.field("optLong").schema()).isEqualTo(optionalSchema(DataSchema.LONG_SCHEMA));
+        assertThat(ksml.field("optFloat").schema()).isEqualTo(optionalSchema(DataSchema.FLOAT_SCHEMA));
+        assertThat(ksml.field("optDouble").schema()).isEqualTo(optionalSchema(DataSchema.DOUBLE_SCHEMA));
+        assertThat(ksml.field("optBool").schema()).isEqualTo(optionalSchema(DataSchema.BOOLEAN_SCHEMA));
+        assertThat(ksml.field("optBytes").schema()).isEqualTo(optionalSchema(DataSchema.BYTES_SCHEMA));
 
-        assertThat(ksml.field("optIntMap").schema()).isInstanceOf(MapSchema.class);
-        assertThat(((MapSchema) ksml.field("optIntMap").schema()).valueSchema()).isEqualTo(DataSchema.INTEGER_SCHEMA);
+        assertThat(ksml.field("optStrList").schema()).isEqualTo(optionalSchema(new ListSchema(DataSchema.STRING_SCHEMA)));
+        assertThat(ksml.field("optIntMap").schema()).isEqualTo(optionalSchema(new MapSchema(DataSchema.INTEGER_SCHEMA)));
 
-        assertThat(ksml.field("optRec").schema()).isInstanceOf(StructSchema.class);
-        StructSchema inner = (StructSchema) ksml.field("optRec").schema();
-        assertThat(inner.name()).isEqualTo("OptInner");
-        assertThat(inner.field("id").schema()).isEqualTo(DataSchema.INTEGER_SCHEMA);
+        final UnionSchema expectedOptRec = optionalSchema(new StructSchema("io.axual.test", "OptInner", null, List.of(new DataField("id", DataSchema.INTEGER_SCHEMA))));
+        assertThat(ksml.field("optRec").schema()).isEqualTo(expectedOptRec);
 
-        assertThat(ksml.field("optEnum").schema()).isInstanceOf(EnumSchema.class);
-        EnumSchema color = (EnumSchema) ksml.field("optEnum").schema();
-        assertThat(color.symbols()).extracting(Symbol::name).containsExactly("RED", "GREEN", "BLUE");
+        final UnionSchema expectedOptEnum = optionalSchema(new EnumSchema("io.axual.test", "OptColor", null, List.of(new Symbol("RED"), new Symbol("GREEN"), new Symbol("BLUE"))));
+        assertThat(ksml.field("optEnum").schema()).isEqualTo(expectedOptEnum);
 
         // Round-trip back to Avro and check defaults & union w/ null
         Schema back = schemaMapper.fromDataSchema(ksml);
+        assertThat(back).isEqualTo(avro);
         StructSchema ksmlAgain = schemaMapper.toDataSchema(back.getNamespace(), back.getName(), back);
         assertThat(ksmlAgain).isEqualTo(ksml);
 
@@ -215,5 +214,17 @@ class AvroSchemaMapperTest {
                     .extracting(Schema::getTypes, InstanceOfAssertFactories.list(Schema.class))
                     .first().returns(Schema.Type.NULL, Schema::getType);
         }
+    }
+
+    static UnionSchema optionalSchema(DataSchema... dataSchemas) {
+        requireNonNull(dataSchemas);
+        if (dataSchemas.length == 0) throw new IllegalArgumentException("No data schemas provided");
+
+        final var dataFields = new DataField[dataSchemas.length + 1];
+        dataFields[0] = new DataField(DataSchema.NULL_SCHEMA);
+        for (int i = 1; i <= dataSchemas.length; i++) {
+            dataFields[i] = new DataField(dataSchemas[i - 1]);
+        }
+        return new UnionSchema(dataFields);
     }
 }

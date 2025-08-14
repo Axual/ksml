@@ -31,6 +31,7 @@ import io.axual.ksml.data.mapper.DataSchemaMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.schema.DataField;
 import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.DataValue;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.FixedSchema;
@@ -39,6 +40,7 @@ import io.axual.ksml.data.schema.MapSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.data.type.Symbol;
+import lombok.extern.slf4j.Slf4j;
 
 import static io.axual.ksml.data.schema.DataField.NO_TAG;
 
@@ -51,6 +53,7 @@ import static io.axual.ksml.data.schema.DataField.NO_TAG;
  *
  * <p>See ksml-data/DEVELOPER_GUIDE.md sections on schema classes and mappers for background.</p>
  */
+@Slf4j
 public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     private static final AvroDataObjectMapper avroMapper = new AvroDataObjectMapper();
     private static final Schema AVRO_NULL_TYPE = Schema.create(Schema.Type.NULL);
@@ -88,7 +91,47 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             final var fields = convertFieldsToAvroFields(structSchema.fields());
             return Schema.createRecord(structSchema.name(), structSchema.doc(), structSchema.namespace(), false, fields);
         }
-        return null;
+        if (schema instanceof MapSchema mapSchema) {
+            var avroMapValueSchema = fromDataSchema(mapSchema.valueSchema());
+            return Schema.createMap(avroMapValueSchema);
+        }
+        if (schema instanceof ListSchema listSchema) {
+            var avroListValueSchema = fromDataSchema(listSchema.valueSchema());
+            return Schema.createArray(avroListValueSchema);
+        }
+        if (schema instanceof EnumSchema enumSchema) {
+            var symbols = enumSchema.symbols().stream()
+                    .map(Symbol::name)
+                    .toList();
+            return Schema.createEnum(enumSchema.name(), enumSchema.doc(), enumSchema.namespace(), symbols, enumSchema.defaultValue());
+        }
+        if (schema instanceof FixedSchema fixedSchema) {
+            return Schema.createFixed(fixedSchema.name(), fixedSchema.doc(), fixedSchema.namespace(), fixedSchema.size());
+        }
+        if (schema instanceof UnionSchema unionSchema) {
+            var memberSchemas = unionSchema.memberSchemas();
+            var avroMemberSchemas = new Schema[memberSchemas.length];
+            for (int i = 0; i < memberSchemas.length; i++) {
+                avroMemberSchemas[i] = fromDataSchema(memberSchemas[i].schema());
+            }
+            return Schema.createUnion(avroMemberSchemas);
+        }
+
+        return switch (schema.type()) {
+            case DataSchemaConstants.NULL_TYPE -> Schema.create(Schema.Type.NULL);
+            case DataSchemaConstants.BOOLEAN_TYPE -> Schema.create(Schema.Type.BOOLEAN);
+            case DataSchemaConstants.STRING_TYPE -> Schema.create(Schema.Type.STRING);
+            case DataSchemaConstants.DOUBLE_TYPE -> Schema.create(Schema.Type.DOUBLE);
+            case DataSchemaConstants.FLOAT_TYPE -> Schema.create(Schema.Type.FLOAT);
+            case DataSchemaConstants.BYTES_TYPE -> Schema.create(Schema.Type.BYTES);
+            case DataSchemaConstants.BYTE_TYPE, DataSchemaConstants.SHORT_TYPE,
+                 DataSchemaConstants.INTEGER_TYPE -> Schema.create(Schema.Type.INT);
+            case DataSchemaConstants.LONG_TYPE -> Schema.create(Schema.Type.LONG);
+            case null, default -> {
+                log.error("Schema type {} is not supported, ignoring schema", schema);
+                yield null;
+            }
+        };
     }
 
     private record SchemaAndRequired(DataSchema schema, boolean required) {
@@ -135,19 +178,19 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         // If a type "null" is found in AVRO schema, the respective property is considered optional, so here we detect
         // this fact and return the result Boolean as "false" indicating a required property.
 
-        var cleanUnionTypes = new ArrayList<>(unionTypes);
-
-        // Remove the NULL schema if it exists, NULL schema makes the enum optional
-        var isRequired = !cleanUnionTypes.remove(AVRO_NULL_TYPE);
-
-        if (cleanUnionTypes.size() == 1) {
-            // If the union now contains only a single schema, then unwrap it from the union and return as simple type
-            // Usually the case when used with a NULL schema to mark the enum as optional
-            return new SchemaAndRequired(convertAvroSchemaToDataSchemaAndRequired(cleanUnionTypes.getFirst()).schema(), isRequired);
-        }
+//        var cleanUnionTypes = new ArrayList<>(unionTypes);
+//
+//        // Remove the NULL schema if it exists, NULL schema makes the enum optional
+        var isRequired = !unionTypes.contains(AVRO_NULL_TYPE);
+//
+//        if (cleanUnionTypes.size() == 2 && !isRequired) {
+//            // If the union now contains only a single schema, then unwrap it from the union and return as simple type
+//            // Usually the case when used with a NULL schema to mark the enum as optional
+//            return new SchemaAndRequired(convertAvroSchemaToDataSchemaAndRequired(cleanUnionTypes.getFirst()).schema(), isRequired);
+//        }
 
         // Create a new union schema, and mark it as optional if the NULL schema was in it
-        return new SchemaAndRequired(new UnionSchema(convertAvroSchemaToDataFields(cleanUnionTypes).toArray(DataField[]::new)), isRequired);
+        return new SchemaAndRequired(new UnionSchema(convertAvroSchemaToDataFields(unionTypes).toArray(DataField[]::new)), isRequired);
     }
 
     private List<DataField> convertAvroSchemaToDataFields(List<Schema> schemas) {

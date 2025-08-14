@@ -186,7 +186,7 @@ class AvroDataObjectMapperTest {
 
         // Convert KSML DataStruct -> Avro native wrapper (GenericRecord)
         Object nativeAvro = mapper.fromDataObject(firstStruct);
-        assertThat(nativeAvro).isInstanceOf(AvroObject.class);
+        assertThat(nativeAvro).isInstanceOf(GenericRecord.class);
 
         // Convert back to KSML DataStruct from the AvroObject wrapper
         DataStruct roundTripped = (DataStruct) mapper.toDataObject(null, nativeAvro);
@@ -248,7 +248,7 @@ class AvroDataObjectMapperTest {
         assertThat(((DataString) ds.get("optEnum")).value()).isEqualTo("GREEN");
 
         // Round-trip stability for this struct
-        DataStruct again = (DataStruct) mapper.toDataObject(null, mapper.fromDataObject(ds));
+        DataStruct again = (DataStruct) mapper.toDataObject( mapper.fromDataObject(ds));
         assertThat(again).usingRecursiveComparison().isEqualTo(ds);
     }
 }
