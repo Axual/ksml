@@ -68,13 +68,76 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
      * @param namespace ignored; use schema.getNamespace()
      * @param name      ignored; use schema.getName()
      * @param schema    the Avro schema (record) to convert
-     * @return a StructSchema with fields mapped from the Avro schema
+     * @return a DataSchema with fields mapped from the Avro schema
      */
     @Override
-    public StructSchema toDataSchema(String namespace, String name, Schema schema) {
-        // The namespace and name fields are ignored, since they are already contained in the schema and
-        // take precedence over the parameters to this method.
-        return new StructSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), convertAvroFieldsToDataFields(schema.getFields()));
+    public DataSchema toDataSchema(String namespace, String name, Schema schema) {
+        if (schema == null) {
+            return DataSchema.NULL_SCHEMA;
+        }
+
+        switch (schema.getType()) {
+            case STRING -> {
+                return DataSchema.STRING_SCHEMA;
+            }
+            case BYTES -> {
+                return DataSchema.BYTES_SCHEMA;
+            }
+            case INT -> {
+                return DataSchema.INTEGER_SCHEMA;
+            }
+            case LONG -> {
+                return DataSchema.LONG_SCHEMA;
+            }
+            case FLOAT -> {
+                return DataSchema.FLOAT_SCHEMA;
+            }
+            case DOUBLE -> {
+                return DataSchema.DOUBLE_SCHEMA;
+            }
+            case BOOLEAN -> {
+                return DataSchema.BOOLEAN_SCHEMA;
+            }
+            case NULL -> {
+                return DataSchema.NULL_SCHEMA;
+            }
+            case ENUM -> {
+                final String enumDefault = schema.getEnumDefault();
+                final Symbol defaultSymbol = enumDefault == null ? null : new Symbol(enumDefault);
+                final List<Symbol> symbols = schema.getEnumSymbols().stream().map(Symbol::new).toList();
+
+                return new EnumSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), symbols, defaultSymbol);
+            }
+            case ARRAY -> {
+                final Schema elementSchema = schema.getElementType();
+                final DataSchema elementDataSchema = toDataSchema(elementSchema.getNamespace(), elementSchema.getName(), elementSchema);
+                return new ListSchema(schema.getName(), elementDataSchema);
+            }
+            case MAP -> {
+                final Schema valueSchema = schema.getValueType();
+                final DataSchema valueDataSchema = toDataSchema(valueSchema.getNamespace(), valueSchema.getName(), valueSchema);
+                return new MapSchema(valueDataSchema);
+            }
+            case UNION -> {
+                final List<Schema> unionSchemas = schema.getTypes();
+                final DataField[] unionDataFields = new DataField[unionSchemas.size()];
+                for (int i = 0; i < unionSchemas.size(); i++) {
+                    final Schema memberSchema = unionSchemas.get(i);
+                    final DataSchema memberDataSchema = toDataSchema(memberSchema.getNamespace(), memberSchema.getName(), memberSchema);
+                    unionDataFields[i] = new DataField(memberDataSchema);
+                }
+                return new UnionSchema(unionDataFields);
+            }
+            case FIXED -> {
+                return new FixedSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getFixedSize());
+            }
+            case RECORD -> {
+                return new StructSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), convertAvroFieldsToDataFields(schema.getFields()));
+            }
+            default -> {
+                return null;
+            }
+        }
     }
 
     /**
@@ -103,7 +166,9 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             var symbols = enumSchema.symbols().stream()
                     .map(Symbol::name)
                     .toList();
-            return Schema.createEnum(enumSchema.name(), enumSchema.doc(), enumSchema.namespace(), symbols, enumSchema.defaultValue());
+            var enumDefault = enumSchema.defaultValue();
+
+            return Schema.createEnum(enumSchema.name(), enumSchema.doc(), enumSchema.namespace(), symbols, enumDefault == null ? null : enumDefault.name());
         }
         if (schema instanceof FixedSchema fixedSchema) {
             return Schema.createFixed(fixedSchema.name(), fixedSchema.doc(), fixedSchema.namespace(), fixedSchema.size());
@@ -165,7 +230,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             case ARRAY ->
                     new SchemaAndRequired(new ListSchema(convertAvroSchemaToDataSchemaAndRequired(schema.getElementType()).schema()), true);
             case ENUM -> new SchemaAndRequired(
-                    new EnumSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getEnumSymbols().stream().map(Symbol::new).toList(), schema.getEnumDefault()),
+                    new EnumSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getEnumSymbols().stream().map(Symbol::new).toList(), schema.getEnumDefault() == null ? null : new Symbol(schema.getEnumDefault())),
                     true);
             case MAP ->
                     new SchemaAndRequired(new MapSchema(convertAvroSchemaToDataSchemaAndRequired(schema.getValueType()).schema()), true);
@@ -236,7 +301,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             return Schema.createFixed(fixedSchema.name(), fixedSchema.doc(), fixedSchema.namespace(), fixedSchema.size());
         if (schema == DataSchema.STRING_SCHEMA) return Schema.create(Schema.Type.STRING);
         if (schema instanceof EnumSchema enumSchema)
-            return Schema.createEnum(enumSchema.name(), enumSchema.doc(), enumSchema.namespace(), enumSchema.symbols().stream().map(Symbol::name).toList(), enumSchema.defaultValue());
+            return Schema.createEnum(enumSchema.name(), enumSchema.doc(), enumSchema.namespace(), enumSchema.symbols().stream().map(Symbol::name).toList(), enumSchema.defaultValue() == null ? null : enumSchema.defaultValue().name());
         if (schema instanceof ListSchema listSchema)
             return Schema.createArray(convertDataSchemaToAvroSchema(listSchema.valueSchema(), true).schema());
         if (schema instanceof MapSchema mapSchema)

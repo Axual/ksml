@@ -213,7 +213,9 @@ class AvroDataObjectMapperTest {
         assertThat(ds.get("optBool")).isEqualTo(new DataBoolean(null));
         assertThat(ds.get("optBytes")).isEqualTo(new DataBytes(null));
         assertThat(ds.get("optStrList")).isNull();
-        assertThat(ds.get("optIntMap")).isEqualTo(new DataMap(DataInteger.DATATYPE, true));
+        DataMap expectedOptIntMap = new DataMap(DataInteger.DATATYPE, true);
+        DataObject realOptIntMap = ds.get("optIntMap");
+        assertThat(realOptIntMap).usingRecursiveComparison().isEqualTo(expectedOptIntMap);
         assertThat(ds.get("optRec")).isNull();
         assertThat(ds.get("optEnum")).isNull();
     }

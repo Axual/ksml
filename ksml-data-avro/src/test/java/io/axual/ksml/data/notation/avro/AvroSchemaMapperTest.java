@@ -54,8 +54,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AvroSchemaMapperTest {
     private final AvroSchemaMapper schemaMapper = new AvroSchemaMapper();
 
-    private StructSchema toKsml(Schema avroSchema) {
-        return schemaMapper.toDataSchema(avroSchema.getNamespace(), avroSchema.getName(), avroSchema);
+    private StructSchema toKsmlStruct(Schema avroSchema) {
+        return (StructSchema) schemaMapper.toDataSchema(avroSchema.getNamespace(), avroSchema.getName(), avroSchema);
+    }
+
+    @Test
+    void basicAvroSchemaTypeConversion(){
+       Schema avroSchema = Schema.create(Schema.Type.NULL);
+       DataSchema mappedDataSchema = schemaMapper.toDataSchema(null,null, avroSchema);
+       Schema remappedAvroSchema = schemaMapper.fromDataSchema(mappedDataSchema);
+
+       assertThat(remappedAvroSchema).isEqualTo(avroSchema);
     }
 
     @Test
@@ -64,9 +73,9 @@ class AvroSchemaMapperTest {
         Schema avroPrimitives = AvroTestUtil.loadSchema(SCHEMA_PRIMITIVES);
 
         // Act
-        StructSchema ksmlSchema1 = toKsml(avroPrimitives);
+        StructSchema ksmlSchema1 = toKsmlStruct(avroPrimitives);
         Schema backToAvro = schemaMapper.fromDataSchema(ksmlSchema1);
-        StructSchema ksmlSchema2 = toKsml(backToAvro);
+        StructSchema ksmlSchema2 = toKsmlStruct(backToAvro);
 
         // Assert
         assertThat(ksmlSchema2).isEqualTo(ksmlSchema1);
@@ -86,7 +95,7 @@ class AvroSchemaMapperTest {
         Schema avroCollections = AvroTestUtil.loadSchema(SCHEMA_COLLECTIONS);
 
         // Act
-        StructSchema ksml = toKsml(avroCollections);
+        StructSchema ksml = toKsmlStruct(avroCollections);
 
         // Assert structure
         assertThat(ksml.name()).isEqualTo("Collections");
@@ -143,7 +152,7 @@ class AvroSchemaMapperTest {
 
         // Round-trip stability
         Schema backToAvro = schemaMapper.fromDataSchema(ksml);
-        StructSchema ksmlAgain = toKsml(backToAvro);
+        StructSchema ksmlAgain = toKsmlStruct(backToAvro);
         assertThat(ksmlAgain).isEqualTo(ksml);
     }
 
@@ -153,7 +162,7 @@ class AvroSchemaMapperTest {
         Schema avroLogical = AvroTestUtil.loadSchema(SCHEMA_LOGICAL_TYPES);
 
         // Act
-        StructSchema ksml = toKsml(avroLogical);
+        StructSchema ksml = toKsmlStruct(avroLogical);
 
         // Assert underlying primitive schemas
         assertThat(ksml.field("date").schema()).isEqualTo(DataSchema.INTEGER_SCHEMA); // date -> int
@@ -164,14 +173,14 @@ class AvroSchemaMapperTest {
 
         // Round-trip
         Schema backToAvro = schemaMapper.fromDataSchema(ksml);
-        StructSchema again = toKsml(backToAvro);
+        StructSchema again = toKsmlStruct(backToAvro);
         assertThat(again).isEqualTo(ksml);
     }
 
     @Test
     void optionalFields_avroToKsml_optionalAndTypes_andRoundTripStable() {
         Schema avro = AvroTestUtil.loadSchema(SCHEMA_OPTIONAL);
-        StructSchema ksml = schemaMapper.toDataSchema(avro.getNamespace(), avro.getName(), avro);
+        StructSchema ksml = (StructSchema) schemaMapper.toDataSchema(avro.getNamespace(), avro.getName(), avro);
 
         // All fields should be optional
         for (DataField f : ksml.fields()) {
@@ -200,7 +209,7 @@ class AvroSchemaMapperTest {
         // Round-trip back to Avro and check defaults & union w/ null
         Schema back = schemaMapper.fromDataSchema(ksml);
         assertThat(back).isEqualTo(avro);
-        StructSchema ksmlAgain = schemaMapper.toDataSchema(back.getNamespace(), back.getName(), back);
+        StructSchema ksmlAgain = (StructSchema) schemaMapper.toDataSchema(back.getNamespace(), back.getName(), back);
         assertThat(ksmlAgain).isEqualTo(ksml);
 
         // In back schema, all fields should be union with null first and default null
