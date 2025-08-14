@@ -110,7 +110,7 @@ In the `examples/` directory, create `iot-analytics.yaml`:
 
     ```yaml
     {%
-      include "../definitions/installation/processor.yaml"
+      include "../definitions/quick-start/processor.yaml"
     %}
     ```
 
@@ -138,10 +138,16 @@ Restart the KSML runner:
 docker compose restart ksml
 ```
 
-Check the logs:
+Check the logs to see when KSML is ready to receive messages:
 
 ```bash
-docker compose logs ksml
+docker compose logs ksml -f
+```
+
+KSML is ready to receive messages when you see a message:
+
+```
+Pipeline processing state change. Moving from old state 'REBALANCING' to new state 'RUNNING'
 ```
 
 ## Step 6: See It In Action!

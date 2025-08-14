@@ -1,0 +1,110 @@
+streams:
+  product_clicks:
+    topic: product_clicks
+    keyType: string  # user_id
+    valueType: json
+
+  product_purchases:
+    topic: product_purchases
+    keyType: string  # user_id
+    valueType: json
+
+  product_conversions:
+    topic: product_conversions
+    keyType: string  # user_id:product_id
+    valueType: json
+
+functions:
+  # Rekey to user_id:product_id for accurate product conversion tracking
+  create_user_product_key:
+    type: keyTransformer
+    code: |
+      # Create composite key: user_id:product_id
+      user_id = value.get("user_id") if value else None
+      product_id = value.get("product_id") if value else None
+      new_key = f"{user_id}:{product_id}" if user_id and product_id else None
+    expression: new_key
+    resultType: string
+
+  track_product_conversion:
+    type: valueJoiner
+    code: |
+      result = {}
+      
+      # Add click data
+      if value1 is not None:
+        result["click"] = value1
+        
+      # Add purchase data  
+      if value2 is not None:
+        result["purchase"] = value2
+        
+      # This is a TRUE conversion - same user, same product
+      if value1 is not None and value2 is not None:
+        result["converted"] = True
+        click_time = value1.get("timestamp", 0)
+        purchase_time = value2.get("timestamp", 0)
+        result["conversion_time_ms"] = purchase_time - click_time
+        result["product_id"] = value1.get("product_id")
+        result["user_id"] = value1.get("user_id")
+      else:
+        result["converted"] = False
+        
+      new_value = result
+    expression: new_value
+    resultType: json
+
+pipelines:
+  track_product_conversions:
+    from: product_clicks
+    via:
+      # Rekey clicks to user_id:product_id
+      - type: transformKey
+        mapper: create_user_product_key
+      # Store rekeyed clicks in a stream for joining
+      - type: to
+        topic: product_clicks_by_product
+        keyType: string
+        valueType: json
+        
+  track_purchase_conversions:
+    from: product_purchases
+    via:
+      # Rekey purchases to user_id:product_id
+      - type: transformKey
+        mapper: create_user_product_key
+      # Store rekeyed purchases in a stream for joining
+      - type: to
+        topic: product_purchases_by_product
+        keyType: string
+        valueType: json
+        
+  join_conversions:
+    from: product_clicks_by_product
+    via:
+      - type: join
+        stream: product_purchases_by_product
+        valueJoiner: track_product_conversion
+        timeDifference: 30m  # Purchase within 30 minutes of click
+        grace: 5m
+        thisStore:
+          name: clicks_by_product_store
+          type: window
+          windowSize: 60m
+          retention: 65m
+          retainDuplicates: true
+        otherStore:
+          name: purchases_by_product_store
+          type: window
+          windowSize: 60m
+          retention: 65m
+          retainDuplicates: true
+      - type: peek
+        forEach:
+          code: |
+            log.info("PRODUCT CONVERSION - key={}, user={}, product={}, converted={}", 
+                     key, 
+                     value.get("user_id"), 
+                     value.get("product_id"),
+                     value.get("converted"))
+    to: product_conversions

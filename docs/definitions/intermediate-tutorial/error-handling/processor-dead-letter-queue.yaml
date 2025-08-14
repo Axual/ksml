@@ -1,0 +1,61 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
+
+# Simple dead letter queue example demonstrating error routing
+
+streams:
+  incoming_orders:
+    topic: incoming_orders
+    keyType: string
+    valueType: json
+    
+  processed_orders:
+    topic: processed_orders
+    keyType: string
+    valueType: json
+    
+  failed_orders:
+    topic: failed_orders
+    keyType: string
+    valueType: json
+
+functions:
+  process_with_dlq:
+    type: valueTransformer
+    code: |
+      try:
+        # Simple processing with potential failure
+        if value is None or "malformed" in value:
+          raise ValueError("Invalid order format")
+        
+        # Add processing info
+        value["processed_at"] = "2025-01-01T00:00:00Z"
+        value["status"] = "processed"
+        return value
+        
+      except Exception as e:
+        # Send to dead letter queue
+        error_record = {
+          "order_id": value.get("order_id", "unknown"),
+          "error": str(e),
+          "status": "failed",
+          "original_data": value
+        }
+        return error_record
+        
+    expression: error_record if 'error_record' in locals() else value
+    resultType: json
+  
+  is_processed:
+    type: predicate
+    expression: value.get("status") == "processed"
+
+pipelines:
+  dlq_example:
+    from: incoming_orders
+    via:
+      - type: mapValues
+        mapper: process_with_dlq
+    branch:
+      - if: is_processed
+        to: processed_orders
+      - to: failed_orders

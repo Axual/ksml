@@ -1,0 +1,86 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
+
+# Simple validation and filtering example demonstrating branch and predicate operations
+
+streams:
+  incoming_orders:
+    topic: incoming_orders
+    keyType: string
+    valueType: json
+    
+  valid_orders:
+    topic: valid_orders
+    keyType: string
+    valueType: json
+    
+  invalid_orders:
+    topic: invalid_orders
+    keyType: string
+    valueType: json
+
+functions:
+  is_valid_order:
+    type: predicate
+    code: |
+      # Simple validation - check required fields exist and are valid
+      if value is None or "malformed" in value:
+        return False
+      
+      required_fields = ["order_id", "customer_id", "product_id", "quantity", "price"]
+      for field in required_fields:
+        if field not in value:
+          return False
+      
+      # Check positive values
+      return value.get("quantity", 0) > 0 and value.get("price", 0) > 0
+  
+  add_validation_status:
+    type: valueTransformer
+    code: |
+      # Add validation timestamp
+      value["validated_at"] = "2025-01-01T00:00:00Z"
+      value["status"] = "valid"
+    expression: value
+    resultType: json
+  
+  add_error_info:
+    type: valueTransformer
+    code: |
+      # Add error information
+      value["validated_at"] = "2025-01-01T00:00:00Z"
+      value["status"] = "invalid"
+      
+      # Identify issues
+      issues = []
+      if "malformed" in value:
+        issues.append("malformed_data")
+      else:
+        required = ["order_id", "customer_id", "product_id", "quantity", "price"]
+        for field in required:
+          if field not in value:
+            issues.append(f"missing_{field}")
+        if value.get("quantity", 0) <= 0:
+          issues.append("invalid_quantity")
+      
+      value["issues"] = issues
+    expression: value
+    resultType: json
+
+pipelines:
+  validate_orders:
+    from: incoming_orders
+    via:
+      - type: peek
+        forEach:
+          code: |
+            log.info("Processing order: {}", key)
+    branch:
+      - if: is_valid_order
+        via:
+          - type: mapValues
+            mapper: add_validation_status
+        to: valid_orders
+      - via:
+          - type: mapValues
+            mapper: add_error_info
+        to: invalid_orders

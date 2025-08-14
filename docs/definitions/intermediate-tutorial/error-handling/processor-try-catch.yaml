@@ -1,0 +1,68 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
+
+# Simple try-catch example demonstrating error handling in valueTransformer
+
+streams:
+  sensor_readings:
+    topic: sensor_readings
+    keyType: string
+    valueType: json
+    
+  processed_sensors:
+    topic: processed_sensors
+    keyType: string
+    valueType: json
+    
+  sensor_errors:
+    topic: sensor_errors
+    keyType: string
+    valueType: json
+
+functions:
+  safe_temperature_converter:
+    type: valueTransformer
+    code: |
+      try:
+        # Attempt temperature conversion
+        temp_c = value.get("temperature")
+        if temp_c is None:
+          raise ValueError("Temperature is null")
+        
+        # Convert to Fahrenheit
+        temp_f = (temp_c * 9/5) + 32
+        
+        result = {
+          "sensor_id": value.get("sensor_id"),
+          "celsius": temp_c,
+          "fahrenheit": round(temp_f, 1),
+          "status": "processed"
+        }
+        return result
+        
+      except Exception as e:
+        # Return error information
+        error_result = {
+          "sensor_id": value.get("sensor_id", "unknown"),
+          "error": str(e),
+          "status": "error",
+          "original_data": value
+        }
+        return error_result
+        
+    expression: result if 'result' in locals() else error_result
+    resultType: json
+  
+  is_success:
+    type: predicate
+    expression: value.get("status") == "processed"
+
+pipelines:
+  process_sensors:
+    from: sensor_readings
+    via:
+      - type: mapValues
+        mapper: safe_temperature_converter
+    branch:
+      - if: is_success
+        to: processed_sensors
+      - to: sensor_errors

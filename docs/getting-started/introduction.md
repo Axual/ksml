@@ -1,6 +1,6 @@
 # Understanding KSML
 
-Now that you've seen KSML in action with the [Quick Start](installation.md), let's understand what just happened and why KSML makes stream processing so much simpler.
+Now that you've seen KSML in action with the [Quick Start](quick-start.md), let's understand what just happened and why KSML makes stream processing so much simpler.
 
 ## What You Just Saw
 
@@ -128,5 +128,5 @@ Kafka Streams implementation.
 
 Now that you understand what KSML is and its key concepts, you can:
 
-- Explore the [Core Concepts](../core-concepts/) in more detail
+- Explore the [Core Concepts](../core-concepts/index.md) in more detail
 - Follow the [KSML Basics Tutorial](basics-tutorial.md) to build your first application

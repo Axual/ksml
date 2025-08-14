@@ -1,0 +1,44 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
+
+# Simple producer for sensor data with error conditions
+
+functions:
+  generate_sensors:
+    type: generator
+    globalCode: |
+      import random
+      counter = 0
+    code: |
+      global counter
+      counter += 1
+      
+      sensor_id = f"sensor_{counter % 5 + 1}"
+      
+      # Create different sensor scenarios
+      if "error" in sensor_id or counter % 5 == 0:
+        # Error sensor - null temperature
+        data = {
+          "sensor_id": sensor_id,
+          "temperature": None,
+          "status": "error"
+        }
+      else:
+        # Normal sensor
+        data = {
+          "sensor_id": sensor_id,
+          "temperature": round(random.uniform(15.0, 35.0), 1),
+          "status": "normal"
+        }
+      
+      key = sensor_id
+    expression: (key, data)
+    resultType: (string, json)
+
+producers:
+  sensor_producer:
+    generator: generate_sensors
+    interval: 2s
+    to:
+      topic: sensor_readings
+      keyType: string
+      valueType: json

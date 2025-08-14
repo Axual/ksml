@@ -1,0 +1,83 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
+
+# Simple location-based routing example demonstrating basic branching
+
+streams:
+  sensor_input:
+    topic: sensor_input
+    keyType: string
+    valueType: json
+    
+  datacenter_sensors:
+    topic: datacenter_sensors
+    keyType: string
+    valueType: json
+    
+  warehouse_sensors:
+    topic: warehouse_sensors
+    keyType: string
+    valueType: json
+    
+  office_sensors:
+    topic: office_sensors
+    keyType: string
+    valueType: json
+    
+  unknown_sensors:
+    topic: unknown_sensors
+    keyType: string
+    valueType: json
+
+functions:
+  is_datacenter:
+    type: predicate
+    expression: value.get("location") == "data_center"
+  
+  is_warehouse:
+    type: predicate
+    expression: value.get("location") == "warehouse"
+  
+  is_office:
+    type: predicate
+    expression: value.get("location") == "office"
+
+pipelines:
+  location_routing:
+    from: sensor_input
+    via:
+      - type: peek
+        forEach:
+          code: |
+            log.info("Processing sensor from: {}", value.get("location"))
+    branch:
+      - if: is_datacenter
+        via:
+          - type: peek
+            forEach:
+              code: |
+                log.info("Routing data center sensor: {}", key)
+        to: datacenter_sensors
+      
+      - if: is_warehouse
+        via:
+          - type: peek
+            forEach:
+              code: |
+                log.info("Routing warehouse sensor: {}", key)
+        to: warehouse_sensors
+      
+      - if: is_office
+        via:
+          - type: peek
+            forEach:
+              code: |
+                log.info("Routing office sensor: {}", key)
+        to: office_sensors
+      
+      # Default branch for unknown locations
+      - via:
+          - type: peek
+            forEach:
+              code: |
+                log.warn("Unknown location sensor: {} from {}", key, value.get("location"))
+        to: unknown_sensors

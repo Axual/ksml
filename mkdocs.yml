@@ -32,7 +32,7 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Getting Started:
-      - Quick Start: getting-started/installation.md
+      - Quick Start: getting-started/quick-start.md
       - Understanding KSML: getting-started/introduction.md
   - Core Concepts:
       - Overview: core-concepts/index.md
@@ -44,6 +44,7 @@ nav:
       - Error Handling: core-concepts/error-handling.md
       - Advanced Topics: core-concepts/advanced-topics.md
   - Tutorials:
+      - Overview: tutorials/index.md
       - KSML Basics Tutorial: getting-started/basics-tutorial.md
       - Beginner Tutorials:
         - Overview: tutorials/beginner/index.md
@@ -52,10 +53,11 @@ nav:
         - Logging and Monitoring: tutorials/beginner/logging-monitoring.md
       - Intermediate Tutorials:
         - Overview: tutorials/intermediate/index.md
+        - Branching: tutorials/intermediate/branching.md
         - Aggregations: tutorials/intermediate/aggregations.md
         - Joins: tutorials/intermediate/joins.md
         - Windowing: tutorials/intermediate/windowing.md
-        - Error Handling and Recovery: tutorials/intermediate/error-handling.md
+        - Error Handling: tutorials/intermediate/error-handling.md
         - State Stores: tutorials/intermediate/state-stores.md
       - Advanced Tutorials:
         - Overview: tutorials/advanced/index.md

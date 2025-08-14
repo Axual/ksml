@@ -2,358 +2,256 @@
 
 This tutorial explores how to implement join operations in KSML, allowing you to combine data from multiple streams or tables to create enriched datasets.
 
-## Introduction to Joins
+## Introduction
 
-Joins are powerful operations that allow you to combine data from different sources based on a common key. In stream processing, joins enable you to:
+Joins are fundamental operations in stream processing that combine data from multiple sources based on common keys. KSML provides three main types of joins, each serving different use cases in real-time data processing.
 
-- Enrich streaming data with reference information
-- Correlate events from different systems
-- Build comprehensive views of entities from fragmented data
-- Implement complex business logic that depends on multiple data sources
-
-KSML supports various types of joins, each with different semantics and use cases.
+KSML joins are built on top of Kafka Streams join operations, providing a YAML-based interface to powerful stream processing capabilities without requiring Java code.
 
 ## Prerequisites
 
-Before starting this tutorial, you should:
+Before starting this tutorial:
 
-- Understand basic KSML concepts (streams, functions, pipelines)
-- Have completed the [KSML Basics Tutorial](../../getting-started/basics-tutorial.md)
-- Be familiar with [Stateful Operations](../../core-concepts/operations.md#stateful-operations)
-- Understand the difference between [streams and tables](../../reference/stream-type-reference.md)
+- Have [Docker Compose KSML environment setup running](../../getting-started/basics-tutorial.md#choose-your-setup-method)
+
+## Core Join Concepts
+
+### ValueJoiner Functions
+
+All join operations require a valueJoiner function to combine data from both sides:
+
+```yaml
+valueJoiner:
+  type: valueJoiner
+  code: |
+    # value1: left stream/table value
+    # value2: right stream/table value
+    result = {"combined": value1, "enriched": value2}
+  expression: result
+  resultType: json
+```
+
+**Requirements:**
+
+- Must include `expression` and `resultType` fields
+- Handle null values gracefully (especially for left/outer joins)
+- Return appropriate data structure for downstream processing
+
+### Co-partitioning Requirements
+
+Stream-stream and stream-table joins require co-partitioning:
+
+- **Same number of partitions** in both topics
+- **Same partitioning strategy** (how keys map to partitions)
+- **Same key type** and serialization format
+
+GlobalTable joins don't require co-partitioning since data is replicated to all instances.
 
 ## Types of Joins in KSML
 
-KSML supports several types of joins, each with different semantics:
+KSML supports three main categories of joins, each with specific characteristics and use cases:
 
-### Stream-Stream Joins
+### 1. Stream-Stream Joins
+Join two event streams within a time window to correlate related events.
 
-Join two streams based on a common key within a specified time window:
+**Kafka Streams equivalent:** `KStream.join()`, `KStream.leftJoin()`, `KStream.outerJoin()`
 
-- **Inner Join (`join`)**: Outputs a result only when both streams have matching keys within the time window
-- **Left Join (`leftJoin`)**: Always outputs a result for messages from the left stream, joining with the right stream if available
-- **Outer Join (`outerJoin`)**: Outputs a result whenever either stream has a message, joining them when both are available
+**When to use:**
 
-### Stream-Table Joins
+- Correlating events from different systems
+- Tracking user behavior across multiple actions
+- Detecting patterns that span multiple event types
 
-Join a stream with a table (materialized view) based on the key:
+**Key characteristics:**
 
-- **Inner Join (`join`)**: Outputs a result only when the stream key exists in the table
-- **Left Join (`leftJoin`)**: Always outputs a result for stream messages, joining with the table value if available
+- Requires time windows for correlation
+- Both streams must be co-partitioned
+- Results are emitted when matching events occur within the window
+- Supports inner, left, and outer join semantics
 
-### Stream-GlobalTable Joins
+### 2. Stream-Table Joins
+Enrich a stream of events with the latest state from a changelog table.
 
-Join a stream with a global table, with the ability to use a foreign key:
+**Kafka Streams equivalent:** `KStream.join()`, `KStream.leftJoin()` with KTable
 
-- **Inner Join (`join`)**: Outputs a result only when the stream's foreign key exists in the global table
-- **Left Join (`leftJoin`)**: Always outputs a result for stream messages, joining with the global table value if available
+**When to use:**
 
-## Basic Join Example
+- Enriching events with reference data
+- Adding current state information to events
+- Looking up the latest value for a key
 
-Let's start with a simple example that joins a stream of orders with a table of customer information:
+**Key characteristics:**
 
+- Stream events are enriched with the latest table value
+- Table provides point-in-time lookups
+- Requires co-partitioning between stream and table
+- Supports inner and left join semantics
+
+### 3. Stream-GlobalTable Joins
+Enrich events using replicated reference data available on all instances.
+
+**Kafka Streams equivalent:** `KStream.join()`, `KStream.leftJoin()` with GlobalKTable
+
+**When to use:**
+
+- Joining with reference data (product catalogs, configuration)
+- Foreign key joins where keys don't match directly
+- Avoiding co-partitioning requirements
+
+**Key characteristics:**
+
+- GlobalTable is replicated to all application instances
+- Supports foreign key extraction via mapper functions
+- No co-partitioning required
+- Supports inner and left join semantics
+
+## Stream-Stream Join
+
+Stream-stream joins correlate events from two streams within a specified time window. This is essential for detecting patterns and relationships between different event types.
+
+### Use Case: User Behavior Analysis
+
+Track user shopping behavior by correlating clicks and purchases within a 30-minute window to understand the customer journey.
+
+??? info "Producer: Clicks and Purchases (click to expand)"
+
+    ```yaml
+    {% include "../../definitions/intermediate-tutorial/joins/producer-clicks-purchases.yaml" %}
+    ```
+
+??? info "Processor: Stream-Stream Join (click to expand)"
+
+    ```yaml
+    {% include "../../definitions/intermediate-tutorial/joins/processor-stream-stream-join-working.yaml" %}
+    ```
+
+### Key Configuration Points
+
+The aim here is to show how time windows must be used to correlate events from different streams. The configuration demonstrates:
+
+- **timeDifference**: 30m - Maximum time gap between correlated events
+- **Window Stores**: Both streams need stores with `retainDuplicates: true`
+- **Window Size**: Must be `2 × timeDifference` (60m) to buffer events from both streams
+- **Retention**: Must be `2 × timeDifference + grace` (65m) for proper state cleanup
+- **Grace Period**: 5m allowance for late-arriving events
+
+This configuration ensures events are only correlated within a reasonable time frame while managing memory efficiently.
+
+## Stream-Table Join
+
+Stream-table joins enrich streaming events with the latest state from a changelog table. This pattern is common for adding reference data to events.
+
+### Use Case: Order Enrichment
+
+Enrich order events with customer information by joining the orders stream with a customers table.
+
+**Implementation Challenge:** Orders naturally use order_id as the key, but joining requires customer_id. The solution uses a three-step pattern:
+
+1. **Rekey** orders from order_id to customer_id
+2. **Join** with the customers table
+3. **Rekey** back to order_id for downstream processing
+
+??? info "Producer: Orders (click to expand)"
+
+    ```yaml
+    {% include "../../definitions/intermediate-tutorial/joins/producer-orders.yaml" %}
+    ```
+
+??? info "Producer: Customers (click to expand)"
+
+    ```yaml
+    {% include "../../definitions/intermediate-tutorial/joins/producer-customers.yaml" %}
+    ```
+
+??? info "Processor: Stream-Table Join (click to expand)"
+
+    ```yaml
+    {% include "../../definitions/intermediate-tutorial/joins/processor-stream-table-join.yaml" %}
+    ```
+
+### Rekeying Pattern
+
+The rekeying pattern is essential when join keys don't match naturally:
+
+- Use `transformKey` to extract the join key from the stream
+- Perform the join operation
+- Optionally restore the original key for downstream consistency
+
+## Stream-GlobalTable Join
+
+GlobalTable joins enable enrichment with reference data that's replicated across all instances, supporting foreign key relationships.
+
+### Use Case: Product Catalog Enrichment
+
+Enrich orders with product details using a foreign key join with a global product catalog.
+
+??? info "Producer: Orders and Products (click to expand)"
+
+    ```yaml
+    {% include "../../definitions/intermediate-tutorial/joins/producer-orders-products.yaml" %}
+    ```
+
+??? info "Processor: Foreign Key Join (click to expand)"
+
+    ```yaml
+    {% include "../../definitions/intermediate-tutorial/joins/processor-foreign-key-join.yaml" %}
+    ```
+
+### Foreign Key Extraction
+
+The `mapper` function extracts the foreign key from stream records:
+
+- **Function Type**: `keyValueMapper` (not `foreignKeyExtractor`)
+- **Input**: Stream's key and value
+- **Output**: Key to lookup in the GlobalTable
+- **Example**: Extract product_id from order to join with product catalog
+
+## Join Type Variants
+
+Each join type supports different semantics for handling missing matches:
+
+### Inner Joins
 ```yaml
-streams:
-  orders:
-    topic: new_orders
-    keyType: string  # Customer ID
-    valueType: json  # Order details
-
-  enriched_orders:
-    topic: orders_with_customer_data
-    keyType: string  # Customer ID
-    valueType: json  # Combined order and customer data
-
-tables:
-  customers:
-    topic: customer_data
-    keyType: string  # Customer ID
-    valueType: json  # Customer details
-
-functions:
-  join_order_with_customer:
-    type: valueJoiner
-    code: |
-      # Combine order and customer information
-      result = {}
-
-      # Add order details
-      if value1 is not None:
-        result.update(value1)
-
-      # Add customer details
-      if value2 is not None:
-        result["customer"] = value2
-
-      return result
-
-pipelines:
-  enrich_orders:
-    from: orders
-    join:
-      stream: customers
-      valueJoiner: join_order_with_customer
-    to: enriched_orders
+type: join  # Default inner join
 ```
+Produces output **only** when both sides have matching keys.
 
-This pipeline:
-1. Takes a stream of orders with customer IDs as keys
-2. Joins it with a table of customer data using the customer ID
-3. Combines the order and customer information using a valueJoiner function
-4. Outputs the enriched orders to a new topic
-
-## Working with Time Windows in Joins
-
-Stream-stream joins require a time window to define how long to wait for matching records:
-
+### Left Joins
 ```yaml
-pipelines:
-  match_clicks_with_purchases:
-    from: product_clicks
-    join:
-      stream: product_purchases
-      valueJoiner: correlate_click_and_purchase
-      window:
-        type: time
-        size: 30m  # Look for purchases within 30 minutes of a click
-    to: correlated_user_actions
+type: leftJoin
 ```
+Always produces output for the left side (stream), with null for missing right side values.
 
-## Foreign Key Joins
-
-When joining with a GlobalKTable, you can use a foreign key extractor to join on fields other than the primary key:
-
+### Outer Joins (Stream-Stream only)
 ```yaml
-streams:
-  orders:
-    topic: new_orders
-    keyType: string  # Order ID
-    valueType: json  # Order details including product_id
-
-globalTables:
-  products:
-    topic: product_catalog
-    keyType: string  # Product ID
-    valueType: json  # Product details
-
-functions:
-  extract_product_id:
-    type: foreignKeyExtractor
-    expression: value.get("product_id")
-
-  join_order_with_product:
-    type: valueJoiner
-    code: |
-      # Combine order and product information
-      result = {}
-
-      # Add order details
-      if value1 is not None:
-        result.update(value1)
-
-      # Add product details
-      if value2 is not None:
-        result["product"] = value2
-
-      return result
-
-pipelines:
-  enrich_orders_with_products:
-    from: orders
-    join:
-      globalTable: products
-      foreignKeyExtractor: extract_product_id
-      valueJoiner: join_order_with_product
-    to: orders_with_product_details
+type: outerJoin
 ```
+Produces output whenever **either** side has data, with null for missing values.
 
-## Practical Example: Order Processing System
+**Note:** Table and GlobalTable joins don't support outer joins since tables represent current state, not events.
 
-Let's build a more complex example that implements an order processing system with multiple joins:
+## Performance Considerations
 
-```yaml
-streams:
-  orders:
-    topic: incoming_orders
-    keyType: string  # Order ID
-    valueType: json  # Order details including customer_id and items array
+### State Management
+- **Window sizes**: Larger windows consume more memory but capture more correlations
+- **Retention periods**: Balance between late data handling and resource usage
+- **Grace periods**: Allow late arrivals while managing state cleanup
 
-  processed_orders:
-    topic: orders_ready_for_fulfillment
-    keyType: string  # Order ID
-    valueType: json  # Fully processed order
-
-globalTables:
-  customers:
-    topic: customer_data
-    keyType: string  # Customer ID
-    valueType: json  # Customer details
-
-  inventory:
-    topic: inventory_levels
-    keyType: string  # Product ID
-    valueType: json  # Inventory information
-
-  shipping_rates:
-    topic: shipping_rate_data
-    keyType: string  # Region code
-    valueType: json  # Shipping rates
-
-functions:
-  extract_customer_id:
-    type: foreignKeyExtractor
-    expression: value.get("customer_id")
-
-  join_order_with_customer:
-    type: valueJoiner
-    code: |
-      result = value1.copy() if value1 else {}
-      if value2:
-        result["customer_details"] = value2
-      return result
-
-  extract_region_code:
-    type: foreignKeyExtractor
-    code: |
-      if value and "customer_details" in value and "region" in value["customer_details"]:
-        return value["customer_details"]["region"]
-      return "UNKNOWN"
-
-  join_with_shipping_rates:
-    type: valueJoiner
-    code: |
-      result = value1.copy() if value1 else {}
-      if value2:
-        result["shipping_rates"] = value2
-      return result
-
-  check_inventory_and_calculate_total:
-    type: valueTransformer
-    code: |
-      if value is None:
-        return None
-
-      # Initialize fields
-      value["items_with_inventory"] = []
-      value["out_of_stock_items"] = []
-      value["subtotal"] = 0
-      value["shipping_cost"] = 0
-      value["total"] = 0
-
-      # Process each item
-      for item in value.get("items", []):
-        product_id = item.get("product_id")
-        quantity = item.get("quantity", 0)
-        price = item.get("price", 0)
-
-        # Check inventory (would be another join in a real system)
-        # For simplicity, we're just checking if the product_id is even or odd
-        in_stock = int(product_id) % 2 == 0
-
-        if in_stock:
-          value["items_with_inventory"].append(item)
-          value["subtotal"] += price * quantity
-        else:
-          value["out_of_stock_items"].append(item)
-
-      # Calculate shipping
-      if "shipping_rates" in value:
-        base_rate = value["shipping_rates"].get("base_rate", 5.0)
-        value["shipping_cost"] = base_rate
-
-      # Calculate total
-      value["total"] = value["subtotal"] + value["shipping_cost"]
-
-      return value
-
-pipelines:
-  # First pipeline: Join orders with customer data
-  join_orders_with_customers:
-    from: orders
-    join:
-      globalTable: customers
-      foreignKeyExtractor: extract_customer_id
-      valueJoiner: join_order_with_customer
-    to: orders_with_customers
-
-  # Second pipeline: Join with shipping rates
-  join_with_shipping:
-    from: orders_with_customers
-    join:
-      globalTable: shipping_rates
-      foreignKeyExtractor: extract_region_code
-      valueJoiner: join_with_shipping_rates
-    to: orders_with_shipping
-
-  # Final pipeline: Process inventory and calculate totals
-  finalize_orders:
-    from: orders_with_shipping
-    mapValues: check_inventory_and_calculate_total
-    to: processed_orders
-```
-
-This pipeline:
-1. Takes incoming orders
-2. Enriches them with customer data using a foreign key join
-3. Adds shipping rates based on the customer's region
-4. Checks inventory, calculates totals, and marks items as in-stock or out-of-stock
-5. Outputs the fully processed order
-
-## Best Practices for Joins
-
-### Performance Considerations
-
-- **State Size**: Joins maintain state, which consumes memory. Monitor state store sizes.
-- **Window Size**: For windowed joins, smaller windows use less state but may miss matches.
-- **Join Order**: Join with smaller datasets first when possible to reduce intermediate result sizes.
-
-### Design Patterns
-
-- **Pre-filtering**: Filter unnecessary data before joins to reduce state size.
-- **Denormalization**: Consider denormalizing data at write time for frequently joined data.
-- **Caching**: Use GlobalKTables for reference data that needs to be joined with many streams.
-
-### Error Handling
-
-Handle missing or invalid data in your joiner functions:
-
-```yaml
-functions:
-  robust_joiner:
-    type: valueJoiner
-    code: |
-      try:
-        # Validate inputs
-        if value1 is None:
-          log.warn("Left side of join is null for key: {}", key)
-          return None
-
-        if value2 is None:
-          log.warn("Right side of join is null for key: {}", key)
-          # Still proceed with just the left data
-          return value1
-
-        # Perform the join
-        result = value1.copy()
-        result["joined_data"] = value2
-        return result
-
-      except Exception as e:
-        log.error("Error in join operation: {}", str(e))
-        # Return left side data to avoid losing the record
-        return value1
-```
+### Topology Optimization
+- **Join order**: Join with smaller datasets first when chaining multiple joins
+- **GlobalTable usage**: Use for frequently accessed reference data to avoid repartitioning
+- **Rekeying overhead**: Minimize unnecessary rekeying operations
 
 ## Conclusion
 
-Joins are essential operations for building sophisticated stream processing applications. KSML makes it easy to implement various types of joins while leveraging Python for the joining logic.
+KSML's join operations enable powerful data enrichment patterns:
 
-By understanding the different join types and their appropriate use cases, you can build powerful data pipelines that combine and enrich data from multiple sources.
+- **Stream-stream joins** correlate events within time windows
+- **Stream-table joins** enrich events with current state
+- **Stream-GlobalTable joins** provide foreign key lookups without co-partitioning
 
-In the next tutorial, we'll explore [Using Windowed Operations](windowed-operations.md) to process data within time boundaries.
+Choose the appropriate join type based on your data characteristics and business requirements.
 
 ## Further Reading
 
-- [Core Concepts: Operations](../../core-concepts/operations.md)
-- [Core Concepts: Streams and Data Types](../../reference/stream-type-reference.md)
-- [Reference: Join Operations](../../reference/operation-reference.md)
+- [Reference: Join Operations](../../reference/operation-reference.md/#join-operations)

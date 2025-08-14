@@ -1,1 +1,0 @@
-Intermediate Tutorials are being worked on, coming soon!

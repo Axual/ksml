@@ -3,7 +3,7 @@
 Welcome to the KSML documentation. KSML allows you to build powerful Kafka Streams applications using YAML and Python, without writing Java code.
 
 ## 1. Getting Started
-- [Quick Start](getting-started/installation.md)
+- [Quick Start](getting-started/quick-start.md)
 - [Understanding KSML](getting-started/introduction.md)
 
 ## 2. Core Concepts

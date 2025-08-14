@@ -125,29 +125,29 @@ The choice between KStream, KTable, and GlobalKTable depends on your specific us
 Here are some best practices for working with streams and data types in KSML:
 
 1. **Choose the right stream type for your use case**:
-   - Use KStream for event processing
-   - Use KTable for state tracking
-   - Use GlobalKTable for reference data
+      - Use KStream for event processing
+      - Use KTable for state tracking
+      - Use GlobalKTable for reference data
 
 2. **Use appropriate data types**:
-   - Be specific about your types (avoid using `any` when possible)
-   - Use complex types (struct, list, etc.) to represent structured data
-   - Consider using windowed types for time-based aggregations
+      - Be specific about your types (avoid using `any` when possible)
+      - Use complex types (struct, list, etc.) to represent structured data
+      - Consider using windowed types for time-based aggregations
 
 3. **Select the right notation**:
-   - Use AVRO for production systems with schema evolution
-   - Use JSON for development and debugging
-   - Consider compatibility with upstream and downstream systems
+      - Use AVRO for production systems with schema evolution
+      - Use JSON for development and debugging
+      - Consider compatibility with upstream and downstream systems
 
 4. **Manage schemas effectively**:
-   - Use a schema registry for AVRO schemas in production
-   - Keep schemas under version control
-   - Plan for schema evolution
+      - Use a schema registry for AVRO schemas in production
+      - Keep schemas under version control
+      - Plan for schema evolution
 
 5. **Consider performance implications**:
-   - GlobalKTables replicate data to all instances, which can impact memory usage
-   - Complex types and notations may have serialization/deserialization overhead
-   - Large schemas can impact performance
+      - GlobalKTables replicate data to all instances, which can impact memory usage
+      - Complex types and notations may have serialization/deserialization overhead
+      - Large schemas can impact performance
 
 ## Examples
 

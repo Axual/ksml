@@ -1,365 +1,453 @@
-# Using Windowed Operations in KSML
+# Working with Windowed Operations in KSML
 
-This tutorial explores how to implement time-based windowing operations in KSML, allowing you to process data within specific time boundaries.
+This tutorial explores how to implement time-based windowing operations in KSML for processing streaming data within specific time boundaries. Windowing is fundamental to stream processing analytics.
+
+KSML windowing operations are built on Kafka Streams' windowing capabilities, providing exactly-once processing guarantees and fault-tolerant state management.
 
 ## Introduction to Windowed Operations
 
-Windowed operations are a powerful feature in stream processing that allow you to group and process data within specific time intervals. They're essential for:
+Windowing divides continuous data streams into finite chunks based on time, enabling:
 
-- Time-based aggregations (hourly counts, daily averages, etc.)
-- Detecting patterns over time
-- Handling late-arriving data
-- Limiting the scope of stateful operations
-
-In KSML, windowing operations are implemented using Kafka Streams' windowing capabilities, with the added flexibility of Python functions for processing the windowed data.
+- **Time-based aggregations**: Calculate metrics within time periods (hourly counts, daily averages)
+- **Pattern detection**: Identify trends and anomalies over time windows
+- **Late data handling**: Process out-of-order events with configurable grace periods
+- **State management**: Maintain temporal state for complex analytics
+- **Resource control**: Limit memory usage by automatically expiring old windows
 
 ## Prerequisites
 
-Before starting this tutorial, you should:
+Before starting this tutorial:
 
-- Understand basic KSML concepts (streams, functions, pipelines)
-- Have completed the [KSML Basics Tutorial](../../getting-started/basics-tutorial.md)
-- Be familiar with [Stateful Operations](../../core-concepts/operations.md#stateful-operations)
-- Have a basic understanding of [Aggregations](aggregations.md)
+- Have [Docker Compose KSML environment setup running](../../getting-started/basics-tutorial.md#choose-your-setup-method)
 
-## Types of Windows in KSML
+## Window Types in KSML
 
-KSML supports several types of windows, each with different semantics:
+KSML supports three types of time windows, each suited for different use cases:
 
 ### Tumbling Windows
 
-Tumbling windows divide the stream into fixed-size, non-overlapping time intervals. Each event belongs to exactly one window.
+**Concept**: Non-overlapping, fixed-size windows where each record belongs to exactly one window.
 
 ```yaml
-windowByTime:
-  size: 1h  # 1-hour windows
-  advanceBy: 1h  # Move forward by the full window size
+- type: windowByTime
+  windowType: tumbling
+  duration: 5m      # Window size
+  grace: 30s        # Accept late data up to 30 seconds
 ```
 
-Use tumbling windows when you need:
-- Clear boundaries between time periods
-- Non-overlapping aggregations (e.g., hourly statistics)
-- Minimal state storage requirements
+**Characteristics**:
+
+- No overlap between windows
+- Clear, distinct time boundaries
+- Memory efficient (fewer windows to maintain)
+- Deterministic results
+
+**Use cases**:
+
+- Hourly/daily reports
+- Billing periods
+- Compliance reporting
+- Clear time-boundary analytics
+
+**Kafka Streams equivalent**: `TimeWindows.of(Duration.ofMinutes(5))`
 
 ### Hopping Windows
 
-Hopping windows are fixed-size windows that can overlap because they "hop" forward by a specified amount that's smaller than the window size.
+**Concept**: Fixed-size windows that overlap by advancing less than the window size, creating a "sliding" effect.
 
 ```yaml
-windowByTime:
-  size: 1h  # 1-hour windows
-  advanceBy: 15m  # Move forward by 15 minutes
+- type: windowByTime
+  windowType: hopping
+  duration: 10m     # Window size (how much data to include)
+  advanceBy: 2m     # Advance every 2 minutes (overlap control)
+  grace: 1m         # Late data tolerance
 ```
 
-Use hopping windows when you need:
-- Overlapping time periods
-- Smoother transitions between windows
-- Moving averages or sliding metrics
+**Characteristics**:
 
-### Sliding Windows
+- Windows overlap (each record appears in multiple windows)
+- Smooth transitions between time periods
+- Higher memory usage (more windows active)
+- Good for trend analysis
 
-Sliding windows in KSML are implemented using session windows with a very small inactivity gap:
+**Use cases**:
 
-```yaml
-windowBySession:
-  inactivityGap: 1ms  # Minimal gap creates a sliding effect
-```
+- Moving averages
+- Smooth metric transitions
+- Real-time dashboards
+- Anomaly detection with context
 
-Use sliding windows when you need:
-- Event-driven windows that adapt to data arrival patterns
-- Windows that close after a period of inactivity
+**Kafka Streams equivalent**: `TimeWindows.of(Duration.ofMinutes(10)).advanceBy(Duration.ofMinutes(2))`
 
 ### Session Windows
 
-Session windows group events that occur close to each other in time, with windows closing after a specified period of inactivity.
+**Concept**: Dynamic windows that group events based on activity periods, automatically closing after inactivity gaps.
 
 ```yaml
-windowBySession:
-  inactivityGap: 30m  # Close the session after 30 minutes of inactivity
+- type: windowBySession
+  inactivityGap: 30m  # Close window after 30 minutes of no activity
+  grace: 10s          # Accept late arrivals
 ```
 
-Use session windows when you need:
-- Activity-based grouping (e.g., user sessions)
-- Dynamic window sizes based on event patterns
-- Windows that adapt to natural breaks in the data
+**Characteristics**:
 
-## Working with Windowed Operations
+- Variable window sizes based on activity
+- Automatically merge overlapping sessions
+- Perfect for user behavior analysis
+- Complex state management
 
-### Basic Windowed Aggregation
+**Use cases**:
 
-Here's a simple example that counts events in 5-minute tumbling windows:
+- User browsing sessions
+- IoT device activity periods
+- Fraud detection sessions
+- Activity-based analytics
+
+**Kafka Streams equivalent**: `SessionWindows.with(Duration.ofMinutes(30))`
+
+## Windowing Examples
+
+### Tumbling Window: Click Counting
+
+This example demonstrates tumbling windows by counting user clicks in 5-minute non-overlapping windows.
+
+**What it does**:
+
+1. **Generates user clicks**: Simulates users clicking on different pages
+2. **Groups by user**: Each user's clicks are processed separately
+3. **Windows by time**: Creates 5-minute tumbling windows
+4. **Counts events**: Uses simple count aggregation per window
+5. **Handles window keys**: Converts WindowedString keys for output compatibility
+
+**Key KSML concepts demonstrated**:
+
+- `windowByTime` with tumbling windows
+- Window state stores with retention policies
+- `convertKey` for windowed key compatibility
+- Grace periods for late-arriving data
+
+??? info "User clicks producer (click to expand)"
+
+    ```yaml
+    {%
+      include "../../definitions/intermediate-tutorial/windowing/producer-user-clicks.yaml"
+    %}
+    ```
+
+??? info "Tumbling window count processor (click to expand)"
+
+    ```yaml
+    {%
+      include "../../definitions/intermediate-tutorial/windowing/processor-tumbling-count-working.yaml"
+    %}
+    ```
+
+**Understanding the window key type**:
+
+The `convertKey` operation transforms the internal `WindowedString` to `json:windowed(string)` format, which contains:
+
+- `key`: Original key (user ID)
+- `start`/`end`: Window boundaries in milliseconds
+- `startTime`/`endTime`: Human-readable timestamps
+
+**Verifying tumbling window data:**
+
+The Kowl UI cannot display the value because a long stored in binary format is not automatically deserialized.
+To view the complete data for the target topic user_click_counts_5min, run:
+```bash
+# View click counts per 5-minute window
+docker exec broker kafka-console-consumer.sh \
+  --bootstrap-server broker:9093 \
+  --topic user_click_counts_5min \
+  --from-beginning \
+  --max-messages 5 \
+  --property print.key=true \
+  --property key.separator=" | " \
+  --key-deserializer org.apache.kafka.common.serialization.StringDeserializer \
+  --value-deserializer org.apache.kafka.common.serialization.LongDeserializer
+```
+
+**Example output:**
+```
+{"end":1755042000000,"endTime":"2025-08-12T23:40:00Z","key":"alice","start":1755041700000,"startTime":"2025-08-12T23:35:00Z"} | 8
+{"end":1755042000000,"endTime":"2025-08-12T23:40:00Z","key":"bob","start":1755041700000,"startTime":"2025-08-12T23:35:00Z"} | 12
+```
+
+### Hopping Window: Moving Averages
+
+This example calculates moving averages using overlapping 2-minute windows that advance every 30 seconds.
+
+**What it does**:
+
+1. **Generates sensor readings**: Simulates temperature, humidity, and pressure sensors
+2. **Groups by sensor**: Each sensor's readings are processed independently
+3. **Overlapping windows**: 2-minute windows advance every 30 seconds (4x overlap)
+4. **Calculates averages**: Maintains sum and count, then computes final average
+5. **Smooth transitions**: Provides continuous updates every 30 seconds
+
+**Key KSML concepts demonstrated**:
+
+- `windowByTime` with hopping windows and `advanceBy`
+- Custom aggregation with initialization and aggregator functions
+- `mapValues` for post-aggregation processing
+- Multiple overlapping windows for the same data
+
+??? info "Sensor data producer (click to expand)"
+
+    ```yaml
+    {%
+      include "../../definitions/intermediate-tutorial/windowing/producer-sensor-data.yaml"
+    %}
+    ```
+
+??? info "Hopping window average processor (click to expand)"
+
+    ```yaml
+    {%
+      include "../../definitions/intermediate-tutorial/windowing/processor-hopping-average-working.yaml"
+    %}
+    ```
+
+**Example output:**
+```
+# Raw sensor readings:
+temp_01 | {"reading_id":1,"sensor_id":"temp_01","value":21.57,"unit":"celsius","timestamp":1755042846167}
+
+# Moving averages:
+{"end":1755043080000,"endTime":"2025-08-12T23:58:00Z","key":"temp_01","start":1755042960000,"startTime":"2025-08-12T23:56:00Z"} | {"average":21.49,"sample_count":4,"total_sum":85.96}
+```
+
+**Understanding the hopping window output:**
+
+- **Key structure**: The output key contains window boundaries and the original record key
+  - `start`: Window start time (23:56:00Z)
+  - `end`: Window end time (23:58:00Z) 
+  - `key`: Original sensor ID (temp_01)
+- **Window duration**: 2-minute window covering 23:56:00Z to 23:58:00Z
+- **Value aggregation**: Contains calculated average (21.49°C) from 4 sensor readings
+- **Overlapping nature**: Since windows advance every 30 seconds, this sensor will appear in multiple overlapping windows, each with slightly different averages as new data arrives and old data expires
+
+**Why hopping windows for averages?**
+
+- **Smooth updates**: New average every 30 seconds instead of waiting 2 minutes
+- **Trend detection**: Easier to spot gradual changes
+- **Real-time dashboards**: Continuous data flow for visualization
+- **Reduced noise**: 2-minute window smooths out brief spikes
+
+### Session Window: User Activity Analysis
+
+This example uses session windows to analyze user browsing patterns by grouping clicks within activity periods.
+
+**What it does**:
+
+1. **Tracks user clicks**: Monitors page visits and click patterns
+2. **Detects sessions**: Groups clicks separated by no more than 2 minutes
+3. **Aggregates activity**: Counts clicks, tracks unique pages, measures duration
+4. **Session boundaries**: Automatically closes sessions after inactivity
+5. **Rich analytics**: Provides comprehensive session summaries
+
+**Key KSML concepts demonstrated**:
+
+- `windowBySession` with inactivity gap detection
+- Session state stores for variable-length windows
+- Complex aggregation state with lists and timestamps
+- Automatic session merging and boundary detection
+
+**Session window behavior**:
+
+- **Dynamic sizing**: Windows grow and shrink based on activity
+- **Automatic merging**: Late-arriving data can extend or merge sessions
+- **Activity-based**: Perfect for user behavior analysis
+- **Variable retention**: Different sessions can have different lifespans
+
+??? info "User clicks producer (click to expand)"
+
+    ```yaml
+    {%
+      include "../../definitions/intermediate-tutorial/windowing/producer-user-clicks.yaml"
+    %}
+    ```
+
+??? info "User session analysis processor (click to expand)"
+
+    ```yaml
+    {%
+      include "../../definitions/intermediate-tutorial/windowing/processor-session-activity.yaml"
+    %}
+    ```
+
+**Session window characteristics observed**:
+
+- **Activity-driven boundaries**: Sessions start with first click and extend with each new click
+- **Inactivity-based closure**: Sessions close after 2 minutes of no activity
+- **Variable duration**: Sessions can be seconds to hours depending on user behavior
+- **Real-time updates**: Each click updates the session end time and click count
+- **User-specific**: Each user maintains independent session windows
+
+**Example output**:
+```
+USER SESSION - user=alice, clicks=15  (session: 23:44:05Z to 23:46:12Z)
+USER SESSION - user=bob, clicks=8    (session: 23:44:01Z to 23:45:33Z) 
+USER SESSION - user=alice, clicks=23 (session: 23:47:01Z to 23:49:15Z)
+```
+
+This shows how Alice had two separate sessions with an inactivity gap between them, while Bob had one continuous session.
+
+**Example output:**
+```
+# Input clicks (user_clicks topic):
+alice | {"click_id":"click_000001","user_id":"alice","page":"/home","session_id":"session_alice_1","timestamp":1755043944188}
+alice | {"click_id":"click_000002","user_id":"alice","page":"/products","session_id":"session_alice_1","timestamp":1755043945189}
+
+# Session summary (user_session_summary topic):  
+{"end":1755043970189,"endTime":"2025-08-13T00:12:50.189Z","key":"alice","start":1755043944188,"startTime":"2025-08-13T00:12:24.188Z"} | 15
+{"end":1755043938275,"endTime":"2025-08-13T00:12:18.275Z","key":"diana","start":1755043938275,"startTime":"2025-08-13T00:12:18.275Z"} | 1
+```
+
+The session summary shows:
+
+- **Key**: Windowed key with session boundaries and original user key
+- **Value**: Total click count for that session (15 clicks for Alice, 1 click for Diana)
+
+**Understanding the output:**
+
+- Alice had a session lasting ~26 seconds (00:12:24Z to 00:12:50Z) with 15 clicks
+- Diana had a brief session (single timestamp) with 1 click
+- Sessions automatically close after 2 minutes of inactivity
+
+## Advanced Windowing Concepts
+
+### Grace Periods and Late Data
+
+**Problem**: In distributed systems, data doesn't always arrive in chronological order. Network delays, system failures, and clock skew can cause "late" data.
+
+**Solution**: Grace periods allow windows to accept late-arriving data for a specified time after the window officially closes.
 
 ```yaml
-streams:
-  user_clicks:
-    topic: website_clicks
-    keyType: string  # User ID
-    valueType: json  # Click details
-    
-  click_counts:
-    topic: user_click_counts
-    keyType: string  # User ID
-    valueType: json  # Count information with window details
-
-functions:
-  initialize_count:
-    type: initializer
-    expression: 0
-    
-  increment_count:
-    type: aggregator
-    expression: aggregatedValue + 1
-
-pipelines:
-  count_clicks:
-    from: user_clicks
-    groupByKey:
-    windowByTime:
-      size: 5m
-      advanceBy: 5m
-    aggregate:
-      initializer: initialize_count
-      aggregator: increment_count
-    to: click_counts
+- type: windowByTime
+  windowType: tumbling
+  duration: 5m
+  grace: 1m        # Accept data up to 1 minute late
 ```
 
-### Handling Late Data with Grace Periods
+**Configuration guidelines**:
 
-In real-world scenarios, data often arrives late. KSML allows you to specify a grace period during which late-arriving data will still be included in the window:
+- **grace**: How long to wait for late data (trade-off: accuracy vs. latency)
+- **retention**: How long to keep window state (must be ≥ window size + grace period)
+- **caching**: Enable for better performance with frequent updates
+
+**Example**: A 5-minute window ending at 10:05 AM will accept data timestamped before 10:05 AM until 10:06 AM (1-minute grace), then close permanently.
+
+### Window State Management
+
+Windowed operations require persistent state to:
+
+- Track aggregations across window boundaries
+- Handle late-arriving data
+- Provide exactly-once processing guarantees
+- Enable fault tolerance and recovery
+
+**State Store Configuration**:
 
 ```yaml
-windowByTime:
-  size: 1h
-  advanceBy: 1h
-  grace: 10m  # Accept data up to 10 minutes late
+store:
+  name: my_window_store
+  type: window             # Required for windowed operations
+  windowSize: 5m           # Must match window duration
+  retention: 30m           # Keep expired windows (≥ windowSize + grace)
+  caching: true            # Reduce downstream updates
+  retainDuplicates: false  # Keep only latest value per window
 ```
 
-### Accessing Window Information
+## Performance Considerations
 
-When working with windowed operations, you might need to access information about the window itself. KSML provides this information through the window metadata:
+### Memory Usage
 
-```yaml
-functions:
-  aggregate_with_window_info:
-    type: aggregator
-    code: |
-      # Initialize if needed
-      if aggregatedValue is None:
-        aggregatedValue = {"count": 0, "window_start": None, "window_end": None}
-      
-      # Update count
-      aggregatedValue["count"] += 1
-      
-      # Access window information from metadata
-      if "window" in metadata:
-        aggregatedValue["window_start"] = metadata["window"]["start"]
-        aggregatedValue["window_end"] = metadata["window"]["end"]
-      
-      return aggregatedValue
-```
+**Window count calculation**:
 
-## Practical Example: Time-Based Analytics
+- **Tumbling**: `retention / window_size` windows per key
+- **Hopping**: `retention / advance_by` windows per key  
+- **Session**: Variable, depends on activity patterns
 
-Let's build a complete example that implements a real-time analytics system using windowed operations:
+**Example**: 1-hour retention with 5-minute tumbling windows = 12 windows per key
 
-```yaml
-streams:
-  page_views:
-    topic: website_page_views
-    keyType: string  # Page URL
-    valueType: json  # View details including user_id, duration, etc.
-    
-  hourly_stats:
-    topic: page_view_hourly_stats
-    keyType: string  # Page URL
-    valueType: json  # Hourly statistics
-    
-  daily_stats:
-    topic: page_view_daily_stats
-    keyType: string  # Page URL
-    valueType: json  # Daily statistics
+### Optimization Strategies
 
-functions:
-  initialize_stats:
-    type: initializer
-    expression: {"views": 0, "unique_users": set(), "total_duration": 0, "window_start": None, "window_end": None}
-    
-  update_stats:
-    type: aggregator
-    code: |
-      # Initialize if needed
-      if aggregatedValue is None:
-        aggregatedValue = {"views": 0, "unique_users": set(), "total_duration": 0, "window_start": None, "window_end": None}
-      
-      # Extract data
-      user_id = value.get("user_id", "unknown")
-      duration = value.get("duration", 0)
-      
-      # Update statistics
-      aggregatedValue["views"] += 1
-      aggregatedValue["unique_users"].add(user_id)
-      aggregatedValue["total_duration"] += duration
-      
-      # Access window information
-      if "window" in metadata:
-        aggregatedValue["window_start"] = metadata["window"]["start"]
-        aggregatedValue["window_end"] = metadata["window"]["end"]
-      
-      return aggregatedValue
-      
-  finalize_stats:
-    type: valueTransformer
-    code: |
-      if value is None:
-        return None
-        
-      # Convert set to count for serialization
-      if "unique_users" in value and isinstance(value["unique_users"], set):
-        value["unique_visitors"] = len(value["unique_users"])
-        del value["unique_users"]  # Remove the set which can't be serialized
-        
-      # Calculate averages
-      if value["views"] > 0:
-        value["avg_duration"] = value["total_duration"] / value["views"]
-      else:
-        value["avg_duration"] = 0
-        
-      # Add timestamp for easier querying
-      if "window_start" in value:
-        value["timestamp"] = value["window_start"]
-        
-      return value
+1. **Right-size windows**:
+   - **Too small (10 seconds)**: Creates excessive overhead with frequent window updates and high CPU usage
+   - **Too large (24 hours)**: Consumes excessive memory and delays results until window closes
+   - **Balanced approach**: Choose window size that matches your business requirements (e.g., 5 minutes for real-time dashboards, 1 hour for reporting)
 
-pipelines:
-  # Hourly statistics pipeline
-  hourly_analytics:
-    from: page_views
-    groupByKey:
-    windowByTime:
-      size: 1h
-      advanceBy: 1h
-      grace: 10m
-    aggregate:
-      initializer: initialize_stats
-      aggregator: update_stats
-    mapValues: finalize_stats
-    to: hourly_stats
-    
-  # Daily statistics pipeline
-  daily_analytics:
-    from: page_views
-    groupByKey:
-    windowByTime:
-      size: 1d
-      advanceBy: 1d
-      grace: 2h
-    aggregate:
-      initializer: initialize_stats
-      aggregator: update_stats
-    mapValues: finalize_stats
-    to: daily_stats
-```
+2. **Tune grace periods**:
+   - **Minimal grace (5 seconds)**: Provides fast processing but may lose legitimate late-arriving data
+   - **Conservative grace (5 minutes)**: Handles most network delays and clock skew but slows down result publication
+   - **Best practice**: Set grace period based on your network characteristics and data source reliability
 
-This example:
-1. Processes page view events
-2. Creates both hourly and daily windows
-3. Calculates statistics including view counts, unique visitors, and average duration
-4. Handles the conversion of non-serializable data (sets) before output
-5. Includes window timestamp information for easier querying
+3. **Enable caching**:
+   - **Purpose**: Reduces the number of downstream updates by batching window changes
+   - **Benefit**: Lower CPU usage and fewer Kafka messages when windows are frequently updated
+   - **Trade-off**: Slightly higher memory usage for improved throughput
 
-## Advanced Windowing Patterns
+4. **Optimize retention**:
+   - **Minimum requirement**: Window size plus grace period (e.g., 5-minute window + 30-second grace = 5.5 minutes minimum)
+   - **Memory impact**: Longer retention keeps more data in memory for join operations and late data handling
+   - **Performance balance**: Set retention just long enough to handle your latest acceptable late data
 
-### Multi-Level Windowing
+## Troubleshooting Common Issues
 
-For complex analytics, you might want to implement multi-level windowing, where data is aggregated at different time granularities:
+### Missing Data in Windows
 
-```yaml
-pipelines:
-  # Minute-level aggregation
-  minute_aggregation:
-    from: raw_events
-    groupByKey:
-    windowByTime:
-      size: 1m
-      advanceBy: 1m
-    aggregate:
-      initializer: initialize_minute_stats
-      aggregator: update_minute_stats
-    to: minute_stats
-    
-  # Hour-level aggregation from minute stats
-  hour_aggregation:
-    from: minute_stats
-    groupByKey:
-    windowByTime:
-      size: 1h
-      advanceBy: 1h
-    aggregate:
-      initializer: initialize_hour_stats
-      aggregator: update_hour_stats
-    to: hour_stats
-```
+**Symptoms**: Expected data doesn't appear in window results
 
-### Combining Windows with Joins
+**Causes & Solutions**:
 
-Windowed operations can be combined with joins to correlate events from different streams within time boundaries:
+1. **Clock skew**: Ensure producer/consumer clocks are synchronized
+2. **Grace period too short**: Increase grace period for late data
+3. **Wrong timestamps**: Verify timestamp field extraction
+4. **Retention too short**: Data expired before processing
 
-```yaml
-pipelines:
-  correlate_events:
-    from: stream_a
-    join:
-      stream: stream_b
-      valueJoiner: combine_events
-      windows:
-        type: time
-        size: 5m
-        grace: 1m
-    to: correlated_events
-```
+### High Memory Usage
 
-## Best Practices for Windowed Operations
+**Symptoms**: OutOfMemory errors, slow processing
 
-### Performance Considerations
+**Solutions**:
 
-- **Window Size**: Larger windows require more state storage. Choose appropriate window sizes.
-- **Grace Period**: Longer grace periods increase state storage requirements but improve handling of late data.
-- **Serialization**: Be careful with complex objects in windowed aggregations, as they need to be serialized.
+1. **Reduce retention periods**
+2. **Increase window sizes** (fewer windows)
+3. **Enable caching** to reduce state store pressure
+4. **Filter data earlier** in the pipeline
 
-### Design Patterns
+### Inconsistent Results
 
-- **Pre-Aggregation**: For high-volume streams, consider pre-aggregating at a finer granularity before wider windows.
-- **Downsampling**: For time series data, consider downsampling before windowing to reduce state size.
-- **Window Alignment**: For easier analysis, align windows to natural time boundaries (start of hour, day, etc.).
+**Symptoms**: Different runs produce different window contents
 
-### Error Handling
+**Causes**:
 
-Always handle potential errors in your windowed aggregation functions:
+1. **Late data**: Some runs receive different late arrivals
+2. **Grace period timing**: Data arrives just at grace boundary
+3. **System clock differences**: Inconsistent time sources
 
-```yaml
-functions:
-  safe_windowed_aggregator:
-    type: aggregator
-    code: |
-      try:
-        # Your windowed aggregation logic here
-        return result
-      except Exception as e:
-        log.error("Error in windowed aggregation: {}", str(e))
-        # Return previous state to avoid losing data
-        return aggregatedValue
-```
+**Solutions**:
 
-## Conclusion
+1. Use consistent time sources
+2. Implement proper grace periods
+3. Consider event-time vs processing-time semantics
 
-Windowed operations are essential for time-based analytics and processing in streaming applications. KSML makes it easy to implement various types of windows while leveraging Python for the processing logic.
+### Window Type Selection Guide
 
-By understanding the different window types and their appropriate use cases, you can build powerful data pipelines that process data within meaningful time boundaries.
+| Window Type | Best For | Key Benefits | Trade-offs |
+|-------------|----------|--------------|------------|
+| **Tumbling** | Periodic reports, billing cycles, compliance | Clear boundaries, memory efficient, deterministic | Less granular, potential data delays |
+| **Hopping** | Moving averages, real-time dashboards, trend analysis | Smooth updates, continuous metrics | Higher memory usage, more computation |
+| **Session** | User behavior, IoT device activity, fraud detection | Activity-driven, variable length, natural boundaries | Complex state management, harder to predict |
 
-In the next tutorial, we'll explore [Error Handling and Recovery](error-handling.md) to build more robust KSML applications.
+### Getting Started
+
+1. **Start simple**: Begin with tumbling windows for periodic analytics
+2. **Add smoothness**: Use hopping windows when you need continuous updates
+3. **Handle activity**: Implement session windows for behavior-driven analysis
+4. **Optimize gradually**: Tune grace periods, retention, and caching based on requirements
 
 ## Further Reading
 
-- [Core Concepts: Operations](../../core-concepts/operations.md)
-- [Core Concepts: Functions](../../core-concepts/functions.md)
-- [Reference: Windowing Operations](../../reference/operation-reference.md)
+- [Reference: Windowing Operations](../../reference/operation-reference.md#windowing-operations)

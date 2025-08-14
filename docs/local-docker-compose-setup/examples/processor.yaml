@@ -1,0 +1,68 @@
+streams:
+  product_clicks:
+    topic: product_clicks
+    keyType: string
+    valueType: json
+
+  product_purchases:
+    topic: product_purchases
+    keyType: string
+    valueType: json
+
+  correlated_user_actions:
+    topic: correlated_user_actions
+    keyType: string
+    valueType: json
+
+functions:
+  correlate_click_and_purchase:
+    type: valueJoiner
+    code: |
+      result = {}
+
+      # Add click data
+      if value1 is not None:
+        result["click"] = value1
+
+      # Add purchase data
+      if value2 is not None:
+        result["purchase"] = value2
+
+      # Calculate conversion if both exist
+      if value1 is not None and value2 is not None:
+        result["converted"] = True
+        click_time = value1.get("timestamp", 0)
+        purchase_time = value2.get("timestamp", 0)
+        result["conversion_time_ms"] = purchase_time - click_time
+      else:
+        result["converted"] = False
+
+      new_value = result
+    expression: new_value
+    resultType: json
+
+pipelines:
+  match_clicks_with_purchases:
+    from: product_clicks
+    via:
+      - type: join
+        stream: product_purchases
+        valueJoiner: correlate_click_and_purchase
+        timeDifference: 30m  # Look for purchases within 30 minutes of a click
+        grace: 5m  # Grace period for late events
+        thisStore:
+          name: clicks_join_store
+          type: window
+          windowSize: 60m  # Must be 2*timeDifference
+          retention: 65m   # Must be 2*timeDifference + grace = 60m + 5m
+          retainDuplicates: true
+        otherStore:
+          name: purchases_join_store
+          type: window
+          windowSize: 60m  # Must be 2*timeDifference
+          retention: 65m   # Must be 2*timeDifference + grace = 60m + 5m
+          retainDuplicates: true
+      - type: peek
+        forEach:
+          code: log.info("CORRELATION - user={}, converted={}, click_product={}, purchase_product={}", key, value.get("converted"), value.get("click", {}).get("product_id"), value.get("purchase", {}).get("product_id"))
+    to: correlated_user_actions

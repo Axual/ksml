@@ -1,0 +1,129 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
+
+# Circuit breaker pattern demonstrating failure handling and state management
+
+streams:
+  api_requests:
+    topic: api_requests
+    keyType: string
+    valueType: json
+    
+  api_responses:
+    topic: api_responses
+    keyType: string
+    valueType: json
+    
+  circuit_breaker_events:
+    topic: circuit_breaker_events
+    keyType: string
+    valueType: json
+
+functions:
+  circuit_breaker_processor:
+    type: valueTransformer
+    globalCode: |
+      failure_count = 0
+      circuit_open = False
+      success_count = 0
+    code: |
+      global failure_count, circuit_open, success_count
+      
+      request_id = value.get("request_id")
+      request_type = value.get("request_type", "unknown")
+      
+      log.info("Processing request {} of type {} - Circuit: {}, Failures: {}", 
+               request_id, request_type, 
+               "OPEN" if circuit_open else "CLOSED", failure_count)
+      
+      # Check if circuit is open
+      if circuit_open:
+        circuit_event = {
+          "request_id": request_id,
+          "event_type": "circuit_open",
+          "status": "rejected", 
+          "error": "Circuit breaker is open - rejecting request",
+          "failure_count": failure_count,
+          "circuit_state": "OPEN",
+          "timestamp": value.get("timestamp"),
+          "original_request": value
+        }
+        log.warn("CIRCUIT OPEN: Rejecting request {}", request_id)
+        return circuit_event
+      
+      # Circuit is closed, try to process request
+      try:
+        # Simulate service call - fail for failing_service type
+        if request_type == "failing_service":
+          raise RuntimeError(f"External service unavailable for {request_type}")
+        
+        # Success case
+        success_count += 1
+        failure_count = 0  # Reset failure count on success
+        
+        result = {
+          "request_id": request_id,
+          "status": "success",
+          "response": f"Successfully processed {request_type}",
+          "data": value.get("data"),
+          "circuit_state": "CLOSED",
+          "timestamp": value.get("timestamp")
+        }
+        
+        log.info("SUCCESS: Request {} processed successfully", request_id)
+        return result
+        
+      except Exception as e:
+        # Handle failures
+        failure_count += 1
+        
+        circuit_event = {
+          "request_id": request_id,
+          "event_type": "service_failure",
+          "status": "failed",
+          "error": str(e),
+          "failure_count": failure_count,
+          "circuit_state": "CLOSED",
+          "timestamp": value.get("timestamp"),
+          "original_request": value
+        }
+        
+        # Check if we should open the circuit
+        if failure_count >= 3:
+          circuit_open = True
+          circuit_event["event_type"] = "circuit_opened"
+          circuit_event["circuit_state"] = "OPEN"
+          log.warn("CIRCUIT BREAKER OPENED: {} consecutive failures", failure_count)
+        else:
+          log.warn("FAILURE {}: Request {} failed - {} more failures to open circuit", 
+                   failure_count, request_id, 3 - failure_count)
+        
+        return circuit_event
+        
+    expression: result if 'result' in locals() else circuit_event
+    resultType: json
+  
+  is_success:
+    type: predicate
+    expression: value.get("status") == "success"
+
+pipelines:
+  circuit_breaker_demo:
+    from: api_requests
+    via:
+      - type: mapValues
+        mapper: circuit_breaker_processor
+    branch:
+      - if: is_success
+        via:
+          - type: peek
+            forEach:
+              code: |
+                log.info("SUCCESS ROUTED: {} to api_responses", value.get("request_id"))
+        to: api_responses
+      - via:
+          - type: peek
+            forEach:
+              code: |
+                log.info("EVENT ROUTED: {} ({}) to circuit_breaker_events", 
+                       value.get("request_id"), value.get("event_type"))
+        to: circuit_breaker_events

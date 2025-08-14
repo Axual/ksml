@@ -25,7 +25,7 @@ Input Topic → Filter → Transform → Output Topic
 
 Before you begin, make sure you have:
 
-- Completed the [Installation and Setup](installation.md) guide with Docker Compose running
+- Completed the [Installation and Setup](quick-start.md) guide with Docker Compose running
 - Basic understanding of YAML syntax
 - Your KSML environment running (`docker compose ps` should show all services as "Up")
 
@@ -221,7 +221,7 @@ The peek operation:
 
 ## Step 4: Put It All Together
 
-Let's combine all the sections into a complete KSML definition file. In the [Quick Start guide](installation.md) you created a directory
+Let's combine all the sections into a complete KSML definition file. In the [Quick Start guide](quick-start.md) you created a directory
 structure containing an `examples/` directory; in this directory create a file called `tutorial.yaml` and copy
 the following content:
 

@@ -1,82 +1,174 @@
 # State Stores
 
-[Duration]: ../../pipelines.md#duration
+State stores are persistent or in-memory storage components used by stateful operations in Kafka Streams to maintain intermediate results, aggregations, and other stateful data. KSML provides flexible configuration options for state stores, allowing you to optimize performance, durability, and storage characteristics for your specific use cases.
 
-## Introduction
+## Prerequisites
 
-Several stream operations use state stores to retain (intermediate) results of their calculations.
-State stores are typically configured with some additional parameters to limit their data storage
-(retention time) and/or determine when data is emitted from them to the next stream
-operation.
+Before starting this tutorial:
 
-```yaml
-stores:
-  owner_count_store:
-    name: owner_count
-    retention: 3m
-    caching: false
-```
+- Have [Docker Compose KSML environment setup running](../../getting-started/basics-tutorial.md#choose-your-setup-method)
 
-## Configuration
+## Understanding State Stores in Kafka Streams
 
-State store configurations are defined by the following tags:
+State stores serve several critical purposes in stream processing:
 
-| Parameter     | Value Type | Default | Required | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-|:--------------|:-----------|:--------|:---------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `name`        | `string`   | _none_  | Optional | The name of the state store. This field is not mandatory, but operations that use the state store configuration will require a name for their store. If the store configuration does not specify an explicit name, then the operation will default back to the operation's name, specified with its `name` attribute. If that name is unspecified, then an exception will be thrown. In general, it is considered good practice to always specify the store name explicitly with its definition. |
-| `type`        | `string`   | _none_  | Required | The type of the state store. Possible types are `keyValue`, `session` and `window`.                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `persistent`  | `boolean`  | `false` | Optional | `true` if the state store should be retained on disk. See [link] for more information on how Kafka Streams maintains state store state in a state directory. When this parameter is false or undefined, the state store is (re)built up in memory during upon KSML start.                                                                                                                                                                                                                        |
-| `timestamped` | `boolean`  | `false` | Optional | (Only relevant for keyValue and window stores) `true` if all messages in the state store need to be timestamped. This effectively changes the state store from type <key, value> to <key, timestamp+value>. The timestamp contains the last timestamp that updated the aggregated value in the window.                                                                                                                                                                                           |
-| `versioned`   | `boolean`  | `false` | Optional | (Only relevant for keyValue stores) `true` if elements in the store are versioned, `false` otherwise                                                                                                                                                                                                                                                                                                                                                                                             |
-| `keyType`     | `string`   | _none_  | Required | The key type of the state store. See [Types](../../types.md) for more information.                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `valueType`   | `string`   | _none_  | Required | The value type of the state store. See [Types](../../types.md) for more information.                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `caching`     | `boolean`  | `false` | Optional | This parameter controls the internal state store caching. When _true_, the state store caches entries and does not emit every state change but only. When _false_ all changes to the state store will be emitted immediately.                                                                                                                                                                                                                                                                    |
-| `logging`     | `boolean`  | `false` | Optional | This parameter determines whether state changes are written out to a changelog topic, or not. When _true_ all state store changes are produced to a changelog topic. The changelog topic is named `appId-storeName-changelog`. When _false_ no changelog topic is written to.                                                                                                                                                                                                                    |
+- **Aggregations**: Store running totals, counts, averages, and other aggregate calculations
+- **Windowing**: Maintain data within time windows for temporal analysis
+- **Joins**: Cache data from one stream to join with another
+- **Deduplication**: Track processed records to eliminate duplicates
+- **State Management**: Persist application state across restarts
 
-Example:
+State stores can be backed by RocksDB (persistent) or kept in memory (non-persistent), with optional changelog topics for fault tolerance.
 
-```yaml
-stores:
-  owner_count_store:
-    name: owner_count
-    retention: 3m
-    caching: false
+## State Store Types
 
-pipelines:
-  main:
-    from: sensor_source
-    via:
-      - type: groupBy
-        name: ksml_sensordata_grouped
-        mapper:
-          expression: value["owner"]
-          resultType: string
-      - type: windowedBy
-        windowType: time
-        duration: 20s
-        grace: 40s
-      - type: aggregate
-        store: owner_count_store     # refer to the store configuration above
-        initializer:
-          expression: 0
-          resultType: long
-        aggregator:
-          expression: aggregatedValue+1
-          resultType: long
-```
+KSML supports three main types of state stores:
 
-Instead of referring to predefined state store configurations, you may also use an inline definition for the store:
+1. **keyValue**: General-purpose key-value storage for aggregations and lookups
+2. **window**: Time-windowed storage that automatically expires old data
+3. **session**: Session-based storage that groups events by activity sessions
 
-```yaml
-      - type: aggregate
-        store:
-          name: owner_count
-          retention: 3m
-          caching: false
-        initializer:
-          expression: 0
-          resultType: long
-        aggregator:
-          expression: aggregatedValue+1
-          resultType: long
-```
+## Configuration Methods
+
+KSML provides two ways to configure state stores:
+
+### 1. Predefined Store Configuration
+
+Define stores in the global `stores` section and reference them by name:
+
+??? info "Sensor Ownership Producer (click to expand)"
+
+    ```yaml
+    {%
+      include "../../definitions/intermediate-tutorial/state-stores/producer-sensor-ownership.yaml"
+    %}
+    ```
+
+??? info "Predefined Store Processor (click to expand)"
+
+    ```yaml
+    {%
+      include "../../definitions/intermediate-tutorial/state-stores/processor-predefined-store.yaml"
+    %}
+    ```
+
+This example demonstrates:
+
+- **Predefined store configuration**: The `owner_count_store` is defined in the global `stores` section
+- **Store reference**: The `count` operation references the predefined store by name
+- **Persistent storage**: Data survives application restarts (`persistent: true`)
+- **Changelog logging**: State changes are logged for fault tolerance (`logging: true`)
+
+You won't be able to read the output in `owner_sensor_counts` topic because it is binary, to read it you can consume the messages like this:
+
+   ```bash
+   # Read owner sensor counts (Long values require specific deserializer)
+   docker exec broker /opt/bitnami/kafka/bin/kafka-console-consumer.sh \
+     --bootstrap-server broker:9093 \
+     --topic owner_sensor_counts \
+     --from-beginning \
+     --key-deserializer org.apache.kafka.common.serialization.StringDeserializer \
+     --value-deserializer org.apache.kafka.common.serialization.LongDeserializer \
+     --property print.key=true \
+     --property key.separator=": " \
+     --timeout-ms 10000
+   ```
+
+### 2. Inline Store Configuration
+
+Define stores directly within operations for single-use scenarios:
+
+??? info "Sensor Ownership Producer (click to expand)"
+
+    ```yaml
+    {%
+      include "../../definitions/intermediate-tutorial/state-stores/producer-sensor-ownership.yaml"
+    %}
+    ```
+
+??? info "Inline Store Processor (click to expand)"
+
+    ```yaml
+    {%
+      include "../../definitions/intermediate-tutorial/state-stores/processor-inline-store.yaml"
+    %}
+    ```
+
+This example demonstrates:
+
+- **Inline store configuration**: Store defined directly within the `aggregate` operation
+- **Custom aggregation**: Uses initializer and aggregator functions for complex calculations
+- **Memory-only storage**: Non-persistent storage for temporary calculations (`persistent: false`)
+- **Caching enabled**: Improves performance by batching state updates (`caching: true`)
+
+## Configuration Parameters
+
+| Parameter     | Type      | Default | Description |
+|:-------------|:----------|:--------|:------------|
+| `name`       | `string`  | _none_  | Unique identifier for the state store |
+| `type`       | `string`  | _none_  | Store type: `keyValue`, `window`, or `session` |
+| `keyType`    | `string`  | _none_  | Data type for keys (e.g., `string`, `long`, `json`) |
+| `valueType`  | `string`  | _none_  | Data type for values (e.g., `long`, `json`, `avro:Schema`) |
+| `persistent` | `boolean` | `false` | Whether to persist data to disk using RocksDB |
+| `retention`  | `duration` | _none_  | How long to retain data (e.g., `5m`, `1h`, `1d`) |
+| `caching`    | `boolean` | `false` | Enable caching to batch state updates |
+| `logging`    | `boolean` | `false` | Enable changelog topic for fault tolerance |
+| `timestamped`| `boolean` | `false` | Include timestamps with values (keyValue/window stores) |
+| `versioned`  | `boolean` | `false` | Enable versioning for keyValue stores |
+
+### Retention and Cleanup
+
+State stores can automatically clean up old data based on retention policies:
+
+- **Time-based retention**: Data older than the specified duration is removed
+- **Window stores**: Automatically expire data outside the window + grace period
+- **Session stores**: Remove sessions after inactivity timeout
+
+### Performance Considerations
+
+**Caching (`caching: true`)**:
+
+- **Benefits**: Reduces downstream message volume, improves throughput
+- **Trade-offs**: Increases memory usage, adds latency to state updates
+- **Use when**: You can tolerate slightly delayed updates for better performance
+
+**Persistence (`persistent: true`)**:
+
+- **Benefits**: Data survives restarts, enables exactly-once processing
+- **Trade-offs**: Slower startup, additional disk I/O overhead
+- **Use when**: Data durability is important, or you need exactly-once guarantees
+
+**Changelog Logging (`logging: true`)**:
+
+- **Benefits**: Enables fault tolerance and exactly-once processing
+- **Trade-offs**: Additional Kafka topics, increased network and storage usage
+- **Use when**: You need fault tolerance or are using exactly-once semantics
+
+## Best Practices
+
+### When to Use Predefined Stores
+- Multiple operations need to access the same store
+- Store configuration is complex or frequently reused
+- You want centralized store management for maintainability
+
+### When to Use Inline Stores
+- Store is used by a single operation
+- Simple, one-off configurations
+- Prototyping or small applications
+
+### Naming Conventions
+- Use descriptive names that indicate the store's purpose
+- Include the data type or domain in the name (e.g., `user_session_store`, `product_inventory`)
+- Be consistent across your application
+
+### Memory Management
+- Set appropriate retention periods to prevent unbounded growth
+- Use non-persistent stores for temporary calculations
+- Monitor memory usage, especially with caching enabled
+
+### Fault Tolerance
+- Enable logging for critical business data
+- Use persistent stores for data that must survive restarts
+- Consider the trade-off between durability and performance
+
+State stores are a powerful feature in KSML that enable sophisticated stateful stream processing patterns. By understanding the configuration options and trade-offs, you can build robust and efficient streaming applications.

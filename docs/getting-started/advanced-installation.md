@@ -1,6 +1,6 @@
 # Advanced Installation Guide
 
-This guide covers advanced installation scenarios for KSML. **Note: These steps are optional if you're using the Docker Compose setup from the [Quick Start](installation.md).**
+This guide covers advanced installation scenarios for KSML. **Note: These steps are optional if you're using the Docker Compose setup from the [Quick Start](quick-start.md).**
 
 ## Building from Source (Optional)
 
@@ -9,7 +9,7 @@ This guide covers advanced installation scenarios for KSML. **Note: These steps 
 - Contribute to the KSML project
 - Use a development version
 
-**If you're just getting started with KSML, use the [Quick Start guide](installation.md) instead.**
+**If you're just getting started with KSML, use the [Quick Start guide](quick-start.md) instead.**
 
 ## To build from source:
 
@@ -247,6 +247,6 @@ logging:
 
 Once you have KSML set up in your environment:
 
-- Return to the [Installation Guide](installation.md) for the quick start
+- Return to the [Installation Guide](quick-start.md) for the quick start
 - Follow the [KSML Basics Tutorial](basics-tutorial.md) to learn KSML concepts
 - Explore the [Core Concepts](../reference/stream-type-reference.md) documentation

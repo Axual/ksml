@@ -1,0 +1,36 @@
+streams:
+  user_clicks:
+    topic: user_clicks
+    keyType: string
+    valueType: json
+    
+  click_counts:
+    topic: user_click_counts_5min
+    keyType: json:windowed(string)
+    valueType: long
+
+functions:
+
+pipelines:
+  count_clicks_5min:
+    from: user_clicks
+    via:
+      - type: groupByKey
+      - type: windowByTime
+        windowType: tumbling
+        duration: 5m
+        grace: 30s
+      - type: count
+        store:
+          name: click_counts_5min
+          type: window
+          windowSize: 5m
+          retention: 30m
+          caching: false
+      - type: toStream
+      - type: convertKey
+        into: json:windowed(string)
+      - type: peek
+        forEach:
+          code: log.info("TUMBLING COUNT (5min) - user={}, count={}", key, value)
+    to: click_counts

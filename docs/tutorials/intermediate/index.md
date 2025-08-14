@@ -6,6 +6,16 @@ These tutorials will help you build more sophisticated data processing applicati
 
 ## Available Tutorials
 
+### [Branching: Conditional Message Routing](branching.md)
+
+Master KSML's branching capabilities to route messages based on conditions:
+
+- Understanding KSML branching and its relationship to Kafka Streams
+- Simple content-based routing patterns
+- Complex multi-condition business logic
+- Advanced branching patterns and best practices
+- Error handling with branches
+
 ### [Working with Aggregations](aggregations.md)
 
 Learn how to use KSML's stateful operations to aggregate data:

@@ -1,0 +1,39 @@
+functions:
+  generate_product:
+    type: generator
+    globalCode: |
+      import random
+      products_data = [
+        {"id": "PROD001", "name": "Wireless Headphones", "price": 99.99, "category": "Electronics"},
+        {"id": "PROD002", "name": "Coffee Mug", "price": 14.99, "category": "Kitchen"},
+        {"id": "PROD003", "name": "Running Shoes", "price": 129.99, "category": "Sports"},
+        {"id": "PROD004", "name": "Smartphone Case", "price": 24.99, "category": "Electronics"},
+        {"id": "PROD005", "name": "Water Bottle", "price": 19.99, "category": "Sports"}
+      ]
+      product_index = 0
+    code: |
+      global products_data, product_index
+      
+      # Cycle through products
+      product = products_data[product_index % len(products_data)]
+      product_index += 1
+      
+      value = {
+        "name": product["name"],
+        "price": product["price"],
+        "category": product["category"],
+        "in_stock": random.choice([True, False])
+      }
+      
+      key = product["id"]
+    expression: (key, value)
+    resultType: (string, json)
+
+producers:
+  product_producer:
+    generator: generate_product
+    interval: 15s
+    to:
+      topic: product_catalog
+      keyType: string
+      valueType: json

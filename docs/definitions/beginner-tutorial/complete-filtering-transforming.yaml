@@ -118,7 +118,7 @@ functions:
       temp = readings.get('temperature', {}).get('celsius')
       humidity = readings.get('humidity')
       sensor_id = value.get('sensor_id')
-      print(f"Processed sensor data for {sensor_id}: temp={temp}°C, humidity={humidity}%")
+      print(f"Processed sensor data for {sensor_id}: temp={temp}C, humidity={humidity}%")
 
 pipelines:
   process_sensor_data:

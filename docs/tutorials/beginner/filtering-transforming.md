@@ -14,7 +14,7 @@ In this tutorial, we'll build a data pipeline that:
 
 Before we begin:
 
-- Make sure there is a running Docker Compose KSML environment as described in the [Quick Start](../../getting-started/installation.md). 
+- Make sure there is a running Docker Compose KSML environment as described in the [Quick Start](../../getting-started/quick-start.md). 
 - We recommend to have completed the [KSML Basics Tutorial](../../getting-started/basics-tutorial.md)
 
 ### To try out each example
@@ -140,7 +140,7 @@ docker compose restart ksml && docker compose logs ksml -f
 
 ### Using Custom Filter Functions
 
-By following the same steps as before, let's try to create a custom filter function:
+By following the same as in previous section, let's try to create a custom filter function:
 
 ??? info "Custom Filter Function Example (click to expand)"
 

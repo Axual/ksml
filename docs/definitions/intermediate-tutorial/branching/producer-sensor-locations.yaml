@@ -1,0 +1,36 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/release/1.0.x/docs/ksml-language-spec.json
+
+# Producer for branching tutorial - generates sensor data from different locations
+
+functions:
+  generate_location_sensors:
+    type: generator
+    globalCode: |
+      import random
+      counter = 0
+      locations = ["data_center", "warehouse", "office", "factory", "unknown_site"]
+    code: |
+      global counter, locations
+      counter += 1
+      
+      # Generate sensor data with different locations
+      sensor_data = {
+        "sensor_id": f"sensor_{counter:03d}",
+        "location": random.choice(locations),
+        "temperature": round(random.uniform(15.0, 35.0), 1),
+        "humidity": random.randint(30, 80),
+        "timestamp": counter * 1000
+      }
+      
+      key = f"sensor_{counter:03d}"
+    expression: (key, sensor_data)
+    resultType: (string, json)
+
+producers:
+  location_sensor_producer:
+    generator: generate_location_sensors
+    interval: 2s
+    to:
+      topic: sensor_input
+      keyType: string
+      valueType: json
