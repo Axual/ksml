@@ -24,6 +24,9 @@ import com.google.common.collect.Lists;
 
 import java.util.*;
 
+import lombok.Builder;
+import lombok.Singular;
+
 /**
  * Represents a structured schema with named fields in the KSML framework.
  * <p>
@@ -78,7 +81,8 @@ public class StructSchema extends NamedSchema {
      * @param fields    The list of fields that make up the schema. May be empty but not null.
      * @throws IllegalArgumentException if {@code name} is null or empty.
      */
-    public StructSchema(String namespace, String name, String doc, List<DataField> fields) {
+    @Builder(builderMethodName = "builder")
+    public StructSchema(String namespace, String name, String doc, @Singular List<DataField> fields) {
         super(DataSchemaConstants.STRUCT_TYPE, namespace, name, doc);
         if (fields != null) {
             this.fields.addAll(fields);

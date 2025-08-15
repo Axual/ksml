@@ -110,12 +110,12 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             }
             case ARRAY -> {
                 final Schema elementSchema = schema.getElementType();
-                final DataSchema elementDataSchema = toDataSchema(elementSchema.getNamespace(), elementSchema.getName(), elementSchema);
-                return new ListSchema(schema.getName(), elementDataSchema);
+                final DataSchema elementDataSchema = toDataSchema(elementSchema);
+                return new ListSchema(elementDataSchema);
             }
             case MAP -> {
                 final Schema valueSchema = schema.getValueType();
-                final DataSchema valueDataSchema = toDataSchema(valueSchema.getNamespace(), valueSchema.getName(), valueSchema);
+                final DataSchema valueDataSchema = toDataSchema(valueSchema);
                 return new MapSchema(valueDataSchema);
             }
             case UNION -> {
@@ -123,7 +123,10 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
                 final DataField[] unionDataFields = new DataField[unionSchemas.size()];
                 for (int i = 0; i < unionSchemas.size(); i++) {
                     final Schema memberSchema = unionSchemas.get(i);
-                    final DataSchema memberDataSchema = toDataSchema(memberSchema.getNamespace(), memberSchema.getName(), memberSchema);
+                    final DataSchema memberDataSchema = switch (memberSchema.getType()) {
+                        case ENUM, RECORD, FIXED-> toDataSchema(memberSchema.getNamespace(), memberSchema.getName(), memberSchema);
+                        default -> toDataSchema(memberSchema);
+                    };
                     unionDataFields[i] = new DataField(memberDataSchema);
                 }
                 return new UnionSchema(unionDataFields);
@@ -150,6 +153,9 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
      */
     @Override
     public Schema fromDataSchema(DataSchema schema) {
+        if(schema == null) {
+            return AVRO_NULL_TYPE;
+        }
         if (schema instanceof StructSchema structSchema) {
             final var fields = convertFieldsToAvroFields(structSchema.fields());
             return Schema.createRecord(structSchema.name(), structSchema.doc(), structSchema.namespace(), false, fields);
@@ -183,7 +189,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
         }
 
         return switch (schema.type()) {
-            case DataSchemaConstants.NULL_TYPE -> Schema.create(Schema.Type.NULL);
+            case DataSchemaConstants.NULL_TYPE -> AVRO_NULL_TYPE;
             case DataSchemaConstants.BOOLEAN_TYPE -> Schema.create(Schema.Type.BOOLEAN);
             case DataSchemaConstants.STRING_TYPE -> Schema.create(Schema.Type.STRING);
             case DataSchemaConstants.DOUBLE_TYPE -> Schema.create(Schema.Type.DOUBLE);
@@ -242,17 +248,7 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     private SchemaAndRequired convertMemberSchemasToToDataUnionAndRequired(List<Schema> unionTypes) {
         // If a type "null" is found in AVRO schema, the respective property is considered optional, so here we detect
         // this fact and return the result Boolean as "false" indicating a required property.
-
-//        var cleanUnionTypes = new ArrayList<>(unionTypes);
-//
-//        // Remove the NULL schema if it exists, NULL schema makes the enum optional
         var isRequired = !unionTypes.contains(AVRO_NULL_TYPE);
-//
-//        if (cleanUnionTypes.size() == 2 && !isRequired) {
-//            // If the union now contains only a single schema, then unwrap it from the union and return as simple type
-//            // Usually the case when used with a NULL schema to mark the enum as optional
-//            return new SchemaAndRequired(convertAvroSchemaToDataSchemaAndRequired(cleanUnionTypes.getFirst()).schema(), isRequired);
-//        }
 
         // Create a new union schema, and mark it as optional if the NULL schema was in it
         return new SchemaAndRequired(new UnionSchema(convertAvroSchemaToDataFields(unionTypes).toArray(DataField[]::new)), isRequired);
