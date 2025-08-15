@@ -20,7 +20,10 @@ package io.axual.ksml.schema.parser;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Optional;
+
 import io.axual.ksml.data.schema.EnumSchema;
+import io.axual.ksml.data.type.Symbol;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.ListParser;
 import io.axual.ksml.parser.ParseNode;
@@ -33,6 +36,6 @@ public class EnumSchemaParser extends BaseParser<EnumSchema> {
                 parseString(node, DataSchemaDSL.NAMED_SCHEMA_NAME_FIELD),
                 parseString(node, DataSchemaDSL.NAMED_SCHEMA_DOC_FIELD),
                 new ListParser<>("symbols", "symbol", new SymbolParser()).parse(node.get(DataSchemaDSL.ENUM_SCHEMA_SYMBOLS_FIELD)),
-                parseString(node, DataSchemaDSL.ENUM_SCHEMA_DEFAULT_VALUE_FIELD));
+                Optional.ofNullable(parseString(node, DataSchemaDSL.ENUM_SCHEMA_DEFAULT_VALUE_FIELD)).map(Symbol::new).orElse(null));
     }
 }

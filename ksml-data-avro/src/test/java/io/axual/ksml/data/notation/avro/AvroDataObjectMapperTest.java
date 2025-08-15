@@ -20,13 +20,30 @@ package io.axual.ksml.data.notation.avro;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.avro.JsonProperties;
 import org.apache.avro.Schema;
+import org.apache.avro.SchemaBuilder;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.util.Utf8;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.assertj.core.util.DoubleComparator;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
+import java.nio.ByteBuffer;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+
+import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.notation.avro.test.AvroTestUtil;
 import io.axual.ksml.data.object.DataBoolean;
+import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.object.DataBytes;
 import io.axual.ksml.data.object.DataDouble;
 import io.axual.ksml.data.object.DataFloat;
@@ -36,11 +53,21 @@ import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataMap;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
+import io.axual.ksml.data.object.DataTuple;
+import io.axual.ksml.data.schema.DataField;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.ListSchema;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.type.DataType;
 
 import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.within;
+import static org.junit.jupiter.api.Named.named;
 
 /**
  * Unit tests for AvroDataObjectMapper using KSML DataObject conversion rules.
@@ -253,4 +280,282 @@ class AvroDataObjectMapperTest {
         DataStruct again = (DataStruct) mapper.toDataObject( mapper.fromDataObject(ds));
         assertThat(again).usingRecursiveComparison().isEqualTo(ds);
     }
+
+    @ParameterizedTest
+    @MethodSource
+    @DisplayName("Test one way object mapping from Avro to KSML")
+    void oneWayMapping_AvroToKsmlExpected(Object avroValue, DataObject expectedKsmlValue) {
+        final var convertedKsmlValue = mapper.toDataObject(expectedKsmlValue.type(), avroValue);
+        assertThat(convertedKsmlValue)
+                .as("Verify conversion to KSML Data")
+                .usingRecursiveComparison()
+                .isEqualTo(expectedKsmlValue);
+    }
+
+    public static Stream<Arguments> oneWayMapping_AvroToKsmlExpected() {
+        return oneWayMappingTestData_AvroToKsml().stream()
+                .map(testData -> Arguments.of(
+                                named(testData.description, testData.avroValue()), testData.ksmlValue()
+                        )
+                );
+    }
+
+    static List<MappingTestData> oneWayMappingTestData_AvroToKsml() {
+        final var testData = new LinkedList<MappingTestData>();
+        testData.add(new MappingTestData("Utf8", new Utf8("world"), new DataString("world")));
+        testData.add(new MappingTestData("ByteBuffer", ByteBuffer.wrap(new byte[]{0x01, 0x03}), new DataBytes(new byte[]{0x01, 0x03})));
+        testData.add(new MappingTestData("Null Object", JsonProperties.NULL_VALUE, DataNull.INSTANCE));
+        testData.add(new MappingTestData("Null Object for boolean", null, new DataBoolean(null)));
+        testData.add(new MappingTestData("Null Object for byte", null, new DataByte(null)));
+        testData.add(new MappingTestData("Null Object for bytes", null, new DataBytes(null)));
+        testData.add(new MappingTestData("Null Object for double", null, new DataDouble(null)));
+        testData.add(new MappingTestData("Null Object for float", null, new DataFloat(null)));
+        testData.add(new MappingTestData("Null Object for integer", null, new DataInteger(null)));
+        testData.add(new MappingTestData("Null Object for long", null, new DataLong(null)));
+        testData.add(new MappingTestData("Null Object for short", null, new DataShort(null)));
+        testData.add(new MappingTestData("Null Object for string", null, new DataString(null)));
+        return testData;
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    @DisplayName("Test one way object mapping from KSML to Avro")
+    void oneWayMapping_KsmlToAvro(Object expectedAvroValue, DataObject ksmlValue) {
+        final var convertedAvroValue = mapper.fromDataObject(ksmlValue);
+        assertThat(convertedAvroValue)
+                .as("Verify conversion to Avro Data")
+                .isEqualTo(expectedAvroValue);
+    }
+
+    public static Stream<Arguments> oneWayMapping_KsmlToAvro() {
+        return oneWayMappingTestData_KsmlToAvro().stream()
+                .map(testData -> Arguments.of(
+                                named(testData.description, testData.avroValue()), testData.ksmlValue()
+                        )
+                );
+    }
+
+    static List<MappingTestData> oneWayMappingTestData_KsmlToAvro() {
+        final var testData = new LinkedList<MappingTestData>();
+        testData.add(new MappingTestData("Null", null, null));
+        testData.add(new MappingTestData("Byte", 16, new DataShort((short) 16)));
+        testData.add(new MappingTestData("Short", 120, new DataByte((byte) 120)));
+        return testData;
+    }
+
+
+    @ParameterizedTest
+    @MethodSource
+    @DisplayName("Test reversible object mapping from Avro to KSML and back")
+    void reversibleMapping_AvroToKsmlAndBack(Object avroValue, DataObject expectedKsmlValue) {
+        final var convertedKsmlValue = mapper.toDataObject(expectedKsmlValue.type(), avroValue);
+        assertThat(convertedKsmlValue)
+                .as("Verify conversion to KSML Data")
+                .usingRecursiveComparison()
+                .isEqualTo(expectedKsmlValue);
+        final var convertedAvroValue = mapper.fromDataObject(convertedKsmlValue);
+        assertThat(convertedAvroValue)
+                .as("Verify conversion back to Avro Data")
+                .usingRecursiveComparison()
+                .isEqualTo(avroValue);
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    @DisplayName("Test reversible object mapping from KSML to Avro and back")
+    void reversibleMapping_KsmlToAvroAndBack(DataObject ksmlValue, Object expectedAvroValue) {
+        final var convertedAvroValue = mapper.fromDataObject(ksmlValue);
+        assertThat(convertedAvroValue)
+                .as("Verify conversion to Avro Data")
+                .usingRecursiveComparison()
+                .isEqualTo(expectedAvroValue);
+        final var convertedDataSchema = mapper.toDataObject(ksmlValue.type(), convertedAvroValue);
+        assertThat(convertedDataSchema)
+                .as("Verify conversion back to KSML Data")
+                .usingRecursiveComparison()
+                .isEqualTo(ksmlValue);
+    }
+
+    public static Stream<Arguments> reversibleMapping_KsmlToAvroAndBack() {
+        return getReversibleMappingTestData().stream()
+                .map(testData -> Arguments.of(
+                                named(testData.description, testData.ksmlValue()), testData.avroValue()
+                        )
+                );
+    }
+
+    public static Stream<Arguments> reversibleMapping_AvroToKsmlAndBack() {
+        return getReversibleMappingTestData().stream()
+                .map(testData -> Arguments.of(
+                                named(testData.description, testData.avroValue()), testData.ksmlValue()
+                        )
+                );
+    }
+
+    record MappingTestData(String description, Object avroValue,
+                           DataObject ksmlValue) {
+    }
+
+
+    static List<MappingTestData> getReversibleMappingTestData() {
+        final var testData = new LinkedList<MappingTestData>();
+        testData.add(new MappingTestData("Null", null, DataNull.INSTANCE));
+        testData.add(new MappingTestData("Null for boolean", null, new DataBoolean(null)));
+        testData.add(new MappingTestData("Null for byte", null, new DataByte(null)));
+        testData.add(new MappingTestData("Null for bytes", null, new DataBytes(null)));
+        testData.add(new MappingTestData("Null for double", null, new DataDouble(null)));
+        testData.add(new MappingTestData("Null for float", null, new DataFloat(null)));
+        testData.add(new MappingTestData("Null for integer", null, new DataInteger(null)));
+        testData.add(new MappingTestData("Null for long", null, new DataLong(null)));
+        testData.add(new MappingTestData("Null for short", null, new DataShort(null)));
+        testData.add(new MappingTestData("Null for string", null, new DataString(null)));
+
+        testData.add(new MappingTestData("Boolean - true", true, new DataBoolean(true)));
+        testData.add(new MappingTestData("Boolean - false", false, new DataBoolean(false)));
+        testData.add(new MappingTestData("Boolean - null", null, new DataBoolean(null)));
+        testData.add(new MappingTestData("String", "Hello", new DataString("Hello")));
+        testData.add(new MappingTestData("Integer", 10, new DataInteger(10)));
+        testData.add(new MappingTestData("Long", 100L, new DataLong(100L)));
+        testData.add(new MappingTestData("Float", 200.22F, new DataFloat(200.22F)));
+        testData.add(new MappingTestData("Double", 300.33D, new DataDouble(300.33D)));
+
+        final var namespace = "io.axual.testing.mapping";
+        final var schemaBuilder = SchemaBuilder.builder(namespace);
+        final var avroArrayStringSchema = schemaBuilder.array().items(schemaBuilder.stringType());
+        final var avroArrayStringData = new GenericData.Array<>(avroArrayStringSchema, List.of("A", "B", "C"));
+        final var ksmlArrayData = new DataList();
+        ksmlArrayData.add(new DataString("A"));
+        ksmlArrayData.add(new DataString("B"));
+        ksmlArrayData.add(new DataString("C"));
+        testData.add(new MappingTestData("List of String", avroArrayStringData, ksmlArrayData));
+
+        final var avroMapStringData = Map.of("Key1", "A", "Key2", "B", "Key3", "C", "Key4", "D");
+        final var ksmlMapStringData = new DataMap();
+        ksmlMapStringData.put("Key1", new DataString("A"));
+        ksmlMapStringData.put("Key2", new DataString("B"));
+        ksmlMapStringData.put("Key3", new DataString("C"));
+        ksmlMapStringData.put("Key4", new DataString("D"));
+        testData.add(new MappingTestData("Map String", avroMapStringData, ksmlMapStringData));
+
+        final var avroFixedBytes = new byte[]{0x03, 0x01, 0x02};
+        final var avroFixedSchema = schemaBuilder.fixed("TestFixed").size(3);
+        final var avroFixedData = new GenericData.Fixed(avroFixedSchema, avroFixedBytes);
+        final var ksmlFixedBytes = new byte[]{0x03, 0x01, 0x02};
+        final var ksmlFixedData = new DataBytes(ksmlFixedBytes);
+        testData.add(new MappingTestData("Map Fixed", avroFixedData, ksmlFixedData));
+
+        // superUnionSchema
+        final var avroSuperUnion = schemaBuilder
+                .unionOf()
+                .stringType()
+                .and().booleanType()
+                .and().doubleType()
+                .and().floatType()
+                .and().intType()
+                .and().longType()
+                .and().type(avroFixedSchema)
+                .endUnion();
+        // Test a map of arrays of union of all types
+        final var avroSuperUnionArraySchema = schemaBuilder.array().items(avroSuperUnion);
+        final var avroSuperMapData = Map.of(
+                "Key1", new GenericData.Array<>(avroSuperUnionArraySchema, List.of(true, 1, 2L))
+                , "Key2", new GenericData.Array<>(avroSuperUnionArraySchema, List.of(false, avroFixedBytes, 300.33D))
+                , "Key3", new GenericData.Array<>(avroSuperUnionArraySchema, List.of(200.22F))
+        );
+        final var ksmlSuperMapData = new DataMap();
+        final var ksmlSuperMapDataList1 = new DataList();
+        final var ksmlSuperMapDataList2 = new DataList();
+        final var ksmlSuperMapDataList3 = new DataList();
+        ksmlSuperMapDataList1.add(new DataBoolean(true));
+        ksmlSuperMapDataList1.add(new DataInteger(1));
+        ksmlSuperMapDataList1.add(new DataLong(2L));
+        ksmlSuperMapDataList2.add(new DataBoolean(false));
+        ksmlSuperMapDataList2.add(new DataBytes(ksmlFixedBytes));
+        ksmlSuperMapDataList2.add(new DataDouble(300.33D));
+        ksmlSuperMapDataList3.add(new DataFloat(200.22F));
+        ksmlSuperMapData.put("Key1", ksmlSuperMapDataList1);
+        ksmlSuperMapData.put("Key2", ksmlSuperMapDataList2);
+        ksmlSuperMapData.put("Key3", ksmlSuperMapDataList3);
+        testData.add(new MappingTestData("Map Super Union", avroSuperMapData, ksmlSuperMapData));
+
+        return testData;
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    @DisplayName("Unsupported DataObjects should result in an exception")
+    void unsupportedDataObjectThrowsException(DataObject dataObject) {
+        assertThatCode(() -> mapper.fromDataObject(dataObject))
+                .as("Exception thrown for DataObject %s", dataObject.getClass())
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("Can not convert DataObject to AVRO:");
+    }
+
+    public static Stream<Arguments> unsupportedDataObjectThrowsException() {
+        return Stream.of(
+                Arguments.of(named("DataTuple", new DataTuple())),
+                Arguments.of(named("Custom DataObject", new UnsupportedDataObject()))
+        );
+    }
+
+
+    static class UnsupportedDataObject implements DataObject {
+        @Override
+        public DataType type() {
+            return DataType.UNKNOWN;
+        }
+
+        @Override
+        public String toString(final Printer printer) {
+            return getClass().getSimpleName();
+        }
+    }
+
+    @Test
+    void mapToDataObjectConversion() {
+        final var arraysSchema = AvroTestUtil.loadSchema(SCHEMA_ARRAYS);
+        final var arrayDataRecord = AvroTestUtil.parseRecord(arraysSchema, DATA_ARRAYS_1);
+
+        final var expectedKsmlStructSchema = StructSchema.builder()
+                .namespace("io.axual.test")
+                .name("Arrays")
+                .doc("Record covering specific arrays")
+                .field(new DataField("stringList", new ListSchema(DataSchema.STRING_SCHEMA)))
+                .field(new DataField("intList", new ListSchema(DataSchema.INTEGER_SCHEMA)))
+                .field(new DataField("longList", new ListSchema(DataSchema.LONG_SCHEMA)))
+                .field(new DataField("floatList", new ListSchema(DataSchema.FLOAT_SCHEMA)))
+                .field(new DataField("doubleList", new ListSchema(DataSchema.DOUBLE_SCHEMA)))
+                .field(new DataField("booleanList", new ListSchema(DataSchema.BOOLEAN_SCHEMA)))
+                .build();
+        final var expectedKsmlStruct = new DataStruct(expectedKsmlStructSchema);
+        final var ksmlStringList = new DataList(DataString.DATATYPE);
+        Stream.of("a", "b", "c").map(DataString::new).forEach(ksmlStringList::add);
+        expectedKsmlStruct.put("stringList", ksmlStringList);
+
+        final var ksmlIntList = new DataList(DataInteger.DATATYPE);
+        Stream.of(1, 2, 3).map(DataInteger::new).forEach(ksmlIntList::add);
+        expectedKsmlStruct.put("intList", ksmlIntList);
+
+        final var ksmlLongList = new DataList(DataLong.DATATYPE);
+        Stream.of(1000L, 2000L, 3000L).map(DataLong::new).forEach(ksmlLongList::add);
+        expectedKsmlStruct.put("longList", ksmlLongList);
+
+        final var ksmlFloatList = new DataList(DataFloat.DATATYPE);
+        Stream.of(44.44F, 55.55F, 66.66F).map(DataFloat::new).forEach(ksmlFloatList::add);
+        expectedKsmlStruct.put("floatList", ksmlFloatList);
+
+        final var ksmlDoubleList = new DataList(DataDouble.DATATYPE);
+        Stream.of(77.77, 88.88, 99.99).map(DataDouble::new).forEach(ksmlDoubleList::add);
+        expectedKsmlStruct.put("doubleList", ksmlDoubleList);
+
+        final var ksmlBooleanList = new DataList(DataBoolean.DATATYPE);
+        Stream.of(true, true, false).map(DataBoolean::new).forEach(ksmlBooleanList::add);
+        expectedKsmlStruct.put("booleanList", ksmlBooleanList);
+
+        assertThat(mapper.toDataObject(DataType.UNKNOWN, arrayDataRecord))
+                .usingComparatorForType(new DoubleComparator(0.01), Double.class)
+                .usingRecursiveComparison()
+                .isEqualTo(expectedKsmlStruct);
+    }
+
 }

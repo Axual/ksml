@@ -1,0 +1,32 @@
+{
+  "stringList": [
+    "a",
+    "b",
+    "c"
+  ],
+  "intList": [
+    1,
+    2,
+    3
+  ],
+  "longList": [
+    1000,
+    2000,
+    3000
+  ],
+  "floatList": [
+    44.44,
+    55.55,
+    66.66
+  ],
+  "doubleList": [
+    77.77,
+    88.88,
+    99.99
+  ],
+  "booleanList": [
+    true,
+    true,
+    false
+  ]
+}

@@ -287,7 +287,7 @@ class AvroSchemaMapperTest {
     void avroSchemaToKsmlSchemaConversion(Schema avroSchema, DataSchema expectedDataSchema) {
         final var convertedDataSchema = schemaMapper.toDataSchema(avroSchema);
         assertThat(convertedDataSchema)
-                .as("Verify conversion to KSLM Data Schema")
+                .as("Verify conversion to KSML Data Schema")
                 .isEqualTo(expectedDataSchema);
         final var convertedAvroSchema = schemaMapper.fromDataSchema(convertedDataSchema);
         assertThat(convertedAvroSchema)
@@ -311,7 +311,7 @@ class AvroSchemaMapperTest {
     public static Stream<Arguments> avroSchemaToKsmlSchemaConversion() {
         return getSchemaTestData().stream()
                 .map(testData -> Arguments.of(
-                                named(testData.descripiton, testData.avroSchema()), testData.ksmlDataSchema()
+                                named(testData.description, testData.avroSchema()), testData.ksmlDataSchema()
                         )
                 );
     }
@@ -319,9 +319,13 @@ class AvroSchemaMapperTest {
     public static Stream<Arguments> ksmlSchemaToAvroSchemaConversion() {
         return getSchemaTestData().stream()
                 .map(testData -> Arguments.of(
-                                named(testData.descripiton, testData.ksmlDataSchema()), testData.avroSchema()
+                                named(testData.description, testData.ksmlDataSchema()), testData.avroSchema()
                         )
                 );
+    }
+
+    record SchemaPairAndDescription(String description, Schema avroSchema,
+                                    DataSchema ksmlDataSchema) {
     }
 
     static List<SchemaPairAndDescription> getSchemaTestData() {
@@ -462,8 +466,5 @@ class AvroSchemaMapperTest {
         }
     }
 
-    record SchemaPairAndDescription(String descripiton, Schema avroSchema,
-                                    DataSchema ksmlDataSchema) {
-    }
 
 }

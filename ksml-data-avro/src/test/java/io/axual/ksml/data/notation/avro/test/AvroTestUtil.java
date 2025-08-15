@@ -69,6 +69,10 @@ public final class AvroTestUtil {
      */
     public static final String SCHEMA_COLLECTIONS = SCHEMAS_DIR + "collections_record.avsc";
     /**
+     * Avro schema covering different primitive arrays in a record.
+     */
+    public static final String SCHEMA_ARRAYS = SCHEMAS_DIR + "arrays_record.avsc";
+    /**
      * Avro schema where all fields are optional via [null, T] unions, covering primitives and basic complex types.
      */
     public static final String SCHEMA_OPTIONAL = SCHEMAS_DIR + "optional_record.avsc";
@@ -86,6 +90,10 @@ public final class AvroTestUtil {
      * JSON Avro data for the Collections schema: arrays and maps populated; singleUnion is a string; unionList exercises all branches.
      */
     public static final String DATA_COLLECTIONS_1 = DATA_DIR + "collections_record_1.json";
+    /**
+     * JSON Avro data for the Arrays schema: arrays for all fields are populated.
+     */
+    public static final String DATA_ARRAYS_1 = DATA_DIR + "arrays_record_1.json";
     /**
      * JSON Avro data for the Collections schema with singleUnion set to null and empty collections.
      */
@@ -114,13 +122,25 @@ public final class AvroTestUtil {
      * @throws RuntimeException if the resource cannot be found or parsed
      */
     public static Schema loadSchema(String resourcePath) {
+        String schemaString = loadResourceToString(resourcePath);
+        Schema.Parser parser = new Schema.Parser();
+        return parser.parse(schemaString);
+    }
+
+    /**
+     * Load the string content of a classpath resource.
+     *
+     * @param resourcePath classpath-relative resource path to a file
+     * @return String content of the resource
+     * @throws RuntimeException if the resource cannot be found
+     */
+    public static String loadResourceToString(String resourcePath) {
         try (InputStream is = openResource(resourcePath)) {
-            if (is == null) throw new IllegalArgumentException("Schema resource not found: " + resourcePath);
-            final String text = readToString(is);
-            Schema.Parser parser = new Schema.Parser();
-            return parser.parse(text);
+            if (is == null)
+                throw new IllegalArgumentException("Resource not found: " + resourcePath);
+            return readToString(is);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to load schema: " + resourcePath, e);
+            throw new RuntimeException("Failed to load resource: " + resourcePath, e);
         }
     }
 

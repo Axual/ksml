@@ -99,8 +99,8 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
             case null -> null;
             case DataNull ignored -> null;
             case DataBoolean v -> v.value();
-            case DataByte v -> v.value();
-            case DataShort v -> v.value();
+            case DataByte v -> v.value() == null ? null : v.value().intValue();
+            case DataShort v -> v.value() == null ? null : v.value().intValue();
             case DataInteger v -> v.value();
             case DataLong v -> v.value();
             case DataFloat v -> v.value();
@@ -110,7 +110,8 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
             case DataList v -> convertDataListToAvroList(v, null);
             case DataMap v -> convertDataMapToAvroMap(v, null);
             case DataStruct v -> convertDataStructToAvroRecord(v);
-            case DataTuple v -> convertDataTupleToTuple(v);
+            // DataTuple has no real counterpart in Avro, KSML does not support Avro with Tuples right
+            // case DataTuple v -> convertDataTupleToTuple(v);
             default ->
                     throw new DataException("Can not convert DataObject to AVRO: " + value.getClass().getSimpleName());
         };
@@ -292,14 +293,6 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
         Map<String, Object> out = new TreeMap<>(DataStruct.COMPARATOR);
         struct.forEach((k, v) -> out.put(k, fromDataObject(v)));
         return out;
-    }
-
-    private io.axual.ksml.data.value.Tuple<Object> convertDataTupleToTuple(DataTuple value) {
-        Object[] elements = new Object[value.elements().size()];
-        for (int i = 0; i < value.elements().size(); i++) {
-            elements[i] = fromDataObject(value.elements().get(i));
-        }
-        return new io.axual.ksml.data.value.Tuple<>(elements);
     }
 
     // ========================= FROM DATAOBJECT HELPERS =========================

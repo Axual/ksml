@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "Arrays",
+  "namespace": "io.axual.test",
+  "doc": "Record covering specific arrays",
+  "fields": [
+    { "name": "stringList", "type": {"type": "array", "items": "string"} },
+    { "name": "intList", "type": {"type": "array", "items": "int"} },
+    { "name": "longList", "type": {"type": "array", "items": "long"} },
+    { "name": "floatList", "type": {"type": "array", "items": "float"} },
+    { "name": "doubleList", "type": {"type": "array", "items": "double"} },
+    { "name": "booleanList", "type": {"type": "array", "items": "boolean"} }
+  ]
+}
