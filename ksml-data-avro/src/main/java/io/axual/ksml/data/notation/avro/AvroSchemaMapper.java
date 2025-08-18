@@ -76,47 +76,31 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
             return DataSchema.NULL_SCHEMA;
         }
 
-        switch (schema.getType()) {
-            case STRING -> {
-                return DataSchema.STRING_SCHEMA;
-            }
-            case BYTES -> {
-                return DataSchema.BYTES_SCHEMA;
-            }
-            case INT -> {
-                return DataSchema.INTEGER_SCHEMA;
-            }
-            case LONG -> {
-                return DataSchema.LONG_SCHEMA;
-            }
-            case FLOAT -> {
-                return DataSchema.FLOAT_SCHEMA;
-            }
-            case DOUBLE -> {
-                return DataSchema.DOUBLE_SCHEMA;
-            }
-            case BOOLEAN -> {
-                return DataSchema.BOOLEAN_SCHEMA;
-            }
-            case NULL -> {
-                return DataSchema.NULL_SCHEMA;
-            }
+        return switch (schema.getType()) {
+            case STRING -> DataSchema.STRING_SCHEMA;
+            case BYTES -> DataSchema.BYTES_SCHEMA;
+            case INT -> DataSchema.INTEGER_SCHEMA;
+            case LONG -> DataSchema.LONG_SCHEMA;
+            case FLOAT -> DataSchema.FLOAT_SCHEMA;
+            case DOUBLE -> DataSchema.DOUBLE_SCHEMA;
+            case BOOLEAN -> DataSchema.BOOLEAN_SCHEMA;
+            case NULL -> DataSchema.NULL_SCHEMA;
             case ENUM -> {
                 final String enumDefault = schema.getEnumDefault();
                 final Symbol defaultSymbol = enumDefault == null ? null : new Symbol(enumDefault);
                 final List<Symbol> symbols = schema.getEnumSymbols().stream().map(Symbol::new).toList();
 
-                return new EnumSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), symbols, defaultSymbol);
+                yield new EnumSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), symbols, defaultSymbol);
             }
             case ARRAY -> {
                 final Schema elementSchema = schema.getElementType();
                 final DataSchema elementDataSchema = toDataSchema(elementSchema);
-                return new ListSchema(elementDataSchema);
+                yield new ListSchema(elementDataSchema);
             }
             case MAP -> {
                 final Schema valueSchema = schema.getValueType();
                 final DataSchema valueDataSchema = toDataSchema(valueSchema);
-                return new MapSchema(valueDataSchema);
+                yield new MapSchema(valueDataSchema);
             }
             case UNION -> {
                 final List<Schema> unionSchemas = schema.getTypes();
@@ -129,18 +113,13 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
                     };
                     unionDataFields[i] = new DataField(memberDataSchema);
                 }
-                return new UnionSchema(unionDataFields);
+                yield new UnionSchema(unionDataFields);
             }
-            case FIXED -> {
-                return new FixedSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getFixedSize());
-            }
-            case RECORD -> {
-                return new StructSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), convertAvroFieldsToDataFields(schema.getFields()));
-            }
-            default -> {
-                return null;
-            }
-        }
+            case FIXED ->
+                    new FixedSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), schema.getFixedSize());
+            case RECORD ->
+                    new StructSchema(schema.getNamespace(), schema.getName(), schema.getDoc(), convertAvroFieldsToDataFields(schema.getFields()));
+        };
     }
 
     /**
