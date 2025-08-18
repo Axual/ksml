@@ -15,11 +15,13 @@ stores:
   customer_transaction_history:
     type: keyValue
     persistent: true
+    keyType: string
+    valueType: json
 
 ## Functions
 functions:
   ml_fraud_prediction:
-    type: mapValues
+    type: valueTransformer
     parameters:
       - name: value
         type: object

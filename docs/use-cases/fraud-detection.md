@@ -32,6 +32,28 @@ Imagine you're building a fraud detection system for a financial institution tha
 3. Generate real-time alerts for high-risk activities
 4. Maintain a low rate of false positives
 
+## Define the topics for the use case
+
+In earlier tutorials, you created a Docker Compose file with all the necessary containers. For this use case guide, some other topics
+are needed.
+To have these created, open the `docker-compose.yml` in the examples directory, and find the definitions for the `kafka-setup` container
+which creates the topics.
+<br>
+Change the definition so that the startup command for the setup container (the `command` section) looks like the following:
+
+??? info "`command` section for the kafka-setup container"
+
+    ```yaml
+    command: "bash -c 'echo Creating topics... && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic credit_card_transactions && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic high_value_transactions && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic unusual_location_alerts && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic transaction_velocity_alerts && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic transaction_pattern_alerts && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic fraud_alerts && \
+                           kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic fraud_notifications'"
+    ```
+
 ## Defining the Data Model
 
 Our transaction data will have the following structure:
