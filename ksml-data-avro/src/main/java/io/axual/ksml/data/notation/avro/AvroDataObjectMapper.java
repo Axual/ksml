@@ -50,7 +50,6 @@ import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
-import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
@@ -60,11 +59,30 @@ import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.util.ConvertUtil;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * DataObjectMapper implementation for Avro native values.
+ *
+ * <p>Converts between Avro runtime types (GenericRecord, GenericData.EnumSymbol, GenericFixed,
+ * Utf8, byte[]/ByteBuffer, arrays/maps, primitives) and KSML DataObject instances according
+ * to the rules in ksml-data/DEVELOPER_GUIDE.md. Reverse mapping produces Avro-compatible
+ * values, optionally using an Avro Schema derived from a StructSchema when present.</p>
+ */
 @Slf4j
 public class AvroDataObjectMapper implements DataObjectMapper<Object> {
     private static final AvroSchemaMapper SCHEMA_MAPPER = new AvroSchemaMapper();
     private static final DataTypeDataSchemaMapper TYPE_SCHEMA_MAPPER = new DataTypeDataSchemaMapper();
 
+    /**
+     * Convert an Avro-native value into a KSML DataObject.
+     *
+     * <p>Handles Utf8, ByteBuffer, GenericFixed, GenericRecord, EnumSymbol, List and Map,
+     * falling back to primitive conversion. Nulls are converted using ConvertUtil based on
+     * the expected DataType.</p>
+     *
+     * @param expected the expected target DataType used for null handling and numeric coercion
+     * @param value    the Avro-native value to convert (may be null)
+     * @return the corresponding KSML DataObject
+     */
     @Override
     public DataObject toDataObject(DataType expected, Object value) {
         if (value == null) return ConvertUtil.convertNullToDataObject(expected);
@@ -93,6 +111,17 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
         return primitiveToDataObject(expected, value);
     }
 
+    /**
+     * Convert a KSML DataObject into an Avro-compatible value.
+     *
+     * <p>When a Struct with a StructSchema is provided, an Avro record is created using a
+     * schema derived from that StructSchema. Scalars are converted to their Avro-native
+     * counterparts, with byte and short widened to int to satisfy Avro's numeric model.</p>
+     *
+     * @param value the KSML DataObject to convert
+     * @return an Avro-native value (may be null)
+     * @throws io.axual.ksml.data.exception.DataException if the value type is unsupported
+     */
     @Override
     public Object fromDataObject(DataObject value) {
         return switch (value) {
