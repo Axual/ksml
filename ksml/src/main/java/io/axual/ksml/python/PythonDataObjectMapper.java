@@ -32,6 +32,7 @@ import io.axual.ksml.util.ExecutionUtil;
 import org.graalvm.polyglot.Value;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 
 public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
@@ -58,13 +59,21 @@ public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
     }
 
     private DataObject polyglotValueToDataUnion(UnionType unionType, Object value) {
-        for (final var memberType : unionType.memberTypes()) {
+        final var memberTypesInitialScan = new ArrayList<>(Arrays.asList(unionType.memberTypes()));
+        // Remove any null memberTypes and scan the other types
+        final var hasNullType = memberTypesInitialScan.removeIf(memberType -> DataNull.DATATYPE.equals(memberType.type()));
+        for (final var memberType : memberTypesInitialScan) {
             try {
                 var result = toDataObject(memberType.type(), value);
                 if (result != null) return result;
             } catch (Exception e) {
                 // Ignore exception and move to next value type
             }
+        }
+        // Handle the nullType scenario
+        if(hasNullType) {
+            var result = toDataObject(DataNull.DATATYPE, value);
+            if (result != null) return result;
         }
 
         final var sourceValue = toDataObject(value);
