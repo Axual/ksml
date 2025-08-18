@@ -134,7 +134,7 @@ class AvroSchemaMapperTest {
         assertThat(singleUnion.required()).isFalse();
         assertThat(singleUnion.schema()).isInstanceOf(UnionSchema.class);
         UnionSchema singleUnionSchema = (UnionSchema) singleUnion.schema();
-        assertThat(singleUnionSchema.memberSchemas()).hasSize(5);
+        assertThat(singleUnionSchema.memberSchemas()).hasSize(4);
         // Ensure record X and enum Y are present among union member schemas
         boolean hasRecordX = false;
         boolean hasEnumY = false;
@@ -149,7 +149,7 @@ class AvroSchemaMapperTest {
             if (ms instanceof StructSchema s && s.name().equals("X")) hasRecordX = true;
             if (ms instanceof EnumSchema e && e.name().equals("Y")) hasEnumY = true;
         }
-        assertThat(hasNull).as("The null schema in the union should NOT be filtered out").isTrue();
+        assertThat(hasNull).as("The null schema in the union should be filtered out").isFalse();
         assertThat(hasString).isTrue();
         assertThat(hasInt).isTrue();
         assertThat(hasRecordX).isTrue();
@@ -162,7 +162,7 @@ class AvroSchemaMapperTest {
         DataSchema listValue = ((ListSchema) unionList.schema()).valueSchema();
         assertThat(listValue).isInstanceOf(UnionSchema.class);
         UnionSchema unionListValue = (UnionSchema) listValue;
-        assertThat(unionListValue.memberSchemas()).hasSize(5);
+        assertThat(unionListValue.memberSchemas()).hasSize(4);
 
         // Round-trip stability
         Schema backToAvro = schemaMapper.fromDataSchema(ksml);
@@ -202,23 +202,44 @@ class AvroSchemaMapperTest {
         }
 
         // Type assertions
+        assertThat(ksml.field("optStr"))
+                .returns(false, DataField::required)
+                .returns(DataSchema.STRING_SCHEMA, DataField::schema);
+        assertThat(ksml.field("optInt"))
+                .returns(false, DataField::required)
+                .returns(DataSchema.INTEGER_SCHEMA, DataField::schema);
+        assertThat(ksml.field("optLong"))
+                .returns(false, DataField::required)
+                .returns(DataSchema.LONG_SCHEMA, DataField::schema);
+        assertThat(ksml.field("optFloat"))
+                .returns(false, DataField::required)
+                .returns(DataSchema.FLOAT_SCHEMA, DataField::schema);
+        assertThat(ksml.field("optDouble"))
+                .returns(false, DataField::required)
+                .returns(DataSchema.DOUBLE_SCHEMA, DataField::schema);
+        assertThat(ksml.field("optBool"))
+                .returns(false, DataField::required)
+                .returns(DataSchema.BOOLEAN_SCHEMA, DataField::schema);
+        assertThat(ksml.field("optBytes"))
+                .returns(false, DataField::required)
+                .returns(DataSchema.BYTES_SCHEMA, DataField::schema);
 
-        assertThat(ksml.field("optStr").schema()).isEqualTo(optionalSchema(DataSchema.STRING_SCHEMA));
-        assertThat(ksml.field("optInt").schema()).isEqualTo(optionalSchema(DataSchema.INTEGER_SCHEMA));
-        assertThat(ksml.field("optLong").schema()).isEqualTo(optionalSchema(DataSchema.LONG_SCHEMA));
-        assertThat(ksml.field("optFloat").schema()).isEqualTo(optionalSchema(DataSchema.FLOAT_SCHEMA));
-        assertThat(ksml.field("optDouble").schema()).isEqualTo(optionalSchema(DataSchema.DOUBLE_SCHEMA));
-        assertThat(ksml.field("optBool").schema()).isEqualTo(optionalSchema(DataSchema.BOOLEAN_SCHEMA));
-        assertThat(ksml.field("optBytes").schema()).isEqualTo(optionalSchema(DataSchema.BYTES_SCHEMA));
+        assertThat(ksml.field("optStrList"))
+                .returns(false, DataField::required)
+                .returns(new ListSchema(DataSchema.STRING_SCHEMA), DataField::schema);
+        assertThat(ksml.field("optIntMap"))
+                .returns(false, DataField::required)
+                .returns(new MapSchema(DataSchema.INTEGER_SCHEMA), DataField::schema);
 
-        assertThat(ksml.field("optStrList").schema()).isEqualTo(optionalSchema(new ListSchema(DataSchema.STRING_SCHEMA)));
-        assertThat(ksml.field("optIntMap").schema()).isEqualTo(optionalSchema(new MapSchema(DataSchema.INTEGER_SCHEMA)));
+        final StructSchema expectedOptRec = new StructSchema("io.axual.test", "OptInner", null, List.of(new DataField("id", DataSchema.INTEGER_SCHEMA)));
+        assertThat(ksml.field("optRec"))
+                .returns(false, DataField::required)
+                .returns(expectedOptRec, DataField::schema);
 
-        final UnionSchema expectedOptRec = optionalSchema(new StructSchema("io.axual.test", "OptInner", null, List.of(new DataField("id", DataSchema.INTEGER_SCHEMA))));
-        assertThat(ksml.field("optRec").schema()).isEqualTo(expectedOptRec);
-
-        final UnionSchema expectedOptEnum = optionalSchema(new EnumSchema("io.axual.test", "OptColor", null, List.of(new Symbol("RED"), new Symbol("GREEN"), new Symbol("BLUE"))));
-        assertThat(ksml.field("optEnum").schema()).isEqualTo(expectedOptEnum);
+        final EnumSchema expectedOptEnum = new EnumSchema("io.axual.test", "OptColor", null, List.of(new Symbol("RED"), new Symbol("GREEN"), new Symbol("BLUE")));
+        assertThat(ksml.field("optEnum"))
+                .returns(false, DataField::required)
+                .returns(expectedOptEnum, DataField::schema);
 
         // Round-trip back to Avro and check defaults & union w/ null
         Schema back = schemaMapper.fromDataSchema(ksml);
@@ -417,7 +438,7 @@ class AvroSchemaMapperTest {
                 .name("TestingAdvancedRecord")
                 .doc("Some Advanced record")
                 .field(new DataField("booleanRequired", DataSchema.BOOLEAN_SCHEMA))
-                .field(new DataField("booleanOptional", ksmlOptional(DataSchema.BOOLEAN_SCHEMA), null, DataField.NO_TAG, false))
+                .field(new DataField("booleanOptional", DataSchema.BOOLEAN_SCHEMA, null, DataField.NO_TAG, false))
                 .field(new DataField("booleanNullable", ksmlNullable(DataSchema.BOOLEAN_SCHEMA), null, DataField.NO_TAG, true, false, new DataValue(true)))
                 .field(new DataField("recordSimple", ksmlRecordSimple, null, DataField.NO_TAG, true))
                 .field(new DataField("enumeration", ksmlEnum, null, DataField.NO_TAG, true))

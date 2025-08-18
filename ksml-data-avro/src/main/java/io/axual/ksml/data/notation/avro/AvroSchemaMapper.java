@@ -225,12 +225,25 @@ public class AvroSchemaMapper implements DataSchemaMapper<Schema> {
     }
 
     private SchemaAndRequired convertMemberSchemasToToDataUnionAndRequired(List<Schema> unionTypes) {
-        // If a type "null" is found in AVRO schema, the respective property is considered optional, so here we detect
-        // this fact and return the result Boolean as "false" indicating a required property.
-        var isRequired = !unionTypes.contains(AVRO_NULL_TYPE);
+        // Determine required based on the first member of the union: required when the first is not NULL
+        final boolean firstIsNull = !unionTypes.isEmpty() && unionTypes.getFirst().getType() == Schema.Type.NULL;
+        final boolean isRequired = !firstIsNull;
 
-        // Create a new union schema, and mark it as optional if the NULL schema was in it
-        return new SchemaAndRequired(new UnionSchema(convertAvroSchemaToDataFields(unionTypes).toArray(DataField[]::new)), isRequired);
+        // If the first schema is NULL, remove only that leading NULL from the member types; keep other NULLs intact
+        final List<Schema> memberSchemas = firstIsNull ? unionTypes.subList(1, unionTypes.size()) : unionTypes;
+
+        if (memberSchemas.isEmpty()) {
+            // Apparently only null was supplied, technically possible. Return null schema
+            return new SchemaAndRequired(DataSchema.NULL_SCHEMA, isRequired);
+        }
+        if(memberSchemas.size() > 1){
+            // Create a new union schema with the adjusted member list
+            return new SchemaAndRequired(new UnionSchema(convertAvroSchemaToDataFields(memberSchemas).toArray(DataField[]::new)), isRequired);
+        }
+
+        // Only one member left, return that schema
+        return new SchemaAndRequired(toDataSchema(memberSchemas.getFirst()), isRequired);
+
     }
 
     private List<DataField> convertAvroSchemaToDataFields(List<Schema> schemas) {
