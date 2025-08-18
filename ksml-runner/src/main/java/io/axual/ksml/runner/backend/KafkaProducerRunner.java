@@ -64,7 +64,7 @@ public class KafkaProducerRunner implements Runner {
             this.definitions = definitions;
             // Check if a resolving client is required
             if (ResolvingClientConfig.configRequiresResolving(processedKafkaConfig)) {
-                log.info("Using resolving clients for producer processing");
+                log.info("Using resolving Kafka clients");
                 // Replace the deprecated configuration keys with the current ones
                 ResolvingClientConfig.replaceDeprecatedConfigKeys(processedKafkaConfig);
             }
