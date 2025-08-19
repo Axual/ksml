@@ -21,14 +21,21 @@ package io.axual.ksml.data.object;
  */
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.function.BiConsumer;
+
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.util.ValuePrinter;
 import lombok.Getter;
-
-import java.util.*;
-import java.util.function.BiConsumer;
 
 /**
  * Represents a data structure that emulates a schema-based, key-value map with automatic sorting capabilities.
@@ -241,7 +248,12 @@ public class DataStruct implements DataObject {
      */
     public DataString getAsString(String key) {
         final var result = get(key);
-        return result instanceof DataString str ? str : result != null ? new DataString(result.toString()) : null;
+        if (result instanceof DataString str) {
+            return str;
+        } else {
+            if (result != null) return new DataString(result.toString());
+            return null;
+        }
     }
 
     /**
@@ -342,14 +354,7 @@ public class DataStruct implements DataObject {
         if (other == null || getClass() != other.getClass()) return false;
         DataStruct that = (DataStruct) other;
         if (!type.isAssignableFrom(that.type) || !that.type.isAssignableFrom(type)) return false;
-        if (contents.size() != that.contents.size()) return false;
-        for (final var content : contents.entrySet()) {
-            final var thisContent = content.getValue();
-            final var thatContent = that.contents.get(content.getKey());
-            if (!thisContent.equals(thatContent))
-                return false;
-        }
-        return true;
+        return Objects.equals(contents, that.contents);
     }
 
     @Override

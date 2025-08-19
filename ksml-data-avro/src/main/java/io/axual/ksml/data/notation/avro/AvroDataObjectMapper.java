@@ -140,7 +140,6 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
             case DataMap v -> convertDataMapToAvroMap(v, null);
             case DataStruct v -> convertDataStructToAvroRecord(v);
             // DataTuple has no real counterpart in Avro, KSML does not support Avro with Tuples right
-            // case DataTuple v -> convertDataTupleToTuple(v);
             default ->
                     throw new DataException("Can not convert DataObject to AVRO: " + value.getClass().getSimpleName());
         };
@@ -327,10 +326,10 @@ public class AvroDataObjectMapper implements DataObjectMapper<Object> {
     // ========================= FROM DATAOBJECT HELPERS =========================
 
     private Object convertDataStructToAvroRecord(DataStruct struct) {
+        if (struct.isNull()) return null;
+
         // Build Avro schema from struct type if available
-        StructSchema ksmlSchema = struct.type() instanceof StructType st ? st.schema() : null;
-        if (ksmlSchema == null && struct.type() instanceof StructType st2)
-            ksmlSchema = st2.schema();
+        StructSchema ksmlSchema = struct.type() != null ? struct.type().schema() : null;
         Schema avroSchema = ksmlSchema != null ? SCHEMA_MAPPER.fromDataSchema(ksmlSchema) : null;
         if (avroSchema == null || avroSchema.getType() != Schema.Type.RECORD) {
             // Fallback to native map conversion if no schema

@@ -26,8 +26,8 @@ import org.apache.avro.SchemaBuilder;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.util.Utf8;
-import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.util.DoubleComparator;
+import org.assertj.core.util.FloatComparator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -66,7 +66,6 @@ import io.axual.ksml.data.type.DataType;
 import static io.axual.ksml.data.notation.avro.test.AvroTestUtil.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.within;
 import static org.junit.jupiter.api.Named.named;
 
 /**
@@ -346,6 +345,61 @@ class AvroDataObjectMapperTest {
 
     @ParameterizedTest
     @MethodSource
+    @DisplayName("Test null handling for mapping to DataObject")
+    void toDataObject_NullHandling(DataObject expectedDataObject) {
+        assertThat(mapper.toDataObject(expectedDataObject.type(), null))
+                .as("Verify conversion to DataObject")
+                .usingComparatorForType(new DoubleComparator(0.01), Double.class)
+                .usingComparatorForType(new FloatComparator(0.01f), Float.class)
+                .isEqualTo(expectedDataObject);
+    }
+
+    static Stream<Arguments> toDataObject_NullHandling() {
+        return Stream.of(
+                Arguments.of(named("DataBoolean", new DataBoolean(null))),
+                Arguments.of(named("DataByte", new DataByte(null))),
+                Arguments.of(named("DataBytes", new DataBytes(null))),
+                Arguments.of(named("DataDouble", new DataDouble(null))),
+                Arguments.of(named("DataFloat", new DataFloat(null))),
+                Arguments.of(named("DataInteger", new DataInteger(null))),
+                Arguments.of(named("DataLong", new DataLong(null))),
+                Arguments.of(named("DataNull", DataNull.INSTANCE)),
+                Arguments.of(named("DataShort", new DataShort(null))),
+                Arguments.of(named("DataString", new DataString(null))),
+                Arguments.of(named("DataStruct", new DataStruct(null, true))),
+                Arguments.of(named("DataList", new DataList(DataString.DATATYPE, true))),
+                Arguments.of(named("DataMap", new DataMap(DataString.DATATYPE, true)))
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    @DisplayName("Test null handling for mapping from DataObject")
+    void fromDataObject_NullHandlingExplicitDataObjects(DataObject dataObject) {
+        assertThat(mapper.fromDataObject(dataObject)).isNull();
+    }
+
+    static Stream<Arguments> fromDataObject_NullHandlingExplicitDataObjects() {
+        return Stream.of(
+                Arguments.of(named("DataBoolean", new DataBoolean(null))),
+                Arguments.of(named("DataByte", new DataByte(null))),
+                Arguments.of(named("DataBytes", new DataBytes(null))),
+                Arguments.of(named("DataDouble", new DataDouble(null))),
+                Arguments.of(named("DataFloat", new DataFloat(null))),
+                Arguments.of(named("DataInteger", new DataInteger(null))),
+                Arguments.of(named("DataLong", new DataLong(null))),
+                Arguments.of(named("DataNull", DataNull.INSTANCE)),
+                Arguments.of(named("DataShort", new DataShort(null))),
+                Arguments.of(named("DataString", new DataString(null))),
+                Arguments.of(named("DataStruct", new DataStruct(null, true))),
+                Arguments.of(named("DataList", new DataList(DataString.DATATYPE, true))),
+                Arguments.of(named("DataMap", new DataMap(DataString.DATATYPE, true)))
+        );
+    }
+
+
+    @ParameterizedTest
+    @MethodSource
     @DisplayName("Test reversible object mapping from Avro to KSML and back")
     void reversibleMapping_AvroToKsmlAndBack(Object avroValue, DataObject expectedKsmlValue) {
         final var convertedKsmlValue = mapper.toDataObject(expectedKsmlValue.type(), avroValue);
@@ -356,6 +410,8 @@ class AvroDataObjectMapperTest {
         final var convertedAvroValue = mapper.fromDataObject(convertedKsmlValue);
         assertThat(convertedAvroValue)
                 .as("Verify conversion back to Avro Data")
+                .usingComparatorForType(new DoubleComparator(0.01d), Double.class)
+                .usingComparatorForType(new FloatComparator(0.01f), Float.class)
                 .usingRecursiveComparison()
                 .isEqualTo(avroValue);
     }
@@ -372,6 +428,8 @@ class AvroDataObjectMapperTest {
         final var convertedDataSchema = mapper.toDataObject(ksmlValue.type(), convertedAvroValue);
         assertThat(convertedDataSchema)
                 .as("Verify conversion back to KSML Data")
+                .usingComparatorForType(new DoubleComparator(0.01d), Double.class)
+                .usingComparatorForType(new FloatComparator(0.01f), Float.class)
                 .usingRecursiveComparison()
                 .isEqualTo(ksmlValue);
     }
