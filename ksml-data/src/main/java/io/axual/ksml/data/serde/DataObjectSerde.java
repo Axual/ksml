@@ -35,9 +35,13 @@ import java.util.Map;
 /**
  * A Serde that maps between native Java objects and KSML DataObjects during serialization/deserialization.
  * <p>
- * It uses a pair of mappers: one for mapping between native and DataObject representations (nativeMapper),
- * and one for mapping between serde types and DataObject representations (serdeMapper). Exceptions during
- * (de)serialization are wrapped in DataException with a readable context.
+ * It uses a pair of mappers:
+ * - one for mapping between serde types and DataObject representations (serdeMapper), used during serialization and
+ *   deserialization; and
+ * - one for mapping - potentially native - objects coming from Kafka Streams topologies to DataObject representations
+ *   (nativeMapper), used only during serialization.
+ * <p>
+ * Exceptions during (de)serialization are wrapped in DataException with a readable context.
  */
 public class DataObjectSerde implements Serde<Object>, Serializer<Object>, Deserializer<Object> {
     private static final String DESERIALIZATION_ERROR_MSG = " message could not be deserialized from topic ";
