@@ -93,12 +93,6 @@ class KafkaStreamsRunnerTest {
         final var expectedWithoutPatterns = new HashMap<>(minimalConfig);
         EXPECTED_CONFIG_WITHOUT_PATTERNS = Collections.unmodifiableMap(expectedWithoutPatterns);
 
-        final var inputWithCompatPatters = new HashMap<>(minimalConfig);
-        inputWithCompatPatters.put(ResolvingClientConfig.COMPAT_TOPIC_PATTERN_CONFIG, "{AnotherKey}-{topic}");
-        inputWithCompatPatters.put(ResolvingClientConfig.COMPAT_GROUP_ID_PATTERN_CONFIG, "{AnotherKey}-{group.id}");
-        inputWithCompatPatters.put(ResolvingClientConfig.COMPAT_TRANSACTIONAL_ID_PATTERN_CONFIG, "{AnotherKey}-{transactional.id}");
-        INPUT_CONFIG_WITH_COMPAT_PATTERNS = Collections.unmodifiableMap(inputWithCompatPatters);
-
         final var inputWithCurrentPatters = new HashMap<>(minimalConfig);
         inputWithCurrentPatters.put(ResolvingClientConfig.TOPIC_PATTERN_CONFIG, "{AnotherKey}-{topic}");
         inputWithCurrentPatters.put(ResolvingClientConfig.GROUP_ID_PATTERN_CONFIG, "{AnotherKey}-{group.id}");
@@ -115,16 +109,8 @@ class KafkaStreamsRunnerTest {
 
     private static final Map<String, String> INPUT_CONFIG_WITHOUT_PATTERNS;
     private static final Map<String, String> EXPECTED_CONFIG_WITHOUT_PATTERNS;
-    private static final Map<String, String> INPUT_CONFIG_WITH_COMPAT_PATTERNS;
     private static final Map<String, String> INPUT_CONFIG_WITH_CURRENT_PATTERNS;
     private static final Map<String, String> EXPECTED_CONFIG_WITH_CURRENT_PATTERN;
-
-    private static final String[] RESTRICTED_CONFIGS = new String[]{
-            ResolvingClientConfig.COMPAT_TOPIC_PATTERN_CONFIG,
-            ResolvingClientConfig.COMPAT_GROUP_ID_PATTERN_CONFIG,
-            ResolvingClientConfig.COMPAT_TRANSACTIONAL_ID_PATTERN_CONFIG
-    };
-
 
     /**
      * Provides test data for testing the Config record's pattern handling.
@@ -141,8 +127,7 @@ class KafkaStreamsRunnerTest {
     static Stream<Arguments> testConfigData() {
         return Stream.of(
                 Arguments.of(named("No pattern should remain the same", INPUT_CONFIG_WITHOUT_PATTERNS), EXPECTED_CONFIG_WITHOUT_PATTERNS),
-                Arguments.of(named("Current pattern should remain the same", INPUT_CONFIG_WITH_CURRENT_PATTERNS), EXPECTED_CONFIG_WITH_CURRENT_PATTERN),
-                Arguments.of(named("Compat pattern is returned with current pattern config fields", INPUT_CONFIG_WITH_COMPAT_PATTERNS), EXPECTED_CONFIG_WITH_CURRENT_PATTERN)
+                Arguments.of(named("Current pattern should remain the same", INPUT_CONFIG_WITH_CURRENT_PATTERNS), EXPECTED_CONFIG_WITH_CURRENT_PATTERN)
         );
     }
 
@@ -168,8 +153,7 @@ class KafkaStreamsRunnerTest {
                 .kafkaConfig(inputConfig)
                 .build())
                 .extracting(KafkaStreamsRunner.Config::kafkaConfig, InstanceOfAssertFactories.MAP)
-                .containsAllEntriesOf(EXPECTED_CONFIG_WITHOUT_PATTERNS)
-                .doesNotContainKeys(RESTRICTED_CONFIGS);
+                .containsAllEntriesOf(expectedConfig);
     }
 
     /**
@@ -669,7 +653,7 @@ class KafkaStreamsRunnerTest {
         AtomicReference<KafkaStreams.State> streamState = new AtomicReference<>(KafkaStreams.State.CREATED);
         lenient().doAnswer(a -> streamState.get()).when(mockStreams).state();
 
-        final var closeAnswer = new Answer<Object>() {
+        final var closeAnswer = new Answer<>() {
             @Override
             public Object answer(final InvocationOnMock invocation) throws Throwable {
                 streamState.set(KafkaStreams.State.NOT_RUNNING);
@@ -709,9 +693,7 @@ class KafkaStreamsRunnerTest {
                 .as("Check that Kafka Streams is initialized with correct properties")
                 .size().isOne().returnToIterable()
                 .first(InstanceOfAssertFactories.MAP)
-                .containsAllEntriesOf(EXPECTED_CONFIG_WITHOUT_PATTERNS)
-                .doesNotContainKeys(RESTRICTED_CONFIGS);
-
+                .containsAllEntriesOf(EXPECTED_CONFIG_WITHOUT_PATTERNS);
 
         // start returning state running
         streamState.set(KafkaStreams.State.RUNNING);
