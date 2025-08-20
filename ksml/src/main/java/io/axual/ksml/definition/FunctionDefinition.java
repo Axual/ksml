@@ -118,6 +118,14 @@ public class FunctionDefinition extends AbstractDefinition {
         throw functionResultError("Function type requires a tuple \"(keyType,valueType)\" result type");
     }
 
+    public FunctionDefinition withTupleOrListOfTuplesResult() {
+        final var definition = this.withAResult();
+        if (definition.resultType().dataType() instanceof UserTupleType
+                || (definition.resultType().dataType() instanceof ListType listResult
+                && listResult.valueType() instanceof UserTupleType)) return definition;
+        throw functionResultError("Function type requires a tuple \"(keyType,valueType)\", or list of tuples \"[(keyType,valueType)]\" result type");
+    }
+
     protected TopologyException functionResultError(String message) {
         throw new TopologyException(message + ": function=" + name() + ", type=" + type() + ", resultType=" + resultType());
     }
